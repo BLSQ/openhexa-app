@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  jupyterhub:
+    build: jupyterhub
+    container_name: jupyterhub
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_JUPYTER_CONTAINER=jupyter/datascience-notebook:5197709e9f23
+      - DOCKER_NETWORK_NAME=habari_default
+      - HUB_IP=jupyterhub
+      - ADMIN_USERNAMES=habari
+    ports:
+      - 8000:8000
+    restart: on-failure
+
+  jupyterlab:
+    image: jupyter/datascience-notebook:5197709e9f23
+    network_mode: none
+    command: echo
