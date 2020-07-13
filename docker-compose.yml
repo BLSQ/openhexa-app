@@ -7,15 +7,29 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - DOCKER_JUPYTER_CONTAINER=jupyter/datascience-notebook:5197709e9f23
-      - DOCKER_NETWORK_NAME=habari_default
-      - HUB_IP=jupyterhub
-      - ADMIN_USERNAMES=habari
+      DOCKER_JUPYTER_CONTAINER: jupyter/datascience-notebook:5197709e9f23
+      DOCKER_NETWORK_NAME: habari_default
+      HUB_IP: jupyterhub
+      ADMIN_USERNAMES: habari
+      POSTGRES_HOST: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HUB_DB: jupyterhub
+      POSTGRES_CONTENT_DB: habari_dev
     ports:
       - 8000:8000
+    depends_on:
+      - db
     restart: on-failure
 
-  jupyterlab:
-    image: jupyter/datascience-notebook:5197709e9f23
-    network_mode: none
-    command: echo
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./postgres/data:/var/lib/postgresql/data
