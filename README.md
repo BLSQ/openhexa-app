@@ -47,36 +47,18 @@ You will also need to create (at least) one namespace:
 
 ```bash
 NAMESPACE=your_namespace
-kubectl create $NAMESPACE 
+kubectl create namespace $NAMESPACE
 ```
 
-### Deploy
-
-First, copy the `config.dist.yaml` file:
-
-```bash
-cp config.dist.yaml config.yaml
-```
-
-Edit the file to fit your needs. The sample file provides is commented with links to the relevant parts of the 
-Zero To JupyterHub documentation.
-
-You can then deploy using the following command:
-
-```bash
-helm upgrade --install habari jupyterhub/jupyterhub \
-  --namespace $NAMESPACE \
-  --version=0.9.0 \
-  --values config.yaml
-  --set singleuser.image.tag=some_tag
-```
-
-### Updating the single-user server image
+### (Re-)build the single-user server image
 
 We use a custom single-user server image, based on the 
 [`jupyter/datascience-notebook`(https://hub.docker.com/r/jupyter/datascience-notebook/) image.
 
-To deploy and updated version, you need to build, tag and push the jupyter image:
+You will need to push it to an image repository, first when you set up Habari for the fist time, and then every time 
+you make a change to the custom image.
+
+To deploy the image, build, tag and push it:
 
 ```bash
 docker build -t habari-jupyter:latest jupyter
@@ -94,6 +76,90 @@ docker tag habari-jupyter:latest eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
 docker push eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
 ```
 
+Please note that using `latest` as tag might be problematic. If you encounter issues (such as new single-server nodes 
+being created using a previous version of the image), using incremental values or commit hashes for tags might be a 
+solution. We should consider automating this process.
+
+### Create a GitHub OAuth application
+
+As of now, Habari uses Github to authenticate its users. The setup is documented [here](https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github).
+
+Please note that you will need to whitelist both admin and regular users using their Github usernames
+(see the "Adapt the helm values file" section below).
+
+### Create a S3 bucket
+
+Habari uses a S3 bucket to store shared data and notebooks. You need to:
+
+- Create a bucket in S3
+- Create a user with a policy that grants access to the S3 bucket
+- Create an access key for the user, and note the associated `Access key ID` and `Secret access key`
+  (you will need them later)
+
+Example policy:
+
+```json
+{
+    "Version": "2020-05-29",
+    "Statement": [
+        {
+            "Sid": "AllAccess",
+            "Action": "s3:*",
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::bucket-name",
+                "arn:aws:s3:::bucket-name/*"
+            ]
+        }
+    ]
+}
+```
+
+### Adapt the helm values file
+
+We will use a [Helm values file](https://helm.sh/docs/chart_template_guide/values_files/) to configure the deployment.
+
+First, copy the `config.dist.yaml` file:
+
+```bash
+cp config.dist.yaml config.yaml
+```
+
+Edit the file to fit your needs. The sample file is commented with links to the relevant parts of the 
+Zero To JupyterHub documentation. Most of the edits you need to make are straightforward.
+
+The `singleuser.image` section can be a bit tricky. Here is an example for images hosted on GCR:
+
+```yaml
+singleuser:
+  image:
+    name: eu.gcr.io/<gcp-project-id>/habari-jupyter
+    tag:  latest
+    pullSecrets:
+      - gcr-pull
+```
+
+### Deploy
+
+You can then deploy using the following command:
+
+```bash
+helm upgrade --install habari jupyterhub/jupyterhub \
+  --namespace $NAMESPACE \
+  --version=0.9.0 \
+  --values config.yaml
+```
+
+### Uninstalling
+
+Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/turn-off.html) 
+section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specificities for your 
+cloud provider, but you will need to launch the following commands:
+
+```bash
+helm uninstall habari --namespace $NAMESPACE
+kubectl delete namespace $NAMESPACE
+```
 
 ### Multi-tenancy
 
@@ -112,11 +178,20 @@ Another possibility would be to handle that at the CI/CD level.
 Local setup
 -----------
 
-(TBC, out of date)
+This setup is very different from the Kubernetes setup described above. We could consider using a local Kubernetes 
+cluster for testing / experimenting with the platform as well.
 
-Habari provides a docker-based environment, useful for a local development environment.
+The following steps should allow you to test parts of the platform on your local machine:
 
-To launch it, just build the image and up:
+### Copy and adapt env file
+
+```bash
+cp .env.dist .env
+```
+
+Adapt the copied file to your needs.
+
+### Build and launch
 
 ```bash
 docker-compose build
@@ -124,11 +199,3 @@ docker-compose up
 ```
 
 The platform will be available at http://localhost:8000/.
-
-You will then need to:
-
-1. Create a user account using the `habari` username and a password of your choice (
-   the signup is available at http://localhost:8000/hub/signup)
-2. Log in with this account (http://localhost:8000/hub/login)
-
-This account will be the first admin account, that you can use in turn to create other users.

@@ -22,7 +22,7 @@ singleuser:
   image:
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#customize-an-existing-docker-image
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image
-    name: the_full_image_name
+    name: the_full_image_name_on_the_image_repository
     tag:  latest  # this can be set using --set singleuser.image.tag=some_tag
     pullSecrets:  # if needed - see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets
   extraEnv:
