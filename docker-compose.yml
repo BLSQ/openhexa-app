@@ -7,29 +7,17 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      DOCKER_JUPYTER_CONTAINER: jupyter/datascience-notebook:5197709e9f23
+      DOCKER_JUPYTER_CONTAINER: habari_jupyter
       DOCKER_NETWORK_NAME: habari_default
       HUB_IP: jupyterhub
-      ADMIN_USERNAMES: habari
-      POSTGRES_HOST: db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HUB_DB: jupyterhub
-      POSTGRES_CONTENT_DB: habari_dev
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      S3_BUCKET_NAME:
     ports:
       - 8000:8000
-    depends_on:
-      - db
     restart: on-failure
 
-  db:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    ports:
-      - 5432:5432
-    volumes:
-      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./postgres/data:/var/lib/postgresql/data
+  jupyter:  # just used for building - the jupyterhub service will spawn jupyter containers on demand
+    build: jupyter
+    image: habari_jupyter
+    command: echo

@@ -1,0 +1,32 @@
+proxy:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/setup-jupyterhub.html
+  secretToken: change_me  # can be generated with "openssl rand -hex 32"
+auth:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
+  type: github
+  admin:
+    access: true
+    users:
+      - an_admin_github_username
+      - another_admin_github_username
+  whitelist:
+    users:
+      - a_regular_user_github_username
+      - another_regular_user_github_username
+  github:
+    clientId: a_github_oauth_app_client_id
+    clientSecret: a_github_oauth_app_client_secret
+    callbackUrl: "http(s)://your-hub-host/hub/oauth_callback"
+singleuser:
+  defaultUrl: "/lab"
+  image:
+    # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#customize-an-existing-docker-image
+    # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image
+    name: the_full_image_name
+    tag:  latest  # this can be set using --set singleuser.image.tag=some_tag
+    pullSecrets:  # if needed - see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets
+  extraEnv:
+    # will be used by s3contents and s3fs - see https://github.com/danielfrg/s3contents
+    AWS_ACCESS_KEY_ID: your_aws_access_key_id
+    AWS_SECRET_ACCESS_KEY: your_aws_secret_access_key
+    S3_BUCKET_NAME: the_project_s3_bucket_name
