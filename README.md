@@ -183,13 +183,17 @@ cluster for testing / experimenting with the platform as well.
 
 The following steps should allow you to test parts of the platform on your local machine:
 
+### Create a GitHub OAuth application and a S3 bucket
+
+Same instructions as for the Kubernetes setup described above.
+
 ### Copy and adapt env file
 
 ```bash
 cp .env.dist .env
 ```
 
-Adapt the copied file to your needs.
+Adapt the copied file to your needs, using the Github / AWS credentials created earlier.
 
 ### Build and launch
 
