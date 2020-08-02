@@ -16,7 +16,11 @@ c.DockerSpawner.debug = True
 # https://github.com/defeo/jupyterhub-docker/issues/5)
 c.DockerSpawner.remove = True
 c.DockerSpawner.network_name = os.environ['DOCKER_NETWORK_NAME']
-c.DockerSpawner.env_keep = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "S3_BUCKET_NAME"]
+c.DockerSpawner.env_keep = ["AWS_ACCESS_KEY_ID",
+                            "AWS_SECRET_ACCESS_KEY",
+                            "S3_BUCKET_NAME"]
+c.DockerSpawner.volumes = {f'/Users/pierre/Projects/bluesquare/dsp/habari/local_secrets': '/etc/secrets'}
+c.DockerSpawner.environment = {"GOOGLE_APPLICATION_CREDENTIALS": "/etc/secrets/service-account.json"}
 c.JupyterHub.hub_ip = '0.0.0.0'  # listen on all interfaces
 c.JupyterHub.hub_connect_ip = os.environ["HUB_IP"]  # ip as seen on the docker network. Can also be a hostname.
 
