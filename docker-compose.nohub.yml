@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  jupyter:
+    build: jupyter
+    image: habari_jupyter
+    environment:
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      S3_BUCKET_NAME:
+      GOOGLE_APPLICATION_CREDENTIALS:
+      GCS_BUCKET_NAME:
+      DEBUG: "true"
+    volumes:
+      - ./local_secrets:/etc/secrets
+      - ./jupyter/local_modules:/opt/local_modules
+      - ./jupyter/jupyter_config:/etc/jupyter
+    ports:
+      - 8888:8888
+    command: ["jupyter", "lab", "--ip=0.0.0.0"]
