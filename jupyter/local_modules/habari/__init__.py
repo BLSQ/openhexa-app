@@ -9,16 +9,23 @@ from traitlets import Unicode
 import dateutil.parser
 import mimetypes
 from base64 import encodebytes, decodebytes
+import nbformat
 
 
 class NoOpCheckpoints(GenericCheckpointsMixin, Checkpoints):
     """requires the following methods:"""
 
     def create_file_checkpoint(self, content, format, path):
-        return {"id": "checkpoint", "last_modified": dateutil.parser.parse("2020-05-29T10:00:00Z")}
+        return {
+            "id": "checkpoint",
+            "last_modified": dateutil.parser.parse("2020-05-29T10:00:00Z"),
+        }
 
     def create_notebook_checkpoint(self, nb, path):
-        return {"id": "checkpoint", "last_modified": dateutil.parser.parse("2020-05-29T10:00:00Z")}
+        return {
+            "id": "checkpoint",
+            "last_modified": dateutil.parser.parse("2020-05-29T10:00:00Z"),
+        }
 
     def get_file_checkpoint(self, checkpoint_id, path):
         """ -> {'type': 'file', 'content': <str>, 'format': {'text', 'base64'}}"""
@@ -46,7 +53,9 @@ class GCSManager(ContentsManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._fs = gcsfs.GCSFileSystem(cache_timeout=0)
+        self._fs = gcsfs.GCSFileSystem(
+            cache_timeout=1
+        )  # issue with cache_timeout=0 - see fsspec CacheDir
 
     def get(self, path, content: bool = True, type=None, format=None):
         """ Takes a path for an entity and returns its model
@@ -87,6 +96,56 @@ class GCSManager(ContentsManager):
                     400, "%s is not a directory" % path, reason="bad type"
                 )
             model = self._file_model(path, content=content, format=format)
+        return model
+
+    def save(self, model, path=""):
+        """Save the file model and return the model with no content."""
+        path = path.strip("/")
+
+        if "type" not in model:
+            raise web.HTTPError(400, "No file type provided")
+        if "content" not in model and model["type"] != "directory":
+            raise web.HTTPError(400, "No file content provided")
+
+        gcs_path = self._get_gcs_path(path)
+        self.log.debug("Saving %s", gcs_path)
+
+        self.run_pre_save_hook(model=model, path=path)
+
+        try:
+            if model["type"] == "notebook":  # TODO: implement
+                nb = nbformat.from_dict(model["content"])
+                self.check_and_sign(nb, path)
+                self._save_notebook(os_path, nb)
+                # One checkpoint should always exist for notebooks.
+                if not self.checkpoints.list_checkpoints(path):
+                    self.create_checkpoint(path)
+            elif model["type"] == "file":
+                # Missing format will be handled internally by _save_file.
+                self._save_file(gcs_path, model["content"], model.get("format"))
+            elif model["type"] == "directory":
+                self._save_directory(os_path, model, path)
+            else:
+                raise web.HTTPError(400, "Unhandled contents type: %s" % model["type"])
+        except web.HTTPError:
+            raise
+        except Exception as e:
+            self.log.error("Error while saving file: %s %s", path, e, exc_info=True)
+            raise web.HTTPError(
+                500, "Unexpected error while saving file: %s %s" % (path, e)
+            )
+
+        validation_message = None
+        if model["type"] == "notebook":
+            self.validate_notebook_model(model)
+            validation_message = model.get("message", None)
+
+        model = self.get(path, content=False)
+        if validation_message:
+            model["message"] = validation_message
+
+        # self.run_post_save_hook(model=model, os_path=os_path)
+
         return model
 
     def file_exists(self, path: str = "") -> bool:
@@ -171,7 +230,9 @@ class GCSManager(ContentsManager):
         return model
 
     def should_list(self, name):
-        if name == "":  # empty files returned by GCS / directory markers? (try gsutil ls gs://bucket/dir/)
+        if (
+            name == ""
+        ):  # empty files returned by GCS / directory markers? (try gsutil ls gs://bucket/dir/)
             return False
 
         return super().should_list(name)
@@ -255,3 +316,23 @@ class GCSManager(ContentsManager):
                         400, "%s is not UTF-8 encoded" % gcs_path, reason="bad format",
                     )
         return encodebytes(bcontent).decode("ascii"), "base64"
+
+    def _save_file(
+        self, gcs_path: str, content: str, format: typing.Literal["text", "base64"]
+    ):
+        """Save content of a generic file."""
+        if format not in {"text", "base64"}:
+            raise web.HTTPError(
+                400, "Must specify format of file contents as 'text' or 'base64'",
+            )
+        try:
+            if format == "text":
+                bcontent = content.encode("utf8")
+            else:
+                b64_bytes = content.encode("ascii")
+                bcontent = decodebytes(b64_bytes)
+        except Exception as e:
+            raise web.HTTPError(400, "Encoding error saving %s: %s" % (gcs_path, e))
+
+        with self._fs.open(gcs_path, "wb") as f:
+            f.write(bcontent)
