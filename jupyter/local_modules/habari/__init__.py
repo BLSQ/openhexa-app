@@ -1,7 +1,7 @@
 import typing
 
 from notebook.services.contents.checkpoints import GenericCheckpointsMixin, Checkpoints
-from notebook.utils import is_file_hidden
+from notebook.utils import is_file_hidden, is_hidden
 from tornado import web
 from notebook.services.contents.manager import ContentsManager
 import gcsfs
@@ -46,6 +46,26 @@ class NoOpCheckpoints(GenericCheckpointsMixin, Checkpoints):
         """renames checkpoint from old path to new path"""
 
 
+class HabariGCSFileSystem(gcsfs.GCSFileSystem):
+    def __init__(self):
+        super().__init__(
+            cache_timeout=1
+        )  # issue with cache_timeout=0 - see fsspec CacheDir
+
+    def mkdir(self, path, **kwargs):
+        if len(path) > 1 and "/" in path:
+            with self.open(path, "wb") as f:
+                f.path += "/"
+                f.key += "/"
+
+        super().mkdir(path, **kwargs)
+
+    def ls(self, path, detail=False, **kwargs):
+        objects = super().ls(path, detail, **kwargs)
+
+        return [o for o in objects if o["name"].rstrip("/") != path]
+
+
 class GCSManager(ContentsManager):
     bucket = Unicode(config=True)
     checkpoints_class = NoOpCheckpoints
@@ -53,32 +73,17 @@ class GCSManager(ContentsManager):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._fs = gcsfs.GCSFileSystem(
-            cache_timeout=1
-        )  # issue with cache_timeout=0 - see fsspec CacheDir
+        self._fs = HabariGCSFileSystem()
 
-    def get(self, path, content: bool = True, type=None, format=None):
-        """ Takes a path for an entity and returns its model
+    def get(
+        self,
+        path,
+        content: bool = True,
+        type: typing.Literal["file", "notebook", "directory"] = None,
+        format: typing.Literal["text", "base64"] = None,
+    ):
+        path = path.strip("/")
 
-        Parameters
-        ----------
-        path : str
-            the API path that describes the relative path for the target
-        content : bool
-            Whether to include the contents in the reply
-        type : str, optional
-            The requested type - 'file', 'notebook', or 'directory'.
-            Will raise HTTPError 400 if the content doesn't match.
-        format : str, optional
-            The requested format for file contents. 'text' or 'base64'.
-            Ignored if this returns a notebook or directory model.
-
-        Returns
-        -------
-        model : dict
-            the contents model. If content=True, returns the contents
-            of the file or directory as well.
-        """
         if not self.exists(path):
             raise web.HTTPError(404, "No such file or directory: %s" % path)
 
@@ -99,7 +104,6 @@ class GCSManager(ContentsManager):
         return model
 
     def save(self, model, path=""):
-        """Save the file model and return the model with no content."""
         path = path.strip("/")
 
         if "type" not in model:
@@ -124,7 +128,7 @@ class GCSManager(ContentsManager):
                 # Missing format will be handled internally by _save_file.
                 self._save_file(gcs_path, model["content"], model.get("format"))
             elif model["type"] == "directory":
-                self._save_directory(os_path, model, path)
+                self._save_directory(gcs_path)
             else:
                 raise web.HTTPError(400, "Unhandled contents type: %s" % model["type"])
         except web.HTTPError:
@@ -149,21 +153,20 @@ class GCSManager(ContentsManager):
         return model
 
     def file_exists(self, path: str = "") -> bool:
+        path = path.strip("/")
         gcs_path = self._get_gcs_path(path)
 
         return self._fs.isfile(gcs_path)
 
     def dir_exists(self, path: str) -> bool:
+        path = path.strip("/")
+
         gcs_path = self._get_gcs_path(path)
 
         return self._fs.isdir(gcs_path)
 
     def _get_gcs_path(self, path: str) -> str:
-        bucket_path = self.bucket
-        if path == "/":
-            return bucket_path
-
-        return f"{bucket_path}/{path.strip('/')}"
+        return f"{self.bucket}/{path}".strip("/")
 
     def _base_model(self, path: str):
         gcs_path = self._get_gcs_path(path)
@@ -336,3 +339,16 @@ class GCSManager(ContentsManager):
 
         with self._fs.open(gcs_path, "wb") as f:
             f.write(bcontent)
+
+    def _save_directory(self, gcs_path: str):
+        """create a directory"""
+        if is_hidden(gcs_path, self.root_dir) and not self.allow_hidden:
+            raise web.HTTPError(400, "Cannot create hidden directory %r" % gcs_path)
+        if not self._fs.exists(
+            gcs_path
+        ):  # create empty "keep" file - no real directory in GCS
+            self._fs.mkdir(gcs_path)
+        elif not self._fs.isdir(gcs_path):
+            raise web.HTTPError(400, "Not a directory: %s" % (gcs_path))
+        else:
+            self.log.debug("Directory %r already exists", gcs_path)
