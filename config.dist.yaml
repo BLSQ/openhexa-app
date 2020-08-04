@@ -30,3 +30,4 @@ singleuser:
     AWS_ACCESS_KEY_ID: your_aws_access_key_id
     AWS_SECRET_ACCESS_KEY: your_aws_secret_access_key
     S3_BUCKET_NAME: the_project_s3_bucket_name
+    S3_BUCKET_PATH: the_project_s3_bucket_path  # Something like (S3) Some bucket

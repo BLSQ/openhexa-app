@@ -195,6 +195,8 @@ cp .env.dist .env
 
 Adapt the copied file to your needs, using the Github / AWS credentials created earlier.
 
+You also need to set `PROJECT_PATH` to the absolute path of the project directory on your machine.
+
 ### Build and launch
 
 ```bash

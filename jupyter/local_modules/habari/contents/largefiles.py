@@ -1,3 +1,4 @@
+import base64
 import contextvars
 from tornado import web
 from s3contents.genericmanager import GenericContentsManager
@@ -8,26 +9,25 @@ content_chunks = contextvars.ContextVar("jupyterlab_content_chunks", default={})
 
 
 def store_content_chunk(path: str, content: str):
-    """Store a chunk in the registry (content is base64-encoded)"""
+    """Store a base64 chunk in the registry as bytes"""
 
     current_value = content_chunks.get()
 
     if path not in current_value:
         current_value[path] = []
 
-    current_value[path].append(content)
+    current_value[path].append(base64.b64decode(content.encode("ascii"), validate=True))
 
 
 def assemble_chunks(path: str) -> str:
-    """Assemble the base64 chunks into a single string"""
+    """Assemble the chunk bytes into a single base64 string"""
 
     current_value = content_chunks.get()
 
     if path not in current_value:
         raise ValueError(f"No chunk for path {path}")
 
-    # Those nasty newlines would cause issues when decoding the base64 values
-    return "".join(current_value[path]).replace("\n", "")
+    return base64.b64encode(b"".join(current_value[path])).decode("ascii")
 
 
 def delete_chunks(path):
