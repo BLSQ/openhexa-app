@@ -11,7 +11,7 @@ c.MultiContentsManager.manager_classes = {
     "": LargeFileManager,
     os.environ["S3_BUCKET_PATH"]: S3ContentsManager,
 }
-c.HybridContentsManager.manager_kwargs = {
+c.MultiContentsManager.manager_kwargs = {
     "": {},
     os.environ["S3_BUCKET_PATH"]: {
         "access_key_id": os.environ["AWS_ACCESS_KEY_ID"],
