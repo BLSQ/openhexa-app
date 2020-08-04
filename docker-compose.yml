@@ -9,9 +9,11 @@ services:
     environment:
       DOCKER_JUPYTER_CONTAINER: habari_jupyter
       DOCKER_NETWORK_NAME: habari_default
+      PROJECT_PATH:  # absolute path to the project directory - only useful in local environment
       HUB_IP: jupyterhub
       AWS_ACCESS_KEY_ID:
       AWS_SECRET_ACCESS_KEY:
+      S3_BUCKET_PATH:
       S3_BUCKET_NAME:
       OAUTH_CALLBACK_URL:
       OAUTH_CLIENT_ID:
