@@ -10,6 +10,7 @@ services:
       S3_BUCKET_NAME:
       GOOGLE_APPLICATION_CREDENTIALS:
       GCS_BUCKET_NAME:
+      GCS_PROJECT:
       DEBUG: "true"
     volumes:
       - ./local_secrets:/etc/secrets
