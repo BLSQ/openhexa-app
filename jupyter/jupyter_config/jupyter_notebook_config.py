@@ -17,6 +17,7 @@ c.MultiContentsManager.manager_kwargs = {
         "access_key_id": os.environ["AWS_ACCESS_KEY_ID"],
         "secret_access_key": os.environ["AWS_SECRET_ACCESS_KEY"],
         "bucket": os.environ["S3_BUCKET_NAME"],
+        "root_dir": f"./.{os.environ['S3_BUCKET_PATH']}/",
     },
 }
 
