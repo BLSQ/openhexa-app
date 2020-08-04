@@ -8,22 +8,22 @@ c = get_config()
 
 c.NotebookApp.contents_manager_class = MultiContentsManager
 c.MultiContentsManager.manager_classes = {
-    "Bucket 1 (GCP)": GCSContentsManager,
-    "Bucket 2 (S3)": S3ContentsManager,
-    "Personal workspace (local)": LargeFileManager,
+    "": LargeFileManager,
+    "(GCS) habari-test": GCSContentsManager,
+    "(S3) blsq-habari-test": S3ContentsManager,
 }
 c.HybridContentsManager.manager_kwargs = {
-    "Bucket 1 (GCP)": {
+    "": {},
+    "(GCS) habari-test": {
         "project": os.environ["GCS_PROJECT"],
         "token": "/etc/secrets/service-account.json",
         "bucket": os.environ["GCS_BUCKET_NAME"],
     },
-    "Bucket 2 (S3)": {
+    "(S3) blsq-habari-test": {
         "access_key_id": os.environ["AWS_ACCESS_KEY_ID"],
         "secret_access_key": os.environ["AWS_SECRET_ACCESS_KEY"],
         "bucket": os.environ["S3_BUCKET_NAME"],
     },
-    "Personal workspace (local)": {"root_dir": "/home/jovyan"},
 }
 
 c.GCSManager.bucket = os.environ["GCS_BUCKET_NAME"]
