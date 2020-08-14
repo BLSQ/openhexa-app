@@ -7,11 +7,8 @@ services:
     environment:
       AWS_ACCESS_KEY_ID:
       AWS_SECRET_ACCESS_KEY:
-      S3_BUCKET_NAME:
-      S3_BUCKET_PATH:
-      GOOGLE_APPLICATION_CREDENTIALS:
-      GCS_BUCKET_NAME:
-      GCS_PROJECT:
+      S3_BUCKET_NAME_LAKE:
+      S3_BUCKET_NAME_NOTEBOOKS:
       DEBUG: "true"
     volumes:
       - ./local_secrets:/etc/secrets

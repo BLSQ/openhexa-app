@@ -19,8 +19,8 @@ c.DockerSpawner.network_name = os.environ["DOCKER_NETWORK_NAME"]
 c.DockerSpawner.env_keep = [
     "AWS_ACCESS_KEY_ID",
     "AWS_SECRET_ACCESS_KEY",
-    "S3_BUCKET_NAME",
-    "S3_BUCKET_PATH",
+    "S3_BUCKET_NAME_LAKE",
+    "S3_BUCKET_NAME_NOTEBOOKS",
 ]
 # Mount a volume for sensitive files (they cannot be part of the Docker image)
 c.DockerSpawner.volumes = {

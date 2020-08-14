@@ -9,15 +9,20 @@ c = get_config()
 c.NotebookApp.contents_manager_class = MultiContentsManager
 c.MultiContentsManager.manager_classes = {
     "": LargeFileManager,
-    os.environ["S3_BUCKET_PATH"]: S3ContentsManager,
+    f"s3:{os.environ['S3_BUCKET_NAME_LAKE']}": S3ContentsManager,
+    f"s3:{os.environ['S3_BUCKET_NAME_NOTEBOOKS']}": S3ContentsManager,
 }
 c.MultiContentsManager.manager_kwargs = {
     "": {},
-    os.environ["S3_BUCKET_PATH"]: {
+    f"s3:{os.environ['S3_BUCKET_NAME_LAKE']}": {
         "access_key_id": os.environ["AWS_ACCESS_KEY_ID"],
         "secret_access_key": os.environ["AWS_SECRET_ACCESS_KEY"],
-        "bucket": os.environ["S3_BUCKET_NAME"],
-        "root_dir": f"./.{os.environ['S3_BUCKET_PATH']}/",
+        "bucket": os.environ["S3_BUCKET_NAME_LAKE"],
+    },
+    f"s3:{os.environ['S3_BUCKET_NAME_NOTEBOOKS']}": {
+        "access_key_id": os.environ["AWS_ACCESS_KEY_ID"],
+        "secret_access_key": os.environ["AWS_SECRET_ACCESS_KEY"],
+        "bucket": os.environ["S3_BUCKET_NAME_NOTEBOOKS"],
     },
 }
 
