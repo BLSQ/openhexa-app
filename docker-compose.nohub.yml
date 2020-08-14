@@ -4,12 +4,20 @@ services:
   jupyter:
     build: jupyter
     image: habari_jupyter
+    depends_on:
+      - explore_database
     environment:
       AWS_ACCESS_KEY_ID:
       AWS_SECRET_ACCESS_KEY:
       S3_BUCKET_NAME_LAKE:
       S3_BUCKET_NAME_NOTEBOOKS:
       DEBUG: "true"
+      EXPLORE_DB_URL: postgresql://explorer:explorer@explore_database:5432/habari-dev
+      EXPLORE_DB_USER: explorer
+      EXPLORE_DB_PASSWORD: explorer
+      EXPLORE_DB_HOST: explore_database
+      EXPLORE_DB_PORT: 5432
+      EXPLORE_DB_NAME: habari-dev
     volumes:
       - ./local_secrets:/etc/secrets
       - ./jupyter/local_modules:/opt/local_modules
@@ -17,3 +25,12 @@ services:
     ports:
       - 8888:8888
     command: ["jupyter", "lab", "--ip=0.0.0.0"]
+
+  explore_database:
+    image: postgis/postgis:12-3.0
+    environment:
+      POSTGRES_USER: explorer
+      POSTGRES_PASSWORD: explorer
+      POSTGRES_DB: habari-dev
+    ports:
+      - 5432:5432

@@ -21,6 +21,12 @@ c.DockerSpawner.env_keep = [
     "AWS_SECRET_ACCESS_KEY",
     "S3_BUCKET_NAME_LAKE",
     "S3_BUCKET_NAME_NOTEBOOKS",
+    "EXPLORE_DB_URL",
+    "EXPLORE_DB_USER",
+    "EXPLORE_DB_PASSWORD",
+    "EXPLORE_DB_HOST",
+    "EXPLORE_DB_PORT",
+    "EXPLORE_DB_NAME",
 ]
 # Mount a volume for sensitive files (they cannot be part of the Docker image)
 c.DockerSpawner.volumes = {
@@ -36,3 +42,6 @@ c.JupyterHub.hub_connect_ip = os.environ[
 
 # Oauthenticator (see https://github.com/jupyterhub/oauthenticator)
 c.JupyterHub.authenticator_class = GitHubOAuthenticator
+
+# Use Postgres as the hub database
+c.JupyterHub.db_url = os.environ["HUB_DB_URL"]
