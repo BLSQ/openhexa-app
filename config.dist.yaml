@@ -2,6 +2,8 @@ proxy:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/setup-jupyterhub.html
   secretToken: change_me  # can be generated with "openssl rand -hex 32"
 hub:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html?highlight=database#hub-db
+  # (this is the "hub" database described in the README)
   db:
     type: postgres
     url: postgresql://user:password@host/database_name
@@ -35,3 +37,5 @@ singleuser:
     AWS_SECRET_ACCESS_KEY: your_aws_secret_access_key
     S3_BUCKET_NAME_LAKE: the_project_s3_lake_bucket_name
     S3_BUCKET_NAME_NOTEBOOKS: the_project_s3_notebooks_bucket_name
+    # (this is the "explore" database described in the README)
+    EXPLORE_DB_URL: postgresql://user:password@host/database_name

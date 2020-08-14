@@ -134,7 +134,7 @@ Example policy:
 Each Habari project uses two PostgreSQL databases:
 
 1. The "hub" database, used as a datastore for Jupyterhub itself (instead of the default SQLite database)
-1. The "exploration" database, intended as a storage for user-generated data (the initial use case is to provide 
+1. The "explore" database, intended as a storage for user-generated data (the initial use case is to provide 
    a data source for external BI tools such as Tableau)
 
 ### Adapt the helm values file
