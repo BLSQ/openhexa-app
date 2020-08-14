@@ -6,7 +6,7 @@ hub:
   # (this is the "hub" database described in the README)
   db:
     type: postgres
-    url: postgresql://user:password@host/database_name
+    url: postgresql://user:password@host:port/database_name
 auth:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
   type: github
@@ -38,4 +38,10 @@ singleuser:
     S3_BUCKET_NAME_LAKE: the_project_s3_lake_bucket_name
     S3_BUCKET_NAME_NOTEBOOKS: the_project_s3_notebooks_bucket_name
     # (this is the "explore" database described in the README)
-    EXPLORE_DB_URL: postgresql://user:password@host/database_name
+    EXPLORE_DB_URL: postgresql://user:password@host:port/database_name
+    # we also provide individual db parts as env variables for the R environment
+    EXPLORE_DB_USER: user
+    EXPLORE_DB_PASSWORD: password
+    EXPLORE_DB_HOST: host
+    EXPLORE_DB_PORT: port  # (usually 5432)
+    EXPLORE_DB_NAME: database_name

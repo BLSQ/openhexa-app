@@ -13,6 +13,11 @@ services:
       S3_BUCKET_NAME_NOTEBOOKS:
       DEBUG: "true"
       EXPLORE_DB_URL: postgresql://explorer:explorer@explore_database:5432/habari-dev
+      EXPLORE_DB_USER: explorer
+      EXPLORE_DB_PASSWORD: explorer
+      EXPLORE_DB_HOST: explore_database
+      EXPLORE_DB_PORT: 5432
+      EXPLORE_DB_NAME: habari-dev
     volumes:
       - ./local_secrets:/etc/secrets
       - ./jupyter/local_modules:/opt/local_modules
