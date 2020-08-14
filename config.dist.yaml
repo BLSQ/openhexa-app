@@ -1,6 +1,10 @@
 proxy:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/setup-jupyterhub.html
   secretToken: change_me  # can be generated with "openssl rand -hex 32"
+hub:
+  db:
+    type: postgres
+    url: postgresql://user:password@host/database_name
 auth:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
   type: github
