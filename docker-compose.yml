@@ -40,7 +40,7 @@ services:
       POSTGRES_DB: habari-dev
 
   explore_database:
-    image: postgis:12.3
+    image: postgis/postgis:12-3.0
     environment:
       POSTGRES_USER: explorer
       POSTGRES_PASSWORD: explorer
