@@ -1,6 +1,6 @@
 FROM jupyter/datascience-notebook:acb539921413
 
-RUN pip install s3contents hybridcontents
+RUN pip install s3contents hybridcontents psycopg2-binary
 
 COPY jupyter_config /etc/jupyter/
 

@@ -21,6 +21,7 @@ c.DockerSpawner.env_keep = [
     "AWS_SECRET_ACCESS_KEY",
     "S3_BUCKET_NAME_LAKE",
     "S3_BUCKET_NAME_NOTEBOOKS",
+    "EXPLORE_DB_URL",
 ]
 # Mount a volume for sensitive files (they cannot be part of the Docker image)
 c.DockerSpawner.volumes = {

@@ -4,14 +4,16 @@ services:
   jupyterhub:
     build: jupyterhub
     container_name: jupyterhub
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - hub_database
+      - explore_database
     environment:
       DOCKER_JUPYTER_CONTAINER: habari_jupyter
       DOCKER_NETWORK_NAME: habari_default
       PROJECT_PATH:  # absolute path to the project directory - only useful in local environment
       HUB_IP: jupyterhub
-      HUB_DB_URL: postgresql://jupyterhub:jupyterhub@hub_database:5432/jupyterhub
+      HUB_DB_URL: postgresql://jupyterhub:jupyterhub@hub_database:5432/habari-dev
+      EXPLORE_DB_URL: postgresql://explorer:explorer@explore_database:5432/habari-dev
       AWS_ACCESS_KEY_ID:
       AWS_SECRET_ACCESS_KEY:
       S3_BUCKET_NAME_LAKE:
@@ -19,6 +21,8 @@ services:
       OAUTH_CALLBACK_URL:
       OAUTH_CLIENT_ID:
       OAUTH_CLIENT_SECRET:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8000:8000
     restart: on-failure
@@ -33,6 +37,13 @@ services:
     environment:
       POSTGRES_USER: jupyterhub
       POSTGRES_PASSWORD: jupyterhub
-      POSTGRES_DB: jupyterhub
+      POSTGRES_DB: habari-dev
+
+  explore_database:
+    image: postgis:12.3
+    environment:
+      POSTGRES_USER: explorer
+      POSTGRES_PASSWORD: explorer
+      POSTGRES_DB: habari-dev
     ports:
-      - 5433:5432
+      - 5432:5432
