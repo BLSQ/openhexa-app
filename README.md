@@ -87,12 +87,17 @@ As of now, Habari uses Github to authenticate its users. The setup is documented
 Please note that you will need to whitelist both admin and regular users using their Github usernames
 (see the "Adapt the helm values file" section below).
 
-### Create a S3 bucket
+### Create S3 buckets
 
-Habari uses a S3 bucket to store shared data and notebooks. You need to:
+In its present form, Habari uses two S3 buckets:
 
-- Create a bucket in S3
-- Create a user with a policy that grants access to the S3 bucket
+- A "Data lake" bucket to store data
+- A "Notebooks" bucket for shared notebooks
+
+You need to:
+
+- Create the two buckets in S3
+- Create a user with a policy that grants access to the S3 buckets
 - Create an access key for the user, and note the associated `Access key ID` and `Secret access key`
   (you will need them later)
 
@@ -107,8 +112,17 @@ Example policy:
             "Action": "s3:*",
             "Effect": "Allow",
             "Resource": [
-                "arn:aws:s3:::bucket-name",
-                "arn:aws:s3:::bucket-name/*"
+                "arn:aws:s3:::bucket-name-lake",
+                "arn:aws:s3:::bucket-name-lake/*"
+            ]
+        },
+        {
+            "Sid": "AllAccess",
+            "Action": "s3:*",
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::bucket-name-notebooks",
+                "arn:aws:s3:::bucket-name-notebooks/*"
             ]
         }
     ]
@@ -183,7 +197,7 @@ cluster for testing / experimenting with the platform as well.
 
 The following steps should allow you to test parts of the platform on your local machine:
 
-### Create a GitHub OAuth application and a S3 bucket
+### Create a GitHub OAuth application and the two S3 buckets
 
 Same instructions as for the Kubernetes setup described above.
 
@@ -205,3 +219,7 @@ docker-compose up
 ```
 
 The platform will be available at http://localhost:8000/.
+
+Note: you can also launch the jupyter single-user server alone (without the hub) by using the 
+`docker-compose.nohub.yml` instead of the regular compose file. This is particularly useful when working locally on 
+customisations of the single-user server.
