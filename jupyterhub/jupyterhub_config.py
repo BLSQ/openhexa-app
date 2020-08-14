@@ -36,3 +36,6 @@ c.JupyterHub.hub_connect_ip = os.environ[
 
 # Oauthenticator (see https://github.com/jupyterhub/oauthenticator)
 c.JupyterHub.authenticator_class = GitHubOAuthenticator
+
+# Use Postgres as the hub database
+c.JupyterHub.db_url = os.environ["HUB_DB_URL"]
