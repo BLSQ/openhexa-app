@@ -21,7 +21,7 @@ services:
     volumes:
       - ./local_secrets:/etc/secrets
       - ./jupyter/local_modules:/opt/local_modules
-      - ./jupyter/jupyter_config:/etc/jupyter
+      - ./jupyter/config:/etc/jupyter
     ports:
       - 8888:8888
     command: ["jupyter", "lab", "--ip=0.0.0.0"]
