@@ -31,17 +31,20 @@ singleuser:
     name: the_full_image_name_on_the_image_repository
     tag:  latest  # this can be set using --set singleuser.image.tag=some_tag
     pullSecrets:  # if needed - see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets
+  # those environments variables will be made available to the single-user server
+  # (to be safe, consider quoting all values in this section - the helm chart expects strings, and you might run into
+  # issues with bool/integer values)
   extraEnv:
     # will be used by s3contents and s3fs - see https://github.com/danielfrg/s3contents
-    AWS_ACCESS_KEY_ID: your_aws_access_key_id
-    AWS_SECRET_ACCESS_KEY: your_aws_secret_access_key
-    S3_BUCKET_NAME_LAKE: the_project_s3_lake_bucket_name
-    S3_BUCKET_NAME_NOTEBOOKS: the_project_s3_notebooks_bucket_name
+    AWS_ACCESS_KEY_ID: "your_aws_access_key_id"
+    AWS_SECRET_ACCESS_KEY: "your_aws_secret_access_key"
+    S3_BUCKET_NAME_LAKE: "the_project_s3_lake_bucket_name"
+    S3_BUCKET_NAME_NOTEBOOKS: "the_project_s3_notebooks_bucket_name"
     # (this is the "explore" database described in the README)
-    EXPLORE_DB_URL: postgresql://user:password@host:port/database_name
+    EXPLORE_DB_URL: "postgresql://user:password@host:port/database_name"
     # we also provide individual db parts as env variables for the R environment
-    EXPLORE_DB_USER: user
-    EXPLORE_DB_PASSWORD: password
-    EXPLORE_DB_HOST: host
-    EXPLORE_DB_PORT: port  # (usually 5432)
-    EXPLORE_DB_NAME: database_name
+    EXPLORE_DB_USER: "user"
+    EXPLORE_DB_PASSWORD: "password"
+    EXPLORE_DB_HOST: "host"
+    EXPLORE_DB_PORT: "port"  # (usually "5432")
+    EXPLORE_DB_NAME: "database_name"
