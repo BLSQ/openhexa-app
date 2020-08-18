@@ -8,6 +8,21 @@ The platform is based on the following technologies:
 - Jupyter (https://jupyter.org/)
 - JupyterHub (https://jupyter.org/hub)
 
+Architecture overview
+---------------------
+
+Right now, Habari is just a (rather advanced) customised JupyterHub setup.
+
+The longer-term goal is to transform Habari into a broader application, with this JupyterHub server as one of its 
+components.
+
+It is intended to be deployed in a Kubernetes cluster. We use the official 
+[Zero to JupyterHub](https://zero-to-jupyterhub.readthedocs.io/) Jupyterhub distribution, which contains a Helm chart 
+that we will use to facilite our deployments.
+
+**Multi-tenancy** for Habari has not been completely figured out yet. At the moment, we use Kubernetes namespaces 
+to create distinct, project-specific deployments.
+
 Kubernetes setup
 ----------------
 
@@ -85,7 +100,7 @@ solution. We should consider automating this process.
 As of now, Habari uses Github to authenticate its users. The setup is documented [here](https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github).
 
 Please note that you will need to whitelist both admin and regular users using their Github usernames
-(see the "Adapt the helm values file" section below).
+(see the "Add a helm values file" section below).
 
 ### Create S3 buckets
 
@@ -137,14 +152,20 @@ Each Habari project uses two PostgreSQL databases:
 1. The "explore" database, intended as a storage for user-generated data (the initial use case is to provide 
    a data source for external BI tools such as Tableau)
 
-### Adapt the helm values file
+### Add a helm values file
 
-We will use a [Helm values file](https://helm.sh/docs/chart_template_guide/values_files/) to configure the deployment.
+We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
 
-First, copy the `config.dist.yaml` file:
+1. The base `config.yaml` file, containing config values shared across tenants
+1. A tenant-specific file that you need to create for every project within Habari
+
+Tenant-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
+for the `sample-project.dist.yaml` example file.
+
+To create a new tenant, simply copy the `sample-project.dist.yaml`:
 
 ```bash
-cp config.dist.yaml config.yaml
+cp config/sample-project.dist.yaml config/project-name.yaml
 ```
 
 Edit the file to fit your needs. The sample file is commented with links to the relevant parts of the 
@@ -170,7 +191,10 @@ helm upgrade --install habari jupyterhub/jupyterhub \
   --namespace $NAMESPACE \
   --version=0.9.0 \
   --values config.yaml
+  --values config/project-name.yaml
 ```
+
+Note that we use the two value files mentioned above: the shared file as well as the tenant-specific file.
 
 ### Uninstalling
 
@@ -182,20 +206,6 @@ cloud provider, but you will need to launch the following commands:
 helm uninstall habari --namespace $NAMESPACE
 kubectl delete namespace $NAMESPACE
 ```
-
-### Multi-tenancy
-
-Multi-tenancy for Habari has not been completely figured out yet.
-
-At this point, the likely scenario would be to:
-
-- Create one Kubernetes namespace per tenant
-- Deploy the habari release into each namespace using different config values
-
-A simple way to handle different config values would be to have one `config.yaml` file per tenant, but we need 
-to figure out a place those store these configuration files in a secure fashion.
-
-Another possibility would be to handle that at the CI/CD level.
 
 Local setup
 -----------

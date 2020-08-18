@@ -5,13 +5,10 @@ hub:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html?highlight=database#hub-db
   # (this is the "hub" database described in the README)
   db:
-    type: postgres
     url: postgresql://user:password@host:port/database_name
 auth:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
-  type: github
   admin:
-    access: true
     users:
       - an_admin_github_username
       - another_admin_github_username
@@ -24,7 +21,6 @@ auth:
     clientSecret: a_github_oauth_app_client_secret
     callbackUrl: "http(s)://your-hub-host/hub/oauth_callback"
 singleuser:
-  defaultUrl: "/lab"
   image:
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#customize-an-existing-docker-image
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image
