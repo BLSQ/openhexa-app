@@ -34,14 +34,14 @@ by the [Jupyter Docker Stacks](https://github.com/jupyter/docker-stacks) project
 Multi-tenancy (multi-projects capabilities) in Habari is still a work in progress and will probably change in the 
 future. At the moment, we use **Kubernetes namespaces** to create distinct, project-specific deployments.
 
-For each tenant or project, we create a new namespace, and deploy the Helm chart within the namespace with a specific 
+For each project, we create a new namespace, and deploy the Helm chart within the namespace with a specific 
 configuration.
 
-Creating the tenant and its resources is currently a manual process.
+Creating the project and its resources is currently a manual process.
 
 ### Data storage
 
-In its present form, each tenant in Habari uses two **S3 buckets**:
+In its present form, each project in Habari uses two **S3 buckets**:
 
 - A **lake** bucket for shared data
 - A **notebooks** bucket for shared notebooks
@@ -49,7 +49,7 @@ In its present form, each tenant in Habari uses two **S3 buckets**:
 The data in the lake bucket can come from external processes / pipelines, but Habari users can also upload data 
 to the lake from the JupyterLab interface.
 
-We also create a **PostgreSQL** database for each tenant. Users can access this database using pre-configured environment 
+We also create a **PostgreSQL** database for each project. Users can access this database using pre-configured environment 
 variables. The main purpose of this database is to offer an easy way to expose data to other applications, such as BI 
 applications like Tableau or PowerBI.
 
@@ -98,8 +98,10 @@ you make a change to the custom image.
 
 ```bash
 docker build -t habari-jupyter:latest jupyter
-docker tag habari-jupyter:latest your.image.registry/full-image-name:latest
-docker push your.image.registry/full-image-name:tag1
+docker tag habari-jupyter:latest your.image.registry/full-image-path:latest
+docker tag habari-jupyter:latest your.image.registry/full-image-path:x.x
+docker push your.image.registry/full-image-path:latest
+docker push your.image.registry/full-image-path:x.x
 ```
 
 As an example, if you use the GCP platform:
@@ -108,19 +110,18 @@ As an example, if you use the GCP platform:
 GCP_PROJECT_ID=your-gcp-project-id
 docker build -t habari-jupyter:latest jupyter
 docker tag habari-jupyter:latest eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
+docker tag habari-jupyter:latest eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:x.x
 docker push eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
+docker push eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:x.x
 ```
 
-Please note that using `latest` as tag might be problematic. If you encounter issues (such as new single-server nodes 
-being created using a previous version of the image), using incremental values or commit hashes for tags might be a 
-solution. We should consider automating this process.
+We currently use the same image for our different projects, but we could also consider using project-specific images in 
+the future.
 
-We could also consider using tenant-specific images in the future.
+Creating a new project
+----------------------
 
-Adding a new tenant
--------------------
-
-Now that you have a running cluster and the JupyterHub Helm chart, you can add a new tenant for your project.
+Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project.
 
 ### Create a new Kubernetes namespace
 
@@ -143,7 +144,7 @@ config (see the "Add a helm values file" section below).
 
 ### Create the S3 buckets
 
-For each tenant, you need to:
+For each project, you need to:
 
 - Create the "lake" and "notebooks" buckets in S3
 - Create a user with a policy that grants access to the S3 buckets
@@ -189,13 +190,13 @@ Each Habari project uses two PostgreSQL databases:
 
 We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
 
-1. The base `config.yaml` file, containing config values shared across tenants
-1. A tenant-specific file that you need to create for every project within Habari
+1. The base `config.yaml` file, containing config values shared across projects
+1. A project-specific file
 
-Tenant-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
+Project-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
 for the `sample-project.dist.yaml` example file.
 
-To create a new tenant, simply copy the `sample-project.dist.yaml`:
+To create a new project, simply copy the `sample-project.dist.yaml`:
 
 ```bash
 cp config/sample-project.dist.yaml config/project-name.yaml
@@ -227,7 +228,7 @@ helm upgrade --install habari jupyterhub/jupyterhub \
   --values config/project-name.yaml
 ```
 
-Note that we use the two value files mentioned above: the shared file as well as the tenant-specific file.
+Note that we use the two value files mentioned above: the shared file as well as the project-specific file.
 
 ### Uninstalling
 
@@ -238,6 +239,26 @@ cloud provider, but you will need to launch the following commands:
 ```bash
 helm uninstall habari --namespace $NAMESPACE
 kubectl delete namespace $NAMESPACE
+```
+
+Re-deploying a project
+----------------------
+
+Redeploying a project is a simple process:
+
+1. If needed, rebuild, tag and push the single-server Docker image to your image registry as explained above
+1. Adapt the project-specific value files if appropriate (if you have built and tagged a new image in step 1, 
+   don't forget to change it under `singleuser.image.tag`)
+1. Re-deploy using `helm upgrade`
+
+The Helm command is similar to the one we used when we created the project:
+
+```bash
+helm upgrade habari jupyterhub/jupyterhub \
+  --namespace $NAMESPACE \
+  --version=0.9.0 \
+  --values config.yaml \
+  --values config/project-name.yaml
 ```
 
 Local setup
