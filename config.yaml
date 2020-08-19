@@ -1,0 +1,12 @@
+hub:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html?highlight=database#hub-db
+  # (this is the "hub" database described in the README)
+  db:
+    type: postgres
+auth:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
+  type: github
+  admin:
+    access: true
+singleuser:
+  defaultUrl: "/lab"
