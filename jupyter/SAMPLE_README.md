@@ -15,7 +15,7 @@ the platform.
 At this stage, the Habari platform is not specifically equipped to deal with sensitive data (for example data that contains 
 personal information).
 
-Is is highly recommended to **only upload anonymized data** on the Habari platform.
+**Never upload sensitive or personal data on the Habari platform.**
 
 ## 💽 File storage
 
