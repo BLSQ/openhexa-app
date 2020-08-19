@@ -10,3 +10,12 @@ auth:
     access: true
 singleuser:
   defaultUrl: "/lab"
+  lifecycleHooks:
+    postStart:
+      exec:
+        command:
+          - "sh"
+          - "-c"
+          - >
+            cp -r /opt/habari_sample_files/* /home/jovyan/;
+            mkdir -p /home/jovyan/work;
