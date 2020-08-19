@@ -12,8 +12,8 @@ the platform.
 
 ## 🚓 An important note about sensitive data
 
-At this stage, the Habari platform is not specifically equipped to deal with sensitive data (for example data that contains 
-personal information).
+At this stage, the Habari platform is not equipped to deal with sensitive data (for example data that contains personal 
+information).
 
 **Never upload sensitive or personal data on the Habari platform.**
 
