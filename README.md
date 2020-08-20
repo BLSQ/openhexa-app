@@ -96,24 +96,20 @@ The hub uses a custom single-user server image, based on the
 You will need to push it to an image repository, first when you set up Habari for the fist time, and then every time 
 you make a change to the custom image.
 
-```bash
-docker build -t habari-jupyter:latest jupyter
-docker tag habari-jupyter:latest your.image.registry/full-image-path:latest
-docker tag habari-jupyter:latest your.image.registry/full-image-path:x.x
-docker push your.image.registry/full-image-path:latest
-docker push your.image.registry/full-image-path:x.x
-```
-
-As an example, if you use the GCP platform:
+Use the `bin/build.sh` script to tag, build, and push your image:
 
 ```bash
-GCP_PROJECT_ID=your-gcp-project-id
-docker build -t habari-jupyter:latest jupyter
-docker tag habari-jupyter:latest eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
-docker tag habari-jupyter:latest eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:x.x
-docker push eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:latest
-docker push eu.gcr.io/$GCP_PROJECT_ID/habari-jupyter:x.x
+./bin/build.sh path-to-image-repo/habari-jupyter x.x
+``` 
+
+As an example, if you use want to push the image with the 1.2 tag to Google Container Registry, in a GCP project 
+with the "acme-project-1234" id:
+
+```bash
+./bin/build.sh eu.gcr.io/acme-project-1234/habari-jupyter 1.2
 ```
+
+Please use incremental values for tags (0.1, 0.2 etc).
 
 We currently use the same image for our different projects, but we could also consider using project-specific images in 
 the future.
@@ -121,18 +117,8 @@ the future.
 Creating a new project
 ----------------------
 
-Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project.
-
-### Create a new Kubernetes namespace
-
-The first step is to create a new namespace:
-
-```bash
-NAMESPACE=your_namespace
-kubectl create namespace $NAMESPACE
-```
-
-We will deploy the Helm chart within this namespace.
+Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project. The project will be 
+deployed in its own Kubernetes namespace.
 
 ### Create a GitHub OAuth application
 
@@ -193,6 +179,8 @@ We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/va
 1. The base `config.yaml` file, containing config values shared across projects
 1. A project-specific file
 
+The `bin/deploy.sh` script will launch the Helm upgrade command using both files.
+
 Project-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
 for the `sample-project.dist.yaml` example file.
 
@@ -218,27 +206,10 @@ singleuser:
 
 ### Deploy
 
-You can then deploy using the following command:
+You can then deploy using the `bin/deploy.sh` script:
 
 ```bash
-helm upgrade --install habari jupyterhub/jupyterhub \
-  --namespace $NAMESPACE \
-  --version=0.9.0 \
-  --values config.yaml \
-  --values config/project-name.yaml
-```
-
-Note that we use the two value files mentioned above: the shared file as well as the project-specific file.
-
-### Uninstalling
-
-Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/turn-off.html) 
-section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specificities for your 
-cloud provider, but you will need to launch the following commands:
-
-```bash
-helm uninstall habari --namespace $NAMESPACE
-kubectl delete namespace $NAMESPACE
+./bin/deploy.sh project-name
 ```
 
 Re-deploying a project
@@ -249,16 +220,24 @@ Redeploying a project is a simple process:
 1. If needed, rebuild, tag and push the single-server Docker image to your image registry as explained above
 1. Adapt the project-specific value files if appropriate (if you have built and tagged a new image in step 1, 
    don't forget to change it under `singleuser.image.tag`)
-1. Re-deploy using `helm upgrade`
+1. Re-deploy using `bin/deploy.sh`
 
-The Helm command is similar to the one we used when we created the project:
+The deploy command is the same as the one we used when creating the project:
 
 ```bash
-helm upgrade habari jupyterhub/jupyterhub \
-  --namespace $NAMESPACE \
-  --version=0.9.0 \
-  --values config.yaml \
-  --values config/project-name.yaml
+./bin/deploy.sh project-name
+```
+
+### Uninstalling
+
+Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/turn-off.html) 
+section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specifics for your 
+cloud provider.
+
+You can use the `bin/teardown.sh` script to delete the Helm release and the Kubernetes namespace:
+
+```bash
+./bin/teardown.sh project-name
 ```
 
 Local setup
