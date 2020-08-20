@@ -17,7 +17,7 @@ helm upgrade --install "habari-$project" jupyterhub/jupyterhub \
   --values config.yaml \
   --values config/"$project".yaml
 
-hub_ip=$(kubectl get svc proxy-public --namespace="$project" -o jsonpath='{.spec.clusterIP}')
+hub_ip=$(kubectl get svc proxy-public --namespace="$project" -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
 
 printf "\n"
 echo "Done."
