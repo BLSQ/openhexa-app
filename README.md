@@ -99,7 +99,7 @@ you make a change to the custom image.
 Use the `bin/build.sh` script to tag, build, and push your image:
 
 ```bash
-./bin/build.sh path-to-image-repo/habari-jupyter x.x
+./bin/build.sh path-to-image-repo x.x
 ``` 
 
 As an example, if you use want to push the image with the 1.2 tag to Google Container Registry, in a GCP project 
@@ -109,7 +109,8 @@ with the "acme-project-1234" id:
 ./bin/build.sh eu.gcr.io/acme-project-1234/habari-jupyter 1.2
 ```
 
-Please use incremental values for tags (0.1, 0.2 etc).
+Please use incremental values for tags (0.1, 0.2 etc). Note the image repository path and tag, you will need them 
+later.
 
 We currently use the same image for our different projects, but we could also consider using project-specific images in 
 the future.
