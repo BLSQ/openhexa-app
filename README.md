@@ -125,14 +125,18 @@ deployed in its own Kubernetes namespace.
 As of now, Habari uses Github to authenticate its users. The setup is documented 
 [here](https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github).
 
+For the `Authorization callback URL` parameter, use `https://your-habari-workspace-address/hub/oauth_callback`.
+
 Please note that you will need to whitelist both admin and regular users using their Github usernames in your project 
 config (see the "Add a helm values file" section below).
+
+Keep the app client ID and secret at hand, you will need them later in the process.
 
 ### Create the S3 buckets
 
 For each project, you need to:
 
-- Create the "lake" and "notebooks" buckets in S3
+- Create the "lake" and "notebooks" buckets in S3, and note their names somewhere
 - Create a user with a policy that grants access to the S3 buckets
 - Create an access key for the user, and note the associated `Access key ID` and `Secret access key`
   (you will need them later)
@@ -171,6 +175,9 @@ Each Habari project uses two PostgreSQL databases:
 
 1. The "hub" database, used as an admin database for Jupyterhub itself (instead of the default SQLite database)
 1. The "explore" database, intended as a storage for user-generated data
+
+Create the two databases and the associated users (don't use the same PostgreSQL users across projects, especially for 
+the explore database: its credentials are exposed to the end users).
 
 ### Add a helm values file
 
