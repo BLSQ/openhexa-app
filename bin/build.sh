@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 full_image_path=$1
 tag=$2
@@ -13,7 +13,7 @@ if [ "$tag" = "" ]; then
 	exit 1
 fi
 
-echo "Building single-user server image $full_image_path:$tag"
+echo "Building single-user server image $full_image_path:$tag..."
 
 docker build -t habari-jupyter:latest jupyter
 docker tag habari-jupyter:latest "$full_image_path:latest"

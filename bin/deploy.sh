@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 project=$1
 
@@ -7,7 +7,7 @@ if [ "$project" = "" ]; then
 	exit 1
 fi
 
-echo "Deploying project $project"
+echo "Deploying project $project..."
 
 # TODO: --create-namespace should be an option
 helm upgrade --install "habari-$project" jupyterhub/jupyterhub \
