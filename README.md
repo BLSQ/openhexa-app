@@ -282,3 +282,11 @@ The platform will be available at http://localhost:8000/.
 Note: you can also launch the jupyter single-user server alone (without the hub) by using the 
 `docker-compose.nohub.yml` instead of the regular compose file. This is particularly useful when working locally on 
 customisations of the single-user server.
+
+Troubleshooting
+---------------
+
+### My hub is configured with letsencrypt but is not accessible through tls/https
+
+It might be an issue with the `autohttps` service. A possible solution is to delete the `autohttps` pod in your 
+project namespace and redeploy.
