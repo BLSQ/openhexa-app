@@ -110,7 +110,7 @@ with the "acme-project-1234" id:
 ```
 
 Please use incremental values for tags (0.1, 0.2 etc). Note the image repository path and tag, you will need them 
-later.
+later. Don't forget to update the project config files if you want them to use the new image.
 
 We currently use the same image for our different projects, but we could also consider using project-specific images in 
 the future.
