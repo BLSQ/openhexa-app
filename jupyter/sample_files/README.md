@@ -57,6 +57,10 @@ This bucket can be used to **share notebooks** with your whole team.
 It is ok to store data files along with your notebooks here, but for data that you want to share with your team, the 
 "data lake" bucket is the preferred location.
 
+There is **no version control** for notebooks at this point. Communicate with your teammates and make sure 
+that you are not working on the same notebooks at the same time, otherwise you might end up overwriting your 
+colleague's notebook.
+
 **Pro tip**: As this bucket is backed up on a regular basis, this is the best place to store your work.
 
 ### Personal filesystem
