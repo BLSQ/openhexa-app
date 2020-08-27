@@ -92,6 +92,15 @@ disposal:
     * `EXPLORE_DB_PORT`
     * `EXPLORE_DB_NAME`
     
+To print them all at once (Python):
+
+```python
+import os
+
+for key in ["HOST", "PORT", "NAME", "USER", "PASSWORD"]:
+    print(f"{key}: {os.environ['EXPLORE_DB_' + key]}")
+```
+    
 Here is a Python/Pandas code sample to read/write from/to the database:
 
 ```python
