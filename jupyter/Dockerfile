@@ -16,11 +16,13 @@ RUN pip install hdx-python-api==4.6.3
 # R packages (available in conda forge)
 RUN conda install -c conda-forge --quiet --yes \
     'r-aws.s3=0.3.21' \
+    'r-readxl=1.3.1' \
     && \
     conda clean --all -f -y
 
 # R package not available in conda
 RUN R -e "install.packages('EpiEstim', dependencies=TRUE, repos='https://cran.r-project.org/')"
+RUN R -e "devtools::install_github('reconhub/linelist')"
 
 # custom config
 COPY config /etc/jupyter/
