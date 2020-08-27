@@ -17,7 +17,8 @@ singleuser:
           - "sh"
           - "-c"
           - >
-            cp -r /opt/habari_sample_files/* /home/jovyan/;
+            cp -r /tmp/habari_sample_files/* /home/jovyan/;
+            cp -r /tmp/ipython-startup/* /home/jovyan/.ipython/profile_default/startup;
             mkdir -p /home/jovyan/work;
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/optimization.html#optimizations
   # and https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-resources.html#set-user-memory-and-cpu-guarantees-limits

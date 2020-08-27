@@ -33,11 +33,16 @@ ENV PYTHONPATH /opt/local_modules/
 # k8s: stored in /tmp within the pod, then copied back in the home directory after the PVC has been mounted through
 # a postStart hook defined in config.yaml
 # (see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#about-user-storage-and-adding-files-to-it)
-COPY sample_files/* /opt/habari_sample_files/
+COPY sample_files/* /tmp/habari_sample_files/
 # the next line is for the local docker-compose environment only
 COPY sample_files/* /home/jovyan/
 
 # custom startup scripts
-USER $NB_UID
-RUN mkdir -p $HOME/.ipython/profile_default/startup
-COPY ipython-startup $HOME/.ipython/profile_default/startup
+# k8s: stored in /tmp within the pod, then copied back in the home directory after the PVC has been mounted through
+# a postStart hook defined in config.yaml
+# (see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#about-user-storage-and-adding-files-to-it)
+COPY ipython-startup/* /tmp/ipython-startup/
+# the next lines are for the local docker-compose environment only
+USER jovyan
+RUN mkdir -p /home/jovyan/.ipython/profile_default/startup
+COPY ipython-startup /home/jovyan/.ipython/profile_default/startup
