@@ -19,6 +19,7 @@ c.DockerSpawner.network_name = os.environ["DOCKER_NETWORK_NAME"]
 c.DockerSpawner.env_keep = [
     "AWS_ACCESS_KEY_ID",
     "AWS_SECRET_ACCESS_KEY",
+    "AWS_DEFAULT_REGION",
     "S3_BUCKET_NAME_LAKE",
     "S3_BUCKET_NAME_NOTEBOOKS",
     "EXPLORE_DB_URL",
