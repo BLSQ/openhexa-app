@@ -36,3 +36,8 @@ ENV PYTHONPATH /opt/local_modules/
 COPY sample_files/* /opt/habari_sample_files/
 # the next line is for the local docker-compose environment only
 COPY sample_files/* /home/jovyan/
+
+# custom startup scripts
+USER $NB_UID
+RUN mkdir -p $HOME/.ipython/profile_default/startup
+COPY ipython-startup $HOME/.ipython/profile_default/startup

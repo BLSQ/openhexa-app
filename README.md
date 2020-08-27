@@ -16,6 +16,9 @@ Right now, Habari is just a (rather advanced) customised [JupyterHub](https://ju
 The longer-term goal is to transform Habari into a broader application, with this JupyterHub setup as one of its 
 components.
 
+Please note that Habari monkey-patches some Python libraries, such as Pandas, to facilitate their use within the 
+platform. Patches are implemented in IPython startup files, you can find them in `jupyther/ipython-startup`.
+
 ### Kubernetes
 
 Habari is meant to be deployed in a **Kubernetes cluster**. We use the official 
