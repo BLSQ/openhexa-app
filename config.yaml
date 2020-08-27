@@ -19,3 +19,30 @@ singleuser:
           - >
             cp -r /opt/habari_sample_files/* /home/jovyan/;
             mkdir -p /home/jovyan/work;
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/optimization.html#optimizations
+  # and https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-resources.html#set-user-memory-and-cpu-guarantees-limits
+  cpu:
+    limit: 4
+    guarantee: 0.05
+  memory:
+    limit: 8G
+    guarantee: 256M
+
+scheduling:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/optimization.html#optimizations
+  userScheduler:
+    enabled: true
+  podPriority:
+    enabled: true
+  userPlaceholder:
+    enabled: true
+    replicas: 4
+  userPods:
+    nodeAffinity:
+      matchNodePurpose: require
+
+cull:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-management.html?highlight=cull#culling-user-pods
+  enabled: true
+  timeout: 7200
+  every: 300
