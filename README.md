@@ -157,7 +157,7 @@ Example policy:
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "S3HabariPublicBucketName",
+            "Sid": "S3HabariPublicBucketNameRead",
             "Action": [
                 "s3:GetObject",
                 "s3:ListBucket"
@@ -166,6 +166,16 @@ Example policy:
             "Resource": [
                 "arn:aws:s3:::public-bucket-name",
                 "arn:aws:s3:::public-bucket-name/*"
+            ]
+        },
+        {
+            "Sid": "S3HabariPublicBucketNameWriteKeepFile",
+            "Action": [
+                "s3:*"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::public-bucket-name/.s3keep"
             ]
         },
         {
