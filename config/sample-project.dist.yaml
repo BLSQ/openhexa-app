@@ -41,6 +41,7 @@ singleuser:
     AWS_ACCESS_KEY_ID: "your_aws_access_key_id"
     AWS_SECRET_ACCESS_KEY: "your_aws_secret_access_key"
     AWS_DEFAULT_REGION: "your-aws-bucket-region"
+    S3_BUCKET_NAME_PUBLIC: "the_project_s3_public_bucket_name"
     S3_BUCKET_NAME_LAKE: "the_project_s3_lake_bucket_name"
     S3_BUCKET_NAME_NOTEBOOKS: "the_project_s3_notebooks_bucket_name"
     # (this is the "explore" database described in the README)

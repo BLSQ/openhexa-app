@@ -10,7 +10,7 @@ Right now, Habari is just a (rather advanced) customised [JupyterHub](https://ju
 
 - A **Jupyterhub** instance running on Kubernetes
 - The hub spawns a **Kubernetes pod** for each single-user notebook server instance
-- Single-user instances are connected to **S3 or GCS buckets** (data lake and shared notebooks)
+- Single-user instances are connected to **S3** (data lake and shared notebooks)
 - Single-user instances have access to a **PostgreSQL** database to facilitate external data access
 
 The longer-term goal is to transform Habari into a broader application, with this JupyterHub setup as one of its 
@@ -44,10 +44,14 @@ Creating the project and its resources is currently a manual process.
 
 ### Data storage
 
-In its present form, each project in Habari uses two **S3 buckets**:
+In its present form, each project in Habari uses three **S3 buckets**:
 
-- A **lake** bucket for shared data
-- A **notebooks** bucket for shared notebooks
+- A **public** bucket for documentation, samples, public datasets (meant be shared across projects)
+- A **lake** bucket for the project shared data
+- A **notebooks** bucket for the project shared notebooks
+
+The recommendation is to configure the public bucket to be read-only. An exception can be made for projects to which 
+only internal members of your organization have access: it can be useful to allow them to write to this bucket.
 
 The data in the lake bucket can come from external processes / pipelines, but Habari users can also upload data 
 to the lake from the JupyterLab interface.
@@ -141,6 +145,7 @@ Keep the app client ID and secret at hand, you will need them later in the proce
 For each project, you need to:
 
 - Create the "lake" and "notebooks" buckets in S3, and note their names somewhere
+- If you haven't done it already, create the "public" bucket
 - Create a user with a policy that grants access to the S3 buckets
 - Create an access key for the user, and note the associated `Access key ID` and `Secret access key`
   (you will need them later)
@@ -152,7 +157,19 @@ Example policy:
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "S3HabariLakeBucketNameAccess",
+            "Sid": "S3HabariPublicBucketName",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:s3:::public-bucket-name",
+                "arn:aws:s3:::public-bucket-name/*"
+            ]
+        },
+        {
+            "Sid": "S3HabariLakeBucketName",
             "Action": "s3:*",
             "Effect": "Allow",
             "Resource": [
@@ -161,7 +178,7 @@ Example policy:
             ]
         },
         {
-            "Sid": "S3HabariNotebookBucketNameAccess",
+            "Sid": "S3HabariNotebookBucketName",
             "Action": "s3:*",
             "Effect": "Allow",
             "Resource": [
