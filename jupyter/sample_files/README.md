@@ -30,7 +30,7 @@ outside Habari.
 If it is not the case, and you really need to access a protected external resource, use a password prompt so 
 that credentials are not leaked in the file itself or in the notebook output.
 
-Here is an example for Python - for R, consider using [getPass](https://github.com/wrathematics/getPass)
+Here is an example for Python - for R, consider using [getPass](https://github.com/wrathematics/getPass).
 
 ```python
 import getpass
@@ -41,6 +41,8 @@ API_SECRET = getpass.getpass("API secret")
 # later on
 call_api(API_KEY, API_SECRET, "some_param")
 ```
+
+Avoid printing the credentials, as they would be stored in the notebook output.
 
 Once you are satisfied with such an extraction process, especially if it is a recurring task, please 
 consider moving it to an external data pipeline.
