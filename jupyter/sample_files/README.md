@@ -17,6 +17,36 @@ information).
 
 **Never upload sensitive or personal data on the Habari platform.**
 
+## 🚓 An important note about credentials
+
+In the course of your work on the platform, you might need access to specific APIs and databases. Those external 
+resources often require credentials.
+
+**Never store those credentials in any form on the platform**.
+
+First, consider whether the data that you want to access can be extracted in a dedicated, secure data pipeline 
+outside Habari.
+
+If it is not the case, and you really need to access a protected external resource, use a password prompt so 
+that credentials are not leaked in the file itself or in the notebook output.
+
+Here is an example for Python - for R, consider using [getPass](https://github.com/wrathematics/getPass).
+
+```python
+import getpass
+
+API_KEY = getpass.getpass("API key")
+API_SECRET = getpass.getpass("API secret")
+
+# later on
+call_api(API_KEY, API_SECRET, "some_param")
+```
+
+Avoid printing the credentials, as they would be stored in the notebook output.
+
+Once you are satisfied with such an extraction process, especially if it is a recurring task, please 
+consider moving it to an external data pipeline.
+
 ## 💽 File storage
 
 Habari allows you to store files in 3 different locations:
