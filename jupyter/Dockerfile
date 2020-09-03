@@ -7,21 +7,24 @@ RUN conda install -c conda-forge --quiet --yes \
     'psycopg2=2.8.5' \
     'geopandas=0.8.1' \
     'rasterstats=0.14.0' \
+    'plotly=4.9.0' \
     && \
     conda clean --all -f -y
 
 # Use pip for Python packages not in conda
-RUN pip install hdx-python-api==4.6.3
+RUN pip install hdx-python-api==4.6.3 tabpy==2.2.0
 
 # R packages (available in conda forge)
 RUN conda install -c conda-forge --quiet --yes \
     'r-aws.s3=0.3.21' \
     'r-readxl=1.3.1' \
+    'r-rpostgres=1.2.0' \
     && \
     conda clean --all -f -y
 
 # R package not available in conda
 RUN R -e "install.packages('EpiEstim', dependencies=TRUE, repos='https://cran.r-project.org/')"
+RUN R -e "install.packages('getPass', dependencies=TRUE, repos='https://cran.r-project.org/')"
 RUN R -e "devtools::install_github('reconhub/linelist')"
 
 # custom config
