@@ -20,15 +20,15 @@ information).
 ## 🚓 An important note about credentials
 
 In the course of your work on the platform, you might need access to specific APIs and databases. Those external 
-resources require credentials.
+resources often require credentials.
 
 **Never store those credentials in any form on the platform**.
 
-If need such credentials, first consider whether the data that you want to access can be extracted in a 
-dedicated, secure data pipeline outside Habari.
+First, consider whether the data that you want to access can be extracted in a dedicated, secure data pipeline 
+outside Habari.
 
 If it is not the case, and you really need to access a protected external resource, use a password prompt so 
-that credentials cannot leak in the file.
+that credentials are not leaked in the file itself or in the notebook output.
 
 Here is an example for Python - for R, consider using [getPass](https://github.com/wrathematics/getPass)
 
