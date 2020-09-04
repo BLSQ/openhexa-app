@@ -11,6 +11,16 @@ RUN conda install -c conda-forge --quiet --yes \
     && \
     conda clean --all -f -y
 
+# Plotly install requires jupyterlab extensions
+# Inspired by https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
+RUN jupyter labextension install jupyterlab-plotly@4.9.0 --no-build && \
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build && \
+    jupyter labextension install plotlywidget@4.9.0 --no-build && \
+    jupyter lab build -y --dev-build=False --minimize=False && \
+    jupyter lab clean -y && \
+    npm cache clean --force && \
+    rm -rf "/home/${NB_USER}/.cache/yarn"
+
 # Use pip for Python packages not in conda
 RUN pip install hdx-python-api==4.6.3 tabpy==2.2.0
 
