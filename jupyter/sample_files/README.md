@@ -66,15 +66,18 @@ Data in this bucket can be loaded into your dataframes. As an example, using Pyt
 ```python
 import pandas as pd
 
-# Read data
-df = pd.read_csv("s3:some-workspace-name-lake/a-file.csv")
+# Read data - note the double slash after s3:
+df = pd.read_csv("s3://some-workspace-name-lake/a-file.csv")
 
-# Write data
-df.to_csv("s3:some-workspace-name-lake/another-file.csv")
+# Write data - note the double slash after s3:
+df.to_csv("s3://some-workspace-name-lake/another-file.csv")
 ```
 
 **Pro tip**: you can copy the path to an existing file in this bucket by right-clicking on it and selecting the 
-"Copy path" menu item.
+"Copy path" menu item. 
+
+Don't forget to add a **double slash** after the `s3:` prefix at the beginning of the file (this feature will be improved 
+in the future so that the copied path can be used right away).
 
 Please **do not store notebooks** in this bucket.
 
