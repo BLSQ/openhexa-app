@@ -31,5 +31,7 @@ c.MultiContentsManager.manager_kwargs = {
         "bucket": os.environ["S3_BUCKET_NAME_NOTEBOOKS"],
     },
 }
+# Fix for https://github.com/BLSQ/habari/issues/31
+c.GenericFileCheckpoints.root_dir = "./.checkpoints"
 
 c.NotebookApp.tornado_settings = {"autoreload": os.environ.get("DEBUG", False)}
