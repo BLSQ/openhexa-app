@@ -73,6 +73,9 @@ Our setup is based on the [Zero To JupyterHub](https://zero-to-jupyterhub.readth
 
 ### Set up a Kubernetes cluster
 
+**Note:** even if the Kubernetes cluster is already set up, you might have to give your account the permissions 
+to access it. Please check the documentation linked below.
+
 The first step is to set up a Kubernetes cluster. The procedure for different cloud providers is explained 
 [in the JupyterHub documentation](https://zero-to-jupyterhub.readthedocs.io/en/latest/create-k8s-cluster.html) but is 
 not perfectly up-to-date, so you will need to refer to the cloud provided documentation.
