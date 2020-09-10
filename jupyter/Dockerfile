@@ -8,6 +8,7 @@ RUN conda install -c conda-forge --quiet --yes \
     'geopandas=0.8.1' \
     'rasterstats=0.14.0' \
     'plotly=4.9.0' \
+    'voila=0.1.23' \
     && \
     conda clean --all -f -y
 
@@ -16,6 +17,7 @@ RUN conda install -c conda-forge --quiet --yes \
 RUN jupyter labextension install jupyterlab-plotly@4.9.0 --no-build && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build && \
     jupyter labextension install plotlywidget@4.9.0 --no-build && \
+    jupyter labextension install @jupyter-voila/jupyterlab-preview --no-build && \
     # see https://github.com/BLSQ/habari/issues/36
     # jupyter lab build -y && \
     jupyter lab build -y --minimize=False && \

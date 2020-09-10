@@ -1,0 +1,25 @@
+name: image_build
+
+on:
+  workflow_dispatch:
+    inputs:
+      gcr_url:
+        description: Google Container Registry URL, probably eu.gcr.io/blsq-dip/habari-jupyter
+        required: true
+        default: eu.gcr.io/blsq-dip/habari-jupyter
+      img_ver:
+        description: version of the image (0.6.4)
+        required: true
+        default: 0.6.4
+        
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          bin/build.sh ${{ github.event.inputs.gcr_url }} ${{ github.event.inputs.img_ver }}
+
