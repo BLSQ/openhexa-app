@@ -4,17 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       gcr_host:
-        description: Google Container Registry URL, just the hostname eu.gcr.io
+        description: Google Container host, used for GCR login
         required: true
         default: eu.gcr.io
-      gcr_project:
-        description: Google Container Registry project, blsq-dip
+      gcr_url:
+        description: Google Container Registry URL
         required: true
-        default: blsq-dip
-      gcr_image:
-        description: Google Container Registry image name, habari-jupyter
-        required: true
-        default: habari-jupyter
+        default: eu.gcr.io/blsq-dip/habari-jupyter
       img_ver:
         description: version of the image (0.6.5)
         required: true
@@ -27,17 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Docker GCR login
+        run: |
+          echo '${{ secrets.GCLOUD_SERVICE_KEY }}' | docker login -u _json_key --password-stdin https://${{ github.event.inputs.gcr_host }}/
+
       - name: Build
         run: |
-          bin/build.sh ${{ github.event.inputs.gcr_host }}/${{ github.event.inputs.gcr_project }}/${{ github.event.inputs.gcr_image }} ${{ github.event.inputs.img_ver }}
-
-      - name: Upload image
-        uses: raccoondev/push-docker-gcr
-        with:
-          gcr_host: ${{ github.event.inputs.gcr_host }}
-          image_name: ${{ github.event.inputs.gcr_image }}
-          image_tag: ${{ github.event.inputs.img_ver }}
-          env:
-            GCLOUD_SERVICE_KEY: ${{ secrets.GCLOUD_SERVICE_KEY }}
-            GOOGLE_PROJECT_ID: ${{ github.event.inputs.gcr_project }}
+          bin/build.sh ${{ github.event.inputs.gcr_url }} ${{ github.event.inputs.img_ver }}
 
