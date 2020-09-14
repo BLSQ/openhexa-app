@@ -11,6 +11,7 @@ RUN conda install -c conda-forge --quiet --yes \
     'descartes=1.1.0' \
     'mapclassify=2.3.0' \
     'voila=0.1.23' \
+    'geoalchemy2=0.6.3' \
     && \
     conda clean --all -f -y
 
