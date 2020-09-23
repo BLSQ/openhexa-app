@@ -10,7 +10,7 @@ along the way.
 **Make sure to read the following sections**, as they contain important information about how to use (and not to use) 
 the platform.
 
-## 🚓 An important note about sensitive data
+## 🚒 An important note about sensitive data
 
 At this stage, the Habari platform is not equipped to deal with sensitive data (for example data that contains personal 
 information).
