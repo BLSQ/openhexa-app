@@ -26,7 +26,7 @@ singleuser:
     limit: 4
     guarantee: 0.05
   memory:
-    limit: 8G
+    limit: 12G
     guarantee: 256M
 
 scheduling:
