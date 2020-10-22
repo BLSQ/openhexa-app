@@ -4,7 +4,7 @@ proxy:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/security.html?highlight=letsencrypt#set-up-automatic-https
   https:
     hosts:
-      - your-habari-project-url
+      - your-habari-project-url  # without https://
     letsencrypt:
       contactEmail: someone@yourorganisation.org
 hub:

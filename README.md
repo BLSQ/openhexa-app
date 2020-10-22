@@ -98,7 +98,7 @@ helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 helm repo update
 ```
 
-### (Re-)build the single-user server image
+### Build the single-user server image
 
 The hub uses a custom single-user server image, based on the 
 [`jupyter/datascience-notebook`](https://hub.docker.com/r/jupyter/datascience-notebook/) image.
@@ -131,6 +131,41 @@ Creating a new project
 Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project. The project will be 
 deployed in its own Kubernetes namespace.
 
+### Add a helm values file
+
+We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
+
+1. The base `config.yaml` file, containing config values shared across projects
+1. A project-specific file
+
+The `bin/deploy.sh` script will launch the Helm upgrade command using both files.
+
+Project-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
+for the `sample-project.dist.yaml` example file.
+
+To create a new project, simply copy the `sample-project.dist.yaml`:
+
+```bash
+cp config/sample-project.dist.yaml config/project-name.yaml
+```
+
+You can already fill some of the values within the files. You will set other values while going through the 
+installation steps below. 
+
+The sample file is commented with links to the relevant parts of the Zero To JupyterHub documentation. 
+Most of the edits you need to make are straightforward.
+
+The `singleuser.image` section can be a bit tricky. Here is an example for images hosted on GCR:
+
+```yaml
+singleuser:
+  image:
+    name: eu.gcr.io/<gcp-project-id>/habari-jupyter
+    tag:  0.0.1
+    pullSecrets:
+      - gcr-pull
+```
+
 ### Create a GitHub OAuth application
 
 As of now, Habari uses Github to authenticate its users. The setup is documented 
@@ -141,15 +176,15 @@ For the `Authorization callback URL` parameter, use `https://your-habari-workspa
 Please note that you will need to whitelist both admin and regular users using their Github usernames in your project 
 config (see the "Add a helm values file" section below).
 
-Keep the app client ID and secret at hand, you will need them later in the process.
+Update the helm values file with the application client id and secret (in `auth.github`).
 
-### Create the S3 buckets
+### Create the S3 buckets and associated user
 
 For each project, you need to:
 
 - Create the "lake" and "notebooks" buckets in S3, and note their names somewhere
 - If you haven't done it already, create the "public" bucket
-- Create a user with a policy that grants access to the S3 buckets
+- Create a user and attach an inline policy that grants access to the S3 buckets
 - Create an access key for the user, and note the associated `Access key ID` and `Secret access key`
   (you will need them later)
 
@@ -203,6 +238,9 @@ Example policy:
 }
 ```
 
+Update the helm values file with the user credentials (in `singleuser.extraEnv` - `AWS_ACCESS_KEY_ID` and 
+`AWS_SECRET_ACCESS_KEY`).
+
 ### Create the project databases
 
 Each Habari project uses two PostgreSQL databases:
@@ -213,37 +251,8 @@ Each Habari project uses two PostgreSQL databases:
 Create the two databases and the associated users (don't use the same PostgreSQL users across projects, especially for 
 the explore database: its credentials are exposed to the end users).
 
-### Add a helm values file
-
-We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
-
-1. The base `config.yaml` file, containing config values shared across projects
-1. A project-specific file
-
-The `bin/deploy.sh` script will launch the Helm upgrade command using both files.
-
-Project-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
-for the `sample-project.dist.yaml` example file.
-
-To create a new project, simply copy the `sample-project.dist.yaml`:
-
-```bash
-cp config/sample-project.dist.yaml config/project-name.yaml
-```
-
-Edit the file to fit your needs. The sample file is commented with links to the relevant parts of the 
-Zero To JupyterHub documentation. Most of the edits you need to make are straightforward.
-
-The `singleuser.image` section can be a bit tricky. Here is an example for images hosted on GCR:
-
-```yaml
-singleuser:
-  image:
-    name: eu.gcr.io/<gcp-project-id>/habari-jupyter
-    tag:  latest
-    pullSecrets:
-      - gcr-pull
-```
+Update the helm values file with the database user credentials (in `hub.db.url` for the hub database, and in 
+`singleuser.extraEnv` for the explore database - check the `EXPLORE_DB_` environment variables.
 
 ### Deploy
 
@@ -269,7 +278,8 @@ The deploy command is the same as the one we used when creating the project:
 ./bin/deploy.sh project-name
 ```
 
-### Uninstalling
+Uninstalling
+------------
 
 Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/turn-off.html) 
 section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specifics for your 
