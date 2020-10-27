@@ -40,8 +40,6 @@ future. At the moment, we use **Kubernetes namespaces** to create distinct, proj
 For each project, we create a new namespace, and deploy the Helm chart within the namespace with a specific 
 configuration.
 
-Creating the project and its resources is currently a manual process.
-
 ### Data storage
 
 In its present form, each project in Habari uses three **S3 buckets**:
@@ -131,7 +129,7 @@ Creating a new project
 Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project. The project will be 
 deployed in its own Kubernetes namespace.
 
-### Add a helm values file
+### Add a Helm values file
 
 We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
 
@@ -174,9 +172,9 @@ As of now, Habari uses Github to authenticate its users. The setup is documented
 For the `Authorization callback URL` parameter, use `https://your-habari-workspace-address/hub/oauth_callback`.
 
 Please note that you will need to whitelist both admin and regular users using their Github usernames in your project 
-config (see the "Add a helm values file" section below).
+config (see the "Add a Helm values file" section below).
 
-Update the helm values file with the application client id and secret (in `auth.github`).
+Update the Helm values file with the application client id and secret (in `auth.github`).
 
 ### Create the S3 buckets and associated user
 
@@ -238,7 +236,7 @@ Example policy:
 }
 ```
 
-Update the helm values file with the user credentials (in `singleuser.extraEnv` - `AWS_ACCESS_KEY_ID` and 
+Update the Helm values file with the user credentials (in `singleuser.extraEnv` - `AWS_ACCESS_KEY_ID` and 
 `AWS_SECRET_ACCESS_KEY`).
 
 ### Create the project databases
@@ -251,7 +249,7 @@ Each Habari project uses two PostgreSQL databases:
 Create the two databases and the associated users (don't use the same PostgreSQL users across projects, especially for 
 the explore database: its credentials are exposed to the end users).
 
-Update the helm values file with the database user credentials (in `hub.db.url` for the hub database, and in 
+Update the Helm values file with the database user credentials (in `hub.db.url` for the hub database, and in 
 `singleuser.extraEnv` for the explore database - check the `EXPLORE_DB_` environment variables.
 
 ### Deploy
@@ -262,8 +260,8 @@ You can then deploy using the `bin/deploy.sh` script:
 ./bin/deploy.sh project-name
 ```
 
-Re-deploying a project
-----------------------
+Updating and redeploying an existing project
+--------------------------------------------
 
 Redeploying a project is a simple process:
 
