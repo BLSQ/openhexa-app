@@ -294,10 +294,11 @@ Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub
 section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specifics for your 
 cloud provider.
 
-You can use the `bin/teardown.sh` script to delete the Helm release and the Kubernetes namespace:
+You can use `helm` and `kubectl` to delete the Helm release and the Kubernetes namespace:
 
 ```bash
-./bin/teardown.sh project-name
+helm uninstall "habari-<project_name>" --namespace "<project_name>"
+kubectl delete namespace <project_name>
 ```
 
 Local setup
