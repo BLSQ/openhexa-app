@@ -23,10 +23,10 @@ singleuser:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/optimization.html#optimizations
   # and https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-resources.html#set-user-memory-and-cpu-guarantees-limits
   cpu:
-    limit: 4
+    limit: 2
     guarantee: 0.05
   memory:
-    limit: 32G
+    limit: 8G
     guarantee: 256M
 
 scheduling:

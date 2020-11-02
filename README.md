@@ -133,18 +133,20 @@ deployed in its own Kubernetes namespace.
 
 We will use two [Helm values files](https://helm.sh/docs/chart_template_guide/values_files/) when deploying:
 
-1. The base `config.yaml` file, containing config values shared across projects
+1. The base `shared_config.yaml` file, containing config values shared across projects
 1. A project-specific file
 
-The `bin/deploy.sh` script will launch the Helm upgrade command using both files.
+You will use both files when deploying the project using `helm`.
 
-Project-specific value files reside in the `config` directory. The content of this directory is ignored in git, except 
-for the `sample-project.dist.yaml` example file.
+Feel free to organize project config files as you see fit. Be careful about version control: those project-specific 
+file typically contain sensitive data (such as database or s3 credentials). You can either ignore the files in version 
+control, encrypt them (using [sops](https://github.com/mozilla/sops) for example), or handle those config files 
+in a secure fashion in your continuous deployment infrastructure.
 
-To create a new project, simply copy the `sample-project.dist.yaml`:
+To create a new project, simply copy the `sample_project_config.yaml`:
 
 ```bash
-cp config/sample-project.dist.yaml config/project-name.yaml
+cp sample_project_config.yaml path_to_project_config.yaml
 ```
 
 You can already fill some of the values within the files. You will set other values while going through the 
@@ -254,10 +256,15 @@ Update the Helm values file with the database user credentials (in `hub.db.url` 
 
 ### Deploy
 
-You can then deploy using the `bin/deploy.sh` script:
+You can then deploy using `helm`:
 
 ```bash
-./bin/deploy.sh project-name
+helm upgrade --install "habari-<project_name>" jupyterhub/jupyterhub \
+  --namespace "<project_name>" \
+  --create-namespace \
+  --version=0.9.0 \
+  --values shared_config.yaml \
+  --values path_to_project_config.yaml
 ```
 
 Updating and redeploying an existing project
@@ -273,7 +280,11 @@ Redeploying a project is a simple process:
 The deploy command is the same as the one we used when creating the project:
 
 ```bash
-./bin/deploy.sh project-name
+helm upgrade --install "habari-<project_name>" jupyterhub/jupyterhub \
+  --namespace "<project_name>" \
+  --version=0.9.0 \
+  --values shared_config.yaml \
+  --values path_to_project_config.yaml
 ```
 
 Uninstalling
@@ -283,10 +294,11 @@ Please note that that the ["Tearing Everything Down"](https://zero-to-jupyterhub
 section of the Zero To Jupyterhub doc is not up-to-date for Helm 3. Give it a read to check the specifics for your 
 cloud provider.
 
-You can use the `bin/teardown.sh` script to delete the Helm release and the Kubernetes namespace:
+You can use `helm` and `kubectl` to delete the Helm release and the Kubernetes namespace:
 
 ```bash
-./bin/teardown.sh project-name
+helm uninstall "habari-<project_name>" --namespace "<project_name>"
+kubectl delete namespace <project_name>
 ```
 
 Local setup
