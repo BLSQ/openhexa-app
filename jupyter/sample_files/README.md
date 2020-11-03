@@ -2,6 +2,14 @@
 
 Welcome to Habari, the Bluesquare Data Science platform.
 
+This file is an introduction to the platform - make sure you read it before going further as it contains important 
+information regarding security.
+
+## Other documentation resources
+
+In addition to this introductory document, you can find code samples, example datasets and specific guides for 
+data connectors in the the `s3:habari-public/Documentation` directory (accessible from your file browser).
+
 ## 🚧 Habari is alpha/beta software
 
 This platform is a work in progress, and cannot be considered stable yet. Be prepared for some major changes 
@@ -30,17 +38,8 @@ outside Habari.
 If it is not the case, and you really need to access a protected external resource, use a password prompt so 
 that credentials are not leaked in the file itself or in the notebook output.
 
-Here is an example for Python - for R, consider using [getPass](https://github.com/wrathematics/getPass).
-
-```python
-import getpass
-
-API_KEY = getpass.getpass("API key")
-API_SECRET = getpass.getpass("API secret")
-
-# later on
-call_api(API_KEY, API_SECRET, "some_param")
-```
+You can use [getpass](https://docs.python.org/3/library/getpass.html) in Python or its 
+sister [getPass](https://github.com/wrathematics/getPass) library in R.
 
 Avoid printing the credentials, as they would be stored in the notebook output.
 
@@ -60,18 +59,6 @@ Habari allows you to store files in 3 different locations:
 This S3 bucket is accessible from the file browser under a name that looks like `s3:some-workspace-name-lake`.
 
 This bucket can be used to access and read **shared data**.
-
-Data in this bucket can be loaded into your dataframes. As an example, using Python/Pandas:
-
-```python
-import pandas as pd
-
-# Read data - note the double slash after s3:
-df = pd.read_csv("s3://some-workspace-name-lake/a-file.csv")
-
-# Write data - note the double slash after s3:
-df.to_csv("s3://some-workspace-name-lake/another-file.csv")
-```
 
 **Pro tip**: you can copy the path to an existing file in this bucket by right-clicking on it and selecting the 
 "Copy path" menu item. 
@@ -108,7 +95,7 @@ bucket.
 
 ## 🗂 The exploration database
 
-**Never store sensitive or personal information in the exploration database**.
+🚨 **Never store sensitive or personal information in the exploration database**.
 
 Habari allows you to store data in an **exploration database**.
 
@@ -124,28 +111,3 @@ disposal:
     * `EXPLORE_DB_HOST`
     * `EXPLORE_DB_PORT`
     * `EXPLORE_DB_NAME`
-    
-To print them all at once (Python):
-
-```python
-import os
-
-for key in ["HOST", "PORT", "NAME", "USER", "PASSWORD"]:
-    print(f"{key}: {os.environ['EXPLORE_DB_' + key]}")
-```
-    
-Here is a Python/Pandas code sample to read/write from/to the database:
-
-```python
-import os
-import pandas as pd
-from sqlalchemy import create_engine
-
-engine = create_engine(os.environ["EXPLORE_DB_URL"])
-
-# Read data
-df = pd.read_sql('table_name', con=engine)
-
-# Write data
-df.to_sql('table_name', con=engine, if_exists="replace")
-```
