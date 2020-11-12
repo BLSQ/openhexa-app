@@ -1,4 +1,4 @@
-name: build_jupyter_image
+name: Build Jupyter image
 
 on:
   workflow_dispatch:
