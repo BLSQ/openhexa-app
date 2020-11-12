@@ -32,6 +32,6 @@ jobs:
           context: jupyter
           file: jupyter/Dockerfile
           tags: |
-            blsq/habari-jupyter:latest
             blsq/habari-jupyter:${{ github.event.inputs.tag }}
+            blsq/habari-jupyter:latest
 
