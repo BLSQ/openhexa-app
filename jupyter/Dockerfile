@@ -24,7 +24,12 @@ RUN conda install -c conda-forge --quiet --yes \
 # Python packages (pip - for what is not available in conda-forge)
 RUN pip install hdx-python-api==4.7.1 tabpy==2.3.1 cowsay==2.0.3
 
-# R packages (conda-forge - preferred method)
+# R packages, in two steps for Docker layering (conda-forge - preferred method)
+RUN conda install -c conda-forge --quiet --yes \
+    'r-rjson=0.2.20' \
+    'r-rpostgres=1.2.1' \
+    'r-rjava=0.9_13' \
+    && conda clean --all -f -y
 RUN conda install -c conda-forge --quiet --yes \
     'r-aws.s3=0.3.21' \
     'r-getpass=0.2_2' \
@@ -37,8 +42,6 @@ RUN conda install -c conda-forge --quiet --yes \
     'r-rgdal=1.5_16' \
     'r-rgeos=0.5_5' \
     'r-rgooglemaps=1.4.5.3' \
-    'r-rjson=0.2.20' \
-    'r-rpostgres=1.2.1' \
     && conda clean --all -f -y
 
 # R packages (cran - for what is not available in conda-forge)
