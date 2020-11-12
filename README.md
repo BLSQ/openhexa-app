@@ -96,32 +96,20 @@ helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 helm repo update
 ```
 
-### Build the single-user server image
+### About the single-user server image
 
 The hub uses a custom single-user server image, based on the 
-[`jupyter/datascience-notebook`](https://hub.docker.com/r/jupyter/datascience-notebook/) image.
+[`jupyter/datascience-notebook`](https://hub.docker.com/r/jupyter/datascience-notebook/) image. This 
+[`blsq/habari-jupyter`](https://hub.docker.com/r/blsq/habari-jupyter) base image is available publicly on 
+[Dockerhub](https://hub.docker.com/r/blsq/habari-jupyter).
 
-You will need to push it to an image repository, first when you set up Habari for the fist time, and then every time 
-you make a change to the custom image.
+Note that we use incremental values for tags (`0.1`, `0.2` etc). It's safer to use those incremental tags in your 
+project config files rather than relying on the `latest` tag, as the image puller service does not always detect that 
+a new image has been published. It also prevents accidental deployments of new image versions.
 
-Use the `bin/build.sh` script to tag, build, and push your image:
-
-```bash
-./bin/build.sh path-to-image-repo x.x
-``` 
-
-As an example, if you use want to push the image with the 1.2 tag to Google Container Registry, in a GCP project 
-with the "acme-project-1234" id:
-
-```bash
-./bin/build.sh eu.gcr.io/acme-project-1234/habari-jupyter 1.2
-```
-
-Please use incremental values for tags (0.1, 0.2 etc). Note the image repository path and tag, you will need them 
-later. Don't forget to update the project config files if you want them to use the new image.
-
-We currently use the same image for our different projects, but we could also consider using project-specific images in 
-the future.
+The sample project config file uses this base image. You can, however, use any other image. Image can be 
+specified on a per-project basis (using the `singleuser.image` configuration as documented in the 
+[Zero To Jupyterhub documentation](https://zero-to-jupyterhub.readthedocs.io/en/latest/resources/reference.html#singleuser-image)).
 
 Creating a new project
 ----------------------
@@ -154,17 +142,6 @@ installation steps below.
 
 The sample file is commented with links to the relevant parts of the Zero To JupyterHub documentation. 
 Most of the edits you need to make are straightforward.
-
-The `singleuser.image` section can be a bit tricky. Here is an example for images hosted on GCR:
-
-```yaml
-singleuser:
-  image:
-    name: eu.gcr.io/<gcp-project-id>/habari-jupyter
-    tag:  0.0.1
-    pullSecrets:
-      - gcr-pull
-```
 
 ### Create a GitHub OAuth application
 
@@ -272,10 +249,10 @@ Updating and redeploying an existing project
 
 Redeploying a project is a simple process:
 
-1. If needed, rebuild, tag and push the single-server Docker image to your image registry as explained above
-1. Adapt the project-specific value files if appropriate (if you have built and tagged a new image in step 1, 
-   don't forget to change it under `singleuser.image.tag`)
-1. Re-deploy using `bin/deploy.sh`
+1. If needed, update the jupyter image used by the project
+1. Adapt the project-specific value files if appropriate (don't forget to change `singleuser.image.tag` if your jupyter 
+   image has changed)
+1. Re-deploy using `helm`
 
 The deploy command is the same as the one we used when creating the project:
 

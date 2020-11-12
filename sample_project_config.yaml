@@ -30,9 +30,11 @@ singleuser:
   image:
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#customize-an-existing-docker-image
     # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image
-    name: the_full_image_name_on_the_image_repository
-    tag:  latest  # this can be set using --set singleuser.image.tag=some_tag
-    pullSecrets:  # if needed - see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets
+    name: blsq/habari-jupyter
+    tag:  0.7
+    # pullSecrets is not needed for public images on Dockerhub, but you might need it for a private repo
+    # (see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets)
+    # pullSecrets:
   # those environments variables will be made available to the single-user server
   # (to be safe, consider quoting all values in this section - the helm chart expects strings, and you might run into
   # issues with bool/integer values)
