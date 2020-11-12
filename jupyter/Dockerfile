@@ -22,7 +22,7 @@ RUN conda install -c conda-forge --quiet --yes \
     && conda clean --all -f -y
 
 # Python packages (pip - for what is not available in conda-forge)
-RUN pip install hdx-python-api==4.7.1 tabpy==2.3.1
+RUN pip install hdx-python-api==4.7.1 tabpy==2.3.1 cowsay==2.0.3
 
 # R packages (conda-forge - preferred method)
 RUN conda install -c conda-forge --quiet --yes \
