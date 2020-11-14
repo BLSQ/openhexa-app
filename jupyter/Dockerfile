@@ -45,7 +45,7 @@ RUN conda install -c conda-forge --quiet --yes \
     && conda clean --all -f -y
 
 # R packages (cran - for what is not available in conda-forge)
-RUN R -e "install.packages(c('GISTools', 'OpenStreetMap'), dependencies=TRUE, repos='https://cran.r-project.org/')"
+RUN R -e "install.packages(c('GISTools', 'OpenStreetMap'), dependencies=TRUE, quiet=TRUE, repos='https://cran.r-project.org/')"
 
 # Jupyterlab extensions
 # Inspired by https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
