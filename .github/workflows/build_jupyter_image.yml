@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: The tag to use for the Jupyter image
+        description: Jupyter image tag
         required: true
 
 jobs:
