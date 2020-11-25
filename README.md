@@ -6,18 +6,16 @@ Habari is a Data Science Platform developed by BlueSquare, based on the [Jupyter
 Architecture overview
 ---------------------
 
-Right now, Habari is just a (rather advanced) customised [JupyterHub](https://jupyter.org/hub) setup:
+Right now, Habari is mostly just a (rather advanced) customised [JupyterHub](https://jupyter.org/hub) setup:
 
 - A **Jupyterhub** instance running on Kubernetes
 - The hub spawns a **Kubernetes pod** for each single-user notebook server instance
 - Single-user instances are connected to **S3** (data lake and shared notebooks)
 - Single-user instances have access to a **PostgreSQL** database to facilitate external data access
 
-The longer-term goal is to transform Habari into a broader application, with this JupyterHub setup as one of its 
-components.
-
-Please note that Habari monkey-patches some Python libraries, such as Pandas, to facilitate their use within the 
-platform. Patches are implemented in IPython startup files, you can find them in `jupyther/ipython-startup`.
+The longer-term goal is to transform Habari into a broader platform, with this JupyterHub setup as one of its 
+components. See the [Platform section](#platform) below for more information about the work in progress regarding 
+the "platform" aspect.
 
 ### Kubernetes
 
@@ -320,3 +318,27 @@ Troubleshooting
 
 It might be an issue with the `autohttps` service. A possible solution is to delete the `autohttps` pod in your 
 project namespace and redeploy.
+
+Platform
+--------
+
+🚧 This part of Habari is very, very WIP, and consists mostly of mockups.
+
+The foundations of the future Habari platform are located in the `platform` directory.
+
+As of now, the platform is a simple Django application connected to a PostgreSQL database. A `docker-compose` file 
+allows run to develop and test it locally.
+
+A [`blsq/habari-platform`](https://hub.docker.com/r/blsq/habari-platform) Docker image is published on Docker hub for 
+your convenience.
+
+We build it using the following commands:
+
+```bash
+docker build -t habari-platform .
+docker tag habari-platform:latest habari-platform:x.y.z
+docker tag habari-platform:latest blsq/habari-platform:latest
+docker tag habari-platform:x.y.z blsq/habari-platform:x.y.z
+docker push blsq/habari-platform:latest
+docker push blsq/habari-platform:x.y.z
+```
