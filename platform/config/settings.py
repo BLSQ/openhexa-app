@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "habari.dashboard.apps.DashboardConfig",
+    "habari.catalog.apps.CatalogConfig",
 ]
 
 MIDDLEWARE = [

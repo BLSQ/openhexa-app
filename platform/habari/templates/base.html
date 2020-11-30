@@ -26,17 +26,10 @@
                              alt="Habari logo">
                     </div>
                     <div class="hidden sm:ml-6 space-x-8 sm:flex">
-                        <a href="#"
-                           class="inline-flex items-center px-1 pt-1 border-b-2 border-purple-500 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-purple-700 transition duration-150 ease-in-out">Dashboard</a>
-
-                        <a href="#"
-                           class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">Catalog</a>
-
-                        <a href="#"
-                           class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">Notebooks</a>
-
-                        <a href="#"
-                           class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out">Pipelines</a>
+                        {% include "partials/main_nav_item.html" with title="Dashboard" app="dashboard" route="index" %}
+                        {% include "partials/main_nav_item.html" with title="Catalog" app="catalog" route="index" %}
+                        {% include "partials/main_nav_item.html" with title="Notebooks" %}
+                        {% include "partials/main_nav_item.html" with title="Pipelines" %}
                     </div>
                 </div>
                 <div class="hidden sm:ml-6 sm:flex sm:items-center">
