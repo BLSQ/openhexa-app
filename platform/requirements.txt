@@ -2,3 +2,4 @@ Django==3.*
 psycopg2-binary==2.*
 gunicorn==20.*
 whitenoise==5.*
+django-tailwind @ git+https://github.com/timonweb/django-tailwind.git@f11f8d36980d837644a0081b5f65db3108343ceb
