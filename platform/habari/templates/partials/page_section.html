@@ -1,0 +1,17 @@
+ <div class="mt-10">
+     <!-- Section header -->
+     <div class="sm:flex sm:items-center sm:justify-between">
+         <h3 class="text-lg leading-6 font-medium text-gray-900">
+             {% block section_title %}Untitled section{% endblock %}
+         </h3>
+         {% block section_header_extra %}{% endblock %}
+     </div>
+     <!-- Section content -->
+     <div>
+         {% block section_content %}
+            <div class="px-4 py-8 sm:px-0">
+                <div class="border-2 border-dashed border-gray-200 rounded-lg h-96"></div>
+            </div>
+         {% endblock %}
+     </div>
+</div>
