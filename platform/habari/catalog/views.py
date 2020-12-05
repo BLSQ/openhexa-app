@@ -71,10 +71,24 @@ SAMPLE_DATASOURCES = [
 
 
 def index(request):
-    return render(request, "catalog/index.html", {"datasources": SAMPLE_DATASOURCES})
+    breadcrumbs = [("Catalog", "catalog:index")]
+
+    return render(
+        request,
+        "catalog/index.html",
+        {"datasources": SAMPLE_DATASOURCES, "breadcrumbs": breadcrumbs},
+    )
 
 
 def detail(request, datasource_id):
     datasource = next(ds for ds in SAMPLE_DATASOURCES if ds["id"] == datasource_id)
+    breadcrumbs = [
+        ("Catalog", "catalog:index"),
+        (datasource["name"], "catalog:detail", datasource_id),
+    ]
 
-    return render(request, "catalog/detail.html", {"datasource": datasource})
+    return render(
+        request,
+        "catalog/detail.html",
+        {"datasource": datasource, "breadcrumbs": breadcrumbs},
+    )
