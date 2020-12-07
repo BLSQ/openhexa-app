@@ -1,0 +1,19 @@
+<div class="mt-8 bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+    <div class="bg-white px-4 py-5 sm:px-6">
+        <div class="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
+            <div class="ml-4 mt-2">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    {% block card_title %}Untitled card{% endblock %}
+                </h3>
+            </div>
+            {% block card_header_extra %}{% endblock %}
+        </div>
+    </div>
+    <div class="px-4 py-5 sm:p-6">
+        {% block card_content %}
+        <div class="px-4 py-8 sm:px-0">
+            <div class="border-2 border-dashed border-gray-200 rounded-lg h-96"></div>
+        </div>
+        {% endblock %}
+    </div>
+</div>
