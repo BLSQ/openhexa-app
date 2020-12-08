@@ -1,6 +1,14 @@
 {% extends "partials/page_card.html" %}
+{% load static %}
 
-{% block card_title %}{{ datasource.name }}{% endblock %}
+{% block card_title %}
+<div class="flex align items-center">
+    <img class="h-10 w-10 rounded-full mr-2"
+         src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
+         alt="{{ datasource.type.label }}">
+    {{ datasource.name }}
+</div>
+{% endblock %}
 
 {% block card_header_extra %}
 <div class="ml-4 mt-2 flex-shrink-0">
