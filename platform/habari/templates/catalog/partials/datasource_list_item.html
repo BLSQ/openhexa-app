@@ -2,21 +2,21 @@
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 h-10 w-10">
-                <img class="h-10 w-10 rounded-full"
-                     src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
-                     alt="{{ datasource.type.label }}">
-            </div>
-            <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">
+        <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
+                <span class="block flex-shrink-0 h-10 w-10">
+                    <img class="h-10 w-10 rounded-full"
+                         src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
+                         alt="{{ datasource.type.label }}">
+                </span>
+            <span class="block ml-4">
+                <span class="block text-sm font-medium text-gray-900">
                     {{ datasource.name }}
-                </div>
-                <div class="text-sm text-gray-500">
+                </span>
+                <span class="block text-sm text-gray-500">
                     {{ datasource.type.label }}
-                </div>
-            </div>
-        </div>
+                </span>
+            </span>
+        </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900">{{ datasource.source.name }}</div>
@@ -39,7 +39,8 @@
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        <a href="{% url 'catalog:detail' datasource.id %}" class="text-indigo-600 hover:text-indigo-900 flex">
+        <a href="{% url 'catalog:datasource_detail' datasource.id %}"
+           class="text-indigo-600 hover:text-indigo-900 flex">
             View
             <div class="ml-1 flex-shrink-0">
                 <!-- Heroicon name: chevron-right -->

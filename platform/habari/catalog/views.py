@@ -80,7 +80,7 @@ def index(request):
     )
 
 
-def detail(request, datasource_id):
+def datasource_detail(request, datasource_id):
     datasource = next(ds for ds in SAMPLE_DATASOURCES if ds["id"] == datasource_id)
     breadcrumbs = [
         ("Catalog", "catalog:index"),
@@ -89,6 +89,6 @@ def detail(request, datasource_id):
 
     return render(
         request,
-        "catalog/detail.html",
+        "catalog/datasource_detail.html",
         {"datasource": datasource, "breadcrumbs": breadcrumbs},
     )
