@@ -14,6 +14,10 @@ SAMPLE_DATASOURCES = [
             "website": "https://www.mn.uio.no/ifi/english/research/networks/hisp/",
             "type": {"code": "academia", "label": "Academic"},
         },
+        "contact": {
+            "name": "Support mail",
+            "email": "post@dhis2.org",
+        },
         "url": "https://play.dhis2.org/2.35.0/",
         "location": {"icon": "🇸🇱", "name": "Sierra Leone", "iso3": "SLE"},
         "content": {
@@ -162,7 +166,7 @@ SAMPLE_DATASOURCES = [
     },
     {
         "id": "b4de249d-449a-4a9c-a39b-ea2e83bd8dc5",
-        "type": {"code": "iaso", "label": "IASO", "description": "IASO project"},
+        "type": {"code": "iaso", "label": "IASO HFR", "description": "IASO project"},
         "name": "Carte Sanitaire DRC",
         "owner": {
             "name": "Ministry of Health",
@@ -174,7 +178,7 @@ SAMPLE_DATASOURCES = [
             "name": "Democratic Republic of the Congo",
             "iso3": "COD",
         },
-        "content": {"quantity": "7 data sets", "tags": [], },
+        "content": {"quantity": "7 pyramids", "tags": [], },
         "last_updated_on": timezone.now() - timedelta(days=1),
         "update_frequency": {"code": "daily", "label": "Updated daily"},
     },

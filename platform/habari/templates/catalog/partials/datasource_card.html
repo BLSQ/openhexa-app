@@ -77,6 +77,28 @@
     </div>
     <div class="sm:col-span-1">
         <dt class="text-sm font-medium text-gray-500">
+            Contact
+        </dt>
+        <dd class="mt-1 text-sm text-gray-900">
+            {% if datasource.contact %}
+            {{ datasource.contact.name }}<br/>
+            <a href="mailto:{{ datasource.contact.email }}"
+               class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+               target="_blank" rel="noopener">
+                <span>{{ datasource.contact.email }}</span>
+                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </a>
+            {% else %}
+            -
+            {% endif %}
+        </dd>
+    </div>
+    <div class="sm:col-span-1">
+        <dt class="text-sm font-medium text-gray-500">
             Content
         </dt>
         <dd class="mt-1 text-sm text-gray-900">
@@ -84,6 +106,14 @@
         </dd>
     </div>
     <div class="sm:col-span-1">
+        <dt class="text-sm font-medium text-gray-500">
+            Last update
+        </dt>
+        <dd class="mt-1 text-sm text-gray-900">
+            {{ datasource.last_updated_on|timesince }} ago ({{ datasource.update_frequency.label }})
+        </dd>
+    </div>
+    <div class="sm:col-span-2">
         <dt class="text-sm font-medium text-gray-500">
             Tags
         </dt>
@@ -93,14 +123,6 @@
                 {{ tag.label }}
             </span>
             {% endfor %}
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Last update
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.last_updated_on|timesince }} ago ({{ datasource.update_frequency.label }})
         </dd>
     </div>
 </dl>
