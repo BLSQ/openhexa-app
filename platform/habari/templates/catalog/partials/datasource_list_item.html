@@ -27,10 +27,10 @@
             {{ datasource.location.iso3|default:datasource.location.name }}
         </div>
     </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {{ datasource.content.quantity }}
+    <td class="px-6 py-4">
+        <span class="text-sm text-gray-500 whitespace-nowrap mr-1">{{ datasource.content.quantity }}</span>
         {% for tag in datasource.content.tags %}
-        <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
+        <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
         {% endfor %}

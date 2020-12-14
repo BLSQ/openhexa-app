@@ -43,6 +43,10 @@ SAMPLE_DATASOURCES = [
                     "code": "sum",
                     "label": "Sum",
                 },
+                "tags": [
+                    {"code": "malaria", "label": "Malaria", "color": "green"},
+                    {"code": "care_cases", "label": "Care cases", "color": "yellow"},
+                ],
             },
             {
                 "id": "739ff5fe-59fe-4e63-a17e-69d6852f7a37",
@@ -62,6 +66,10 @@ SAMPLE_DATASOURCES = [
                     "code": "sum",
                     "label": "Sum",
                 },
+                "tags": [
+                    {"code": "malaria", "label": "Malaria", "color": "green"},
+                    {"code": "care_cases", "label": "Care cases", "color": "yellow"},
+                ],
             },
             {
                 "id": "03ee9f97-391e-4044-b26e-ead4bb1a0224",
@@ -81,6 +89,10 @@ SAMPLE_DATASOURCES = [
                     "code": "sum",
                     "label": "Sum",
                 },
+                "tags": [
+                    {"code": "malaria", "label": "Malaria", "color": "green"},
+                    {"code": "care_cases", "label": "Care cases", "color": "yellow"},
+                ],
             },
             {
                 "id": "cc1e3d45-7975-4d4b-8e5b-5512a2271f21",
@@ -100,6 +112,10 @@ SAMPLE_DATASOURCES = [
                     "code": "sum",
                     "label": "Sum",
                 },
+                "tags": [
+                    {"code": "malaria", "label": "Malaria", "color": "green"},
+                    {"code": "care_cases", "label": "Care cases", "color": "yellow"},
+                ],
             },
             {
                 "id": "56a32844-4ccf-45e1-9348-ab218c031368",
@@ -119,6 +135,10 @@ SAMPLE_DATASOURCES = [
                     "code": "average",
                     "label": "Average",
                 },
+                "tags": [
+                    {"code": "malaria", "label": "Malaria", "color": "green"},
+                    {"code": "care_cases", "label": "Testing", "color": "yellow"},
+                ],
             },
             {
                 "id": "3b2ed9c3-5e2d-4ad7-a2c2-1caeab8d1202",
