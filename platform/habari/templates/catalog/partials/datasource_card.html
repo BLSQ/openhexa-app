@@ -30,6 +30,35 @@
 <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
     <div class="sm:col-span-1">
         <dt class="text-sm font-medium text-gray-500">
+            URL
+        </dt>
+        <dd class="mt-1 text-sm text-gray-900">
+            {% if datasource.url %}
+            <a href="{{ datasource.url }}"
+               class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+               target="_blank" rel="noopener">
+                <span>{{ datasource.url }}</span>
+                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+            </a>
+            {% else %}
+            -
+            {% endif %}
+        </dd>
+    </div>
+    <div class="sm:col-span-1">
+        <dt class="text-sm font-medium text-gray-500">
+            Primary location
+        </dt>
+        <dd class="mt-1 text-sm text-gray-900">
+            {{ datasource.location.icon }} {{ datasource.location.name }}
+        </dd>
+    </div>
+    <div class="sm:col-span-1">
+        <dt class="text-sm font-medium text-gray-500">
             Owner
         </dt>
         <dd class="mt-1 text-sm text-gray-900">
@@ -44,14 +73,6 @@
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                 </svg>
             </a>
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Primary location
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.location.icon }} {{ datasource.location.name }}
         </dd>
     </div>
     <div class="sm:col-span-1">

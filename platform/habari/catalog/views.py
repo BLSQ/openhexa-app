@@ -14,11 +14,128 @@ SAMPLE_DATASOURCES = [
             "website": "https://www.mn.uio.no/ifi/english/research/networks/hisp/",
             "type": {"code": "academia", "label": "Academic"},
         },
+        "url": "https://play.dhis2.org/2.35.0/",
         "location": {"icon": "🇸🇱", "name": "Sierra Leone", "iso3": "SLE"},
         "content": {
             "quantity": "83 data elements",
             "tags": [{"code": "public", "label": "Public", "color": "green"}],
         },
+        "data_elements": [
+            {
+                "id": "434169d5-d94c-47e1-a1b1-7a1b6b61133c",
+                "code": "DE_359596",
+                "name": "ANC 1st visit",
+                "short_name": "ANC 1st visit",
+                "description": "",
+                "domain_type": {
+                    "code": "aggregate",
+                    "label": "Aggregate",
+                },
+                "value_type": {
+                    "code": "number",
+                    "label": "Number"
+                },
+                "aggregation_type": {
+                    "code": "sum",
+                    "label": "Sum",
+                },
+            },
+            {
+                "id": "739ff5fe-59fe-4e63-a17e-69d6852f7a37",
+                "code": "DE_359597",
+                "name": "ANC 2nd visit",
+                "short_name": "ANC 2nd visit",
+                "description": "",
+                "domain_type": {
+                    "code": "aggregate",
+                    "label": "Aggregate",
+                },
+                "value_type": {
+                    "code": "number",
+                    "label": "Number"
+                },
+                "aggregation_type": {
+                    "code": "sum",
+                    "label": "Sum",
+                },
+            },
+            {
+                "id": "03ee9f97-391e-4044-b26e-ead4bb1a0224",
+                "code": "DE_359598",
+                "name": "ANC 3rd visit",
+                "short_name": "ANC 3rd visit",
+                "description": "",
+                "domain_type": {
+                    "code": "aggregate",
+                    "label": "Aggregate",
+                },
+                "value_type": {
+                    "code": "number",
+                    "label": "Number"
+                },
+                "aggregation_type": {
+                    "code": "sum",
+                    "label": "Sum",
+                },
+            },
+            {
+                "id": "cc1e3d45-7975-4d4b-8e5b-5512a2271f21",
+                "code": "DE_359599",
+                "name": "ANC 4th or more visit",
+                "short_name": "ANC 4th or more",
+                "description": "",
+                "domain_type": {
+                    "code": "aggregate",
+                    "label": "Aggregate",
+                },
+                "value_type": {
+                    "code": "number",
+                    "label": "Number"
+                },
+                "aggregation_type": {
+                    "code": "sum",
+                    "label": "Sum",
+                },
+            },
+            {
+                "id": "56a32844-4ccf-45e1-9348-ab218c031368",
+                "code": "DE_3000005",
+                "name": "Admission Date",
+                "short_name": "Admission Date",
+                "description": "Date of Admission of patient.",
+                "domain_type": {
+                    "code": "tracker",
+                    "label": "Tracker",
+                },
+                "value_type": {
+                    "code": "date",
+                    "label": "Date"
+                },
+                "aggregation_type": {
+                    "code": "average",
+                    "label": "Average",
+                },
+            },
+            {
+                "id": "3b2ed9c3-5e2d-4ad7-a2c2-1caeab8d1202",
+                "code": "DE_3000003",
+                "name": "Age in years",
+                "short_name": "Age in years",
+                "description": "Age of person in years.",
+                "domain_type": {
+                    "code": "tracker",
+                    "label": "Tracker",
+                },
+                "value_type": {
+                    "code": "integer",
+                    "label": "Integer"
+                },
+                "aggregation_type": {
+                    "code": "average",
+                    "label": "Average",
+                },
+            },
+        ],
         "last_updated_on": timezone.now() - timedelta(days=1),
         "update_frequency": {"code": "daily", "label": "Updated daily"},
     },
@@ -57,7 +174,7 @@ SAMPLE_DATASOURCES = [
             "name": "Democratic Republic of the Congo",
             "iso3": "COD",
         },
-        "content": {"quantity": "7 data sets", "tags": [],},
+        "content": {"quantity": "7 data sets", "tags": [], },
         "last_updated_on": timezone.now() - timedelta(days=1),
         "update_frequency": {"code": "daily", "label": "Updated daily"},
     },

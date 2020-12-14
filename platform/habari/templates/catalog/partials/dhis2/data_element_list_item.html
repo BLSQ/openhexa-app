@@ -1,39 +1,25 @@
-{% load static %}
-
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
-                <span class="block flex-shrink-0 h-10 w-10">
-                    <img class="h-10 w-10 rounded-full"
-                         src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
-                         alt="{{ datasource.type.label }}">
-                </span>
+            <div class="text-gray-400">
+                {% include "catalog/partials/dhis2/icon_"|add:data_element.domain_type.code|add:".html" %}
+            </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
-                    {{ datasource.name }}
+                    {{ data_element.short_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource.type.label }}
+                    {{ data_element.domain_type.label }}
                 </span>
             </span>
         </a>
     </td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ datasource.owner.name }}</div>
-        <div class="text-sm text-gray-500">{{ datasource.owner.type.label }}</div>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {{ data_element.code }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ datasource.location.icon }}
-            {{ datasource.location.iso3|default:datasource.location.name }}
-        </div>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {{ datasource.content.quantity }}
-        {% for tag in datasource.content.tags %}
-        <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
-            {{ tag.label }}
-        </span>
-        {% endfor %}
+        <div class="text-sm text-gray-900">{{ data_element.value_type.label }}</div>
+        <div class="text-sm text-gray-500">{{ data_element.aggregation_type.label }}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
@@ -44,7 +30,7 @@
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <a href="{% url 'catalog:datasource_detail' datasource.id %}"
+        <a href="#"
            class="text-indigo-600 hover:text-indigo-900 flex justify-end">
             View
             <div class="ml-1 flex-shrink-0">
