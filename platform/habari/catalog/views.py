@@ -7,7 +7,7 @@ from django.shortcuts import render
 SAMPLE_DATASOURCES = [
     {
         "id": "aecc5e5e-d323-4398-9b86-5871afdd500f",
-        "type": {"code": "dhis2", "label": "DHIS2",},
+        "type": {"code": "dhis2", "label": "DHIS2", "description": "DHIS2 instance"},
         "name": "DHIS 2 Demo",
         "owner": {"name": "HISP", "type": {"code": "academia", "label": "Academic"},},
         "location": {"icon": "🇸🇱", "name": "Sierra Leone", "iso3": "SLE"},
@@ -20,7 +20,7 @@ SAMPLE_DATASOURCES = [
     },
     {
         "id": "831cfa1b-f8ec-474b-a3c9-da8ca58684be",
-        "type": {"code": "dhis2", "label": "DHIS2",},
+        "type": {"code": "dhis2", "label": "DHIS2", "description": "DHIS2 instance"},
         "name": "Another dhis2 instance",
         "owner": {
             "name": "Ministry of Health",
@@ -40,7 +40,7 @@ SAMPLE_DATASOURCES = [
     },
     {
         "id": "b4de249d-449a-4a9c-a39b-ea2e83bd8dc5",
-        "type": {"code": "iaso", "label": "IASO",},
+        "type": {"code": "iaso", "label": "IASO", "description": "IASO project"},
         "name": "Carte Sanitaire DRC",
         "owner": {
             "name": "Ministry of Health",
@@ -57,7 +57,11 @@ SAMPLE_DATASOURCES = [
     },
     {
         "id": "dcac5818-0f1a-4f52-98f2-4d514b7d7725",
-        "type": {"code": "excel", "label": "Excel file",},
+        "type": {
+            "code": "excel",
+            "label": "Excel file",
+            "description": "Microsoft Excel file",
+        },
         "name": "COVID Linelist",
         "owner": {
             "name": "Ministry of Health",
@@ -77,7 +81,11 @@ SAMPLE_DATASOURCES = [
     },
     {
         "id": "14934a3d-e6c1-40c1-85a7-be099e5f7689",
-        "type": {"code": "csv", "label": "CSV file",},
+        "type": {
+            "code": "csv",
+            "label": "CSV file",
+            "description": "Comma-separated values file",
+        },
         "name": "Worldpop Birth data",
         "owner": {
             "name": "Worldpop",

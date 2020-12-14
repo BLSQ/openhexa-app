@@ -1,12 +1,33 @@
 <div class="mt-8 bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
     <div class="bg-white px-4 py-5 sm:px-6">
-        <div class="-ml-4 -mt-2 flex items-center justify-between flex-wrap sm:flex-nowrap">
-            <div class="ml-4 mt-2">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                    {% block card_title %}Untitled card{% endblock %}
-                </h3>
+        <div class="-ml-4 -mt-4 flex justify-between items-center flex-wrap sm:flex-nowrap">
+            <div class="ml-4 mt-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        {% block card_header_image %}
+                        <img class="h-12 w-12 rounded-full"
+                             src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                             alt="">
+                        {% endblock %}
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            {% block card_header_title %}Missing title{% endblock %}
+                        </h3>
+                        <p class="text-sm text-gray-500">
+                            {% block card_header_description %}Missing description{% endblock %}
+                        </p>
+                    </div>
+                </div>
             </div>
-            {% block card_header_extra %}{% endblock %}
+            <div class="ml-4 mt-4 flex-shrink-0 flex">
+                {% block card_header_actions %}
+                <button type="button"
+                        class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Missing action
+                </button>
+                {%endblock %}
+            </div>
         </div>
     </div>
     <div class="px-4 py-5 sm:p-6">
