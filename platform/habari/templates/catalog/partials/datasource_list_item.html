@@ -19,12 +19,17 @@
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ datasource.source.name }}</div>
-        <div class="text-sm text-gray-500">{{ datasource.source.type.label }}</div>
+        <div class="text-sm text-gray-900">{{ datasource.owner.name }}</div>
+        <div class="text-sm text-gray-500">{{ datasource.owner.type.label }}</div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900">{{ datasource.location.icon }}
+            {{ datasource.location.iso3|default:datasource.location.name }}
+        </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {{ datasource.datasets_count }} dataset{{ datasource.datasets_count|pluralize:",s" }}
-        {% for tag in datasource.tags %}
+        {{ datasource.content.quantity }}
+        {% for tag in datasource.content.tags %}
         <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
