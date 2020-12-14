@@ -9,7 +9,11 @@ SAMPLE_DATASOURCES = [
         "id": "aecc5e5e-d323-4398-9b86-5871afdd500f",
         "type": {"code": "dhis2", "label": "DHIS2", "description": "DHIS2 instance"},
         "name": "DHIS 2 Demo",
-        "owner": {"name": "HISP", "type": {"code": "academia", "label": "Academic"},},
+        "owner": {
+            "name": "HISP",
+            "website": "https://www.mn.uio.no/ifi/english/research/networks/hisp/",
+            "type": {"code": "academia", "label": "Academic"},
+        },
         "location": {"icon": "🇸🇱", "name": "Sierra Leone", "iso3": "SLE"},
         "content": {
             "quantity": "83 data elements",
@@ -24,6 +28,7 @@ SAMPLE_DATASOURCES = [
         "name": "Another dhis2 instance",
         "owner": {
             "name": "Ministry of Health",
+            "website": "https://www.minisanterdc.cd/",
             "type": {"code": "government", "label": "Government"},
         },
         "location": {
@@ -44,6 +49,7 @@ SAMPLE_DATASOURCES = [
         "name": "Carte Sanitaire DRC",
         "owner": {
             "name": "Ministry of Health",
+            "website": "https://www.minisanterdc.cd/",
             "type": {"code": "government", "label": "Government"},
         },
         "location": {
@@ -65,6 +71,7 @@ SAMPLE_DATASOURCES = [
         "name": "COVID Linelist",
         "owner": {
             "name": "Ministry of Health",
+            "website": "https://www.minisanterdc.cd/",
             "type": {"code": "government", "label": "Government"},
         },
         "location": {
@@ -89,6 +96,7 @@ SAMPLE_DATASOURCES = [
         "name": "Worldpop Birth data",
         "owner": {
             "name": "Worldpop",
+            "website": "https://www.worldpop.org/",
             "type": {"code": "academia", "label": "Academia"},
         },
         "location": {"icon": "🌏", "name": "Global", "iso3": None},
