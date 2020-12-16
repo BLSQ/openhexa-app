@@ -1,0 +1,9 @@
+{% with current_app=request.resolver_match.app_name %}
+<a href="{% if app and route %}{% url app|add:':'|add:route %}{% else %}/{% endif %}"
+   class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-900 focus:outline-none
+   focus:border-purple-700 transition duration-150 ease-in-out
+   {% if current_app == app %} border-purple-500{% endif %}"
+>
+    {{title}}
+</a>
+{% endwith %}

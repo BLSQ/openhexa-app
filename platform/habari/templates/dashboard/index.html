@@ -1,6 +1,8 @@
-{% extends "base.html" %}
+{% extends "layouts/page.html" %}
 
-{% block main %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block page_content %}
     {% include "dashboard/partials/overview.html" %}
     {% include "dashboard/partials/activity.html" %}
 {% endblock %}

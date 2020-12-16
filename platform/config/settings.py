@@ -36,7 +36,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "tailwind",
     "habari.dashboard.apps.DashboardConfig",
+    "habari.catalog.apps.CatalogConfig",
+    "habari.tailwindui.apps.TailwinduiConfig",
 ]
 
 MIDDLEWARE = [
@@ -114,3 +117,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "habari" / "static"]
+
+# Tailwind
+TAILWIND_APP_NAME = "habari.tailwindui"

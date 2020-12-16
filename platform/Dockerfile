@@ -14,4 +14,8 @@ COPY . /code/
 ENV SECRET_KEY="connectstatic"
 RUN python manage.py collectstatic --noinput
 
+# Needed for TailwindCSS
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+
 CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "config.wsgi:application"]
