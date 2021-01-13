@@ -4,3 +4,4 @@ gunicorn==20.*
 whitenoise==5.*
 django-tailwind==1.*
 django-countries==7.*
+pandas==1.*
