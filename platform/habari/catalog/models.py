@@ -63,6 +63,14 @@ class DataSource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
 
 
+class Dhis2Area(Content):
+    pass
+
+
+class Dhis2Theme(Content):
+    pass
+
+
 class Dhis2Data(Content):
     class Meta:
         abstract = True
@@ -74,6 +82,12 @@ class Dhis2Data(Content):
         "DataSource",
         on_delete=models.CASCADE,
         limit_choices_to={"source_type": SourceType.DHIS2.value},
+    )
+    area = models.ForeignKey(
+        "Dhis2Area", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    theme = models.ForeignKey(
+        "Dhis2Theme", null=True, blank=True, on_delete=models.SET_NULL
     )
     dhis2_id = models.CharField(max_length=100)
     dhis2_code = models.CharField(max_length=100, blank=True)

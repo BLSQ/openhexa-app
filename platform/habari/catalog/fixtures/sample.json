@@ -1,0 +1,177 @@
+[
+  {
+    "model": "catalog.organization",
+    "pk": "32f02e15-79cf-41de-89f9-211902e47a62",
+    "fields": {
+      "created_at": "2021-01-13T13:04:41.751Z",
+      "updated_at": "2021-01-13T13:18:57.706Z",
+      "name": "Ministère de la santé",
+      "short_name": "",
+      "description": "",
+      "countries": "CD",
+      "organization_type": "GOVERNMENT",
+      "url": "https://www.minisanterdc.cd"
+    }
+  },
+  {
+    "model": "catalog.datasource",
+    "pk": "b2b1851e-cce0-48bc-8fe9-7c7898fca3bc",
+    "fields": {
+      "created_at": "2021-01-13T13:05:24.524Z",
+      "updated_at": "2021-01-13T13:19:31.496Z",
+      "name": "Système National d'Information Sanitaire",
+      "short_name": "SNIS RDC",
+      "description": "",
+      "countries": "CD",
+      "owner": "32f02e15-79cf-41de-89f9-211902e47a62",
+      "source_type": "DHIS2",
+      "url": "https://snisrdc.com",
+      "active_from": null,
+      "active_to": null
+    }
+  },
+  {
+    "model": "catalog.dhis2area",
+    "pk": "6062be4a-99df-4f22-85e1-3f26d34a8329",
+    "fields": {
+      "created_at": "2021-01-13T13:56:14.339Z",
+      "updated_at": "2021-01-13T13:56:14.339Z",
+      "name": "Malaria",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2area",
+    "pk": "7ee2f94b-4cd1-427d-b670-41c798b5a404",
+    "fields": {
+      "created_at": "2021-01-13T13:56:20.970Z",
+      "updated_at": "2021-01-13T13:56:20.970Z",
+      "name": "Human Resources",
+      "short_name": "HR",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2theme",
+    "pk": "663d41cf-0c32-40e6-ae2b-12c4989f3567",
+    "fields": {
+      "created_at": "2021-01-13T13:56:46.774Z",
+      "updated_at": "2021-01-13T13:56:46.774Z",
+      "name": "Care cases",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2theme",
+    "pk": "8971ef3b-2229-4597-91b9-72f3a1f9e416",
+    "fields": {
+      "created_at": "2021-01-13T13:56:55.395Z",
+      "updated_at": "2021-01-13T13:56:55.395Z",
+      "name": "Treatment",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2theme",
+    "pk": "93280d60-ca6d-4149-9a55-fcf307b573a2",
+    "fields": {
+      "created_at": "2021-01-13T13:56:51.940Z",
+      "updated_at": "2021-01-13T13:56:51.940Z",
+      "name": "Logistics",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2dataelement",
+    "pk": "289e0249-60a4-4182-8659-43c99f11013f",
+    "fields": {
+      "created_at": "2021-01-13T14:00:37.166Z",
+      "updated_at": "2021-01-13T14:01:19.521Z",
+      "name": "I.1.1 Paludisme simple confirmé traité AL avec effet indésirable",
+      "short_name": "",
+      "description": "Simple confirmed treated case with side effects Number",
+      "countries": "",
+      "owner": "32f02e15-79cf-41de-89f9-211902e47a62",
+      "source": "b2b1851e-cce0-48bc-8fe9-7c7898fca3bc",
+      "area": "6062be4a-99df-4f22-85e1-3f26d34a8329",
+      "theme": "8971ef3b-2229-4597-91b9-72f3a1f9e416",
+      "dhis2_id": "XuzEUX2pZLT",
+      "dhis2_code": "",
+      "dhis2_domain_type": "AGGREGATE",
+      "dhis2_value_type": "INTEGER",
+      "dhis2_aggregation_type": "SUM"
+    }
+  },
+  {
+    "model": "catalog.dhis2dataelement",
+    "pk": "5c84c219-35ce-49cf-8317-628354aee646",
+    "fields": {
+      "created_at": "2021-01-13T13:58:50.176Z",
+      "updated_at": "2021-01-13T14:00:58.203Z",
+      "name": "F 6.3 Paludisme - Echantillon Examine (labo)",
+      "short_name": "",
+      "description": "Examined Lab Sample Number",
+      "countries": "",
+      "owner": "32f02e15-79cf-41de-89f9-211902e47a62",
+      "source": "b2b1851e-cce0-48bc-8fe9-7c7898fca3bc",
+      "area": "6062be4a-99df-4f22-85e1-3f26d34a8329",
+      "theme": "663d41cf-0c32-40e6-ae2b-12c4989f3567",
+      "dhis2_id": "VQpsSXpK6aS",
+      "dhis2_code": "",
+      "dhis2_domain_type": "AGGREGATE",
+      "dhis2_value_type": "INTEGER",
+      "dhis2_aggregation_type": "SUM"
+    }
+  },
+  {
+    "model": "catalog.dhis2dataelement",
+    "pk": "606eb84c-42d3-408b-a4d2-9c77d7a558f9",
+    "fields": {
+      "created_at": "2021-01-13T13:20:54.393Z",
+      "updated_at": "2021-01-13T14:02:56.542Z",
+      "name": "A 1.4 Paludisme grave",
+      "short_name": "",
+      "description": "Serious case number",
+      "countries": "",
+      "owner": "32f02e15-79cf-41de-89f9-211902e47a62",
+      "source": "b2b1851e-cce0-48bc-8fe9-7c7898fca3bc",
+      "area": "6062be4a-99df-4f22-85e1-3f26d34a8329",
+      "theme": "663d41cf-0c32-40e6-ae2b-12c4989f3567",
+      "dhis2_id": "AxJhIi7tUam",
+      "dhis2_code": "",
+      "dhis2_domain_type": "AGGREGATE",
+      "dhis2_value_type": "INTEGER",
+      "dhis2_aggregation_type": "SUM"
+    }
+  },
+  {
+    "model": "catalog.dhis2dataelement",
+    "pk": "b03f54b4-d104-4754-8a3b-1497a44dd955",
+    "fields": {
+      "created_at": "2021-01-13T14:02:22.416Z",
+      "updated_at": "2021-01-13T14:02:22.416Z",
+      "name": "I.2.1 Artemether+Lumefantrine( 15 à moins de 25kg) avec 12comprimés(6*2) 20/120mg  Cons",
+      "short_name": "",
+      "description": "Medication consumed Flow",
+      "countries": "",
+      "owner": "32f02e15-79cf-41de-89f9-211902e47a62",
+      "source": "b2b1851e-cce0-48bc-8fe9-7c7898fca3bc",
+      "area": "6062be4a-99df-4f22-85e1-3f26d34a8329",
+      "theme": "93280d60-ca6d-4149-9a55-fcf307b573a2",
+      "dhis2_id": "j9XC3H0lEUd",
+      "dhis2_code": "",
+      "dhis2_domain_type": "AGGREGATE",
+      "dhis2_value_type": "INTEGER",
+      "dhis2_aggregation_type": "SUM"
+    }
+  }
+]
