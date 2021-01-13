@@ -1,7 +1,29 @@
 from django.contrib import admin
 from .models import *
 
-admin.site.register(Organization)
-admin.site.register(DataSource)
-admin.site.register(Dhis2DataElement)
-admin.site.register(Dhis2Indicator)
+
+def country_list(obj):
+    return ",".join(country.alpha3 for country in obj.countries)
+
+
+country_list.short_description = "Countries"
+
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "organization_type", country_list)
+
+
+@admin.register(DataSource)
+class DataSourceAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "source_type", "owner", country_list)
+
+
+@admin.register(Dhis2DataElement)
+class Dhis2DataElementAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "owner", "source", "dhis2_id", "dhis2_domain_type")
+
+
+@admin.register(Dhis2Indicator)
+class Dhis2IndicatorAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "owner", "source", "dhis2_id", "dhis2_indicator_type")

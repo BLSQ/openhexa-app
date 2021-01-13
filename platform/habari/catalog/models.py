@@ -25,6 +25,10 @@ class Content(Base):
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
 
+    @property
+    def display_name(self):
+        return self.short_name if self.short_name != "" else self.name
+
     def __str__(self):
         return f"{type(self).__name__}: {self.short_name if self.short_name else self.name}"
 
@@ -40,6 +44,7 @@ class Organization(Content):
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
     )
+    url = models.URLField(blank=True)
 
 
 class SourceType(models.TextChoices):
@@ -53,6 +58,7 @@ class DataSource(Content):
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
     source_type = models.CharField(choices=SourceType.choices, max_length=100)
+    url = models.URLField(blank=True)
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
 
@@ -70,7 +76,7 @@ class Dhis2Data(Content):
         limit_choices_to={"source_type": SourceType.DHIS2.value},
     )
     dhis2_id = models.CharField(max_length=100)
-    dhis2_code = models.CharField(max_length=100)
+    dhis2_code = models.CharField(max_length=100, blank=True)
 
 
 class Dhis2DomainType(models.TextChoices):
