@@ -16,7 +16,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(DataSource)
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "source_type", "owner", country_list)
+    list_display = ("display_name", "source_type", "owner", "public", country_list)
 
 
 @admin.register(Dhis2Area)

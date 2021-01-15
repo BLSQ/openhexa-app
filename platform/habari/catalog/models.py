@@ -13,7 +13,7 @@ class Base(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{type(self).__name__}: {self.id}"
+        return self.id
 
 
 class Content(Base):
@@ -30,7 +30,7 @@ class Content(Base):
         return self.short_name if self.short_name != "" else self.name
 
     def __str__(self):
-        return f"{type(self).__name__}: {self.short_name if self.short_name else self.name}"
+        return self.display_name
 
 
 class OrganizationType(models.TextChoices):
@@ -61,6 +61,7 @@ class DataSource(Content):
     url = models.URLField(blank=True)
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
+    public = models.BooleanField(default=False, verbose_name="Public dataset")
 
 
 class Dhis2Area(Content):
