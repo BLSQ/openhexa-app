@@ -62,6 +62,7 @@ class DataSource(Content):
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
+    last_synced_at = models.DateTimeField(null=True, blank=True)
 
 
 class Dhis2Area(Content):

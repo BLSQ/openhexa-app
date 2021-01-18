@@ -1,8 +1,8 @@
 from datetime import timedelta
-from math import floor
-
 from django.utils import timezone
 from django.shortcuts import render
+
+from .models import DataSource
 
 SAMPLE_DATASOURCES = [
     {
@@ -196,11 +196,12 @@ SAMPLE_DATASOURCES = [
 
 def index(request):
     breadcrumbs = [("Catalog", "catalog:index")]
+    datasources = DataSource.objects.all()
 
     return render(
         request,
         "catalog/index.html",
-        {"datasources": SAMPLE_DATASOURCES, "breadcrumbs": breadcrumbs},
+        {"datasources": datasources, "breadcrumbs": breadcrumbs},
     )
 
 

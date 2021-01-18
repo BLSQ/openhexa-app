@@ -5,42 +5,52 @@
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
-                         src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
-                         alt="{{ datasource.type.label }}">
+                         src="{% static 'img/logos/'|add:datasource.source_type|lower|add:'.png' %}"
+                         alt="{{ datasource.source_type.label }}">
                 </span>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ datasource.name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource.type.label }}
+                    {{ datasource.source_type.label }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ datasource.owner.name }}</div>
+        <div class="text-sm text-gray-900">{{ datasource.owner.name|default:"-" }}</div>
         <div class="text-sm text-gray-500">{{ datasource.owner.type.label }}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ datasource.location.icon }}
-            {{ datasource.location.iso3|default:datasource.location.name }}
+        <div class="text-sm text-gray-900 flex items-center align-center">
+            {% for country in datasource.countries %}
+                <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
+                {{ country.alpha3|default:country.name }}
+            {% empty %}
+                Global
+            {% endfor %}
         </div>
     </td>
     <td class="px-6 py-4">
         <span class="text-sm text-gray-500 whitespace-nowrap mr-1">{{ datasource.content.quantity }}</span>
         {% for tag in datasource.content.tags %}
-        <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
+            <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
         {% endfor %}
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {{ datasource.last_updated_on|timesince }} ago
+            {% if datasource.last_synced_at %}
+                {{ datasource.last_synced_at|timesince }} ago
+            {% else %}
+                Not synced
+            {% endif %}
+
         </div>
         <div class="text-sm text-gray-500">
-            {{ datasource.update_frequency.label }}
+            {{ datasource.update_frequency.label|default:"Daily" }}
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
