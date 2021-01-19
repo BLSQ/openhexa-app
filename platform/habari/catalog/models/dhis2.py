@@ -29,8 +29,8 @@ class Dhis2Connection(Base):
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
 
-    def refresh(self):
-        """Refresh the datasource by querying the DHIS2 API"""
+    def sync(self):
+        """Sync the datasource by querying the DHIS2 API"""
 
         dhis2 = Api("play.dhis2.org/demo", "admin", "district")
         response = dhis2.get_paged(

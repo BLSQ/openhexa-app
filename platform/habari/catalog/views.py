@@ -223,12 +223,12 @@ def datasource_detail(request, datasource_id):
     )
 
 
-def datasource_refresh(request, datasource_id):
+def datasource_sync(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     try:
-        refresh_result = datasource.refresh()
-        messages.success(request, str(refresh_result), extra_tags="green")
+        sync_result = datasource.sync()
+        messages.success(request, sync_result, extra_tags="green")
     except Datasource.NoConnection as e:
         messages.error(request, e, extra_tags="red")
 
