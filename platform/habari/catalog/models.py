@@ -54,7 +54,10 @@ class SourceType(models.TextChoices):
     FILES = "FILES", _("Files")
 
 
-class DataSource(Content):
+class Datasource(Content):
+    class NoConnection(Exception):
+        pass
+
     owner = models.ForeignKey(
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -66,15 +69,17 @@ class DataSource(Content):
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
     def refresh(self):
-        if self.spec is not None:
-            return self.spec.refresh()
+        try:
+            return self.connection.refresh()
+        except Dhis2Connection.DoesNotExist:
+            raise Datasource.NoConnection(
+                f'The datasource "{self.display_name}" has no connection'
+            )
 
-        raise NotImplementedError(f"No spec...")
 
-
-class Dhis2DataSourceSpec(Base):
+class Dhis2Connection(Base):
     source = models.OneToOneField(
-        "DataSource", on_delete=models.CASCADE, related_name="spec"
+        "Datasource", on_delete=models.CASCADE, related_name="connection"
     )
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
@@ -106,7 +111,7 @@ class Dhis2Data(Content):
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
     source = models.ForeignKey(
-        "DataSource",
+        "Datasource",
         on_delete=models.CASCADE,
         limit_choices_to={"source_type": SourceType.DHIS2.value},
     )

@@ -14,15 +14,15 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("display_name", "organization_type", country_list)
 
 
-class Dhis2DataSourceSpecInlineAdmin(admin.TabularInline):
-    model = Dhis2DataSourceSpec
+class Dhis2ConnectionInlineAdmin(admin.TabularInline):
+    model = Dhis2Connection
 
 
-@admin.register(DataSource)
-class DataSourceAdmin(admin.ModelAdmin):
+@admin.register(Datasource)
+class DatasourceAdmin(admin.ModelAdmin):
     list_display = ("display_name", "source_type", "owner", "public", country_list)
     inlines = [
-        Dhis2DataSourceSpecInlineAdmin,
+        Dhis2ConnectionInlineAdmin,
     ]
 
 

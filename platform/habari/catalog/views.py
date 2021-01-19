@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 
-from .models import DataSource
+from .models import Datasource
 
 SAMPLE_DATASOURCES = [
     {
@@ -200,7 +200,7 @@ SAMPLE_DATASOURCES = [
 
 def index(request):
     breadcrumbs = [("Catalog", "catalog:index")]
-    datasources = DataSource.objects.all()
+    datasources = Datasource.objects.all()
 
     return render(
         request,
@@ -224,8 +224,12 @@ def datasource_detail(request, datasource_id):
 
 
 def datasource_refresh(request, datasource_id):
-    datasource = get_object_or_404(DataSource, pk=datasource_id)
-    refresh_message = datasource.refresh()
-    messages.success(request, refresh_message)
+    datasource = get_object_or_404(Datasource, pk=datasource_id)
+
+    try:
+        refresh_message = datasource.refresh()
+        messages.success(request, refresh_message, extra_tags="green")
+    except Datasource.NoConnection as e:
+        messages.error(request, e, extra_tags="red")
 
     return HttpResponseRedirect(reverse("catalog:index"))
