@@ -13,7 +13,7 @@ class Base(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
 
 class Content(Base):
@@ -63,6 +63,13 @@ class DataSource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+
+
+class Dhis2DataSourceSpec(Base):
+    source = models.OneToOneField("DataSource", on_delete=models.CASCADE)
+    api_url = models.URLField()
+    api_username = models.CharField(max_length=200)
+    api_password = models.CharField(max_length=200)
 
 
 class Dhis2Area(Content):
