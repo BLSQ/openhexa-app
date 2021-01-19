@@ -69,6 +69,8 @@ class Datasource(Content):
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
     def refresh(self):
+        """Refresh the datasource using its connection"""
+
         try:
             return self.connection.refresh()
         except Dhis2Connection.DoesNotExist:
@@ -90,9 +92,35 @@ class Dhis2Connection(Base):
         de_results = dhis2.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100, merge=True
         )
-        de_data = de_results["dataElements"]
+        de_list = de_results["dataElements"]
+        for de in de_list:
+            try:
+                description = next(
+                    p
+                    for p in de["translations"]
+                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
+                )["value"]
+            except StopIteration:
+                try:
+                    description = next(
+                        p for p in de["translations"] if p["property"] == "DESCRIPTION"
+                    )["value"]
+                except StopIteration:
+                    description = ""
 
-        return f"Synced {len(de_data)} data elements"
+            Dhis2DataElement.objects.create(
+                source=self.source,
+                dhis2_id=de["id"],
+                dhis2_code=de.get("code", ""),
+                name=de["name"],
+                short_name=de["shortName"],
+                description=description,
+                dhis2_domain_type=de["domainType"],
+                dhis2_value_type=de["valueType"],
+                dhis2_aggregation_type=de["aggregationType"],
+            )
+
+        return f"Synced {len(de_list)} data elements"
 
 
 class Dhis2Area(Content):
