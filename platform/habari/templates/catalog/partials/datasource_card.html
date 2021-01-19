@@ -2,128 +2,136 @@
 {% load static %}
 
 {% block card_header_image %}
-<img class="h-10 w-10 rounded-full mr-2"
-     src="{% static 'img/logos/'|add:datasource.type.code|add:'.png' %}"
-     alt="{{ datasource.type.label }}">
+    <img class="h-10 w-10 rounded-full mr-2"
+         src="{% static 'img/logos/'|add:datasource.source_type|lower|add:'.png' %}"
+         alt="{{ datasource.source_type.label }}">
 {% endblock %}
 {% block card_header_title %}
-{{ datasource.name }}
+    {{ datasource.name }}
 {% endblock %}
 
 {% block card_header_description %}
-{{ datasource.type.description }}
+    {{ datasource.source.description }}
 {% endblock %}
 
 {% block card_header_actions %}
-<button type="button"
-        class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-    <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-    </svg>
-    Edit
-</button>
+    <button type="button"
+            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+        Edit
+    </button>
 {% endblock %}
 
 {% block card_content %}
-<dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            URL
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {% if datasource.url %}
-            <a href="{{ datasource.url }}"
-               class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
-               target="_blank" rel="noopener">
-                <span>{{ datasource.url }}</span>
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-            </a>
-            {% else %}
-            -
-            {% endif %}
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Primary location
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.location.icon }} {{ datasource.location.name }}
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Owner
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.owner.name }}&nbsp;<span class="text-gray-500">({{ datasource.owner.type.label }})</span><br/>
-            <a href="{{ datasource.owner.website }}"
-               class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
-               target="_blank" rel="noopener">
-                <span>Official website</span>
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-            </a>
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Contact
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {% if datasource.contact %}
-            {{ datasource.contact.name }}<br/>
-            <a href="mailto:{{ datasource.contact.email }}"
-               class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
-               target="_blank" rel="noopener">
-                <span>{{ datasource.contact.email }}</span>
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
-            </a>
-            {% else %}
-            -
-            {% endif %}
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Content
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.content.quantity }}
-        </dd>
-    </div>
-    <div class="sm:col-span-1">
-        <dt class="text-sm font-medium text-gray-500">
-            Last update
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {{ datasource.last_updated_on|timesince }} ago ({{ datasource.update_frequency.label }})
-        </dd>
-    </div>
-    <div class="sm:col-span-2">
-        <dt class="text-sm font-medium text-gray-500">
-            Tags
-        </dt>
-        <dd class="mt-1 text-sm text-gray-900">
-            {% for tag in datasource.content.tags %}
-            <span class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
+    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                URL
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {% if datasource.url %}
+                    <a href="{{ datasource.url }}"
+                       class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                       target="_blank" rel="noopener">
+                        <span>{{ datasource.url }}</span>
+                        <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Countries
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                <div class="flex items-center align-center">
+                    {% for country in datasource.countries %}
+                        <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
+                        {{ country.name }}
+                    {% empty %}
+                        Global
+                    {% endfor %}
+                </div>
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Owner
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {{ datasource.owner.name }}&nbsp;<span
+                    class="text-gray-500">({{ datasource.owner.organization_type.label }})</span><br/>
+                <a href="{{ datasource.owner.website }}"
+                   class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                   target="_blank" rel="noopener">
+                    <span>Official website</span>
+                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Contact
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {% if datasource.contact %}
+                    {{ datasource.contact.name }}<br/>
+                    <a href="mailto:{{ datasource.contact.email }}"
+                       class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                       target="_blank" rel="noopener">
+                        <span>{{ datasource.contact.email }}</span>
+                        <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </a>
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Content
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {{ datasource.content.quantity }}
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Last update
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {{ datasource.last_updated_on|timesince }} ago ({{ datasource.update_frequency.label }})
+            </dd>
+        </div>
+        <div class="sm:col-span-2">
+            <dt class="text-sm font-medium text-gray-500">
+                Tags
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {% for tag in datasource.content.tags %}
+                    <span class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
                 {{ tag.label }}
             </span>
-            {% endfor %}
-        </dd>
-    </div>
-</dl>
+                {% endfor %}
+            </dd>
+        </div>
+    </dl>
 {% endblock %}
