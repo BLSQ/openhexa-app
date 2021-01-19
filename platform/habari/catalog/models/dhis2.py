@@ -1,82 +1,9 @@
-import uuid
 from dhis2 import Api
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django_countries.fields import CountryField
 
-
-class Base(models.Model):
-    class Meta:
-        abstract = True
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return str(self.id)
-
-
-class Content(Base):
-    class Meta:
-        abstract = True
-
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-
-    @property
-    def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
-
-    def __str__(self):
-        return self.display_name
-
-
-class OrganizationType(models.TextChoices):
-    CORPORATE = "CORPORATE", _("Corporate")
-    ACADEMIC = "ACADEMIC", _("Academic")
-    GOVERNMENT = "GOVERNMENT", _("Government")
-    NGO = "NGO", _("Non-governmental")
-
-
-class Organization(Content):
-    organization_type = models.CharField(
-        choices=OrganizationType.choices, max_length=100
-    )
-    url = models.URLField(blank=True)
-
-
-class SourceType(models.TextChoices):
-    DHIS2 = "DHIS2", _("DHIS2")
-    IASO = "IASO", _("Iaso")
-    FILES = "FILES", _("Files")
-
-
-class Datasource(Content):
-    class NoConnection(Exception):
-        pass
-
-    owner = models.ForeignKey(
-        "Organization", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    source_type = models.CharField(choices=SourceType.choices, max_length=100)
-    url = models.URLField(blank=True)
-    active_from = models.DateTimeField(null=True, blank=True)
-    active_to = models.DateTimeField(null=True, blank=True)
-    public = models.BooleanField(default=False, verbose_name="Public dataset")
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-
-    def refresh(self):
-        """Refresh the datasource using its connection"""
-
-        try:
-            return self.connection.refresh()
-        except Dhis2Connection.DoesNotExist:
-            raise Datasource.NoConnection(
-                f'The datasource "{self.display_name}" has no connection'
-            )
+from .base import Base, Content
+from .common import SourceType
 
 
 class Dhis2Connection(Base):
