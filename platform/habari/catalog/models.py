@@ -73,14 +73,18 @@ class DataSource(Content):
 
 
 class Dhis2DataSourceSpec(Base):
-    source = models.OneToOneField("DataSource", on_delete=models.CASCADE, related_name="spec")
+    source = models.OneToOneField(
+        "DataSource", on_delete=models.CASCADE, related_name="spec"
+    )
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
 
     def refresh(self):
-        dhis2 = Api('play.dhis2.org/demo', 'admin', 'district')
-        de_results = dhis2.get_paged('dataElements', params={"fields": ":all"}, page_size=100, merge=True)
+        dhis2 = Api("play.dhis2.org/demo", "admin", "district")
+        de_results = dhis2.get_paged(
+            "dataElements", params={"fields": ":all"}, page_size=100, merge=True
+        )
         de_data = de_results["dataElements"]
 
         return f"Synced {len(de_data)} data elements"

@@ -18,7 +18,7 @@ SAMPLE_DATASOURCES = [
             "website": "https://www.mn.uio.no/ifi/english/research/networks/hisp/",
             "type": {"code": "academia", "label": "Academic"},
         },
-        "contact": {"name": "Support mail", "email": "post@dhis2.org", },
+        "contact": {"name": "Support mail", "email": "post@dhis2.org",},
         "url": "https://play.dhis2.org/2.35.0/",
         "location": {"icon": "🇸🇱", "name": "Sierra Leone", "iso3": "SLE"},
         "content": {
@@ -32,9 +32,9 @@ SAMPLE_DATASOURCES = [
                 "name": "ANC 1st visit",
                 "short_name": "ANC 1st visit",
                 "description": "",
-                "domain_type": {"code": "aggregate", "label": "Aggregate", },
+                "domain_type": {"code": "aggregate", "label": "Aggregate",},
                 "value_type": {"code": "number", "label": "Number"},
-                "aggregation_type": {"code": "sum", "label": "Sum", },
+                "aggregation_type": {"code": "sum", "label": "Sum",},
                 "tags": [
                     {"code": "malaria", "label": "Malaria", "color": "green"},
                     {"code": "care_cases", "label": "Care cases", "color": "yellow"},
@@ -46,9 +46,9 @@ SAMPLE_DATASOURCES = [
                 "name": "ANC 2nd visit",
                 "short_name": "ANC 2nd visit",
                 "description": "",
-                "domain_type": {"code": "aggregate", "label": "Aggregate", },
+                "domain_type": {"code": "aggregate", "label": "Aggregate",},
                 "value_type": {"code": "number", "label": "Number"},
-                "aggregation_type": {"code": "sum", "label": "Sum", },
+                "aggregation_type": {"code": "sum", "label": "Sum",},
                 "tags": [
                     {"code": "malaria", "label": "Malaria", "color": "green"},
                     {"code": "care_cases", "label": "Care cases", "color": "yellow"},
@@ -60,9 +60,9 @@ SAMPLE_DATASOURCES = [
                 "name": "ANC 3rd visit",
                 "short_name": "ANC 3rd visit",
                 "description": "",
-                "domain_type": {"code": "aggregate", "label": "Aggregate", },
+                "domain_type": {"code": "aggregate", "label": "Aggregate",},
                 "value_type": {"code": "number", "label": "Number"},
-                "aggregation_type": {"code": "sum", "label": "Sum", },
+                "aggregation_type": {"code": "sum", "label": "Sum",},
                 "tags": [
                     {"code": "malaria", "label": "Malaria", "color": "green"},
                     {"code": "care_cases", "label": "Care cases", "color": "yellow"},
@@ -74,9 +74,9 @@ SAMPLE_DATASOURCES = [
                 "name": "ANC 4th or more visit",
                 "short_name": "ANC 4th or more",
                 "description": "",
-                "domain_type": {"code": "aggregate", "label": "Aggregate", },
+                "domain_type": {"code": "aggregate", "label": "Aggregate",},
                 "value_type": {"code": "number", "label": "Number"},
-                "aggregation_type": {"code": "sum", "label": "Sum", },
+                "aggregation_type": {"code": "sum", "label": "Sum",},
                 "tags": [
                     {"code": "malaria", "label": "Malaria", "color": "green"},
                     {"code": "care_cases", "label": "Care cases", "color": "yellow"},
@@ -88,9 +88,9 @@ SAMPLE_DATASOURCES = [
                 "name": "Admission Date",
                 "short_name": "Admission Date",
                 "description": "Date of Admission of patient.",
-                "domain_type": {"code": "tracker", "label": "Tracker", },
+                "domain_type": {"code": "tracker", "label": "Tracker",},
                 "value_type": {"code": "date", "label": "Date"},
-                "aggregation_type": {"code": "average", "label": "Average", },
+                "aggregation_type": {"code": "average", "label": "Average",},
                 "tags": [
                     {"code": "malaria", "label": "Malaria", "color": "green"},
                     {"code": "care_cases", "label": "Testing", "color": "yellow"},
@@ -102,9 +102,9 @@ SAMPLE_DATASOURCES = [
                 "name": "Age in years",
                 "short_name": "Age in years",
                 "description": "Age of person in years.",
-                "domain_type": {"code": "tracker", "label": "Tracker", },
+                "domain_type": {"code": "tracker", "label": "Tracker",},
                 "value_type": {"code": "integer", "label": "Integer"},
-                "aggregation_type": {"code": "average", "label": "Average", },
+                "aggregation_type": {"code": "average", "label": "Average",},
             },
         ],
         "last_updated_on": timezone.now() - timedelta(days=1),
@@ -145,7 +145,7 @@ SAMPLE_DATASOURCES = [
             "name": "Democratic Republic of the Congo",
             "iso3": "COD",
         },
-        "content": {"quantity": "7 pyramids", "tags": [], },
+        "content": {"quantity": "7 pyramids", "tags": [],},
         "last_updated_on": timezone.now() - timedelta(days=1),
         "update_frequency": {"code": "daily", "label": "Updated daily"},
     },
@@ -228,4 +228,4 @@ def datasource_refresh(request, datasource_id):
     refresh_message = datasource.refresh()
     messages.success(request, refresh_message)
 
-    return HttpResponseRedirect(reverse('catalog:index'))
+    return HttpResponseRedirect(reverse("catalog:index"))
