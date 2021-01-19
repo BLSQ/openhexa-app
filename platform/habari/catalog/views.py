@@ -227,8 +227,8 @@ def datasource_refresh(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     try:
-        refresh_message = datasource.refresh()
-        messages.success(request, refresh_message, extra_tags="green")
+        refresh_result = datasource.refresh()
+        messages.success(request, str(refresh_result), extra_tags="green")
     except Datasource.NoConnection as e:
         messages.error(request, e, extra_tags="red")
 

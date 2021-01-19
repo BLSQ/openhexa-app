@@ -6,6 +6,21 @@ from .base import Base, Content
 from .common import SourceType
 
 
+class SyncResult:
+    def __init__(self, datasource, created, updated, identical):
+        self.datasource = datasource
+        self.created = created
+        self.updated = updated
+        self.identical = identical
+
+    def __str__(self):
+        figures = (
+            f"{self.created} new, {self.updated} updates, {self.identical} unaffected"
+        )
+
+        return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
+
+
 class Dhis2Connection(Base):
     source = models.OneToOneField(
         "Datasource", on_delete=models.CASCADE, related_name="connection"
@@ -15,39 +30,15 @@ class Dhis2Connection(Base):
     api_password = models.CharField(max_length=200)
 
     def refresh(self):
+        """Refresh the datasource by querying the DHIS2 API"""
+
         dhis2 = Api("play.dhis2.org/demo", "admin", "district")
-        de_results = dhis2.get_paged(
+        response = dhis2.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100, merge=True
         )
-        de_list = de_results["dataElements"]
-        for de in de_list:
-            try:
-                description = next(
-                    p
-                    for p in de["translations"]
-                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
-                )["value"]
-            except StopIteration:
-                try:
-                    description = next(
-                        p for p in de["translations"] if p["property"] == "DESCRIPTION"
-                    )["value"]
-                except StopIteration:
-                    description = ""
-
-            Dhis2DataElement.objects.create(
-                source=self.source,
-                dhis2_id=de["id"],
-                dhis2_code=de.get("code", ""),
-                name=de["name"],
-                short_name=de["shortName"],
-                description=description,
-                dhis2_domain_type=de["domainType"],
-                dhis2_value_type=de["valueType"],
-                dhis2_aggregation_type=de["aggregationType"],
-            )
-
-        return f"Synced {len(de_list)} data elements"
+        return Dhis2DataElement.objects.sync_from_dhis2_api_response(
+            self.source, response
+        )
 
 
 class Dhis2Area(Content):
@@ -76,7 +67,7 @@ class Dhis2Data(Content):
     theme = models.ForeignKey(
         "Dhis2Theme", null=True, blank=True, on_delete=models.SET_NULL
     )
-    dhis2_id = models.CharField(max_length=100)
+    dhis2_id = models.CharField(max_length=100, unique=True)
     dhis2_code = models.CharField(max_length=100, blank=True)
 
 
@@ -119,6 +110,77 @@ class Dhis2AggregationType(models.TextChoices):
     # TODO: complete
 
 
+class Dhis2DataElementQuerySet(models.QuerySet):
+    FIELD_MAPPINGS = {
+        "dhis2_id": "id",
+        "dhis2_code": "code",
+        "name": "name",
+        "short_name": "shortName",
+        "dhis2_domain_type": "domainType",
+        "dhis2_value_type": "valueType",
+        "dhis2_aggregation_type": "aggregationType",
+    }
+
+    def sync_from_dhis2_api_response(self, datasource, response):
+        """Iterate over the DEs in the response and create, update or ignore depending on local data"""
+
+        created = 0
+        updated = 0
+        identical = 0
+
+        de_list = response["dataElements"]
+        for de_data in de_list:
+            try:
+                description = next(
+                    p
+                    for p in de_data["translations"]
+                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
+                )["value"]
+            except StopIteration:
+                try:
+                    description = next(
+                        p
+                        for p in de_data["translations"]
+                        if p["property"] == "DESCRIPTION"
+                    )["value"]
+                except StopIteration:
+                    description = ""
+
+            field_values = {"description": description} | {
+                field_name: de_data.get(dhis2_key, "")
+                for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
+            }
+
+            try:
+                # Check if the DE is already in our database and compare values (local vs dhis2)
+                existing_de = self.get(dhis2_id=de_data["id"])
+                existing_field_values = {
+                    field_name: getattr(existing_de, field_name)
+                    for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
+                }
+                diff_field_values = {
+                    field_name: field_values[field_name]
+                    for field_name in self.FIELD_MAPPINGS.keys()
+                    if field_values[field_name] != existing_field_values[field_name]
+                }
+
+                # Check if we need to actually update the local version
+                if len(diff_field_values) > 0:
+                    for field_name in diff_field_values:
+                        setattr(existing_de, field_name, diff_field_values[field_name])
+                    updated += 1
+                else:
+                    identical += 1
+            # If we don't have the DE locally, create it
+            except Dhis2DataElement.DoesNotExist:
+                super().create(**field_values, source=datasource)
+                created += 1
+
+        return SyncResult(
+            datasource=datasource, created=created, updated=updated, identical=identical
+        )
+
+
 class Dhis2DataElement(Dhis2Data):
     dhis2_domain_type = models.CharField(
         choices=Dhis2DomainType.choices, max_length=100
@@ -127,6 +189,8 @@ class Dhis2DataElement(Dhis2Data):
     dhis2_aggregation_type = models.CharField(
         choices=Dhis2AggregationType.choices, max_length=100
     )
+
+    objects = Dhis2DataElementQuerySet.as_manager()
 
 
 class Dhis2IndicatorType(models.TextChoices):

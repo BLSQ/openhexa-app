@@ -43,9 +43,11 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
         "owner",
         "source",
         "dhis2_id",
+        "dhis2_code",
         "dhis2_domain_type",
         "dhis2_value_type",
     )
+    search_fields = ["name", "short_name", "dhis2_id", "dhis2_code"]
 
 
 @admin.register(Dhis2Indicator)
