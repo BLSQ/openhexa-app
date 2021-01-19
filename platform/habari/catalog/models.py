@@ -1,4 +1,5 @@
 import uuid
+from dhis2 import Api
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -64,12 +65,25 @@ class DataSource(Content):
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
+    def refresh(self):
+        if self.spec is not None:
+            return self.spec.refresh()
+
+        raise NotImplementedError(f"No spec...")
+
 
 class Dhis2DataSourceSpec(Base):
-    source = models.OneToOneField("DataSource", on_delete=models.CASCADE)
+    source = models.OneToOneField("DataSource", on_delete=models.CASCADE, related_name="spec")
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
+
+    def refresh(self):
+        dhis2 = Api('play.dhis2.org/demo', 'admin', 'district')
+        de_results = dhis2.get_paged('dataElements', params={"fields": ":all"}, page_size=100, merge=True)
+        de_data = de_results["dataElements"]
+
+        return f"Synced {len(de_data)} data elements"
 
 
 class Dhis2Area(Content):
