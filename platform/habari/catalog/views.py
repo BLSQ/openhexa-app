@@ -1,10 +1,5 @@
-from datetime import timedelta
-
 from django.contrib import messages
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.utils import timezone
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Datasource
 
@@ -43,4 +38,4 @@ def datasource_sync(request, datasource_id):
     except Datasource.NoConnection as e:
         messages.error(request, e, extra_tags="red")
 
-    return HttpResponseRedirect(reverse("catalog:index"))
+    return redirect(request.META.get("HTTP_REFERER"))

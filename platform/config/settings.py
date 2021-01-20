@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_countries",
     "tailwind",
+    "habari.auth.apps.AuthConfig",
     "habari.dashboard.apps.DashboardConfig",
     "habari.catalog.apps.CatalogConfig",
     "habari.tailwindui.apps.TailwinduiConfig",
@@ -87,6 +88,10 @@ DATABASES = {
         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
     }
 }
+
+# Custom user model
+# https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#substituting-a-custom-user-model
+AUTH_USER_MODEL = "habari_auth.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

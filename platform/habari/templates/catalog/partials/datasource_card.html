@@ -103,12 +103,16 @@
                 Content
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% with de_count=datasource.content_summary.data_element_count %}
-                    {{ de_count }} data element{{ de_count|pluralize }}<br/>
-                {% endwith %}
-                {% with di_count=datasource.content_summary.data_indicator_count %}
-                    {{ di_count }} data indicator{{ di_count|pluralize }}
-                {% endwith %}
+                {% if datasource.content_summary %}
+                    {% with de_count=datasource.content_summary.data_element_count %}
+                        {{ de_count }} data element{{ de_count|pluralize }}<br/>
+                    {% endwith %}
+                    {% with di_count=datasource.content_summary.data_indicator_count %}
+                        {{ di_count }} data indicator{{ di_count|pluralize }}
+                    {% endwith %}
+                {% else %}
+                    -
+                {% endif %}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -116,13 +120,7 @@
                 Last sync
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if datasource.just_synced %}
-                    Just now
-                {% elif datasource.last_synced_at %}
-                    {{ datasource.last_synced_at|timesince }} ago
-                {% else %}
-                    Never synced
-                {% endif %}
+                {% include "catalog/partials/datasource_sync_info.html" %}
             </dd>
         </div>
         <div class="sm:col-span-2">
