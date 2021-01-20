@@ -9,7 +9,7 @@
                     {{ data_element.short_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ data_element.domain_type.label }}
+                    {{ data_element.dhis2_domain_type_label }}
                 </span>
             </span>
         </a>
@@ -18,8 +18,8 @@
         {{ data_element.code }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ data_element.value_type.label }}</div>
-        <div class="text-sm text-gray-500">{{ data_element.aggregation_type.label }}</div>
+        <div class="text-sm text-gray-900">{{ data_element.dhis2_value_type_label }}</div>
+        <div class="text-sm text-gray-500">{{ data_element.dhis2_aggregation_type_label }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in data_element.tags %}
@@ -35,7 +35,7 @@
             {{ datasource.last_updated_on|timesince }} ago
         </div>
         <div class="text-sm text-gray-500">
-            {{ datasource.update_frequency.label }}
+            Daily
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

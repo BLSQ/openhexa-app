@@ -18,6 +18,11 @@ class Organization(Content):
         choices=OrganizationType.choices, max_length=100
     )
     url = models.URLField(blank=True)
+    contact_info = models.TextField(blank=True)
+
+    @property
+    def organization_type_label(self):
+        return OrganizationType[self.organization_type].label
 
 
 class SourceType(models.TextChoices):
@@ -40,6 +45,10 @@ class Datasource(Content):
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def source_type_label(self):
+        return SourceType[self.source_type].label
+
     def sync(self):
         """Sync the datasource using its connection"""
 
@@ -53,6 +62,13 @@ class Datasource(Content):
             raise Datasource.NoConnection(
                 f'The datasource "{self.display_name}" has no connection'
             )
+
+    @property
+    def content_summary(self):
+        try:
+            return self.connection.get_content_summary()
+        except ObjectDoesNotExist:
+            return None
 
     @property
     def just_synced(self):

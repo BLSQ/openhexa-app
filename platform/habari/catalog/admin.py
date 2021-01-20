@@ -47,6 +47,7 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
         "dhis2_domain_type",
         "dhis2_value_type",
     )
+    list_filter = ("source__name",)
     search_fields = ["name", "short_name", "dhis2_id", "dhis2_code"]
 
 

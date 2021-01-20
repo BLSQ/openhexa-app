@@ -21,6 +21,16 @@ class SyncResult:
         return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
 
 
+class ContentSummary:
+    def __init__(self, data_element_count, data_indicator_count):
+        self.data_element_count = data_element_count
+        self.data_indicator_count = data_indicator_count
+        self.total_count = self.data_element_count + self.data_indicator_count
+
+    def __str__(self):
+        return f"{self.data_element_count} data element(s), {self.data_indicator_count} data indicator(s)"
+
+
 class Dhis2Connection(Base):
     source = models.OneToOneField(
         "Datasource", on_delete=models.CASCADE, related_name="connection"
@@ -32,12 +42,18 @@ class Dhis2Connection(Base):
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
 
-        dhis2 = Api("play.dhis2.org/demo", "admin", "district")
+        dhis2 = Api(self.api_url, self.api_username, self.api_password)
         response = dhis2.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100, merge=True
         )
         return Dhis2DataElement.objects.sync_from_dhis2_api_response(
             self.source, response
+        )
+
+    def get_content_summary(self):
+        return ContentSummary(
+            data_element_count=self.source.dhis2dataelement_set.count(),
+            data_indicator_count=0,
         )
 
 
@@ -191,6 +207,18 @@ class Dhis2DataElement(Dhis2Data):
     )
 
     objects = Dhis2DataElementQuerySet.as_manager()
+
+    @property
+    def dhis2_domain_type_label(self):
+        return Dhis2DomainType[self.dhis2_domain_type].label
+
+    @property
+    def dhis2_value_type_label(self):
+        return Dhis2ValueType[self.dhis2_value_type].label
+
+    @property
+    def dhis2_aggregation_type_label(self):
+        return Dhis2AggregationType[self.dhis2_aggregation_type].label
 
 
 class Dhis2IndicatorType(models.TextChoices):

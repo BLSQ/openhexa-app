@@ -6,21 +6,21 @@
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
                          src="{% static 'img/logos/'|add:datasource.source_type|lower|add:'.png' %}"
-                         alt="{{ datasource.source_type.label }}">
+                         alt="{{ datasource.source_type_label }}">
                 </span>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ datasource.name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource.source_type.label }}
+                    {{ datasource.source_type_label }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900">{{ datasource.owner.display_name|default:"-" }}</div>
-        <div class="text-sm text-gray-500">{{ datasource.owner.organization_type.label }}</div>
+        <div class="text-sm text-gray-500">{{ datasource.owner.organization_type_label }}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900 flex items-center align-center">
@@ -33,7 +33,11 @@
         </div>
     </td>
     <td class="px-6 py-4">
-        <span class="text-sm text-gray-500 whitespace-nowrap mr-1">{{ datasource.content.quantity }}</span>
+        <span class="text-sm text-gray-500 whitespace-nowrap mr-1">
+            {% with total_count=datasource.content_summary.total_count %}
+                {{ total_count }} item{{ total_count|pluralize }}
+            {% endwith %}
+        </span>
         {% for tag in datasource.content.tags %}
             <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
@@ -48,7 +52,7 @@
                 {% elif datasource.last_synced_at %}
                     <span>{{ datasource.last_synced_at|timesince }} ago</span>
                 {% else %}
-                    <span>Not synced</span>
+                    <span>Never synced</span>
                 {% endif %}
                 <form class="ml-2" action="{% url 'catalog:datasource_sync' datasource.id %}" method="post">
                     {% csrf_token %}
@@ -64,7 +68,7 @@
             </div>
         </div>
         <div class="text-sm text-gray-500">
-            {{ datasource.update_frequency.label|default:"Daily" }}
+            Daily
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
