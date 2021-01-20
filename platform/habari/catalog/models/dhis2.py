@@ -15,7 +15,7 @@ class SyncResult:
 
     def __str__(self):
         figures = (
-            f"{self.created} new, {self.updated} updates, {self.identical} unaffected"
+            f"{self.created} new, {self.updated} updated, {self.identical} unaffected"
         )
 
         return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
