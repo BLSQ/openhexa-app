@@ -43,12 +43,16 @@ class Dhis2Connection(Base):
         """Sync the datasource by querying the DHIS2 API"""
 
         dhis2 = Api(self.api_url, self.api_username, self.api_password)
-        response = dhis2.get_paged(
+
+        # Sync DE
+        de_response = dhis2.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100, merge=True
         )
-        return Dhis2DataElement.objects.sync_from_dhis2_api_response(
-            self.source, response
+        de_result = Dhis2DataElement.objects.sync_from_dhis2_api_response(
+            self.source, de_response
         )
+
+        return de_result
 
     def get_content_summary(self):
         return ContentSummary(

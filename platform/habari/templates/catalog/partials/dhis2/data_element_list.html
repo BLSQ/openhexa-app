@@ -89,9 +89,8 @@
                             <p class="text-sm text-gray-700">
                                 Showing
                                 <span class="font-medium">{{ datasource.dhis2dataelement_set.all|slice:":5"|length }}</span>
-                                results out of
-                                <span class="font-medium">{{ datasource.dhis2dataelement_set.count }}</span>
-                                total data elements.
+                                data elements out of
+                                <span class="font-medium">{{ datasource.dhis2dataelement_set.count }}</span>.
                             </p>
                         </div>
                         <div class="flex-1 flex justify-between sm:justify-end">
