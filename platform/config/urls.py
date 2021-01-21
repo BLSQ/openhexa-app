@@ -20,4 +20,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("habari.dashboard.urls", namespace="dashboard")),
     path("catalog/", include("habari.catalog.urls", namespace="catalog")),
+    path("notebooks/", include("habari.notebooks.urls", namespace="notebooks")),
 ]

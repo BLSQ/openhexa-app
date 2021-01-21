@@ -1,0 +1,12 @@
+{% extends "layouts/page.html" %}
+{% load static %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block main_content %}
+    <img
+        class="w-screen"
+        src="{% static 'img/fixtures/jupyterlab.png' %}"
+        alt="{{ datasource.source_type_label }}"
+    >
+{% endblock %}

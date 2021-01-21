@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "habari.auth.apps.AuthConfig",
     "habari.dashboard.apps.DashboardConfig",
     "habari.catalog.apps.CatalogConfig",
+    "habari.notebooks.apps.NotebooksConfig",
     "habari.tailwindui.apps.TailwinduiConfig",
 ]
 
