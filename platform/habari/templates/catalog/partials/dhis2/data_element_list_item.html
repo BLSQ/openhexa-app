@@ -2,7 +2,7 @@
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
             <div class="text-gray-400">
-                {% include "catalog/partials/dhis2/icon_"|add:data_element.domain_type.code|add:".html" %}
+                {% include "catalog/partials/dhis2/icon_"|add:data_element.dhis2_domain_type|add:".html" %}
             </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">

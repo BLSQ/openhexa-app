@@ -68,6 +68,7 @@ class Dhis2Theme(Content):
 class Dhis2Data(Content):
     class Meta:
         abstract = True
+        ordering = ["name"]
 
     owner = models.ForeignKey(
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
@@ -109,7 +110,9 @@ class Dhis2ValueType(models.TextChoices):
     INTEGER = "INTEGER", _("Integer")
     POSITIVE_INTEGER = "POSITIVE_INTEGER", _("Positive Integer")
     NEGATIVE_INTEGER = "NEGATIVE_INTEGER", _("Negative Integer")
+    # TODO: check
     POSITIVE_OR_ZERO_INTEGER = "POSITIVE_OR_ZERO_INTEGER", _("Positive or Zero Integer")
+    INTEGER_ZERO_OR_POSITIVE = "INTEGER_ZERO_OR_POSITIVE", _("Positive or Zero Integer")
     TRACKER_ASSOCIATE = "TRACKER_ASSOCIATE", _("Tracker Associate")
     USERNAME = "USERNAME", _("Username")
     COORDINATE = "COORDINATE", _("Coordinate")
