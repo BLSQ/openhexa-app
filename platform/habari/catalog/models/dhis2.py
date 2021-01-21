@@ -20,6 +20,16 @@ class SyncResult:
 
         return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
 
+    def __add__(self, other):
+        if other.datasource != self.datasource:
+            raise ValueError(
+                "The two SyncResults instances don't have the same datasource"
+            )
+
+        self.created += other.created
+        self.updated += other.updated
+        self.identical += other.identical
+
 
 class ContentSummary:
     def __init__(self, data_element_count, data_indicator_count):
@@ -52,7 +62,15 @@ class Dhis2Connection(Base):
             self.source, de_response
         )
 
-        return de_result
+        # Sync DI
+        di_response = dhis2.get_paged(
+            "indicators", params={"fields": ":all"}, page_size=100, merge=True
+        )
+        di_result = Dhis2Indicator.objects.sync_from_dhis2_api_response(
+            self.source, di_response
+        )
+
+        return de_result + di_result
 
     def get_content_summary(self):
         return ContentSummary(
@@ -112,9 +130,11 @@ class Dhis2ValueType(models.TextChoices):
     UNIT_INTERVAL = "UNIT_INTERVAL", _("Unit interval")
     PERCENTAGE = "PERCENTAGE", _("Percentage")
     INTEGER = "INTEGER", _("Integer")
+    # TODO: check order of the next 6 items
     POSITIVE_INTEGER = "POSITIVE_INTEGER", _("Positive Integer")
+    INTEGER_POSITIVE = "INTEGER_POSITIVE", _("Positive Integer")
     NEGATIVE_INTEGER = "NEGATIVE_INTEGER", _("Negative Integer")
-    # TODO: check
+    INTEGER_NEGATIVE = "INTEGER_NEGATIVE", _("Negative Integer")
     POSITIVE_OR_ZERO_INTEGER = "POSITIVE_OR_ZERO_INTEGER", _("Positive or Zero Integer")
     INTEGER_ZERO_OR_POSITIVE = "INTEGER_ZERO_OR_POSITIVE", _("Positive or Zero Integer")
     TRACKER_ASSOCIATE = "TRACKER_ASSOCIATE", _("Tracker Associate")
@@ -217,15 +237,24 @@ class Dhis2DataElement(Dhis2Data):
 
     @property
     def dhis2_domain_type_label(self):
-        return Dhis2DomainType[self.dhis2_domain_type].label
+        try:
+            return Dhis2DomainType[self.dhis2_domain_type].label
+        except KeyError:
+            return "Unknown"
 
     @property
     def dhis2_value_type_label(self):
-        return Dhis2ValueType[self.dhis2_value_type].label
+        try:
+            return Dhis2ValueType[self.dhis2_value_type].label
+        except KeyError:
+            return "Unknown"
 
     @property
     def dhis2_aggregation_type_label(self):
-        return Dhis2AggregationType[self.dhis2_aggregation_type].label
+        try:
+            return Dhis2AggregationType[self.dhis2_aggregation_type].label
+        except KeyError:
+            return "Unknown"
 
 
 class Dhis2IndicatorType(models.TextChoices):
@@ -236,8 +265,91 @@ class Dhis2IndicatorType(models.TextChoices):
     PER_THOUSAND = "PER_THOUSAND", _("Per thousand")
 
 
+class Dhis2IndicatorQuerySet(models.QuerySet):
+    FIELD_MAPPINGS = {
+        "dhis2_id": "id",
+        "dhis2_code": "code",
+        "name": "name",
+        "short_name": "shortName",
+        "annualized": "annualized",
+        # TODO: check
+        # "dhis2_indicator_type": "indicatorType",
+    }
+
+    def sync_from_dhis2_api_response(self, datasource, response):
+        """Iterate over the DIs in the response and create, update or ignore depending on local data"""
+
+        created = 0
+        updated = 0
+        identical = 0
+
+        di_list = response["indicators"]
+        for di_data in di_list:
+            try:
+                description = next(
+                    p
+                    for p in di_data["translations"]
+                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
+                )["value"]
+            except StopIteration:
+                try:
+                    description = next(
+                        p
+                        for p in di_data["translations"]
+                        if p["property"] == "DESCRIPTION"
+                    )["value"]
+                except StopIteration:
+                    description = ""
+
+            field_values = {
+                "description": description,
+                "dhis2_indicator_type": Dhis2IndicatorType.PER_CENT,
+            } | {
+                field_name: di_data.get(dhis2_key, "")
+                for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
+            }
+
+            try:
+                # Check if the DE is already in our database and compare values (local vs dhis2)
+                existing_di = self.get(dhis2_id=di_data["id"])
+                existing_field_values = {
+                    field_name: getattr(existing_di, field_name)
+                    for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
+                }
+                diff_field_values = {
+                    field_name: field_values[field_name]
+                    for field_name in self.FIELD_MAPPINGS.keys()
+                    if field_values[field_name] != existing_field_values[field_name]
+                }
+
+                # Check if we need to actually update the local version
+                if len(diff_field_values) > 0:
+                    for field_name in diff_field_values:
+                        setattr(existing_di, field_name, diff_field_values[field_name])
+                    updated += 1
+                else:
+                    identical += 1
+            # If we don't have the DE locally, create it
+            except Dhis2Indicator.DoesNotExist:
+                super().create(**field_values, source=datasource)
+                created += 1
+
+        return SyncResult(
+            datasource=datasource, created=created, updated=updated, identical=identical
+        )
+
+
 class Dhis2Indicator(Dhis2Data):
     dhis2_indicator_type = models.CharField(
         choices=Dhis2IndicatorType.choices, max_length=100
     )
     annualized = models.BooleanField()
+
+    objects = Dhis2IndicatorQuerySet.as_manager()
+
+    @property
+    def dhis2_indicator_type_label(self):
+        try:
+            return Dhis2IndicatorType[self.dhis2_indicator_type].label
+        except KeyError:
+            return "Unknown"
