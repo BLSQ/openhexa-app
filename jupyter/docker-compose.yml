@@ -1,8 +1,9 @@
+# This compse file can be useful to debug the Jupyterlab part, outside of Jupyterhub
 version: '3'
 
 services:
   jupyter:
-    build: jupyter
+    build: .
     image: habari_jupyter
     depends_on:
       - explore_database
@@ -21,8 +22,8 @@ services:
       EXPLORE_DB_PORT: 5432
       EXPLORE_DB_NAME: habari-dev
     volumes:
-      - ./jupyter/config:/etc/jupyter
-      - ./jupyter/ipython-startup:/home/jovyan/.ipython/profile_default/startup
+      - ./config:/etc/jupyter
+      - ./ipython-startup:/home/jovyan/.ipython/profile_default/startup
 
     ports:
       - 8888:8888
