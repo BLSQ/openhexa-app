@@ -31,12 +31,6 @@ c.DockerSpawner.env_keep = [
     "EXPLORE_DB_NAME",
 ]
 # Mount a volume for sensitive files (they cannot be part of the Docker image)
-c.DockerSpawner.volumes = {
-    f"{os.environ['PROJECT_PATH']}/local_secrets": "/etc/secrets"
-}
-c.DockerSpawner.environment = {
-    "GOOGLE_APPLICATION_CREDENTIALS": "/etc/secrets/service-account.json"
-}
 c.JupyterHub.hub_ip = "0.0.0.0"  # listen on all interfaces
 c.JupyterHub.hub_connect_ip = os.environ[
     "HUB_IP"

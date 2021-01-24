@@ -282,9 +282,12 @@ Local setup
 This setup is very different from the Kubernetes setup described above. We could consider using a local Kubernetes 
 cluster for testing / experimenting with the platform as well.
 
+We use `docker-compose` for this local setup. You can either launch Jupyter only (without the Hub) 
+- see `jupyter/docker-compose.yml`, or Jupyterhub (see `jupyterhub/docker-compose.yml`).
+
 The following steps should allow you to test parts of the platform on your local machine:
 
-### Create a GitHub OAuth application and the two S3 buckets
+### Create a GitHub OAuth application, and the two S3 buckets
 
 Same instructions as for the Kubernetes setup described above.
 
@@ -295,8 +298,6 @@ cp .env.dist .env
 ```
 
 Adapt the copied file to your needs, using the Github / AWS credentials created earlier.
-
-You also need to set `PROJECT_PATH` to the absolute path of the project directory on your machine.
 
 ### Build and launch
 
