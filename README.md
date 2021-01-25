@@ -134,6 +134,7 @@ secure fashion in your continuous deployment infrastructure.
 To create a new project, simply copy the `sample_project_config.yaml`:
 
 ```bash
+cd jupyter
 cp sample_project_config.yaml path_to_project_config.yaml
 ```
 
@@ -257,6 +258,7 @@ Redeploying a project is a simple process:
 The deploy command is the same as the one we used when creating the project:
 
 ```bash
+cd jupyter
 helm upgrade --install "habari-<project_name>" jupyterhub/jupyterhub \
   --namespace "<project_name>" \
   --version=0.9.0 \
