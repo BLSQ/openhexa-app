@@ -30,7 +30,7 @@ services:
     command: ["jupyter", "lab", "--ip=0.0.0.0"]
 
   explore_database:
-    image: postgis/postgis:11
+    image: postgis/postgis:11-3.1
     environment:
       POSTGRES_USER: explore
       POSTGRES_PASSWORD: explore
