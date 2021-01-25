@@ -1,0 +1,74 @@
+# Config map: will be used to set environment variables in our container
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: "habari"
+  POSTGRES_USER: "postgres"
+---
+# Persistent volume claim: "request" to the persistent volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim
+  labels:
+    app: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Deployment: represents the app setup (a single node postgres setup here)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres:12.5
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+            - configMapRef:
+                name: postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-volume
+      volumes:
+        - name: postgres-volume
+          persistentVolumeClaim:
+            claimName: postgres-volume-claim
+
+---
+# Service: exposes the deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  selector:
+    app: postgres
+  ports:
+    - port: 5432

@@ -1,2 +1,2 @@
 .env
-local_secrets
+jupyter/dev-config.yaml

@@ -1,0 +1,39 @@
+# This compse file can be useful to debug the Jupyterlab part, outside of Jupyterhub
+version: '3'
+
+services:
+  jupyter:
+    build: .
+    image: habari_jupyter
+    depends_on:
+      - explore_database
+    environment:
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_DEFAULT_REGION:
+      S3_BUCKET_NAME_PUBLIC:
+      S3_BUCKET_NAME_LAKE:
+      S3_BUCKET_NAME_NOTEBOOKS:
+      DEBUG: "true"
+      EXPLORE_DB_URL: postgresql://explore:explore@explore_database/habari-dev
+      EXPLORE_DB_USER: explore
+      EXPLORE_DB_PASSWORD: explore
+      EXPLORE_DB_HOST: explore_database
+      EXPLORE_DB_PORT: 5434
+      EXPLORE_DB_NAME: habari-dev
+    volumes:
+      - ./config:/etc/jupyter
+      - ./ipython-startup:/home/jovyan/.ipython/profile_default/startup
+
+    ports:
+      - 8888:8888
+    command: ["jupyter", "lab", "--ip=0.0.0.0"]
+
+  explore_database:
+    image: postgis/postgis:11-3.1
+    environment:
+      POSTGRES_USER: explore
+      POSTGRES_PASSWORD: explore
+      POSTGRES_DB: habari-dev
+    ports:
+      - 5434:5432

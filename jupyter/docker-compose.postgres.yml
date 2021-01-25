@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  hub_database:
+    image: postgres:12.5
+    environment:
+      POSTGRES_USER: hub
+      POSTGRES_PASSWORD: hub
+      POSTGRES_DB: habari-dev
+    ports:
+      - 5433:5432
+
+  explore_database:
+    image: postgis/postgis:11-3.1
+    environment:
+      POSTGRES_USER: explore
+      POSTGRES_PASSWORD: explore
+      POSTGRES_DB: habari-dev
+    ports:
+      - 5434:5432
