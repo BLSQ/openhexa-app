@@ -350,7 +350,7 @@ namespace and redeploy.
 Platform
 --------
 
-🚧 This part of still in its early days.
+🚧 This part of the platform is very WIP
 
 What we mean by platform is a web application, in which the Jupyter component described above will be embedded.
 
