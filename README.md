@@ -349,17 +349,45 @@ namespace and redeploy.
 Platform
 --------
 
-🚧 This part of Habari is very, very WIP, and consists mostly of mockups.
+🚧 This part of still in its early days.
 
-The foundations of the future Habari platform are located in the `platform` directory.
+What we mean by platform is a web application, in which the Jupyter component described above will be embedded.
 
 As of now, the platform is a simple Django application connected to a PostgreSQL database. A `docker-compose` file
 allows run to develop and test it locally.
 
+The UX relies on TailwindCSS (& TailwindUI), through [django-tailwind](https://github.com/timonweb/django-tailwind).
+
 A [`blsq/habari-platform`](https://hub.docker.com/r/blsq/habari-platform) Docker image is published on Docker hub for
 your convenience.
 
-We build it using the following commands:
+### Local development
+
+Build and Launch with:
+
+```bash
+docker-compose build
+docker-compose up
+```
+
+Start tailwind in dev mode:
+
+`docker-compose run app python manage.py tailwind start`.
+
+### Deploying
+
+This Django application can be deployed on any server that supports Python. The `k8s` directory contains a sample
+Kubernetes deployment config.
+
+The platform docker image can be built using the "Build Platform image" Github workflow.
+
+Don't forget to build the production stylesheet before rebuilding your image:
+
+`docker-compose run web python manage.py tailwind build`.
+
+### Building the image
+
+We build the platform image using the following commands:
 
 ```bash
 docker build -t habari-platform .

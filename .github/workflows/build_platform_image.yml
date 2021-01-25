@@ -30,7 +30,7 @@ jobs:
         with:
           push: true
           context: platform
-          file: platform/Dockerfile
+          file: Dockerfile
           tags: |
             blsq/habari-platform:${{ github.event.inputs.tag }}
             blsq/habari-platform:latest
