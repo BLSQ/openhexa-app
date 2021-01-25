@@ -26,9 +26,12 @@ class SyncResult:
                 "The two SyncResults instances don't have the same datasource"
             )
 
-        self.created += other.created
-        self.updated += other.updated
-        self.identical += other.identical
+        return SyncResult(
+            datasource=self.datasource,
+            created=self.created + other.created,
+            updated=self.updated + other.updated,
+            identical=self.identical + other.identical,
+        )
 
 
 class ContentSummary:

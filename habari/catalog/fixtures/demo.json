@@ -34,7 +34,7 @@
     "pk": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
     "fields": {
       "created_at": "2021-01-25T15:55:37.390Z",
-      "updated_at": "2021-01-25T16:04:40.675Z",
+      "updated_at": "2021-01-25T16:44:00.154Z",
       "name": "DHIS2 Play",
       "short_name": "Play",
       "description": "The DHIS2 official demo instance",
@@ -45,7 +45,7 @@
       "active_from": null,
       "active_to": null,
       "public": true,
-      "last_synced_at": "2021-01-25T16:04:40.675Z"
+      "last_synced_at": null
     }
   },
   {
