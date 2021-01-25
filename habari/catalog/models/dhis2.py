@@ -168,7 +168,9 @@ class Dhis2DataElementQuerySet(models.QuerySet):
     }
 
     def sync_from_dhis2_api_response(self, datasource, response):
-        """Iterate over the DEs in the response and create, update or ignore depending on local data"""
+        """Iterate over the DEs in the response and create, update or ignore depending on local data
+        :todo: refactor - a lot of duplicated code with Dhis2IndicatorQueryset
+        """
 
         created = 0
         updated = 0
@@ -280,7 +282,9 @@ class Dhis2IndicatorQuerySet(models.QuerySet):
     }
 
     def sync_from_dhis2_api_response(self, datasource, response):
-        """Iterate over the DIs in the response and create, update or ignore depending on local data"""
+        """Iterate over the DIs in the response and create, update or ignore depending on local data
+        :todo: refactor - a lot of duplicated code with Dhis2DataElementQueryset
+        """
 
         created = 0
         updated = 0
