@@ -15,11 +15,11 @@ services:
       S3_BUCKET_NAME_LAKE:
       S3_BUCKET_NAME_NOTEBOOKS:
       DEBUG: "true"
-      EXPLORE_DB_URL: postgresql://explorer:explorer@explore_database:5432/habari-dev
-      EXPLORE_DB_USER: explorer
-      EXPLORE_DB_PASSWORD: explorer
+      EXPLORE_DB_URL: postgresql://explore:explore@explore_database/habari-dev
+      EXPLORE_DB_USER: explore
+      EXPLORE_DB_PASSWORD: explore
       EXPLORE_DB_HOST: explore_database
-      EXPLORE_DB_PORT: 5432
+      EXPLORE_DB_PORT: 5434
       EXPLORE_DB_NAME: habari-dev
     volumes:
       - ./config:/etc/jupyter
@@ -32,8 +32,8 @@ services:
   explore_database:
     image: postgis/postgis:12-3.0
     environment:
-      POSTGRES_USER: explorer
-      POSTGRES_PASSWORD: explorer
+      POSTGRES_USER: explore
+      POSTGRES_PASSWORD: explore
       POSTGRES_DB: habari-dev
     ports:
-      - 5432:5432
+      - 5434:5432

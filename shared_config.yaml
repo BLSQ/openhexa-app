@@ -43,9 +43,10 @@ scheduling:
   userPlaceholder:
     enabled: true
     replicas: 4
-  userPods:
-    nodeAffinity:
-      matchNodePurpose: require
+    # Feel free to uncomment if you follow the "dedicated node pool" optimization described in the above link
+#   userPods:
+#     nodeAffinity:
+#       matchNodePurpose: require
 
 cull:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-management.html?highlight=cull#culling-user-pods
