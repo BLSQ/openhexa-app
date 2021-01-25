@@ -1,0 +1,123 @@
+[
+  {
+    "model": "catalog.organization",
+    "pk": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
+    "fields": {
+      "created_at": "2021-01-25T16:01:02.982Z",
+      "updated_at": "2021-01-25T16:01:02.982Z",
+      "name": "Health Information Systems Program",
+      "short_name": "HISP",
+      "description": "HISP is a program led by the University of Oslo, responsible for the development of the DHIS2 software.",
+      "countries": "NO",
+      "organization_type": "ACADEMIC",
+      "url": "https://www.hisp.org",
+      "contact_info": ""
+    }
+  },
+  {
+    "model": "catalog.organization",
+    "pk": "a6dfd796-7d2a-4857-9638-e35d88243132",
+    "fields": {
+      "created_at": "2021-01-25T15:57:32.124Z",
+      "updated_at": "2021-01-25T16:06:35.511Z",
+      "name": "Bluesquare",
+      "short_name": "BLSQ",
+      "description": "Bluesquare is a Belgian global data company focused on digital health in low- and middle- income countries around the globe.",
+      "countries": "BE,BJ,BI,CD,FR,DE,SN,US,ZW",
+      "organization_type": "CORPORATE",
+      "url": "https://bluesquarehub.com",
+      "contact_info": "Grégoire Lurton (Data Science Lead)\r\nglurton@bluesquarehub.com"
+    }
+  },
+  {
+    "model": "catalog.datasource",
+    "pk": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
+    "fields": {
+      "created_at": "2021-01-25T15:55:37.390Z",
+      "updated_at": "2021-01-25T16:44:00.154Z",
+      "name": "DHIS2 Play",
+      "short_name": "Play",
+      "description": "The DHIS2 official demo instance",
+      "countries": "SL",
+      "owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
+      "datasource_type": "DHIS2",
+      "url": "https://play.dhis2.org",
+      "active_from": null,
+      "active_to": null,
+      "public": true,
+      "last_synced_at": null
+    }
+  },
+  {
+    "model": "catalog.dhis2connection",
+    "pk": "51f8e7b8-6308-462b-8b8b-0d9112ace4b4",
+    "fields": {
+      "created_at": "2021-01-25T15:55:37.392Z",
+      "updated_at": "2021-01-25T16:04:31.897Z",
+      "source": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
+      "api_url": "https://play.dhis2.org/demo",
+      "api_username": "admin",
+      "api_password": "district"
+    }
+  },
+  {
+    "model": "catalog.dhis2area",
+    "pk": "0393d4d1-7f7e-4b30-9523-e98a466cdf67",
+    "fields": {
+      "created_at": "2021-01-25T16:02:35.484Z",
+      "updated_at": "2021-01-25T16:02:35.484Z",
+      "name": "Human Resources",
+      "short_name": "HR",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2area",
+    "pk": "1d817b8f-6d2d-4042-91ab-0d7c7daddef0",
+    "fields": {
+      "created_at": "2021-01-25T16:02:47.221Z",
+      "updated_at": "2021-01-25T16:02:47.221Z",
+      "name": "Treatment",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2area",
+    "pk": "edf65ac1-559a-49b6-8f1a-57473e095cc2",
+    "fields": {
+      "created_at": "2021-01-25T16:02:41.807Z",
+      "updated_at": "2021-01-25T16:02:41.807Z",
+      "name": "Logistics",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2theme",
+    "pk": "94cc3e1d-3755-482c-83c0-545f9ae25469",
+    "fields": {
+      "created_at": "2021-01-25T16:02:14.684Z",
+      "updated_at": "2021-01-25T16:02:14.684Z",
+      "name": "Human Immunodeficiency Viruses",
+      "short_name": "HIV",
+      "description": "",
+      "countries": ""
+    }
+  },
+  {
+    "model": "catalog.dhis2theme",
+    "pk": "a21df3c4-5688-4c91-8e8a-2a259bdb0ef1",
+    "fields": {
+      "created_at": "2021-01-25T16:02:19.694Z",
+      "updated_at": "2021-01-25T16:02:19.694Z",
+      "name": "Malaria",
+      "short_name": "",
+      "description": "",
+      "countries": ""
+    }
+  }
+]

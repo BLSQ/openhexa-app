@@ -29,8 +29,8 @@ jobs:
         uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
         with:
           push: true
-          context: platform
-          file: platform/Dockerfile
+          context: .
+          file: Dockerfile
           tags: |
             blsq/habari-platform:${{ github.event.inputs.tag }}
             blsq/habari-platform:latest

@@ -1,0 +1,8 @@
+{% extends "layouts/page.html" %}
+
+{% block page_title %}{{ datasource.name }}{% endblock %}
+
+{% block page_content %}
+{% include "catalog/partials/datasource_card.html" %}
+{% include "catalog/partials/"|add:datasource.datasource_type|add:"/datasource_detail.html" %}
+{% endblock %}

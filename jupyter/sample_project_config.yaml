@@ -1,0 +1,58 @@
+proxy:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/setup-jupyterhub/setup-jupyterhub.html
+  secretToken: change_me  # can be generated with "openssl rand -hex 32"
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/security.html?highlight=letsencrypt#set-up-automatic-https
+  https:
+    hosts:
+      - your-habari-project-url  # without https://
+    letsencrypt:
+      contactEmail: someone@yourorganisation.org
+hub:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html?highlight=database#hub-db
+  # (this is the "hub" database described in the README)
+  db:
+    url: postgresql://user:password@host:port/database_name
+auth:
+  # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
+  admin:
+    # even if you have a single admin user, you MUST fill this list with its username as the only entry
+    # (otherwise, this will be interpreted as "open access for everyone")
+    users:
+      - an_admin_github_username
+      - another_admin_github_username
+  whitelist:
+    users:
+      - a_regular_user_github_username
+      - another_regular_user_github_username
+  github:
+    clientId: a_github_oauth_app_client_id
+    clientSecret: a_github_oauth_app_client_secret
+    callbackUrl: "http(s)://your-hub-host/hub/oauth_callback"
+singleuser:
+  image:
+    # see https://zero-to-jupyterhub.readthedocs.io/en/latest/customizing/user-environment.html#customize-an-existing-docker-image
+    # see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image
+    name: blsq/habari-jupyter
+    tag:  0.7
+    # pullSecrets is not needed for public images on Dockerhub, but you might need it for a private repo
+    # (see https://zero-to-jupyterhub.readthedocs.io/en/latest/reference/reference.html#singleuser-image-pullsecrets)
+    # pullSecrets:
+  # those environments variables will be made available to the single-user server
+  # (to be safe, consider quoting all values in this section - the helm chart expects strings, and you might run into
+  # issues with bool/integer values)
+  extraEnv:
+    # will be used by s3contents and s3fs - see https://github.com/danielfrg/s3contents
+    AWS_ACCESS_KEY_ID: "your_aws_access_key_id"
+    AWS_SECRET_ACCESS_KEY: "your_aws_secret_access_key"
+    AWS_DEFAULT_REGION: "your-aws-bucket-region"
+    S3_BUCKET_NAME_PUBLIC: "the_project_s3_public_bucket_name"
+    S3_BUCKET_NAME_LAKE: "the_project_s3_lake_bucket_name"
+    S3_BUCKET_NAME_NOTEBOOKS: "the_project_s3_notebooks_bucket_name"
+    # (this is the "explore" database described in the README)
+    EXPLORE_DB_URL: "postgresql://user:password@host:port/database_name"
+    # we also provide individual db parts as env variables for the R environment
+    EXPLORE_DB_USER: "user"
+    EXPLORE_DB_PASSWORD: "password"
+    EXPLORE_DB_HOST: "host"
+    EXPLORE_DB_PORT: "port"  # (usually "5432")
+    EXPLORE_DB_NAME: "database_name"

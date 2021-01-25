@@ -1,0 +1,8 @@
+dhis2.py==2.*
+Django==3.*
+django-countries==7.*
+django-tailwind==1.*
+gunicorn==20.*
+pandas==1.*
+psycopg2-binary==2.*
+whitenoise==5.*
