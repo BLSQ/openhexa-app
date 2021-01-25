@@ -2,7 +2,7 @@ version: '3'
 
 services:
   hub_database:
-    image: postgres:12.3
+    image: postgres:12
     environment:
       POSTGRES_USER: hub
       POSTGRES_PASSWORD: hub
@@ -11,7 +11,7 @@ services:
       - 5433:5432
 
   explore_database:
-    image: postgis/postgis:12-3.0
+    image: postgis/postgis:11
     environment:
       POSTGRES_USER: explore
       POSTGRES_PASSWORD: explore

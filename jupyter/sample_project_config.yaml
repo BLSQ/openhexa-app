@@ -15,7 +15,7 @@ hub:
 auth:
   # see https://zero-to-jupyterhub.readthedocs.io/en/latest/administrator/authentication.html#github
   admin:
-    # even if you have a single admin user, you MUST fill this list with the same username
+    # even if you have a single admin user, you MUST fill this list with its username as the only entry
     # (otherwise, this will be interpreted as "open access for everyone")
     users:
       - an_admin_github_username
