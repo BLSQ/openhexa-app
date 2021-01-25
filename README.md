@@ -6,16 +6,17 @@ Habari is a Data Science Platform developed by BlueSquare, based on the [Jupyter
 Architecture overview
 ---------------------
 
-Right now, Habari is mostly just a (rather advanced) customised [JupyterHub](https://jupyter.org/hub) setup:
+Right now, Habari is mostly just a (rather advanced) customised [JupyterHub](https://jupyter.org/hub) setup.
 
-- A **Jupyterhub** instance running on Kubernetes
+The mid-term objective is to embed this Jupyter setup in a web application. This work is in progress - see the 
+[Platform section](#Platform) for more information.
+
+The Jupyter part works as follows:
+
+- A **Jupyterhub** instance is deployed within a Kubernetes cluster
 - The hub spawns a **Kubernetes pod** for each single-user notebook server instance
 - Single-user instances are connected to **S3** (data lake and shared notebooks)
 - Single-user instances have access to a **PostgreSQL** database to facilitate external data access
-
-The longer-term goal is to transform Habari into a broader platform, with this JupyterHub setup as one of its
-components. See the [Platform section](#platform) below for more information about the work in progress regarding the
-"platform" side.
 
 ### Kubernetes
 
