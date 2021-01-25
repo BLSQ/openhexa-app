@@ -7,6 +7,8 @@ services:
       - POSTGRES_DB=habari
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
   app:
     build: .
     command: ["wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000"]

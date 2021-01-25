@@ -370,7 +370,15 @@ docker-compose build
 docker-compose up
 ```
 
-Start tailwind in dev mode:
+In another terminal, launch the migrations, create a superuser and load the catalog fixtures:
+
+```bash
+docker-compose run app python manage.py migrate
+docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=foo@bar.com app python manage.py createsuperuser --no-input
+docker-compose run app python manage.py loaddata habari/catalog/fixtures/demo.json
+```
+
+If you want to perform TailwindUI/TailwindCSS optimizations or update, you need to start tailwind in dev mode:
 
 `docker-compose run app python manage.py tailwind start`.
 
