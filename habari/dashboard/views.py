@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .models import *
+from .models import Stat
 
 
 def index(request):

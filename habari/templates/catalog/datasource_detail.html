@@ -4,5 +4,5 @@
 
 {% block page_content %}
 {% include "catalog/partials/datasource_card.html" %}
-{% include "catalog/partials/"|add:datasource.source_type|add:"/datasource_detail.html" %}
+{% include "catalog/partials/"|add:datasource.datasource_type|add:"/datasource_detail.html" %}
 {% endblock %}

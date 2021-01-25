@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .base import Base, Content
-from .common import SourceType
+from .common import DatasourceType
 
 
 class SyncResult:
@@ -98,7 +98,7 @@ class Dhis2Data(Content):
     source = models.ForeignKey(
         "Datasource",
         on_delete=models.CASCADE,
-        limit_choices_to={"source_type": SourceType.DHIS2.value},
+        limit_choices_to={"source_type": DatasourceType.DHIS2.value},
     )
     area = models.ForeignKey(
         "Dhis2Area", null=True, blank=True, on_delete=models.SET_NULL

@@ -25,7 +25,7 @@ class Organization(Content):
         return OrganizationType[self.organization_type].label
 
 
-class SourceType(models.TextChoices):
+class DatasourceType(models.TextChoices):
     DHIS2 = "DHIS2", _("DHIS2")
     IASO = "IASO", _("Iaso")
     FILES = "FILES", _("Files")
@@ -38,7 +38,7 @@ class Datasource(Content):
     owner = models.ForeignKey(
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    source_type = models.CharField(choices=SourceType.choices, max_length=100)
+    datasource_type = models.CharField(choices=DatasourceType.choices, max_length=100)
     url = models.URLField(blank=True)
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
@@ -47,7 +47,7 @@ class Datasource(Content):
 
     @property
     def source_type_label(self):
-        return SourceType[self.source_type].label
+        return DatasourceType[self.datasource_type].label
 
     def sync(self):
         """Sync the datasource using its connection"""

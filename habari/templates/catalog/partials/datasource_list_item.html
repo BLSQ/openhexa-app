@@ -5,15 +5,15 @@
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
-                         src="{% static 'img/logos/'|add:datasource.source_type|lower|add:'.png' %}"
-                         alt="{{ datasource.source_type_label }}">
+                         src="{% static 'img/logos/'|add:datasource.datasource_type|lower|add:'.png' %}"
+                         alt="{{ datasource.datasource_type_label }}">
                 </span>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ datasource.name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource.source_type_label }}
+                    {{ datasource.datasource_type_label }}
                 </span>
             </span>
         </a>

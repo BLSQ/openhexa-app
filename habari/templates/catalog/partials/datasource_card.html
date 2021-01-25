@@ -3,8 +3,8 @@
 
 {% block card_header_image %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static 'img/logos/'|add:datasource.source_type|lower|add:'.png' %}"
-         alt="{{ datasource.source_type_label }}">
+         src="{% static 'img/logos/'|add:datasource.datasource_type|lower|add:'.png' %}"
+         alt="{{ datasource.datasource_type_label }}">
 {% endblock %}
 {% block card_header_title %}
     {{ datasource.name }}

@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import *
+from .models import (
+    Organization,
+    Dhis2Connection,
+    Datasource,
+    Dhis2Area,
+    Dhis2Theme,
+    Dhis2DataElement,
+    Dhis2Indicator,
+)
 
 
 def country_list(obj):
@@ -20,7 +28,7 @@ class Dhis2ConnectionInlineAdmin(admin.TabularInline):
 
 @admin.register(Datasource)
 class DatasourceAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "source_type", "owner", "public", country_list)
+    list_display = ("display_name", "datasource_type", "owner", "public", country_list)
     inlines = [
         Dhis2ConnectionInlineAdmin,
     ]
