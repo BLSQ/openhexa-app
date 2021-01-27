@@ -8,7 +8,7 @@ Architecture overview
 
 Right now, Habari is mostly just a (rather advanced) customised [JupyterHub](https://jupyter.org/hub) setup.
 
-The mid-term objective is to embed this Jupyter setup in a web application. This work is in progress - see the 
+The mid-term objective is to embed this Jupyter setup in a web application. This work is in progress - see the
 [Platform section](#Platform) for more information.
 
 The Jupyter part works as follows:
@@ -27,7 +27,7 @@ that we will use to facilitate our deployments.
 When the hub starts a single-user Jupyter notebook server, it actually spawns a new pod within the node pool. Each
 single-user server instance is totally isolated from other instances.
 
-Those single-user server instances use a customised Docker image based on the `datascience-notebook` image provided by
+Those single-user server instances use a customized Docker image based on the `datascience-notebook` image provided by
 the [Jupyter Docker Stacks](https://github.com/jupyter/docker-stacks) project.
 
 ### Multi-tenancy
@@ -107,7 +107,7 @@ Note that we use incremental values for tags (`0.1`, `0.2` etc). It's safer to u
 project config files rather than relying on the `latest` tag, as the image puller service does not always detect that a
 new image has been published. It also prevents accidental deployments of new image versions.
 
-The sample project config file uses this base image. You can, however, use any other image. Image can be specified on a
+The sample project config file uses this base image. You can, however, use any other image. Images can be specified on a
 per-project basis (using the `singleuser.image` configuration as documented in the
 [Zero To Jupyterhub documentation](https://zero-to-jupyterhub.readthedocs.io/en/latest/resources/reference.html#singleuser-image))
 .
@@ -388,7 +388,8 @@ If you want to perform TailwindUI/TailwindCSS optimizations or update, you need 
 This Django application can be deployed on any server that supports Python. The `k8s` directory contains a sample
 Kubernetes deployment config.
 
-The platform docker image can be built using the "Build Platform image" Github workflow.
+The platform docker image can be built (or rebuilt) using the "Build Platform image" Github workflow. Update the `Dockerfile`
+and launch the workflow to publish it on Dockerhub.
 
 Don't forget to build the production stylesheet before rebuilding your image:
 
