@@ -13,6 +13,7 @@ jobs:
 
     # see https://github.com/docker/build-push-action
     steps:
+      # Setup (see https://github.com/docker/build-push-action)
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up QEMU
@@ -24,6 +25,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Publish to Docker hub
       - name: Build and push
         uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
         with:
