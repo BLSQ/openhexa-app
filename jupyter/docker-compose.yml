@@ -1,4 +1,4 @@
-# This compse file can be useful to debug the Jupyterlab part, outside of Jupyterhub
+# This compose file can be useful to debug the Jupyterlab part, outside of Jupyterhub
 version: '3'
 
 services:
