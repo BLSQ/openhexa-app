@@ -1,0 +1,53 @@
+{% extends "partials/page_card.html" %}
+{% load static %}
+
+{% block card_header_title %}
+    {{ user.username }}
+{% endblock %}
+
+{% block card_header_image %}
+    <img
+            class="h-12 w-12 rounded-full"
+            src="{% static 'img/avatar.jpg' %}"
+            alt=""
+    >
+{% endblock %}
+
+{% block card_header_description %}
+    {{ user.organisations|join:", "|default:"No organization" }}
+{% endblock %}
+
+{% block card_header_actions %}
+    <a
+            href="{% url "auth:logout" %}"
+            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        Log out
+    </a>
+{% endblock %}
+
+{% block card_content %}
+    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Email
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {{ user.email }}
+            </dd>
+        </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                Joined
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {{ user.date_joined|timesince }} ago
+            </dd>
+        </div>
+    </dl>
+{% endblock %}

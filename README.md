@@ -115,7 +115,7 @@ per-project basis (using the `singleuser.image` configuration as documented in t
 Creating a new project
 ----------------------
 
-Now that you have a running cluster and the JupyterHub Helm chart, you can create a new project. The project will be
+Now that you have a running cluster, and the JupyterHub Helm chart, you can create a new project. The project will be
 deployed in its own Kubernetes namespace.
 
 ### Add a Helm values file
@@ -375,13 +375,19 @@ In another terminal, launch the migrations, create a superuser and load the cata
 
 ```bash
 docker-compose run app python manage.py migrate
-docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=foo@bar.com app python manage.py createsuperuser --no-input
+docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com app python manage.py createsuperuser --no-input
 docker-compose run app python manage.py loaddata habari/catalog/fixtures/demo.json
 ```
 
 If you want to perform TailwindUI/TailwindCSS optimizations or update, you need to start tailwind in dev mode:
 
 `docker-compose run app python manage.py tailwind start`.
+
+Running the tests is as simple as:
+
+```bash
+docker-compose run app python manage.py test --parallel
+```
 
 ### Deploying
 

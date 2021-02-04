@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "habari.auth.middleware.login_required_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -89,6 +90,11 @@ DATABASES = {
         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
     }
 }
+
+# Auth settings
+LOGIN_URL = "/auth/login/"
+LOGOUT_URL = "/auth/logout/"
+LOGIN_REDIRECT_URL = "/"
 
 # Custom user model
 # https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#substituting-a-custom-user-model

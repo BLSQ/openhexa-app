@@ -1,8 +1,0 @@
-{% with current_app=request.resolver_match.app_name %}
-<a href="{% if app and route %}{% url app|add:':'|add:route %}{% else %}/{% endif %}"
-   class="text-sm font-medium px-3 py-2 rounded-md
-   {% if current_app == app %} bg-gray-900 text-white{% else %} text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}"
->
-    {{title}}
-</a>
-{% endwith %}
