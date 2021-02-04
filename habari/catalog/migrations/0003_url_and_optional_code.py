@@ -11,10 +11,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="datasource", name="url", field=models.URLField(blank=True),
+            model_name="datasource",
+            name="url",
+            field=models.URLField(blank=True),
         ),
         migrations.AddField(
-            model_name="organization", name="url", field=models.URLField(blank=True),
+            model_name="organization",
+            name="url",
+            field=models.URLField(blank=True),
         ),
         migrations.AlterField(
             model_name="dhis2dataelement",

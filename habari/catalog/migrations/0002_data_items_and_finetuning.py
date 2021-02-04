@@ -13,8 +13,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="datasource", name="country",),
-        migrations.RemoveField(model_name="organization", name="country",),
+        migrations.RemoveField(
+            model_name="datasource",
+            name="country",
+        ),
+        migrations.RemoveField(
+            model_name="organization",
+            name="country",
+        ),
         migrations.AddField(
             model_name="datasource",
             name="countries",
@@ -137,7 +143,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="Dhis2DataElement",
@@ -228,6 +236,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
     ]

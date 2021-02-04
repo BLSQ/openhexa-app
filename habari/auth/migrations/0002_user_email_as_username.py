@@ -12,7 +12,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelManagers(
-            name="user", managers=[("objects", habari.auth.models.UserManager()),],
+            name="user",
+            managers=[
+                ("objects", habari.auth.models.UserManager()),
+            ],
         ),
         migrations.AlterField(
             model_name="user",

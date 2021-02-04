@@ -9,7 +9,9 @@ class SimpleTest(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.REGULAR_USER = User.objects.create_user(
-            "regular@bluesquarehub.com", "regular@bluesquarehub.com", "regular",
+            "regular@bluesquarehub.com",
+            "regular@bluesquarehub.com",
+            "regular",
         )
 
     def test_any_page_anonymous_302(self):
