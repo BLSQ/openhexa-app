@@ -14,19 +14,15 @@
             <img class="h-8 w-8 rounded-full" src="{% static 'img/avatar.jpg' %}" alt="{{ user.username }}">
         </button>
     </div>
-    <!--
-      Profile dropdown panel, show/hide based on dropdown state.
-
-      Entering: "transition ease-out duration-100"
-        From: "transform opacity-0 scale-95"
-        To: "transform opacity-100 scale-100"
-      Leaving: "transition ease-in duration-75"
-        From: "transform opacity-100 scale-100"
-        To: "transform opacity-0 scale-95"
-    -->
     <div
             class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
-            :class="{'hidden': !expanded }"
+            x-show="expanded"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="transform opacity-0 scale-95"
+            x-transition:enter-end="transform opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-75"
+            x-transition:leave-start="transform opacity-100 scale-100"
+            x-transition:leave-end="transform opacity-0 scale-95"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="user-menu"
