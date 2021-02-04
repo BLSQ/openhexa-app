@@ -11,13 +11,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name="dhis2dataelement", options={"ordering": ["name"]},
+            name="dhis2dataelement",
+            options={"ordering": ["name"]},
         ),
         migrations.AlterModelOptions(
-            name="dhis2indicator", options={"ordering": ["name"]},
+            name="dhis2indicator",
+            options={"ordering": ["name"]},
         ),
         migrations.RenameField(
-            model_name="datasource", old_name="source_type", new_name="datasource_type",
+            model_name="datasource",
+            old_name="source_type",
+            new_name="datasource_type",
         ),
         migrations.AlterField(
             model_name="dhis2dataelement",

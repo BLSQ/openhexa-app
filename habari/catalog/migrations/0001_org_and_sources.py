@@ -41,7 +41,9 @@ class Migration(migrations.Migration):
                 ("name", models.TextField(max_length=100)),
                 ("country", django_countries.fields.CountryField(max_length=2)),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
         migrations.CreateModel(
             name="DataSource",
@@ -82,6 +84,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
     ]

@@ -38,7 +38,11 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False,},
+            options={
+                "abstract": False,
+            },
         ),
-        migrations.DeleteModel(name="Dhis2DataSourceSpec",),
+        migrations.DeleteModel(
+            name="Dhis2DataSourceSpec",
+        ),
     ]
