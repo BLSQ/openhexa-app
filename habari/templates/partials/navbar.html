@@ -23,10 +23,16 @@
                 </div>
                 <div class="hidden sm:block sm:ml-6">
                     <div class="flex space-x-4">
-                        {% include "partials/main_nav_item.html" with title="Dashboard" app="dashboard" app_index_url="dashboard:index" %}
-                        {% include "partials/main_nav_item.html" with title="Catalog" app="catalog" app_index_url="catalog:index" %}
-                        {% include "partials/main_nav_item.html" with title="Notebooks" app="notebooks" app_index_url="notebooks:index" %}
-                        {% include "partials/main_nav_item.html" with title="Pipelines" app_index_url="dashboard:index" %}
+                        {% for item in main_menu_items %}
+                            {% with current_app=request.resolver_match.app_name %}
+                                <a
+                                        href="{% url item.index_url %}"
+                                        class="text-sm font-medium px-3 py-2 rounded-md{% if current_app == item.app %} bg-gray-900 text-white{% else %} text-gray-300 hover:bg-gray-700 hover:text-white{% endif %}"
+                                >
+                                    {{ item.title }}
+                                </a>
+                            {% endwith %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>
