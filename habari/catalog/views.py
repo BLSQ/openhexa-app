@@ -16,7 +16,7 @@ def index(request):
 
 
 def datasource_detail(request, datasource_id):
-    datasource = Datasource.objects.get(pk=datasource_id)
+    datasource = get_object_or_404(datasource_id)
     breadcrumbs = [
         ("Catalog", "catalog:index"),
         (datasource.display_name, "catalog:datasource_detail", datasource_id),
