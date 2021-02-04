@@ -21,7 +21,9 @@ class User(AbstractUser):
         max_length=150,
         blank=True,
         help_text=_("For display purposes only."),
-        error_messages={"unique": _("A user with that username already exists."),},
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
     )
     email = models.EmailField(_("email address"), unique=True)
 

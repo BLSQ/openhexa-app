@@ -389,6 +389,9 @@ Running the tests is as simple as:
 docker-compose run app python manage.py test --parallel
 ```
 
+We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is 
+installed, and run `pre-commit install` the first time you check out the code.
+
 ### Deploying
 
 This Django application can be deployed on any server that supports Python. The `k8s` directory contains a sample
