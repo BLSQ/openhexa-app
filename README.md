@@ -375,7 +375,7 @@ In another terminal, launch the migrations, create a superuser and load the cata
 
 ```bash
 docker-compose run app python manage.py migrate
-docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=foo@bar.com app python manage.py createsuperuser --no-input
+docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com app python manage.py createsuperuser --no-input
 docker-compose run app python manage.py loaddata habari/catalog/fixtures/demo.json
 ```
 
