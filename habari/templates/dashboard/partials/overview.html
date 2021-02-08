@@ -20,11 +20,11 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm leading-5 font-medium text-cool-gray-500 truncate">
-                            Datasources
+                            Datasource{{ counts.datasources|pluralize }}
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
-                                {% if stats.datasources %}{{ stats.datasources }}{% else %}13{% endif %}
+                                {{ counts.datasources }}
                             </div>
                         </dd>
                     </dl>
@@ -61,7 +61,7 @@
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
-                                {% if stats.notebooks %}{{ stats.notebooks }}{% else %}83{% endif %}
+                                33
                             </div>
                         </dd>
                     </dl>
@@ -99,7 +99,7 @@
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
-                                {% if stats.pipelines %}{{ stats.pipelines }}{% else %}4{% endif %}
+                                11
                             </div>
                         </dd>
                     </dl>

@@ -1,12 +1,16 @@
 from django.shortcuts import render
 
-from .models import Stat
+from habari.catalog.models import Datasource
 
 
 def index(request):
     breadcrumbs = [("Dashboard", "dashboard:index")]
-    stats = {s.code: s.value for s in Stat.objects.all()}
 
     return render(
-        request, "dashboard/index.html", {"stats": stats, "breadcrumbs": breadcrumbs}
+        request,
+        "dashboard/index.html",
+        {
+            "counts": {"datasources": Datasource.objects.count()},
+            "breadcrumbs": breadcrumbs,
+        },
     )
