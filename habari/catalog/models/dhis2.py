@@ -98,7 +98,7 @@ class Dhis2Data(Content):
     datasource = models.ForeignKey(
         "Datasource",
         on_delete=models.CASCADE,
-        limit_choices_to={"source_type": DatasourceType.DHIS2.value},
+        limit_choices_to={"datasource_type": DatasourceType.DHIS2.value},
     )
     area = models.ForeignKey(
         "Dhis2Area", null=True, blank=True, on_delete=models.SET_NULL

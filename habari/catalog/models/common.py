@@ -46,7 +46,7 @@ class Datasource(Content):
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
     @property
-    def source_type_label(self):
+    def datasource_type_label(self):
         return DatasourceType[self.datasource_type].label
 
     def sync(self):
