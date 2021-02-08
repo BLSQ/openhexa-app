@@ -1,9 +1,10 @@
-from dhis2 import Api
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .base import Base, Content
 from .common import DatasourceType
+from habari.dhis2 import Dhis2Client
 
 
 class SyncResult:
@@ -55,22 +56,18 @@ class Dhis2Connection(Base):
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
 
-        dhis2 = Api(self.api_url, self.api_username, self.api_password)
+        client = Dhis2Client(
+            url=self.api_url, username=self.api_username, password=self.api_password
+        )
 
         # Sync DE
-        de_response = dhis2.get_paged(
-            "dataElements", params={"fields": ":all"}, page_size=100, merge=True
-        )
-        de_result = Dhis2DataElement.objects.sync_from_dhis2_api_response(
-            self.source, de_response
+        de_result = Dhis2DataElement.objects.sync_from_dhis2_results(
+            self.source, client.fetch_data_elements()
         )
 
         # Sync DI
-        di_response = dhis2.get_paged(
-            "indicators", params={"fields": ":all"}, page_size=100, merge=True
-        )
-        di_result = Dhis2Indicator.objects.sync_from_dhis2_api_response(
-            self.source, di_response
+        di_result = Dhis2Indicator.objects.sync_from_dhis2_results(
+            self.source, client.fetch_indicators()
         )
 
         return de_result + di_result
@@ -156,52 +153,25 @@ class Dhis2AggregationType(models.TextChoices):
     # TODO: complete
 
 
-class Dhis2DataElementQuerySet(models.QuerySet):
-    FIELD_MAPPINGS = {
-        "dhis2_id": "id",
-        "dhis2_code": "code",
-        "name": "name",
-        "short_name": "shortName",
-        "dhis2_domain_type": "domainType",
-        "dhis2_value_type": "valueType",
-        "dhis2_aggregation_type": "aggregationType",
-    }
+class Dhis2QuerySet(models.QuerySet):
+    FIELD_MAPPINGS = {}
 
-    def sync_from_dhis2_api_response(self, datasource, response):
-        """Iterate over the DEs in the response and create, update or ignore depending on local data
-        :todo: refactor - a lot of duplicated code with Dhis2IndicatorQueryset
-        """
+    def sync_from_dhis2_results(self, datasource, items):
+        """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
         created = 0
         updated = 0
         identical = 0
 
-        de_list = response["dataElements"]
-        for de_data in de_list:
-            try:
-                description = next(
-                    p
-                    for p in de_data["translations"]
-                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
-                )["value"]
-            except StopIteration:
-                try:
-                    description = next(
-                        p
-                        for p in de_data["translations"]
-                        if p["property"] == "DESCRIPTION"
-                    )["value"]
-                except StopIteration:
-                    description = ""
-
-            field_values = {"description": description} | {
-                field_name: de_data.get(dhis2_key, "")
+        for item in items:
+            field_values = {
+                field_name: item[dhis2_key]
                 for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
             }
 
             try:
                 # Check if the DE is already in our database and compare values (local vs dhis2)
-                existing_de = self.get(dhis2_id=de_data["id"])
+                existing_de = self.get(dhis2_id=item["id"])
                 existing_field_values = {
                     field_name: getattr(existing_de, field_name)
                     for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
@@ -220,13 +190,25 @@ class Dhis2DataElementQuerySet(models.QuerySet):
                 else:
                     identical += 1
             # If we don't have the DE locally, create it
-            except Dhis2DataElement.DoesNotExist:
+            except ObjectDoesNotExist:
                 super().create(**field_values, source=datasource)
                 created += 1
 
         return SyncResult(
             datasource=datasource, created=created, updated=updated, identical=identical
         )
+
+
+class Dhis2DataElementQuerySet(models.QuerySet):
+    FIELD_MAPPINGS = {
+        "dhis2_id": "id",
+        "dhis2_code": "code",
+        "name": "name",
+        "short_name": "shortName",
+        "dhis2_domain_type": "domainType",
+        "dhis2_value_type": "valueType",
+        "dhis2_aggregation_type": "aggregationType",
+    }
 
 
 class Dhis2DataElement(Dhis2Data):
@@ -280,70 +262,6 @@ class Dhis2IndicatorQuerySet(models.QuerySet):
         # TODO: check
         # "dhis2_indicator_type": "indicatorType",
     }
-
-    def sync_from_dhis2_api_response(self, datasource, response):
-        """Iterate over the DIs in the response and create, update or ignore depending on local data
-        :todo: refactor - a lot of duplicated code with Dhis2DataElementQueryset
-        """
-
-        created = 0
-        updated = 0
-        identical = 0
-
-        di_list = response["indicators"]
-        for di_data in di_list:
-            try:
-                description = next(
-                    p
-                    for p in di_data["translations"]
-                    if p["property"] == "DESCRIPTION" and "en_" in p["locale"]
-                )["value"]
-            except StopIteration:
-                try:
-                    description = next(
-                        p
-                        for p in di_data["translations"]
-                        if p["property"] == "DESCRIPTION"
-                    )["value"]
-                except StopIteration:
-                    description = ""
-
-            field_values = {
-                "description": description,
-                "dhis2_indicator_type": Dhis2IndicatorType.PER_CENT,
-            } | {
-                field_name: di_data.get(dhis2_key, "")
-                for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
-            }
-
-            try:
-                # Check if the DE is already in our database and compare values (local vs dhis2)
-                existing_di = self.get(dhis2_id=di_data["id"])
-                existing_field_values = {
-                    field_name: getattr(existing_di, field_name)
-                    for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
-                }
-                diff_field_values = {
-                    field_name: field_values[field_name]
-                    for field_name in self.FIELD_MAPPINGS.keys()
-                    if field_values[field_name] != existing_field_values[field_name]
-                }
-
-                # Check if we need to actually update the local version
-                if len(diff_field_values) > 0:
-                    for field_name in diff_field_values:
-                        setattr(existing_di, field_name, diff_field_values[field_name])
-                    updated += 1
-                else:
-                    identical += 1
-            # If we don't have the DE locally, create it
-            except Dhis2Indicator.DoesNotExist:
-                super().create(**field_values, source=datasource)
-                created += 1
-
-        return SyncResult(
-            datasource=datasource, created=created, updated=updated, identical=identical
-        )
 
 
 class Dhis2Indicator(Dhis2Data):
