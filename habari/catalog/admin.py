@@ -49,14 +49,14 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
     list_display = (
         "display_name",
         "owner",
-        "source",
+        "datasource",
         "dhis2_id",
         "dhis2_code",
         "dhis2_domain_type",
         "dhis2_value_type",
         "dhis2_aggregation_type",
     )
-    list_filter = ("source__name",)
+    list_filter = ("datasource__name",)
     search_fields = ["name", "short_name", "dhis2_id", "dhis2_code"]
 
 
@@ -65,7 +65,7 @@ class Dhis2IndicatorAdmin(admin.ModelAdmin):
     list_display = (
         "display_name",
         "owner",
-        "source",
+        "datasource",
         "dhis2_id",
         "dhis2_indicator_type",
     )

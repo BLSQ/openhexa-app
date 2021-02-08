@@ -54,7 +54,7 @@
     "fields": {
       "created_at": "2021-01-25T15:55:37.392Z",
       "updated_at": "2021-01-25T16:04:31.897Z",
-      "source": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
+      "datasource": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
       "api_url": "https://play.dhis2.org/demo",
       "api_username": "admin",
       "api_password": "district"

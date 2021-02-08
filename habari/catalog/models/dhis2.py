@@ -46,7 +46,7 @@ class ContentSummary:
 
 
 class Dhis2Connection(Base):
-    source = models.OneToOneField(
+    datasource = models.OneToOneField(
         "Datasource", on_delete=models.CASCADE, related_name="connection"
     )
     api_url = models.URLField()
@@ -62,19 +62,19 @@ class Dhis2Connection(Base):
 
         # Sync DE
         de_result = Dhis2DataElement.objects.sync_from_dhis2_results(
-            self.source, client.fetch_data_elements()
+            self.datasource, client.fetch_data_elements()
         )
 
         # Sync DI
         di_result = Dhis2Indicator.objects.sync_from_dhis2_results(
-            self.source, client.fetch_indicators()
+            self.datasource, client.fetch_indicators()
         )
 
         return de_result + di_result
 
     def get_content_summary(self):
         return ContentSummary(
-            data_element_count=self.source.dhis2dataelement_set.count(),
+            data_element_count=self.datasource.dhis2dataelement_set.count(),
             data_indicator_count=0,
         )
 
@@ -95,7 +95,7 @@ class Dhis2Data(Content):
     owner = models.ForeignKey(
         "Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    source = models.ForeignKey(
+    datasource = models.ForeignKey(
         "Datasource",
         on_delete=models.CASCADE,
         limit_choices_to={"source_type": DatasourceType.DHIS2.value},
@@ -191,7 +191,7 @@ class Dhis2QuerySet(models.QuerySet):
                     identical += 1
             # If we don't have the DE locally, create it
             except ObjectDoesNotExist:
-                super().create(**field_values, source=datasource)
+                super().create(**field_values, datasource=datasource)
                 created += 1
 
         return SyncResult(
@@ -199,7 +199,7 @@ class Dhis2QuerySet(models.QuerySet):
         )
 
 
-class Dhis2DataElementQuerySet(models.QuerySet):
+class Dhis2DataElementQuerySet(Dhis2QuerySet):
     FIELD_MAPPINGS = {
         "dhis2_id": "id",
         "dhis2_code": "code",
@@ -252,7 +252,7 @@ class Dhis2IndicatorType(models.TextChoices):
     PER_THOUSAND = "PER_THOUSAND", _("Per thousand")
 
 
-class Dhis2IndicatorQuerySet(models.QuerySet):
+class Dhis2IndicatorQuerySet(Dhis2QuerySet):
     FIELD_MAPPINGS = {
         "dhis2_id": "id",
         "dhis2_code": "code",

@@ -28,10 +28,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if indicator.source.just_synced %}
+            {% if indicator.datasource.just_synced %}
                 <span>Just now</span>
-            {% elif indicator.source.last_synced_at %}
-                <span>{{ indicator.source.last_synced_at|timesince }} ago</span>
+            {% elif indicator.datasource.last_synced_at %}
+                <span>{{ indicator.datasource.last_synced_at|timesince }} ago</span>
             {% else %}
                 <span>Never synced</span>
             {% endif %}
