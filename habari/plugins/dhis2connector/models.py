@@ -35,7 +35,7 @@ class Dhis2Connector(Connector):
     def get_content_summary(self):
         return ContentSummary(
             data_elements=self.datasource.dhis2dataelement_set.count(),
-            data_indicators=0,  # TODO: fixme
+            data_indicators=self.datasource.dhis2indicator_set.count(),
         )
 
 
