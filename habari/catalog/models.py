@@ -1,14 +1,13 @@
 from functools import lru_cache
 
-from django.apps import apps
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
+from habari.catalog.connectors import get_connector_app_configs
 from habari.common.models import Base, DynamicTextChoices
-from habari.plugins.app import HabariPluginAppConfig
 
 
 class DatasourceType(DynamicTextChoices):
@@ -16,9 +15,12 @@ class DatasourceType(DynamicTextChoices):
     @lru_cache
     def build_choices():
         choices = {}
-        for app in apps.get_app_configs():
-            if isinstance(app, HabariPluginAppConfig):
-                choices = choices | app.get_datasource_types()
+        for app in get_connector_app_configs():
+            if app.datasource_type is not None:
+                choices[app.datasource_type] = (
+                    app.datasource_type,
+                    _(app.datasource_type),
+                )
 
         return choices
 
