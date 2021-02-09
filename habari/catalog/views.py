@@ -35,7 +35,7 @@ def datasource_sync(request, datasource_id):
     try:
         sync_result = datasource.sync()
         messages.success(request, sync_result, extra_tags="green")
-    except Datasource.NoConnection as e:
+    except Datasource.NoConnector as e:
         messages.error(request, e, extra_tags="red")
 
     return redirect(request.META.get("HTTP_REFERER"))

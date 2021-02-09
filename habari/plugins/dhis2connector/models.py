@@ -2,53 +2,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import Base, Content
-from .common import DatasourceType
+from habari.catalog.connectors import ContentSummary, SyncResult
+from habari.catalog.models import ExternalContent, Connector
+from habari.common.models import Base
 from habari.dhis2 import Dhis2Client
 
 
-class SyncResult:
-    def __init__(self, datasource, created, updated, identical):
-        self.datasource = datasource
-        self.created = created
-        self.updated = updated
-        self.identical = identical
-
-    def __str__(self):
-        figures = (
-            f"{self.created} new, {self.updated} updated, {self.identical} unaffected"
-        )
-
-        return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
-
-    def __add__(self, other):
-        if other.datasource != self.datasource:
-            raise ValueError(
-                "The two SyncResults instances don't have the same datasource"
-            )
-
-        return SyncResult(
-            datasource=self.datasource,
-            created=self.created + other.created,
-            updated=self.updated + other.updated,
-            identical=self.identical + other.identical,
-        )
-
-
-class ContentSummary:
-    def __init__(self, data_element_count, data_indicator_count):
-        self.data_element_count = data_element_count
-        self.data_indicator_count = data_indicator_count
-        self.total_count = self.data_element_count + self.data_indicator_count
-
-    def __str__(self):
-        return f"{self.data_element_count} data element(s), {self.data_indicator_count} data indicator(s)"
-
-
-class Dhis2Connection(Base):
-    datasource = models.OneToOneField(
-        "Datasource", on_delete=models.CASCADE, related_name="connection"
-    )
+class Dhis2Connector(Connector):
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
@@ -74,40 +34,24 @@ class Dhis2Connection(Base):
 
     def get_content_summary(self):
         return ContentSummary(
-            data_element_count=self.datasource.dhis2dataelement_set.count(),
-            data_indicator_count=0,
+            data_elements=self.datasource.dhis2dataelement_set.count(),
+            data_indicators=0,  # TODO: fixme
         )
 
 
-class Dhis2Area(Content):
-    pass
-
-
-class Dhis2Theme(Content):
-    pass
-
-
-class Dhis2Data(Content):
+class Dhis2Data(ExternalContent):
     class Meta:
         abstract = True
-        ordering = ["name"]
+        ordering = ["dhis2_name"]
 
-    owner = models.ForeignKey(
-        "Organization", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    datasource = models.ForeignKey(
-        "Datasource",
-        on_delete=models.CASCADE,
-        limit_choices_to={"datasource_type": DatasourceType.DHIS2.value},
-    )
-    area = models.ForeignKey(
-        "Dhis2Area", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    theme = models.ForeignKey(
-        "Dhis2Theme", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    dhis2_id = models.CharField(max_length=100, unique=True)
     dhis2_code = models.CharField(max_length=100, blank=True)
+    dhis2_name = models.CharField(max_length=200)
+    dhis2_short_name = models.CharField(max_length=100, blank=True)
+    dhis2_description = models.TextField(blank=True)
+
+    @property
+    def display_name(self):
+        return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
 
 
 class Dhis2DomainType(models.TextChoices):
@@ -171,7 +115,7 @@ class Dhis2QuerySet(models.QuerySet):
 
             try:
                 # Check if the DE is already in our database and compare values (local vs dhis2)
-                existing_de = self.get(dhis2_id=item["id"])
+                existing_de = self.get(external_id=item["id"])
                 existing_field_values = {
                     field_name: getattr(existing_de, field_name)
                     for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
@@ -201,10 +145,10 @@ class Dhis2QuerySet(models.QuerySet):
 
 class Dhis2DataElementQuerySet(Dhis2QuerySet):
     FIELD_MAPPINGS = {
-        "dhis2_id": "id",
+        "external_id": "id",
         "dhis2_code": "code",
-        "name": "name",
-        "short_name": "shortName",
+        "dhis2_name": "name",
+        "dhis2_short_name": "shortName",
         "dhis2_domain_type": "domainType",
         "dhis2_value_type": "valueType",
         "dhis2_aggregation_type": "aggregationType",
@@ -254,11 +198,11 @@ class Dhis2IndicatorType(models.TextChoices):
 
 class Dhis2IndicatorQuerySet(Dhis2QuerySet):
     FIELD_MAPPINGS = {
-        "dhis2_id": "id",
+        "external_id": "id",
         "dhis2_code": "code",
-        "name": "name",
-        "short_name": "shortName",
-        "annualized": "annualized",
+        "dhis2_name": "name",
+        "dhis2_short_name": "shortName",
+        "dhis2_annualized": "annualized",
         # TODO: check
         # "dhis2_indicator_type": "indicatorType",
     }
@@ -268,7 +212,7 @@ class Dhis2Indicator(Dhis2Data):
     dhis2_indicator_type = models.CharField(
         choices=Dhis2IndicatorType.choices, max_length=100
     )
-    annualized = models.BooleanField()
+    dhis2_annualized = models.BooleanField()
 
     objects = Dhis2IndicatorQuerySet.as_manager()
 

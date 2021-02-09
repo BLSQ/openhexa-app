@@ -49,7 +49,7 @@
     }
   },
   {
-    "model": "catalog.dhis2connection",
+    "model": "dhis2connector.dhis2connector",
     "pk": "51f8e7b8-6308-462b-8b8b-0d9112ace4b4",
     "fields": {
       "created_at": "2021-01-25T15:55:37.392Z",
@@ -61,7 +61,7 @@
     }
   },
   {
-    "model": "catalog.dhis2area",
+    "model": "catalog.area",
     "pk": "0393d4d1-7f7e-4b30-9523-e98a466cdf67",
     "fields": {
       "created_at": "2021-01-25T16:02:35.484Z",
@@ -73,7 +73,7 @@
     }
   },
   {
-    "model": "catalog.dhis2area",
+    "model": "catalog.area",
     "pk": "1d817b8f-6d2d-4042-91ab-0d7c7daddef0",
     "fields": {
       "created_at": "2021-01-25T16:02:47.221Z",
@@ -85,7 +85,7 @@
     }
   },
   {
-    "model": "catalog.dhis2area",
+    "model": "catalog.area",
     "pk": "edf65ac1-559a-49b6-8f1a-57473e095cc2",
     "fields": {
       "created_at": "2021-01-25T16:02:41.807Z",
@@ -97,7 +97,7 @@
     }
   },
   {
-    "model": "catalog.dhis2theme",
+    "model": "catalog.theme",
     "pk": "94cc3e1d-3755-482c-83c0-545f9ae25469",
     "fields": {
       "created_at": "2021-01-25T16:02:14.684Z",
@@ -109,7 +109,7 @@
     }
   },
   {
-    "model": "catalog.dhis2theme",
+    "model": "catalog.theme",
     "pk": "a21df3c4-5688-4c91-8e8a-2a259bdb0ef1",
     "fields": {
       "created_at": "2021-01-25T16:02:19.694Z",
