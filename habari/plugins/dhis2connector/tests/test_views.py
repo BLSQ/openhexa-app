@@ -5,7 +5,7 @@ import uuid
 
 from habari.auth.models import User
 from habari.catalog.models import Datasource
-from .models import Dhis2Connector
+from ..models import Dhis2Connector
 
 
 class CatalogTest(test.TestCase):

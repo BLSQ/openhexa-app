@@ -1,7 +1,6 @@
 from django import test
 
-from habari.dhis2 import Dhis2Client
-from habari.dhis2.api import Dhis2Item
+from ..api import Dhis2Client, Dhis2Item
 
 
 class Dhis2Test(test.TestCase):

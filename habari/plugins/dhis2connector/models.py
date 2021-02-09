@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from habari.catalog.connectors import ContentSummary, SyncResult
 from habari.catalog.models import ExternalContent, Connector
 from habari.common.models import Base
-from habari.dhis2 import Dhis2Client
+from .api import Dhis2Client
 
 
 class Dhis2Connector(Connector):
