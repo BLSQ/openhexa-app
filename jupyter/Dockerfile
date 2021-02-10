@@ -11,6 +11,9 @@ RUN apt-get install -y libgdal-dev
 # For sf (R)
 RUN apt-get install -y libudunits2-dev
 
+# Update conda - because why not? Trying to "improve" performance
+RUN conda update anaconda
+
 # R packages, in multiple steps for Docker layering (conda-forge - preferred method)
 RUN conda install -c conda-forge --quiet --yes \
     'r-aws.s3=0.*' \
