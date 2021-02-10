@@ -11,12 +11,11 @@ RUN apt-get install -y libgdal-dev
 # For sf (R)
 RUN apt-get install -y libudunits2-dev
 
-# Use strict mode for conda to "ease" conflict resolution
-# (see https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html#strict-channel-priority)
-RUN conda config --set channel_priority strict
+# Use mamba instead of conda
+RUN conda install --quiet --yes mamba -c conda-forge
 
 # R packages, in multiple steps for Docker layering (conda-forge - preferred method)
-RUN conda install --quiet --yes \
+RUN mamba install --quiet --yes \
     'r-aws.s3=0.*' \
     'r-geojsonio=0.*' \
     'r-getpass=0.*' \
@@ -37,10 +36,10 @@ RUN conda install --quiet --yes \
     'r-sf=0.*' \
     'r-tidyverse=1.*' \
     'r-viridis=0.*' \
-    && conda clean --all -f -y
+    && mamba clean --yes --all
 
 # Python packages, in multiple steps for Docker layering (conda-forge - preferred method)
-RUN conda install --quiet --yes \
+RUN mamba install --quiet --yes \
     'dask-ml=1.*' \
     'descartes=1.*' \
     'geoalchemy2=0.*' \
@@ -55,7 +54,7 @@ RUN conda install --quiet --yes \
     'rapidfuzz=0.*' \
     'rasterstats=0.*' \
     's3contents=0.*' \
-    && conda clean --all -f -y
+    && mamba clean --yes --all
 
 # Python packages (pip - for what is not available in conda-forge)
 RUN pip install \
