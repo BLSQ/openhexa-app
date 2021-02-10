@@ -11,11 +11,12 @@ RUN apt-get install -y libgdal-dev
 # For sf (R)
 RUN apt-get install -y libudunits2-dev
 
-# Update conda - because why not? Trying to "improve" performance
-RUN conda update anaconda
+# Use strict mode for conda to "ease" conflict resolution
+# (see https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html#strict-channel-priority)
+RUN conda config --set channel_priority strict
 
 # R packages, in multiple steps for Docker layering (conda-forge - preferred method)
-RUN conda install -c conda-forge --quiet --yes \
+RUN conda install --quiet --yes \
     'r-aws.s3=0.*' \
     'r-geojsonio=0.*' \
     'r-getpass=0.*' \
@@ -39,7 +40,7 @@ RUN conda install -c conda-forge --quiet --yes \
     && conda clean --all -f -y
 
 # Python packages, in multiple steps for Docker layering (conda-forge - preferred method)
-RUN conda install -c conda-forge --quiet --yes \
+RUN conda install --quiet --yes \
     'dask-ml=1.*' \
     'descartes=1.*' \
     'geoalchemy2=0.*' \
