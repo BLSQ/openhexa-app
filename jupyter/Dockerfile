@@ -1,4 +1,5 @@
-FROM jupyter/datascience-notebook:42f4c82a07ff
+FROM jupyter/datascience-notebook:016833b15ceb
+
 
 USER root
 
@@ -10,64 +11,66 @@ RUN apt-get install -y libgdal-dev
 # For sf (R)
 RUN apt-get install -y libudunits2-dev
 
+# Use strict mode for conda to "ease" conflict resolution
+RUN conda config --set channel_priority strict
+
 # R packages, in multiple steps for Docker layering (conda-forge - preferred method)
 RUN conda install -c conda-forge --quiet --yes \
-    'r-rjson=0.2.20' \
-    'r-rpostgres=1.2.1' \
-    'r-rjava=0.9_13' \
-    'r-aws.s3=0.3.21' \
-    'r-getpass=0.2_2' \
-    'r-ggmap=3.0.0' \
-    'r-hmisc=4.4_1' \
-    'r-maptools=1.0_2' \
-    'r-raster=3.3_13' \
-    'r-readxl=1.3.1' \
-    'r-rcolorbrewer=1.1_2' \
-    'r-rgdal=1.5_16' \
-    'r-rgeos=0.5_5' \
-    'r-rgooglemaps=1.4.5.3' \
-    'r-sf=0.9_6' \
-    'r-tidyverse=1.3.0' \
-    'r-viridis=0.5.1' \
-    'r-ggthemes=4.2.0' \
-    'r-geojsonio=0.9.2' \
-    'r-plotly=4.9.2.1' \
+    'r-aws.s3=0.*' \
+    'r-geojsonio=0.*' \
+    'r-getpass=0.*' \
+    'r-ggmap=3.*' \
+    'r-ggthemes=4.*' \
+    'r-hmisc=4.*' \
+    'r-maptools=1.*' \
+    'r-plotly=4.*' \
+    'r-raster=3.*' \
+    'r-readxl=1.*' \
+    'r-rcolorbrewer=1.*' \
+    'r-rgdal=1.*' \
+    'r-rgeos=0.*' \
+    'r-rgooglemaps=1.*' \
+    'r-rjava=0.*' \
+    'r-rjson=0.*' \
+    'r-rpostgres=1.*' \
+    'r-sf=0.*' \
+    'r-tidyverse=1.*' \
+    'r-viridis=0.*' \
     && conda clean --all -f -y
+
+# Python packages, in multiple steps for Docker layering (conda-forge - preferred method)
+RUN conda install -c conda-forge --quiet --yes \
+    'dask-ml=1.*' \
+    'descartes=1.*' \
+    'geoalchemy2=0.*' \
+    'geopandas=0.*' \
+    'hybridcontents=0.*' \
+    'ipywidgets=7.*' \
+    'lxml=4.*' \
+    'mapclassify=2.*' \
+    'nbresuse=0.*' \
+    'plotly=4.*' \
+    'psycopg2=2.*' \
+    'rapidfuzz=0.*' \
+    'rasterstats=0.*' \
+    's3contents=0.*' \
+    && conda clean --all -f -y
+
+# Python packages (pip - for what is not available in conda-forge)
+RUN pip install \
+    'cowsay==3.*' \
+    'hdx-python-api==4.*' \
+    'jupyterlab-topbar==0.*' \
+    'jupyterlab-system-monitor==0.*' \
+    'tabpy==2.*'
 
 # R packages (cran - for what is not available in conda-forge)
 RUN R -e "install.packages(c('GISTools', 'OpenStreetMap'), dependencies=TRUE, quiet=TRUE, repos='https://cran.r-project.org/')"
 RUN R -e "install.packages('isotree', dependencies=TRUE, quiet=TRUE, repos='https://cran.r-project.org/')"
 
-# Python packages, in multiple steps for Docker layering (conda-forge - preferred method)
-RUN conda install -c conda-forge --quiet --yes \
-    'descartes=1.1.0' \
-    'geoalchemy2=0.6.3' \
-    'geopandas=0.8.1' \
-    'hybridcontents=0.3.0' \
-    'mapclassify=2.3.0' \
-    'nbresuse=0.3.6' \
-    'plotly=4.12.0' \
-    'psycopg2=2.8.6' \
-    'rasterstats=0.14.0' \
-    's3contents=0.5.1' \
-    'voila=0.2.4' \
-    'rapidfuzz=0.13.4' \
-    && conda clean --all -f -y
-RUN conda install -c conda-forge --quiet --yes \
-    'lxml=4.6.2' \
-    'dask-ml=1.7.0' \
-    && conda clean --all -f -y
-
-# Python packages (pip - for what is not available in conda-forge)
-RUN pip install hdx-python-api==4.7.1 tabpy==2.3.1 cowsay==2.0.3
-
-# Jupyterlab extensions
-# Inspired by https://github.com/jupyter/docker-stacks/blob/master/scipy-notebook/Dockerfile
-RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager@2 --no-build && \
-    jupyter labextension install jupyterlab-plotly@4.12.0 --no-build && \
-    jupyter labextension install plotlywidget@4.12.0 --no-build && \
-    jupyter labextension install @jupyter-voila/jupyterlab-preview --no-build && \
-    jupyter labextension install jupyterlab-topbar-extension jupyterlab-system-monitor --no-build && \
+# Jupyterlab extensions - check if still necessary
+RUN jupyter labextension install jupyterlab-plotly@4.* --no-build && \
+    jupyter labextension install plotlywidget@4.* --no-build && \
     jupyter lab build -y && \
     jupyter lab clean -y && \
     npm cache clean --force && \
