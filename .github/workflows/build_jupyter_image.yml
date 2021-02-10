@@ -6,6 +6,10 @@ on:
       tag:
         description: Jupyter image tag
         required: true
+      ref:
+        description: The git ref used by actions/checkout
+        required: true
+        default: main
 
 jobs:
   build:
@@ -15,6 +19,8 @@ jobs:
       # Setup (see https://github.com/docker/build-push-action)
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.ref }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@6520a2d2cb6db42c90c297c8025839c98e531268
       - name: Set up Docker Buildx
