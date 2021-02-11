@@ -1,3 +1,4 @@
+import stringcase
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -35,23 +36,98 @@ class Dhis2Connector(Connector):
     def get_content_summary(self):
         return ContentSummary(
             data_elements=self.datasource.dhis2dataelement_set.count(),
-            data_indicators=self.datasource.dhis2indicator_set.count(),
+            indicators=self.datasource.dhis2indicator_set.count(),
+        )
+
+
+class Dhis2DataQuerySet(models.QuerySet):
+    @staticmethod
+    def _match_name(dhis2_name):
+        return f"dhis2_{stringcase.snakecase(dhis2_name)}".replace(
+            "dhis2_id", "external_id"
+        )
+
+    def _match_reference(self, hexa_name, dhis2_value):
+        # No dict? Then return as is
+        if not isinstance(dhis2_value, dict):
+            return dhis2_value
+
+        # Otherwise, fetch referenced model
+        field_info = getattr(self.model, hexa_name)
+        reference_model = field_info.field.model
+
+        try:
+            return reference_model.objects.get(external_id=dhis2_value)
+        except reference_model.DoesNotExist:
+            return None
+
+    def sync_from_dhis2_results(self, datasource, results):
+        """Iterate over the DEs in the response and create, update or ignore depending on local data"""
+
+        created = 0
+        updated = 0
+        identical = 0
+
+        for result in results:
+            # Build a dict of dhis2 values indexed by hexa field name, and replace reference to other items by
+            # their FK
+            dhis2_values = {}
+            for dhis2_name, dhis2_value in result.get_values(datasource.locale).items():
+                hexa_name = self._match_name(dhis2_name)
+                dhis2_values[hexa_name] = self._match_reference(hexa_name, dhis2_value)
+
+            try:
+                # Check if the dhis2 data is already in our database and compare values (hexa vs dhis2)
+                existing_hexa_item = self.get(external_id=dhis2_values["external_id"])
+                existing_hexa_values = {
+                    hexa_name: getattr(existing_hexa_item, hexa_name)
+                    for hexa_name, _ in dhis2_values
+                }
+                diff_values = {
+                    hexa_name: dhis2_value
+                    for hexa_name, dhis2_value in dhis2_values
+                    if dhis2_value != existing_hexa_values[hexa_name]
+                }
+
+                # Check if we need to actually update the local version
+                if len(diff_values) > 0:
+                    for hexa_name in diff_values:
+                        setattr(
+                            existing_hexa_item,
+                            hexa_name,
+                            diff_values[hexa_name],
+                        )
+                    updated += 1
+                else:
+                    identical += 1
+            # If we don't have the DE locally, create it
+            except ObjectDoesNotExist:
+                super().create(**dhis2_values, datasource=datasource)
+                created += 1
+
+        return SyncResult(
+            datasource=datasource, created=created, updated=updated, identical=identical
         )
 
 
 class Dhis2Data(ExternalContent):
-    class Meta:
-        abstract = True
-        ordering = ["dhis2_name"]
-
-    dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_name = models.CharField(max_length=200)
     dhis2_short_name = models.CharField(max_length=100, blank=True)
     dhis2_description = models.TextField(blank=True)
+    dhis2_external_access = models.BooleanField()
+    dhis2_favorite = models.BooleanField()
+    dhis2_created = models.DateTimeField()
+    dhis2_last_updated = models.DateTimeField()
+
+    objects = Dhis2DataQuerySet.as_manager()
 
     @property
     def display_name(self):
         return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
+
+    class Meta:
+        abstract = True
+        ordering = ["dhis2_name"]
 
 
 class Dhis2DomainType(models.TextChoices):
@@ -97,65 +173,8 @@ class Dhis2AggregationType(models.TextChoices):
     # TODO: complete
 
 
-class Dhis2QuerySet(models.QuerySet):
-    FIELD_MAPPINGS = {}
-
-    def sync_from_dhis2_results(self, datasource, items):
-        """Iterate over the DEs in the response and create, update or ignore depending on local data"""
-
-        created = 0
-        updated = 0
-        identical = 0
-
-        for item in items:
-            field_values = {
-                field_name: item[dhis2_key]
-                for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
-            }
-
-            try:
-                # Check if the DE is already in our database and compare values (local vs dhis2)
-                existing_de = self.get(external_id=item["id"])
-                existing_field_values = {
-                    field_name: getattr(existing_de, field_name)
-                    for field_name, dhis2_key in self.FIELD_MAPPINGS.items()
-                }
-                diff_field_values = {
-                    field_name: field_values[field_name]
-                    for field_name in self.FIELD_MAPPINGS.keys()
-                    if field_values[field_name] != existing_field_values[field_name]
-                }
-
-                # Check if we need to actually update the local version
-                if len(diff_field_values) > 0:
-                    for field_name in diff_field_values:
-                        setattr(existing_de, field_name, diff_field_values[field_name])
-                    updated += 1
-                else:
-                    identical += 1
-            # If we don't have the DE locally, create it
-            except ObjectDoesNotExist:
-                super().create(**field_values, datasource=datasource)
-                created += 1
-
-        return SyncResult(
-            datasource=datasource, created=created, updated=updated, identical=identical
-        )
-
-
-class Dhis2DataElementQuerySet(Dhis2QuerySet):
-    FIELD_MAPPINGS = {
-        "external_id": "id",
-        "dhis2_code": "code",
-        "dhis2_name": "name",
-        "dhis2_short_name": "shortName",
-        "dhis2_domain_type": "domainType",
-        "dhis2_value_type": "valueType",
-        "dhis2_aggregation_type": "aggregationType",
-    }
-
-
 class Dhis2DataElement(Dhis2Data):
+    dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_domain_type = models.CharField(
         choices=Dhis2DomainType.choices, max_length=100
     )
@@ -163,8 +182,6 @@ class Dhis2DataElement(Dhis2Data):
     dhis2_aggregation_type = models.CharField(
         choices=Dhis2AggregationType.choices, max_length=100
     )
-
-    objects = Dhis2DataElementQuerySet.as_manager()
 
     @property
     def dhis2_domain_type_label(self):
@@ -188,37 +205,14 @@ class Dhis2DataElement(Dhis2Data):
             return "Unknown"
 
 
-class Dhis2IndicatorType(models.TextChoices):
-    NUMBER_FACTOR_1 = "NUMBER_FACTOR_1", _("Number (Factor 1)")
-    PER_CENT = "PER_CENT", _("Per cent")
-    PER_HUNDRED_THOUSANDS = "PER_HUNDRED_THOUSANDS", _("Per hundred thousand")
-    PER_TEN_THOUSAND = "PER_TEN_THOUSAND", _("Per ten thousand")
-    PER_THOUSAND = "PER_THOUSAND", _("Per thousand")
-
-
-class Dhis2IndicatorQuerySet(Dhis2QuerySet):
-    FIELD_MAPPINGS = {
-        "external_id": "id",
-        "dhis2_code": "code",
-        "dhis2_name": "name",
-        "dhis2_short_name": "shortName",
-        "dhis2_annualized": "annualized",
-        # TODO: check
-        # "dhis2_indicator_type": "indicatorType",
-    }
+class Dhis2IndicatorType(Dhis2Data):
+    dhis2_number = models.BooleanField()
+    dhis2_factor = models.IntegerField()
 
 
 class Dhis2Indicator(Dhis2Data):
-    dhis2_indicator_type = models.CharField(
-        choices=Dhis2IndicatorType.choices, max_length=100
+    dhis2_code = models.CharField(max_length=100, blank=True)
+    dhis2_indicator_type = models.ForeignKey(
+        "Dhis2IndicatorType", null=True, on_delete=models.SET_NULL
     )
     dhis2_annualized = models.BooleanField()
-
-    objects = Dhis2IndicatorQuerySet.as_manager()
-
-    @property
-    def dhis2_indicator_type_label(self):
-        try:
-            return Dhis2IndicatorType[self.dhis2_indicator_type].label
-        except KeyError:
-            return "Unknown"

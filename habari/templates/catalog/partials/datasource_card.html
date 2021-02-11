@@ -108,7 +108,7 @@
                     {% with de_count=datasource.content_summary.data_elements %}
                         {{ de_count }} data element{{ de_count|pluralize }}<br/>
                     {% endwith %}
-                    {% with di_count=datasource.content_summary.data_indicators %}
+                    {% with di_count=datasource.content_summary.indicators %}
                         {{ di_count }} data indicator{{ di_count|pluralize }}
                     {% endwith %}
                 {% else %}

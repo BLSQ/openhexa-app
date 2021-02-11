@@ -6,7 +6,7 @@
                     {{ indicator.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ indicator.dhis2_indicator_type_label }}
+                    {{ indicator.dhis2_indicator_type.display_name }}
                 </span>
             </span>
         </a>
@@ -15,7 +15,7 @@
         {{ indicator.code }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ indicator.dhis2_indicator_type_label }}</div>
+        <div class="text-sm text-gray-900">{{ indicator.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in indicator.tags %}

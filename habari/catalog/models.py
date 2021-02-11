@@ -107,6 +107,10 @@ class Datasource(Content):
             and (timezone.now() - self.last_synced_at).seconds < 60
         )
 
+    @property
+    def locale(self):  # TODO: add field with default "en"
+        return "en"
+
 
 class Area(Content):
     pass
