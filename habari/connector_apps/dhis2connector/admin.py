@@ -3,6 +3,7 @@ from .models import (
     Dhis2Connector,
     Dhis2DataElement,
     Dhis2Indicator,
+    Dhis2IndicatorType,
 )
 
 
@@ -33,6 +34,16 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
     )
     list_filter = ("datasource__name",)
     search_fields = ["name", "short_name", "external_id", "dhis2_code"]
+
+
+@admin.register(Dhis2IndicatorType)
+class Dhis2IndicatorTypeAdmin(admin.ModelAdmin):
+    list_display = (
+        "display_name",
+        "external_id",
+        "dhis2_number",
+        "dhis2_factor",
+    )
 
 
 @admin.register(Dhis2Indicator)

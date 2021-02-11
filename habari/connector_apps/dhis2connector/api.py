@@ -11,7 +11,7 @@ class Dhis2Result:
     FIELD_SPECS = {
         "id": (str, None),
         "name": (str, None),
-        "shortName": (str, None),
+        "shortName": (str, ""),
         "description": (str, ""),
         "externalAccess": (bool, None),
         "favorite": (bool, None),

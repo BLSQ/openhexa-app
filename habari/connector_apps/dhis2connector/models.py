@@ -21,17 +21,22 @@ class Dhis2Connector(Connector):
             url=self.api_url, username=self.api_username, password=self.api_password
         )
 
-        # Sync DE
-        de_result = Dhis2DataElement.objects.sync_from_dhis2_results(
+        # Sync data elements
+        data_element_results = Dhis2DataElement.objects.sync_from_dhis2_results(
             self.datasource, client.fetch_data_elements()
         )
 
-        # Sync DI
-        di_result = Dhis2Indicator.objects.sync_from_dhis2_results(
+        # Sync indicator types
+        indicator_type_results = Dhis2IndicatorType.objects.sync_from_dhis2_results(
+            self.datasource, client.fetch_indicator_types()
+        )
+
+        # Sync indicators
+        indicator_results = Dhis2Indicator.objects.sync_from_dhis2_results(
             self.datasource, client.fetch_indicators()
         )
 
-        return de_result + di_result
+        return data_element_results + indicator_type_results + indicator_results
 
     def get_content_summary(self):
         return ContentSummary(
@@ -54,14 +59,16 @@ class Dhis2DataQuerySet(models.QuerySet):
 
         # Otherwise, fetch referenced model
         field_info = getattr(self.model, hexa_name)
-        reference_model = field_info.field.model
+        related_model = field_info.field.related_model
 
         try:
-            return reference_model.objects.get(external_id=dhis2_value)
-        except reference_model.DoesNotExist:
+            return related_model.objects.get(external_id=dhis2_value["id"])
+        except related_model.DoesNotExist:
             return None
 
-    def sync_from_dhis2_results(self, datasource, results):
+    def sync_from_dhis2_results(
+        self, datasource, results
+    ):  # TODO: write test - incl. FKs
         """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
         created = 0
