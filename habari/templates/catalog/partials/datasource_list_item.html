@@ -35,7 +35,7 @@
     <td class="px-6 py-4">
         <span class="text-sm text-gray-500 whitespace-nowrap mr-1">
             {% if datasource.content_summary %}
-                {% with total_count=datasource.content_summary.total_count %}
+                {% with total_count=datasource.content_summary.total %}
                     {{ total_count }} item{{ total_count|pluralize }}
                 {% endwith %}
             {% else %}

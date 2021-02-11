@@ -389,6 +389,13 @@ Running the tests is as simple as:
 docker-compose run app python manage.py test --parallel
 ```
 
+Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them 
+when running the test suite for unrelated parts of the codebase:
+
+```bash
+docker-compose run app python manage.py test --parallel --exclude-tag=external
+```
+
 We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is 
 installed, and run `pre-commit install` the first time you check out the code.
 

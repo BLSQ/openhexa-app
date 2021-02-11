@@ -79,7 +79,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                         {% for data_element in datasource.dhis2dataelement_set.all|slice:":5" %}
-                            {% include "catalog/partials/dhis2/data_element_list_item.html" %}
+                            {% include "dhis2connector/partials/data_element_list_item.html" %}
                         {% endfor %}
                         </tbody>
                     </table>

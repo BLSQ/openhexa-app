@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block card_header_description %}
-    {{ datasource.source.description }}
+    {{ datasource.description }}
 {% endblock %}
 
 {% block card_header_actions %}
@@ -105,10 +105,10 @@
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% if datasource.content_summary %}
-                    {% with de_count=datasource.content_summary.data_element_count %}
+                    {% with de_count=datasource.content_summary.data_elements %}
                         {{ de_count }} data element{{ de_count|pluralize }}<br/>
                     {% endwith %}
-                    {% with di_count=datasource.content_summary.data_indicator_count %}
+                    {% with di_count=datasource.content_summary.indicators %}
                         {{ di_count }} data indicator{{ di_count|pluralize }}
                     {% endwith %}
                 {% else %}

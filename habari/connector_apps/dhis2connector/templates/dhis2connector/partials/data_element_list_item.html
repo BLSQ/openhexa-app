@@ -2,11 +2,11 @@
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
             <div class="text-gray-400">
-                {% include "catalog/partials/dhis2/icon_"|add:data_element.dhis2_domain_type|add:".html" %}
+                {% include "dhis2connector/partials/icon_"|add:data_element.dhis2_domain_type|add:".html" %}
             </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
-                    {{ data_element.short_name }}
+                    {{ data_element.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
                     {{ data_element.dhis2_domain_type_label }}
@@ -32,10 +32,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if data_element.source.just_synced %}
+            {% if data_element.datasource.just_synced %}
                 <span>Just now</span>
-            {% elif data_element.source.last_synced_at %}
-                <span>{{ data_element.source.last_synced_at|timesince }} ago</span>
+            {% elif data_element.datasource.last_synced_at %}
+                <span>{{ data_element.datasource.last_synced_at|timesince }} ago</span>
             {% else %}
                 <span>Never synced</span>
             {% endif %}
