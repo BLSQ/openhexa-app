@@ -8,7 +8,7 @@ from habari.catalog.models import Datasource
 from ..models import Dhis2Connector
 
 
-class CatalogTest(test.TestCase):
+class CatalogTest(test.TestCase):  # TODO: move part of those tests in catalog app
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
