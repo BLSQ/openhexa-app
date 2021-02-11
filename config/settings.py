@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_countries",
     "tailwind",
+    "habari.common.apps.CommonConfig",
     "habari.auth.apps.AuthConfig",
     "habari.dashboard.apps.DashboardConfig",
     "habari.catalog.apps.CatalogConfig",

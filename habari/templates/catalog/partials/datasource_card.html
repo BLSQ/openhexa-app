@@ -1,13 +1,15 @@
 {% extends "partials/page_card.html" %}
 {% load static %}
+{% load connectors %}
 
 {% block card_header_title %}
     {{ datasource.name }}
 {% endblock %}
 
 {% block card_header_image %}
+    {% connector_static_dir datasource.datasource_type as datasource_connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
+         src="{% static datasource_connector_static_dir|add:"img/datasource_symbol.png" %}"
          alt="{{ datasource.datasource_type_label }}">
 {% endblock %}
 
@@ -17,7 +19,7 @@
 
 {% block card_header_actions %}
     <button type="button"
-            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -36,7 +38,7 @@
             <dd class="mt-1 text-sm text-gray-900">
                 {% if datasource.url %}
                     <a href="{{ datasource.url }}"
-                       class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                       class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
                         <span>{{ datasource.url }}</span>
                         <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -75,7 +77,7 @@
                 {% if datasource.owner.url %}
                     <br/>
                     <a href="{{ datasource.owner.url }}"
-                       class="flex items-center font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                       class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
                         <span>Official website</span>
                         <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"

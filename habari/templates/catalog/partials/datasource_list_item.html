@@ -1,11 +1,13 @@
 {% load static %}
+{% load connectors %}
 
+{% connector_static_dir datasource.datasource_type as datasource_connector_static_dir %}
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
-                         src="{% static 'img/logos/'|add:datasource.datasource_type|lower|add:'.png' %}"
+                         src="{% static datasource_connector_static_dir|add:"img/datasource_symbol.png" %}"
                          alt="{{ datasource.datasource_type_label }}">
                 </span>
             <span class="block ml-4">
@@ -58,7 +60,7 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <a href="{% url 'catalog:datasource_detail' datasource.id %}"
-           class="text-indigo-600 hover:text-indigo-900 flex justify-end">
+           class="text-blue-600 hover:text-blue-900 flex justify-end">
             View
             <div class="ml-1 flex-shrink-0">
                 <!-- Heroicon name: chevron-right -->
