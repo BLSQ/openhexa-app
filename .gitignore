@@ -1,2 +1,4 @@
 .env
+.coverage
+
 jupyter/dev-config.yaml

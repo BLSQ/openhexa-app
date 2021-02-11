@@ -383,6 +383,8 @@ If you want to perform TailwindUI/TailwindCSS optimizations or update, you need 
 
 `docker-compose run app python manage.py tailwind start`.
 
+### Tests
+
 Running the tests is as simple as:
 
 ```bash
@@ -395,6 +397,16 @@ when running the test suite for unrelated parts of the codebase:
 ```bash
 docker-compose run app python manage.py test --parallel --exclude-tag=external
 ```
+
+Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
+
+```bash
+docker-compose run app coverage run --source='.' manage.py test && docker-compose run app coverage report
+```
+
+### Code style
+
+Our python code is linted using [`black`](https://github.com/psf/black).
 
 We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is 
 installed, and run `pre-commit install` the first time you check out the code.
