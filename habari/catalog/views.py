@@ -32,6 +32,7 @@ def datasource_detail(request, datasource_id):
             "datasource": datasource,
             "breadcrumbs": breadcrumbs,
             "connector_template_dir": f"{connector_app_config.label}/",
+            "connector_static_dir": f"{connector_app_config.label}/",
         },
     )
 

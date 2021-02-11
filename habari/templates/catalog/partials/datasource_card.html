@@ -7,7 +7,7 @@
 
 {% block card_header_image %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static 'img/logos/'|add:datasource.datasource_type|lower|add:'.png' %}"
+         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
          alt="{{ datasource.datasource_type_label }}">
 {% endblock %}
 
