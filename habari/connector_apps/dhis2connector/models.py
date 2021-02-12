@@ -1,11 +1,11 @@
-import stringcase
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+import stringcase
 
 from habari.catalog.connectors import ContentSummary, SyncResult
 from habari.catalog.models import ExternalContent, Connector
-from habari.common.models import Base
+from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
 
 
@@ -13,6 +13,7 @@ class Dhis2Connector(Connector):
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
+    preferred_locale = LocaleField(default="en")
 
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
@@ -23,17 +24,17 @@ class Dhis2Connector(Connector):
 
         # Sync data elements
         data_element_results = Dhis2DataElement.objects.sync_from_dhis2_results(
-            self.datasource, client.fetch_data_elements()
+            self, client.fetch_data_elements()
         )
 
         # Sync indicator types
         indicator_type_results = Dhis2IndicatorType.objects.sync_from_dhis2_results(
-            self.datasource, client.fetch_indicator_types()
+            self, client.fetch_indicator_types()
         )
 
         # Sync indicators
         indicator_results = Dhis2Indicator.objects.sync_from_dhis2_results(
-            self.datasource, client.fetch_indicators()
+            self, client.fetch_indicators()
         )
 
         return data_element_results + indicator_type_results + indicator_results
@@ -67,7 +68,7 @@ class Dhis2DataQuerySet(models.QuerySet):
             return None
 
     def sync_from_dhis2_results(
-        self, datasource, results
+        self, dhis2_connector, results
     ):  # TODO: write test - incl. FKs
         """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
@@ -79,7 +80,9 @@ class Dhis2DataQuerySet(models.QuerySet):
             # Build a dict of dhis2 values indexed by hexa field name, and replace reference to other items by
             # their FK
             dhis2_values = {}
-            for dhis2_name, dhis2_value in result.get_values(datasource.locale).items():
+            for dhis2_name, dhis2_value in result.get_values(
+                dhis2_connector.preferred_locale
+            ).items():
                 hexa_name = self._match_name(dhis2_name)
                 dhis2_values[hexa_name] = self._match_reference(hexa_name, dhis2_value)
 
@@ -109,11 +112,14 @@ class Dhis2DataQuerySet(models.QuerySet):
                     identical += 1
             # If we don't have the DE locally, create it
             except ObjectDoesNotExist:
-                super().create(**dhis2_values, datasource=datasource)
+                super().create(**dhis2_values, datasource=dhis2_connector.datasource)
                 created += 1
 
         return SyncResult(
-            datasource=datasource, created=created, updated=updated, identical=identical
+            datasource=dhis2_connector.datasource,
+            created=created,
+            updated=updated,
+            identical=identical,
         )
 
 

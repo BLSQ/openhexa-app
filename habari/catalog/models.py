@@ -1,10 +1,9 @@
-from functools import lru_cache
-
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from functools import lru_cache
 
 from habari.catalog.connectors import get_connector_app_configs
 from habari.common.models import Base, DynamicTextChoices
@@ -106,10 +105,6 @@ class Datasource(Content):
             self.last_synced_at is not None
             and (timezone.now() - self.last_synced_at).seconds < 60
         )
-
-    @property
-    def locale(self):  # TODO: add field with default "en"
-        return "en"
 
 
 class Area(Content):

@@ -16,7 +16,7 @@ country_list.short_description = "Countries"
 
 @admin.register(Dhis2Connector)
 class Dhis2ConnectorAdmin(admin.ModelAdmin):
-    list_display = ("datasource",)
+    list_display = ("datasource", "api_url")
     list_filter = ("datasource__name",)
     search_fields = ["datasource__name"]
 
