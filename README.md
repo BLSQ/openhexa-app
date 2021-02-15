@@ -374,9 +374,9 @@ docker-compose up
 In another terminal, launch the migrations, create a superuser and load the catalog fixtures:
 
 ```bash
-docker-compose run app python manage.py migrate
-docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com app python manage.py createsuperuser --no-input
-docker-compose run app python manage.py loaddata habari/catalog/fixtures/demo.json
+docker-compose run app migrate
+docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com app manage createsuperuser --no-input
+docker-compose run app manage loaddata habari/catalog/fixtures/demo.json
 ```
 
 If you want to perform TailwindUI/TailwindCSS optimizations or update, you need to start tailwind in dev mode:
@@ -388,14 +388,14 @@ If you want to perform TailwindUI/TailwindCSS optimizations or update, you need 
 Running the tests is as simple as:
 
 ```bash
-docker-compose run app python manage.py test --parallel
+docker-compose run app test --parallel
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them 
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker-compose run app python manage.py test --parallel --exclude-tag=external
+docker-compose run app test --parallel --exclude-tag=external
 ```
 
 Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
@@ -421,7 +421,7 @@ and launch the workflow to publish it on Dockerhub.
 
 Don't forget to build the production stylesheet before rebuilding your image:
 
-`docker-compose run web python manage.py tailwind build`.
+`docker-compose run app manage tailwind build`.
 
 ### Building the image
 

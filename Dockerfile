@@ -19,4 +19,5 @@ COPY . /code/
 ENV SECRET_KEY="connectstatic"
 RUN python manage.py collectstatic --noinput
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "config.wsgi:application"]
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
+CMD start
