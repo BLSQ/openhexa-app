@@ -31,6 +31,30 @@ def datasource_detail(request, datasource_id):
         "catalog/datasource_detail.html",
         {
             "datasource": datasource,
+            "data_elements_summary_params": {
+                "item_name": "Data element",  # TODO: translate
+                "item_set": datasource.dhis2dataelement_set,
+                "columns": [
+                    "Name",
+                    "Code",
+                    "Values",
+                    "Tags",
+                    "Last update",
+                ],
+                "item_summary_template": "dhis2connector/partials/data_element_summary_item.html",
+            },
+            "indicator_summary_params": {
+                "item_name": "Indicator",  # TODO: translate
+                "item_set": datasource.dhis2indicator_set,
+                "columns": [
+                    "Name",
+                    "Code",
+                    "Type",
+                    "Tags",
+                    "Last update",
+                ],
+                "item_summary_template": "dhis2connector/partials/indicator_summary_item.html",
+            },
             "breadcrumbs": breadcrumbs,
         },
     )

@@ -1,28 +1,24 @@
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
-            <div class="text-gray-400">
-                {% include "dhis2connector/partials/icon_"|add:data_element.dhis2_domain_type|add:".html" %}
-            </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
-                    {{ data_element.display_name }}
+                    {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ data_element.dhis2_domain_type_label }}
+                    {{ item.dhis2_indicator_type.display_name }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {{ data_element.code }}
+        {{ item.code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ data_element.dhis2_value_type_label }}</div>
-        <div class="text-sm text-gray-500">{{ data_element.dhis2_aggregation_type_label }}</div>
+        <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
-        {% for tag in data_element.tags %}
+        {% for tag in item.tags %}
             <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
@@ -32,10 +28,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if data_element.datasource.just_synced %}
+            {% if item.datasource.just_synced %}
                 <span>Just now</span>
-            {% elif data_element.datasource.last_synced_at %}
-                <span>{{ data_element.datasource.last_synced_at|timesince }} ago</span>
+            {% elif item.datasource.last_synced_at %}
+                <span>{{ item.datasource.last_synced_at|timesince }} ago</span>
             {% else %}
                 <span>Never synced</span>
             {% endif %}
