@@ -1,6 +1,6 @@
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'catalog:datasource_detail' datasource.id %}">
+        <a class="flex items-center" href="{% url 'dhis2connector:datasource_detail' datasource.id %}">
             <div class="text-gray-400">
                 {% include "dhis2connector/partials/icon_"|add:item.dhis2_domain_type|add:".html" %}
             </div>

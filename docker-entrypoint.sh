@@ -53,7 +53,7 @@ case "$command" in
     export DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com
     python manage.py migrate
     python manage.py createsuperuser --no-input || true
-    python manage.py loaddata habari/catalog/fixtures/demo.json
+    python manage.py loaddata demo.json
   else
     echo "The \"fixtures\" command can only be executed in dev mode"
   fi

@@ -5,6 +5,6 @@
 
 {% block page_content %}
     {% include "catalog/partials/datasource_card.html" %}
-    {% connector_template_dir datasource.datasource_type as datasource_connector_template_dir %}
-    {% include datasource_connector_template_dir|add:"partials/datasource_detail.html" %}
+    {% connector_template_dir datasource as connector_template_dir %}
+    {% include connector_template_dir|add:"partials/datasource_detail.html" %}
 {% endblock %}

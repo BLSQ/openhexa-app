@@ -7,9 +7,9 @@
 {% endblock %}
 
 {% block card_header_image %}
-    {% connector_static_dir datasource.datasource_type as datasource_connector_static_dir %}
+    {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static datasource_connector_static_dir|add:"img/datasource_symbol.png" %}"
+         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
          alt="{{ datasource.datasource_type_label }}">
 {% endblock %}
 

@@ -25,6 +25,16 @@ class CatalogTest(test.TestCase):
             api_password="district",
         )
 
+    def test_datasource_detail_200(self):
+        self.client.login(email="regular@bluesquarehub.com", password="regular")
+        response = self.client.get(
+            reverse(
+                "dhis2connector:datasource_detail",
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+
     @test.tag("external")
     def test_datasource_sync_success_302(self):
         self.client.login(email="regular@bluesquarehub.com", password="regular")
