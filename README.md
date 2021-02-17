@@ -371,12 +371,10 @@ docker-compose build
 docker-compose up
 ```
 
-In another terminal, launch the migrations, create a superuser and load the catalog fixtures:
+In another terminal, use the `fixtures` command to migrate, create a superuser and load the fixtures:
 
 ```bash
-docker-compose run app migrate
-docker-compose run -e DJANGO_SUPERUSER_PASSWORD=root -e DJANGO_SUPERUSER_USERNAME=root -e DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com app manage createsuperuser --no-input
-docker-compose run app manage loaddata habari/catalog/fixtures/demo.json
+docker-compose run app fixtures
 ```
 
 If you want to perform TailwindUI/TailwindCSS optimizations or update, you need to start tailwind in dev mode:
