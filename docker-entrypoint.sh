@@ -27,14 +27,21 @@ show_help() {
 }
 
 case "$command" in
-"wait-for-it" | "coverage")
+"wait-for-it")
   $command $arguments
   ;;
 "start")
   gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
-"makemigrations" | "migrate" | "test")
+"makemigrations" | "migrate")
   python manage.py $command $arguments
+  ;;
+"test")
+  python manage.py test --parallel $arguments
+  ;;
+"coverage")
+  coverage run --source='.' manage.py test
+  coverage report
   ;;
 "manage")
   python manage.py $arguments

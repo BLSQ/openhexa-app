@@ -4,6 +4,7 @@ from django.urls import reverse
 import uuid
 
 from habari.auth.models import User
+from habari.catalog.models import Datasource
 
 
 class CatalogTest(test.TestCase):
@@ -15,11 +16,15 @@ class CatalogTest(test.TestCase):
             "regular",
         )
 
+        cls.DATASOURCE_DHIS2_PLAY = Datasource.objects.create(
+            name="DHIS2 Play", datasource_type="DHIS2"
+        )
+
     def test_datasource_sync_login_302(self):
         response = self.client.get(
             reverse(
                 "catalog:datasource_sync",
-                kwargs={"datasource_id": uuid.uuid4()},
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
             ),
         )
 

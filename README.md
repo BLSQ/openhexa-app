@@ -386,20 +386,20 @@ If you want to perform TailwindUI/TailwindCSS optimizations or update, you need 
 Running the tests is as simple as:
 
 ```bash
-docker-compose run app test --parallel
+docker-compose run app test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them 
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker-compose run app test --parallel --exclude-tag=external
+docker-compose run app test --exclude-tag=external
 ```
 
 Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
 
 ```bash
-docker-compose run app coverage run --source='.' manage.py test && docker-compose run app coverage report
+docker-compose run app coverage
 ```
 
 ### Code style
