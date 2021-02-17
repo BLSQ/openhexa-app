@@ -41,6 +41,7 @@ def datasource_detail(request, datasource_id):
                     "Tags",
                     "Last update",
                 ],
+                "list_url": "dhis2connector:data_element_list",
                 "item_summary_template": "dhis2connector/partials/data_element_summary_item.html",
             },
             "indicator_summary_params": {
@@ -53,6 +54,7 @@ def datasource_detail(request, datasource_id):
                     "Tags",
                     "Last update",
                 ],
+                "list_url": "dhis2connector:data_element_list",
                 "item_summary_template": "dhis2connector/partials/indicator_summary_item.html",
             },
             "breadcrumbs": breadcrumbs,
