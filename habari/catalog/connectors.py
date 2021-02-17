@@ -24,7 +24,7 @@ def get_connector_app_config(datasource_type):
         return None
 
 
-class SyncResult:
+class SyncResult:  # TODO: move
     """Represents the result of a datasource sync operation performed by a connector"""
 
     def __init__(self, datasource, created, updated, identical):

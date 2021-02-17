@@ -42,3 +42,13 @@ class CatalogTest(test.TestCase):
         # Check that the response is temporary redirection to .
         self.assertEqual(response.status_code, 302)
         self.assertEqual(http_referer, response.url)
+
+    def test_data_elements_200(self):
+        self.client.login(email="regular@bluesquarehub.com", password="regular")
+        response = self.client.get(
+            reverse(
+                "dhis2connector:data_element_list",
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)

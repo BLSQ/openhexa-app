@@ -10,3 +10,7 @@ class Dhis2ConnectorConfig(ConnectorAppConfig):
     @property
     def datasource_type(self):
         return "DHIS2"
+
+    @property
+    def route_prefix(self):
+        return "dhis2"

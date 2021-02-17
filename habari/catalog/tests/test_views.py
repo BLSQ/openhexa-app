@@ -1,7 +1,6 @@
 from django import test
 from django.conf import settings
 from django.urls import reverse
-import uuid
 
 from habari.auth.models import User
 from habari.catalog.models import Datasource
@@ -20,11 +19,10 @@ class CatalogTest(test.TestCase):
             name="DHIS2 Play", datasource_type="DHIS2"
         )
 
-    def test_datasource_sync_login_302(self):
+    def test_catalog_index_302(self):
         response = self.client.get(
             reverse(
-                "catalog:datasource_sync",
-                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+                "catalog:index",
             ),
         )
 
@@ -32,11 +30,21 @@ class CatalogTest(test.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(settings.LOGIN_URL, response.url)
 
-    def test_datasource_sync_404(self):
+    def test_catalog_index_200(self):
         self.client.login(email="regular@bluesquarehub.com", password="regular")
         response = self.client.get(
-            reverse("catalog:datasource_sync", kwargs={"datasource_id": uuid.uuid4()})
+            reverse(
+                "catalog:index",
+            ),
         )
+        self.assertEqual(response.status_code, 200)
 
-        # Check that the response is temporary redirection to /login.
-        self.assertEqual(response.status_code, 404)
+    def test_datasource_detail_200(self):
+        self.client.login(email="regular@bluesquarehub.com", password="regular")
+        response = self.client.get(
+            reverse(
+                "catalog:datasource_detail",
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
