@@ -3,5 +3,5 @@
 {% block page_title %}{{ datasource.name }} data elements{% endblock %}
 
 {% block page_content %}
-    WE NEED A LIST
+    {% include "catalog/partials/paginated_list.html" with params=data_elements_paginated_params %}
 {% endblock %}
