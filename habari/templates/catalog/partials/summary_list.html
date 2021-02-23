@@ -4,27 +4,6 @@
     {% include "partials/section_heading_simple.html" with title=params.title %}
 {% endblock %}
 
-{% block list_footer %}
-    <nav class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"
-         aria-label="Pagination">
-        <div class="hidden sm:block">
-            <p class="text-sm text-gray-700">
-                Showing
-                <span class="font-medium">{{ params.page|length }}</span>
-                {{ params.item_name }}{{ params.page|length|pluralize }} out of
-                <span class="font-medium">{{ params.page.paginator.count }}</span>.
-            </p>
-        </div>
-        <div class="flex-1 flex justify-between sm:justify-end">
-            <a href="{% url params.list_url datasource_id=datasource.id %}"
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                <span>View all</span>
-                <svg class="ml-1 -mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
-        </div>
-    </nav>
+{% block card_footer %}
+    {% include "catalog/partials/summary_card_footer.html" with page=params.page item_name=params.item_name list_url=params.list_url %}
 {% endblock %}

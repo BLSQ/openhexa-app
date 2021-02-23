@@ -1,0 +1,22 @@
+{% extends "partials/card_footer_simple.html" %}
+
+{% block footer_text %}
+    <p class="text-sm text-gray-700">
+        Showing
+        <span class="font-medium">{{ page|length }}</span>
+        {{ item_name }}{{ page|length|pluralize }} out of
+        <span class="font-medium">{{ page.paginator.count }}</span>.
+    </p>
+{% endblock %}
+
+{% block footer_buttons %}
+    <a href="{% url list_url datasource_id=datasource.id %}"
+       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+        <span>View all</span>
+        <svg class="ml-1 -mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5l7 7-7 7"></path>
+        </svg>
+    </a>
+{% endblock %}
