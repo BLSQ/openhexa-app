@@ -1,16 +1,17 @@
 {% extends "partials/card_footer_simple.html" %}
 
 {% block footer_text %}
+    {# TODO: translate #}
     <p class="text-sm text-gray-700">
         Showing
-        <span class="font-medium">{{ page|length }}</span>
-        {{ item_name }}{{ page|length|pluralize }} out of
-        <span class="font-medium">{{ page.paginator.count }}</span>.
+        <span class="font-medium">{{ params.current_page_count }}</span>
+        {{ item_name }}{{ params.current_page_count|pluralize }} out of
+        <span class="font-medium">{{ params.total_count }}</span>.
     </p>
 {% endblock %}
 
 {% block footer_buttons %}
-    <a href="{% url list_url datasource_id=datasource.id %}"
+    <a href="{% url params.paginated_list_url datasource_id=datasource.id %}"
        class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
         <span>View all</span>
         <svg class="ml-1 -mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"

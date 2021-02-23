@@ -1,10 +1,11 @@
 {% extends "partials/card_footer_with_page_buttons.html" %}
 
 {% block footer_text %}
+    {# TODO: translate #}
     <p class="text-sm text-gray-700">
         Showing
-        <span class="font-medium">{{ page|length }}</span>
-        {{ item_name }}{{ page|length|pluralize }} out of
+        <span class="font-medium">{{ params.current_page_count }}</span>
+        {{ params.item_name }}{{ params.current_page_count|pluralize }} out of
         <span class="font-medium">{{ page.paginator.count }}</span>.
     </p>
 {% endblock %}

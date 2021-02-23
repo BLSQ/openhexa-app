@@ -20,8 +20,8 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                        {% for item in params.page %}
-                            {% include params.summary_template %}
+                        {% for item in params.current_page %}
+                            {% include params.item_template %}
                         {% endfor %}
                         </tbody>
                     </table>

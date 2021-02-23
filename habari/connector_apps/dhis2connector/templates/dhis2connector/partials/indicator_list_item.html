@@ -1,15 +1,12 @@
 <tr>
-    <td class="px-6 py-4 whitespace-nowrap">
+    <td class="px-2 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'dhis2connector:datasource_detail' datasource.id %}">
-            <div class="text-gray-400">
-                {% include "dhis2connector/partials/icon_"|add:item.dhis2_domain_type|add:".html" %}
-            </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.dhis2_domain_type_label }}
+                    {{ item.dhis2_indicator_type.display_name }}
                 </span>
             </span>
         </a>
@@ -18,8 +15,7 @@
         {{ item.code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.dhis2_value_type_label }}</div>
-        <div class="text-sm text-gray-500">{{ item.dhis2_aggregation_type_label }}</div>
+        <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}
@@ -49,13 +45,7 @@
            class="text-blue-600 hover:text-blue-900 flex justify-end">
             View
             <div class="ml-1 flex-shrink-0">
-                <!-- Heroicon name: chevron-right -->
-                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                     fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd"
-                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                          clip-rule="evenodd"/>
-                </svg>
+                {% include "partials/icons/chevron_right.html" %}
             </div>
         </a>
     </td>
