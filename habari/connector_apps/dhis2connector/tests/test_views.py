@@ -34,6 +34,9 @@ class CatalogTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["data_elements_list_params"], dict)
+        self.assertIsInstance(response.context["indicators_list_params"], dict)
 
     @test.tag("external")
     def test_datasource_sync_success_302(self):
@@ -62,6 +65,8 @@ class CatalogTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["data_elements_list_params"], dict)
 
     def test_indicators_200(self):
         self.client.login(email="regular@bluesquarehub.com", password="regular")
@@ -72,3 +77,5 @@ class CatalogTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["indicators_list_params"], dict)

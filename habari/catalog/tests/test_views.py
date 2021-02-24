@@ -1,5 +1,6 @@
 from django import test
 from django.conf import settings
+from django.db.models import QuerySet
 from django.urls import reverse
 
 from habari.auth.models import User
@@ -33,3 +34,4 @@ class CatalogTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["datasources"], QuerySet)
