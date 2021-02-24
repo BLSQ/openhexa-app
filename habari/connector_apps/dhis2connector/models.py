@@ -67,9 +67,7 @@ class Dhis2DataQuerySet(models.QuerySet):
         except related_model.DoesNotExist:
             return None
 
-    def sync_from_dhis2_results(
-        self, dhis2_connector, results
-    ):  # TODO: write test - incl. FKs
+    def sync_from_dhis2_results(self, dhis2_connector, results):
         """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
         created = 0

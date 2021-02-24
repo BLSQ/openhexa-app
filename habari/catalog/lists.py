@@ -38,7 +38,7 @@ def build_paginated_list_params(
     page = paginator.page(page_number)
 
     return {
-        "title": title,  # TODO: translate
+        "title": title,
         "label": _("%(start_index)d to %(end_index)d out of %(total)d")
         % {
             "start_index": page.start_index(),
