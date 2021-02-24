@@ -1,3 +1,2 @@
-{% include "dhis2connector/partials/data_element_list.html" %}
-{% include "dhis2connector/partials/indicator_list.html" %}
-{% include "dhis2connector/partials/dataset_list.html" %}
+{% include "catalog/partials/summary_list.html" with params=data_elements_list_params %}
+{% include "catalog/partials/summary_list.html" with params=indicators_list_params %}

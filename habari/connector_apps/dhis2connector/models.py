@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import stringcase
 
-from habari.catalog.connectors import ContentSummary, SyncResult
+from habari.catalog.connectors import DatasourceSummary, DatasourceSyncResult
 from habari.catalog.models import ExternalContent, Connector
 from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
@@ -40,7 +40,7 @@ class Dhis2Connector(Connector):
         return data_element_results + indicator_type_results + indicator_results
 
     def get_content_summary(self):
-        return ContentSummary(
+        return DatasourceSummary(
             data_elements=self.datasource.dhis2dataelement_set.count(),
             indicators=self.datasource.dhis2indicator_set.count(),
         )
@@ -67,9 +67,7 @@ class Dhis2DataQuerySet(models.QuerySet):
         except related_model.DoesNotExist:
             return None
 
-    def sync_from_dhis2_results(
-        self, dhis2_connector, results
-    ):  # TODO: write test - incl. FKs
+    def sync_from_dhis2_results(self, dhis2_connector, results):
         """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
         created = 0
@@ -115,7 +113,7 @@ class Dhis2DataQuerySet(models.QuerySet):
                 super().create(**dhis2_values, datasource=dhis2_connector.datasource)
                 created += 1
 
-        return SyncResult(
+        return DatasourceSyncResult(
             datasource=dhis2_connector.datasource,
             created=created,
             updated=updated,
@@ -163,12 +161,8 @@ class Dhis2ValueType(models.TextChoices):
     UNIT_INTERVAL = "UNIT_INTERVAL", _("Unit interval")
     PERCENTAGE = "PERCENTAGE", _("Percentage")
     INTEGER = "INTEGER", _("Integer")
-    # TODO: check order of the next 6 items
-    POSITIVE_INTEGER = "POSITIVE_INTEGER", _("Positive Integer")
     INTEGER_POSITIVE = "INTEGER_POSITIVE", _("Positive Integer")
-    NEGATIVE_INTEGER = "NEGATIVE_INTEGER", _("Negative Integer")
     INTEGER_NEGATIVE = "INTEGER_NEGATIVE", _("Negative Integer")
-    POSITIVE_OR_ZERO_INTEGER = "POSITIVE_OR_ZERO_INTEGER", _("Positive or Zero Integer")
     INTEGER_ZERO_OR_POSITIVE = "INTEGER_ZERO_OR_POSITIVE", _("Positive or Zero Integer")
     TRACKER_ASSOCIATE = "TRACKER_ASSOCIATE", _("Tracker Associate")
     USERNAME = "USERNAME", _("Username")
@@ -181,9 +175,19 @@ class Dhis2ValueType(models.TextChoices):
 
 
 class Dhis2AggregationType(models.TextChoices):
-    SUM = "SUM", _("Sum")
     AVERAGE = "AVERAGE", _("Average")
-    # TODO: complete
+    AVERAGE_SUM_ORG_UNIT = "AVERAGE_SUM_ORG_UNIT ", _("Average sum for org unit")
+    COUNT = "COUNT", _("Count")
+    CUSTOM = "CUSTOM", _("Custom")
+    DEFAULT = "DEFAULT", _("Default")
+    LAST = "LAST", _("Last")
+    LAST_AVERAGE_ORG_UNIT = "LAST_AVERAGE_ORG_UNIT", _("Last average for org unit")
+    MAX = "MAX", _("Max")
+    MIN = "MIN", _("Min")
+    NONE = "NONE", _("None")
+    STDDEV = "STDDEV", _("Standard Deviation")
+    SUM = "SUM", _("Sum")
+    VARIANCE = "VARIANCE", _("Variance")
 
 
 class Dhis2DataElement(Dhis2Data):

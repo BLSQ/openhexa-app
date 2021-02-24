@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block page_title %}Sign in{% endblock %}
 
@@ -10,23 +10,23 @@
                 <div class="my-4">
                     {% if form.errors %}
                         <p class="mt-2 mb-8 text-sm text-red-600 text-center">
-                            Your username and password didn't match. Please try again.
+                            {% translate "Your username and password didn't match. Please try again." %}
                         </p>
                     {% endif %}
                 </div>
                 <img class="block mx-auto h-16 w-auto"
-                     src="{% static 'img/logo/habari.svg' %}"
-                     alt="Habari logo">
+                     src="{% static 'img/logo/logo.svg' %}"
+                     alt="OpenHexa logo">
                 <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    Sign in to your account
+                    {% translate "Sign in" %}
                 </h2>
                 <p class="mt-2 text-center text-sm text-gray-600">
-                    No account yet?
+                    {% translate "No account yet?" %}
                     <a
                             href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
                             class="font-medium text-blue-600 hover:text-blue-500"
                     >
-                        Contact us!
+                        {% translate "Contact us!" %}
                     </a>
                 </p>
             </div>
@@ -35,7 +35,8 @@
                 {% csrf_token %}
                 <div class="rounded-md shadow-sm -space-y-px">
                     <div>
-                        <label for="{{ form.username.id_for_label }}" class="sr-only">Email address</label>
+                        {% translate "Email address" as email_label %}
+                        <label for="{{ form.username.id_for_label }}" class="sr-only">{{ email_label }}</label>
                         <input
                                 id="{{ form.username.id_for_label }}"
                                 name="username"
@@ -43,12 +44,13 @@
                                 autocomplete="email"
                                 required
                                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                placeholder="{{ email_label }}"
                                 value="{{ form.username.value|default_if_none:"" }}"
                         >
                     </div>
                     <div>
-                        <label for="{{ form.password.id_for_label }}" class="sr-only">Password</label>
+                        {% translate "Password" as password_label %}
+                        <label for="{{ form.password.id_for_label }}" class="sr-only">{{ password_label }}</label>
                         <input
                                 id="password"
                                 name="password"
@@ -56,7 +58,7 @@
                                 autocomplete="current-password"
                                 required
                                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
+                                placeholder="{{ password_label }}"
                         >
                     </div>
                 </div>
@@ -66,14 +68,14 @@
                         <input id="remember_me" name="remember_me" type="checkbox"
                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                         <label for="remember_me" class="ml-2 block text-sm text-gray-900">
-                            Remember me
+                            {% translate "Remember me" %}
                         </label>
                     </div>
 
                     <div class="text-sm">
                         <a href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: forgot password"
                            class="font-medium text-blue-600 hover:text-blue-500">
-                            Forgot your password?
+                            {% translate "Forgot your password?" %}
                         </a>
                     </div>
                 </div>
@@ -84,23 +86,10 @@
                             type="submit"
                             class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                      <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <!-- Heroicon name: solid/lock-closed -->
-                        <svg
-                                class="h-5 w-5 text-blue-500 group-hover:text-blue-400"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                aria-hidden="true"
-                        >
-                          <path
-                                  fill-rule="evenodd"
-                                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                                  clip-rule="evenodd"
-                          />
-                        </svg>
+                      <span class="absolute left-0 inset-y-0 flex items-center pl-3 text-blue-500 group-hover:text-blue-400">
+                        {% include "partials/icons/lock_closed.html" %}
                       </span>
-                        Sign in
+                        {% translate "Sign in" %}
                     </button>
                 </div>
             </form>

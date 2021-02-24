@@ -1,0 +1,11 @@
+{% extends "partials/card_footer_with_page_buttons.html" %}
+{% load i18n %}
+
+{% block footer_text %}
+    {% blocktranslate with page_count=params.current_page_count item_name=params.item_name item_pluralization=params.current_page_count|pluralize total_count=params.total_count %}
+        <p class="text-sm text-gray-700">
+            Showing <span class="font-medium">{{ page_count }}</span> {{ item_name }}{{ item_pluralization }} out of
+            <span class="font-medium">{{ total_count }}</span>.
+        </p>
+    {% endblocktranslate %}
+{% endblock %}

@@ -2,14 +2,14 @@
 set -e
 
 command=$1
-arguments=$(echo "${*:2}" | xargs)
+arguments=${*:2}
 if [[ -z $arguments ]]; then
-  arguments_debug="no argument"
+  arguments_debug="no arguments"
 else
-  arguments_debug="arguments: $arguments"
+  arguments_debug="arguments ($arguments)"
 fi
 
-echo "Running \"$command\" ($arguments_debug)"
+echo "Running \"$command\" with $arguments_debug"
 
 show_help() {
   echo """
@@ -27,23 +27,42 @@ show_help() {
 }
 
 case "$command" in
-"wait-for-it" | "coverage")
-  # shellcheck disable=SC2086
+"wait-for-it")
   $command $arguments
   ;;
 "start")
   gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
-"makemigrations" | "migrate" | "test")
-  # shellcheck disable=SC2086
+"makemigrations" | "migrate")
   python manage.py $command $arguments
   ;;
+"test")
+  python manage.py test --parallel $arguments
+  ;;
+"coverage")
+  coverage run --source='.' manage.py test
+  coverage report
+  ;;
 "manage")
-  # shellcheck disable=SC2086
   python manage.py $arguments
   ;;
+"fixtures")
+  if [[ $DEBUG == "true" ]]; then
+    export DJANGO_SUPERUSER_USERNAME=root
+    export DJANGO_SUPERUSER_PASSWORD=root
+    export DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com
+    python manage.py migrate
+    python manage.py createsuperuser --no-input || true
+    python manage.py loaddata demo.json
+  else
+    echo "The \"fixtures\" command can only be executed in dev mode"
+  fi
+  ;;
+"python")
+  python $arguments
+  ;;
 "bash")
-  bash
+  bash $arguments
   ;;
 *)
   show_help

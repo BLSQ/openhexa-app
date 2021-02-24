@@ -1,12 +1,7 @@
- <div class="mt-12">
-     <!-- Section header -->
-     <div class="sm:flex sm:items-center sm:justify-between">
-         <h3 class="text-lg leading-6 font-medium text-gray-900">
-             {% block section_title %}Untitled section{% endblock %}
-         </h3>
-         {% block section_header_extra %}{% endblock %}
-     </div>
-     <!-- Section content -->
+ <div class="my-8">
+     {% block section_heading %}
+         {% include "partials/section_heading_simple.html" with title="Untitled section" %}
+     {% endblock %}
      <div class="mt-4">
          {% block section_content %}
             {% include "partials/block_placeholder.html" %}

@@ -1,6 +1,7 @@
 {% extends "layouts/page.html" %}
+{% load i18n %}
 
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}{% translate "Dashboard" %}{% endblock %}
 
 {% block page_content %}
     {% include "dashboard/partials/overview.html" %}

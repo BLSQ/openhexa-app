@@ -1,15 +1,14 @@
 {% extends "partials/page_card.html" %}
-{% load static %}
-{% load connectors %}
+{% load static i18n connectors %}
 
 {% block card_header_title %}
     {{ datasource.name }}
 {% endblock %}
 
 {% block card_header_image %}
-    {% connector_static_dir datasource.datasource_type as datasource_connector_static_dir %}
+    {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static datasource_connector_static_dir|add:"img/datasource_symbol.png" %}"
+         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
          alt="{{ datasource.datasource_type_label }}">
 {% endblock %}
 
@@ -25,7 +24,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
         </svg>
-        Edit
+        {% translate "Edit" %}
     </button>
 {% endblock %}
 
@@ -33,7 +32,7 @@
     <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                URL
+                {% translate "URL" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% if datasource.url %}
@@ -54,7 +53,7 @@
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Countries
+                {% translate "Countries" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 <div class="flex items-center align-center">
@@ -62,14 +61,14 @@
                         <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
                         {{ country.name }}
                     {% empty %}
-                        Global
+                        {% translate "Global" %}
                     {% endfor %}
                 </div>
             </dd>
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Owner
+                {% translate "Owner" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {{ datasource.owner.name }}&nbsp;
@@ -79,7 +78,7 @@
                     <a href="{{ datasource.owner.url }}"
                        class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
-                        <span>Official website</span>
+                        <span>{% translate "Official website" %}</span>
                         <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -91,7 +90,7 @@
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Contact
+                {% translate "Contact" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% if datasource.owner.contact_info %}
@@ -103,7 +102,7 @@
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Content
+                {% translate "Content" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% if datasource.content_summary %}
@@ -120,7 +119,7 @@
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Last sync
+                {% translate "Last sync" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% include "catalog/partials/datasource_sync_info.html" %}
@@ -128,7 +127,7 @@
         </div>
         <div class="sm:col-span-2">
             <dt class="text-sm font-medium text-gray-500">
-                Tags
+                {% translate "Tags" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% for tag in datasource.content.tags %}

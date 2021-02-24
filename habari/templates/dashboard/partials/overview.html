@@ -1,6 +1,8 @@
 {% extends "partials/page_section.html" %}
 
-{% block section_title %}Overview{% endblock %}
+{% block section_heading %}
+    {% include "partials/section_heading_simple.html" with title="Overview" %}
+{% endblock %}
 
 {% block section_content %}
 <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

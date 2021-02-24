@@ -1,0 +1,8 @@
+{% extends "layouts/page.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ datasource.name }} {% translate "indicators" %}s{% endblock %}
+
+{% block page_content %}
+    {% include "catalog/partials/paginated_list.html" with params=indicators_list_params %}
+{% endblock %}

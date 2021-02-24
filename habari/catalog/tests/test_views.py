@@ -1,7 +1,7 @@
 from django import test
 from django.conf import settings
+from django.db.models import QuerySet
 from django.urls import reverse
-import uuid
 
 from habari.auth.models import User
 
@@ -15,11 +15,10 @@ class CatalogTest(test.TestCase):
             "regular",
         )
 
-    def test_datasource_sync_login_302(self):
+    def test_catalog_index_302(self):
         response = self.client.get(
             reverse(
-                "catalog:datasource_sync",
-                kwargs={"datasource_id": uuid.uuid4()},
+                "catalog:index",
             ),
         )
 
@@ -27,11 +26,12 @@ class CatalogTest(test.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(settings.LOGIN_URL, response.url)
 
-    def test_datasource_sync_404(self):
+    def test_catalog_index_200(self):
         self.client.login(email="regular@bluesquarehub.com", password="regular")
         response = self.client.get(
-            reverse("catalog:datasource_sync", kwargs={"datasource_id": uuid.uuid4()})
+            reverse(
+                "catalog:index",
+            ),
         )
-
-        # Check that the response is temporary redirection to /login.
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["datasources"], QuerySet)

@@ -1,6 +1,8 @@
 {% extends "partials/page_section.html" %}
 
-{% block section_title %}Recent activity{% endblock %}
+{% block section_heading %}
+    {% include "partials/section_heading_simple.html" with title="Recent activity" %}
+{% endblock %}
 
 {% block section_content %}
 <div class="shadow sm:hidden">

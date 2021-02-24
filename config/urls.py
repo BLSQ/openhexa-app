@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from habari.catalog.connectors import get_connector_app_configs
+
+# Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("habari.dashboard.urls", namespace="dashboard")),
@@ -23,3 +26,12 @@ urlpatterns = [
     path("catalog/", include("habari.catalog.urls", namespace="catalog")),
     path("notebooks/", include("habari.notebooks.urls", namespace="notebooks")),
 ]
+
+# Connector apps URLs
+for app_config in get_connector_app_configs():
+    urlpatterns.append(
+        path(
+            app_config.route_prefix,
+            include(app_config.name + ".urls", namespace=app_config.label),
+        )
+    )
