@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Habari | {% block page_title %}Untitled page{% endblock %}</title>
+    <title>OpenHexa | {% block page_title %}{% translate "Untitled page" %}{% endblock %}</title>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="{% static 'js/alpine.js' %}" defer></script>

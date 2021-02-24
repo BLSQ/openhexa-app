@@ -1,5 +1,5 @@
 {% extends "partials/page_card.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block card_header_title %}
     {{ user.username }}
@@ -27,7 +27,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
         </svg>
-        Log out
+        {% translate "Log out" %}
     </a>
 {% endblock %}
 
@@ -35,7 +35,7 @@
     <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Email
+                {% translate "Email" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {{ user.email }}
@@ -43,10 +43,10 @@
         </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
-                Joined
+                {% translate "Joined" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ user.date_joined|timesince }} ago
+                {{ user.date_joined|timesince }} {% translate "ago" %}
             </dd>
         </div>
     </dl>

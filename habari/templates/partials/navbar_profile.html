@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 
 <div
         class="ml-3 relative"
@@ -10,7 +10,7 @@
                 @click.away="expanded = false"
                 class="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
         >
-            <span class="sr-only">Open user menu</span>
+            <span class="sr-only">{% translate "Open profile menu" %}</span>
             <img class="h-8 w-8 rounded-full" src="{% static 'img/avatar.jpg' %}" alt="{{ user.username }}">
         </button>
     </div>
@@ -32,14 +32,14 @@
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 role="menuitem"
         >
-            Your account
+            {% translate "Your account" %}
         </a>
         <a
                 href="{% url "auth:logout" %}"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 role="menuitem"
         >
-            Sign out
+            {% translate "Sign out" %}
         </a>
     </div>
 </div>

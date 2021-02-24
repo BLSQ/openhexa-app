@@ -1,7 +1,9 @@
 {% extends "partials/page_section.html" %}
+{% load i18n %}
 
 {% block section_heading %}
-    {% include "partials/section_heading_simple.html" with title="Data sources" %}
+    {% translate "Data sources" as title %}
+    {% include "partials/section_heading_simple.html" with title=title %}
 {% endblock %}
 
 {% block section_content %}
@@ -14,27 +16,27 @@
                     <tr>
                         <th scope="col"
                             class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
+                            {% translate "Name" %}
                         </th>
                         <th scope="col"
                             class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Owner
+                            {% translate "Owner" %}
                         </th>
                         <th scope="col"
                             class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Location
+                            {% translate "Location" %}
                         </th>
                         <th scope="col"
                             class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Content
+                            {% translate "Content" %}
                         </th>
                         <th scope="col"
                             class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Last sync
+                            {% translate "Last sync" %}
                         </th>
 
                         <th scope="col" class="px-6 py-3 bg-gray-50">
-                            <span class="sr-only">View</span>
+                            <span class="sr-only">{% translate "View" %}</span>
                         </th>
                     </tr>
                     </thead>

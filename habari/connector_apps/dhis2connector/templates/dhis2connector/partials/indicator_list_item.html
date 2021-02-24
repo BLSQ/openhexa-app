@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <tr>
     <td class="px-2 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{% url 'dhis2connector:datasource_detail' datasource.id %}">
@@ -29,11 +31,11 @@
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
             {% if item.datasource.just_synced %}
-                <span>Just now</span>
+                <span>{% translate "Just now" %}</span>
             {% elif item.datasource.last_synced_at %}
-                <span>{{ item.datasource.last_synced_at|timesince }} ago</span>
+                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
-                <span>Never synced</span>
+                <span>{% translate "Never synced" %}</span>
             {% endif %}
         </div>
         <div class="text-sm text-gray-500">

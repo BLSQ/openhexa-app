@@ -1,3 +1,5 @@
+{% load i18n %}
+
 {% if messages %}
     {% for message in messages %}
         <div class="rounded-md bg-{{ message.extra_tags }}-50 p-4 mb-4">
@@ -19,7 +21,7 @@
                 <div class="ml-auto pl-3">
                     <div class="-mx-1.5 -my-1.5">
                         <button class="inline-flex bg-{{ message.extra_tags }}-50 rounded-md p-1.5 text-{{ message.extra_tags }}-500 hover:bg-{{ message.extra_tags }}-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-{{ message.extra_tags }}-50 focus:ring-{{ message.extra_tags }}-600">
-                            <span class="sr-only">Dismiss</span>
+                            <span class="sr-only">{% translate "Dismiss" %}</span>
                             <!-- Heroicon name: x -->
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                  fill="currentColor" aria-hidden="true">
