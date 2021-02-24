@@ -1,3 +1,5 @@
+{% load i18n %}
+
 {# https://tailwindui.com/components/application-ui/navigation/pagination#component-69eb9381f977800aa890ce8f7d9e2d20 #}
 <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
     <div class="flex-1 flex justify-between sm:hidden">
@@ -5,13 +7,13 @@
                 {% if params.current_page.has_previous %}href="?page={{ params.current_page.previous_page_number }}"{% endif %}
                 class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500{% if params.current_page.has_previous is not True %} opacity-50 cursor-not-allowed{% endif %}"
         >
-            Previous
+            {% translate "Previous" %}
         </a>
         <a
                 {% if params.current_page.has_next %}href="?page={{ params.current_page.next_page_number }}"{% endif %}
                 class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:text-gray-500{% if params.current_page.has_next is not True %} opacity-50 cursor-not-allowed{% endif %}"
         >
-            Next
+            {% translate "Next" %}
         </a>
     </div>
     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
@@ -24,10 +26,9 @@
                         {% if params.current_page.has_previous %}href="?page={{ params.current_page.previous_page_number }}"{% endif %}
                         class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50{% if params.current_page.has_previous is not True %} opacity-50 cursor-not-allowed{% endif %}"
                 >
-                    <span class="sr-only">Previous</span>
+                    <span class="sr-only">{% translate "Previous" %}</span>
                     {% include "partials/icons/chevron_left.html" %}
                 </a>
-                {# TODO: 3 should be a params #}
                 {% for page_number in params.range|slice:":3" %}
                     <a href="?page={{ page_number }}"
                        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm {% if params.current_page_number == page_number %}font-bold{% else %}font-medium{% endif %} text-gray-700 hover:bg-gray-50">
@@ -49,7 +50,7 @@
                         {% if params.current_page.has_next %}href="?page={{ params.current_page.next_page_number }}"{% endif %}
                         class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50{% if params.current_page.has_next is not True %} opacity-50 cursor-not-allowed{% endif %}"
                 >
-                    <span class="sr-only">Next</span>
+                    <span class="sr-only">{% translate "Next" %}</span>
                     {% include "partials/icons/chevron_right.html" %}
                 </a>
             </nav>
