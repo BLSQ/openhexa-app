@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import stringcase
 
-from habari.catalog.connectors import ContentSummary, SyncResult
+from habari.catalog.connectors import DatasourceSummary, DatasourceSyncResult
 from habari.catalog.models import ExternalContent, Connector
 from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
@@ -40,7 +40,7 @@ class Dhis2Connector(Connector):
         return data_element_results + indicator_type_results + indicator_results
 
     def get_content_summary(self):
-        return ContentSummary(
+        return DatasourceSummary(
             data_elements=self.datasource.dhis2dataelement_set.count(),
             indicators=self.datasource.dhis2indicator_set.count(),
         )
@@ -115,7 +115,7 @@ class Dhis2DataQuerySet(models.QuerySet):
                 super().create(**dhis2_values, datasource=dhis2_connector.datasource)
                 created += 1
 
-        return SyncResult(
+        return DatasourceSyncResult(
             datasource=dhis2_connector.datasource,
             created=created,
             updated=updated,

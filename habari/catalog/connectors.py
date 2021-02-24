@@ -24,7 +24,7 @@ def get_connector_app_config(datasource_type):
         return None
 
 
-class SyncResult:  # TODO: move
+class DatasourceSyncResult:
     """Represents the result of a datasource sync operation performed by a connector"""
 
     def __init__(self, datasource, created, updated, identical):
@@ -43,10 +43,10 @@ class SyncResult:  # TODO: move
     def __add__(self, other):
         if other.datasource != self.datasource:
             raise ValueError(
-                "The two SyncResults instances don't have the same datasource"
+                "The two DatasourceSyncResult instances don't have the same datasource"
             )
 
-        return SyncResult(
+        return DatasourceSyncResult(
             datasource=self.datasource,
             created=self.created + other.created,
             updated=self.updated + other.updated,
@@ -54,7 +54,7 @@ class SyncResult:  # TODO: move
         )
 
 
-class ContentSummary:
+class DatasourceSummary:
     """Summarize the content found in a datasource"""
 
     def __init__(self, **kwargs):
@@ -65,7 +65,7 @@ class ContentSummary:
         try:
             return self._counts[item]
         except KeyError:
-            raise AttributeError(f"{item} not found in ContentSummary instance")
+            raise AttributeError(f"{item} not found in DatasourceSummary instance")
 
     def __str__(self):
         return ", ".join([f"{name}, {count}(s)" for name, count in self._counts])
