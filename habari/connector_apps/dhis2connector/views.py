@@ -9,7 +9,7 @@ def datasource_detail(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     breadcrumbs = [
-        ("Catalog", "catalog:index"),
+        (_("Catalog"), "catalog:index"),
         (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
     ]
 
@@ -36,11 +36,11 @@ def datasource_detail(request, datasource_id):
                 datasource.dhis2indicator_set.all(),
                 title=_("Indicators"),
                 columns=[
-                    "Name",
-                    "Code",
-                    "Values",
-                    "Tags",
-                    "Last update",
+                    _("Name"),
+                    _("Code"),
+                    _("Values"),
+                    _("Tags"),
+                    _("Last update"),
                 ],
                 paginated_list_url="dhis2connector:indicator_list",
                 item_name=_("indicator"),
@@ -55,9 +55,9 @@ def data_element_list(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     breadcrumbs = [
-        ("Catalog", "catalog:index"),
+        (_("Catalog"), "catalog:index"),
         (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
-        ("Data Elements",),
+        (_("Data Elements"),),
     ]
 
     return render(
@@ -88,7 +88,7 @@ def indicator_list(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     breadcrumbs = [
-        ("Catalog", "catalog:index"),
+        (_("Catalog"), "catalog:index"),
         (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
         ("Indicators",),
     ]

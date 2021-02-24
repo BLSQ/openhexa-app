@@ -1,11 +1,12 @@
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.translation import ugettext_lazy as _
 
 from .models import Datasource
 
 
 def index(request):
-    breadcrumbs = [("Catalog", "catalog:index")]
+    breadcrumbs = [(_("Catalog"), "catalog:index")]
     datasources = Datasource.objects.all()
 
     return render(
