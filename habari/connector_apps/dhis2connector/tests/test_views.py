@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from habari.auth.models import User
 from habari.catalog.models import Datasource
-from ..models import Dhis2Connector
+from ..models import Dhis2Connector, Dhis2DataElement
 
 
 class CatalogTest(test.TestCase):
@@ -52,9 +52,15 @@ class CatalogTest(test.TestCase):
             HTTP_REFERER=http_referer,
         )
 
-        # Check that the response is temporary redirection to .
+        # Check that the response is temporary redirection to referer
         self.assertEqual(response.status_code, 302)
         self.assertEqual(http_referer, response.url)
+
+        # Test that all data elements have a value type and an aggregation type
+        self.assertEqual(0, len(Dhis2DataElement.objects.filter(dhis2_value_type=None)))
+        self.assertEqual(
+            0, len(Dhis2DataElement.objects.filter(dhis2_aggregation_type=None))
+        )
 
     def test_data_elements_200(self):
         self.client.login(email="regular@bluesquarehub.com", password="regular")

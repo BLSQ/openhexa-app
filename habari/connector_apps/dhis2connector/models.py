@@ -161,12 +161,8 @@ class Dhis2ValueType(models.TextChoices):
     UNIT_INTERVAL = "UNIT_INTERVAL", _("Unit interval")
     PERCENTAGE = "PERCENTAGE", _("Percentage")
     INTEGER = "INTEGER", _("Integer")
-    # TODO: check order of the next 6 items
-    POSITIVE_INTEGER = "POSITIVE_INTEGER", _("Positive Integer")
     INTEGER_POSITIVE = "INTEGER_POSITIVE", _("Positive Integer")
-    NEGATIVE_INTEGER = "NEGATIVE_INTEGER", _("Negative Integer")
     INTEGER_NEGATIVE = "INTEGER_NEGATIVE", _("Negative Integer")
-    POSITIVE_OR_ZERO_INTEGER = "POSITIVE_OR_ZERO_INTEGER", _("Positive or Zero Integer")
     INTEGER_ZERO_OR_POSITIVE = "INTEGER_ZERO_OR_POSITIVE", _("Positive or Zero Integer")
     TRACKER_ASSOCIATE = "TRACKER_ASSOCIATE", _("Tracker Associate")
     USERNAME = "USERNAME", _("Username")
@@ -179,9 +175,19 @@ class Dhis2ValueType(models.TextChoices):
 
 
 class Dhis2AggregationType(models.TextChoices):
-    SUM = "SUM", _("Sum")
     AVERAGE = "AVERAGE", _("Average")
-    # TODO: complete
+    AVERAGE_SUM_ORG_UNIT = "AVERAGE_SUM_ORG_UNIT ", _("Average sum for org unit")
+    COUNT = "COUNT", _("Count")
+    CUSTOM = "CUSTOM", _("Custom")
+    DEFAULT = "DEFAULT", _("Default")
+    LAST = "LAST", _("Last")
+    LAST_AVERAGE_ORG_UNIT = "LAST_AVERAGE_ORG_UNIT", _("Last average for org unit")
+    MAX = "MAX", _("Max")
+    MIN = "MIN", _("Min")
+    NONE = "NONE", _("None")
+    STDDEV = "STDDEV", _("Standard Deviation")
+    SUM = "SUM", _("Sum")
+    VARIANCE = "VARIANCE", _("Variance")
 
 
 class Dhis2DataElement(Dhis2Data):
