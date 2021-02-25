@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import SearchVector
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -62,7 +63,11 @@ class Organization(Content):
 
 class DatasourceQuerySet(models.QuerySet):
     def search(self, query):
-        return [self.filter(name__search=query)]
+        return [
+            self.annotate(
+                search=SearchVector("name", "short_name", "description", "countries")
+            ).filter(search=query)
+        ]
 
 
 class Datasource(Content):

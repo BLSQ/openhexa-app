@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -12,8 +13,8 @@ from .api import Dhis2Client
 class Dhis2ConnectorQuerySet(ConnectorQuerySet):
     def search(self, query):
         return [
-            Dhis2DataElement.objects.filter(dhis2_name__search=query),
-            Dhis2Indicator.objects.filter(dhis2_name__search=query),
+            Dhis2DataElement.objects.search(query),
+            Dhis2Indicator.objects.search(query),
         ]
 
 
@@ -129,6 +130,16 @@ class Dhis2DataQuerySet(models.QuerySet):
             updated=updated,
             identical=identical,
         )
+
+    def search(self, query):
+        return self.annotate(
+            search=SearchVector(
+                "external_id",
+                "dhis2_name",
+                "dhis2_short_name",
+                "dhis2_description",
+            )
+        ).filter(search=query)
 
 
 class Dhis2Data(ExternalContent):

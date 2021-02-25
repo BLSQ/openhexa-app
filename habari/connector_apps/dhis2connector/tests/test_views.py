@@ -18,7 +18,10 @@ class CatalogTest(test.TestCase):
         )
 
         cls.DATASOURCE_DHIS2_PLAY = Datasource.objects.create(
-            name="DHIS2 Play", datasource_type="DHIS2"
+            datasource_type="DHIS2",
+            name="DHIS2 Play",
+            short_name="Play",
+            description="The official DHIS2 demo instance with realistic medical data",
         )
         cls.DATASOURCE_CONNECTION_DHIS2_PLAY = Dhis2Connector.objects.create(
             datasource=cls.DATASOURCE_DHIS2_PLAY,
@@ -56,7 +59,8 @@ class CatalogTest(test.TestCase):
         cls.DATA_INDICATOR_1 = Dhis2Indicator.objects.create(
             datasource=cls.DATASOURCE_DHIS2_PLAY,
             external_id="xaG3AfYG2Ts",
-            dhis2_name="ANC visits",
+            dhis2_name="Ante-Natal Care visits",
+            dhis2_description="Uses different ANC data indicators",
             dhis2_created=timezone.now(),
             dhis2_last_updated=timezone.now(),
             dhis2_external_access=False,
@@ -66,7 +70,7 @@ class CatalogTest(test.TestCase):
         cls.DATA_INDICATOR_2 = Dhis2Indicator.objects.create(
             datasource=cls.DATASOURCE_DHIS2_PLAY,
             external_id="oNzq8duNBx6",
-            dhis2_name="Play test indicator",
+            dhis2_name="Medical displays",
             dhis2_created=timezone.now(),
             dhis2_last_updated=timezone.now(),
             dhis2_external_access=False,
@@ -170,12 +174,13 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["class"] == "Dhis2Indicator" and r["dhis2_name"] == "ANC visits"
+                if r["class"] == "Dhis2Indicator"
+                and r["dhis2_name"] == "Ante-Natal Care visits"
             )
         )
 
         # "display" should match 1 data source and 1 indicator
-        response = self.client.get(f"{reverse('catalog:search')}?query=play")
+        response = self.client.get(f"{reverse('catalog:search')}?query=medical")
         results = response.json()["results"]
         self.assertEqual(2, len(results))
         self.assertTrue(
@@ -190,6 +195,6 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["class"] == "Dhis2Indicator"
-                and r["dhis2_name"] == "Play test indicator"
+                and r["dhis2_name"] == "Medical displays"
             )
         )
