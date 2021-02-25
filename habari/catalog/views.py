@@ -1,3 +1,5 @@
+from time import sleep
+
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -35,6 +37,7 @@ def datasource_sync(request, datasource_id):
 
 
 def search(request):
+    sleep(2)
     query = request.GET.get("query", "")
     results_querysets = Datasource.objects.search(query)
     connector_app_configs = get_connector_app_configs()
