@@ -14,7 +14,7 @@ RUN apt-get install -y libudunits2-dev
 # Use mamba instead of conda
 RUN conda install --quiet --yes mamba -c conda-forge
 
-# R packages, in multiple steps for Docker layering (conda-forge - preferred method)
+# R packages, in multiple steps for Docker layering (mamba - preferred method)
 RUN mamba install --quiet --yes \
     'r-aws.s3=0.*' \
     'r-geojsonio=0.*' \
@@ -38,7 +38,7 @@ RUN mamba install --quiet --yes \
     'r-viridis=0.*' \
     && mamba clean --yes --all
 
-# Python packages, in multiple steps for Docker layering (conda-forge - preferred method)
+# Python packages, in multiple steps for Docker layering (mamba preferred method)
 RUN mamba install --quiet --yes \
     'dask-ml=1.*' \
     'descartes=1.*' \
@@ -56,15 +56,20 @@ RUN mamba install --quiet --yes \
     's3contents=0.*' \
     && mamba clean --yes --all
 
-# Python packages (pip - for what is not available in conda-forge)
+RUN mamba install --quiet --yes 'jupyter-dash=0.*' && mamba clean --yes --all
+
+# Python packages (pip - for what is not available in mamba)
 RUN pip install \
     'cowsay==3.*' \
     'hdx-python-api==4.*' \
     'jupyterlab-topbar==0.*' \
     'jupyterlab-system-monitor==0.*' \
     'tabpy==2.*'
+RUN pip install \
+    'fake-useragent==0.*' \
+    'lckr-jupyterlab-variableinspector==3.*'
 
-# R packages (cran - for what is not available in conda-forge)
+# R packages (cran - for what is not available in mamba)
 RUN R -e "install.packages(c('GISTools', 'OpenStreetMap'), dependencies=TRUE, quiet=TRUE, repos='https://cran.r-project.org/')"
 RUN R -e "install.packages('isotree', dependencies=TRUE, quiet=TRUE, repos='https://cran.r-project.org/')"
 
