@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
+from .connectors import get_connector_app_configs
 from .models import Datasource
 
 
@@ -33,4 +34,9 @@ def datasource_sync(request, datasource_id):
 
 
 def search(request):
-    return JsonResponse({"results": []})
+    results = []
+    connector_app_configs = get_connector_app_configs()
+    for app_config in connector_app_configs:
+        results += app_config.connector.objects.search(request.GET.get("query", ""))
+
+    return JsonResponse({"results": results})

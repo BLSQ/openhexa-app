@@ -115,6 +115,11 @@ class Theme(Content):
     pass
 
 
+class ConnectorQuerySet(models.QuerySet):
+    def search(self, query):
+        return []
+
+
 class Connector(Base):
     class Meta:
         abstract = True

@@ -4,9 +4,18 @@ from django.utils.translation import gettext_lazy as _
 import stringcase
 
 from habari.catalog.connectors import DatasourceSummary, DatasourceSyncResult
-from habari.catalog.models import ExternalContent, Connector
+from habari.catalog.models import ExternalContent, Connector, ConnectorQuerySet
 from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
+
+
+class Dhis2ConnectorQuerySet(ConnectorQuerySet):
+    def search(self, query):
+        return [
+            {"type": "DHIS2", "label": "LOLE"},
+            {"type": "DHIS2", "label": "MDR"},
+            {"type": "DHIS2", "label": "ROTFL"},
+        ]
 
 
 class Dhis2Connector(Connector):
@@ -14,6 +23,8 @@ class Dhis2Connector(Connector):
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
     preferred_locale = LocaleField(default="en")
+
+    objects = Dhis2ConnectorQuerySet.as_manager()
 
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
