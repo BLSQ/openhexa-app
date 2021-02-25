@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
@@ -29,3 +30,7 @@ def datasource_sync(request, datasource_id):
         messages.error(request, e, extra_tags="red")
 
     return redirect(request.META.get("HTTP_REFERER"))
+
+
+def search(request):
+    return JsonResponse({"results": []})
