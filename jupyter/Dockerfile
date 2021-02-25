@@ -56,7 +56,10 @@ RUN mamba install --quiet --yes \
     's3contents=0.*' \
     && mamba clean --yes --all
 
-RUN mamba install --quiet --yes 'jupyter-dash=0.*' && mamba clean --yes --all
+RUN mamba install --quiet --yes \
+    'jupyter-dash=0.*' \
+    'jupyter-server-proxy=1.*' \
+    && mamba clean --yes --all
 
 # Python packages (pip - for what is not available in mamba)
 RUN pip install \
