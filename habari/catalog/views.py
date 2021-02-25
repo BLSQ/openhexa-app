@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from .connectors import get_connector_app_configs
 from .models import Datasource
+from ..common.serializers import serialize_queryset
 
 
 def index(request):
@@ -34,9 +35,18 @@ def datasource_sync(request, datasource_id):
 
 
 def search(request):
-    results = []
+    query = request.GET.get("query", "")
+    results_querysets = Datasource.objects.search(query)
     connector_app_configs = get_connector_app_configs()
-    for app_config in connector_app_configs:
-        results += app_config.connector.objects.search(request.GET.get("query", ""))
 
-    return JsonResponse({"results": results})
+    for app_config in connector_app_configs:
+        results_querysets = [
+            *results_querysets,
+            *app_config.connector.objects.search(query),
+        ]
+
+    serialized_results = []
+    for queryset in results_querysets:
+        serialized_results += serialize_queryset(queryset)
+
+    return JsonResponse({"results": serialized_results})

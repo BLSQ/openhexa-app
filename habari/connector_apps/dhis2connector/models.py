@@ -12,9 +12,8 @@ from .api import Dhis2Client
 class Dhis2ConnectorQuerySet(ConnectorQuerySet):
     def search(self, query):
         return [
-            {"type": "DHIS2", "label": "LOLE"},
-            {"type": "DHIS2", "label": "MDR"},
-            {"type": "DHIS2", "label": "ROTFL"},
+            Dhis2DataElement.objects.filter(dhis2_name__search=query),
+            Dhis2Indicator.objects.filter(dhis2_name__search=query),
         ]
 
 

@@ -60,6 +60,11 @@ class Organization(Content):
         return OrganizationType[self.organization_type].label
 
 
+class DatasourceQuerySet(models.QuerySet):
+    def search(self, query):
+        return [self.filter(name__search=query)]
+
+
 class Datasource(Content):
     class NoConnector(Exception):
         pass
@@ -73,6 +78,8 @@ class Datasource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+
+    objects = DatasourceQuerySet.as_manager()
 
     @property
     def datasource_type_label(self):
