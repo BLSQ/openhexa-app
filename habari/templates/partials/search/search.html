@@ -6,6 +6,8 @@
     const MODE_NO_RESULTS = 'MODE_NO_RESULTS';
     const MODE_RESULTS = 'MODE_RESULTS';
 
+    let abortController = null;
+
     function search() {
         return {
             expanded: false,
@@ -14,10 +16,13 @@
             results: [],
             expand() {
                 this.expanded = true;
+                console.log(this.$refs.modalContent);
+                bodyScrollLock.disableBodyScroll(this.$refs.modalContent);
                 setTimeout(() => this.$refs.search.focus(), 100);
             },
             collapse() {
                 this.expanded = false
+                bodyScrollLock.enableBodyScroll(this.$refs.modalContent);
             },
             toggle() {
                 this.expanded ? this.collapse() : this.expand()
@@ -32,16 +37,24 @@
             },
             async submit() {
                 console.log(`Submitting ${this.query}`);
+                if(abortController !== null) {
+                    abortController.abort();
+                }
+                abortController = new AbortController();
                 this.mode = MODE_BUSY;
                 this.results = [];
                 try {
                     const response = await fetch(`{% url "catalog:search" %}?query=${this.query}`, {
                         method: 'GET',
                         headers: {'Content-Type': 'application/json'},
+                        signal: abortController.signal
                     });
                     const responeData = await response.json();
                     this.results = responeData.results;
-                    this.mode = this.results.length > 0 ? MODE_RESULTS : MODE_NO_RESULTS;
+                    const newMode = this.results.length > 0 ? MODE_RESULTS : MODE_NO_RESULTS;
+                    console.log(`Setting mode to ${newMode}`);
+                    this.mode = newMode;
+                    abortController = null;
                 } catch (e) {
                     console.error(`Error while submitting search: ${e}`);
                 }
