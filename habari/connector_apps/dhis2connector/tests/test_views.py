@@ -158,24 +158,24 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["class"] == "Dhis2DataElement"
-                and r["dhis2_name"] == "ANC First visit"
+                if r["result_type"] == "dhis2_data_element"
+                and r["title"] == "ANC First visit"
             )
         )
         self.assertTrue(
             any(
                 r
                 for r in results
-                if r["class"] == "Dhis2DataElement"
-                and r["dhis2_name"] == "ANC Second visit"
+                if r["result_type"] == "dhis2_data_element"
+                and r["title"] == "ANC Second visit"
             )
         )
         self.assertTrue(
             any(
                 r
                 for r in results
-                if r["class"] == "Dhis2Indicator"
-                and r["dhis2_name"] == "Ante-Natal Care visits"
+                if r["result_type"] == "dhis2_indicator"
+                and r["title"] == "Ante-Natal Care visits"
             )
         )
 
@@ -187,14 +187,14 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["class"] == "Datasource" and r["name"] == "DHIS2 Play"
+                if r["result_type"] == "datasource" and r["title"] == "DHIS2 Play"
             )
         )
         self.assertTrue(
             any(
                 r
                 for r in results
-                if r["class"] == "Dhis2Indicator"
-                and r["dhis2_name"] == "Medical displays"
+                if r["result_type"] == "dhis2_indicator"
+                and r["title"] == "Medical displays"
             )
         )

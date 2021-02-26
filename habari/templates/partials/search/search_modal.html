@@ -58,13 +58,13 @@
                 </form>
                 {# https://tailwindui.com/components/application-ui/lists/stacked-lists#component-c187391f0695c533982505d225cacfb3 #}
                 <template x-if="mode === MODE_WAITING_FOR_INPUT">
-                    {% include "partials/search/search_modal_notice.html" with title=_("Search tips") text=_("You can specify a datasource name, a data element/indicator name, search for areas or domains... The content description is searchable as well.") only %}
+                    {% include "partials/search/search_modal_notice.html" with title=_("Search tips") text=_("You can specify a datasource name, a data element/indicator name, search for areas or themes... The content description is searchable as well.") only %}
                 </template>
                 <template x-if="mode === MODE_BUSY ">
                     {% include "partials/search/search_modal_notice.html" with text=_("Searching...") only %}
                 </template>
                 <template x-if="mode === MODE_NO_RESULTS">
-                    {% include "partials/search/search_modal_notice.html" with title=_('No result found.') text=_("Try with a different search query. Don't forget that you can also search by area or domain.") only %}
+                    {% include "partials/search/search_modal_notice.html" with title=_('No result found.') text=_("Try with a different search query. Don't forget that you can also search by area or theme.") only %}
                 </template>
                 <div class="bg-white shadow overflow-hidden sm:rounded-md">
                     <ul class="divide-y divide-gray-200">

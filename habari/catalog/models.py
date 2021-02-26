@@ -8,6 +8,7 @@ from functools import lru_cache
 
 from habari.catalog.connectors import get_connector_app_configs
 from habari.common.models import Base, DynamicTextChoices
+from habari.common.search import SearchResult
 
 
 class DatasourceType(DynamicTextChoices):
@@ -61,13 +62,27 @@ class Organization(Content):
         return OrganizationType[self.organization_type].label
 
 
+class DatasourceSearchResult(SearchResult):
+    @property
+    def title(self):
+        return self.model.name
+
+    @property
+    def result_type(self):
+        return "datasource"
+
+    @property
+    def result_label(self):
+        return _("Datasource")
+
+
 class DatasourceQuerySet(models.QuerySet):
     def search(self, query):
-        return [
-            self.annotate(
-                search=SearchVector("name", "short_name", "description", "countries")
-            ).filter(search=query)
-        ]
+        queryset = self.annotate(
+            search=SearchVector("name", "short_name", "description", "countries")
+        ).filter(search=query)
+
+        return [DatasourceSearchResult(datasource) for datasource in queryset]
 
 
 class Datasource(Content):
@@ -83,6 +98,8 @@ class Datasource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    areas = models.ManyToManyField("catalog.Area", blank=True)
+    themes = models.ManyToManyField("catalog.Theme", blank=True)
 
     objects = DatasourceQuerySet.as_manager()
 
@@ -150,12 +167,8 @@ class ExternalContent(Base):
         "catalog.Datasource",
         on_delete=models.CASCADE,
     )
-    area = models.ForeignKey(
-        "catalog.Area", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    theme = models.ForeignKey(
-        "catalog.Theme", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    areas = models.ManyToManyField("catalog.Area", blank=True)
+    themes = models.ManyToManyField("catalog.Theme", blank=True)
 
     @property
     def display_name(self):

@@ -8,13 +8,14 @@ from habari.catalog.connectors import DatasourceSummary, DatasourceSyncResult
 from habari.catalog.models import ExternalContent, Connector, ConnectorQuerySet
 from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
+from ...common.search import SearchResult
 
 
 class Dhis2ConnectorQuerySet(ConnectorQuerySet):
     def search(self, query):
         return [
-            Dhis2DataElement.objects.search(query),
-            Dhis2Indicator.objects.search(query),
+            *Dhis2DataElement.objects.search(query),
+            *Dhis2Indicator.objects.search(query),
         ]
 
 
@@ -131,16 +132,6 @@ class Dhis2DataQuerySet(models.QuerySet):
             identical=identical,
         )
 
-    def search(self, query):
-        return self.annotate(
-            search=SearchVector(
-                "external_id",
-                "dhis2_name",
-                "dhis2_short_name",
-                "dhis2_description",
-            )
-        ).filter(search=query)
-
 
 class Dhis2Data(ExternalContent):
     dhis2_name = models.CharField(max_length=200)
@@ -211,6 +202,34 @@ class Dhis2AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
+class Dhis2DataElementSearchResult(SearchResult):
+    @property
+    def title(self):
+        return self.model.dhis2_name
+
+    @property
+    def result_type(self):
+        return "dhis2_data_element"
+
+    @property
+    def result_label(self):
+        return _("DHIS2 Data Element")
+
+
+class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
+    def search(self, query):
+        queryset = self.annotate(
+            search=SearchVector(
+                "external_id",
+                "dhis2_name",
+                "dhis2_short_name",
+                "dhis2_description",
+            )
+        ).filter(search=query)
+
+        return [Dhis2DataElementSearchResult(data_element) for data_element in queryset]
+
+
 class Dhis2DataElement(Dhis2Data):
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_domain_type = models.CharField(
@@ -220,6 +239,8 @@ class Dhis2DataElement(Dhis2Data):
     dhis2_aggregation_type = models.CharField(
         choices=Dhis2AggregationType.choices, max_length=100
     )
+
+    objects = Dhis2DataElementQuerySet.as_manager()
 
     @property
     def dhis2_domain_type_label(self):
@@ -243,6 +264,34 @@ class Dhis2DataElement(Dhis2Data):
             return "Unknown"
 
 
+class Dhis2IndicatorSearchResult(SearchResult):
+    @property
+    def title(self):
+        return self.model.dhis2_name
+
+    @property
+    def result_type(self):
+        return "dhis2_indicator"
+
+    @property
+    def result_label(self):
+        return _("DHIS2 Indicator")
+
+
+class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
+    def search(self, query):
+        queryset = self.annotate(
+            search=SearchVector(
+                "external_id",
+                "dhis2_name",
+                "dhis2_short_name",
+                "dhis2_description",
+            )
+        ).filter(search=query)
+
+        return [Dhis2IndicatorSearchResult(indicator) for indicator in queryset]
+
+
 class Dhis2IndicatorType(Dhis2Data):
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
@@ -254,3 +303,5 @@ class Dhis2Indicator(Dhis2Data):
         "Dhis2IndicatorType", null=True, on_delete=models.SET_NULL
     )
     dhis2_annualized = models.BooleanField()
+
+    objects = Dhis2IndicatorQuerySet.as_manager()
