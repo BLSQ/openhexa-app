@@ -1,0 +1,62 @@
+{% load i18n %}
+
+<script>
+    const MODE_WAITING_FOR_INPUT = 'MODE_WAITING_FOR_INPUT';
+    const MODE_BUSY = 'MODE_BUSY';
+    const MODE_NO_RESULTS = 'MODE_NO_RESULTS';
+    const MODE_RESULTS = 'MODE_RESULTS';
+
+    function search() {
+        return {
+            expanded: false,
+            query: "",
+            mode: MODE_WAITING_FOR_INPUT,
+            results: [],
+            expand() {
+                this.expanded = true;
+                setTimeout(() => this.$refs.search.focus(), 100);
+            },
+            collapse() {
+                this.expanded = false
+            },
+            toggle() {
+                this.expanded ? this.collapse() : this.expand()
+            },
+            async check() {
+                console.log(`Checking ${this.query}`);
+                if (this.query.length >= 3) {
+                    await this.submit();
+                } else {
+                    this.waitForInput();
+                }
+            },
+            async submit() {
+                console.log(`Submitting ${this.query}`);
+                this.mode = MODE_BUSY;
+                this.results = [];
+                try {
+                    const response = await fetch(`{% url "catalog:search" %}?query=${this.query}`, {
+                        method: 'GET',
+                        headers: {'Content-Type': 'application/json'},
+                    });
+                    const responeData = await response.json();
+                    this.results = responeData.results;
+                    this.mode = this.results.length > 0 ? MODE_RESULTS : MODE_NO_RESULTS;
+                } catch (e) {
+                    console.error(`Error while submitting search: ${e}`);
+                }
+            },
+            waitForInput() {
+                console.log(`Waiting for input`);
+
+                this.mode = MODE_WAITING_FOR_INPUT;
+                this.results = [];
+            },
+        }
+    }
+</script>
+
+<div x-data="search()">
+    {% include "partials/search/search_button.html" %}
+    {% include "partials/search/search_modal.html" %}
+</div>
