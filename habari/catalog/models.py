@@ -93,7 +93,7 @@ class DatasourceQuerySet(models.QuerySet):
     def search(self, query):
         queryset = self.annotate(
             search=SearchVector("name", "short_name", "description", "countries")
-        ).filter(search=query)
+        ).filter(search=query)[:10]
 
         return [DatasourceSearchResult(datasource) for datasource in queryset]
 

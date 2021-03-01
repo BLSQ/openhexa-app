@@ -36,13 +36,11 @@ def datasource_sync(request, datasource_id):
 
 
 def search(request):
-    sleep(2)  # TODO: remove
     query = request.GET.get("query", "")
-
     results = Datasource.objects.search(query)
 
     connector_app_configs = get_connector_app_configs()
     for app_config in connector_app_configs:
         results += app_config.connector.objects.search(query)
 
-    return JsonResponse({"results": [result.to_dict() for result in results]})
+    return JsonResponse({"results": [result.to_dict() for result in results[:10]]})

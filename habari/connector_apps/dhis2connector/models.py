@@ -242,7 +242,7 @@ class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
                 "dhis2_short_name",
                 "dhis2_description",
             )
-        ).filter(search=query)
+        ).filter(search=query)[:10]
 
         return [Dhis2DataElementSearchResult(data_element) for data_element in queryset]
 
@@ -316,7 +316,7 @@ class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
                 "dhis2_short_name",
                 "dhis2_description",
             )
-        ).filter(search=query)
+        ).filter(search=query)[:10]
 
         return [Dhis2IndicatorSearchResult(indicator) for indicator in queryset]
 
