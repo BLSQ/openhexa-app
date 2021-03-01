@@ -143,13 +143,13 @@ class CatalogTest(test.TestCase):
         self.client.login(email="bjorn@bluesquarehub.com", password="regular")
 
         # "foo" should have zero matches
-        response = self.client.get(f"{reverse('catalog:search')}?query=foo")
+        response = self.client.get(f"{reverse('catalog:quick_search')}?query=foo")
         self.assertIsInstance(response, JsonResponse)
         self.assertEqual(200, response.status_code)
         self.assertEqual(0, len(response.json()["results"]))
 
         # "anc" should match 2 data elements and 1 indicator
-        response = self.client.get(f"{reverse('catalog:search')}?query=anc")
+        response = self.client.get(f"{reverse('catalog:quick_search')}?query=anc")
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response, JsonResponse)
         results = response.json()["results"]
@@ -180,7 +180,7 @@ class CatalogTest(test.TestCase):
         )
 
         # "display" should match 1 data source and 1 indicator
-        response = self.client.get(f"{reverse('catalog:search')}?query=medical")
+        response = self.client.get(f"{reverse('catalog:quick_search')}?query=medical")
         results = response.json()["results"]
         self.assertEqual(2, len(results))
         self.assertTrue(

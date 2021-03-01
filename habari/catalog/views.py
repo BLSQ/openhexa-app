@@ -43,4 +43,11 @@ def quick_search(request):
     for app_config in connector_app_configs:
         results += app_config.connector.objects.search(query)
 
-    return JsonResponse({"results": [result.to_dict() for result in results[:10]]})
+    return JsonResponse(
+        {
+            "results": [
+                result.to_dict()
+                for result in sorted(results, key=lambda r: r.rank, reverse=True)[:10]
+            ]
+        }
+    )

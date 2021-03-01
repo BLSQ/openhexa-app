@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -86,14 +86,17 @@ class DatasourceSearchResult(SearchResult):
 
     @property
     def symbol(self):
-        return f"{settings.STATIC_URL}img/icons/symbol.svg"
+        return f"{settings.STATIC_URL}img/icons/database.svg"
 
 
 class DatasourceQuerySet(models.QuerySet):
     def search(self, query):
-        queryset = self.annotate(
-            search=SearchVector("name", "short_name", "description", "countries")
-        ).filter(search=query)[:10]
+        search_vector = SearchVector("name", "short_name", "description", "countries")
+        search_query = SearchQuery(query)
+        search_rank = SearchRank(vector=search_vector, query=search_query)
+        queryset = (
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+        )
 
         return [DatasourceSearchResult(datasource) for datasource in queryset]
 

@@ -40,7 +40,7 @@ class CatalogTest(test.TestCase):
     def test_catalog_search_200(self):
         self.client.login(email="jane@bluesquarehub.com", password="regular")
 
-        response = self.client.get(f"{reverse('catalog:search')}?query=test")
+        response = self.client.get(f"{reverse('catalog:quick_search')}?query=test")
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response, JsonResponse)
         response_data = response.json()

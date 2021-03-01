@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from habari.catalog.lists import build_summary_list_params, build_paginated_list_params
 from habari.catalog.models import Datasource
+from habari.connector_apps.dhis2connector.models import Dhis2DataElement
 
 
 def datasource_detail(request, datasource_id):
@@ -79,6 +80,30 @@ def data_element_list(request, datasource_id):
                 item_name=_("data element"),
                 item_template="dhis2connector/partials/data_element_list_item.html",
             ),
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def data_element_detail(request, datasource_id, data_element_id):
+    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    data_element = get_object_or_404(
+        datasource.dhis2dataelement_set, pk=data_element_id
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
+        ("Data Elements", "dhis2connector:data_elements_list", datasource_id),
+        (data_element.display_name,),
+    ]
+
+    return render(
+        request,
+        "dhis2connector/data_element_detail.html",
+        {
+            "datasource": datasource,
+            "data_element": data_element,
             "breadcrumbs": breadcrumbs,
         },
     )

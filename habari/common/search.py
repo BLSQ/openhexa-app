@@ -9,6 +9,14 @@ class SearchResult:
         self.model = model
 
     @property
+    def object_id(self):
+        return self.model.pk
+
+    @property
+    def rank(self):
+        return self.model.rank
+
+    @property
     def title(self):
         raise NotImplementedError(
             "Each SearchResult subclass should implement a title() property"
@@ -45,10 +53,6 @@ class SearchResult:
         )
 
     @property
-    def object_id(self):
-        return self.model.pk
-
-    @property
     def areas(self):
         return list(self.model.areas.all())
 
@@ -59,6 +63,7 @@ class SearchResult:
     def to_dict(self):
         return {
             "id": self.object_id,
+            "rank": self.rank,
             "result_type": self.result_type,
             "title": self.title,
             "label": self.label,

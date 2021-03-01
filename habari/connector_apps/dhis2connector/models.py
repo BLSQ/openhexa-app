@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -235,14 +235,17 @@ class Dhis2DataElementSearchResult(SearchResult):
 
 class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
     def search(self, query):
-        queryset = self.annotate(
-            search=SearchVector(
-                "external_id",
-                "dhis2_name",
-                "dhis2_short_name",
-                "dhis2_description",
-            )
-        ).filter(search=query)[:10]
+        search_vector = SearchVector(
+            "external_id",
+            "dhis2_name",
+            "dhis2_short_name",
+            "dhis2_description",
+        )
+        search_query = SearchQuery(query)
+        search_rank = SearchRank(vector=search_vector, query=search_query)
+        queryset = (
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+        )
 
         return [Dhis2DataElementSearchResult(data_element) for data_element in queryset]
 
@@ -309,14 +312,17 @@ class Dhis2IndicatorSearchResult(SearchResult):
 
 class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
     def search(self, query):
-        queryset = self.annotate(
-            search=SearchVector(
-                "external_id",
-                "dhis2_name",
-                "dhis2_short_name",
-                "dhis2_description",
-            )
-        ).filter(search=query)[:10]
+        search_vector = SearchVector(
+            "external_id",
+            "dhis2_name",
+            "dhis2_short_name",
+            "dhis2_description",
+        )
+        search_query = SearchQuery(query)
+        search_rank = SearchRank(vector=search_vector, query=search_query)
+        queryset = (
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+        )
 
         return [Dhis2IndicatorSearchResult(indicator) for indicator in queryset]
 
