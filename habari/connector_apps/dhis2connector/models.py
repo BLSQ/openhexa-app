@@ -1,14 +1,19 @@
+from django.conf import settings
 from django.contrib.postgres.search import SearchVector
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 import stringcase
 
-from habari.catalog.connectors import DatasourceSummary, DatasourceSyncResult
+from habari.catalog.connectors import (
+    DatasourceSummary,
+    DatasourceSyncResult,
+)
 from habari.catalog.models import ExternalContent, Connector, ConnectorQuerySet
 from habari.common.models import Base, LocaleField
 from .api import Dhis2Client
 from ...common.search import SearchResult
+from ...common.templatetags.connectors import connector_static_dir
 
 
 class Dhis2ConnectorQuerySet(ConnectorQuerySet):
@@ -204,16 +209,28 @@ class Dhis2AggregationType(models.TextChoices):
 
 class Dhis2DataElementSearchResult(SearchResult):
     @property
-    def title(self):
-        return self.model.dhis2_name
-
-    @property
     def result_type(self):
         return "dhis2_data_element"
 
     @property
-    def result_label(self):
+    def title(self):
+        return self.model.dhis2_name
+
+    @property
+    def label(self):
         return _("DHIS2 Data Element")
+
+    @property
+    def origin(self):
+        return self.model.datasource.name
+
+    @property
+    def updated_at(self):
+        return self.model.dhis2_last_updated
+
+    @property
+    def symbol(self):
+        return f"{settings.STATIC_URL}{connector_static_dir(self.model.datasource)}img/symbol.svg"
 
 
 class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
@@ -266,16 +283,28 @@ class Dhis2DataElement(Dhis2Data):
 
 class Dhis2IndicatorSearchResult(SearchResult):
     @property
-    def title(self):
-        return self.model.dhis2_name
-
-    @property
     def result_type(self):
         return "dhis2_indicator"
 
     @property
-    def result_label(self):
+    def title(self):
+        return self.model.dhis2_name
+
+    @property
+    def label(self):
         return _("DHIS2 Indicator")
+
+    @property
+    def origin(self):
+        return self.model.datasource.name
+
+    @property
+    def updated_at(self):
+        return self.model.dhis2_last_updated
+
+    @property
+    def symbol(self):
+        return f"{settings.STATIC_URL}{connector_static_dir(self.model.datasource)}img/symbol.svg"
 
 
 class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.search import SearchVector
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
@@ -64,16 +65,28 @@ class Organization(Content):
 
 class DatasourceSearchResult(SearchResult):
     @property
-    def title(self):
-        return self.model.name
-
-    @property
     def result_type(self):
         return "datasource"
 
     @property
-    def result_label(self):
+    def title(self):
+        return self.model.name
+
+    @property
+    def label(self):
         return _("Datasource")
+
+    @property
+    def origin(self):
+        return self.model.name
+
+    @property
+    def updated_at(self):
+        return self.model.updated_at
+
+    @property
+    def symbol(self):
+        return f"{settings.STATIC_URL}img/icons/symbol.svg"
 
 
 class DatasourceQuerySet(models.QuerySet):
