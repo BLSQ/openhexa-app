@@ -36,7 +36,10 @@
                 aria-labelledby="modal-headline"
         >
             <form
+                    method="get"
+                    action="{% url "catalog:quick_search" %}"
                     class="pt-2 px-4 sm:px-6"
+                    x-ref="form"
             >
                 <label for="search" class="sr-only">{% translate "Search" %}</label>
                 <div class="relative">

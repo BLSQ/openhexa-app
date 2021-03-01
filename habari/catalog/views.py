@@ -35,7 +35,7 @@ def datasource_sync(request, datasource_id):
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def search(request):
+def quick_search(request):
     query = request.GET.get("query", "")
     results = Datasource.objects.search(query)
 
