@@ -1,0 +1,10 @@
+{% extends "partials/page_section.html" %}
+{% load static i18n connectors %}
+
+{% block section_heading %}
+    {% include "partials/section_heading_simple.html" with title=_("Feed") %}
+{% endblock %}
+
+{% block section_content %}
+    {% include "dhis2connector/partials/data_element_feed_card.html" %}
+{% endblock %}
