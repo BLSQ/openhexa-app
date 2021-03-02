@@ -93,21 +93,9 @@
                 <a href="#" class="font-medium text-gray-900">Marie-Julie Lambert</a>
                 added tags
               </span>
-                                <span class="mr-0.5">
-                <a href="#"
-                   class="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5 text-sm">
-                  <span class="absolute flex-shrink-0 flex items-center justify-center">
-                    <span class="h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true"></span>
-                  </span>
-                  <span class="ml-3.5 font-medium text-gray-900">Must see</span>
-                </a>
-                <a href="#"
-                   class="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5 text-sm">
-                  <span class="absolute flex-shrink-0 flex items-center justify-center">
-                    <span class="h-1.5 w-1.5 rounded-full bg-indigo-500" aria-hidden="true"></span>
-                  </span>
-                  <span class="ml-3.5 font-medium text-gray-900">Great content</span>
-                </a>
+              <span class="mr-0.5">
+                {% include "partials/label.html" with text="Must see" color="red" %}
+                {% include "partials/label.html" with text="Great content" color="green" %}
               </span>
                                 <span class="whitespace-nowrap">6h ago</span>
                             </div>
@@ -145,8 +133,8 @@
                             </div>
                             <div class="mt-2 text-sm text-gray-700">
                                 <p>
-                                    Not sure I would agree with Grégoire about this. IMHO the "All sterilisation equipment is validated / licensed"
-                                    is a strong contender as well.
+                                    Not sure I would agree with Grégoire about this. IMHO the "All sterilisation
+                                    equipment is validated / licensed" is a strong contender as well.
                                 </p>
                             </div>
                         </div>
