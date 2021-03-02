@@ -2,12 +2,16 @@ from django.conf import settings
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from functools import lru_cache
 
-from habari.catalog.connectors import get_connector_app_configs
+from habari.catalog.connectors import (
+    get_connector_app_configs,
+    get_connector_app_config,
+)
 from habari.common.models import Base, DynamicTextChoices
 from habari.common.search import SearchResult
 
@@ -79,6 +83,12 @@ class DatasourceSearchResult(SearchResult):
     @property
     def origin(self):
         return self.model.name
+
+    @property
+    def detail_url(self):
+        app_config = get_connector_app_config(self.model)
+
+        return reverse(f"{app_config.label}:datasource_detail", args=[self.model.pk])
 
     @property
     def updated_at(self):

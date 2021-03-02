@@ -3,7 +3,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from habari.catalog.lists import build_summary_list_params, build_paginated_list_params
 from habari.catalog.models import Datasource
-from habari.connector_apps.dhis2connector.models import Dhis2DataElement
 
 
 def datasource_detail(request, datasource_id):

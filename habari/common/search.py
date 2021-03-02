@@ -47,6 +47,12 @@ class SearchResult:
         )
 
     @property
+    def detail_url(self):
+        raise NotImplementedError(
+            "Each SearchResult subclass should implement a detail_url() property"
+        )
+
+    @property
     def symbol(self):
         raise NotImplementedError(
             "Each SearchResult subclass should implement a symbol() property"
@@ -68,6 +74,7 @@ class SearchResult:
             "title": self.title,
             "label": self.label,
             "origin": self.origin,
+            "detail_url": self.detail_url,
             "updated_at": f"{timesince(self.updated_at)} {_('ago')}",
             "symbol": self.symbol,
             "areas": [

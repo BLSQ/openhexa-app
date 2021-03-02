@@ -21,4 +21,9 @@ urlpatterns = [
         views.indicator_list,
         name="indicator_list",
     ),
+    path(
+        "<str:datasource_id>/indicators/<str:data_element_id>",
+        views.data_element_detail,
+        name="indicator_detail",
+    ),
 ]

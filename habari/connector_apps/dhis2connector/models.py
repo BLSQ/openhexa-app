@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 import stringcase
 
@@ -225,6 +226,13 @@ class Dhis2DataElementSearchResult(SearchResult):
         return self.model.datasource.name
 
     @property
+    def detail_url(self):
+        return reverse(
+            "dhis2connector:data_element_detail",
+            args=[self.model.datasource.pk, self.model.pk],
+        )
+
+    @property
     def updated_at(self):
         return self.model.dhis2_last_updated
 
@@ -300,6 +308,13 @@ class Dhis2IndicatorSearchResult(SearchResult):
     @property
     def origin(self):
         return self.model.datasource.name
+
+    @property
+    def detail_url(self):
+        return reverse(
+            "dhis2connector:indicator_detail",
+            args=[self.model.datasource.pk, self.model.pk],
+        )
 
     @property
     def updated_at(self):

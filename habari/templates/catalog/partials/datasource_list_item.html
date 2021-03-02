@@ -2,7 +2,7 @@
 
 {% connector_static_dir datasource as connector_static_dir %}
 {% connector_app_label datasource as connector_app_label %}
-{% url connector_app_label|add:':datasource_detail' datasource.id as detail_url %}
+{% url connector_app_label|add:':datasource_detail' datasource.pk as detail_url %}
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">

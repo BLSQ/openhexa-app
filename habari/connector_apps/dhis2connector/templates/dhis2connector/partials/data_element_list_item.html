@@ -2,7 +2,7 @@
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'dhis2connector:data_element_detail' datasource.id item.id %}">
+        <a class="flex items-center" href="{% url 'dhis2connector:data_element_detail' datasource.pk item.pk %}">
             <div class="text-gray-400">
                 {% if item.dhis2_domain_type == "AGGREGATE" %}
                     {% include "partials/icons/chart_bar.html" %}

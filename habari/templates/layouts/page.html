@@ -1,16 +1,20 @@
 {% extends "layouts/base_with_nav.html" %}
 
 {% block main_content %}
-    {% include "partials/breadcrumbs.html" %}
-    <div class="pt-6 py-10">
-        <main>
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                {% block page_content %}
-                    <div class="px-4 py-8 sm:px-0">
-                        <div class="border-4 border-dashed border-gray-200 rounded-lg h-96"></div>
-                    </div>
-                {% endblock %}
+    <div class="relative">
+        {% if breadcrumbs %}
+            <div class="my-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+                {% include "partials/breadcrumbs.html" %}
             </div>
+        {% endif %}
+        <main class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            {% block page_content %}
+                <div class="px-4 py-8 sm:px-0">
+                    <div class="border-4 border-dashed border-gray-200 rounded-lg h-96">
+                        Override the "page_content" block in your template
+                    </div>
+                </div>
+            {% endblock %}
         </main>
     </div>
 {% endblock %}

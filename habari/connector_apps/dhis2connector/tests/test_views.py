@@ -83,7 +83,7 @@ class CatalogTest(test.TestCase):
         response = self.client.get(
             reverse(
                 "dhis2connector:datasource_detail",
-                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
@@ -95,12 +95,12 @@ class CatalogTest(test.TestCase):
     def test_datasource_sync_success_302(self):
         self.client.login(email="bjorn@bluesquarehub.com", password="regular")
         http_referer = (
-            f"https://localhost/catalog/datasource/{self.DATASOURCE_DHIS2_PLAY.id}"
+            f"https://localhost/catalog/datasource/{self.DATASOURCE_DHIS2_PLAY.pk}"
         )
         response = self.client.get(
             reverse(
                 "catalog:datasource_sync",
-                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
         )
@@ -120,7 +120,7 @@ class CatalogTest(test.TestCase):
         response = self.client.get(
             reverse(
                 "dhis2connector:data_element_list",
-                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
@@ -132,7 +132,7 @@ class CatalogTest(test.TestCase):
         response = self.client.get(
             reverse(
                 "dhis2connector:indicator_list",
-                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.id},
+                kwargs={"datasource_id": self.DATASOURCE_DHIS2_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
