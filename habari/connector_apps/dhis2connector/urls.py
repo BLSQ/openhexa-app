@@ -22,8 +22,8 @@ urlpatterns = [
         name="indicator_list",
     ),
     path(
-        "<str:datasource_id>/indicators/<str:data_element_id>",
-        views.data_element_detail,
+        "<str:datasource_id>/indicators/<str:indicator_id>",
+        views.indicator_detail,
         name="indicator_detail",
     ),
 ]

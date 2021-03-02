@@ -62,10 +62,6 @@ class Organization(Content):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
 
-    @property
-    def organization_type_label(self):
-        return OrganizationType[self.organization_type].label
-
 
 class DatasourceSearchResult(SearchResult):
     @property
@@ -128,10 +124,6 @@ class Datasource(Content):
     themes = models.ManyToManyField("catalog.Theme", blank=True)
 
     objects = DatasourceQuerySet.as_manager()
-
-    @property
-    def datasource_type_label(self):
-        return DatasourceType[self.datasource_type].label
 
     def sync(self):
         """Sync the datasource using its connector"""

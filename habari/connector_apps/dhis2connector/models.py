@@ -270,27 +270,6 @@ class Dhis2DataElement(Dhis2Data):
 
     objects = Dhis2DataElementQuerySet.as_manager()
 
-    @property
-    def dhis2_domain_type_label(self):
-        try:
-            return Dhis2DomainType[self.dhis2_domain_type].label
-        except KeyError:
-            return "Unknown"
-
-    @property
-    def dhis2_value_type_label(self):
-        try:
-            return Dhis2ValueType[self.dhis2_value_type].label
-        except KeyError:
-            return "Unknown"
-
-    @property
-    def dhis2_aggregation_type_label(self):
-        try:
-            return Dhis2AggregationType[self.dhis2_aggregation_type].label
-        except KeyError:
-            return "Unknown"
-
 
 class Dhis2IndicatorSearchResult(SearchResult):
     @property
