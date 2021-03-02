@@ -27,6 +27,16 @@
 
 {% block card_content %}
     <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+        <div class="sm:col-span-2 max-w-4xl">
+            <dt class="text-sm font-medium text-gray-500">
+                {% translate "Labels" %}
+            </dt>
+            <dd class="mt-1 py-1 text-sm text-gray-900 flex items-center">
+                {% include "partials/label.html" with text="Must see" color="red" dot=False %}
+                {% include "partials/label.html" with text="Great content" color="green" dot=False %}
+                {% include "partials/label_button.html"  with text="Add label" %}
+            </dd>
+        </div>
         <div class="sm:col-span-1">
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "Datasource" %}
