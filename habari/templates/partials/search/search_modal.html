@@ -52,7 +52,7 @@
                             id="search"
                             x-ref="search"
                             x-model="query"
-                            @keyup="check"
+                            @keyup.debounce.500="check"
                             class="border-0 border-b border-gray-100 focus:border-gray-200 focus:outline-none focus:ring-transparent block w-full pl-8 py-4 sm:text-sm"
                             autocomplete="off"
                             placeholder="{% translate "Search for data sources, data elements..." %}"
@@ -74,7 +74,7 @@
                     <div class="flex justify-between text-sm py-4 px-4 sm:px-6">
                         <p class="text-gray-700">{% translate "Showing top 10 results" %}</p>
                         <p class="text-right">
-                            <a href="" class="items-center flex text-blue-600 hover:text-blue-500 ml-2">
+                            <a href="{% url "catalog:search" %}" class="items-center flex text-blue-600 hover:text-blue-500 ml-2">
                                 {% translate "Switch to advanced search" %}
                                 {% include "partials/icons/chevron_right.html" %}
                             </a>

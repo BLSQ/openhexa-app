@@ -51,3 +51,12 @@ def quick_search(request):
             ]
         }
     )
+
+
+def search(request):
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (_("Search"),),
+    ]
+
+    return render(request, "catalog/search.html", {"breadcrumbs": breadcrumbs})

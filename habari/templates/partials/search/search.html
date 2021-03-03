@@ -16,7 +16,6 @@
             results: [],
             expand() {
                 this.expanded = true;
-                console.log(this.$refs.modalContent);
                 bodyScrollLock.disableBodyScroll(this.$refs.modalContent);
                 setTimeout(() => this.$refs.search.focus(), 100);
             },
@@ -28,7 +27,6 @@
                 this.expanded ? this.collapse() : this.expand()
             },
             async check() {
-                console.log(`Checking ${this.query}`);
                 if (this.query.length >= 3) {
                     await this.submit();
                 } else {
@@ -36,7 +34,6 @@
                 }
             },
             async submit() {
-                console.log(`Submitting ${this.query}`);
                 if (abortController !== null) {
                     abortController.abort();
                 }
@@ -52,11 +49,14 @@
                     const responeData = await response.json();
                     this.results = responeData.results;
                     const newMode = this.results.length > 0 ? MODE_RESULTS : MODE_NO_RESULTS;
-                    console.log(`Setting mode to ${newMode}`);
                     this.mode = newMode;
                     abortController = null;
                 } catch (e) {
-                    console.error(`Error while submitting search: ${e}`);
+                    if(e.message.includes("abort")) {
+                        console.info("Aborting")
+                    } else {
+                        console.error(`Error while submitting search: ${e}`);
+                    }
                 }
             },
             waitForInput() {

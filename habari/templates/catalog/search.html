@@ -1,0 +1,13 @@
+{% extends "layouts/page.html" %}
+{% load i18n %}
+
+{% block page_title %}{% translate "Search" %}{% endblock %}
+
+{% block page_content %}
+    <div class="my-8">
+        {% include "partials/section_heading_simple.html" with title="Search" %}
+        <div class="mt-4">
+            {% include "partials/block_placeholder.html" %}
+        </div>
+    </div>
+{% endblock %}
