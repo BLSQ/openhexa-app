@@ -20,6 +20,19 @@
                     </div>
                 </div>
             </div>
+            <div class="relative z-0 inline-flex shadow-sm rounded-md">
+                <button type="button"
+                        class="relative inline-flex items-center p-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!-- Heroicon name: solid/bookmark -->
+                    {% include "partials/icons/external_link.html" with width=4 height=4 %}
+                    <span class="ml-2">Extract</span>
+                </button>
+                <button type="button"
+                        class="-ml-px relative inline-flex items-center p-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <span class="mr-2">Details</span>
+                    {% include "partials/icons/eye.html" with width=4 height=4 %}
+                </button>
+            </div>
         </div>
     </a>
 </li>

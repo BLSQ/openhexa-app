@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <li>
-    <a href="{{ result.url }}" class="block hover:bg-gray-50">
+    <a href="{{ result.detail_url }}" class="block hover:bg-gray-50">
         <div class="flex items-center px-4 py-4 sm:px-6">
             <div class="min-w-0 flex-1 flex items-center">
                 <div class="flex-shrink-0">
@@ -29,14 +29,19 @@
                     </div>
                 </div>
             </div>
-            <div>
-                <!-- Heroicon name: solid/chevron-right -->
-                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg"
-                     viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd"
-                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                          clip-rule="evenodd"/>
-                </svg>
+            <!-- This example requires Tailwind CSS v2.0+ -->
+            <div class="relative z-0 inline-flex shadow-sm rounded-md">
+                <button type="button"
+                        class="relative inline-flex items-center p-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!-- Heroicon name: solid/bookmark -->
+                    {% include "partials/icons/external_link.html" with width=4 height=4 %}
+                    <span class="ml-2">Extract</span>
+                </button>
+                <button type="button"
+                        class="-ml-px relative inline-flex items-center p-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <span class="mr-2">Details</span>
+                    {% include "partials/icons/eye.html" with width=4 height=4 %}
+                </button>
             </div>
         </div>
     </a>
