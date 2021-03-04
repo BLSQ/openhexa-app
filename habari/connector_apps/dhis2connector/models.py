@@ -18,10 +18,14 @@ from ...common.templatetags.connectors import connector_static_dir
 
 
 class Dhis2ConnectorQuerySet(ConnectorQuerySet):
-    def search(self, query):
+    def search(
+        self, query, *, limit=10, search_type=None
+    ):  # TODO: move elsewhere or register decorator
         return [
-            *Dhis2DataElement.objects.search(query),
-            *Dhis2Indicator.objects.search(query),
+            *Dhis2DataElement.objects.search(
+                query, limit=limit, search_type=search_type
+            ),
+            *Dhis2Indicator.objects.search(query, limit=limit, search_type=search_type),
         ]
 
 
@@ -242,7 +246,10 @@ class Dhis2DataElementSearchResult(SearchResult):
 
 
 class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
-    def search(self, query):
+    def search(self, query, *, limit=10, search_type=None):
+        if search_type is not None and search_type != "dhis2_data_element":
+            return []
+
         search_vector = SearchVector(
             "external_id",
             "dhis2_name",
@@ -255,7 +262,7 @@ class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
         )
         search_rank = SearchRank(vector=search_vector, query=search_query)
         queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
         )
 
         return [Dhis2DataElementSearchResult(data_element) for data_element in queryset]
@@ -308,7 +315,10 @@ class Dhis2IndicatorSearchResult(SearchResult):
 
 
 class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
-    def search(self, query):
+    def search(self, query, *, limit=10, search_type=None):
+        if search_type is not None and search_type != "dhis2_indicator":
+            return []
+
         search_vector = SearchVector(
             "external_id",
             "dhis2_name",
@@ -321,7 +331,7 @@ class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
         )
         search_rank = SearchRank(vector=search_vector, query=search_query)
         queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
         )
 
         return [Dhis2IndicatorSearchResult(indicator) for indicator in queryset]

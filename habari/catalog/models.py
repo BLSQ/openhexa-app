@@ -100,12 +100,15 @@ class DatasourceSearchResult(SearchResult):
 
 
 class DatasourceQuerySet(models.QuerySet):
-    def search(self, query):
+    def search(self, query, *, limit=10, search_type=None):
+        if search_type is not None and search_type != "datasource":
+            return []
+
         search_vector = SearchVector("name", "short_name", "description", "countries")
         search_query = SearchQuery(query)
         search_rank = SearchRank(vector=search_vector, query=search_query)
         queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
         )
 
         return [DatasourceSearchResult(datasource) for datasource in queryset]

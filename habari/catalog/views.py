@@ -41,7 +41,7 @@ def quick_search(request):
 
 def search(request):
     query = request.POST.get("query", "")
-    results = perform_search(query)
+    results = perform_search(query, limit=100)
 
     return render(
         request,

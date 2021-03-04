@@ -39,7 +39,7 @@
                 {% else %}
                     <div class="px-4 py-2 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                            Search tips
+                            {% if query|length > 0 %}{% translate "No results was found for " %}"{{ query }}"{% else %}{% translate "Search tips" %}{% endif %}
                         </h3>
                         <div class="mt-2 text-sm text-gray-500 max-w-xl">
                             <p class="my-4">

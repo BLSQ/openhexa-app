@@ -9,7 +9,10 @@
                 </div>
                 <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
                     <div>
-                        <p class="text-sm font-medium text-indigo-600 truncate">{{ result.title }}</p>
+                        <p>
+                            <span class="text-sm font-medium text-blue-600 truncate">{{ result.title }}</span>
+                            <span class="ml-2 text-xs text-gray-300">{{ result.rank }}</span>
+                        </p>
                         <p class="mt-2 flex items-center text-sm text-gray-500">
                             {{ result.label }}
                         </p>
