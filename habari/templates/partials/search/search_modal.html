@@ -38,7 +38,7 @@
             <form
                     method="get"
                     action="{% url "catalog:quick_search" %}"
-                    class="pt-2 px-4 sm:px-6"
+                    class="pt-2 px-4 sm:px-6 border-b border-gray-100 focus:border-gray-200 "
                     x-ref="form"
             >
                 <label for="search" class="sr-only">{% translate "Search" %}</label>
@@ -53,19 +53,19 @@
                             x-ref="input"
                             x-model="query"
                             @keyup.debounce.500="check"
-                            class="border-0 border-b border-gray-100 focus:border-gray-200 focus:outline-none focus:ring-transparent block w-full pl-8 py-4 sm:text-sm"
+                            class="border-0 focus:outline-none focus:ring-transparent block w-full pl-8 py-4 sm:text-sm"
                             autocomplete="off"
                             placeholder="{% translate "Search for data sources, data elements..." %}"
                     >
                 </div>
             </form>
-            <div class="h-72 overflow-y-scroll relative" x-ref="modalContent">
+            <div class="h-72 overflow-y-auto relative" x-ref="modalContent">
                 {# https://tailwindui.com/components/application-ui/lists/stacked-lists#component-c187391f0695c533982505d225cacfb3 #}
                 <template x-if="mode === MODE_WAITING_FOR_INPUT">
                     {% include "partials/search/search_modal_notice.html" with title=_("Search tips") text=_("You can specify a datasource name, a data element/indicator name, search for areas or themes... The content description is searchable as well.") only %}
                 </template>
                 <template x-if="mode === MODE_BUSY ">
-                    {% include "partials/search/search_modal_notice.html" with text=_("Searching...") only %}
+                    {% include "partials/search/search_modal_notice.html" with title=_("Searching") text=_("Searching the data catalog...") advanced_link=False only %}
                 </template>
                 <template x-if="mode === MODE_NO_RESULTS">
                     {% include "partials/search/search_modal_notice.html" with title=_('No result found.') text=_("Try with a different search query. Don't forget that you can also search by area or theme.") only %}

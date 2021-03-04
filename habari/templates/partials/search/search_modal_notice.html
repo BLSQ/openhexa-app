@@ -8,11 +8,13 @@
         <p>
             {{ text }}
         </p>
-        <p class="mt-2">
-            <a href="{% url "catalog:search" %}" class="items-center flex text-blue-600 hover:text-blue-500">
-                {% translate "Switch to advanced search" %}
-                {% include "partials/icons/chevron_right.html" %}
-            </a>
-        </p>
+        {% if advanced_link is not False %}
+            <p class="mt-2">
+                <a href="{% url "catalog:search" %}" class="items-center flex text-blue-600 hover:text-blue-500">
+                    {% translate "Switch to advanced search" %}
+                    {% include "partials/icons/chevron_right.html" %}
+                </a>
+            </p>
+        {% endif %}
     </div>
 </div>
