@@ -17,7 +17,7 @@
             expand() {
                 this.expanded = true;
                 bodyScrollLock.disableBodyScroll(this.$refs.modalContent);
-                setTimeout(() => this.$refs.search.focus(), 100);
+                setTimeout(() => this.$refs.input.focus(), 100);
             },
             collapse() {
                 this.expanded = false

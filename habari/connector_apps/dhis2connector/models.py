@@ -219,7 +219,7 @@ class Dhis2DataElementSearchResult(SearchResult):
 
     @property
     def label(self):
-        return _("DHIS2 Data Element")
+        return _("Data Element")
 
     @property
     def origin(self):
@@ -282,7 +282,7 @@ class Dhis2IndicatorSearchResult(SearchResult):
 
     @property
     def label(self):
-        return _("DHIS2 Indicator")
+        return _("Indicator")
 
     @property
     def origin(self):

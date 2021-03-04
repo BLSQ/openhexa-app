@@ -1,12 +1,10 @@
-from time import sleep
-
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
-from .connectors import get_connector_app_configs
 from .models import Datasource
+from .search import perform_search
 
 
 def index(request):
@@ -36,27 +34,24 @@ def datasource_sync(request, datasource_id):
 
 
 def quick_search(request):
-    query = request.GET.get("query", "")
-    results = Datasource.objects.search(query)
+    results = perform_search(request.GET.get("query", ""))
 
-    connector_app_configs = get_connector_app_configs()
-    for app_config in connector_app_configs:
-        results += app_config.connector.objects.search(query)
-
-    return JsonResponse(
-        {
-            "results": [
-                result.to_dict()
-                for result in sorted(results, key=lambda r: r.rank, reverse=True)[:10]
-            ]
-        }
-    )
+    return JsonResponse({"results": [result.to_dict() for result in results]})
 
 
 def search(request):
-    breadcrumbs = [
-        (_("Catalog"), "catalog:index"),
-        (_("Search"),),
-    ]
+    query = request.POST.get("query", "")
+    results = perform_search(query)
 
-    return render(request, "catalog/search.html", {"breadcrumbs": breadcrumbs})
+    return render(
+        request,
+        "catalog/search.html",
+        {
+            "query": query,
+            "results": results,
+            "breadcrumbs": [
+                (_("Catalog"), "catalog:index"),
+                (_("Search"),),
+            ],
+        },
+    )

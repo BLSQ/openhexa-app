@@ -4,10 +4,61 @@
 {% block page_title %}{% translate "Search" %}{% endblock %}
 
 {% block page_content %}
-    <div class="my-8">
-        {% include "partials/section_heading_simple.html" with title="Search" %}
-        <div class="mt-4">
-            {% include "partials/block_placeholder.html" %}
-        </div>
+    <!-- This example requires Tailwind CSS v2.0+ -->
+    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul class="divide-y divide-gray-200">
+            <li class="px-4 py-2 sm:px-6">
+                <form
+                        method="post"
+                        action="{% url "catalog:search" %}"
+                >
+                    {% csrf_token %}
+                    <div class="relative">
+                        <div class="text-gray-400 absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                            {% include "partials/icons/search.html" %}
+                        </div>
+                        <input
+                                type="text"
+                                name="query"
+                                id="query"
+                                class="border-0 focus:outline-none focus:ring-transparent block w-full pl-8 py-4 sm:text-sm"
+                                autocomplete="off"
+                                placeholder="{% translate "Search for data sources, data elements..." %}"
+                                value="{{ query }}"
+                        >
+                    </div>
+                </form>
+            </li>
+            <li>
+                {% if results|length > 0 %}
+                    <ul class="divide-y divide-gray-200">
+                        {% for result in results %}
+                            {% include "catalog/partials/search/search_result.html" %}
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="px-4 py-2 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                            Search tips
+                        </h3>
+                        <div class="mt-2 text-sm text-gray-500 max-w-xl">
+                            <p class="my-4">
+                                Enter one or more search terms separated by spaces. If you want to filter your search
+                                by type, you can use the <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:type_name</code>
+                                filter.
+                            </p>
+                            <p class="my-4">
+                                You can search for:
+                            </p>
+                            <ul class="my-4 ml-4 pl-4 list-disc">
+                                <li>Data sources</li>
+                                <li>DHIS2 data elements</li>
+                                <li>DHIS2 indicators</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </li>
+        </ul>
     </div>
 {% endblock %}
