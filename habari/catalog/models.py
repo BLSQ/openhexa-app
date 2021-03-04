@@ -12,7 +12,11 @@ from habari.catalog.connectors import (
     get_connector_app_configs,
     get_connector_app_config,
 )
-from habari.common.models import Base, DynamicTextChoices
+from habari.common.models import (
+    Base,
+    DynamicTextChoices,
+    PostgresTextSearchConfigField,
+)
 from habari.common.search import SearchResult
 
 
@@ -122,6 +126,7 @@ class Datasource(Content):
     last_synced_at = models.DateTimeField(null=True, blank=True)
     areas = models.ManyToManyField("catalog.Area", blank=True)
     themes = models.ManyToManyField("catalog.Theme", blank=True)
+    text_search_config = PostgresTextSearchConfigField()
 
     objects = DatasourceQuerySet.as_manager()
 

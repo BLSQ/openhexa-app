@@ -41,6 +41,7 @@
       "countries": "SL",
       "owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
       "datasource_type": "DHIS2",
+      "test_search_config": "english",
       "url": "https://play.dhis2.org",
       "active_from": null,
       "active_to": null,

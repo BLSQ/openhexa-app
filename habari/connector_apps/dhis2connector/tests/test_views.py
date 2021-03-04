@@ -22,6 +22,7 @@ class CatalogTest(test.TestCase):
             name="DHIS2 Play",
             short_name="Play",
             description="The official DHIS2 demo instance with realistic medical data",
+            text_search_config="english",
         )
         cls.DATASOURCE_CONNECTION_DHIS2_PLAY = Dhis2Connector.objects.create(
             datasource=cls.DATASOURCE_DHIS2_PLAY,

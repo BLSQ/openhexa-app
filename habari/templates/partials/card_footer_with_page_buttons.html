@@ -35,7 +35,7 @@
                         {{ page_number }}
                     </a>
                 {% endfor %}
-                {% if params.range.3 != params.range.4|add:1 %}
+                {% if params.range|length > 5 and params.range.3 != params.range.4|add:1 %}
                     <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
                           ...
                         </span>

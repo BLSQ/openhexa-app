@@ -248,8 +248,11 @@ class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
             "dhis2_name",
             "dhis2_short_name",
             "dhis2_description",
+            config=models.F("datasource__text_search_config"),
         )
-        search_query = SearchQuery(query)
+        search_query = SearchQuery(
+            query, config=models.F("datasource__text_search_config")
+        )
         search_rank = SearchRank(vector=search_vector, query=search_query)
         queryset = (
             self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
@@ -311,8 +314,11 @@ class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
             "dhis2_name",
             "dhis2_short_name",
             "dhis2_description",
+            config=models.F("datasource__text_search_config"),
         )
-        search_query = SearchQuery(query)
+        search_query = SearchQuery(
+            query, config=models.F("datasource__text_search_config")
+        )
         search_rank = SearchRank(vector=search_vector, query=search_query)
         queryset = (
             self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:10]
