@@ -1,4 +1,4 @@
-{% extends "partials/page_card.html" %}
+{% extends "partials/page_card_with_header.html" %}
 {% load static i18n connectors %}
 
 {% block card_header_title %}
@@ -8,8 +8,8 @@
 {% block card_header_image %}
     {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
-         alt="{{ datasource.datasource_type_label }}">
+         src="{% static connector_static_dir|add:"img/symbol.svg" %}"
+         alt="{{ datasource.get_datasource_type_display }}">
 {% endblock %}
 
 {% block card_header_description %}
@@ -72,7 +72,7 @@
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {{ datasource.owner.name }}&nbsp;
-                <span class="text-gray-500">({{ datasource.owner.organization_type_label }})</span>
+                <span class="text-gray-500">({{ datasource.owner.get_organization_type_display }})</span>
                 {% if datasource.owner.url %}
                     <br/>
                     <a href="{{ datasource.owner.url }}"

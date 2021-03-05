@@ -2,29 +2,29 @@
 
 {% connector_static_dir datasource as connector_static_dir %}
 {% connector_app_label datasource as connector_app_label %}
-{% url connector_app_label|add:':datasource_detail' datasource.id as detail_url %}
+{% url connector_app_label|add:':datasource_detail' datasource.pk as detail_url %}
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
         <a class="flex items-center" href="{{ detail_url }}">
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
-                         src="{% static connector_static_dir|add:"img/datasource_symbol.png" %}"
-                         alt="{{ datasource.datasource_type_label }}">
+                         src="{% static connector_static_dir|add:"img/symbol.svg" %}"
+                         alt="{{ datasource.get_datasource_type_display }}">
                 </span>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ datasource.name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource.datasource_type_label }}
+                    {{ datasource.get_datasource_type_display }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900">{{ datasource.owner.display_name|default:"-" }}</div>
-        <div class="text-sm text-gray-500">{{ datasource.owner.organization_type_label }}</div>
+        <div class="text-sm text-gray-500">{{ datasource.owner.get_organization_type_display }}</div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900 flex items-center align-center">

@@ -14,3 +14,7 @@ class Dhis2ConnectorConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "dhis2"
+
+    @property
+    def connector_class_name(self):
+        return "Dhis2Connector"

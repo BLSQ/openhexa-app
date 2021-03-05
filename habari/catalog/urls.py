@@ -11,4 +11,6 @@ urlpatterns = [
         views.datasource_sync,
         name="datasource_sync",
     ),
+    path("quick-search", views.quick_search, name="quick_search"),
+    path("search", views.search, name="search"),
 ]

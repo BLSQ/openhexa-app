@@ -2,22 +2,16 @@
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'dhis2connector:datasource_detail' datasource.id %}">
+        <a class="flex items-center" href="{% url 'dhis2connector:data_element_detail' datasource.pk item.pk %}">
             <div class="text-gray-400">
-                {% if item.dhis2_domain_type == "AGGREGATE" %}
-                    {% include "partials/icons/chart_bar.html" %}
-                {% elif item.dhis2_domain_type == "TRACKER" %}
-                    {% include "partials/icons/user_circle.html" %}
-                {% else%}
-                    {% include "partials/icons/exclamation.html" %}
-                {% endif %}
+                {% include "dhis2connector/partials/data_element_domain_type_icon.html" with data_element=item %}
             </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.dhis2_domain_type_label }}
+                    {{ item.get_dhis2_domain_type_display }}
                 </span>
             </span>
         </a>
@@ -26,8 +20,8 @@
         {{ item.code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.dhis2_value_type_label }}</div>
-        <div class="text-sm text-gray-500">{{ item.dhis2_aggregation_type_label }}</div>
+        <div class="text-sm text-gray-900">{{ item.get_dhis2_value_type_display }}</div>
+        <div class="text-sm text-gray-500">{{ item.get_dhis2_aggregation_type_display }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}

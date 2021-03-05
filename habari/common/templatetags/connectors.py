@@ -9,7 +9,7 @@ register = template.Library()
 def connector_app_label(datasource):
     """Returns the app label"""
 
-    connector_app_config = get_connector_app_config(datasource.datasource_type)
+    connector_app_config = get_connector_app_config(datasource)
 
     return connector_app_config.label
 
@@ -18,7 +18,7 @@ def connector_app_label(datasource):
 def connector_template_dir(datasource):
     """Returns the template dir of a connector app (see connector_apps directory) for the provided datasource"""
 
-    connector_app_config = get_connector_app_config(datasource.datasource_type)
+    connector_app_config = get_connector_app_config(datasource)
 
     return f"{connector_app_config.label}/"
 
@@ -27,6 +27,6 @@ def connector_template_dir(datasource):
 def connector_static_dir(datasource):
     """Returns the static dir of a connector app (see connector_apps directory) for the provided datasource"""
 
-    connector_app_config = get_connector_app_config(datasource.datasource_type)
+    connector_app_config = get_connector_app_config(datasource)
 
     return f"{connector_app_config.label}/"

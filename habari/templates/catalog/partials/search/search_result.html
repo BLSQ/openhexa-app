@@ -1,0 +1,48 @@
+{% load i18n %}
+
+<li>
+    <a href="{{ result.detail_url }}" class="block hover:bg-gray-50">
+        <div class="flex items-center px-4 py-4 sm:px-6">
+            <div class="min-w-0 flex-1 flex items-center">
+                <div class="flex-shrink-0">
+                    <img class="w-5 " src="{{ result.symbol }}">
+                </div>
+                <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
+                    <div>
+                        <p>
+                            <span class="text-sm font-medium text-blue-600 truncate">{{ result.title }}</span>
+                            <span class="ml-2 text-xs text-gray-300">{{ result.rank }}</span>
+                        </p>
+                        <p class="mt-2 flex items-center text-sm text-gray-500">
+                            {{ result.label }}
+                        </p>
+                    </div>
+                    <div class="hidden md:block">
+                        <div>
+                            <p class="text-sm text-gray-900">
+                                {{ result.origin }}
+                            </p>
+                            <p class="mt-2 text-sm text-gray-500">
+                                {{ result.updated_at|timesince }} {% trans "ago" %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- This example requires Tailwind CSS v2.0+ -->
+            <div class="relative z-0 inline-flex shadow-sm rounded-md">
+                <button type="button"
+                        class="relative inline-flex items-center p-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!-- Heroicon name: solid/bookmark -->
+                    {% include "partials/icons/external_link.html" with width=4 height=4 %}
+                    <span class="ml-2">Extract</span>
+                </button>
+                <button type="button"
+                        class="-ml-px relative inline-flex items-center p-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <span class="mr-2">Details</span>
+                    {% include "partials/icons/eye.html" with width=4 height=4 %}
+                </button>
+            </div>
+        </div>
+    </a>
+</li>

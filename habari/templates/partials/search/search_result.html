@@ -1,0 +1,38 @@
+<li class="py-4 px-4 sm:px-6 hover:bg-gray-50">
+    <a :href="result.detail_url" class="block">
+        <div class="flex items-center">
+            <div class="min-w-0 flex-1 flex items-center">
+                <div class="flex-shrink-0">
+                    <img class="w-5 " :src="result.symbol">
+                </div>
+                <div class="flex flex-col min-w-0 flex-1 px-4">
+                    <p>
+                        <span class="text-sm font-medium text-blue-600 truncate" x-text="result.title"></span>
+                        <span class="ml-2 text-xs text-gray-300" x-text="`#${result.rank}`"></span>
+                    </p>
+                    <div class="flex">
+                        <p class="mt-2 flex items-center text-xs text-gray-500" x-text="result.label"></p>
+                        <p class="ml-4 mt-2 flex items-center text-xs text-gray-500">
+                            {% include "partials/icons/database.html" %}
+                            <span class="ml-1" x-text="result.origin"></span>
+                        </p>
+                        <p class="ml-4 mt-2 flex items-center text-xs text-gray-500"x-text="result.updated_at"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="relative z-0 inline-flex shadow-sm rounded-md">
+                <button type="button"
+                        class="relative inline-flex items-center p-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <!-- Heroicon name: solid/bookmark -->
+                    {% include "partials/icons/external_link.html" with width=4 height=4 %}
+                    <span class="ml-2">Extract</span>
+                </button>
+                <button type="button"
+                        class="-ml-px relative inline-flex items-center p-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    <span class="mr-2">Details</span>
+                    {% include "partials/icons/eye.html" with width=4 height=4 %}
+                </button>
+            </div>
+        </div>
+    </a>
+</li>

@@ -8,7 +8,7 @@
     {% else %}
         <span>{% translate "Never synced" %}</span>
     {% endif %}
-    <form class="ml-2" action="{% url 'catalog:datasource_sync' datasource.id %}" method="post">
+    <form class="ml-2" action="{% url 'catalog:datasource_sync' datasource.pk %}" method="post">
         {% csrf_token %}
         <button type="submit"
                 class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -17,7 +17,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
-            <span class="invisible">{% translate "Sync" %}</span>
+            <span class="sr-only">{% translate "Sync" %}</span>
         </button>
     </form>
 </div>

@@ -1,0 +1,9 @@
+{% extends "layouts/page.html" %}
+{% load connectors %}
+
+{% block page_title %}{{ data_element.display_name }}{% endblock %}
+
+{% block page_content %}
+    {% include "dhis2connector/partials/data_element_card.html" %}
+    {% include "dhis2connector/partials/data_element_feed_section.html" %}
+{% endblock %}

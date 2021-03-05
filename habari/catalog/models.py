@@ -1,12 +1,23 @@
+from django.conf import settings
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from functools import lru_cache
 
-from habari.catalog.connectors import get_connector_app_configs
-from habari.common.models import Base, DynamicTextChoices
+from habari.catalog.connectors import (
+    get_connector_app_configs,
+    get_connector_app_config,
+)
+from habari.common.models import (
+    Base,
+    DynamicTextChoices,
+    PostgresTextSearchConfigField,
+)
+from habari.common.search import SearchResult
 
 
 class DatasourceType(DynamicTextChoices):
@@ -55,9 +66,52 @@ class Organization(Content):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
 
+
+class DatasourceSearchResult(SearchResult):
     @property
-    def organization_type_label(self):
-        return OrganizationType[self.organization_type].label
+    def result_type(self):
+        return "datasource"
+
+    @property
+    def title(self):
+        return self.model.name
+
+    @property
+    def label(self):
+        return _("Datasource")
+
+    @property
+    def origin(self):
+        return self.model.name
+
+    @property
+    def detail_url(self):
+        app_config = get_connector_app_config(self.model)
+
+        return reverse(f"{app_config.label}:datasource_detail", args=[self.model.pk])
+
+    @property
+    def updated_at(self):
+        return self.model.updated_at
+
+    @property
+    def symbol(self):
+        return f"{settings.STATIC_URL}img/icons/database.svg"
+
+
+class DatasourceQuerySet(models.QuerySet):
+    def search(self, query, *, limit=10, search_type=None):
+        if search_type is not None and search_type != "datasource":
+            return []
+
+        search_vector = SearchVector("name", "short_name", "description", "countries")
+        search_query = SearchQuery(query)
+        search_rank = SearchRank(vector=search_vector, query=search_query)
+        queryset = (
+            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
+        )
+
+        return [DatasourceSearchResult(datasource) for datasource in queryset]
 
 
 class Datasource(Content):
@@ -73,10 +127,11 @@ class Datasource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    areas = models.ManyToManyField("catalog.Area", blank=True)
+    themes = models.ManyToManyField("catalog.Theme", blank=True)
+    text_search_config = PostgresTextSearchConfigField()
 
-    @property
-    def datasource_type_label(self):
-        return DatasourceType[self.datasource_type].label
+    objects = DatasourceQuerySet.as_manager()
 
     def sync(self):
         """Sync the datasource using its connector"""
@@ -115,6 +170,11 @@ class Theme(Content):
     pass
 
 
+class ConnectorQuerySet(models.QuerySet):
+    def search(self, query):
+        return []
+
+
 class Connector(Base):
     class Meta:
         abstract = True
@@ -133,12 +193,8 @@ class ExternalContent(Base):
         "catalog.Datasource",
         on_delete=models.CASCADE,
     )
-    area = models.ForeignKey(
-        "catalog.Area", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    theme = models.ForeignKey(
-        "catalog.Theme", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    areas = models.ManyToManyField("catalog.Area", blank=True)
+    themes = models.ManyToManyField("catalog.Theme", blank=True)
 
     @property
     def display_name(self):

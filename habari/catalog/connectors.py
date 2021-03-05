@@ -11,14 +11,14 @@ def get_connector_app_configs():
     ]
 
 
-def get_connector_app_config(datasource_type):
+def get_connector_app_config(datasource):
     """Find the connector app config associated with a specific datasource type"""
 
     try:
         return next(
             app_config
             for app_config in get_connector_app_configs()
-            if app_config.datasource_type == datasource_type
+            if app_config.datasource_type == datasource.datasource_type
         )
     except StopIteration:
         return None

@@ -84,13 +84,37 @@ def data_element_list(request, datasource_id):
     )
 
 
+def data_element_detail(request, datasource_id, data_element_id):
+    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    data_element = get_object_or_404(
+        datasource.dhis2dataelement_set, pk=data_element_id
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
+        (_("Data Elements"), "dhis2connector:data_element_list", datasource_id),
+        (data_element.display_name,),
+    ]
+
+    return render(
+        request,
+        "dhis2connector/data_element_detail.html",
+        {
+            "datasource": datasource,
+            "data_element": data_element,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
 def indicator_list(request, datasource_id):
     datasource = get_object_or_404(Datasource, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
         (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
-        ("Indicators",),
+        (_("Indicators"),),
     ]
 
     return render(
@@ -112,6 +136,28 @@ def indicator_list(request, datasource_id):
                 item_name=_("indicator"),
                 item_template="dhis2connector/partials/indicator_list_item.html",
             ),
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def indicator_detail(request, datasource_id, indicator_id):
+    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    indicator = get_object_or_404(datasource.dhis2indicator_set, pk=indicator_id)
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (datasource.display_name, "dhis2connector:datasource_detail", datasource_id),
+        (_("Indicators"), "dhis2connector:indicator_list", datasource_id),
+        (indicator.display_name,),
+    ]
+
+    return render(
+        request,
+        "dhis2connector/indicator_detail.html",
+        {
+            "datasource": datasource,
+            "indicator": indicator,
             "breadcrumbs": breadcrumbs,
         },
     )

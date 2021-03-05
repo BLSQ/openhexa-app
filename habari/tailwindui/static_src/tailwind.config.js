@@ -1,7 +1,7 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 
 module.exports = {
-    purge: [],
+    purge: [],  // TODO: https://github.com/timonweb/django-tailwind#purgecss-setup
     darkMode: false, // or 'media' or 'class'
     theme: {
         extend: {

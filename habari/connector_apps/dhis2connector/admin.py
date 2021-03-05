@@ -33,7 +33,7 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
         "dhis2_aggregation_type",
     )
     list_filter = ("datasource__name",)
-    search_fields = ["name", "short_name", "external_id", "dhis2_code"]
+    search_fields = ["dhis2_name", "dhis2_short_name", "external_id", "dhis2_code"]
 
 
 @admin.register(Dhis2IndicatorType)
@@ -54,3 +54,5 @@ class Dhis2IndicatorAdmin(admin.ModelAdmin):
         "external_id",
         "dhis2_indicator_type",
     )
+    list_filter = ("datasource__name",)
+    search_fields = ["dhis2_name", "dhis2_short_name", "external_id", "dhis2_code"]

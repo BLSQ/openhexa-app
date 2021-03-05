@@ -16,7 +16,7 @@ class Base(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return str(self.id)
+        return str(self.pk)
 
 
 class DynamicChoicesMeta(ChoicesMeta):
@@ -77,4 +77,18 @@ class LocaleField(models.CharField):
     def __init__(self, *args, **kwargs):
         kwargs["max_length"] = 7  # Some exceptions to the 5 chars limit in LANG_INFO
         kwargs["choices"] = Locale.choices
+        super().__init__(*args, **kwargs)
+
+
+class PostgresTextSearchConfigField(models.CharField):
+    description = "A Postgres text search config value (see pg_ts_config)"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 100
+        kwargs["choices"] = [
+            ("simple", "simple"),
+            ("french", "french"),
+            ("english", "english"),
+        ]
+        kwargs["default"] = "simple"
         super().__init__(*args, **kwargs)

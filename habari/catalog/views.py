@@ -1,8 +1,10 @@
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Datasource
+from .search import perform_search
 
 
 def index(request):
@@ -29,3 +31,27 @@ def datasource_sync(request, datasource_id):
         messages.error(request, e, extra_tags="red")
 
     return redirect(request.META.get("HTTP_REFERER"))
+
+
+def quick_search(request):
+    results = perform_search(request.GET.get("query", ""))
+
+    return JsonResponse({"results": [result.to_dict() for result in results]})
+
+
+def search(request):
+    query = request.POST.get("query", "")
+    results = perform_search(query, limit=100)
+
+    return render(
+        request,
+        "catalog/search.html",
+        {
+            "query": query,
+            "results": results,
+            "breadcrumbs": [
+                (_("Catalog"), "catalog:index"),
+                (_("Search"),),
+            ],
+        },
+    )

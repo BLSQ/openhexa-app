@@ -7,6 +7,6 @@
     <img
         class="w-screen"
         src="{% static 'img/fixtures/jupyterlab.png' %}"
-        alt="{{ datasource.datasource_type_label }}"
+        alt="{{ datasource.get_datasource_type_display }}"
     >
 {% endblock %}

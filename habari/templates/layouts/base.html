@@ -8,12 +8,19 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>OpenHexa | {% block page_title %}{% translate "Untitled page" %}{% endblock %}</title>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <!-- The following snippet is used to mask AlpineJS cloaked content on page load -->
+    <style type="text/css">
+        [x-cloak] {
+            display: none;
+        }
+    </style>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <script src="{% static 'js/alpine.js' %}" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/body-scroll-lock@3.1.5/lib/bodyScrollLock.min.js" defer></script>
 </head>
 
 <body>
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-gray-100 pb-8">
     {% block body %}{% endblock %}
 </div>
 </body>
