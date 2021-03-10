@@ -2,7 +2,7 @@ from django import test
 from django.conf import settings
 from django.urls import reverse
 
-from habari.auth.models import User
+from habari.user_management.models import User
 
 
 class AuthTest(test.TestCase):

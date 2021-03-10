@@ -5,7 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django_countries.fields import CountryField
 from functools import lru_cache
 
 from habari.catalog.connectors import (
@@ -16,6 +15,7 @@ from habari.common.models import (
     Base,
     DynamicTextChoices,
     PostgresTextSearchConfigField,
+    Descriptive,
 )
 from habari.common.search import SearchResult
 
@@ -33,38 +33,6 @@ class DatasourceType(DynamicTextChoices):
                 )
 
         return choices
-
-
-class Content(Base):
-    class Meta:
-        abstract = True
-
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-
-    @property
-    def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
-
-    def __str__(self):
-        return self.display_name
-
-
-class OrganizationType(models.TextChoices):
-    CORPORATE = "CORPORATE", _("Corporate")
-    ACADEMIC = "ACADEMIC", _("Academic")
-    GOVERNMENT = "GOVERNMENT", _("Government")
-    NGO = "NGO", _("Non-governmental")
-
-
-class Organization(Content):
-    organization_type = models.CharField(
-        choices=OrganizationType.choices, max_length=100
-    )
-    url = models.URLField(blank=True)
-    contact_info = models.TextField(blank=True)
 
 
 class DatasourceSearchResult(SearchResult):
@@ -114,12 +82,12 @@ class DatasourceQuerySet(models.QuerySet):
         return [DatasourceSearchResult(datasource) for datasource in queryset]
 
 
-class Datasource(Content):
+class Datasource(Descriptive):
     class NoConnector(Exception):
         pass
 
     owner = models.ForeignKey(
-        "Organization", null=True, blank=True, on_delete=models.SET_NULL
+        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
     datasource_type = models.CharField(choices=DatasourceType.choices, max_length=100)
     url = models.URLField(blank=True)
@@ -127,8 +95,6 @@ class Datasource(Content):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     last_synced_at = models.DateTimeField(null=True, blank=True)
-    areas = models.ManyToManyField("catalog.Area", blank=True)
-    themes = models.ManyToManyField("catalog.Theme", blank=True)
     text_search_config = PostgresTextSearchConfigField()
 
     objects = DatasourceQuerySet.as_manager()
@@ -162,14 +128,6 @@ class Datasource(Content):
         )
 
 
-class Area(Content):
-    pass
-
-
-class Theme(Content):
-    pass
-
-
 class ConnectorQuerySet(models.QuerySet):
     def search(self, query):
         return []
@@ -193,8 +151,6 @@ class ExternalContent(Base):
         "catalog.Datasource",
         on_delete=models.CASCADE,
     )
-    areas = models.ManyToManyField("catalog.Area", blank=True)
-    themes = models.ManyToManyField("catalog.Theme", blank=True)
 
     @property
     def display_name(self):

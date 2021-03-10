@@ -3,6 +3,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import uuid
 
+from habari.common.models import Descriptive
+
 
 class UserManager(BaseUserManager):
     def create_superuser(self, email=None, password=None, **extra_fields):
@@ -28,3 +30,18 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
 
     objects = UserManager()
+
+
+class OrganizationType(models.TextChoices):
+    CORPORATE = "CORPORATE", _("Corporate")
+    ACADEMIC = "ACADEMIC", _("Academic")
+    GOVERNMENT = "GOVERNMENT", _("Government")
+    NGO = "NGO", _("Non-governmental")
+
+
+class Organization(Descriptive):
+    organization_type = models.CharField(
+        choices=OrganizationType.choices, max_length=100
+    )
+    url = models.URLField(blank=True)
+    contact_info = models.TextField(blank=True)

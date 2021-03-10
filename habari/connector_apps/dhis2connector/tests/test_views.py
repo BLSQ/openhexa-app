@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from habari.auth.models import User
+from habari.user_management.models import User
 from habari.catalog.models import Datasource
 from ..models import Dhis2Connector, Dhis2DataElement, Dhis2Indicator
 

@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.http import JsonResponse
 from django.urls import reverse
 
-from habari.auth.models import User
+from habari.user_management.models import User
 
 
 class CatalogTest(test.TestCase):

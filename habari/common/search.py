@@ -58,14 +58,6 @@ class SearchResult:
             "Each SearchResult subclass should implement a symbol() property"
         )
 
-    @property
-    def areas(self):
-        return list(self.model.areas.all())
-
-    @property
-    def themes(self):
-        return list(self.model.themes.all())
-
     def to_dict(self):
         return {
             "id": self.object_id,
@@ -77,22 +69,4 @@ class SearchResult:
             "detail_url": self.detail_url,
             "updated_at": f"{timesince(self.updated_at)} {_('ago')}",
             "symbol": self.symbol,
-            "areas": [
-                {
-                    "id": area.pk,
-                    "name": area.name,
-                    "short_name": area.short_name,
-                    "description": area.description,
-                }
-                for area in self.areas
-            ],
-            "themes": [
-                {
-                    "id": theme.pk,
-                    "name": theme.name,
-                    "short_name": theme.short_name,
-                    "description": theme.description,
-                }
-                for theme in self.themes
-            ],
         }

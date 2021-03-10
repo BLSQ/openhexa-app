@@ -22,7 +22,7 @@ from habari.catalog.connectors import get_connector_app_configs
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("habari.dashboard.urls", namespace="dashboard")),
-    path("auth/", include("habari.auth.urls", namespace="auth")),
+    path("auth/", include("habari.user_management.urls", namespace="user_management")),
     path("catalog/", include("habari.catalog.urls", namespace="catalog")),
     path("notebooks/", include("habari.notebooks.urls", namespace="notebooks")),
 ]

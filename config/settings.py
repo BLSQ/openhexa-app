@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django_countries",
     "tailwind",
     "habari.common.apps.CommonConfig",
-    "habari.auth.apps.AuthConfig",
+    "habari.user_management.apps.UserManagementConfig",
     "habari.dashboard.apps.DashboardConfig",
     "habari.catalog.apps.CatalogConfig",
     "habari.notebooks.apps.NotebooksConfig",
@@ -57,7 +57,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "habari.auth.middleware.login_required_middleware",
+    "habari.user_management.middleware.login_required_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -102,7 +102,7 @@ LOGIN_REDIRECT_URL = "/"
 
 # Custom user model
 # https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#substituting-a-custom-user-model
-AUTH_USER_MODEL = "habari_auth.User"
+AUTH_USER_MODEL = "user_management.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

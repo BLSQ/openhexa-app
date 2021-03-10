@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Area, Datasource, Organization, Theme
+from .models import Datasource
+from ..user_management.models import Organization
 
 
 def country_list(obj):
@@ -17,13 +18,3 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(Datasource)
 class DatasourceAdmin(admin.ModelAdmin):
     list_display = ("display_name", "datasource_type", "owner", "public", country_list)
-
-
-@admin.register(Area)
-class AreaAdmin(admin.ModelAdmin):
-    list_display = ("display_name",)
-
-
-@admin.register(Theme)
-class ThemeAdmin(admin.ModelAdmin):
-    list_display = ("display_name",)

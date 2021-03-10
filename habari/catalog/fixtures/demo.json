@@ -1,6 +1,6 @@
 [
   {
-    "model": "catalog.organization",
+    "model": "user_management.organization",
     "pk": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
     "fields": {
       "created_at": "2021-01-25T16:01:02.982Z",
@@ -15,7 +15,7 @@
     }
   },
   {
-    "model": "catalog.organization",
+    "model": "user_management.organization",
     "pk": "a6dfd796-7d2a-4857-9638-e35d88243132",
     "fields": {
       "created_at": "2021-01-25T15:57:32.124Z",
@@ -41,72 +41,12 @@
       "countries": "SL",
       "owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
       "datasource_type": "DHIS2",
-      "test_search_config": "english",
+      "text_search_config": "english",
       "url": "https://play.dhis2.org",
       "active_from": null,
       "active_to": null,
       "public": true,
       "last_synced_at": null
-    }
-  },
-  {
-    "model": "catalog.area",
-    "pk": "0393d4d1-7f7e-4b30-9523-e98a466cdf67",
-    "fields": {
-      "created_at": "2021-01-25T16:02:35.484Z",
-      "updated_at": "2021-01-25T16:02:35.484Z",
-      "name": "Human Resources",
-      "short_name": "HR",
-      "description": "",
-      "countries": ""
-    }
-  },
-  {
-    "model": "catalog.area",
-    "pk": "1d817b8f-6d2d-4042-91ab-0d7c7daddef0",
-    "fields": {
-      "created_at": "2021-01-25T16:02:47.221Z",
-      "updated_at": "2021-01-25T16:02:47.221Z",
-      "name": "Treatment",
-      "short_name": "",
-      "description": "",
-      "countries": ""
-    }
-  },
-  {
-    "model": "catalog.area",
-    "pk": "edf65ac1-559a-49b6-8f1a-57473e095cc2",
-    "fields": {
-      "created_at": "2021-01-25T16:02:41.807Z",
-      "updated_at": "2021-01-25T16:02:41.807Z",
-      "name": "Logistics",
-      "short_name": "",
-      "description": "",
-      "countries": ""
-    }
-  },
-  {
-    "model": "catalog.theme",
-    "pk": "94cc3e1d-3755-482c-83c0-545f9ae25469",
-    "fields": {
-      "created_at": "2021-01-25T16:02:14.684Z",
-      "updated_at": "2021-01-25T16:02:14.684Z",
-      "name": "Human Immunodeficiency Viruses",
-      "short_name": "HIV",
-      "description": "",
-      "countries": ""
-    }
-  },
-  {
-    "model": "catalog.theme",
-    "pk": "a21df3c4-5688-4c91-8e8a-2a259bdb0ef1",
-    "fields": {
-      "created_at": "2021-01-25T16:02:19.694Z",
-      "updated_at": "2021-01-25T16:02:19.694Z",
-      "name": "Malaria",
-      "short_name": "",
-      "description": "",
-      "countries": ""
     }
   }
 ]
