@@ -3,7 +3,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import uuid
 
-from habari.common.models import Descriptive
+from django_countries.fields import CountryField
+
+from habari.common.models import Base
 
 
 class UserManager(BaseUserManager):
@@ -39,9 +41,13 @@ class OrganizationType(models.TextChoices):
     NGO = "NGO", _("Non-governmental")
 
 
-class Organization(Descriptive):
+class Organization(Base):
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
     )
+    name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)

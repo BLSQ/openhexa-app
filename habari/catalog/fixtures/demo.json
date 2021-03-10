@@ -28,25 +28,5 @@
       "url": "https://bluesquarehub.com",
       "contact_info": "Grégoire Lurton (Data Science Lead)\r\nglurton@bluesquarehub.com"
     }
-  },
-  {
-    "model": "catalog.datasource",
-    "pk": "d4938bd1-5830-42f5-b4cf-1b98e9b998f7",
-    "fields": {
-      "created_at": "2021-01-25T15:55:37.390Z",
-      "updated_at": "2021-01-25T16:44:00.154Z",
-      "name": "DHIS2 Play",
-      "short_name": "Play",
-      "description": "The DHIS2 official demo instance",
-      "countries": "SL",
-      "owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
-      "datasource_type": "DHIS2",
-      "text_search_config": "english",
-      "url": "https://play.dhis2.org",
-      "active_from": null,
-      "active_to": null,
-      "public": true,
-      "last_synced_at": null
-    }
   }
 ]

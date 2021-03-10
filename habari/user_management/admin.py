@@ -16,4 +16,4 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "organization_type", country_list)
+    list_display = ("name", "short_name", "organization_type", country_list)

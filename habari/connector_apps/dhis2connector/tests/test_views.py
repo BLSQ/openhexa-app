@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from habari.user_management.models import User
 from habari.catalog.models import Datasource
-from ..models import Dhis2Connector, Dhis2DataElement, Dhis2Indicator
+from ..models import Dhis2Instance, Dhis2DataElement, Dhis2Indicator
 
 
 class CatalogTest(test.TestCase):
@@ -16,22 +16,13 @@ class CatalogTest(test.TestCase):
             "bjorn@bluesquarehub.com",
             "regular",
         )
-
-        cls.DATASOURCE_DHIS2_PLAY = Datasource.objects.create(
-            datasource_type="DHIS2",
-            name="DHIS2 Play",
-            short_name="Play",
-            description="The official DHIS2 demo instance with realistic medical data",
-            text_search_config="english",
-        )
-        cls.DATASOURCE_CONNECTION_DHIS2_PLAY = Dhis2Connector.objects.create(
-            datasource=cls.DATASOURCE_DHIS2_PLAY,
+        cls.DHIS2_INSTANCE_PLAY = Dhis2Instance.objects.create(
             api_url="https://play.dhis2.org/demo",
             api_username="admin",
             api_password="district",
         )
         cls.DATA_ELEMENT_1 = Dhis2DataElement.objects.create(
-            datasource=cls.DATASOURCE_DHIS2_PLAY,
+            datasource=cls.DHIS2_INSTANCE_PLAY,
             external_id="O1BccPF5yci",
             dhis2_name="ANC First visit",
             dhis2_created=timezone.now(),

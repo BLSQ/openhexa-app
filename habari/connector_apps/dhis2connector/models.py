@@ -1,8 +1,5 @@
-from django.conf import settings
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 import stringcase
 
@@ -10,32 +7,18 @@ from habari.catalog.connectors import (
     DatasourceSummary,
     DatasourceSyncResult,
 )
-from habari.catalog.models import ExternalContent, Connector, ConnectorQuerySet
-from habari.common.models import Base, LocaleField
+from habari.catalog.models import Content, Datasource
+from habari.common.models import Base
 from .api import Dhis2Client
-from ...common.search import SearchResult
-from ...common.templatetags.connectors import connector_static_dir
 
 
-class Dhis2ConnectorQuerySet(ConnectorQuerySet):
-    def search(
-        self, query, *, limit=10, search_type=None
-    ):  # TODO: move elsewhere or register decorator
-        return [
-            *Dhis2DataElement.objects.search(
-                query, limit=limit, search_type=search_type
-            ),
-            *Dhis2Indicator.objects.search(query, limit=limit, search_type=search_type),
-        ]
-
-
-class Dhis2Connector(Connector):
+class Dhis2Instance(Datasource):
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
-    preferred_locale = LocaleField(default="en")
 
-    objects = Dhis2ConnectorQuerySet.as_manager()
+    def update_index(self, index):
+        super().update_index(index)
 
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
@@ -143,7 +126,15 @@ class Dhis2DataQuerySet(models.QuerySet):
         )
 
 
-class Dhis2Data(ExternalContent):
+class Dhis2Content(Content):
+    class Meta:
+        abstract = True
+        ordering = ["dhis2_name"]
+
+    dhis2_id = models.CharField(max_length=200)
+    dhis2_instance = models.ForeignKey(
+        "Dhis2Instance", null=False, on_delete=models.CASCADE
+    )
     dhis2_name = models.CharField(max_length=200)
     dhis2_short_name = models.CharField(max_length=100, blank=True)
     dhis2_description = models.TextField(blank=True)
@@ -157,10 +148,6 @@ class Dhis2Data(ExternalContent):
     @property
     def display_name(self):
         return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
-
-    class Meta:
-        abstract = True
-        ordering = ["dhis2_name"]
 
 
 class Dhis2DomainType(models.TextChoices):
@@ -212,63 +199,7 @@ class Dhis2AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class Dhis2DataElementSearchResult(SearchResult):
-    @property
-    def result_type(self):
-        return "dhis2_data_element"
-
-    @property
-    def title(self):
-        return self.model.dhis2_name
-
-    @property
-    def label(self):
-        return _("Data Element")
-
-    @property
-    def origin(self):
-        return self.model.datasource.name
-
-    @property
-    def detail_url(self):
-        return reverse(
-            "dhis2connector:data_element_detail",
-            args=[self.model.datasource.pk, self.model.pk],
-        )
-
-    @property
-    def updated_at(self):
-        return self.model.dhis2_last_updated
-
-    @property
-    def symbol(self):
-        return f"{settings.STATIC_URL}{connector_static_dir(self.model.datasource)}img/symbol.svg"
-
-
-class Dhis2DataElementQuerySet(Dhis2DataQuerySet):
-    def search(self, query, *, limit=10, search_type=None):
-        if search_type is not None and search_type != "dhis2_data_element":
-            return []
-
-        search_vector = SearchVector(
-            "external_id",
-            "dhis2_name",
-            "dhis2_short_name",
-            "dhis2_description",
-            config=models.F("datasource__text_search_config"),
-        )
-        search_query = SearchQuery(
-            query, config=models.F("datasource__text_search_config")
-        )
-        search_rank = SearchRank(vector=search_vector, query=search_query)
-        queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
-        )
-
-        return [Dhis2DataElementSearchResult(data_element) for data_element in queryset]
-
-
-class Dhis2DataElement(Dhis2Data):
+class Dhis2DataElement(Dhis2Content):
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_domain_type = models.CharField(
         choices=Dhis2DomainType.choices, max_length=100
@@ -278,75 +209,15 @@ class Dhis2DataElement(Dhis2Data):
         choices=Dhis2AggregationType.choices, max_length=100
     )
 
-    objects = Dhis2DataElementQuerySet.as_manager()
 
-
-class Dhis2IndicatorSearchResult(SearchResult):
-    @property
-    def result_type(self):
-        return "dhis2_indicator"
-
-    @property
-    def title(self):
-        return self.model.dhis2_name
-
-    @property
-    def label(self):
-        return _("Indicator")
-
-    @property
-    def origin(self):
-        return self.model.datasource.name
-
-    @property
-    def detail_url(self):
-        return reverse(
-            "dhis2connector:indicator_detail",
-            args=[self.model.datasource.pk, self.model.pk],
-        )
-
-    @property
-    def updated_at(self):
-        return self.model.dhis2_last_updated
-
-    @property
-    def symbol(self):
-        return f"{settings.STATIC_URL}{connector_static_dir(self.model.datasource)}img/symbol.svg"
-
-
-class Dhis2IndicatorQuerySet(Dhis2DataQuerySet):
-    def search(self, query, *, limit=10, search_type=None):
-        if search_type is not None and search_type != "dhis2_indicator":
-            return []
-
-        search_vector = SearchVector(
-            "external_id",
-            "dhis2_name",
-            "dhis2_short_name",
-            "dhis2_description",
-            config=models.F("datasource__text_search_config"),
-        )
-        search_query = SearchQuery(
-            query, config=models.F("datasource__text_search_config")
-        )
-        search_rank = SearchRank(vector=search_vector, query=search_query)
-        queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
-        )
-
-        return [Dhis2IndicatorSearchResult(indicator) for indicator in queryset]
-
-
-class Dhis2IndicatorType(Dhis2Data):
+class Dhis2IndicatorType(Dhis2Content):
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
 
 
-class Dhis2Indicator(Dhis2Data):
+class Dhis2Indicator(Dhis2Content):
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_indicator_type = models.ForeignKey(
         "Dhis2IndicatorType", null=True, on_delete=models.SET_NULL
     )
     dhis2_annualized = models.BooleanField()
-
-    objects = Dhis2IndicatorQuerySet.as_manager()
