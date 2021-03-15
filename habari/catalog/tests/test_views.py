@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.http import JsonResponse
 from django.urls import reverse
 
-from habari.auth.models import User
+from habari.user_management.models import User
 
 
 class CatalogTest(test.TestCase):
@@ -35,7 +35,7 @@ class CatalogTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasources"], QuerySet)
+        self.assertIsInstance(response.context["datasource_indexes"], QuerySet)
 
     def test_catalog_search_200(self):
         self.client.login(email="jane@bluesquarehub.com", password="regular")

@@ -1,0 +1,9 @@
+{% extends "layouts/page.html" %}
+
+{% block page_title %}{{ datasource.name }}{% endblock %}
+
+{% block page_content %}
+    {% include "dhis2connector/partials/datasource_card.html" %}
+    {% include "catalog/partials/summary_list.html" with params=data_elements_list_params %}
+    {% include "catalog/partials/summary_list.html" with params=indicators_list_params %}
+{% endblock %}

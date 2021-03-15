@@ -1,15 +1,15 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n connectors %}
+{% load static i18n %}
 
 {% block card_header_title %}
     {{ datasource.name }}
 {% endblock %}
 
 {% block card_header_image %}
-    {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static connector_static_dir|add:"img/symbol.svg" %}"
-         alt="{{ datasource.get_datasource_type_display }}">
+         src="{% static "dhis2connector/img/symbol.svg" %}"
+         alt="{% translate "DHIS2" %}"
+    >
 {% endblock %}
 
 {% block card_header_description %}
@@ -105,16 +105,7 @@
                 {% translate "Content" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if datasource.content_summary %}
-                    {% with de_count=datasource.content_summary.data_elements %}
-                        {{ de_count }} data element{{ de_count|pluralize }}<br/>
-                    {% endwith %}
-                    {% with di_count=datasource.content_summary.indicators %}
-                        {{ di_count }} data indicator{{ di_count|pluralize }}
-                    {% endwith %}
-                {% else %}
-                    -
-                {% endif %}
+                {{ datasource.content_summary|default:"-" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -122,7 +113,8 @@
                 {% translate "Last sync" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% include "catalog/partials/datasource_sync_info.html" %}
+                {% url "dhis2connector:datasource_sync" datasource.pk as sync_url %}
+                {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
             </dd>
         </div>
         <div class="sm:col-span-2">

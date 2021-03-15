@@ -1,15 +1,15 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n connectors %}
+{% load static i18n %}
 
 {% block card_header_title %}
     {{ indicator.dhis2_name }}
 {% endblock %}
 
 {% block card_header_image %}
-    {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static connector_static_dir|add:"img/symbol.svg" %}"
-         alt="{{ datasource.get_datasource_type_display }}">
+         src="{% static "dhis2connector/img/symbol.svg" %}"
+         alt="{% translate "DHIS2" %}"
+    >
 {% endblock %}
 
 {% block card_header_description %}
@@ -61,7 +61,7 @@
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 <div class="flex items-center align-center">
-                    {{ indicator.external_id }}
+                    {{ indicator.dhis2_id }}
                 </div>
             </dd>
         </div>
@@ -118,7 +118,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_created|date:"r" }}
+                {{ indicator.dhis2_created|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -126,7 +126,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_last_updated|date:"r" }}
+                {{ indicator.dhis2_last_updated|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">

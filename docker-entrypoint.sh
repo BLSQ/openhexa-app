@@ -20,6 +20,7 @@ show_help() {
   migrate          : run django migrations
   test             : launch django tests
   manage           : run django manage.py
+  fixtures         : migrate, create superuser, load fixtures and reindex
   bash             : run bash
 
   Any arguments passed will be forwarded to the executed command
@@ -54,6 +55,7 @@ case "$command" in
     python manage.py migrate
     python manage.py createsuperuser --no-input || true
     python manage.py loaddata demo.json
+    python manage.py reindex_catalog
   else
     echo "The \"fixtures\" command can only be executed in dev mode"
   fi

@@ -1,206 +1,235 @@
-from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from functools import lru_cache
 
-from habari.catalog.connectors import (
-    get_connector_app_configs,
-    get_connector_app_config,
-)
 from habari.common.models import (
     Base,
-    DynamicTextChoices,
     PostgresTextSearchConfigField,
+    LocaleField,
 )
-from habari.common.search import SearchResult
+from habari.common.search import locale_to_text_search_config
 
 
-class DatasourceType(DynamicTextChoices):
-    @staticmethod
-    @lru_cache
-    def build_choices():
-        choices = {}
-        for app in get_connector_app_configs():
-            if app.datasource_type is not None:
-                choices[app.datasource_type] = (
-                    app.datasource_type,
-                    _(app.datasource_type),
-                )
+class CatalogIndexType(models.TextChoices):
+    DATASOURCE = "DATASOURCE", _("Datasource")
+    CONTENT = "CONTENT ", _("Content")
 
-        return choices
+
+class CatalogIndexQuerySet(models.QuerySet):
+    def search(self, query, *, content_type=None, limit=10):
+        search_vector = SearchVector("name", "description", "countries")
+        search_query = SearchQuery(query, config=models.F("text_search_config"))
+        search_rank = SearchRank(vector=search_vector, query=search_query)
+
+        results = (
+            self.annotate(rank=search_rank)
+            .filter(rank__gt=0.01)
+            .order_by("-rank")[:limit]
+        )
+
+        if content_type is not None:
+            results = results.filter(content_type=content_type)
+
+        return results
+
+    def get_or_create_for_content(self, model, *, parent_model=None):
+        index_type = ContentType.objects.get_for_model(self.model)
+
+        try:
+            return index_type.get_object_for_this_type(object_id=model.pk)
+        except CatalogIndex.DoesNotExist:
+            model_type = ContentType.objects.get_for_model(model)
+            if parent_model is not None:
+                parent = index_type.get_object_for_this_type(object_id=parent_model.pk)
+            else:
+                parent = None
+
+            return CatalogIndex(
+                content_type=model_type,
+                object_id=model.pk,
+                index_type=model.index_type,
+                parent=parent,
+            )
+
+
+class CatalogIndex(Base):
+    class Meta:
+        verbose_name = "Catalog Index"
+        verbose_name_plural = "Catalog indexes"
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    object = GenericForeignKey("content_type", "object_id")
+    index_type = models.CharField(max_length=100, choices=CatalogIndexType.choices)
+    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
+
+    owner = models.ForeignKey(
+        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    countries = CountryField(multiple=True, blank=True)
+    url = models.URLField(blank=True)
+    content_summary = models.TextField(blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    locale = LocaleField(default="en")
+    text_search_config = PostgresTextSearchConfigField()
+
+    objects = CatalogIndexQuerySet.as_manager()
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        self.text_search_config = locale_to_text_search_config(self.locale)
+        super().save(force_insert, force_update, using, update_fields)
+
+    @property
+    def app_label(self):
+        return self.content_type.app_label
+
+    @property
+    def model_name(self):
+        return self.content_type.name
+
+    @property
+    def just_synced(self):  # TODO: move (DRY)
+        return (
+            self.last_synced_at is not None
+            and (timezone.now() - self.last_synced_at).seconds < 60
+        )
+
+    def to_dict(self):  # TODO: use serializer
+        return {
+            "id": self.id,
+            "app_label": self.content_type.app_label,
+            "model_name": self.content_type.model,
+            "object_id": self.object_id,
+            "index_type": self.index_type,
+            "parent": self.parent.pk if self.parent is not None else None,
+            "name": self.name,
+            "short_name": self.short_name,
+            "description": self.description,
+            "countries": [country.code for country in self.countries],
+            "url": self.url,
+            "last_synced_at": self.last_synced_at.isoformat()
+            if self.last_synced_at is not None
+            else None,
+        }
+
+
+class Datasource(Base):
+    class Meta:
+        abstract = True
+
+    owner = models.ForeignKey(
+        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    countries = CountryField(multiple=True, blank=True)
+    url = models.URLField(blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    active_from = models.DateTimeField(null=True, blank=True)
+    active_to = models.DateTimeField(null=True, blank=True)
+    public = models.BooleanField(default=False, verbose_name="Public dataset")
+    locale = LocaleField(default="en")
+
+    @property
+    def index_type(self):
+        return CatalogIndexType.DATASOURCE
+
+    @property
+    def display_name(self):
+        return self.short_name if self.short_name != "" else self.name
+
+    @property
+    def just_synced(self):  # TODO: move (DRY)
+        return (
+            self.last_synced_at is not None
+            and (timezone.now() - self.last_synced_at).seconds < 60
+        )
+
+    @property
+    def content_summary(self):
+        raise NotImplementedError(
+            "Each datasource model should implement a content_summary property"
+        )
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        super().save(force_insert, force_update, using, update_fields)
+        index = CatalogIndex.objects.get_or_create_for_content(self)
+        self.populate_index(index)
+        index.save()
+
+    def populate_index(self, index):
+        """Each datasource model can override this method to fine-tune indexing in catalog."""
+
+        index.owner = self.owner
+        index.name = self.name
+        index.short_name = self.short_name
+        index.description = self.description
+        index.countries = self.countries
+        index.url = self.url
+        index.content_summary = self.content_summary
+        index.last_synced_at = self.last_synced_at
+
+    def sync(self):
+        raise NotImplementedError(
+            "Each datasource model class should implement a sync() method"
+        )
 
 
 class Content(Base):
     class Meta:
         abstract = True
 
-    name = models.CharField(max_length=200)
+    owner = models.ForeignKey(
+        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    name = models.CharField(max_length=200, blank=True)
     short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
+    locale = LocaleField(default="en")
 
     @property
-    def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
-
-    def __str__(self):
-        return self.display_name
-
-
-class OrganizationType(models.TextChoices):
-    CORPORATE = "CORPORATE", _("Corporate")
-    ACADEMIC = "ACADEMIC", _("Academic")
-    GOVERNMENT = "GOVERNMENT", _("Government")
-    NGO = "NGO", _("Non-governmental")
-
-
-class Organization(Content):
-    organization_type = models.CharField(
-        choices=OrganizationType.choices, max_length=100
-    )
-    url = models.URLField(blank=True)
-    contact_info = models.TextField(blank=True)
-
-
-class DatasourceSearchResult(SearchResult):
-    @property
-    def result_type(self):
-        return "datasource"
+    def index_type(self):
+        return CatalogIndexType.CONTENT
 
     @property
-    def title(self):
-        return self.model.name
-
-    @property
-    def label(self):
-        return _("Datasource")
-
-    @property
-    def origin(self):
-        return self.model.name
-
-    @property
-    def detail_url(self):
-        app_config = get_connector_app_config(self.model)
-
-        return reverse(f"{app_config.label}:datasource_detail", args=[self.model.pk])
-
-    @property
-    def updated_at(self):
-        return self.model.updated_at
-
-    @property
-    def symbol(self):
-        return f"{settings.STATIC_URL}img/icons/database.svg"
-
-
-class DatasourceQuerySet(models.QuerySet):
-    def search(self, query, *, limit=10, search_type=None):
-        if search_type is not None and search_type != "datasource":
-            return []
-
-        search_vector = SearchVector("name", "short_name", "description", "countries")
-        search_query = SearchQuery(query)
-        search_rank = SearchRank(vector=search_vector, query=search_query)
-        queryset = (
-            self.annotate(rank=search_rank).filter(rank__gt=0).order_by("-rank")[:limit]
+    def datasource(self):
+        raise NotImplementedError(
+            "Each content model subclass should provide a datasource() property that proxies the foreign key "
+            "to the content datasource."
         )
 
-        return [DatasourceSearchResult(datasource) for datasource in queryset]
-
-
-class Datasource(Content):
-    class NoConnector(Exception):
-        pass
-
-    owner = models.ForeignKey(
-        "Organization", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    datasource_type = models.CharField(choices=DatasourceType.choices, max_length=100)
-    url = models.URLField(blank=True)
-    active_from = models.DateTimeField(null=True, blank=True)
-    active_to = models.DateTimeField(null=True, blank=True)
-    public = models.BooleanField(default=False, verbose_name="Public dataset")
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    areas = models.ManyToManyField("catalog.Area", blank=True)
-    themes = models.ManyToManyField("catalog.Theme", blank=True)
-    text_search_config = PostgresTextSearchConfigField()
-
-    objects = DatasourceQuerySet.as_manager()
-
-    def sync(self):
-        """Sync the datasource using its connector"""
-
-        try:
-            sync_result = self.connector.sync()
-            self.last_synced_at = timezone.now()
-            self.save()
-
-            return sync_result
-        except ObjectDoesNotExist:
-            raise Datasource.NoConnector(
-                f'The datasource "{self.display_name}" has no connection'
-            )
-
     @property
-    def content_summary(self):
-        try:
-            return self.connector.get_content_summary()
-        except ObjectDoesNotExist:
-            return None
-
-    @property
-    def just_synced(self):
+    def just_synced(self):  # TODO: move (DRY)
         return (
             self.last_synced_at is not None
             and (timezone.now() - self.last_synced_at).seconds < 60
         )
 
-
-class Area(Content):
-    pass
-
-
-class Theme(Content):
-    pass
-
-
-class ConnectorQuerySet(models.QuerySet):
-    def search(self, query):
-        return []
-
-
-class Connector(Base):
-    class Meta:
-        abstract = True
-
-    datasource = models.OneToOneField(
-        "catalog.Datasource", on_delete=models.CASCADE, related_name="connector"
-    )
-
-
-class ExternalContent(Base):
-    class Meta:
-        abstract = True
-
-    external_id = models.CharField(max_length=100, unique=True)
-    datasource = models.ForeignKey(
-        "catalog.Datasource",
-        on_delete=models.CASCADE,
-    )
-    areas = models.ManyToManyField("catalog.Area", blank=True)
-    themes = models.ManyToManyField("catalog.Theme", blank=True)
-
-    @property
-    def display_name(self):
-        raise NotImplementedError(
-            f"Every catalog external content class should implement display_name()"
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        super().save(force_insert, force_update, using, update_fields)
+        index = CatalogIndex.objects.get_or_create_for_content(
+            self, parent_model=self.datasource
         )
+        self.populate_index(index)
+        index.save()
 
-    def __str__(self):
-        return self.display_name
+    def populate_index(self, index):
+        """Each concrete content model should override this method to handle indexing in catalog."""
+
+        pass

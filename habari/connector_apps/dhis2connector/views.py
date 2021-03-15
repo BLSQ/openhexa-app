@@ -1,12 +1,14 @@
-from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from habari.catalog.lists import build_summary_list_params, build_paginated_list_params
-from habari.catalog.models import Datasource
+from habari.catalog.models import CatalogIndex, CatalogIndexType
+from habari.connector_apps.dhis2connector.models import Dhis2Instance
 
 
 def datasource_detail(request, datasource_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -15,7 +17,7 @@ def datasource_detail(request, datasource_id):
 
     return render(
         request,
-        "catalog/datasource_detail.html",
+        "dhis2connector/datasource_detail.html",
         {
             "datasource": datasource,
             "data_elements_list_params": build_summary_list_params(
@@ -52,7 +54,7 @@ def datasource_detail(request, datasource_id):
 
 
 def data_element_list(request, datasource_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -85,7 +87,7 @@ def data_element_list(request, datasource_id):
 
 
 def data_element_detail(request, datasource_id, data_element_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
     data_element = get_object_or_404(
         datasource.dhis2dataelement_set, pk=data_element_id
     )
@@ -109,7 +111,7 @@ def data_element_detail(request, datasource_id, data_element_id):
 
 
 def indicator_list(request, datasource_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -142,7 +144,7 @@ def indicator_list(request, datasource_id):
 
 
 def indicator_detail(request, datasource_id, indicator_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
     indicator = get_object_or_404(datasource.dhis2indicator_set, pk=indicator_id)
 
     breadcrumbs = [
@@ -161,3 +163,11 @@ def indicator_detail(request, datasource_id, indicator_id):
             "breadcrumbs": breadcrumbs,
         },
     )
+
+
+def datasource_sync(request, datasource_id):
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    sync_result = datasource.sync()
+    messages.success(request, sync_result, extra_tags="green")
+
+    return redirect(request.META.get("HTTP_REFERER"))

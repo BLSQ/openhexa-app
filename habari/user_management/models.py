@@ -3,6 +3,10 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 import uuid
 
+from django_countries.fields import CountryField
+
+from habari.common.models import Base
+
 
 class UserManager(BaseUserManager):
     def create_superuser(self, email=None, password=None, **extra_fields):
@@ -28,3 +32,25 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
 
     objects = UserManager()
+
+
+class OrganizationType(models.TextChoices):
+    CORPORATE = "CORPORATE", _("Corporate")
+    ACADEMIC = "ACADEMIC", _("Academic")
+    GOVERNMENT = "GOVERNMENT", _("Government")
+    NGO = "NGO", _("Non-governmental")
+
+
+class Organization(Base):
+    organization_type = models.CharField(
+        choices=OrganizationType.choices, max_length=100
+    )
+    name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    countries = CountryField(multiple=True, blank=True)
+    url = models.URLField(blank=True)
+    contact_info = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Organization: {self.name}"

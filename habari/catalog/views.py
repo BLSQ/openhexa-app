@@ -3,34 +3,24 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Datasource
+from .models import CatalogIndex, CatalogIndexType
 from .search import perform_search
 
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
-    datasources = Datasource.objects.all()
+    datasource_indexes = CatalogIndex.objects.filter(
+        index_type=CatalogIndexType.DATASOURCE.value
+    )
 
     return render(
         request,
         "catalog/index.html",
         {
-            "datasources": datasources,
+            "datasource_indexes": datasource_indexes,
             "breadcrumbs": breadcrumbs,
         },
     )
-
-
-def datasource_sync(request, datasource_id):
-    datasource = get_object_or_404(Datasource, pk=datasource_id)
-
-    try:
-        sync_result = datasource.sync()
-        messages.success(request, sync_result, extra_tags="green")
-    except Datasource.NoConnector as e:
-        messages.error(request, e, extra_tags="red")
-
-    return redirect(request.META.get("HTTP_REFERER"))
 
 
 def quick_search(request):
