@@ -33,6 +33,6 @@ jobs:
           context: .
           file: Dockerfile
           tags: |
-            blsq/habari-platform:${{ github.event.inputs.tag }}
-            blsq/habari-platform:latest
+            blsq/openhexa-platform:${{ github.event.inputs.tag }}
+            blsq/openhexa-platform:latest
 
