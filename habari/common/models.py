@@ -85,6 +85,7 @@ class PostgresTextSearchConfigField(models.CharField):
 
     def __init__(self, *args, **kwargs):
         kwargs["max_length"] = 100
+        # TODO: more choices
         kwargs["choices"] = [
             ("simple", "simple"),
             ("french", "french"),

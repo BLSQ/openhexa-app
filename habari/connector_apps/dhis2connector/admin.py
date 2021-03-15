@@ -24,9 +24,9 @@ class Dhis2InstanceAdmin(admin.ModelAdmin):
 @admin.register(Dhis2DataElement)
 class Dhis2DataElementAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
         "dhis2_instance",
         "dhis2_id",
+        "dhis2_name",
         "dhis2_code",
         "dhis2_domain_type",
         "dhis2_value_type",
@@ -39,8 +39,8 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
 @admin.register(Dhis2IndicatorType)
 class Dhis2IndicatorTypeAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
         "dhis2_id",
+        "dhis2_name",
         "dhis2_number",
         "dhis2_factor",
     )
@@ -49,9 +49,9 @@ class Dhis2IndicatorTypeAdmin(admin.ModelAdmin):
 @admin.register(Dhis2Indicator)
 class Dhis2IndicatorAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
         "dhis2_instance",
         "dhis2_id",
+        "dhis2_name",
         "dhis2_indicator_type",
     )
     list_filter = ("dhis2_instance__name",)

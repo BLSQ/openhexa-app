@@ -51,3 +51,6 @@ class Organization(Base):
     countries = CountryField(multiple=True, blank=True)
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Organization: {self.name}"

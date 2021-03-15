@@ -6,10 +6,9 @@
 {% endblock %}
 
 {% block card_header_image %}
-    {% connector_static_dir datasource as connector_static_dir %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static connector_static_dir|add:"img/symbol.svg" %}"
-         alt="{{ datasource.get_datasource_type_display }}">
+         src="{% static "dhis2connector/img/symbol.svg" %}"
+         alt="{% translate "DHIS2 instance" %}">
 {% endblock %}
 
 {% block card_header_description %}
@@ -105,13 +104,8 @@
                 {% translate "Content" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if datasource.content_summary %}
-                    {% with de_count=datasource.content_summary.data_elements %}
-                        {{ de_count }} data element{{ de_count|pluralize }}<br/>
-                    {% endwith %}
-                    {% with di_count=datasource.content_summary.indicators %}
-                        {{ di_count }} data indicator{{ di_count|pluralize }}
-                    {% endwith %}
+                {% if datasource_index.last_synced_at %}
+                    {{ datasource_index.content_summary|default:"-" }}
                 {% else %}
                     -
                 {% endif %}
