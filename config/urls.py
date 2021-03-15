@@ -31,7 +31,7 @@ urlpatterns = [
 for app_config in get_connector_app_configs():
     urlpatterns.append(
         path(
-            app_config.route_prefix,
+            app_config.route_prefix + "/",
             include(app_config.name + ".urls", namespace=app_config.label),
         )
     )

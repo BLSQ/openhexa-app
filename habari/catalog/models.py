@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -95,6 +96,13 @@ class CatalogIndex(Base):
     def model_name(self):
         return self.content_type.name
 
+    @property
+    def just_synced(self):  # TODO: move (DRY)
+        return (
+            self.last_synced_at is not None
+            and (timezone.now() - self.last_synced_at).seconds < 60
+        )
+
     def to_dict(self):  # TODO: use serializer
         return {
             "id": self.id,
@@ -141,6 +149,13 @@ class Datasource(Base):
         return self.short_name if self.short_name != "" else self.name
 
     @property
+    def just_synced(self):  # TODO: move (DRY)
+        return (
+            self.last_synced_at is not None
+            and (timezone.now() - self.last_synced_at).seconds < 60
+        )
+
+    @property
     def content_summary(self):
         raise NotImplementedError(
             "Each datasource model should implement a content_summary property"
@@ -164,6 +179,7 @@ class Datasource(Base):
         index.countries = self.countries
         index.url = self.url
         index.content_summary = self.content_summary
+        index.last_synced_at = self.last_synced_at
 
     def sync(self):
         raise NotImplementedError(
@@ -194,6 +210,13 @@ class Content(Base):
         raise NotImplementedError(
             "Each content model subclass should provide a datasource() property that proxies the foreign key "
             "to the content datasource."
+        )
+
+    @property
+    def just_synced(self):  # TODO: move (DRY)
+        return (
+            self.last_synced_at is not None
+            and (timezone.now() - self.last_synced_at).seconds < 60
         )
 
     def save(

@@ -8,7 +8,7 @@
     {% else %}
         <span>{% translate "Never synced" %}</span>
     {% endif %}
-    <form class="ml-2" action="{% url 'catalog:datasource_sync' datasource.pk %}" method="post">
+    <form class="ml-2" action="{{ sync_url }}" method="post">
         {% csrf_token %}
         <button type="submit"
                 class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">

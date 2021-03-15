@@ -1,8 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from habari.catalog.lists import build_summary_list_params, build_paginated_list_params
-from habari.catalog.models import Datasource, CatalogIndex, CatalogIndexType
+from habari.catalog.models import CatalogIndex, CatalogIndexType
 from habari.connector_apps.dhis2connector.models import Dhis2Instance
 
 
@@ -174,3 +175,11 @@ def indicator_detail(request, datasource_id, indicator_id):
             "breadcrumbs": breadcrumbs,
         },
     )
+
+
+def datasource_sync(request, datasource_id):
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    sync_result = datasource.sync()
+    messages.success(request, sync_result, extra_tags="green")
+
+    return redirect(request.META.get("HTTP_REFERER"))

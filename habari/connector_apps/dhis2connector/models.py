@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from habari.catalog.models import Content, Datasource
@@ -23,30 +24,38 @@ class Dhis2Instance(Datasource):
         )
 
         # Sync data elements
-        data_element_results = sync_from_dhis2_results(
-            model_class=Dhis2DataElement,
-            dhis2_instance=self,
-            results=client.fetch_data_elements(),
-        )
+        with transaction.atomic():
+            data_element_results = sync_from_dhis2_results(
+                model_class=Dhis2DataElement,
+                dhis2_instance=self,
+                results=client.fetch_data_elements(),
+            )
 
-        # Sync indicator types
-        indicator_type_results = sync_from_dhis2_results(
-            model_class=Dhis2IndicatorType,
-            dhis2_instance=self,
-            results=client.fetch_indicator_types(),
-        )
+            # Sync indicator types
+            indicator_type_results = sync_from_dhis2_results(
+                model_class=Dhis2IndicatorType,
+                dhis2_instance=self,
+                results=client.fetch_indicator_types(),
+            )
 
-        # Sync indicators
-        indicator_results = sync_from_dhis2_results(
-            model_class=Dhis2Indicator,
-            dhis2_instance=self,
-            results=client.fetch_indicators(),
-        )
+            # Sync indicators
+            indicator_results = sync_from_dhis2_results(
+                model_class=Dhis2Indicator,
+                dhis2_instance=self,
+                results=client.fetch_indicators(),
+            )
+
+            # Flag the datasource as synced
+            self.last_synced_at = timezone.now()
+            self.save()
 
         return data_element_results + indicator_type_results + indicator_results
 
     @property
     def content_summary(self):
+        if self.last_synced_at is None:
+            return ""
+
         return _(
             "%(data_element_count)s data elements, %(indicator_count)s indicators"
         ) % {
@@ -82,6 +91,7 @@ class Dhis2Content(Content):
         index.short_name = self.dhis2_short_name
         index.description = self.dhis2_description
         index.countries = self.dhis2_instance.countries
+        index.last_synced_at = self.dhis2_instance.last_synced_at
 
 
 class Dhis2DomainType(models.TextChoices):

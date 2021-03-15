@@ -104,11 +104,7 @@
                 {% translate "Content" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if datasource_index.last_synced_at %}
-                    {{ datasource_index.content_summary|default:"-" }}
-                {% else %}
-                    -
-                {% endif %}
+                {{ datasource.content_summary|default:"-" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -116,7 +112,8 @@
                 {% translate "Last sync" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% include "catalog/partials/datasource_sync_info.html" %}
+                {% url "dhis2connector:datasource_sync" datasource.pk as sync_url %}
+                {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
             </dd>
         </div>
         <div class="sm:col-span-2">

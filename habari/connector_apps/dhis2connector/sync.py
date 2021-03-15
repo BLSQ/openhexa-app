@@ -1,26 +1,21 @@
 import stringcase
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from habari.catalog.sync import DatasourceSyncResult
 
 
-def _match_name(dhis2_name):
-    return f"dhis2_{stringcase.snakecase(dhis2_name)}".replace(
-        "dhis2_id", "external_id"
-    )
-
-
-def _match_reference(self, hexa_name, dhis2_value):
+def _match_reference(model_class, hexa_name, dhis2_value):
     # No dict? Then return as is
     if not isinstance(dhis2_value, dict):
         return dhis2_value
 
     # Otherwise, fetch referenced model
-    field_info = getattr(self.model, hexa_name)
+    field_info = getattr(model_class, hexa_name)
     related_model = field_info.field.related_model
 
     try:
-        return related_model.objects.get(external_id=dhis2_value["id"])
+        return related_model.objects.get(dhis2_id=dhis2_value["id"])
     except related_model.DoesNotExist:
         return None
 
@@ -37,21 +32,23 @@ def sync_from_dhis2_results(*, model_class, dhis2_instance, results):
         # their FK
         dhis2_values = {}
         for dhis2_name, dhis2_value in result.get_values(dhis2_instance.locale).items():
-            hexa_name = _match_name(dhis2_name)
-            dhis2_values[hexa_name] = _match_reference(hexa_name, dhis2_value)
+            hexa_name = f"dhis2_{stringcase.snakecase(dhis2_name)}"
+            dhis2_values[hexa_name] = _match_reference(
+                model_class, hexa_name, dhis2_value
+            )
 
         try:
             # Check if the dhis2 data is already in our database and compare values (hexa vs dhis2)
             existing_hexa_item = model_class.objects.get(
-                external_id=dhis2_values["external_id"]
+                dhis2_id=dhis2_values["dhis2_id"]
             )
             existing_hexa_values = {
                 hexa_name: getattr(existing_hexa_item, hexa_name)
-                for hexa_name, _ in dhis2_values
+                for hexa_name in dhis2_values
             }
             diff_values = {
                 hexa_name: dhis2_value
-                for hexa_name, dhis2_value in dhis2_values
+                for hexa_name, dhis2_value in dhis2_values.items()
                 if dhis2_value != existing_hexa_values[hexa_name]
             }
 
@@ -63,12 +60,18 @@ def sync_from_dhis2_results(*, model_class, dhis2_instance, results):
                         hexa_name,
                         diff_values[hexa_name],
                     )
+                existing_hexa_item.last_synced_at = timezone.now()
+                existing_hexa_item.save()
                 updated += 1
             else:
                 identical += 1
         # If we don't have the DE locally, create it
         except ObjectDoesNotExist:
-            model_class.objects.create(**dhis2_values, dhis2_instance=dhis2_instance)
+            model_class.objects.create(
+                **dhis2_values,
+                dhis2_instance=dhis2_instance,
+                last_synced_at=timezone.now(),
+            )
             created += 1
 
     return DatasourceSyncResult(

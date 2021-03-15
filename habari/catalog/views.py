@@ -23,17 +23,6 @@ def index(request):
     )
 
 
-def datasource_sync(request, datasource_id):
-    datasource_index = get_object_or_404(
-        CatalogIndex, pk=datasource_id, index_type=CatalogIndexType.DATASOURCE
-    )
-
-    sync_result = datasource_index.object.sync()
-    messages.success(request, sync_result, extra_tags="green")
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
 def quick_search(request):
     results = perform_search(request.GET.get("query", ""))
 
