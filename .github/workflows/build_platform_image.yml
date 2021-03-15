@@ -27,6 +27,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       # Publish to Docker hub
       - name: Store version number (on release)
           if: ${{ github.event_name == 'release' }}
