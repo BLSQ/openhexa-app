@@ -94,7 +94,7 @@ class CatalogTest(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "catalog:datasource_sync",
+                "dhis2connector:datasource_sync",
                 kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
