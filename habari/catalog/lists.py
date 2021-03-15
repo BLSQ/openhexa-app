@@ -49,7 +49,7 @@ def build_paginated_list_params(
         "current_page_count": len(page),
         "current_page_number": page_number,
         "total_count": page.paginator.count,
-        "range": list(set(paginator.page_range[:3]) | set(paginator.page_range[-3:])),
+        "range": sorted(set(paginator.page_range[:3]) | set(paginator.page_range[-3:])),
         "columns": columns,
         "item_name": item_name,
         "item_template": item_template,

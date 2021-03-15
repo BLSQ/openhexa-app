@@ -85,6 +85,10 @@ class Dhis2Content(Content):
     def datasource(self):
         return self.dhis2_instance
 
+    @property
+    def display_name(self):
+        return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
+
     def populate_index(self, index):
         index.owner = self.dhis2_instance.owner
         index.name = self.dhis2_name

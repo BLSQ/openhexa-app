@@ -1,5 +1,5 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n connectors %}
+{% load static i18n %}
 
 {% block card_header_title %}
     {{ datasource.name }}
@@ -8,7 +8,8 @@
 {% block card_header_image %}
     <img class="h-10 w-10 rounded-full mr-2"
          src="{% static "dhis2connector/img/symbol.svg" %}"
-         alt="{% translate "DHIS2 instance" %}">
+         alt="{% translate "DHIS2" %}"
+    >
 {% endblock %}
 
 {% block card_header_description %}

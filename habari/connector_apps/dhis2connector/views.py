@@ -54,10 +54,7 @@ def datasource_detail(request, datasource_id):
 
 
 def data_element_list(request, datasource_id):
-    datasource_index = get_object_or_404(
-        CatalogIndex, index_type=CatalogIndexType.DATASOURCE, pk=datasource_id
-    )
-    datasource = datasource_index.object
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -90,10 +87,7 @@ def data_element_list(request, datasource_id):
 
 
 def data_element_detail(request, datasource_id, data_element_id):
-    datasource_index = get_object_or_404(
-        CatalogIndex, index_type=CatalogIndexType.DATASOURCE, pk=datasource_id
-    )
-    datasource = datasource_index.object
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
     data_element = get_object_or_404(
         datasource.dhis2dataelement_set, pk=data_element_id
     )
@@ -117,10 +111,7 @@ def data_element_detail(request, datasource_id, data_element_id):
 
 
 def indicator_list(request, datasource_id):
-    datasource_index = get_object_or_404(
-        CatalogIndex, index_type=CatalogIndexType.DATASOURCE, pk=datasource_id
-    )
-    datasource = datasource_index.object
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -153,10 +144,7 @@ def indicator_list(request, datasource_id):
 
 
 def indicator_detail(request, datasource_id, indicator_id):
-    datasource_index = get_object_or_404(
-        CatalogIndex, index_type=CatalogIndexType.DATASOURCE, pk=datasource_id
-    )
-    datasource = datasource_index.object
+    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
     indicator = get_object_or_404(datasource.dhis2indicator_set, pk=indicator_id)
 
     breadcrumbs = [
