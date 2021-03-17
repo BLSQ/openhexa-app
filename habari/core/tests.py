@@ -4,7 +4,7 @@ from django.urls import reverse
 from habari.user_management.models import User
 
 
-class AuthTest(test.TestCase):
+class CoreTest(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
