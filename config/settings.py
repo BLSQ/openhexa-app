@@ -41,9 +41,10 @@ INSTALLED_APPS = [
     "tailwind",
     "habari.common.apps.CommonConfig",
     "habari.user_management.apps.UserManagementConfig",
-    "habari.dashboard.apps.DashboardConfig",
+    "habari.core.apps.CoreConfig",
     "habari.catalog.apps.CatalogConfig",
     "habari.notebooks.apps.NotebooksConfig",
+    "habari.pipelines.apps.PipelinesConfig",
     "habari.tailwindui.apps.TailwinduiConfig",
     "habari.connector_apps.dhis2connector.apps.Dhis2ConnectorConfig",
 ]
@@ -96,9 +97,9 @@ DATABASES = {
 }
 
 # Auth settings
-LOGIN_URL = "/auth/login/"
-LOGOUT_URL = "/auth/logout/"
-LOGIN_REDIRECT_URL = "/"
+LOGIN_URL = "/"
+LOGIN_REDIRECT_URL = "/dashboard"
+LOGOUT_REDIRECT_URL = "/"
 
 # Custom user model
 # https://docs.djangoproject.com/en/3.1/topics/auth/customizing/#substituting-a-custom-user-model
