@@ -74,7 +74,7 @@ class Dhis2Result:
             return self.get_value(field_name, None)
 
 
-class Dhis2DataElementResult(Dhis2Result):
+class DataElementResult(Dhis2Result):
     FIELD_SPECS = {
         "code": (str, ""),
         "domainType": (str, None),
@@ -83,14 +83,14 @@ class Dhis2DataElementResult(Dhis2Result):
     }
 
 
-class Dhis2IndicatorTypeResult(Dhis2Result):
+class IndicatorTypeResult(Dhis2Result):
     FIELD_SPECS = {
         "number": (bool, None),
         "factor": (int, None),
     }
 
 
-class Dhis2IndicatorResult(Dhis2Result):
+class IndicatorResult(Dhis2Result):
     FIELD_SPECS = {
         "code": (str, ""),
         "indicatorType": (dict, None),
@@ -104,7 +104,7 @@ class Dhis2Client:
 
     def fetch_data_elements(self):
         return [
-            Dhis2DataElementResult(data)
+            DataElementResult(data)
             for data in self._api.get_paged(
                 "dataElements", params={"fields": ":all"}, page_size=100, merge=True
             )["dataElements"]
@@ -112,7 +112,7 @@ class Dhis2Client:
 
     def fetch_indicator_types(self):
         return [
-            Dhis2IndicatorTypeResult(data)
+            IndicatorTypeResult(data)
             for data in self._api.get_paged(
                 "indicatorTypes", params={"fields": ":all"}, page_size=100, merge=True
             )["indicatorTypes"]
@@ -120,7 +120,7 @@ class Dhis2Client:
 
     def fetch_indicators(self):
         return [
-            Dhis2IndicatorResult(data)
+            IndicatorResult(data)
             for data in self._api.get_paged(
                 "indicators", params={"fields": ":all"}, page_size=100, merge=True
             )["indicators"]

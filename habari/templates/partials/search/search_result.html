@@ -7,17 +7,13 @@
                 </div>
                 <div class="flex flex-col min-w-0 flex-1 px-4">
                     <p>
-                        <span class="text-sm font-medium text-blue-600 truncate" x-text="result.title"></span>
+                        <span class="text-sm font-medium text-blue-600 truncate" x-text="result.display_name"></span>
                         <span class="ml-2 text-xs text-gray-300" x-text="`#${result.rank}`"></span>
                     </p>
-                    <div class="flex">
-                        <p class="mt-2 flex items-center text-xs text-gray-500" x-text="result.label"></p>
-                        <p class="ml-4 mt-2 flex items-center text-xs text-gray-500">
-                            {% include "partials/icons/database.html" %}
-                            <span class="ml-1" x-text="result.origin"></span>
-                        </p>
-                        <p class="ml-4 mt-2 flex items-center text-xs text-gray-500"x-text="result.updated_at"></p>
-                    </div>
+                    <p class="mt-2 text-xs text-gray-500">
+                        <span x-text="result.summary"></span>
+                        <span class="ml-2" x-text="result.last_synced_at"></span>
+                    </p>
                 </div>
             </div>
             <div class="relative z-0 inline-flex shadow-sm rounded-md">

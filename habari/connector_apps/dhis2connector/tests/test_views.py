@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from habari.user_management.models import User
 from habari.catalog.models import Datasource
-from ..models import Dhis2Instance, Dhis2DataElement, Dhis2Indicator
+from ..models import Instance, DataElement, Indicator
 
 
 class CatalogTest(test.TestCase):
@@ -16,7 +16,7 @@ class CatalogTest(test.TestCase):
             "bjorn@bluesquarehub.com",
             "regular",
         )
-        cls.DHIS2_INSTANCE_PLAY = Dhis2Instance.objects.create(
+        cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
             name="DHIS2 Play",
             short_name="Play",
             description="The DHIS2 official demo instance with realistic sample medical data",
@@ -24,8 +24,8 @@ class CatalogTest(test.TestCase):
             api_username="admin",
             api_password="district",
         )
-        cls.DATA_ELEMENT_1 = Dhis2DataElement.objects.create(
-            dhis2_instance=cls.DHIS2_INSTANCE_PLAY,
+        cls.DATA_ELEMENT_1 = DataElement.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="O1BccPF5yci",
             dhis2_name="ANC First visit",
             dhis2_created=timezone.now(),
@@ -33,8 +33,8 @@ class CatalogTest(test.TestCase):
             dhis2_external_access=False,
             dhis2_favorite=False,
         )
-        cls.DATA_ELEMENT_2 = Dhis2DataElement.objects.create(
-            dhis2_instance=cls.DHIS2_INSTANCE_PLAY,
+        cls.DATA_ELEMENT_2 = DataElement.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="eLW6jbvVcPZ",
             dhis2_name="ANC Second visit",
             dhis2_created=timezone.now(),
@@ -42,8 +42,8 @@ class CatalogTest(test.TestCase):
             dhis2_external_access=False,
             dhis2_favorite=False,
         )
-        cls.DATA_ELEMENT_3 = Dhis2DataElement.objects.create(
-            dhis2_instance=cls.DHIS2_INSTANCE_PLAY,
+        cls.DATA_ELEMENT_3 = DataElement.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="kmaHyZXMHCz",
             dhis2_name="C-sections",
             dhis2_created=timezone.now(),
@@ -51,8 +51,8 @@ class CatalogTest(test.TestCase):
             dhis2_external_access=False,
             dhis2_favorite=False,
         )
-        cls.DATA_INDICATOR_1 = Dhis2Indicator.objects.create(
-            dhis2_instance=cls.DHIS2_INSTANCE_PLAY,
+        cls.DATA_INDICATOR_1 = Indicator.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="xaG3AfYG2Ts",
             dhis2_name="Ante-Natal Care visits",
             dhis2_description="Uses different ANC data indicators",
@@ -62,8 +62,8 @@ class CatalogTest(test.TestCase):
             dhis2_favorite=False,
             dhis2_annualized=False,
         )
-        cls.DATA_INDICATOR_2 = Dhis2Indicator.objects.create(
-            dhis2_instance=cls.DHIS2_INSTANCE_PLAY,
+        cls.DATA_INDICATOR_2 = Indicator.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="oNzq8duNBx6",
             dhis2_name="Medical displays",
             dhis2_created=timezone.now(),
@@ -105,9 +105,9 @@ class CatalogTest(test.TestCase):
         self.assertEqual(http_referer, response.url)
 
         # Test that all data elements have a value type and an aggregation type
-        self.assertEqual(0, len(Dhis2DataElement.objects.filter(dhis2_value_type=None)))
+        self.assertEqual(0, len(DataElement.objects.filter(dhis2_value_type=None)))
         self.assertEqual(
-            0, len(Dhis2DataElement.objects.filter(dhis2_aggregation_type=None))
+            0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
         )
 
     def test_data_elements_200(self):
@@ -154,7 +154,7 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["app_label"] == "dhis2connector"
-                and r["model_name"] == "dhis2dataelement"
+                and r["content_type_name"] == "DHIS2 Data Element"
                 and r["name"] == "ANC First visit"
             )
         )
@@ -163,7 +163,7 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["app_label"] == "dhis2connector"
-                and r["model_name"] == "dhis2dataelement"
+                and r["content_type_name"] == "DHIS2 Data Element"
                 and r["name"] == "ANC Second visit"
             )
         )
@@ -172,7 +172,7 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["app_label"] == "dhis2connector"
-                and r["model_name"] == "dhis2indicator"
+                and r["content_type_name"] == "DHIS2 Indicator"
                 and r["name"] == "Ante-Natal Care visits"
             )
         )
@@ -186,7 +186,7 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["app_label"] == "dhis2connector"
-                and r["model_name"] == "dhis2instance"
+                and r["content_type_name"] == "DHIS2 Instance"
                 and r["name"] == "DHIS2 Play"
             )
         )
@@ -195,7 +195,7 @@ class CatalogTest(test.TestCase):
                 r
                 for r in results
                 if r["app_label"] == "dhis2connector"
-                and r["model_name"] == "dhis2indicator"
+                and r["content_type_name"] == "DHIS2 Indicator"
                 and r["name"] == "Medical displays"
             )
         )

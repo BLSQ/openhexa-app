@@ -3,7 +3,7 @@ from habari.catalog.models import CatalogIndex
 
 
 @admin.register(CatalogIndex)
-class Dhis2InstanceAdmin(admin.ModelAdmin):
-    list_display = ("name", "short_name", "index_type", "content_type")
+class CatalogIndexAdmin(admin.ModelAdmin):
+    list_display = ("name", "short_name", "content_type")
     list_filter = ("index_type",)
     search_fields = ("name", "short_name")

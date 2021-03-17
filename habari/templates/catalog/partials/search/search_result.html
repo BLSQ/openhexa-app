@@ -10,22 +10,13 @@
                 <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
                     <div>
                         <p>
-                            <span class="text-sm font-medium text-blue-600 truncate">{{ result.title }}</span>
+                            <span class="text-sm font-medium text-blue-600 truncate">{{ result.display_name }}</span>
                             <span class="ml-2 text-xs text-gray-300">{{ result.rank }}</span>
                         </p>
-                        <p class="mt-2 flex items-center text-sm text-gray-500">
-                            {{ result.label }}
+                        <p class="mt-2 text-xs text-gray-500">
+                            <span>{{ result.summary }}</span>
+                            <span class="ml-2">{{ result.last_synced_at }}</span>
                         </p>
-                    </div>
-                    <div class="hidden md:block">
-                        <div>
-                            <p class="text-sm text-gray-900">
-                                {{ result.origin }}
-                            </p>
-                            <p class="mt-2 text-sm text-gray-500">
-                                {{ result.updated_at|timesince }} {% trans "ago" %}
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

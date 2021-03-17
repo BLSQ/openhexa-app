@@ -2,9 +2,9 @@ from django import test
 
 from ..api import (
     Dhis2Client,
-    Dhis2DataElementResult,
-    Dhis2IndicatorTypeResult,
-    Dhis2IndicatorResult,
+    DataElementResult,
+    IndicatorTypeResult,
+    IndicatorResult,
     Dhis2Result,
 )
 
@@ -22,7 +22,7 @@ class Dhis2Test(test.TestCase):
 
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
-        self.assertIsInstance(results[0], Dhis2DataElementResult)
+        self.assertIsInstance(results[0], DataElementResult)
 
     @test.tag("external")
     def test_fetch_indicator_types(self):
@@ -30,7 +30,7 @@ class Dhis2Test(test.TestCase):
 
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
-        self.assertIsInstance(results[0], Dhis2IndicatorTypeResult)
+        self.assertIsInstance(results[0], IndicatorTypeResult)
 
     @test.tag("external")
     def test_fetch_indicators(self):
@@ -38,7 +38,7 @@ class Dhis2Test(test.TestCase):
 
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
-        self.assertIsInstance(results[0], Dhis2IndicatorResult)
+        self.assertIsInstance(results[0], IndicatorResult)
 
     def test_dhis2_result(self):
         class FooResult(Dhis2Result):

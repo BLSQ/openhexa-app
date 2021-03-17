@@ -20,7 +20,7 @@ def _match_reference(model_class, hexa_name, dhis2_value):
         return None
 
 
-def sync_from_dhis2_results(*, model_class, dhis2_instance, results):
+def sync_from_dhis2_results(*, model_class, instance, results):
     """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
     created = 0
@@ -31,7 +31,7 @@ def sync_from_dhis2_results(*, model_class, dhis2_instance, results):
         # Build a dict of dhis2 values indexed by hexa field name, and replace reference to other items by
         # their FK
         dhis2_values = {}
-        for dhis2_name, dhis2_value in result.get_values(dhis2_instance.locale).items():
+        for dhis2_name, dhis2_value in result.get_values(instance.locale).items():
             hexa_name = f"dhis2_{stringcase.snakecase(dhis2_name)}"
             dhis2_values[hexa_name] = _match_reference(
                 model_class, hexa_name, dhis2_value
@@ -69,13 +69,13 @@ def sync_from_dhis2_results(*, model_class, dhis2_instance, results):
         except ObjectDoesNotExist:
             model_class.objects.create(
                 **dhis2_values,
-                dhis2_instance=dhis2_instance,
+                instance=instance,
                 last_synced_at=timezone.now(),
             )
             created += 1
 
     return DatasourceSyncResult(
-        datasource=dhis2_instance,
+        datasource=instance,
         created=created,
         updated=updated,
         identical=identical,
