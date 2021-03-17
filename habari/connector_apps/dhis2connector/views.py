@@ -3,12 +3,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from habari.catalog.lists import build_summary_list_params, build_paginated_list_params
-from habari.catalog.models import CatalogIndex, CatalogIndexType
-from habari.connector_apps.dhis2connector.models import Dhis2Instance
+from habari.connector_apps.dhis2connector.models import Instance
 
 
 def datasource_detail(request, datasource_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    datasource = get_object_or_404(Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -21,7 +20,7 @@ def datasource_detail(request, datasource_id):
         {
             "datasource": datasource,
             "data_elements_list_params": build_summary_list_params(
-                datasource.dhis2dataelement_set.all(),
+                datasource.dataelement_set.all(),
                 title=_("Data elements"),
                 columns=[
                     _("Name"),
@@ -35,7 +34,7 @@ def datasource_detail(request, datasource_id):
                 item_template="dhis2connector/partials/data_element_list_item.html",
             ),
             "indicators_list_params": build_summary_list_params(
-                datasource.dhis2indicator_set.all(),
+                datasource.indicator_set.all(),
                 title=_("Indicators"),
                 columns=[
                     _("Name"),
@@ -54,7 +53,7 @@ def datasource_detail(request, datasource_id):
 
 
 def data_element_list(request, datasource_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    datasource = get_object_or_404(Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -68,7 +67,7 @@ def data_element_list(request, datasource_id):
         {
             "datasource": datasource,
             "data_elements_list_params": build_paginated_list_params(
-                datasource.dhis2dataelement_set.all(),
+                datasource.dataelement_set.all(),
                 title=_("Data elements"),
                 page_number=int(request.GET.get("page", "1")),
                 columns=[
@@ -87,10 +86,8 @@ def data_element_list(request, datasource_id):
 
 
 def data_element_detail(request, datasource_id, data_element_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
-    data_element = get_object_or_404(
-        datasource.dhis2dataelement_set, pk=data_element_id
-    )
+    datasource = get_object_or_404(Instance, pk=datasource_id)
+    data_element = get_object_or_404(datasource.dataelement_set, pk=data_element_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -111,7 +108,7 @@ def data_element_detail(request, datasource_id, data_element_id):
 
 
 def indicator_list(request, datasource_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    datasource = get_object_or_404(Instance, pk=datasource_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -125,7 +122,7 @@ def indicator_list(request, datasource_id):
         {
             "datasource": datasource,
             "indicators_list_params": build_paginated_list_params(
-                datasource.dhis2indicator_set.all(),
+                datasource.indicator_set.all(),
                 title=_("Indicators"),
                 page_number=int(request.GET.get("page", "1")),
                 columns=[
@@ -144,8 +141,8 @@ def indicator_list(request, datasource_id):
 
 
 def indicator_detail(request, datasource_id, indicator_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
-    indicator = get_object_or_404(datasource.dhis2indicator_set, pk=indicator_id)
+    datasource = get_object_or_404(Instance, pk=datasource_id)
+    indicator = get_object_or_404(datasource.indicator_set, pk=indicator_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -166,7 +163,7 @@ def indicator_detail(request, datasource_id, indicator_id):
 
 
 def datasource_sync(request, datasource_id):
-    datasource = get_object_or_404(Dhis2Instance, pk=datasource_id)
+    datasource = get_object_or_404(Instance, pk=datasource_id)
     sync_result = datasource.sync()
     messages.success(request, sync_result, extra_tags="green")
 

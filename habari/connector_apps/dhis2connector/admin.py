@@ -1,9 +1,9 @@
 from django.contrib import admin
 from .models import (
-    Dhis2Instance,
-    Dhis2DataElement,
-    Dhis2Indicator,
-    Dhis2IndicatorType,
+    Instance,
+    DataElement,
+    Indicator,
+    IndicatorType,
 )
 
 
@@ -14,17 +14,17 @@ def country_list(obj):
 country_list.short_description = "Countries"
 
 
-@admin.register(Dhis2Instance)
-class Dhis2InstanceAdmin(admin.ModelAdmin):
-    list_display = ("name", "url")
+@admin.register(Instance)
+class InstanceAdmin(admin.ModelAdmin):
+    list_display = ("name", "url", "last_synced_at")
     list_filter = ("name",)
     search_fields = ("name",)
 
 
-@admin.register(Dhis2DataElement)
-class Dhis2DataElementAdmin(admin.ModelAdmin):
+@admin.register(DataElement)
+class DataElementAdmin(admin.ModelAdmin):
     list_display = (
-        "dhis2_instance",
+        "instance",
         "dhis2_id",
         "dhis2_name",
         "dhis2_code",
@@ -32,12 +32,12 @@ class Dhis2DataElementAdmin(admin.ModelAdmin):
         "dhis2_value_type",
         "dhis2_aggregation_type",
     )
-    list_filter = ("dhis2_instance__name",)
+    list_filter = ("instance__name",)
     search_fields = ["dhis2_name", "dhis2_short_name", "dhis2_id", "dhis2_code"]
 
 
-@admin.register(Dhis2IndicatorType)
-class Dhis2IndicatorTypeAdmin(admin.ModelAdmin):
+@admin.register(IndicatorType)
+class IndicatorTypeAdmin(admin.ModelAdmin):
     list_display = (
         "dhis2_id",
         "dhis2_name",
@@ -46,13 +46,13 @@ class Dhis2IndicatorTypeAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Dhis2Indicator)
-class Dhis2IndicatorAdmin(admin.ModelAdmin):
+@admin.register(Indicator)
+class IndicatorAdmin(admin.ModelAdmin):
     list_display = (
-        "dhis2_instance",
+        "instance",
         "dhis2_id",
         "dhis2_name",
         "dhis2_indicator_type",
     )
-    list_filter = ("dhis2_instance__name",)
+    list_filter = ("instance__name",)
     search_fields = ["dhis2_name", "dhis2_short_name", "dhis2_id", "dhis2_code"]

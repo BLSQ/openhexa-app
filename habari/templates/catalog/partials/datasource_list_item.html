@@ -7,14 +7,14 @@
                 <span class="block flex-shrink-0 h-10 w-10">
                     <img class="h-10 w-10 rounded-full"
                          src="{% static datasource_index.app_label|add:"/img/symbol.svg" %}"
-                         alt="{{ datasource_index.model_name }}">
+                         alt="{{ datasource_index.content_type_name }}">
                 </span>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ datasource_index.name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ datasource_index.model_name }}
+                    {{ datasource_index.content_type_name }}
                 </span>
             </span>
         </a>

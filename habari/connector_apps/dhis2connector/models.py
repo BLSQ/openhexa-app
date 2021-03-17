@@ -1,16 +1,18 @@
 from django.db import models, transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from habari.catalog.models import Content, Datasource
+from habari.catalog.models import Content, Datasource, CatalogIndex
 from habari.common.models import Base
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
 
-class Dhis2Instance(Datasource):
+class Instance(Datasource):
     class Meta:
-        verbose_name = "DHIS2 instance"
+        verbose_name = "DHIS2 Instance"
+        ordering = ("name",)
 
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
@@ -26,22 +28,22 @@ class Dhis2Instance(Datasource):
         # Sync data elements
         with transaction.atomic():
             data_element_results = sync_from_dhis2_results(
-                model_class=Dhis2DataElement,
-                dhis2_instance=self,
+                model_class=DataElement,
+                instance=self,
                 results=client.fetch_data_elements(),
             )
 
             # Sync indicator types
             indicator_type_results = sync_from_dhis2_results(
-                model_class=Dhis2IndicatorType,
-                dhis2_instance=self,
+                model_class=IndicatorType,
+                instance=self,
                 results=client.fetch_indicator_types(),
             )
 
             # Sync indicators
             indicator_results = sync_from_dhis2_results(
-                model_class=Dhis2Indicator,
-                dhis2_instance=self,
+                model_class=Indicator,
+                instance=self,
                 results=client.fetch_indicators(),
             )
 
@@ -59,20 +61,31 @@ class Dhis2Instance(Datasource):
         return _(
             "%(data_element_count)s data elements, %(indicator_count)s indicators"
         ) % {
-            "data_element_count": self.dhis2dataelement_set.count(),
-            "indicator_count": self.dhis2indicator_set.count(),
+            "data_element_count": self.dataelement_set.count(),
+            "indicator_count": self.indicator_set.count(),
         }
 
+    def index(self):
+        CatalogIndex.objects.create_or_update(
+            indexed_object=self,
+            owner=self.owner,
+            name=self.name,
+            short_name=self.short_name,
+            description=self.description,
+            countries=self.countries,
+            content_summary=self.content_summary,
+            last_synced_at=self.last_synced_at,
+            detail_url=reverse("dhis2connector:datasource_detail", args=(self.pk,)),
+        )
 
-class Dhis2Content(Content):
+
+class Content(Content):
     class Meta:
         abstract = True
         ordering = ["dhis2_name"]
 
     dhis2_id = models.CharField(max_length=200)
-    dhis2_instance = models.ForeignKey(
-        "Dhis2Instance", null=False, on_delete=models.CASCADE
-    )
+    instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
     dhis2_name = models.CharField(max_length=200)
     dhis2_short_name = models.CharField(max_length=100, blank=True)
     dhis2_description = models.TextField(blank=True)
@@ -82,28 +95,16 @@ class Dhis2Content(Content):
     dhis2_last_updated = models.DateTimeField()
 
     @property
-    def datasource(self):
-        return self.dhis2_instance
-
-    @property
     def display_name(self):
         return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
 
-    def populate_index(self, index):
-        index.owner = self.dhis2_instance.owner
-        index.name = self.dhis2_name
-        index.short_name = self.dhis2_short_name
-        index.description = self.dhis2_description
-        index.countries = self.dhis2_instance.countries
-        index.last_synced_at = self.dhis2_instance.last_synced_at
 
-
-class Dhis2DomainType(models.TextChoices):
+class DomainType(models.TextChoices):
     AGGREGATE = "AGGREGATE", _("Aggregate")
     TRACKER = "TRACKER", _("Tracker")
 
 
-class Dhis2ValueType(models.TextChoices):
+class ValueType(models.TextChoices):
     TEXT = "TEXT", _("Text")
     LONG_TEXT = "LONG_TEXT", _("Long text")
     LETTER = "LETTER", _("Letter")
@@ -131,7 +132,7 @@ class Dhis2ValueType(models.TextChoices):
     IMAGE = "IMAGE", _("Image")
 
 
-class Dhis2AggregationType(models.TextChoices):
+class AggregationType(models.TextChoices):
     AVERAGE = "AVERAGE", _("Average")
     AVERAGE_SUM_ORG_UNIT = "AVERAGE_SUM_ORG_UNIT ", _("Average sum for org unit")
     COUNT = "COUNT", _("Count")
@@ -147,25 +148,63 @@ class Dhis2AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class Dhis2DataElement(Dhis2Content):
+class DataElement(Content):
+    class Meta:
+        verbose_name = "DHIS2 Data Element"
+        ordering = ("dhis2_name",)
+
     dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_domain_type = models.CharField(
-        choices=Dhis2DomainType.choices, max_length=100
-    )
-    dhis2_value_type = models.CharField(choices=Dhis2ValueType.choices, max_length=100)
+    dhis2_domain_type = models.CharField(choices=DomainType.choices, max_length=100)
+    dhis2_value_type = models.CharField(choices=ValueType.choices, max_length=100)
     dhis2_aggregation_type = models.CharField(
-        choices=Dhis2AggregationType.choices, max_length=100
+        choices=AggregationType.choices, max_length=100
     )
 
+    def index(self):
+        CatalogIndex.objects.create_or_update(
+            indexed_object=self,
+            parent_object=self.instance,
+            owner=self.instance.owner,
+            name=self.dhis2_name,
+            short_name=self.dhis2_short_name,
+            description=self.dhis2_description,
+            countries=self.instance.countries,
+            last_synced_at=self.last_synced_at,
+            detail_url=reverse(
+                "dhis2connector:data_element_detail",
+                args=(self.instance.pk, self.pk),
+            ),
+        )
 
-class Dhis2IndicatorType(Dhis2Content):
+
+class IndicatorType(Content):
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
 
 
-class Dhis2Indicator(Dhis2Content):
+class Indicator(Content):
+    class Meta:
+        verbose_name = "DHIS2 Indicator"
+        ordering = ("dhis2_name",)
+
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_indicator_type = models.ForeignKey(
-        "Dhis2IndicatorType", null=True, on_delete=models.SET_NULL
+        "IndicatorType", null=True, on_delete=models.SET_NULL
     )
     dhis2_annualized = models.BooleanField()
+
+    def index(self):
+        CatalogIndex.objects.create_or_update(
+            indexed_object=self,
+            parent_object=self.instance,
+            owner=self.instance.owner,
+            name=self.dhis2_name,
+            short_name=self.dhis2_short_name,
+            description=self.dhis2_description,
+            countries=self.instance.countries,
+            last_synced_at=self.last_synced_at,
+            detail_url=reverse(
+                "dhis2connector:indicator_detail",
+                args=(self.instance.pk, self.pk),
+            ),
+        )
