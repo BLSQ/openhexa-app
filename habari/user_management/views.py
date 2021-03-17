@@ -9,4 +9,4 @@ def account(request):
 def logout(request):
     do_logout(request)
 
-    return redirect("auth:login")
+    return redirect("login")

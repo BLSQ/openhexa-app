@@ -5,11 +5,18 @@ from habari.catalog.models import CatalogIndex, CatalogIndexType
 
 
 def index(request):
-    breadcrumbs = [(_("Dashboard"), "dashboard:index")]
+    return render(
+        request,
+        "core/index.html",
+    )
+
+
+def dashboard(request):
+    breadcrumbs = [(_("Dashboard"), "core:dashboard")]
 
     return render(
         request,
-        "dashboard/index.html",
+        "core/dashboard.html",
         {
             "counts": {
                 "datasources": CatalogIndex.objects.filter(

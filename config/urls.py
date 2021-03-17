@@ -21,10 +21,12 @@ from habari.catalog.connectors import get_connector_app_configs
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("habari.dashboard.urls", namespace="dashboard")),
-    path("auth/", include("habari.user_management.urls", namespace="user_management")),
+    path("", include("habari.core.urls", namespace="core")),
+    path("user/", include("habari.user_management.urls", namespace="user")),
     path("catalog/", include("habari.catalog.urls", namespace="catalog")),
     path("notebooks/", include("habari.notebooks.urls", namespace="notebooks")),
+    path("pipelines/", include("habari.pipelines.urls", namespace="pipelines")),
+    path("auth/", include("django.contrib.auth.urls")),
 ]
 
 # Connector apps URLs
