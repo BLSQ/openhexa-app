@@ -7,7 +7,7 @@
 
 {% block card_header_image %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static "dhis2connector/img/symbol.svg" %}"
+         src="{% static "connector_dhis2/img/symbol.svg" %}"
          alt="{% translate "DHIS2" %}"
     >
 {% endblock %}
@@ -113,7 +113,7 @@
                 {% translate "Last sync" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% url "dhis2connector:datasource_sync" datasource.pk as sync_url %}
+                {% url "connector_dhis2:datasource_sync" datasource.pk as sync_url %}
                 {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
             </dd>
         </div>

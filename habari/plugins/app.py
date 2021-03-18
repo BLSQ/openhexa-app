@@ -1,4 +1,4 @@
-from django.apps import AppConfig, apps
+from django.apps import AppConfig
 
 
 class ConnectorAppConfig(AppConfig):
@@ -11,16 +11,4 @@ class ConnectorAppConfig(AppConfig):
 
         raise NotImplementedError(
             "Each connector app should define a route_prefix() property"
-        )
-
-    @property
-    def connector_class_name(self):
-        raise NotImplementedError(
-            f"Each connector app should define a connector_class_name() property"
-        )
-
-    @property
-    def connector(self):
-        return apps.get_model(
-            app_label=self.label, model_name=self.connector_class_name
         )

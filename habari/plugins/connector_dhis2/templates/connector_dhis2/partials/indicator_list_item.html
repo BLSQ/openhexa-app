@@ -2,7 +2,7 @@
 
 <tr>
     <td class="px-2 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'dhis2connector:indicator_detail' datasource.pk item.pk %}">
+        <a class="flex items-center" href="{% url 'connector_dhis2:indicator_detail' datasource.pk item.pk %}">
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ item.display_name }}

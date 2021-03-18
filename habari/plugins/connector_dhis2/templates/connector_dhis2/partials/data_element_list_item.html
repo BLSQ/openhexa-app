@@ -2,9 +2,9 @@
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'dhis2connector:data_element_detail' datasource.pk item.pk %}">
+        <a class="flex items-center" href="{% url 'connector_dhis2:data_element_detail' datasource.pk item.pk %}">
             <div class="text-gray-400">
-                {% include "dhis2connector/partials/data_element_domain_type_icon.html" with data_element=item %}
+                {% include "connector_dhis2/partials/data_element_domain_type_icon.html" with data_element=item %}
             </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">

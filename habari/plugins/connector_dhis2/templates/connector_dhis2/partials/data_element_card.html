@@ -7,7 +7,7 @@
 
 {% block card_header_image %}
     <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static "dhis2connector/img/symbol.svg" %}"
+         src="{% static "connector_dhis2/img/symbol.svg" %}"
          alt="{% translate "DHIS2" %}"
     >
 {% endblock %}
@@ -48,7 +48,7 @@
             <dd class="mt-1 text-sm text-gray-900">
                 <a
                         class="text-blue-600 hover:text-blue-900"
-                        href="{% url "dhis2connector:datasource_detail" datasource.pk %}"
+                        href="{% url "connector_dhis2:datasource_detail" datasource.pk %}"
                 >
                     {{ datasource.name }}
                 </a>
@@ -71,7 +71,7 @@
             <dd class="mt-1 text-sm text-gray-900">
                 <div class="flex items-center align-center">
                     <span class="text-gray-500 mr-1">
-                        {% include "dhis2connector/partials/data_element_domain_type_icon.html" %}
+                        {% include "connector_dhis2/partials/data_element_domain_type_icon.html" %}
                     </span>
                     {{ data_element.get_dhis2_domain_type_display }}
                 </div>

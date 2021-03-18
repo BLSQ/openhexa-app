@@ -77,7 +77,7 @@ class CatalogTest(test.TestCase):
         self.client.login(email="bjorn@bluesquarehub.com", password="regular")
         response = self.client.get(
             reverse(
-                "dhis2connector:datasource_detail",
+                "connector_dhis2:datasource_detail",
                 kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
@@ -94,7 +94,7 @@ class CatalogTest(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "dhis2connector:datasource_sync",
+                "connector_dhis2:datasource_sync",
                 kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
@@ -114,7 +114,7 @@ class CatalogTest(test.TestCase):
         self.client.login(email="bjorn@bluesquarehub.com", password="regular")
         response = self.client.get(
             reverse(
-                "dhis2connector:data_element_list",
+                "connector_dhis2:data_element_list",
                 kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
@@ -126,7 +126,7 @@ class CatalogTest(test.TestCase):
         self.client.login(email="bjorn@bluesquarehub.com", password="regular")
         response = self.client.get(
             reverse(
-                "dhis2connector:indicator_list",
+                "connector_dhis2:indicator_list",
                 kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
@@ -153,7 +153,7 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["app_label"] == "dhis2connector"
+                if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
                 and r["name"] == "ANC First visit"
             )
@@ -162,7 +162,7 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["app_label"] == "dhis2connector"
+                if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
                 and r["name"] == "ANC Second visit"
             )
@@ -171,7 +171,7 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["app_label"] == "dhis2connector"
+                if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
                 and r["name"] == "Ante-Natal Care visits"
             )
@@ -185,7 +185,7 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["app_label"] == "dhis2connector"
+                if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Instance"
                 and r["name"] == "DHIS2 Play"
             )
@@ -194,7 +194,7 @@ class CatalogTest(test.TestCase):
             any(
                 r
                 for r in results
-                if r["app_label"] == "dhis2connector"
+                if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
                 and r["name"] == "Medical displays"
             )

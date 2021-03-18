@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "habari.notebooks.apps.NotebooksConfig",
     "habari.pipelines.apps.PipelinesConfig",
     "habari.tailwindui.apps.TailwinduiConfig",
-    "habari.connector_apps.dhis2connector.apps.Dhis2ConnectorConfig",
+    "habari.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
 ]
 
 MIDDLEWARE = [

@@ -75,7 +75,7 @@ class Instance(Datasource):
             countries=self.countries,
             content_summary=self.content_summary,
             last_synced_at=self.last_synced_at,
-            detail_url=reverse("dhis2connector:datasource_detail", args=(self.pk,)),
+            detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
         )
 
 
@@ -171,7 +171,7 @@ class DataElement(Content):
             countries=self.instance.countries,
             last_synced_at=self.last_synced_at,
             detail_url=reverse(
-                "dhis2connector:data_element_detail",
+                "connector_dhis2:data_element_detail",
                 args=(self.instance.pk, self.pk),
             ),
         )
@@ -204,7 +204,7 @@ class Indicator(Content):
             countries=self.instance.countries,
             last_synced_at=self.last_synced_at,
             detail_url=reverse(
-                "dhis2connector:indicator_detail",
+                "connector_dhis2:indicator_detail",
                 args=(self.instance.pk, self.pk),
             ),
         )
