@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-app_name = "dhis2connector"
+app_name = "connector_dhis2"
 
 urlpatterns = [
     path("<str:datasource_id>", views.datasource_detail, name="datasource_detail"),
