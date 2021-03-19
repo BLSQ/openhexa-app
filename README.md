@@ -149,6 +149,22 @@ To make sure that the `kubectl` utility can access the newly created cluster, yo
 gcloud container clusters get-credentials hexa-main --zone "<your_cluster-zone>"
 ```
 
+#### Create a global IP address
+
+The Kubernetes ingress used to access the OpenHexa app exposes an external IP. This IP might change when re-deploying 
+or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
+
+```bash
+gcloud compute addresses create <ADDRESS_NAME> --global
+gcloud compute addresses describe <ADDRESS_NAME> --global
+```
+
+Take not of the `address` value - you will need it if you want to create a DNS record pointing to the app.
+
+Later on, when creating your Kubernetes deployment yaml file, replace <ADDRESS_NAME> with the name used to create the 
+address.
+
+
 ### Deploying
 
 The OpenHexa **App** component can be deployed with the `kubectl` utility. Almost all the required resources can be 

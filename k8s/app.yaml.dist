@@ -6,7 +6,9 @@ metadata:
   labels:
     component: app
 data:
+  DEBUG: "false"
   ALLOWED_HOSTS: <ALLOWED_HOSTS>
+  ALLOWED_CIDR_NETS: <ALLOWED_CIDR_NETS>
   DATABASE_HOST: "127.0.0.1"
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
@@ -93,7 +95,9 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
+    kubernetes.io/ingress.global-static-ip-name: <ADDRESS_NAME>
     networking.gke.io/managed-certificates: app-certificate
+    kubernetes.io/ingress.class: "gce"
 spec:
   backend:
     serviceName: app-service
