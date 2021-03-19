@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:12.5
     environment:
-      - POSTGRES_DB=habari
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=openhexa-app
+      - POSTGRES_USER=openhexa-app
+      - POSTGRES_PASSWORD=openhexa-app
     ports:
       - 5432:5432
   app:
@@ -22,8 +22,8 @@ services:
       - ALLOWED_HOSTS="*"
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - DATABASE_NAME=habari
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=openhexa-app
+      - DATABASE_USER=openhexa-app
+      - DATABASE_PASSWORD=openhexa-app
       - DEBUG=true
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'

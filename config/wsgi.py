@@ -1,5 +1,5 @@
 """
-WSGI config for habari_platform project.
+WSGI config for hexa.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
