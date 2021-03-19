@@ -209,7 +209,7 @@ Once the deployment is complete, you can get the public IP of the load balancer 
 record that points to it):
 
 ```bash
-kubectl get service openhexa-app
+kubectl get service app-service -n hexa-app
 ```
 
 Building the Docker image
