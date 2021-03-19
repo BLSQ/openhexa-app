@@ -28,7 +28,7 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 if not DEBUG:
     ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
     # For Kubernetes readyness probes - see https://github.com/mozmeao/django-allow-cidr
-    ALLOWED_CIDR_NETS = ['192.168.1.0/24']
+    ALLOWED_CIDR_NETS = os.environ.get("ALLOWED_CIDR_NETS", "").split(",")
 
 # Application definition
 
