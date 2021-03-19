@@ -1,5 +1,5 @@
 """
-ASGI config for habari_platform project.
+ASGI config for hexa.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

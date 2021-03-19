@@ -9,7 +9,7 @@ data:
   ALLOWED_HOSTS: "${HEXA_APP_ALLOWED_HOSTS}"
   DATABASE_HOST: "127.0.0.1"
   DATABASE_PORT: "5432"
-  DATABASE_NAME: "app"
+  DATABASE_NAME: "openhexa-app"
 ---
 # Secret: will be used to set sensitive environment variables in our container
 apiVersion: v1

@@ -1,4 +1,4 @@
-"""habari_platform URL Configuration
+"""hexa URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -16,16 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from habari.catalog.connectors import get_connector_app_configs
+from hexa.catalog.connectors import get_connector_app_configs
 
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("habari.core.urls", namespace="core")),
-    path("user/", include("habari.user_management.urls", namespace="user")),
-    path("catalog/", include("habari.catalog.urls", namespace="catalog")),
-    path("notebooks/", include("habari.notebooks.urls", namespace="notebooks")),
-    path("pipelines/", include("habari.pipelines.urls", namespace="pipelines")),
+    path("", include("hexa.core.urls", namespace="core")),
+    path("user/", include("hexa.user_management.urls", namespace="user")),
+    path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
+    path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
+    path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("auth/", include("django.contrib.auth.urls")),
 ]
 
