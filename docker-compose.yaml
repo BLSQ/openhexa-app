@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:12.5
     environment:
-      - POSTGRES_DB=openhexa-app
-      - POSTGRES_USER=openhexa-app
-      - POSTGRES_PASSWORD=openhexa-app
+      - POSTGRES_DB=hexa-app
+      - POSTGRES_USER=hexa-app
+      - POSTGRES_PASSWORD=hexa-app
     ports:
       - 5432:5432
   app:
@@ -19,11 +19,10 @@ services:
     depends_on:
       - db
     environment:
-      - ALLOWED_HOSTS="*"
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
-      - DATABASE_NAME=openhexa-app
-      - DATABASE_USER=openhexa-app
-      - DATABASE_PASSWORD=openhexa-app
+      - DATABASE_NAME=hexa-app
+      - DATABASE_USER=hexa-app
+      - DATABASE_PASSWORD=hexa-app
       - DEBUG=true
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'

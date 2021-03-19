@@ -1,2 +1,4 @@
 *.env
 .coverage
+k8s/*
+!k8s/app.yaml.dist

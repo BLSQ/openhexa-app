@@ -6,10 +6,8 @@ metadata:
   labels:
     component: app
 data:
-  ALLOWED_HOSTS: "${HEXA_APP_ALLOWED_HOSTS}"
+  ALLOWED_HOSTS: <HEXA_APP_ALLOWED_HOSTS>
   DATABASE_HOST: "127.0.0.1"
-  DATABASE_PORT: "5432"
-  DATABASE_NAME: "openhexa-app"
 ---
 # Secret: will be used to set sensitive environment variables in our container
 apiVersion: v1
@@ -19,9 +17,11 @@ metadata:
   labels:
     component: app
 data:
-  DATABASE_USER: "${HEXA_DATABASE_USER}"
-  DATABASE_PASSWORD: "${HEXA_DATABASE_PASSWORD}"
-  SECRET_KEY: "${HEXA_SECRET_KEY}"
+  DATABASE_USER: <HEXA_APP_DATABASE_USER>
+  DATABASE_PASSWORD: <HEXA_APP_DATABASE_PASSWORD>
+  DATABASE_NAME: <HEXA_APP_DATABASE_NAME>
+  DATABASE_PORT: <HEXA_APP_DATABASE_PORT>
+  SECRET_KEY: <HEXA_APP_SECRET_KEY>
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
 apiVersion: apps/v1
@@ -41,10 +41,10 @@ spec:
         component: app
     spec:
       nodeSelector:
-        cloud.google.com/gke-nodepool: "${HEXA_NODE_POOL_SELECTOR}"
+        cloud.google.com/gke-nodepool: <HEXA_APP_NODE_POOL_SELECTOR>
       containers:
         - name: app-container
-          image: blsq/openhexa-app:"${HEXA_IMAGE_TAG}"
+          image: blsq/openhexa-app:<HEXA_APP_IMAGE_TAG>
           ports:
             - containerPort: 8000
           envFrom:
@@ -57,7 +57,7 @@ spec:
         - name: app-cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.16
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
-                     "-instances=${HEXA_CLOUDSQL_CONNECTION_STRING}=tcp:5432",
+                     "-instances=<HEXA_APP_CLOUDSQL_CONNECTION_STRING>=tcp:5432",
                      "-credential_file=/secrets/cloudsql/credentials.json" ]
           volumeMounts:
             - name: app-cloudsql-oauth-credentials
@@ -84,7 +84,7 @@ metadata:
   name: app-certificate
 spec:
   domains:
-    - ${HEXA_CERTIFICATE_DOMAIN}
+    - <HEXA_APP_CERTIFICATE_DOMAIN>
 ---
 # Service: exposes the deployment
 apiVersion: v1
