@@ -1,3 +1,8 @@
 .github
+.git
+.idea
 docker-compose.yml
 k8s
+
+**/*.DS_Store
+**/*.pyc
