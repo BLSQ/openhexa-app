@@ -163,9 +163,19 @@ kubectl create namespace hexa-app
 Before we can deploy the app component, we need to create a secret for the Cloud SQL proxy:
 
 ```bash
-kubectl create secret generic cloudsql-oauth-credentials \
-  -n hexa-app \
+kubectl create secret generic cloudsql-oauth-credentials -n hexa-app \
   --from-file=credentials.json=[PATH_TO_CREDENTIAL_FILE]
+```
+
+We need another secret for the Django environment variables:
+
+```bash
+kubectl create secret generic app-secret -n hexa-app \
+  --from-literal DATABASE_USER=<DATABASE_USER> \
+  --from-literal DATABASE_PASSWORD=<DATABASE_PASSWORD> \
+  --from-literal DATABASE_NAME=<DATABASE_NAME> \
+  --from-literal DATABASE_PORT=<DATABASE_PORT> \
+  --from-literal SECRET_KEY=<SECRET_KEY>
 ```
 
 Then, you can copy the sample file and adapt it to your needs:
@@ -178,6 +188,21 @@ You can then deploy the app component using `kubectl apply`:
 
 ```bash
 kubectl apply -n hexa-app -f k8s/app.yaml
+```
+
+Don't forget to run the migrations (with fixtures if needed):
+
+```bash
+# Migrate
+kubectl exec deploy/app-deployment -n hexa-app -- python manage.py migrate
+# Load fixtures
+kubectl exec deploy/app-deployment -n hexa-app -- python manage.py loaddata demo.json
+```
+
+If you need to run a command in a pod, you can use the following:
+
+```bash
+kubectl exec -it deploy/app-deployment -n hexa-app -- bash
 ```
 
 Once the deployment is complete, you can get the public IP of the load balancer and access the app (or create a DNS 
