@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Platform image tag
+        description: Image tag
         required: true
 
 jobs:
@@ -41,8 +41,8 @@ jobs:
           context: .
           file: Dockerfile
           tags: |
-            blsq/openhexa-platform:${{ steps.version.outputs.number }}
-            blsq/openhexa-platform:latest
+            blsq/openhexa-app:${{ steps.version.outputs.number }}
+            blsq/openhexa-app:latest
       - name: Build and push (manual)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
@@ -51,6 +51,6 @@ jobs:
           context: .
           file: Dockerfile
           tags: |
-            blsq/openhexa-platform:${{ github.event.inputs.tag }}
-            blsq/openhexa-platform:latest
+            blsq/openhexa-app:${{ github.event.inputs.tag }}
+            blsq/openhexa-app:latest
 

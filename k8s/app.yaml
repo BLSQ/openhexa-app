@@ -1,0 +1,114 @@
+# Config map: will be used to set environment variables in our container
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    component: app
+data:
+  ALLOWED_HOSTS: "${HEXA_APP_ALLOWED_HOSTS}"
+  DATABASE_HOST: "127.0.0.1"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "app"
+---
+# Secret: will be used to set sensitive environment variables in our container
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  labels:
+    component: app
+data:
+  DATABASE_USER: "${HEXA_DATABASE_USER}"
+  DATABASE_PASSWORD: "${HEXA_DATABASE_PASSWORD}"
+  SECRET_KEY: "${HEXA_SECRET_KEY}"
+---
+# Deployment: represents the app setup (an autoscaling app setup here)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  labels:
+    component: app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      component: app
+  template:
+    metadata:
+      labels:
+        component: app
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-nodepool: "${HEXA_NODE_POOL_SELECTOR}"
+      containers:
+        - name: app-container
+          image: blsq/openhexa-app:"${HEXA_IMAGE_TAG}"
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: app-secret
+            - configMapRef:
+                name: app-config
+          command: [ "/code/docker-entrypoint.sh" ]
+          args: [ "start" ]
+        - name: app-cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.16
+          command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
+                     "-instances=${HEXA_CLOUDSQL_CONNECTION_STRING}=tcp:5432",
+                     "-credential_file=/secrets/cloudsql/credentials.json" ]
+          volumeMounts:
+            - name: app-cloudsql-oauth-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+            - name: app-ssl-certs
+              mountPath: /etc/ssl/certs
+            - name: app-cloudsql
+              mountPath: /cloudsql
+      volumes:
+        - name: app-cloudsql-oauth-credentials
+          secret:
+            secretName: cloudsql-oauth-credentials
+        - name: app-ssl-certs
+          hostPath:
+            path: /etc/ssl/certs
+        - name: app-cloudsql
+          emptyDir: { }
+---
+# Certificate (https)
+apiVersion: networking.gke.io/v1beta2
+kind: ManagedCertificate
+metadata:
+  name: app-certificate
+spec:
+  domains:
+    - ${HEXA_CERTIFICATE_DOMAIN}
+---
+# Service: exposes the deployment
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  labels:
+    component: app
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    component: app
+---
+# Ingress
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: app-ingress
+  annotations:
+    networking.gke.io/managed-certificates: app-certificate
+spec:
+  backend:
+    serviceName: app-service
+    servicePort: 80
