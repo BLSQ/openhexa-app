@@ -8,7 +8,7 @@ metadata:
 data:
   DEBUG: "false"
   ALLOWED_HOSTS: <ALLOWED_HOSTS>
-  # ALLOWED_CIDR_NETS: <ALLOWED_CIDR_NETS>
+  ALLOWED_CIDR_NETS: <ALLOWED_CIDR_NETS>
   DATABASE_HOST: "127.0.0.1"
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
