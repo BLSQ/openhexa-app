@@ -25,14 +25,12 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false") == "true"
 
-ALLOWED_HOSTS_STRING = os.environ.get("ALLOWED_HOSTS")
-if ALLOWED_HOSTS_STRING is not None:
-    ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 # For Kubernetes readyness probes - see https://github.com/mozmeao/django-allow-cidr
-ALLOWED_CIDR_NETS_STRING = os.environ.get("ALLOWED_CIDR_NETS")
-if ALLOWED_CIDR_NETS_STRING is not None:
-    ALLOWED_CIDR_NETS = ALLOWED_CIDR_NETS_STRING.split(",")
+# ALLOWED_CIDR_NETS_STRING = os.environ.get("ALLOWED_CIDR_NETS")
+# if ALLOWED_CIDR_NETS_STRING is not None:
+#     ALLOWED_CIDR_NETS = ALLOWED_CIDR_NETS_STRING.split(",")
 
 # Application definition
 INSTALLED_APPS = [
@@ -56,7 +54,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "allow_cidr.middleware.AllowCIDRMiddleware",
+    # "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
