@@ -8,14 +8,13 @@ def login_required_middleware(get_response):
     @cache
     def anonymous_urls():
         return [
-            reverse("login"),
             reverse("logout"),
             reverse("core:index"),
         ]
 
     def middleware(request):
         if not request.user.is_authenticated and request.path not in anonymous_urls():
-            return redirect("%s?next=%s" % (settings.LOGIN_URL, request.path))
+            return redirect("%s?next=%s" % (reverse("core:index"), request.path))
 
         return get_response(request)
 

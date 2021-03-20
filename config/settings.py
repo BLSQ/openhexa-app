@@ -102,8 +102,6 @@ DATABASES = {
 }
 
 # Auth settings
-LOGIN_URL = "/"
-LOGIN_REDIRECT_URL = "/dashboard"
 LOGOUT_REDIRECT_URL = "/"
 
 # Custom user model

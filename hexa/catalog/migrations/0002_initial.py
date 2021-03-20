@@ -9,19 +9,29 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('catalog', '0001_initial'),
-        ('user_management', '0001_initial'),
+        ("catalog", "0001_initial"),
+        ("user_management", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='catalogindex',
-            name='owner',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='user_management.organization'),
+            model_name="catalogindex",
+            name="owner",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="user_management.organization",
+            ),
         ),
         migrations.AddField(
-            model_name='catalogindex',
-            name='parent',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='catalog.catalogindex'),
+            model_name="catalogindex",
+            name="parent",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="catalog.catalogindex",
+            ),
         ),
     ]
