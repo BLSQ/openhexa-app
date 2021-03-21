@@ -8,7 +8,10 @@ OpenHexa is an open-source data integration platform that allows users to:
 - Perform data analysis in **notebooks**
 - Create rich data **visualizations**
 
-The OpenHexa platform is composed of:
+OpenHexa architecture
+---------------------
+
+The OpenHexa platform is composed of **three main components**:
 
 - The **App component**, a Django application that acts as the user-facing part of the OpenHexa platform
 - The **Notebooks component** (a [JupyterHub](https://jupyter.org/hub) setup)
