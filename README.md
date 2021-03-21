@@ -179,7 +179,14 @@ kubectl create secret generic cloudsql-oauth-credentials -n hexa-app \
   --from-file=credentials.json=[PATH_TO_CREDENTIAL_FILE]
 ```
 
-We need another secret for the Django environment variables:
+We need another secret for the Django environment variables. First, you need to generate a secret key for the 
+Django application:
+
+```bash
+docker-compose run app manage generate_secret_key
+```
+
+Then, create the secret:
 
 ```bash
 kubectl create secret generic app-secret -n hexa-app \
