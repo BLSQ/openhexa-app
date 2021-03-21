@@ -1,7 +1,7 @@
 OpenHexa (App component)
 ========================
 
-OpenHexa is an open-source data integration platform that allows users to:
+OpenHexa is an **open-source data integration platform** that allows users to:
 
 - Explore data coming from a variety of sources in a **data catalog**
 - Schedule **data pipelines** for extraction & transformation operations
@@ -40,25 +40,20 @@ The **App component** is the main point of entry to the OpenHexa platform. It pr
 - An advanced search engine
 - A dashboard
 
-Additionally, it acts as a frontend for the Notebooks and Data Pipelines components.
+Additionally, it acts as a frontend for the **Notebooks** and **Data pipelines** components.
 
 OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets, 
 DHIS2 instances, PostgreSQL databases...
 
 **Data stores** in OpenHexa can be categorized under three different categories:
 
-1. **Primary Data Sources**: those data sources are external to the platform. OpenHexa users can plug them to the
-   platform so that their content can be indexed, browsed and searched. They are **read-only**: OpenHexa will never
-   alter the data residing in primary data sources. Users can schedule data extracts in **data lakes**
-   or **data warehouses** and work on the extracted data.
-1. **Data Lakes**: those data stores are buckets of flat files of various formats (CSV, geopackages, Jupyter
+1. **Primary Data Sources**: those data sources are external to the platform. They are **read-only**: OpenHexa will 
+   never alter the data residing in primary data sources. Users can schedule data extracts in **data lakes**
+   or **data warehouses** to work on the extracted data.
+1. **Data Lakes**: those data stores are buckets of flat files of various formats (CSV, GPKG, Jupyter
    notebooks...). Data residing in data lakes can be read and written to.
 1. **Data Warehouses**: those data stores are read/write databases (as of now, only PostgreSQL data warehouses are
    implemented).
-
-**Primary Data Source** are only accessible within the **App component**. **Data Lakes** and **Data Warehouses** can be
-attached to (and accessed from) the **Notebooks**component.
-
 
 Provisioning and deployment
 ---------------------------
@@ -132,9 +127,7 @@ create it:
 In the Google Cloud console, go to the Google Kubernetes Engine dashboard and create a new cluster:
 
 1. Choose Standard Mode
-1. Name your cluster (`hexa-main` for example)
-1. Choose the "Zonal" location type
-1. Select the appropriate zone
+1. Name your cluster (`hexa-main` for example), choose the "Zonal" location type and select the desired zone
 1. In the "Default Pool" section, configure the default pool name and node configuration (we suggest to call it
    `default-pool-<machine_type>`, where machine type refers to the GCP machine type that you will use for this pool -
    for example, if you opt for the `n2-standard-2` machine type, you can name your pool `default-pool-n2s2`)
@@ -237,8 +230,8 @@ If you need to run a command in a pod, you can use the following:
 kubectl exec -it deploy/app-deployment -n hexa-app -- bash
 ```
 
-Once the deployment is complete, you can get the public IP of the load balancer and access the app (or create a DNS
-record that points to it):
+Once the deployment is complete, you can get the public IP of the load balancer and create a DNS record that points
+to it:
 
 ```bash
 kubectl get service app-service -n hexa-app
