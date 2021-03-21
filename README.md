@@ -10,30 +10,27 @@ OpenHexa is an open-source data integration platform that allows users to:
 
 The OpenHexa platform is composed of:
 
-- The **App** component, a Django application that acts as the user-facing part of the OpenHexa platform
-- The **Notebooks** component (a [JupyterHub](https://jupyter.org/hub) setup)
-- The **Data Pipelines** component (build on top of [Airflow](https://airflow.apache.org/))
+- The **App component**, a Django application that acts as the user-facing part of the OpenHexa platform
+- The **Notebooks component** (a [JupyterHub](https://jupyter.org/hub) setup)
+- The **Data Pipelines component** (build on top of [Airflow](https://airflow.apache.org/))
 
-This repository contains the code for the **App** component, which servers as the user-facing part of the OpenHexa
+This repository contains the code for the **App component**, which servers as the user-facing part of the OpenHexa
 stack.
 
 The code related to the notebook component can be found in the
 [`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the data pipelines code resides in
 the [`openhexa-pipelines`](https://github.com/blsq/openhexa-pipelines) repository.
 
-Architecture overview
----------------------
+App component overview
+----------------------
 
-The **Platform** component is a [Django](https://www.djangoproject.com/) application connected to a
+The **App component** is a [Django](https://www.djangoproject.com/) application connected to a
 [PostgreSQL](https://www.postgresql.org/) database.
-
-OpenHexa can connect to a wide range of data stores, such as AWS S3 / Google Cloud GCS buckets, DHIS2 data warehouses,
-PostgreSQL databases...
 
 This component is meant to be deployed in a [Kubernetes](https://kubernetes.io/) cluster (either in a public cloud or in
 your own infrastructure).
 
-The **App** component is the main point of entry to the OpenHexa platform. It provides:
+The **App component** is the main point of entry to the OpenHexa platform. It provides:
 
 - User management capabilities
 - A browsable Data Catalog
@@ -42,10 +39,10 @@ The **App** component is the main point of entry to the OpenHexa platform. It pr
 
 Additionally, it acts as a frontend for the Notebooks and Data Pipelines components.
 
-Data stores
------------
+OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets, 
+DHIS2 instances, PostgreSQL databases...
 
-OpenHexa handles three different types of data stores:
+**Data stores** in OpenHexa can be categorized under three different categories:
 
 1. **Primary Data Sources**: those data sources are external to the platform. OpenHexa users can plug them to the
    platform so that their content can be indexed, browsed and searched. They are **read-only**: OpenHexa will never
@@ -56,7 +53,7 @@ OpenHexa handles three different types of data stores:
 1. **Data Warehouses**: those data stores are read/write databases (as of now, only PostgreSQL data warehouses are
    implemented).
 
-**Primary Data Source** are only accessible within the **App** component. **Data Lakes** and **Data Warehouses** can be
+**Primary Data Source** are only accessible within the **App component**. **Data Lakes** and **Data Warehouses** can be
 attached to (and accessed from) the **Notebooks**component.
 
 
@@ -69,12 +66,12 @@ the instructions below to your infrastructure of choice.
 
 ### Provisioning
 
-In order to run the OpenHexa platform, you will need:
+In order to run the OpenHexa **App component**, you will need:
 
-1. A Kubernetes cluster
-1. A PostgreSQL server running PostgreSQL 11 or later
+1. A **Kubernetes cluster**
+1. A **PostgreSQL server** running PostgreSQL 11 or later
 
-It is perfectly fine to run the OpenHexa **App** component in an existing Kubernetes cluster. All the Kubernetes
+It is perfectly fine to run the OpenHexa **App component** in an existing Kubernetes cluster. All the Kubernetes
 resources created for this component will be attached to a specific Kubernetes namespace named `hexa-app`.
 
 #### Configure gcloud
@@ -163,7 +160,7 @@ Then, you can create a DNS record that points to the ip address returned by the 
 
 ### Deploying
 
-The OpenHexa **App** component can be deployed with the `kubectl` utility. Almost all the required resources can be
+The OpenHexa **App component** can be deployed with the `kubectl` utility. Almost all the required resources can be
 contained in a single file (we provide a sample `k8s/app.yaml` file to serve as a basis).
 
 As we want all resources to be located in a specific Kubernetes namespace, create it if it does not exist yet:
@@ -255,7 +252,7 @@ This repository also provides a Github workflow to build the Docker image in the
 Local development
 -----------------
 
-In addition to the **App** component Docker image, we also provide a `docker-compose.yaml` file for local development.
+In addition to the **App component** Docker image, we also provide a `docker-compose.yaml` file for local development.
 
 The following steps will get you up and running:
 
