@@ -31,7 +31,7 @@ spec:
         cloud.google.com/gke-nodepool: <NODE_POOL_SELECTOR>
       containers:
         - name: app-container
-          image: blsq/openhexa-app:<IMAGE_TAG>
+          image: <HEXA_APP_IMAGE>
           ports:
             - containerPort: 8000
           envFrom:
@@ -102,7 +102,7 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: <ADDRESS_NAME>
+    kubernetes.io/ingress.global-static-ip-name: <HEXA_ADDRESS_NAME>
     networking.gke.io/managed-certificates: app-certificate
     kubernetes.io/ingress.class: "gce"
 spec:

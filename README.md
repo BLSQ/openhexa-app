@@ -135,11 +135,11 @@ In the Google Cloud console, go to the Google Kubernetes Engine dashboard and cr
 1. Name your cluster (`hexa-main` for example)
 1. Choose the "Zonal" location type
 1. Select the appropriate zone
-1. In the "Default Pool" section, configure the default pool name and node configuration (we suggest to call it 
-   `default-pool-<machine_type>`, where machine type refers to the GCP machine type that you will use for this pool - 
+1. In the "Default Pool" section, configure the default pool name and node configuration (we suggest to call it
+   `default-pool-<machine_type>`, where machine type refers to the GCP machine type that you will use for this pool -
    for example, if you opt for the `n2-standard-2` machine type, you can name your pool `default-pool-n2s2`)
-1. Choose a number of node and autoscaling settings (1 node as a starting point, 1-3 nodes with autoscaling enabled is 
-   a sensible default)
+1. Choose a number of node and autoscaling settings (1 node as a starting point, 1-3 nodes with autoscaling enabled is a
+   sensible default)
 1. Within the "Nodes" sub-section (under the "Default Pool" section), choose an appropriate machine type
 1. Perform additional customization as needed and confirm the cluster creation
 
@@ -149,7 +149,7 @@ To make sure that the `kubectl` utility can access the newly created cluster, yo
 gcloud container clusters get-credentials hexa-main --zone "<your_cluster-zone>"
 ```
 
-#### Create a global IP address
+#### Create a global IP address (and a DNS record)
 
 The Kubernetes ingress used to access the OpenHexa app exposes an external IP. This IP might change when re-deploying 
 or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
@@ -159,15 +159,11 @@ gcloud compute addresses create <ADDRESS_NAME> --global
 gcloud compute addresses describe <ADDRESS_NAME> --global
 ```
 
-Take not of the `address` value - you will need it if you want to create a DNS record pointing to the app.
-
-Later on, when creating your Kubernetes deployment yaml file, replace <ADDRESS_NAME> with the name used to create the 
-address.
-
+Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
 
 ### Deploying
 
-The OpenHexa **App** component can be deployed with the `kubectl` utility. Almost all the required resources can be 
+The OpenHexa **App** component can be deployed with the `kubectl` utility. Almost all the required resources can be
 contained in a single file (we provide a sample `k8s/app.yaml` file to serve as a basis).
 
 As we want all resources to be located in a specific Kubernetes namespace, create it if it does not exist yet:
@@ -200,6 +196,19 @@ Then, you can copy the sample file and adapt it to your needs:
 cp k8s/app.yaml.dist k8s/app.yaml
 nano k8s/app.yaml
 ```
+
+A few notes about the sample file:
+
+1. `HEXA_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa app instance
+   (`openhexa.yourorg.com` for example)
+1. `NODE_POOL_SELECTOR` should be set to the name of the node pool that will run your OpenHexa app pods
+   (example: `default-pool-n2s2`)
+1. `HEXA_APP_IMAGE` is the full path of the OpenHexa app image (`blsq/openhexa-app:latest` or `blsq/openhexa-app:0.3.1`,
+   or a path to a custom image)1
+1. `CLOUDSQL_CONNECTION_STRING` corresponds to the `connectionName` value returned by the 
+   `gcloud sql instances describe` command (see above)
+1. `HEXA_ADDRESS_NAME` is the named used when creating the address using the `gcloud compute addresses create` command
+
 You can then deploy the app component using `kubectl apply`:
 
 ```bash
@@ -221,7 +230,7 @@ If you need to run a command in a pod, you can use the following:
 kubectl exec -it deploy/app-deployment -n hexa-app -- bash
 ```
 
-Once the deployment is complete, you can get the public IP of the load balancer and access the app (or create a DNS 
+Once the deployment is complete, you can get the public IP of the load balancer and access the app (or create a DNS
 record that points to it):
 
 ```bash
