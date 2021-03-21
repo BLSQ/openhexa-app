@@ -95,9 +95,6 @@ DATABASES = {
     }
 }
 
-# Security settings
-SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
-
 # Auth settings
 LOGOUT_REDIRECT_URL = "/"
 
