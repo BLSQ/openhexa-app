@@ -1,3 +1,5 @@
+![OpenHexa Logo](https://openhexa.bluesquare.org/static/img/logo/logo_with_text_black.svg)
+
 OpenHexa (App component)
 ========================
 
@@ -7,6 +9,8 @@ OpenHexa is an **open-source data integration platform** that allows users to:
 - Schedule **data pipelines** for extraction & transformation operations
 - Perform data analysis in **notebooks**
 - Create rich data **visualizations**
+
+![OpenHexa Screenshot](https://openhexa.bluesquare.org/static/img/screenshots/datasource_detail.png)
 
 OpenHexa architecture
 ---------------------
