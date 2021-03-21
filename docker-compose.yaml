@@ -19,6 +19,7 @@ services:
     depends_on:
       - db
     environment:
+      - SECURE_SSL_REDIRECT=false
       - ALLOWED_HOSTS=*
       - DATABASE_HOST=db
       - DATABASE_PORT=5432

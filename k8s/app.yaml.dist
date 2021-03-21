@@ -7,8 +7,7 @@ metadata:
     component: app
 data:
   DEBUG: "false"
-  ALLOWED_HOSTS: <ALLOWED_HOSTS>
-  ALLOWED_CIDR_NETS: <ALLOWED_CIDR_NETS>
+  ALLOWED_HOSTS: <HEXA_DOMAIN>
   DATABASE_HOST: "127.0.0.1"
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
@@ -42,6 +41,13 @@ spec:
                 name: app-config
           command: [ "/code/docker-entrypoint.sh" ]
           args: [ "start" ]
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+              httpHeaders:
+                - name: Host
+                  value: <HEXA_DOMAIN>
         - name: app-cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.16
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
@@ -72,7 +78,7 @@ metadata:
   name: app-certificate
 spec:
   domains:
-    - <CERTIFICATE_DOMAIN>
+    - <HEXA_DOMAIN>
 ---
 # Service: exposes the deployment
 apiVersion: v1

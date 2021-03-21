@@ -1,7 +1,6 @@
 coverage==5.*
 dhis2.py==2.*
 Django==3.*
-django-allow-cidr==0.*
 django-countries==7.*
 django-tailwind==1.*
 gunicorn==20.*

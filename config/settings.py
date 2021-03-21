@@ -27,11 +27,6 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
-# For Kubernetes readyness probes - see https://github.com/mozmeao/django-allow-cidr
-# ALLOWED_CIDR_NETS_STRING = os.environ.get("ALLOWED_CIDR_NETS")
-# if ALLOWED_CIDR_NETS_STRING is not None:
-#     ALLOWED_CIDR_NETS = ALLOWED_CIDR_NETS_STRING.split(",")
-
 # Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -54,7 +49,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    # "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -100,6 +94,9 @@ DATABASES = {
         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
     }
 }
+
+# Security settings
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 
 # Auth settings
 LOGOUT_REDIRECT_URL = "/"
