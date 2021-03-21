@@ -131,7 +131,7 @@ class CatalogIndex(Base):
 
     @property
     def symbol(self):
-        return f"{settings.STATIC_URL}/{self.app_label}/img/symbol.svg"
+        return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
 
     def to_dict(self):  # TODO: use serializer
         return {
