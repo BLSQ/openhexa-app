@@ -27,3 +27,4 @@ services:
       - DATABASE_PASSWORD=hexa-app
       - DEBUG=true
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
+      - SESSION_COOKIE_SECURE=false
