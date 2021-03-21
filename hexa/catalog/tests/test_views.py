@@ -16,17 +16,6 @@ class CatalogTest(test.TestCase):
             "regular",
         )
 
-    def test_catalog_index_302(self):
-        response = self.client.get(
-            reverse(
-                "catalog:index",
-            ),
-        )
-
-        # Check that the response is temporary redirection to /login.
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(settings.LOGIN_URL, response.url)
-
     def test_catalog_index_200(self):
         self.client.login(email="jane@bluesquarehub.com", password="regular")
         response = self.client.get(

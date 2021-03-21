@@ -17,3 +17,9 @@ class CoreTest(test.TestCase):
         response = self.client.get(reverse("core:index"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_ready_200(self):
+        response = self.client.get(reverse("core:ready"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), "ok")

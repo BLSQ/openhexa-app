@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -44,3 +45,7 @@ def dashboard(request):
             "breadcrumbs": breadcrumbs,
         },
     )
+
+
+def ready(request):
+    return HttpResponse("ok")

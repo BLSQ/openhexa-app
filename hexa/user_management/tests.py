@@ -19,7 +19,7 @@ class AuthTest(test.TestCase):
 
         # Check that the response is temporary redirection to /login.
         self.assertEqual(response.status_code, 302)
-        self.assertIn(settings.LOGIN_URL, response.url)
+        self.assertEqual(response.url, "/?next=/dashboard")
 
     def test_any_page_anonymous_200(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
@@ -33,7 +33,7 @@ class AuthTest(test.TestCase):
 
         # Check that the response is temporary redirection to /login.
         self.assertEqual(response.status_code, 302)
-        self.assertIn(settings.LOGIN_URL, response.url)
+        self.assertEqual(response.url, "/")
 
     def test_account_200(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")

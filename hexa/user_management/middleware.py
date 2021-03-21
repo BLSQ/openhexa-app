@@ -7,10 +7,7 @@ from functools import cache
 def login_required_middleware(get_response):
     @cache
     def anonymous_urls():
-        return [
-            reverse("logout"),
-            reverse("core:index"),
-        ]
+        return [reverse("logout"), reverse("core:index"), reverse("core:ready")]
 
     def middleware(request):
         if not request.user.is_authenticated and request.path not in anonymous_urls():
