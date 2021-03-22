@@ -28,9 +28,9 @@ The OpenHexa platform is composed of **three main components**:
 This repository contains the code for the **App component**, which servers as the user-facing part of the OpenHexa
 stack.
 
-The code related to the notebook component can be found in the
-[`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the data pipelines code resides in
-the [`openhexa-pipelines`](https://github.com/blsq/openhexa-pipelines) repository.
+The code related to the Notebooks component can be found in the
+[`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the Data Pipelines component 
+code resides in the [`openhexa-pipelines`](https://github.com/blsq/openhexa-pipelines) repository.
 
 App component overview
 ----------------------
