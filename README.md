@@ -1,6 +1,7 @@
-<div style="display: flex;align-items: center; justify-content: space-between">
+<div align="center">
    <img alt="OpenHexa Logo" src="https://openhexa.bluesquare.org/static/img/logo/logo_with_text_black.svg" width="400">
 </div>
+
 OpenHexa App Component
 ======================
 
@@ -11,7 +12,7 @@ OpenHexa is an **open-source data integration platform** that allows users to:
 - Perform data analysis in **notebooks**
 - Create rich data **visualizations**
 
-<div style="display: flex;align-items: center; justify-content: space-between">
+<div align="center">
    <img alt="OpenHexa Screenshot" src="https://openhexa.bluesquare.org/static/img/screenshots/datasource_detail.png" height="150">
 </div>
 
