@@ -40,7 +40,9 @@ def dashboard(request):
             "counts": {
                 "datasources": CatalogIndex.objects.filter(
                     index_type=CatalogIndexType.DATASOURCE
-                ).count()
+                )
+                .for_user(request.user)
+                .count()
             },
             "breadcrumbs": breadcrumbs,
         },
