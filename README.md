@@ -291,8 +291,9 @@ docker-compose run app coverage
 OpenHexa uses [TailwindUI](https://tailwindui.com/) and [TailwindCSS](https://tailwindcss.com/) for the user interface. 
 No specific step is required to use it, unless you want to perform changes to the TailwindUI/TailwindCSS configuration.
 
-To be able to do that, you need to start tailwind in dev mode:
+To be able to do that, you need to install `django-tailwind` and start tailwind in dev mode:
 
+`docker-compose run app manage tailwind install`.
 `docker-compose run app manage tailwind start`.
 ```
 
