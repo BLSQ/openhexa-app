@@ -120,6 +120,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication backends
+# https://docs.djangoproject.com/en/3.1/ref/settings/#authentication-backends
+AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
+
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
 

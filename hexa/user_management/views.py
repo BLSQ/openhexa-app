@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 
 
 def account(request):
-    return render(request, "auth/account.html", {"user": request.user})
+    return render(request, "user_management/account.html", {"user": request.user})
 
 
 def logout(request):

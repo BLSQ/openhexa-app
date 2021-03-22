@@ -9,6 +9,14 @@ from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
 
+class InstanceQuerySet(models.QuerySet):
+    def for_user(self, user):
+        if not (user.is_active and user.is_superuser):
+            return self.none()
+
+        return self
+
+
 class Instance(Datasource):
     class Meta:
         verbose_name = "DHIS2 Instance"
@@ -17,6 +25,8 @@ class Instance(Datasource):
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)
     api_password = models.CharField(max_length=200)
+
+    objects = InstanceQuerySet.as_manager()
 
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""

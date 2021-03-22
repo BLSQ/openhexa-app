@@ -51,5 +51,9 @@ class Organization(Base):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
 
+    @property
+    def display_name(self):
+        return self.short_name if self.short_name is not None else self.name
+
     def __str__(self):
         return f"Organization: {self.name}"
