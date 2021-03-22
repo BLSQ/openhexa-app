@@ -19,12 +19,13 @@ services:
     depends_on:
       - db
     environment:
+      - DEBUG=true
+      - SESSION_COOKIE_SECURE=false
+      - CSRF_COOKIE_SECURE=false
       - ALLOWED_HOSTS=*
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_NAME=hexa-app
       - DATABASE_USER=hexa-app
       - DATABASE_PASSWORD=hexa-app
-      - DEBUG=true
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
-      - SESSION_COOKIE_SECURE=false
