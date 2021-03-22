@@ -1,5 +1,5 @@
 <div align="center">
-   <img alt="OpenHexa Logo" src="https://openhexa.bluesquare.org/static/img/logo/logo_with_text_black.svg" width="400">
+   <img alt="OpenHexa Logo" src="https://openhexa.bluesquare.org/static/img/logo/logo_with_text_black.svg" height="80">
 </div>
 
 OpenHexa App Component
