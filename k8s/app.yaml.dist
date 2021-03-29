@@ -7,7 +7,7 @@ metadata:
     component: app
 data:
   DEBUG: "false"
-  ALLOWED_HOSTS: <HEXA_DOMAIN>
+  ALLOWED_HOSTS: <HEXA_APP_DOMAIN>
   DATABASE_HOST: "127.0.0.1"
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
@@ -47,7 +47,7 @@ spec:
               port: 8000
               httpHeaders:
                 - name: Host
-                  value: <HEXA_DOMAIN>
+                  value: <HEXA_APP_DOMAIN>
         - name: app-cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.16
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
@@ -78,7 +78,7 @@ metadata:
   name: app-certificate
 spec:
   domains:
-    - <HEXA_DOMAIN>
+    - <HEXA_APP_DOMAIN>
 ---
 # Service: exposes the deployment
 apiVersion: v1

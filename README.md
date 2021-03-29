@@ -121,8 +121,8 @@ gcloud sql instances describe hexa-app
 #### Create a service account for the Cloud SQL proxy
 
 The OpenHexa app component will connect to the Cloud SQL instance using a
-[Cloud SQL Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy). The proxy requires a GCP service account. To
-create it:
+[Cloud SQL Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy). The proxy requires a GCP service account. If 
+you have not created such a service account yet, create one:
 
 1. Go to the Service Accounts page of the GCP IAM & Admin section
 1. Create a service account named `cloud-sql-proxy` and give it a description
@@ -133,17 +133,20 @@ create it:
 
 #### Create a GKE cluster:
 
-In the Google Cloud console, go to the Google Kubernetes Engine dashboard and create a new cluster:
+Unless you already have a running Kubernetes cluster, you need to create one. The following command 
+will create a new cluster in Google Kubernetes Engine, along with a default node pool:
 
-1. Choose Standard Mode
-1. Name your cluster (`hexa-main` for example), choose the "Zonal" location type and select the desired zone
-1. In the "Default Pool" section, configure the default pool name and node configuration (we suggest to call it
-   `default-pool-<machine_type>`, where machine type refers to the GCP machine type that you will use for this pool -
-   for example, if you opt for the `n2-standard-2` machine type, you can name your pool `default-pool-n2s2`)
-1. Choose a number of node and autoscaling settings (1 node as a starting point, 1-3 nodes with autoscaling enabled is a
-   sensible default)
-1. Within the "Nodes" sub-section (under the "Default Pool" section), choose an appropriate machine type
-1. Perform additional customization as needed and confirm the cluster creation
+```bash
+gcloud container clusters create hexa-main \
+  --node-pool=default-pool-n2s2
+  --machine-type=n2-standard-2 \
+  --zone=europe-west1-b \
+  --num-nodes=0 \
+  --enable-autoscaling \
+  --min-nodes=0 \
+  --max-nodes=4 \
+  --cluster-version=latest
+```
 
 To make sure that the `kubectl` utility can access the newly created cluster, you need to launch another command:
 
@@ -166,7 +169,7 @@ Then, you can create a DNS record that points to the ip address returned by the 
 ### Deploying
 
 The OpenHexa **App component** can be deployed with the `kubectl` utility. Almost all the required resources can be
-contained in a single file (we provide a sample `k8s/app.yaml` file to serve as a basis).
+contained in a single file (we provide a sample `k8s/app.yaml.dist` file to serve as a basis).
 
 As we want all resources to be located in a specific Kubernetes namespace, create it if it does not exist yet:
 
@@ -208,7 +211,7 @@ nano k8s/app.yaml
 
 A few notes about the sample file:
 
-1. `HEXA_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa app instance
+1. `HEXA_APP_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa app instance
    (`openhexa.yourorg.com` for example)
 1. `NODE_POOL_SELECTOR` should be set to the name of the node pool that will run your OpenHexa app pods
    (example: `default-pool-n2s2`)
