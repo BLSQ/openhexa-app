@@ -89,7 +89,7 @@ class Instance(Datasource):
         )
 
 
-class Content(Content):
+class Dhis2Content(Content):
     class Meta:
         abstract = True
         ordering = ["dhis2_name"]
@@ -158,7 +158,7 @@ class AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class DataElement(Content):
+class DataElement(Dhis2Content):
     class Meta:
         verbose_name = "DHIS2 Data Element"
         ordering = ("dhis2_name",)
@@ -187,12 +187,12 @@ class DataElement(Content):
         )
 
 
-class IndicatorType(Content):
+class IndicatorType(Dhis2Content):
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
 
 
-class Indicator(Content):
+class Indicator(Dhis2Content):
     class Meta:
         verbose_name = "DHIS2 Indicator"
         ordering = ("dhis2_name",)
