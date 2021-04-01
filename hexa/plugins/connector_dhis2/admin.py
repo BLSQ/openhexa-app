@@ -7,13 +7,6 @@ from .models import (
 )
 
 
-def country_list(obj):
-    return ",".join(country.alpha3 for country in obj.countries)
-
-
-country_list.short_description = "Countries"
-
-
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
     list_display = ("name", "url", "last_synced_at")

@@ -23,8 +23,8 @@ class Instance(Datasource):
         ordering = ("name",)
 
     api_url = models.URLField()
-    api_username = models.CharField(max_length=200)
-    api_password = models.CharField(max_length=200)
+    api_username = models.CharField(max_length=200)  # TODO: secure
+    api_password = models.CharField(max_length=200)  # TODO: secure
 
     objects = InstanceQuerySet.as_manager()
 
@@ -188,6 +188,10 @@ class DataElement(Dhis2Content):
 
 
 class IndicatorType(Dhis2Content):
+    class Meta:
+        verbose_name = "DHIS2 Indicator type"
+        ordering = ("name",)
+
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
 

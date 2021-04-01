@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ConnectorS3Config(AppConfig):
+class S3ConnectorConfig(AppConfig):
     name = "hexa.plugins.connector_s3"
     label = "connector_s3"
 

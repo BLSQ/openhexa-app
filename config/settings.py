@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "hexa.pipelines.apps.PipelinesConfig",
     "hexa.tailwindui.apps.TailwinduiConfig",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
+    "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
 ]
 
 MIDDLEWARE = [
