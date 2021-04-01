@@ -1,0 +1,179 @@
+{% extends "partials/page_card.html" %}
+
+{% block card_content %}
+    <div class="flow-root">
+        <ul class="-mb-8">
+            <li>
+                <div class="relative pb-8">
+                    <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                    <div class="relative flex items-start space-x-3">
+                        <div class="relative">
+                            <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
+                                 src="https://ca.slack-edge.com/T02T1R13H-U1DLDB1PH-5a233088d5ca-512"
+                                 alt="">
+
+                            <span class="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
+              <!-- Heroicon name: solid/chat-alt -->
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                   fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd"
+                      d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                      clip-rule="evenodd"/>
+              </svg>
+            </span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div>
+                                <div class="text-sm">
+                                    <a href="#" class="font-medium text-gray-900">Grégoire Lurton</a>
+                                </div>
+                                <p class="mt-0.5 text-sm text-gray-500">
+                                    Commented 6d ago
+                                </p>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-700">
+                                <p>
+                                    IMHO this is the best Data Element ever. I love it!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li>
+                <div class="relative pb-8">
+                    <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                    <div class="relative flex items-start space-x-3">
+                        <div>
+                            <div class="relative px-1">
+                                <div class="h-8 w-8 bg-gray-100 rounded-full ring-8 ring-white flex items-center justify-center">
+                                    <!-- Heroicon name: solid/user-circle -->
+                                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1 py-1.5">
+                            <div class="text-sm text-gray-500">
+                                <a href="#" class="font-medium text-gray-900">Grégoire Lurton</a>
+                                assigned
+                                <a href="#" class="font-medium text-gray-900">Marie-Julie Lambert</a>
+                                <span class="whitespace-nowrap">2d ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li>
+                <div class="relative pb-8">
+                    <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                    <div class="relative flex items-start space-x-3">
+                        <div>
+                            <div class="relative px-1">
+                                <div class="h-8 w-8 bg-gray-100 rounded-full ring-8 ring-white flex items-center justify-center">
+                                    <!-- Heroicon name: solid/tag -->
+                                    <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd"
+                                              d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="min-w-0 flex-1 py-0">
+                            <div class="text-sm leading-8 text-gray-500">
+              <span class="mr-0.5">
+                <a href="#" class="font-medium text-gray-900">Marie-Julie Lambert</a>
+                added tags
+              </span>
+              <span class="mr-0.5">
+                {% include "partials/label.html" with text="Must see" color="red" %}
+                {% include "partials/label.html" with text="Great content" color="green" %}
+              </span>
+                                <span class="whitespace-nowrap">6h ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li>
+                <div class="relative pb-8">
+                    <div class="relative flex items-start space-x-3">
+                        <div class="relative">
+                            <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
+                                 src="https://ca.slack-edge.com/T02T1R13H-U01DPKLV4E6-075572d0fe5f-512"
+                                 alt="">
+
+                            <span class="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
+              <!-- Heroicon name: solid/chat-alt -->
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                   fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd"
+                      d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                      clip-rule="evenodd"/>
+              </svg>
+            </span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div>
+                                <div class="text-sm">
+                                    <a href="#" class="font-medium text-gray-900">Marie-Julie Lambert</a>
+                                </div>
+                                <p class="mt-0.5 text-sm text-gray-500">
+                                    Commented 2h ago
+                                </p>
+                            </div>
+                            <div class="mt-2 text-sm text-gray-700">
+                                <p>
+                                    Not sure I would agree with Grégoire about this. IMHO the "All sterilisation
+                                    equipment is validated / licensed" is a strong contender as well.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li>
+                <div class="relative pb-8">
+                    <div class="relative flex items-start space-x-3">
+                        <div class="relative">
+                            <img class="h-10 w-10 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
+                                 src="https://ca.slack-edge.com/T02T1R13H-U01DPKLV4E6-075572d0fe5f-512"
+                                 alt="">
+
+                            <span class="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
+              <!-- Heroicon name: solid/chat-alt -->
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                   fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd"
+                      d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z"
+                      clip-rule="evenodd"/>
+              </svg>
+            </span>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <form class="mb-4 text-sm text-gray-700 flex">
+        <textarea
+                id="about"
+                name="about"
+                rows="2"
+                class="resize-none max-w-2xl shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md"
+                placeholder="Add a comment"
+        ></textarea>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+{% endblock %}

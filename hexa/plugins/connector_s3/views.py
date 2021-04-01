@@ -1,3 +1,36 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
+from django.utils.translation import ugettext_lazy as _
 
-# Create your views here.
+from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
+from .models import Bucket
+
+
+def datasource_detail(request, datasource_id):
+    datasource = get_object_or_404(
+        Bucket.objects.for_user(request.user), pk=datasource_id
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (datasource.display_name, "connector_s3:datasource_detail", datasource_id),
+    ]
+
+    return render(
+        request,
+        "connector_s3/datasource_detail.html",
+        {
+            "datasource": datasource,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def datasource_sync(request, datasource_id):
+    datasource = get_object_or_404(
+        Bucket.objects.for_user(request.user), pk=datasource_id
+    )
+    sync_result = datasource.sync()
+    messages.success(request, sync_result, extra_tags="green")
+
+    return redirect(request.META.get("HTTP_REFERER"))

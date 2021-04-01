@@ -30,7 +30,7 @@ class Bucket(Datasource):
         """Sync the bucket by querying the DHIS2 API"""
 
         fs = S3FileSystem(key=self.s3_access_key_id, secret=self.s3_secret_access_key)
-        ls = fs.ls(self.s3_name)
+        ls = fs.ls(self.s3_name + "/", detail=True)
         foo = "bar"
 
         return
@@ -66,7 +66,7 @@ class Bucket(Datasource):
             countries=self.countries,
             content_summary=self.content_summary,
             last_synced_at=self.last_synced_at,
-            detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
+            detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
 
