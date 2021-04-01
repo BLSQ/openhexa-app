@@ -9,6 +9,7 @@ data:
   DEBUG: "false"
   ALLOWED_HOSTS: <HEXA_APP_DOMAIN>
   DATABASE_HOST: "127.0.0.1"
+  NOTEBOOKS_URL: <HEXA_NOTEBOOKS_DOMAIN>
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
 apiVersion: apps/v1

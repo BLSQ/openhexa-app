@@ -49,7 +49,8 @@ The **App component** is the main point of entry to the OpenHexa platform. It pr
 - An advanced search engine
 - A dashboard
 
-Additionally, it acts as a frontend for the **Notebooks** and **Data pipelines** components.
+Additionally, it acts as a frontend for the **Notebooks** component (which is embedded in the app component as an 
+iframe) and for the **Data pipelines** component.
 
 OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets, 
 DHIS2 instances, PostgreSQL databases...
@@ -166,6 +167,18 @@ gcloud compute addresses describe <ADDRESS_NAME> --global
 
 Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
 
+#### Set up the Notebooks component
+
+The app component will embed the [Notebooks component](https://github.com/BLSQ/openhexa-notebooks) as in frame in a 
+dedicated section.
+
+Before deploying the App component, you will need to deploy the Notebooks component, following the instructions 
+provided in the [`README.md`](https://github.com/BLSQ/openhexa-notebooks/blob/main/README.md) of the Notebooks 
+component.
+
+It's important to have the Notebooks and App components running on the same top-level domain, as we use cookies for 
+cross-component authentication.
+
 ### Deploying
 
 The OpenHexa **App component** can be deployed with the `kubectl` utility. Almost all the required resources can be
@@ -220,6 +233,8 @@ A few notes about the sample file:
 1. `CLOUDSQL_CONNECTION_STRING` corresponds to the `connectionName` value returned by the 
    `gcloud sql instances describe` command (see above)
 1. `HEXA_ADDRESS_NAME` is the named used when creating the address using the `gcloud compute addresses create` command
+1. `HEXA_NOTEBOOKS_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa notebooks
+   instance (`notebooks.openhexa.yourorg.com` for example)
 
 You can then deploy the app component using `kubectl apply`:
 
