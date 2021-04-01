@@ -1,5 +1,4 @@
 from django import test
-from django.conf import settings
 from django.db.models import QuerySet
 from django.http import JsonResponse
 from django.urls import reverse

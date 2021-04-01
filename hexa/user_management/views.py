@@ -1,12 +1,13 @@
-from django.contrib.auth import logout as do_logout
-from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.shortcuts import render
 
 
 def account(request):
     return render(request, "user_management/account.html", {"user": request.user})
 
 
-def logout(request):
-    do_logout(request)
+def info(request):
+    if request.user.is_authenticated:
+        return JsonResponse({"username": request.user.username})
 
-    return redirect("login")
+    return JsonResponse({"username": None}, status=401)

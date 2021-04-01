@@ -149,3 +149,6 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 
 # Tailwind
 TAILWIND_APP_NAME = "hexa.tailwindui"
+
+# Notebooks component
+NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")

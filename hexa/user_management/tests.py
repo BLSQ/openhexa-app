@@ -1,5 +1,4 @@
 from django import test
-from django.conf import settings
 from django.urls import reverse
 
 from hexa.user_management.models import User
@@ -40,3 +39,17 @@ class AuthTest(test.TestCase):
         response = self.client.get(reverse("user:account"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_info_200(self):
+        self.client.login(email="john@bluesquarehub.com", password="regular")
+        response = self.client.get(reverse("user:info"))
+
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn("username", response_data)
+        self.assertEqual("john@bluesquarehub.com", response_data["username"])
+
+    def test_info_401(self):
+        response = self.client.get(reverse("user:info"))
+
+        self.assertEqual(response.status_code, 401)
