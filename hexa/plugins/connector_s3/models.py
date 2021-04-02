@@ -5,16 +5,22 @@ from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
 from hexa.catalog.models import Base, Content, Datasource, CatalogIndex
+from hexa.catalog.sync import DatasourceSyncResult
 
 
 class Credentials(Base):
+    """This class is a temporary way to store S3 credentials. This approach is not safe for production,
+    as credentials are not encrypted.
+    TODO: Store credentials in a secure storage engine like Vault.
+    """
+
     class Meta:
         verbose_name = "S3 Credentials"
         ordering = ("username",)
 
     username = models.CharField(max_length=200)
-    access_key_id = models.CharField(max_length=200)  # TODO: secure
-    secret_access_key = models.CharField(max_length=200)  # TODO: secure
+    access_key_id = models.CharField(max_length=200)
+    secret_access_key = models.CharField(max_length=200)
 
     def __str__(self):
         return self.username
@@ -49,29 +55,62 @@ class Bucket(Datasource):
                 secret=self.credentials.secret_access_key,
             )
 
-        ls = fs.ls(self.s3_name + "/", detail=True)
-        foo = "bar"
-
-        return
-
         # Sync data elements
         with transaction.atomic():
+            # TODO: update or create
+            Bucket.objects.all().delete()
+            result = self.create_objects(fs, f"{self.s3_name}")
+
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
 
-        # return data_element_results + indicator_type_results + indicator_results
+        return result
+
+    def create_objects(self, fs, path):
+        results = DatasourceSyncResult(
+            datasource=self,
+            created=0,
+            updated=0,
+            identical=0,
+        )
+
+        created = 0
+        for object_data in fs.ls(path, detail=True):
+            if object_data["Key"][-1] == "/" and object_data["size"] == 0:
+                continue  # TODO: check if safer way
+
+            s3_object = Object.objects.create(
+                instance=self,
+                key=object_data["Key"],
+                size=object_data["size"],
+                storage_class=object_data["StorageClass"],
+                s3_type=object_data["type"],
+                s3_name=object_data["name"],
+                s3_last_modified=object_data.get("LastModified"),
+            )
+
+            if s3_object.s3_type == "directory":  # TODO: choices
+                results += self.create_objects(fs, s3_object.key)
+
+            created += 1
+
+        results += DatasourceSyncResult(
+            datasource=self,
+            created=created,
+            updated=0,
+            identical=0,
+        )
+
+        return results
 
     @property
     def content_summary(self):
         if self.last_synced_at is None:
             return ""
 
-        return _(
-            "%(data_element_count)s data elements, %(indicator_count)s indicators"
-        ) % {
-            "data_element_count": self.dataelement_set.count(),
-            "indicator_count": self.indicator_set.count(),
+        return _("%(object_count)s objects") % {
+            "object_count": self.object_set.count(),
         }
 
     def index(self):
@@ -88,14 +127,20 @@ class Bucket(Datasource):
         )
 
 
-# class Object(Content):
-#     class Meta:
-#         ordering = ["s3_name"]
-#
-#     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
-#     s3_id = models.CharField(max_length=200)
-#     s3_name = models.CharField(max_length=200)
-#
-#     @property
-#     def display_name(self):
-#         return self.s3_name
+class Object(Content):
+    class Meta:
+        verbose_name = "S3 Object"
+        ordering = ["s3_name"]
+
+    instance = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    key = models.TextField()
+    size = models.PositiveIntegerField()
+    storage_class = models.CharField(max_length=200)  # TODO: choices
+    s3_type = models.CharField(max_length=200)  # TODO: choices
+    s3_name = models.CharField(max_length=200)
+    s3_last_modified = models.DateTimeField(null=True)
+
+    @property
+    def display_name(self):
+        return self.s3_name
