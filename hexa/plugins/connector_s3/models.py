@@ -4,7 +4,20 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
-from hexa.catalog.models import Content, Datasource, CatalogIndex
+from hexa.catalog.models import Base, Content, Datasource, CatalogIndex
+
+
+class Credentials(Base):
+    class Meta:
+        verbose_name = "S3 Credentials"
+        ordering = ("username",)
+
+    username = models.CharField(max_length=200)
+    access_key_id = models.CharField(max_length=200)  # TODO: secure
+    secret_access_key = models.CharField(max_length=200)  # TODO: secure
+
+    def __str__(self):
+        return self.username
 
 
 class BucketQuerySet(models.QuerySet):
@@ -21,15 +34,21 @@ class Bucket(Datasource):
         ordering = ("name",)
 
     s3_name = models.CharField(max_length=200)
-    s3_access_key_id = models.CharField(max_length=200)  # TODO: secure
-    s3_secret_access_key = models.CharField(max_length=200)  # TODO: secure
+    credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
 
     objects = BucketQuerySet.as_manager()
 
     def sync(self):
         """Sync the bucket by querying the DHIS2 API"""
 
-        fs = S3FileSystem(key=self.s3_access_key_id, secret=self.s3_secret_access_key)
+        if self.credentials is True:
+            fs = S3FileSystem(anon=True)
+        else:
+            fs = S3FileSystem(
+                key=self.credentials.access_key_id,
+                secret=self.credentials.secret_access_key,
+            )
+
         ls = fs.ls(self.s3_name + "/", detail=True)
         foo = "bar"
 
@@ -37,7 +56,6 @@ class Bucket(Datasource):
 
         # Sync data elements
         with transaction.atomic():
-
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
