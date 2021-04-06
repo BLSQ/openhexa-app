@@ -30,7 +30,7 @@ class Credentials(Base):
     # TODO: always link to a user?
     # TODO: unique?
     user = models.ForeignKey(
-        "user_management.User", null=True, on_delete=models.CASCADE
+        "user_management.User", null=True, blank=True, on_delete=models.CASCADE
     )
     username = models.CharField(max_length=200)
     access_key_id = models.CharField(max_length=200)
@@ -56,7 +56,7 @@ class Bucket(Datasource):
         ordering = ("hexa_name",)
 
     name = models.CharField(max_length=200)
-    credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
+    sync_credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
 
     objects = BucketQuerySet.as_manager()
 
