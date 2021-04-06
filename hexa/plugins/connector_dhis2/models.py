@@ -58,7 +58,7 @@ class Instance(Datasource):
             )
 
             # Flag the datasource as synced
-            self.last_synced_at = timezone.now()
+            self.hexa_last_synced_at = timezone.now()
             self.save()
 
         return data_element_results + indicator_type_results + indicator_results

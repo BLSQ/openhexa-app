@@ -11,7 +11,7 @@
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.get_dhis2_domain_type_display }}
+                    {{ item.get_domain_type_display }}
                 </span>
             </span>
         </a>
@@ -20,8 +20,8 @@
         {{ item.code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.get_dhis2_value_type_display }}</div>
-        <div class="text-sm text-gray-500">{{ item.get_dhis2_aggregation_type_display }}</div>
+        <div class="text-sm text-gray-900">{{ item.get_value_type_display }}</div>
+        <div class="text-sm text-gray-500">{{ item.get_aggregation_type_display }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}
@@ -36,8 +36,8 @@
         <div class="text-sm font-medium text-gray-900">
             {% if item.datasource.just_synced %}
                 <span>{% translate "Just now" %}</span>
-            {% elif item.datasource.last_synced_at %}
-                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% elif item.datasource.hexa_last_synced_at %}
+                <span>{{ item.datasource.hexa_last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
                 <span>{% translate "Never synced" %}</span>
             {% endif %}

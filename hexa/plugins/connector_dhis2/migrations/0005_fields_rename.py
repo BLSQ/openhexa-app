@@ -6,48 +6,48 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('connector_dhis2', '0004_fields_rename'),
+        ("connector_dhis2", "0004_fields_rename"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='dataelement',
-            old_name='created_at',
-            new_name='hexa_created_at',
+            model_name="dataelement",
+            old_name="created_at",
+            new_name="hexa_created_at",
         ),
         migrations.RenameField(
-            model_name='dataelement',
-            old_name='updated_at',
-            new_name='hexa_updated_at',
+            model_name="dataelement",
+            old_name="updated_at",
+            new_name="hexa_updated_at",
         ),
         migrations.RenameField(
-            model_name='indicator',
-            old_name='created_at',
-            new_name='hexa_created_at',
+            model_name="indicator",
+            old_name="created_at",
+            new_name="hexa_created_at",
         ),
         migrations.RenameField(
-            model_name='indicator',
-            old_name='updated_at',
-            new_name='hexa_updated_at',
+            model_name="indicator",
+            old_name="updated_at",
+            new_name="hexa_updated_at",
         ),
         migrations.RenameField(
-            model_name='indicatortype',
-            old_name='created_at',
-            new_name='hexa_created_at',
+            model_name="indicatortype",
+            old_name="created_at",
+            new_name="hexa_created_at",
         ),
         migrations.RenameField(
-            model_name='indicatortype',
-            old_name='updated_at',
-            new_name='hexa_updated_at',
+            model_name="indicatortype",
+            old_name="updated_at",
+            new_name="hexa_updated_at",
         ),
         migrations.RenameField(
-            model_name='instance',
-            old_name='created_at',
-            new_name='hexa_created_at',
+            model_name="instance",
+            old_name="created_at",
+            new_name="hexa_created_at",
         ),
         migrations.RenameField(
-            model_name='instance',
-            old_name='updated_at',
-            new_name='hexa_updated_at',
+            model_name="instance",
+            old_name="updated_at",
+            new_name="hexa_updated_at",
         ),
     ]

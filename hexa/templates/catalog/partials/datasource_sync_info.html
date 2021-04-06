@@ -3,8 +3,8 @@
 <div class="flex align-center items-center">
     {% if datasource.just_synced %}
         <span>{% translate "Just now" %}</span>
-    {% elif datasource.last_synced_at %}
-        <span>{{ datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
+    {% elif datasource.hexa_last_synced_at %}
+        <span>{{ datasource.hexa_last_synced_at|timesince }} {% translate "ago" %}</span>
     {% else %}
         <span>{% translate "Never synced" %}</span>
     {% endif %}

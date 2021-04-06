@@ -77,7 +77,7 @@ class Bucket(Datasource):
             result = self.create_objects(fs, f"{self.name}")
 
             # Flag the datasource as synced
-            self.last_synced_at = timezone.now()
+            self.hexa_last_synced_at = timezone.now()
             self.save()
 
         return result
@@ -121,7 +121,7 @@ class Bucket(Datasource):
 
     @property
     def content_summary(self):
-        if self.last_synced_at is None:
+        if self.hexa_last_synced_at is None:
             return ""
 
         return _("%(object_count)s objects") % {
