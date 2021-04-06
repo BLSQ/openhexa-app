@@ -9,18 +9,23 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('connector_s3', '0009_fine_tuning'),
+        ("connector_s3", "0009_fine_tuning"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='bucket',
-            old_name='credentials',
-            new_name='sync_credentials',
+            model_name="bucket",
+            old_name="credentials",
+            new_name="sync_credentials",
         ),
         migrations.AlterField(
-            model_name='credentials',
-            name='user',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="credentials",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

@@ -12,7 +12,7 @@ def login_required_middleware(get_response):
             reverse("logout"),
             reverse("core:index"),
             reverse("core:ready"),
-            reverse("user:credentials"),
+            reverse("notebooks:credentials"),
         ]
 
     def middleware(request):

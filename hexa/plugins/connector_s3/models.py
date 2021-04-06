@@ -56,7 +56,9 @@ class Bucket(Datasource):
         ordering = ("hexa_name",)
 
     name = models.CharField(max_length=200)
-    sync_credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
+    sync_credentials = models.ForeignKey(
+        "Credentials", null=True, on_delete=models.SET_NULL
+    )
 
     objects = BucketQuerySet.as_manager()
 

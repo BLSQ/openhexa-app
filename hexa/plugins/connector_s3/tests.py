@@ -23,7 +23,7 @@ class ConnectorS3Test(test.TestCase):
 
     def test_credentials_200(self):
         self.client.login(email="jim@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("user:credentials"))
+        response = self.client.get(reverse("notebooks:credentials"))
 
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
