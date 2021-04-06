@@ -9,7 +9,7 @@ from .models import (
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("hexa_name", "hexa_url", "hexa_last_synced_at")
+    list_display = ("url", "hexa_name", "hexa_last_synced_at")
     list_filter = ("hexa_name",)
     search_fields = ("hexa_name",)
 

@@ -24,6 +24,7 @@ class Credentials(Base):
 
     class Meta:
         verbose_name = "S3 Credentials"
+        verbose_name_plural = "S3 Credentials"
         ordering = ("username",)
 
     # TODO: always link to a user?

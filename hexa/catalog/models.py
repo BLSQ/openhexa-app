@@ -182,11 +182,10 @@ class Datasource(models.Model):
     hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    hexa_name = models.CharField(max_length=200)
+    hexa_name = models.CharField(max_length=200, blank=True)
     hexa_short_name = models.CharField(max_length=100, blank=True)
     hexa_description = models.TextField(blank=True)
     hexa_countries = CountryField(multiple=True, blank=True)
-    hexa_url = models.URLField(blank=True)
     hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
     hexa_active_from = models.DateTimeField(null=True, blank=True)
     hexa_active_to = models.DateTimeField(null=True, blank=True)

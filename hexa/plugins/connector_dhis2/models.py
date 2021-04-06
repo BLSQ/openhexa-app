@@ -22,6 +22,7 @@ class Instance(Datasource):
         verbose_name = "DHIS2 Instance"
         ordering = ("hexa_name",)
 
+    url = models.URLField()
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)  # TODO: secure
     api_password = models.CharField(max_length=200)  # TODO: secure
