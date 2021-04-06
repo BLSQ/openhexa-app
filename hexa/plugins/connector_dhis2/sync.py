@@ -31,8 +31,12 @@ def sync_from_dhis2_results(*, model_class, instance, results):
         # Build a dict of dhis2 values indexed by hexa field name, and replace reference to other items by
         # their FK
         dhis2_values = {}
-        for dhis2_name, dhis2_value in result.get_values(instance.locale).items():
-            hexa_name = f"dhis2_{stringcase.snakecase(dhis2_name)}"
+        for dhis2_name, dhis2_value in result.get_values(instance.hexa_locale).items():
+            hexa_name = stringcase.snakecase(dhis2_name)
+            # We need to prefix the id field as we already have one on all models
+            if hexa_name == "id":
+                hexa_name = "dhis2_id"
+
             dhis2_values[hexa_name] = _match_reference(
                 model_class, hexa_name, dhis2_value
             )
@@ -60,7 +64,7 @@ def sync_from_dhis2_results(*, model_class, instance, results):
                         hexa_name,
                         diff_values[hexa_name],
                     )
-                existing_hexa_item.last_synced_at = timezone.now()
+                existing_hexa_item.hexa_last_synced_at = timezone.now()
                 existing_hexa_item.save()
                 updated += 1
             else:
@@ -70,7 +74,7 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             model_class.objects.create(
                 **dhis2_values,
                 instance=instance,
-                last_synced_at=timezone.now(),
+                hexa_last_synced_at=timezone.now(),
             )
             created += 1
 

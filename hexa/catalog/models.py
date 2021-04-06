@@ -176,19 +176,19 @@ class Datasource(Base):
     class Meta:
         abstract = True
 
-    owner = models.ForeignKey(
+    hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-    url = models.URLField(blank=True)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    active_from = models.DateTimeField(null=True, blank=True)
-    active_to = models.DateTimeField(null=True, blank=True)
-    public = models.BooleanField(default=False, verbose_name="Public dataset")
-    locale = LocaleField(default="en")
+    hexa_name = models.CharField(max_length=200)
+    hexa_short_name = models.CharField(max_length=100, blank=True)
+    hexa_description = models.TextField(blank=True)
+    hexa_countries = CountryField(multiple=True, blank=True)
+    hexa_url = models.URLField(blank=True)
+    hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
+    hexa_active_from = models.DateTimeField(null=True, blank=True)
+    hexa_active_to = models.DateTimeField(null=True, blank=True)
+    hexa_public = models.BooleanField(default=False, verbose_name="Public dataset")
+    hexa_locale = LocaleField(default="en")
 
     @property
     def index_type(self):
@@ -196,13 +196,13 @@ class Datasource(Base):
 
     @property
     def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
+        return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
 
     @property
     def just_synced(self):  # TODO: move (DRY)
         return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
+            self.hexa_last_synced_at is not None
+            and (timezone.now() - self.hexa_last_synced_at).seconds < 60
         )
 
     @property
@@ -234,15 +234,15 @@ class Content(Base):
     class Meta:
         abstract = True
 
-    owner = models.ForeignKey(
+    hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200, blank=True)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    locale = LocaleField(default="en")
+    hexa_name = models.CharField(max_length=200, blank=True)
+    hexa_short_name = models.CharField(max_length=100, blank=True)
+    hexa_description = models.TextField(blank=True)
+    hexa_countries = CountryField(multiple=True, blank=True)
+    hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
+    hexa_locale = LocaleField(default="en")
 
     @property
     def index_type(self):
@@ -251,8 +251,8 @@ class Content(Base):
     @property
     def just_synced(self):  # TODO: move (DRY)
         return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
+            self.hexa_last_synced_at is not None
+            and (timezone.now() - self.hexa_last_synced_at).seconds < 60
         )
 
     def save(

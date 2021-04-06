@@ -52,9 +52,9 @@ class BucketQuerySet(models.QuerySet):
 class Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
-        ordering = ("name",)
+        ordering = ("hexa_name",)
 
-    s3_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
 
     objects = BucketQuerySet.as_manager()
@@ -74,7 +74,7 @@ class Bucket(Datasource):
         with transaction.atomic():
             # TODO: update or create
             Bucket.objects.all().delete()
-            result = self.create_objects(fs, f"{self.s3_name}")
+            result = self.create_objects(fs, f"{self.name}")
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -95,17 +95,17 @@ class Bucket(Datasource):
             if object_data["Key"][-1] == "/" and object_data["size"] == 0:
                 continue  # TODO: check if safer way
 
-            s3_object = S3Object.objects.create(
+            s3_object = Object.objects.create(
                 instance=self,
                 key=object_data["Key"],
                 size=object_data["size"],
                 storage_class=object_data["StorageClass"],
-                s3_type=object_data["type"],
-                s3_name=object_data["name"],
-                s3_last_modified=object_data.get("LastModified"),
+                type=object_data["type"],
+                name=object_data["name"],
+                last_modified=object_data.get("LastModified"),
             )
 
-            if s3_object.s3_type == "directory":  # TODO: choices
+            if s3_object.type == "directory":  # TODO: choices
                 results += self.create_objects(fs, s3_object.key)
 
             created += 1
@@ -131,13 +131,11 @@ class Bucket(Datasource):
     def index(self):
         CatalogIndex.objects.create_or_update(
             indexed_object=self,
-            owner=self.owner,
+            owner=self.hexa_owner,
             name=self.name,
-            short_name=self.short_name,
-            description=self.description,
-            countries=self.countries,
-            content_summary=self.content_summary,
-            last_synced_at=self.last_synced_at,
+            countries=self.hexa_countries,
+            content_summary=self.content_summary,  # TODO: why?
+            last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
@@ -145,17 +143,20 @@ class Bucket(Datasource):
 class Object(Content):
     class Meta:
         verbose_name = "S3 Object"
-        ordering = ["s3_name"]
+        ordering = ["name"]
 
     instance = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
     key = models.TextField()
     size = models.PositiveIntegerField()
     storage_class = models.CharField(max_length=200)  # TODO: choices
-    s3_type = models.CharField(max_length=200)  # TODO: choices
-    s3_name = models.CharField(max_length=200)
-    s3_last_modified = models.DateTimeField(null=True)
+    type = models.CharField(max_length=200)  # TODO: choices
+    name = models.CharField(max_length=200)
+    last_modified = models.DateTimeField(null=True)
 
     @property
     def display_name(self):
-        return self.s3_name
+        return self.name
+
+    def index(self):
+        pass  # TODO: implement

@@ -20,7 +20,7 @@ class InstanceQuerySet(models.QuerySet):
 class Instance(Datasource):
     class Meta:
         verbose_name = "DHIS2 Instance"
-        ordering = ("name",)
+        ordering = ("hexa_name",)
 
     api_url = models.URLField()
     api_username = models.CharField(max_length=200)  # TODO: secure
@@ -65,7 +65,7 @@ class Instance(Datasource):
 
     @property
     def content_summary(self):
-        if self.last_synced_at is None:
+        if self.hexa_last_synced_at is None:
             return ""
 
         return _(
@@ -78,13 +78,13 @@ class Instance(Datasource):
     def index(self):
         CatalogIndex.objects.create_or_update(
             indexed_object=self,
-            owner=self.owner,
-            name=self.name,
-            short_name=self.short_name,
-            description=self.description,
-            countries=self.countries,
-            content_summary=self.content_summary,
-            last_synced_at=self.last_synced_at,
+            owner=self.hexa_owner,
+            name=self.hexa_name,
+            short_name=self.hexa_short_name,
+            description=self.hexa_description,
+            countries=self.hexa_countries,
+            content_summary=self.content_summary,  # todo: why?
+            last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
         )
 
@@ -92,21 +92,21 @@ class Instance(Datasource):
 class Content(BaseContent):
     class Meta:
         abstract = True
-        ordering = ["dhis2_name"]
+        ordering = ["name"]
 
     dhis2_id = models.CharField(max_length=200)
     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
-    dhis2_name = models.CharField(max_length=200)
-    dhis2_short_name = models.CharField(max_length=100, blank=True)
-    dhis2_description = models.TextField(blank=True)
-    dhis2_external_access = models.BooleanField()
-    dhis2_favorite = models.BooleanField()
-    dhis2_created = models.DateTimeField()
-    dhis2_last_updated = models.DateTimeField()
+    name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    external_access = models.BooleanField()
+    favorite = models.BooleanField()
+    created = models.DateTimeField()
+    last_updated = models.DateTimeField()
 
     @property
     def display_name(self):
-        return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
+        return self.short_name if self.short_name != "" else self.name
 
 
 class DomainType(models.TextChoices):
@@ -161,25 +161,23 @@ class AggregationType(models.TextChoices):
 class DataElement(Content):
     class Meta:
         verbose_name = "DHIS2 Data Element"
-        ordering = ("dhis2_name",)
+        ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_domain_type = models.CharField(choices=DomainType.choices, max_length=100)
-    dhis2_value_type = models.CharField(choices=ValueType.choices, max_length=100)
-    dhis2_aggregation_type = models.CharField(
-        choices=AggregationType.choices, max_length=100
-    )
+    code = models.CharField(max_length=100, blank=True)
+    domain_type = models.CharField(choices=DomainType.choices, max_length=100)
+    value_type = models.CharField(choices=ValueType.choices, max_length=100)
+    aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     def index(self):
         CatalogIndex.objects.create_or_update(
             indexed_object=self,
             parent_object=self.instance,
-            owner=self.instance.owner,
-            name=self.dhis2_name,
-            short_name=self.dhis2_short_name,
-            description=self.dhis2_description,
-            countries=self.instance.countries,
-            last_synced_at=self.last_synced_at,
+            owner=self.instance.hexa_owner,
+            name=self.name,
+            short_name=self.short_name,
+            description=self.description,
+            countries=self.instance.hexa_countries,
+            last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse(
                 "connector_dhis2:data_element_detail",
                 args=(self.instance.pk, self.pk),
@@ -192,31 +190,31 @@ class IndicatorType(Content):
         verbose_name = "DHIS2 Indicator type"
         ordering = ("name",)
 
-    dhis2_number = models.BooleanField()
-    dhis2_factor = models.IntegerField()
+    number = models.BooleanField()
+    factor = models.IntegerField()
 
 
 class Indicator(Content):
     class Meta:
         verbose_name = "DHIS2 Indicator"
-        ordering = ("dhis2_name",)
+        ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_indicator_type = models.ForeignKey(
+    code = models.CharField(max_length=100, blank=True)
+    indicator_type = models.ForeignKey(
         "IndicatorType", null=True, on_delete=models.SET_NULL
     )
-    dhis2_annualized = models.BooleanField()
+    annualized = models.BooleanField()
 
     def index(self):
         CatalogIndex.objects.create_or_update(
             indexed_object=self,
             parent_object=self.instance,
-            owner=self.instance.owner,
-            name=self.dhis2_name,
-            short_name=self.dhis2_short_name,
-            description=self.dhis2_description,
-            countries=self.instance.countries,
-            last_synced_at=self.last_synced_at,
+            owner=self.instance.hexa_owner,
+            name=self.name,
+            short_name=self.short_name,
+            description=self.description,
+            countries=self.instance.hexa_countries,
+            last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse(
                 "connector_dhis2:indicator_detail",
                 args=(self.instance.pk, self.pk),
