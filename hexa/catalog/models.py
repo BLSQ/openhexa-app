@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -172,10 +174,11 @@ class CatalogIndex(Base):
         }
 
 
-class Datasource(Base):
+class Datasource(models.Model):
     class Meta:
         abstract = True
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -189,6 +192,8 @@ class Datasource(Base):
     hexa_active_to = models.DateTimeField(null=True, blank=True)
     hexa_public = models.BooleanField(default=False, verbose_name="Public dataset")
     hexa_locale = LocaleField(default="en")
+    hexa_created_at = models.DateTimeField(auto_now_add=True)
+    hexa_updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def index_type(self):
@@ -230,10 +235,11 @@ class Datasource(Base):
         )
 
 
-class Content(Base):
+class Content(models.Model):
     class Meta:
         abstract = True
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
@@ -243,6 +249,8 @@ class Content(Base):
     hexa_countries = CountryField(multiple=True, blank=True)
     hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
     hexa_locale = LocaleField(default="en")
+    hexa_created_at = models.DateTimeField(auto_now_add=True)
+    hexa_updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def index_type(self):
