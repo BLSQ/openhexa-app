@@ -1,11 +1,11 @@
-from hexa.plugins.connector_s3.models import S3Credentials
+from hexa.plugins.connector_s3.models import Credentials
 
 
 def notebooks_credentials(credentials, user):
     """Provide the environment variables that will allow users to access S3 buckets in the notebooks component."""
 
     try:
-        s3_credentials = S3Credentials.objects.get_for_user(user)
+        s3_credentials = Credentials.objects.get_for_user(user)
         credentials.update_env(
             {
                 "AWS_ACCESS_KEY_ID": s3_credentials.access_key_id,
@@ -13,5 +13,5 @@ def notebooks_credentials(credentials, user):
             }
         )
 
-    except S3Credentials.DoesNotExist:
+    except Credentials.DoesNotExist:
         return {}

@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import Content, Datasource, CatalogIndex
+from hexa.catalog.models import Content as BaseContent, Datasource, CatalogIndex
 from hexa.common.models import Base
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
@@ -89,7 +89,7 @@ class Instance(Datasource):
         )
 
 
-class Dhis2Content(Content):
+class Content(BaseContent):
     class Meta:
         abstract = True
         ordering = ["dhis2_name"]
@@ -158,7 +158,7 @@ class AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class DataElement(Dhis2Content):
+class DataElement(Content):
     class Meta:
         verbose_name = "DHIS2 Data Element"
         ordering = ("dhis2_name",)
@@ -187,7 +187,7 @@ class DataElement(Dhis2Content):
         )
 
 
-class IndicatorType(Dhis2Content):
+class IndicatorType(Content):
     class Meta:
         verbose_name = "DHIS2 Indicator type"
         ordering = ("name",)
@@ -196,7 +196,7 @@ class IndicatorType(Dhis2Content):
     dhis2_factor = models.IntegerField()
 
 
-class Indicator(Dhis2Content):
+class Indicator(Content):
     class Meta:
         verbose_name = "DHIS2 Indicator"
         ordering = ("dhis2_name",)

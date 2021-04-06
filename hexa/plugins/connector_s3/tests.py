@@ -1,7 +1,7 @@
 from django import test
 from django.urls import reverse
 
-from hexa.plugins.connector_s3.models import S3Credentials
+from hexa.plugins.connector_s3.models import Credentials
 from hexa.user_management.models import User
 
 
@@ -14,7 +14,7 @@ class ConnectorS3Test(test.TestCase):
             "regular",
             is_superuser=True,
         )
-        S3Credentials.objects.create(
+        Credentials.objects.create(
             user=cls.USER_REGULAR,
             username="test-iam-username",
             access_key_id="FOO",
