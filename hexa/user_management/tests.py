@@ -11,6 +11,7 @@ class AuthTest(test.TestCase):
             "john@bluesquarehub.com",
             "john@bluesquarehub.com",
             "regular",
+            is_superuser=True,
         )
 
     def test_any_page_anonymous_302(self):
@@ -40,16 +41,16 @@ class AuthTest(test.TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-    def test_info_200(self):
+    def test_credentials_200(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("user:info"))
+        response = self.client.get(reverse("user:credentials"))
 
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertIn("username", response_data)
         self.assertEqual("john@bluesquarehub.com", response_data["username"])
 
-    def test_info_401(self):
-        response = self.client.get(reverse("user:info"))
+    def test_credentials_401(self):
+        response = self.client.get(reverse("user:credentials"))
 
         self.assertEqual(response.status_code, 401)

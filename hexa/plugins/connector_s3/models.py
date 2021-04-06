@@ -8,7 +8,15 @@ from hexa.catalog.models import Base, Content, Datasource, CatalogIndex
 from hexa.catalog.sync import DatasourceSyncResult
 
 
-class Credentials(Base):
+class S3CredentialsQuerySet(models.QuerySet):
+    def get_for_user(self, user):
+        if not (user.is_active and user.is_superuser):
+            raise S3Credentials.DoesNotExist()
+
+        return self.get(user=user)
+
+
+class S3Credentials(Base):
     """This class is a temporary way to store S3 credentials. This approach is not safe for production,
     as credentials are not encrypted.
     TODO: Store credentials in a secure storage engine like Vault.
@@ -18,15 +26,22 @@ class Credentials(Base):
         verbose_name = "S3 Credentials"
         ordering = ("username",)
 
+    # TODO: always link to a user?
+    # TODO: unique?
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.CASCADE
+    )
     username = models.CharField(max_length=200)
     access_key_id = models.CharField(max_length=200)
     secret_access_key = models.CharField(max_length=200)
+
+    objects = S3CredentialsQuerySet.as_manager()
 
     def __str__(self):
         return self.username
 
 
-class BucketQuerySet(models.QuerySet):
+class S3BucketQuerySet(models.QuerySet):
     def for_user(self, user):
         if not (user.is_active and user.is_superuser):
             return self.none()
@@ -34,15 +49,17 @@ class BucketQuerySet(models.QuerySet):
         return self
 
 
-class Bucket(Datasource):
+class S3Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
         ordering = ("name",)
 
     s3_name = models.CharField(max_length=200)
-    credentials = models.ForeignKey("Credentials", null=True, on_delete=models.SET_NULL)
+    credentials = models.ForeignKey(
+        "S3Credentials", null=True, on_delete=models.SET_NULL
+    )
 
-    objects = BucketQuerySet.as_manager()
+    objects = S3BucketQuerySet.as_manager()
 
     def sync(self):
         """Sync the bucket by querying the DHIS2 API"""
@@ -58,7 +75,7 @@ class Bucket(Datasource):
         # Sync data elements
         with transaction.atomic():
             # TODO: update or create
-            Bucket.objects.all().delete()
+            S3Bucket.objects.all().delete()
             result = self.create_objects(fs, f"{self.s3_name}")
 
             # Flag the datasource as synced
@@ -80,7 +97,7 @@ class Bucket(Datasource):
             if object_data["Key"][-1] == "/" and object_data["size"] == 0:
                 continue  # TODO: check if safer way
 
-            s3_object = Object.objects.create(
+            s3_object = S3Object.objects.create(
                 instance=self,
                 key=object_data["Key"],
                 size=object_data["size"],
@@ -110,7 +127,7 @@ class Bucket(Datasource):
             return ""
 
         return _("%(object_count)s objects") % {
-            "object_count": self.object_set.count(),
+            "object_count": self.s3object_set.count(),
         }
 
     def index(self):
@@ -127,12 +144,12 @@ class Bucket(Datasource):
         )
 
 
-class Object(Content):
+class S3Object(Content):
     class Meta:
         verbose_name = "S3 Object"
         ordering = ["s3_name"]
 
-    instance = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    instance = models.ForeignKey("S3Bucket", on_delete=models.CASCADE)
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
     key = models.TextField()
     size = models.PositiveIntegerField()
