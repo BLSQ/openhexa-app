@@ -84,6 +84,8 @@ class CatalogIndexQuerySet(models.QuerySet):
 
         index.save()
 
+        return index
+
 
 class CatalogIndex(Base):
     class Meta:

@@ -4,7 +4,13 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
-from hexa.catalog.models import Base, Content, Datasource, CatalogIndex
+from hexa.catalog.models import (
+    Base,
+    Content,
+    Datasource,
+    CatalogIndex,
+    CatalogIndexPermission,
+)
 from hexa.catalog.sync import DatasourceSyncResult
 
 
@@ -135,7 +141,7 @@ class Bucket(Datasource):
         }
 
     def index(self):
-        CatalogIndex.objects.create_or_update(
+        catalog_index = CatalogIndex.objects.create_or_update(
             indexed_object=self,
             owner=self.hexa_owner,
             name=self.name,
@@ -144,6 +150,11 @@ class Bucket(Datasource):
             last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
+
+        for permission in self.bucketpermission_set.all():
+            CatalogIndexPermission.objects.create(
+                catalog_index=catalog_index, team=permission.team
+            )
 
 
 class BucketPermission(Base):

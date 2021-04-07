@@ -4,6 +4,7 @@ from .models import (
     DataElement,
     Indicator,
     IndicatorType,
+    InstancePermission,
 )
 
 
@@ -49,3 +50,8 @@ class IndicatorAdmin(admin.ModelAdmin):
     )
     list_filter = ("instance__hexa_name",)
     search_fields = ["name", "short_name", "dhis2_id", "code"]
+
+
+@admin.register(InstancePermission)
+class InstancePermissionAdmin(admin.ModelAdmin):
+    list_display = ("instance", "team")

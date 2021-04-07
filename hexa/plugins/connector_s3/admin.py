@@ -3,6 +3,7 @@ from .models import (
     Bucket,
     Credentials,
     Object,
+    BucketPermission,
 )
 
 
@@ -24,3 +25,8 @@ class ObjectAdmin(admin.ModelAdmin):
     list_display = ("name", "key", "type", "size", "hexa_last_synced_at")
     list_filter = ("type",)
     search_fields = ("name",)
+
+
+@admin.register(BucketPermission)
+class BucketPermissionAdmin(admin.ModelAdmin):
+    list_display = ("bucket", "team")

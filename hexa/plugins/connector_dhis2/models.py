@@ -3,7 +3,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import Content as BaseContent, Datasource, CatalogIndex
+from hexa.catalog.models import (
+    Content as BaseContent,
+    Datasource,
+    CatalogIndex,
+    CatalogIndexPermission,
+)
 from hexa.common.models import Base
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
@@ -79,7 +84,7 @@ class Instance(Datasource):
         }
 
     def index(self):
-        CatalogIndex.objects.create_or_update(
+        catalog_index = CatalogIndex.objects.create_or_update(
             indexed_object=self,
             owner=self.hexa_owner,
             name=self.hexa_name,
@@ -90,6 +95,10 @@ class Instance(Datasource):
             last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
         )
+        for permission in self.instancepermission_set.all():
+            CatalogIndexPermission.objects.create(
+                catalog_index=catalog_index, team=permission.team
+            )
 
 
 class InstancePermission(Base):
@@ -177,7 +186,7 @@ class DataElement(Content):
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     def index(self):
-        CatalogIndex.objects.create_or_update(
+        catalog_index = CatalogIndex.objects.create_or_update(
             indexed_object=self,
             parent_object=self.instance,
             owner=self.instance.hexa_owner,
@@ -191,6 +200,11 @@ class DataElement(Content):
                 args=(self.instance.pk, self.pk),
             ),
         )
+
+        for permission in self.instance.instancepermission_set.all():
+            CatalogIndexPermission.objects.create(
+                catalog_index=catalog_index, team=permission.team
+            )
 
 
 class IndicatorType(Content):
@@ -214,7 +228,7 @@ class Indicator(Content):
     annualized = models.BooleanField()
 
     def index(self):
-        CatalogIndex.objects.create_or_update(
+        catalog_index = CatalogIndex.objects.create_or_update(
             indexed_object=self,
             parent_object=self.instance,
             owner=self.instance.hexa_owner,
@@ -228,3 +242,8 @@ class Indicator(Content):
                 args=(self.instance.pk, self.pk),
             ),
         )
+
+        for permission in self.instance.instancepermission_set.all():
+            CatalogIndexPermission.objects.create(
+                catalog_index=catalog_index, team=permission.team
+            )
