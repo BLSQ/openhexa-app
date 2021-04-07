@@ -7,7 +7,7 @@ class NotebooksCredentials:
 
     @property
     def authenticated(self):
-        return self.user.is_authenticated and self.user.is_superuser
+        return self.user.is_authenticated
 
     def update_env(self, env_dict):
         self.env.update(**env_dict)

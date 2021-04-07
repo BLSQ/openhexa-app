@@ -16,6 +16,10 @@ from hexa.catalog.sync import DatasourceSyncResult
 
 class CredentialsQuerySet(models.QuerySet):
     def get_for_team(self, user):
+        # TODO: root credentials concept?
+        if user.is_active and user.is_superuser:
+            return self.get(team=None)
+
         if user.team_set.count() == 0:
             raise Credentials.DoesNotExist()
 
@@ -53,7 +57,7 @@ class BucketQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            bucketpermission_set__permissions__team__in=[
+            bucketpermission__team__in=[
                 t.pk for t in user.team_set.all()
             ]
         )
@@ -155,6 +159,9 @@ class Bucket(Datasource):
             CatalogIndexPermission.objects.create(
                 catalog_index=catalog_index, team=permission.team
             )
+
+    def __str__(self):
+        return self.name
 
 
 class BucketPermission(Base):

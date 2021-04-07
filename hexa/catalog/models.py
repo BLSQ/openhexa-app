@@ -242,6 +242,9 @@ class Datasource(models.Model):
             "Each datasource model class should implement a sync() method"
         )
 
+    def __str__(self):
+        return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
+
 
 class Content(models.Model):
     class Meta:
