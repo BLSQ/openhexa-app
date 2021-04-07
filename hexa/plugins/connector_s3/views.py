@@ -7,7 +7,7 @@ from .models import Bucket
 
 def datasource_detail(request, datasource_id):
     datasource = get_object_or_404(
-        Bucket.objects.for_user(request.user), pk=datasource_id
+        Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
 
     breadcrumbs = [
@@ -27,7 +27,7 @@ def datasource_detail(request, datasource_id):
 
 def datasource_sync(request, datasource_id):
     datasource = get_object_or_404(
-        Bucket.objects.for_user(request.user), pk=datasource_id
+        Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
     sync_result = datasource.sync()
     messages.success(request, sync_result, extra_tags="green")

@@ -43,7 +43,7 @@ class Credentials(Base):
 
 
 class BucketQuerySet(models.QuerySet):
-    def for_user(self, user):
+    def filter_for_user(self, user):
         if not (user.is_active and user.is_superuser):
             return self.none()
 

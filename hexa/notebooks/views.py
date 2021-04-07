@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
 
 from hexa.catalog.connectors import get_connector_app_configs
 from hexa.notebooks.credentials import NotebooksCredentials
@@ -16,6 +17,7 @@ def run(request):
     )
 
 
+@require_http_methods(["POST"])
 def credentials(request):
     """This API endpoint is called by the notebooks component to get credentials for Jupyterhub.
     In addition to basic user information, every connector plugin can provide its own set of credentials (environment
