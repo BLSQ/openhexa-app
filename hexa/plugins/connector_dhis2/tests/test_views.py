@@ -3,14 +3,15 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.user_management.models import User
+from hexa.user_management.models import User, Team
 from hexa.catalog.models import Datasource
-from ..models import Instance, DataElement, Indicator
+from ..models import Instance, DataElement, Indicator, InstancePermission
 
 
-class CatalogTest(test.TestCase):
+class ConnectorDhis2Test(test.TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_BJORN = User.objects.create_user(
             "bjorn@bluesquarehub.com",
             "bjorn@bluesquarehub.com",
@@ -29,6 +30,9 @@ class CatalogTest(test.TestCase):
             api_url="https://play.dhis2.org/demo",
             api_username="admin",
             api_password="district",
+        )
+        InstancePermission.objects.create(
+            team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
         )
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,

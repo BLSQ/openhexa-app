@@ -5,7 +5,9 @@ def notebooks_credentials(credentials, user):
     """Provide the environment variables that will allow users to access S3 buckets in the notebooks component."""
 
     try:
-        s3_credentials = Credentials.objects.get_for_user(user)
+        s3_credentials = Credentials.objects.get_for_team(
+            user
+        )  # TODO: handle multiple teams?
         allowed_buckets = Bucket.objects.filter_for_user(user)
         credentials.update_env(
             {

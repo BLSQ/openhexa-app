@@ -9,11 +9,11 @@ from hexa.catalog.sync import DatasourceSyncResult
 
 
 class CredentialsQuerySet(models.QuerySet):
-    def get_for_user(self, user):
-        if not (user.is_active and user.is_superuser):
+    def get_for_team(self, user):
+        if user.team_set.count() == 0:
             raise Credentials.DoesNotExist()
 
-        return self.get(user=user)
+        return self.get(team=user.team_set.first().pk)  # TODO: multiple teams?
 
 
 class Credentials(Base):
@@ -27,10 +27,9 @@ class Credentials(Base):
         verbose_name_plural = "S3 Credentials"
         ordering = ("username",)
 
-    # TODO: always link to a user?
     # TODO: unique?
-    user = models.ForeignKey(
-        "user_management.User", null=True, blank=True, on_delete=models.CASCADE
+    team = models.ForeignKey(
+        "user_management.Team", null=True, blank=True, on_delete=models.CASCADE
     )
     username = models.CharField(max_length=200)
     access_key_id = models.CharField(max_length=200)
@@ -44,10 +43,14 @@ class Credentials(Base):
 
 class BucketQuerySet(models.QuerySet):
     def filter_for_user(self, user):
-        if not (user.is_active and user.is_superuser):
-            return self.none()
+        if user.is_active and user.is_superuser:
+            return self
 
-        return self
+        return self.filter(
+            bucketpermission_set__permissions__team__in=[
+                t.pk for t in user.team_set.all()
+            ]
+        )
 
 
 class Bucket(Datasource):
@@ -65,12 +68,12 @@ class Bucket(Datasource):
     def sync(self):
         """Sync the bucket by querying the DHIS2 API"""
 
-        if self.credentials is True:
+        if self.sync_credentials is True:
             fs = S3FileSystem(anon=True)
         else:
             fs = S3FileSystem(
-                key=self.credentials.access_key_id,
-                secret=self.credentials.secret_access_key,
+                key=self.sync_credentials.access_key_id,
+                secret=self.sync_credentials.secret_access_key,
             )
 
         # Sync data elements
@@ -141,6 +144,11 @@ class Bucket(Datasource):
             last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
+
+
+class BucketPermission(Base):
+    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
 
 class Object(Content):

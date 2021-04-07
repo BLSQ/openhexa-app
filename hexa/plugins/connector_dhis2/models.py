@@ -10,11 +10,13 @@ from .sync import sync_from_dhis2_results
 
 
 class InstanceQuerySet(models.QuerySet):
-    def for_user(self, user):
-        if not (user.is_active and user.is_superuser):
-            return self.none()
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
 
-        return self
+        return self.filter(
+            instancepermission__team__in=[t.pk for t in user.team_set.all()]
+        )
 
 
 class Instance(Datasource):
@@ -88,6 +90,11 @@ class Instance(Datasource):
             last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
         )
+
+
+class InstancePermission(Base):
+    instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
 
 class Content(BaseContent):

@@ -8,7 +8,7 @@ from .models import (
 
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("username", "user")
+    list_display = ("username", "team")
     search_fields = ("username",)
 
 

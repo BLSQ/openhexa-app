@@ -24,11 +24,13 @@ class CatalogIndexType(models.TextChoices):
 
 
 class CatalogIndexQuerySet(models.QuerySet):
-    def for_user(self, user):
-        if not (user.is_active and user.is_superuser):
-            return self.none()
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
 
-        return self
+        return self.filter(
+            catalogindexpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
 
     def search(self, query, *, limit=10):
         tokens = query.split(" ")
@@ -172,6 +174,11 @@ class CatalogIndex(Base):
             if self.last_synced_at is not None
             else None,
         }
+
+
+class CatalogIndexPermission(Base):
+    catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
 
 class Datasource(models.Model):
