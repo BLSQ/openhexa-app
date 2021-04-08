@@ -147,13 +147,6 @@ class CatalogIndex(Base):
         return summary
 
     @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
-        )
-
-    @property
     def symbol(self):
         return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
 
@@ -212,13 +205,6 @@ class Datasource(models.Model):
         return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
 
     @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.hexa_last_synced_at is not None
-            and (timezone.now() - self.hexa_last_synced_at).seconds < 60
-        )
-
-    @property
     def content_summary(self):
         raise NotImplementedError(
             "Each datasource model should implement a content_summary property"
@@ -266,13 +252,6 @@ class Content(models.Model):
     @property
     def index_type(self):
         return CatalogIndexType.CONTENT
-
-    @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.hexa_last_synced_at is not None
-            and (timezone.now() - self.hexa_last_synced_at).seconds < 60
-        )
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None

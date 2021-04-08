@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n date_utils %}
 
 {% url datasource_index.app_label|add:':datasource_detail' datasource_index.object_id as detail_url %}
 <tr>
@@ -47,7 +47,7 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-                {% if datasource_index.just_synced %}
+                {% if datasource_index.last_synced_at|about_now %}
                     {% translate "Just now" %}
                 {% elif datasource_index.last_synced_at %}
                     {{ datasource_index.last_synced_at|timesince }} {% translate "ago" %}

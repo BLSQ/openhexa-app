@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n date_utils %}
 
 <tr>
     <td class="px-2 py-4 whitespace-nowrap">
@@ -30,7 +30,7 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if item.datasource.just_synced %}
+            {% if item.datasource.hexa_last_synced_at|about_now %}
                 <span>{% translate "Just now" %}</span>
             {% elif item.datasource.hexa_last_synced_at %}
                 <span>{{ item.datasource.hexa_last_synced_at|timesince }} {% translate "ago" %}</span>
