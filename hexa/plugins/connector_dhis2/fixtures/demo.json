@@ -3,22 +3,32 @@
     "model": "connector_dhis2.instance",
     "pk": "51f8e7b8-6308-462b-8b8b-0d9112ace4b4",
     "fields": {
-      "hexa_created_at": "2021-01-25T15:55:37.392Z",
-      "hexa_updated_at": "2021-01-25T16:04:31.897Z",
-      "api_url": "https://play.dhis2.org/demo",
-      "api_username": "admin",
-      "api_password": "district",
+      "hexa_owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
       "hexa_name": "DHIS2 Play",
       "hexa_short_name": "Play",
       "hexa_description": "The DHIS2 official demo instance",
       "hexa_countries": "SL",
-      "hexa_owner": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
-      "hexa_locale": "en",
-      "url": "https://play.dhis2.org",
+      "hexa_last_synced_at": null,
       "hexa_active_from": null,
       "hexa_active_to": null,
       "hexa_public": true,
-      "hexa_last_synced_at": null
+      "hexa_locale": "en",
+      "hexa_created_at": "2021-01-25T15:55:37.392Z",
+      "hexa_updated_at": "2021-04-08T07:22:42.989Z",
+      "url": "https://play.dhis2.org",
+      "api_url": "https://play.dhis2.org/demo",
+      "api_username": "admin",
+      "api_password": "district"
+    }
+  },
+  {
+    "model": "connector_dhis2.instancepermission",
+    "pk": "08d2d95b-c44c-46ce-9b12-21f516d6ed12",
+    "fields": {
+      "created_at": "2021-04-07T13:49:20.293Z",
+      "updated_at": "2021-04-07T13:49:20.293Z",
+      "instance": "51f8e7b8-6308-462b-8b8b-0d9112ace4b4",
+      "team": "026c2c52-30db-4ce3-9d8f-4be13f56ce42"
     }
   }
 ]

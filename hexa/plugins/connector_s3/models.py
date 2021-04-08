@@ -57,9 +57,7 @@ class BucketQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            bucketpermission__team__in=[
-                t.pk for t in user.team_set.all()
-            ]
+            bucketpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 

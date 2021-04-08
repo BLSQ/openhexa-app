@@ -5,11 +5,11 @@
     "fields": {
       "created_at": "2021-01-25T16:01:02.982Z",
       "updated_at": "2021-01-25T16:01:02.982Z",
+      "organization_type": "ACADEMIC",
       "name": "Health Information Systems Program",
       "short_name": "HISP",
       "description": "HISP is a program led by the University of Oslo, responsible for the development of the DHIS2 software.",
       "countries": "NO",
-      "organization_type": "ACADEMIC",
       "url": "https://www.hisp.org",
       "contact_info": ""
     }
@@ -20,13 +20,22 @@
     "fields": {
       "created_at": "2021-01-25T15:57:32.124Z",
       "updated_at": "2021-01-25T16:06:35.511Z",
+      "organization_type": "CORPORATE",
       "name": "Bluesquare",
       "short_name": "BLSQ",
       "description": "Bluesquare is a Belgian global data company focused on digital health in low- and middle- income countries around the globe.",
       "countries": "BE,BJ,BI,CD,FR,DE,SN,US,ZW",
-      "organization_type": "CORPORATE",
       "url": "https://bluesquarehub.com",
       "contact_info": "Grégoire Lurton (Data Science Lead)\r\nglurton@bluesquarehub.com"
+    }
+  },
+  {
+    "model": "user_management.team",
+    "pk": "026c2c52-30db-4ce3-9d8f-4be13f56ce42",
+    "fields": {
+      "created_at": "2021-04-07T13:48:09.842Z",
+      "updated_at": "2021-04-07T13:48:09.842Z",
+      "name": "Bluesquare Team 1"
     }
   }
 ]

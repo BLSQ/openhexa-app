@@ -64,7 +64,7 @@ class Team(Base):
     members = models.ManyToManyField("User", through="Membership")
 
     def __str__(self):
-        return f"Organization: {self.name}"
+        return self.name
 
 
 class Membership(models.Model):
