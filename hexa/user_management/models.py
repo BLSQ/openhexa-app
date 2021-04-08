@@ -56,7 +56,7 @@ class Organization(Base):
         return self.short_name if self.short_name is not None else self.name
 
     def __str__(self):
-        return f"Organization: {self.name}"
+        return self.name
 
 
 class Team(Base):
@@ -72,4 +72,4 @@ class Membership(models.Model):
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Membership: {self.user.username} - {self.team.name}"
+        return f"{self.user.username} - {self.team.name}"
