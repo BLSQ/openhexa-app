@@ -1,6 +1,21 @@
 [
   {
     "model": "user_management.organization",
+    "pk": "4b852085-9622-4298-a300-58a52f84932f",
+    "fields": {
+      "created_at": "2021-04-08T07:53:58.938Z",
+      "updated_at": "2021-04-08T07:53:58.938Z",
+      "organization_type": "GOVERNMENT",
+      "name": "World Health Organization",
+      "short_name": "WHO",
+      "description": "",
+      "countries": "",
+      "url": "https://who.int",
+      "contact_info": ""
+    }
+  },
+  {
+    "model": "user_management.organization",
     "pk": "4f3938e3-61db-45d3-9a26-dd0db41c49c8",
     "fields": {
       "created_at": "2021-01-25T16:01:02.982Z",
