@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n date_utils %}
 
 <tr>
     <td class="px-2 py-4 whitespace-nowrap">
@@ -8,7 +8,7 @@
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.dhis2_indicator_type.display_name }}
+                    {{ item.indicator_type.display_name }}
                 </span>
             </span>
         </a>
@@ -17,7 +17,7 @@
         {{ item.code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
+        <div class="text-sm text-gray-900">{{ item.indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}
@@ -30,10 +30,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if item.datasource.just_synced %}
+            {% if item.datasource.hexa_last_synced_at|about_now %}
                 <span>{% translate "Just now" %}</span>
-            {% elif item.datasource.last_synced_at %}
-                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% elif item.datasource.hexa_last_synced_at %}
+                <span>{{ item.datasource.hexa_last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
                 <span>{% translate "Never synced" %}</span>
             {% endif %}

@@ -9,7 +9,7 @@ else
   arguments_debug="arguments ($arguments)"
 fi
 
-echo "Running \"$command\" with $arguments_debug"
+# echo "Running \"$command\" with $arguments_debug"
 
 show_help() {
   echo """

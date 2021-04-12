@@ -4,20 +4,13 @@
 {% block page_title %}{% translate "Notebooks" %}{% endblock %}
 
 {% block main_content %}
-    <div class="flex items-center justify-center mt-20 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-8">
-            <div class="bg-white shadow sm:rounded-lg">
-                <div class="px-4 py-5 sm:p-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Notebooks (coming soon)
-                    </h3>
-                    <div class="mt-2 max-w-xl text-sm text-gray-500">
-                        <p>
-                            This feature is under development.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="flex-1 flex items-center justify-center">
+        <a
+                href="{% url "notebooks:run" %}"
+                class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+            {% include "partials/icons/play.html" with w=8 h=8 mr=2 %}
+            {% translate "Lanch the notebooks component" %}
+        </a>
     </div>
 {% endblock %}

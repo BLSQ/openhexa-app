@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "hexa.pipelines.apps.PipelinesConfig",
     "hexa.tailwindui.apps.TailwinduiConfig",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
+    "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
 ]
 
 MIDDLEWARE = [
@@ -120,8 +121,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication backends
+# https://docs.djangoproject.com/en/3.1/ref/settings/#authentication-backends
+AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
+
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -144,3 +150,6 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 
 # Tailwind
 TAILWIND_APP_NAME = "hexa.tailwindui"
+
+# Notebooks component
+NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")

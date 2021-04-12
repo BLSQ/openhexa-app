@@ -1,4 +1,4 @@
-name: Build Platform image
+name: Build App component image
 
 on:
   release:
@@ -31,8 +31,8 @@ jobs:
       - name: Store version number (on release)
         if: ${{ github.event_name == 'release' }}
         id: version
-        # GITHUB_REF looks like "refs/tags/v0.3.1" - we need to extract the actual version without the v prefix
-        run: echo ::set-output name=number::${GITHUB_REF##*/v}
+        # GITHUB_REF looks like "refs/tags/0.3.1" - we need to extract the actual version without the v prefix
+        run: echo ::set-output name=number::${GITHUB_REF##*/}
       - name: Build and push (on release)
         if: ${{ github.event_name == 'release' }}
         uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a

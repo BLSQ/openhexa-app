@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -22,7 +24,27 @@ class CatalogIndexType(models.TextChoices):
 
 
 class CatalogIndexQuerySet(models.QuerySet):
-    def search(self, query, *, content_type=None, limit=10):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            catalogindexpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
+    def search(self, query, *, limit=10):
+        tokens = query.split(" ")
+
+        try:
+            content_type_code = next(t for t in tokens if t[:5] == "type:")[5:]
+            other_tokens = [t for t in tokens if t[:5] != "type:"]
+            query = " ".join(other_tokens)
+            app_code, model_name = content_type_code.split("_", 1)
+            app_label = f"connector_{app_code}"
+            content_type = ContentType.objects.get_by_natural_key(app_label, model_name)
+        except StopIteration:
+            content_type = None
+
         search_vector = SearchVector("name", "description", "countries")
         search_query = SearchQuery(query, config=models.F("text_search_config"))
         search_rank = SearchRank(vector=search_vector, query=search_query)
@@ -61,6 +83,8 @@ class CatalogIndexQuerySet(models.QuerySet):
             setattr(index, name, value)
 
         index.save()
+
+        return index
 
 
 class CatalogIndex(Base):
@@ -123,13 +147,6 @@ class CatalogIndex(Base):
         return summary
 
     @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
-        )
-
-    @property
     def symbol(self):
         return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
 
@@ -154,23 +171,30 @@ class CatalogIndex(Base):
         }
 
 
-class Datasource(Base):
+class CatalogIndexPermission(Base):
+    catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+
+
+class Datasource(models.Model):
     class Meta:
         abstract = True
 
-    owner = models.ForeignKey(
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-    url = models.URLField(blank=True)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    active_from = models.DateTimeField(null=True, blank=True)
-    active_to = models.DateTimeField(null=True, blank=True)
-    public = models.BooleanField(default=False, verbose_name="Public dataset")
-    locale = LocaleField(default="en")
+    hexa_name = models.CharField(max_length=200, blank=True)
+    hexa_short_name = models.CharField(max_length=100, blank=True)
+    hexa_description = models.TextField(blank=True)
+    hexa_countries = CountryField(multiple=True, blank=True)
+    hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
+    hexa_active_from = models.DateTimeField(null=True, blank=True)
+    hexa_active_to = models.DateTimeField(null=True, blank=True)
+    hexa_public = models.BooleanField(default=False, verbose_name="Public dataset")
+    hexa_locale = LocaleField(default="en")
+    hexa_created_at = models.DateTimeField(auto_now_add=True)
+    hexa_updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def index_type(self):
@@ -178,14 +202,7 @@ class Datasource(Base):
 
     @property
     def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
-
-    @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
-        )
+        return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
 
     @property
     def content_summary(self):
@@ -211,31 +228,30 @@ class Datasource(Base):
             "Each datasource model class should implement a sync() method"
         )
 
+    def __str__(self):
+        return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
 
-class Content(Base):
+
+class Content(models.Model):
     class Meta:
         abstract = True
 
-    owner = models.ForeignKey(
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    hexa_owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200, blank=True)
-    short_name = models.CharField(max_length=100, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-    locale = LocaleField(default="en")
+    hexa_name = models.CharField(max_length=200, blank=True)
+    hexa_short_name = models.CharField(max_length=100, blank=True)
+    hexa_description = models.TextField(blank=True)
+    hexa_countries = CountryField(multiple=True, blank=True)
+    hexa_last_synced_at = models.DateTimeField(null=True, blank=True)
+    hexa_locale = LocaleField(default="en")
+    hexa_created_at = models.DateTimeField(auto_now_add=True)
+    hexa_updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def index_type(self):
         return CatalogIndexType.CONTENT
-
-    @property
-    def just_synced(self):  # TODO: move (DRY)
-        return (
-            self.last_synced_at is not None
-            and (timezone.now() - self.last_synced_at).seconds < 60
-        )
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None

@@ -2,7 +2,7 @@
 {% load static i18n %}
 
 {% block card_header_title %}
-    {{ indicator.dhis2_name }}
+    {{ indicator.name }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block card_header_description %}
-    {{ indicator.dhis2_description|default:_("No description")|truncatechars:200 }}
-    {% if indicator.dhis2_description|length > 200 %}<em>({% translate "truncated" %})</em>{% endif %}
+    {{ indicator.description|default:_("No description")|truncatechars:200 }}
+    {% if indicator.description|length > 200 %}<em>({% translate "truncated" %})</em>{% endif %}
 {% endblock %}
 
 {% block card_header_actions %}
@@ -70,7 +70,7 @@
                 {% translate "Indicator type" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_indicator_type.dhis2_name }}
+                {{ indicator.indicator_type.name }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -86,7 +86,7 @@
                 {% translate "Description" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_description|default:"-" }}
+                {{ indicator.description|default:"-" }}
             </dd>
         </div>
         <div class="sm:col-span-2">
@@ -94,7 +94,7 @@
                 {% translate "Annualized" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_annualized|yesno:_("Yes,No") }}
+                {{ indicator.annualized|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -102,7 +102,7 @@
                 {% translate "External access" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_external_access|yesno:_("Yes,No") }}
+                {{ indicator.external_access|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -110,7 +110,7 @@
                 {% translate "Favorite" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_favorite|yesno:_("Yes,No") }}
+                {{ indicator.favorite|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -118,7 +118,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_created|date:"M d, H:i:s (e)" }}
+                {{ indicator.created|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -126,7 +126,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.dhis2_last_updated|date:"M d, H:i:s (e)" }}
+                {{ indicator.last_updated|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">

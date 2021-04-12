@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 
-from .models import User, Organization
+from .models import User, Organization, Team, Membership
 from ..common.admin import country_list
 
 # We won't be using the Django group feature
@@ -17,3 +17,15 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("name", "short_name", "organization_type", country_list)
+
+
+class MembershipInline(admin.TabularInline):
+    model = Membership
+
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    inlines = [
+        MembershipInline,
+    ]
