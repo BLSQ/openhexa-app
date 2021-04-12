@@ -87,7 +87,7 @@ class Bucket(Datasource):
         # Sync data elements
         with transaction.atomic():
             # TODO: update or create
-            Bucket.objects.all().delete()
+            self.object_set.all().delete()
             result = self.create_objects(fs, f"{self.name}")
 
             # Flag the datasource as synced
