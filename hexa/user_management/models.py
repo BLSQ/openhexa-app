@@ -56,4 +56,20 @@ class Organization(Base):
         return self.short_name if self.short_name is not None else self.name
 
     def __str__(self):
-        return f"Organization: {self.name}"
+        return self.name
+
+
+class Team(Base):
+    name = models.CharField(max_length=200)
+    members = models.ManyToManyField("User", through="Membership")
+
+    def __str__(self):
+        return self.name
+
+
+class Membership(models.Model):
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    team = models.ForeignKey("Team", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.team.name}"

@@ -7,9 +7,9 @@ from .models import CatalogIndex, CatalogIndexType
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
-    datasource_indexes = CatalogIndex.objects.filter(
+    datasource_indexes = CatalogIndex.objects.filter_for_user(request.user).filter(
         index_type=CatalogIndexType.DATASOURCE.value
-    ).for_user(request.user)
+    )
 
     return render(
         request,
@@ -23,14 +23,16 @@ def index(request):
 
 def quick_search(request):
     query = request.GET.get("query", "")
-    results = CatalogIndex.objects.search(query).for_user(request.user)
+    results = CatalogIndex.objects.filter_for_user(request.user).search(query)
 
     return JsonResponse({"results": [result.to_dict() for result in results]})
 
 
 def search(request):
     query = request.POST.get("query", "")
-    results = CatalogIndex.objects.search(query, limit=100).for_user(request.user)
+    results = CatalogIndex.objects.filter_for_user(request.user).search(
+        query, limit=100
+    )
 
     return render(
         request,

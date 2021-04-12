@@ -3,14 +3,15 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.user_management.models import User
+from hexa.user_management.models import User, Team
 from hexa.catalog.models import Datasource
-from ..models import Instance, DataElement, Indicator
+from ..models import Instance, DataElement, Indicator, InstancePermission
 
 
-class CatalogTest(test.TestCase):
+class ConnectorDhis2Test(test.TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_BJORN = User.objects.create_user(
             "bjorn@bluesquarehub.com",
             "bjorn@bluesquarehub.com",
@@ -23,60 +24,63 @@ class CatalogTest(test.TestCase):
             is_superuser=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            name="DHIS2 Play",
-            short_name="Play",
-            description="The DHIS2 official demo instance with realistic sample medical data",
+            hexa_name="DHIS2 Play",
+            hexa_short_name="Play",
+            hexa_description="The DHIS2 official demo instance with realistic sample medical data",
             api_url="https://play.dhis2.org/demo",
             api_username="admin",
             api_password="district",
         )
+        InstancePermission.objects.create(
+            team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
+        )
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="O1BccPF5yci",
-            dhis2_name="ANC First visit",
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
-            dhis2_external_access=False,
-            dhis2_favorite=False,
+            name="ANC First visit",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
         )
         cls.DATA_ELEMENT_2 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="eLW6jbvVcPZ",
-            dhis2_name="ANC Second visit",
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
-            dhis2_external_access=False,
-            dhis2_favorite=False,
+            name="ANC Second visit",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
         )
         cls.DATA_ELEMENT_3 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="kmaHyZXMHCz",
-            dhis2_name="C-sections",
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
-            dhis2_external_access=False,
-            dhis2_favorite=False,
+            name="C-sections",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
         )
         cls.DATA_INDICATOR_1 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="xaG3AfYG2Ts",
-            dhis2_name="Ante-Natal Care visits",
-            dhis2_description="Uses different ANC data indicators",
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
-            dhis2_external_access=False,
-            dhis2_favorite=False,
-            dhis2_annualized=False,
+            name="Ante-Natal Care visits",
+            description="Uses different ANC data indicators",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            annualized=False,
         )
         cls.DATA_INDICATOR_2 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="oNzq8duNBx6",
-            dhis2_name="Medical displays",
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
-            dhis2_external_access=False,
-            dhis2_favorite=False,
-            dhis2_annualized=False,
+            name="Medical displays",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            annualized=False,
         )
 
     def test_catalog_index_empty_200(self):
@@ -257,10 +261,8 @@ class CatalogTest(test.TestCase):
         self.assertEqual(http_referer, response.url)
 
         # Test that all data elements have a value type and an aggregation type
-        self.assertEqual(0, len(DataElement.objects.filter(dhis2_value_type=None)))
-        self.assertEqual(
-            0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
-        )
+        self.assertEqual(0, len(DataElement.objects.filter(value_type=None)))
+        self.assertEqual(0, len(DataElement.objects.filter(aggregation_type=None)))
 
     def test_data_elements_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""

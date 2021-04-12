@@ -2,7 +2,7 @@
 {% load static i18n %}
 
 {% block card_header_title %}
-    {{ data_element.dhis2_name }}
+    {{ data_element.name }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block card_header_description %}
-    {{ data_element.get_dhis2_domain_type_display }}
+    {{ data_element.get_domain_type_display }}
 {% endblock %}
 
 {% block card_header_actions %}
@@ -73,7 +73,7 @@
                     <span class="text-gray-500 mr-1">
                         {% include "connector_dhis2/partials/data_element_domain_type_icon.html" %}
                     </span>
-                    {{ data_element.get_dhis2_domain_type_display }}
+                    {{ data_element.get_domain_type_display }}
                 </div>
             </dd>
         </div>
@@ -90,7 +90,7 @@
                 {% translate "Description" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_description|default:"-" }}
+                {{ data_element.description|default:"-" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -98,7 +98,7 @@
                 {% translate "Value type" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_dhis2_value_type_display }}
+                {{ data_element.get_value_type_display }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -106,7 +106,7 @@
                 {% translate "Aggregation type" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_dhis2_aggregation_type_display }}
+                {{ data_element.get_aggregation_type_display }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -114,7 +114,7 @@
                 {% translate "External access" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_external_access|yesno:_("Yes,No") }}
+                {{ data_element.external_access|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -122,7 +122,7 @@
                 {% translate "Favorite" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_favorite|yesno:_("Yes,No") }}
+                {{ data_element.favorite|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -130,7 +130,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_created|date:"M d, H:i:s (e)" }}
+                {{ data_element.created|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -138,7 +138,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_last_updated|date:"M d, H:i:s (e)" }}
+                {{ data_element.last_updated|date:"M d, H:i:s (e)" }}
             </dd>
         </div>
         <div class="sm:col-span-1">

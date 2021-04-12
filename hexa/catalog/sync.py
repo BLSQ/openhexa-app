@@ -12,7 +12,7 @@ class DatasourceSyncResult:
             f"{self.created} new, {self.updated} updated, {self.identical} unaffected"
         )
 
-        return f'The datasource "{self.datasource.display_name}" has been synced ({figures})'
+        return f'The datasource "{self.datasource}" has been synced ({figures})'
 
     def __add__(self, other):
         if other.datasource != self.datasource:
