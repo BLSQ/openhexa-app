@@ -40,17 +40,3 @@ class AuthTest(test.TestCase):
         response = self.client.get(reverse("user:account"))
 
         self.assertEqual(response.status_code, 200)
-
-    def test_credentials_200(self):
-        self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.post(reverse("notebooks:credentials"))
-
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIn("username", response_data)
-        self.assertEqual("john@bluesquarehub.com", response_data["username"])
-
-    def test_credentials_401(self):
-        response = self.client.post(reverse("notebooks:credentials"))
-
-        self.assertEqual(response.status_code, 401)
