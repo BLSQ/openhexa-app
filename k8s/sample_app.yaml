@@ -51,26 +51,26 @@ spec:
                 - name: Host
                   value: <HEXA_APP_DOMAIN>
         - name: app-cloudsql-proxy
-          image: gcr.io/cloudsql-docker/gce-proxy:1.16
+          image: gcr.io/cloudsql-docker/gce-proxy:1.21.0
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
                      "-instances=<HEXA_CLOUDSQL_CONNECTION_STRING>=tcp:5432",
                      "-credential_file=/secrets/cloudsql/credentials.json" ]
           volumeMounts:
-            - name: app-cloudsql-oauth-credentials
+            - name: cloudsql-oauth-credentials
               mountPath: /secrets/cloudsql
               readOnly: true
-            - name: app-ssl-certs
+            - name: ssl-certs
               mountPath: /etc/ssl/certs
-            - name: app-cloudsql
+            - name: cloudsql
               mountPath: /cloudsql
       volumes:
-        - name: app-cloudsql-oauth-credentials
+        - name: cloudsql-oauth-credentials
           secret:
             secretName: cloudsql-oauth-credentials
-        - name: app-ssl-certs
+        - name: ssl-certs
           hostPath:
             path: /etc/ssl/certs
-        - name: app-cloudsql
+        - name: cloudsql
           emptyDir: { }
 ---
 # Certificate (https)
