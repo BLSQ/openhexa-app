@@ -65,14 +65,14 @@ DHIS2 instances, PostgreSQL databases...
 1. **Data Warehouses**: those data stores are read/write databases (as of now, only PostgreSQL data warehouses are
    implemented).
 
-Provisioning and deployment
----------------------------
+Provisioning
+------------
 
-Note: the following instructions are tailored to a Google Cloud Platform setup (using Google Kubernetes Engine and
+**Note:** the following instructions are tailored to a Google Cloud Platform setup (using Google Kubernetes Engine and
 Google Cloud SQL). OpenHexa can be deployed on other cloud providers or in a private cloud, but you will need to adapt
 the instructions below to your infrastructure of choice.
 
-### Provisioning
+### Requirements
 
 In order to run the OpenHexa **App component**, you will need:
 
@@ -93,21 +93,27 @@ The following command will show which configuration you are using:
 gcloud config configurations list
 ```
 
-#### Create a Cloud SQL instance
+#### Create a Cloud SQL instance, database and user
 
-In the Google Cloud console, go to the Google Cloud SQL dashboard and create a new instance:
+Unless you already have a ready-to-use Google Cloud SQL instance, you can create one using the following command:
 
-1. Choose **PostgreSQL** as the engine
-1. Use `hexa-app` as the instance name
-1. Choose a password for the root `postgres` account and keep it somewhere safe
-1. Choose `PostgreSQL 12` as Postgres version
-1. Choose an appropriate region
-1. Customize the instance as needed (especially machine type and backups) and confirm the instance creation
+```bash
+gcloud sql instances create hexa-main \
+ --database-version=POSTGRES_12 \
+ --cpu=2 --memory=7680MiB --zone=europe-west1-b --root-password=asecurepassword
+```
 
-Once the instance has been successfully created, you can create a database and a user:
+You will then need to create a database for the App component:
 
-1. Go to the **Databases** tab and create a new database called `hexa-app`
-1. Go to the **Users** tab and create a new user called `hexa-app` (and save its credentials somewhere safe)
+```bash
+gcloud sql databases create hexa-app --instance=hexa-main
+```
+
+You will need a user as well:
+
+```bash
+gcloud sql users create hexa-app --instance=hexa-main --password=asecurepassword
+```
 
 🚨 The created user will have root access on your instance. You should make sure to adapt its permissions accordingly if
 needed.
@@ -116,7 +122,7 @@ The last step is to get the connection string of your Cloud SQL instance. Launch
 the value next to the `connectionName` key, you will need it later:
 
 ```bash
-gcloud sql instances describe hexa-app
+gcloud sql instances describe hexa-main
 ```
 
 #### Create a service account for the Cloud SQL proxy
@@ -125,12 +131,30 @@ The OpenHexa app component will connect to the Cloud SQL instance using a
 [Cloud SQL Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy). The proxy requires a GCP service account. If 
 you have not created such a service account yet, create one:
 
-1. Go to the Service Accounts page of the GCP IAM & Admin section
-1. Create a service account named `cloud-sql-proxy` and give it a description
-1. Add the "Cloud SQL Client" permission to the service account
-1. Confirm the service account description
-1. Download a JSON credential files associated to the service account (Manage keys > Add Key > Create new key)
-1. Keep it somewhere safe (don't version it, and delete the file once you don't need it anymore)
+```bash
+gcloud iam service-accounts create hexa-cloud-sql-proxy \
+  --display-name=hexa-cloud-sql-proxy \
+  --description='Used to allow pods to access Cloud SQL'
+```
+
+Give it the `roles/cloudsql.client` role:
+
+```bash
+gcloud projects add-iam-policy-binding blsq-dip-test \
+    --member=serviceAccount:hexa-cloud-sql-proxy@blsq-dip-test.iam.gserviceaccount.com \
+    --role=roles/cloudsql.client
+```
+
+Finally, download a key file for the service account and keep it somewhere safe, we will need it later:
+
+```bash
+mkdir -p ../gcp_keyfiles
+gcloud iam service-accounts keys create ../gcp_keyfiles/hexa-cloud-sql-proxy.json \
+  --iam-account=hexa-cloud-sql-proxy@blsq-dip-test.iam.gserviceaccount.com
+```
+
+Note that we deliberately download the key file outside the current repository to avoid it being included 
+in Git or in the Docker image.
 
 #### Create a GKE cluster:
 
@@ -139,47 +163,38 @@ will create a new cluster in Google Kubernetes Engine, along with a default node
 
 ```bash
 gcloud container clusters create hexa-main \
-  --node-pool=default-pool-n2s2
   --machine-type=n2-standard-2 \
   --zone=europe-west1-b \
-  --num-nodes=0 \
   --enable-autoscaling \
-  --min-nodes=0 \
+  --num-nodes=1 \
+  --min-nodes=1 \
   --max-nodes=4 \
   --cluster-version=latest
 ```
 
+The `node-labels` and `node-taints` options will allow JupyterHub to spawn the single-user Jupyter server pods in the 
+user node pool.
+
 To make sure that the `kubectl` utility can access the newly created cluster, you need to launch another command:
 
 ```bash
-gcloud container clusters get-credentials hexa-main --zone "<your_cluster-zone>"
+gcloud container clusters get-credentials hexa-main --region=europe-west1-b
 ```
 
 #### Create a global IP address (and a DNS record)
 
-The Kubernetes ingress used to access the OpenHexa app exposes an external IP. This IP might change when re-deploying 
-or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
+The Kubernetes ingress used to access the OpenHexa app component exposes an external IP. This IP might change when 
+re-deploying or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
 
 ```bash
-gcloud compute addresses create <ADDRESS_NAME> --global
-gcloud compute addresses describe <ADDRESS_NAME> --global
+gcloud compute addresses create <HEXA_APP_ADDRESS_NAME> --global
+gcloud compute addresses describe <HEXA_APP_ADDRESS_NAME> --global
 ```
 
 Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
 
-#### Set up the Notebooks component
-
-The app component will embed the [Notebooks component](https://github.com/BLSQ/openhexa-notebooks) as in frame in a 
-dedicated section.
-
-Before deploying the App component, you will need to deploy the Notebooks component, following the instructions 
-provided in the [`README.md`](https://github.com/BLSQ/openhexa-notebooks/blob/main/README.md) of the Notebooks 
-component.
-
-It's important to have the Notebooks and App components running on the same top-level domain, as we use cookies for 
-cross-component authentication.
-
-### Deploying
+Deploying
+---------
 
 The OpenHexa **App component** can be deployed with the `kubectl` utility. Almost all the required resources can be
 contained in a single file (we provide a sample `k8s/app.yaml.dist` file to serve as a basis).
@@ -193,7 +208,7 @@ kubectl create namespace hexa-app
 Before we can deploy the app component, we need to create a secret for the Cloud SQL proxy:
 
 ```bash
-kubectl create secret generic cloudsql-oauth-credentials -n hexa-app \
+kubectl create secret generic hexa-cloudsql-oauth-credentials -n hexa-app \
   --from-file=credentials.json=[PATH_TO_CREDENTIAL_FILE]
 ```
 
@@ -208,11 +223,10 @@ Then, create the secret:
 
 ```bash
 kubectl create secret generic app-secret -n hexa-app \
-  --from-literal DATABASE_USER=<DATABASE_USER> \
-  --from-literal DATABASE_PASSWORD=<DATABASE_PASSWORD> \
-  --from-literal DATABASE_NAME=<DATABASE_NAME> \
-  --from-literal DATABASE_PORT=<DATABASE_PORT> \
-  --from-literal SECRET_KEY=<SECRET_KEY>
+  --from-literal DATABASE_USER=<HEXA_APP_DATABASE_USER> \
+  --from-literal DATABASE_PASSWORD=<HEXA_APP_DATABASE_PASSWORD> \
+  --from-literal DATABASE_NAME=<HEXA_APP_DATABASE_NAME> \
+  --from-literal SECRET_KEY=<HEXA_APP_SECRET_KEY>
 ```
 
 Then, you can copy the sample file and adapt it to your needs:
@@ -226,13 +240,13 @@ A few notes about the sample file:
 
 1. `HEXA_APP_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa app instance
    (`openhexa.yourorg.com` for example)
-1. `NODE_POOL_SELECTOR` should be set to the name of the node pool that will run your OpenHexa app pods
-   (example: `default-pool-n2s2`)
+1. `HEXA_APP_NODE_POOL_SELECTOR` should be set to the name of the node pool that will run your OpenHexa app pods
+   (example: `default-pool`)
 1. `HEXA_APP_IMAGE` is the full path of the OpenHexa app image (`blsq/openhexa-app:latest` or `blsq/openhexa-app:0.3.1`,
    or a path to a custom image)1
-1. `CLOUDSQL_CONNECTION_STRING` corresponds to the `connectionName` value returned by the 
+1. `HEXA_CLOUDSQL_CONNECTION_STRING` corresponds to the `connectionName` value returned by the 
    `gcloud sql instances describe` command (see above)
-1. `HEXA_ADDRESS_NAME` is the named used when creating the address using the `gcloud compute addresses create` command
+1. `HEXA_APP_ADDRESS_NAME` is the named used when creating the address using the `gcloud compute addresses create` command
 1. `HEXA_NOTEBOOKS_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa notebooks
    instance (`notebooks.openhexa.yourorg.com` for example)
 
@@ -271,6 +285,19 @@ The OpenHexa app Docker image is publicly available on Docker Hub
 ([blsq/openhexa-app](https://hub.docker.com/r/blsq/openhexa-app)).
 
 This repository also provides a Github workflow to build the Docker image in the `.github/workflows` directory.
+
+Provision and deploy the Notebooks component
+--------------------------------------------
+
+The app component will embed the [Notebooks component](https://github.com/blsq/openhexa-notebooks) as an `iframe` in a 
+dedicated section.
+
+Before deploying the App component, you will need to deploy the Notebooks component, following the instructions 
+provided in the [`README.md`](https://github.com/blsq/openhexa-notebooks/blob/main/README.md) of the Notebooks 
+component.
+
+It's important to have the Notebooks and App components running on the same top-level domain, as we use cookies for 
+cross-component authentication.
 
 Local development
 -----------------

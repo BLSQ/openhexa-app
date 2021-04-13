@@ -9,6 +9,7 @@ data:
   DEBUG: "false"
   ALLOWED_HOSTS: <HEXA_APP_DOMAIN>
   DATABASE_HOST: "127.0.0.1"
+  DATABASE_PORT: "5432"
   NOTEBOOKS_URL: <HEXA_NOTEBOOKS_DOMAIN>
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
@@ -29,7 +30,7 @@ spec:
         component: app
     spec:
       nodeSelector:
-        cloud.google.com/gke-nodepool: <NODE_POOL_SELECTOR>
+        cloud.google.com/gke-nodepool: <HEXA_APP_NODE_POOL_SELECTOR>
       containers:
         - name: app-container
           image: <HEXA_APP_IMAGE>
@@ -52,7 +53,7 @@ spec:
         - name: app-cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.16
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
-                     "-instances=<CLOUDSQL_CONNECTION_STRING>=tcp:5432",
+                     "-instances=<HEXA_CLOUDSQL_CONNECTION_STRING>=tcp:5432",
                      "-credential_file=/secrets/cloudsql/credentials.json" ]
           volumeMounts:
             - name: app-cloudsql-oauth-credentials
@@ -103,7 +104,7 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: <HEXA_ADDRESS_NAME>
+    kubernetes.io/ingress.global-static-ip-name: <HEXA_APP_ADDRESS_NAME>
     networking.gke.io/managed-certificates: app-certificate
     kubernetes.io/ingress.class: "gce"
     kubernetes.io/ingress.allow-http: "false"
