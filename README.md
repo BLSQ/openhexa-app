@@ -197,7 +197,7 @@ Deploying
 ---------
 
 The OpenHexa **App component** can be deployed with the `kubectl` utility. Almost all the required resources can be
-contained in a single file (we provide a sample `k8s/app.yaml.dist` file to serve as a basis).
+contained in a single file (we provide a sample `k8s/sample_app.yaml` file to serve as a basis).
 
 As we want all resources to be located in a specific Kubernetes namespace, create it if it does not exist yet:
 
@@ -232,7 +232,7 @@ kubectl create secret generic app-secret -n hexa-app \
 Then, you can copy the sample file and adapt it to your needs:
 
 ```bash
-cp k8s/app.yaml.dist k8s/app.yaml
+cp k8s/sample_app.yaml k8s/app.yaml
 nano k8s/app.yaml
 ```
 
