@@ -247,8 +247,8 @@ A few notes about the sample file:
 1. `HEXA_CLOUDSQL_CONNECTION_STRING` corresponds to the `connectionName` value returned by the 
    `gcloud sql instances describe` command (see above)
 1. `HEXA_APP_ADDRESS_NAME` is the named used when creating the address using the `gcloud compute addresses create` command
-1. `HEXA_NOTEBOOKS_DOMAIN` should be replaced by the value of the DNS record that points to your OpenHexa notebooks
-   instance (`notebooks.openhexa.yourorg.com` for example)
+1. `HEXA_NOTEBOOKS_URL` should be replaced by the URL of the DNS record that points to your OpenHexa notebooks
+   instance (`https://notebooks.openhexa.yourorg.com` for example)
 
 You can then deploy the app component using `kubectl apply`:
 

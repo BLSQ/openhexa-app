@@ -10,7 +10,7 @@ data:
   ALLOWED_HOSTS: <HEXA_APP_DOMAIN>
   DATABASE_HOST: "127.0.0.1"
   DATABASE_PORT: "5432"
-  NOTEBOOKS_URL: <HEXA_NOTEBOOKS_DOMAIN>
+  NOTEBOOKS_URL: <HEXA_NOTEBOOKS_URL>
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
 apiVersion: apps/v1
