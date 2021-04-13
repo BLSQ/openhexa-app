@@ -8,12 +8,8 @@ from hexa.notebooks.credentials import NotebooksCredentials
 
 
 def index(request):
-    return render(request, "notebooks/index.html")
-
-
-def run(request):
     return render(
-        request, "notebooks/run.html", {"notebooks_url": settings.NOTEBOOKS_URL}
+        request, "notebooks/index.html", {"notebooks_url": settings.NOTEBOOKS_URL}
     )
 
 

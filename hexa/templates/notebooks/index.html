@@ -4,13 +4,7 @@
 {% block page_title %}{% translate "Notebooks" %}{% endblock %}
 
 {% block main_content %}
-    <div class="flex-1 flex items-center justify-center">
-        <a
-                href="{% url "notebooks:run" %}"
-                class="inline-flex items-center px-6 py-3 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-            {% include "partials/icons/play.html" with w=8 h=8 mr=2 %}
-            {% translate "Lanch the notebooks component" %}
-        </a>
+    <div class="flex-1 flex flex-col">
+        <iframe src="{{ notebooks_url }}" class="flex-1"></iframe>
     </div>
 {% endblock %}
