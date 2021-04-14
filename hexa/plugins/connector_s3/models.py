@@ -175,7 +175,7 @@ class Object(Content):
     instance = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
     key = models.TextField()
-    size = models.PositiveIntegerField()
+    size = models.PositiveBigIntegerField()
     storage_class = models.CharField(max_length=200)  # TODO: choices
     type = models.CharField(max_length=200)  # TODO: choices
     name = models.CharField(max_length=200)
