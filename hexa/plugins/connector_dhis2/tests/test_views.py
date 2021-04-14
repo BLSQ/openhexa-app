@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from hexa.user_management.models import User, Team
-from hexa.catalog.models import Datasource
+from hexa.catalog.models import Datasource, CatalogIndexQuerySet
 from ..models import Instance, DataElement, Indicator, InstancePermission
 
 
@@ -107,6 +107,7 @@ class ConnectorDhis2Test(test.TestCase):
 
         response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(0, response.context["results"].count())
 
     def test_catalog_search_200(self):
@@ -116,7 +117,38 @@ class ConnectorDhis2Test(test.TestCase):
 
         response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(3, response.context["results"].count())
+
+    def test_catalog_search_datasource_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.post(
+            reverse("catalog:search"), data={"query": "play type:dhis2_instance"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
+        self.assertEqual(1, len(response.context["results"]))
+
+    def test_catalog_search_data_element_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.post(
+            reverse("catalog:search"), data={"query": "anc type:dhis2_dataelement"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
+        self.assertEqual(2, response.context["results"].count())
+
+    def test_catalog_search_indicator_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.post(
+            reverse("catalog:search"), data={"query": "anc type:dhis2_indicator"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
+        self.assertEqual(1, response.context["results"].count())
 
     def test_catalog_quick_search_empty_200(self):
         """Bjorn is not a superuser, he can try to search for content but there will be no results"""

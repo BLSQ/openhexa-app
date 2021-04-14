@@ -9,14 +9,15 @@ from hexa.user_management.models import User
 class CatalogTest(test.TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.USER_REGULAR = User.objects.create_user(
+        cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
             "jane@bluesquarehub.com",
-            "regular",
+            "janerocks2",
+            is_superuser=True,
         )
 
     def test_catalog_index_200(self):
-        self.client.login(email="jane@bluesquarehub.com", password="regular")
+        self.client.force_login(self.USER_JANE)
         response = self.client.get(
             reverse(
                 "catalog:index",
@@ -25,8 +26,8 @@ class CatalogTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["datasource_indexes"], QuerySet)
 
-    def test_catalog_search_200(self):
-        self.client.login(email="jane@bluesquarehub.com", password="regular")
+    def test_catalog_quick_search_200(self):
+        self.client.force_login(self.USER_JANE)
 
         response = self.client.get(f"{reverse('catalog:quick_search')}?query=test")
         self.assertEqual(response.status_code, 200)

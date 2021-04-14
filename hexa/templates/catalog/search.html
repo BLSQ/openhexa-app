@@ -5,7 +5,7 @@
 
 {% block page_content %}
     <!-- This example requires Tailwind CSS v2.0+ -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div class="bg-white shadow overflow-hidden sm:rounded-md mb-12">
         <ul class="divide-y divide-gray-200">
             <li class="px-4 py-2 sm:px-6">
                 <form
@@ -39,21 +39,50 @@
                 {% else %}
                     <div class="px-4 py-4 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                            {% if query|length > 0 %}{% translate "No results was found for " %}"{{ query }}"{% else %}{% translate "Search tips" %}{% endif %}
+                            {% if query|length > 0 %}
+                                {% translate "No results was found for " %}"{{ query }}"
+                            {% else %}
+                                {% translate "Search tips" %}
+                            {% endif %}
                         </h3>
                         <div class="mt-2 text-sm text-gray-500 max-w-xl">
                             <p class="my-4">
-                                Enter one or more search terms separated by spaces. If you want to filter your search
-                                by type, you can use the <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:type_name</code>
-                                filter.
+                                {% blocktranslate %}
+                                    Enter one or more search terms separated by spaces. If you want to filter your
+                                    search
+                                    by type, you can use the
+                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:type_name</code>
+                                    filter.
+                                {% endblocktranslate %}
                             </p>
                             <p class="my-4">
-                                You can search for:
+                                {% translate "You can search for:" %}
                             </p>
                             <ul class="my-4 ml-4 pl-4 list-disc">
-                                <li>Data sources</li>
-                                <li>DHIS2 data elements</li>
-                                <li>DHIS2 indicators</li>
+                                <li>
+                                    {% translate "Any type of content" %}:
+                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
+                                        severe
+                                    </code>
+                                </li>
+                                <li>
+                                    {% translate "DHIS2 onstances" %}:
+                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
+                                        play type:dhis2_instance
+                                    </code>
+                                </li>
+                                <li>
+                                    {% translate "DHIS2 data elements" %}:
+                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
+                                        anc type:dhis2_dataelement
+                                    </code>
+                                </li>
+                                <li>
+                                    {% translate "DHIS2 indicators" %}:
+                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
+                                        anc type:dhis2_indicator
+                                    </code>
+                                </li>
                             </ul>
                         </div>
                     </div>
