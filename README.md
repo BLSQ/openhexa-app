@@ -209,7 +209,7 @@ Before we can deploy the app component, we need to create a secret for the Cloud
 
 ```bash
 kubectl create secret generic hexa-cloudsql-oauth-credentials -n hexa-app \
-  --from-file=credentials.json=[PATH_TO_CREDENTIAL_FILE]
+  --from-file=credentials.json=../gcp_keyfiles/hexa-cloud-sql-proxy.json
 ```
 
 We need another secret for the Django environment variables. First, you need to generate a secret key for the 

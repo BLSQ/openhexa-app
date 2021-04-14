@@ -67,7 +67,7 @@ class Team(Base):
         return self.name
 
 
-class Membership(models.Model):
+class Membership(Base):
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
 
