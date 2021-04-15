@@ -128,6 +128,7 @@ AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
+SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/

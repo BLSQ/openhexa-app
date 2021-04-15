@@ -93,6 +93,18 @@ The following command will show which configuration you are using:
 gcloud config configurations list
 ```
 
+#### Create a global IP address (and a DNS record)
+
+The Kubernetes ingress used to access the OpenHexa app component exposes an external IP. This IP might change when 
+re-deploying or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
+
+```bash
+gcloud compute addresses create <HEXA_APP_ADDRESS_NAME> --global
+gcloud compute addresses describe <HEXA_APP_ADDRESS_NAME> --global
+```
+
+Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
+
 #### Create a Cloud SQL instance, database and user
 
 Unless you already have a ready-to-use Google Cloud SQL instance, you can create one using the following command:
@@ -180,18 +192,6 @@ To make sure that the `kubectl` utility can access the newly created cluster, yo
 ```bash
 gcloud container clusters get-credentials hexa-main --region=europe-west1-b
 ```
-
-#### Create a global IP address (and a DNS record)
-
-The Kubernetes ingress used to access the OpenHexa app component exposes an external IP. This IP might change when 
-re-deploying or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
-
-```bash
-gcloud compute addresses create <HEXA_APP_ADDRESS_NAME> --global
-gcloud compute addresses describe <HEXA_APP_ADDRESS_NAME> --global
-```
-
-Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
 
 Deploying
 ---------

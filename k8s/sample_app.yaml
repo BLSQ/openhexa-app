@@ -11,6 +11,7 @@ data:
   DATABASE_HOST: "127.0.0.1"
   DATABASE_PORT: "5432"
   NOTEBOOKS_URL: <HEXA_NOTEBOOKS_URL>
+  SESSION_COOKIE_DOMAIN: <HEXA_COOKIE_DOMAIN>
 ---
 # Deployment: represents the app setup (an autoscaling app setup here)
 apiVersion: apps/v1
@@ -50,7 +51,7 @@ spec:
               httpHeaders:
                 - name: Host
                   value: <HEXA_APP_DOMAIN>
-        - name: app-cloudsql-proxy
+        - name: cloudsql-proxy
           image: gcr.io/cloudsql-docker/gce-proxy:1.21.0
           command: [ "/cloud_sql_proxy", "--dir=/cloudsql",
                      "-instances=<HEXA_CLOUDSQL_CONNECTION_STRING>=tcp:5432",
@@ -74,7 +75,7 @@ spec:
           emptyDir: { }
 ---
 # Certificate (https)
-apiVersion: networking.gke.io/v1beta2
+apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
   name: app-certificate
@@ -93,7 +94,7 @@ spec:
   type: NodePort
   ports:
     - protocol: TCP
-      port: 80
+      port: 8000
       targetPort: 8000
   selector:
     component: app
@@ -107,8 +108,16 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: <HEXA_APP_ADDRESS_NAME>
     networking.gke.io/managed-certificates: app-certificate
     kubernetes.io/ingress.class: "gce"
-    kubernetes.io/ingress.allow-http: "false"
 spec:
   backend:
     serviceName: app-service
-    servicePort: 80
+    servicePort: 8000
+---
+# Frontend Config for http to https redirection
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: app-frontend-config
+spec:
+  redirectToHttps:
+    enabled: true
