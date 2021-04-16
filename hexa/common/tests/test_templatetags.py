@@ -21,7 +21,7 @@ class TemplatetagsTest(SimpleTestCase):
             """
             {% load embed %}
             {% embed "section.html" %}
-                {% block title %}<h1>{{ title }}</h1>{% endblock %}
+                {% block title %}{{ title }}{% endblock %}
                 {% block content %}<p>Content</p>{% endblock %}
             {% endembed %}
             """,
@@ -30,10 +30,12 @@ class TemplatetagsTest(SimpleTestCase):
         rendered_template = template_to_render.render(context)
         self.assertTemplateContentEqual(
             """
-            <div>
+            <section>
                 <h1>Context Title</h1>
-                <p>Content</p>
-            </div>
+                <div>
+                    <p>Content</p>
+                </div>
+            </section>
             """,
             rendered_template,
         )
@@ -44,7 +46,7 @@ class TemplatetagsTest(SimpleTestCase):
             """
             {% load embed %}
             {% embed "section.html" only %}
-                {% block title %}<h1>Title</h1>{% endblock %}
+                {% block title %}Title{% endblock %}
                 {% block content %}<p>Content{{ extra_string }}</p>{% endblock %}
             {% endembed %}
             """,
@@ -53,10 +55,12 @@ class TemplatetagsTest(SimpleTestCase):
         rendered_template = template_to_render.render(context)
         self.assertTemplateContentEqual(
             """
-            <div>
+            <section>
                 <h1>Title</h1>
-                <p>Content</p>
-            </div>
+                <div>
+                    <p>Content</p>
+                </div>
+            </section>
             """,
             rendered_template,
         )
@@ -66,7 +70,7 @@ class TemplatetagsTest(SimpleTestCase):
             """
             {% load embed %}
             {% embed "section.html" with title="Context Title" %}
-                {% block title %}<h1>{{ title }}</h1>{% endblock %}
+                {% block title %}{{ title }}{% endblock %}
                 {% block content %}<p>Content</p>{% endblock %}
             {% endembed %}
             """,
@@ -75,10 +79,12 @@ class TemplatetagsTest(SimpleTestCase):
         rendered_template = template_to_render.render(Context())
         self.assertTemplateContentEqual(
             """
-            <div>
+            <section>
                 <h1>Context Title</h1>
-                <p>Content</p>
-            </div>
+                <div>
+                    <p>Content</p>
+                </div>
+            </section>
             """,
             rendered_template,
         )
