@@ -36,15 +36,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "django_countries",
     "tailwind",
     "hexa.common.apps.CommonConfig",
     "hexa.user_management.apps.UserManagementConfig",
-    "hexa.core.apps.CoreConfig",
-    "hexa.catalog.apps.CatalogConfig",
-    "hexa.notebooks.apps.NotebooksConfig",
-    "hexa.pipelines.apps.PipelinesConfig",
-    "hexa.tailwindui.apps.TailwinduiConfig",
+    "hexa.core",
+    "hexa.catalog",
+    "hexa.notebooks",
+    "hexa.pipelines",
+    "hexa.comments",
+    "hexa.tailwindui",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
 ]
@@ -148,6 +150,9 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
+
+# Comments
+COMMENTS_APP = "hexa.comments"
 
 # Tailwind
 TAILWIND_APP_NAME = "hexa.tailwindui"
