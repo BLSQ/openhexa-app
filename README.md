@@ -82,7 +82,7 @@ In order to run the OpenHexa **App component**, you will need:
 It is perfectly fine to run the OpenHexa **App component** in an existing Kubernetes cluster. All the Kubernetes
 resources created for this component will be attached to a specific Kubernetes namespace named `hexa-app`.
 
-#### Configure gcloud
+### Configure gcloud
 
 We will need the [`gcloud`](https://cloud.google.com/sdk/gcloud) command-line tool for the next steps. Make sure it is
 installed and configured properly - among other things, that the appropriate configuration is active.
@@ -93,7 +93,7 @@ The following command will show which configuration you are using:
 gcloud config configurations list
 ```
 
-#### Create a global IP address (and a DNS record)
+### Create a global IP address (and a DNS record)
 
 The Kubernetes ingress used to access the OpenHexa app component exposes an external IP. This IP might change when 
 re-deploying or re-provisioning. In order to prevent it, create an address in GCP compute and get back its value:
@@ -105,7 +105,7 @@ gcloud compute addresses describe <HEXA_APP_ADDRESS_NAME> --global
 
 Then, you can create a DNS record that points to the ip address returned by the `describe` command above.
 
-#### Create a Cloud SQL instance, database and user
+### Create a Cloud SQL instance, database and user
 
 Unless you already have a ready-to-use Google Cloud SQL instance, you can create one using the following command:
 
@@ -137,7 +137,7 @@ the value next to the `connectionName` key, you will need it later:
 gcloud sql instances describe hexa-main
 ```
 
-#### Create a service account for the Cloud SQL proxy
+### Create a service account for the Cloud SQL proxy
 
 The OpenHexa app component will connect to the Cloud SQL instance using a
 [Cloud SQL Proxy](https://cloud.google.com/sql/docs/postgres/sql-proxy). The proxy requires a GCP service account. If 
@@ -168,7 +168,7 @@ gcloud iam service-accounts keys create ../gcp_keyfiles/hexa-cloud-sql-proxy.jso
 Note that we deliberately download the key file outside the current repository to avoid it being included 
 in Git or in the Docker image.
 
-#### Create a GKE cluster:
+### Create a GKE cluster:
 
 Unless you already have a running Kubernetes cluster, you need to create one. The following command 
 will create a new cluster in Google Kubernetes Engine, along with a default node pool:
