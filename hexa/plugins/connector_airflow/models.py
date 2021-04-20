@@ -1,10 +1,11 @@
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from google.oauth2 import service_account
 import requests
 
 from hexa.common.models import Base
-from hexa.pipelines.models import PipelineServer
+from hexa.pipelines.models import PipelineServer, PipelineIndex, PipelineIndexPermission
 
 
 class CredentialsQuerySet(models.QuerySet):
@@ -72,7 +73,25 @@ class ComposerEnvironment(PipelineServer):
 
     objects = ComposerEnvironmentQuerySet.as_manager()
 
-    def list_dags(self):
+    def index(self):
+        pipeline_index = PipelineIndex.objects.create_or_update(
+            indexed_object=self,
+            owner=self.hexa_owner,
+            name=self.name,
+            countries=self.hexa_countries,
+            content_summary=self.content_summary,  # TODO: why?
+            last_synced_at=self.hexa_last_synced_at,
+            detail_url=reverse(
+                "connector_airflow:pipeline_server_detail", args=(self.pk,)
+            ),
+        )
+
+        for permission in self.composerenvironmentpermission_set.all():
+            PipelineIndexPermission.objects.create(
+                catalog_index=pipeline_index, team=permission.team
+            )
+
+    def sync(self):
         credentials = service_account.IDTokenCredentials.from_service_account_info(
             self.api_credentials.service_account_key,
             target_audience=self.api_credentials.oidc_target_audience,
