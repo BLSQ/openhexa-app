@@ -5,7 +5,11 @@ from google.oauth2 import service_account
 import requests
 
 from hexa.common.models import Base
-from hexa.pipelines.models import PipelineServer, PipelineIndex, PipelineIndexPermission
+from hexa.pipelines.models import (
+    PipelineEnvironment,
+    PipelineIndex,
+    PipelineIndexPermission,
+)
 
 
 class CredentialsQuerySet(models.QuerySet):
@@ -59,7 +63,7 @@ class ComposerEnvironmentQuerySet(models.QuerySet):
         )
 
 
-class ComposerEnvironment(PipelineServer):
+class ComposerEnvironment(PipelineEnvironment):
     class Meta:
         verbose_name = "GCP Composer environment"
         ordering = ("hexa_name",)
@@ -82,7 +86,7 @@ class ComposerEnvironment(PipelineServer):
             content_summary=self.content_summary,  # TODO: why?
             last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse(
-                "connector_airflow:pipeline_server_detail", args=(self.pk,)
+                "connector_airflow:pipeline_environment_detail", args=(self.pk,)
             ),
         )
 

@@ -6,13 +6,13 @@ app_name = "connector_airflow"
 
 urlpatterns = [
     path(
-        "<str:pipeline_server_id>",
-        views.pipeline_server_detail,
-        name="pipeline_server_detail",
+        "<str:pipeline_environment_id>",
+        views.pipeline_environment_detail,
+        name="pipeline_environment_detail",
     ),
     path(
         "<str:pipeline_id>/sync",
-        views.pipeline_server_sync,
+        views.pipeline_environment_sync,
         name="datasource_sync",
     ),
 ]

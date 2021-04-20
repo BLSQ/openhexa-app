@@ -6,7 +6,7 @@ from hexa.pipelines.models import PipelineIndexType, PipelineIndex
 
 def index(request):
     breadcrumbs = [(_("Data Pipelines"), "pipelines:index")]
-    pipeline_server_indexes = PipelineIndex.objects.filter_for_user(
+    pipeline_environment_indexes = PipelineIndex.objects.filter_for_user(
         request.user
     ).filter(index_type=PipelineIndexType.PIPELINE_SERVER.value)
 
@@ -14,7 +14,7 @@ def index(request):
         request,
         "pipelines/index.html",
         {
-            "pipeline_server_indexes": pipeline_server_indexes,
+            "pipeline_environment_indexes": pipeline_environment_indexes,
             "breadcrumbs": breadcrumbs,
         },
     )

@@ -41,8 +41,8 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                        {% for pipeline_server_index in pipeline_server_indexes %}
-                            {% include "pipelines/partials/pipeline_server_list_item.html" %}
+                        {% for pipeline_environment_index in pipeline_environment_indexes %}
+                            {% include "pipelines/partials/pipeline_environment_list_item.html" %}
                         {% endfor %}
                         </tbody>
                     </table>
