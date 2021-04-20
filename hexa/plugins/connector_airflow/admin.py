@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import (
-    ComposerEnvironment,
+    Environment,
     Credentials,
-    ComposerEnvironmentPermission,
+    EnvironmentPermission,
 )
 
 
@@ -12,7 +12,7 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("service_account_email",)
 
 
-@admin.register(ComposerEnvironment)
+@admin.register(Environment)
 class BucketAdmin(admin.ModelAdmin):
     list_display = (
         "name",
@@ -21,6 +21,6 @@ class BucketAdmin(admin.ModelAdmin):
     search_fields = ("name",)
 
 
-@admin.register(ComposerEnvironmentPermission)
-class ComposerEnvironmentPermissionAdmin(admin.ModelAdmin):
-    list_display = ("composer_environment", "team")
+@admin.register(EnvironmentPermission)
+class EnvironmentPermissionAdmin(admin.ModelAdmin):
+    list_display = ("airflow_environment", "team")

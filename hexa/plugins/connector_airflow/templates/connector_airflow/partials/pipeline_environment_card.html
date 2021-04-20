@@ -2,7 +2,7 @@
 {% load static i18n %}
 
 {% block card_header_title %}
-    {{ pipeline_environment.display_name }}
+    {{ environment.display_name }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block card_header_description %}
-    {{ pipeline_environment.description }}
+    {{ environment.description }}
 {% endblock %}
 
 {% block card_header_actions %}
@@ -35,7 +35,7 @@
                 {% translate "Environment name" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ pipeline_environment.name }}
+                {{ environment.name }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -43,11 +43,11 @@
                 {% translate "URL" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if pipeline_environment.url %}
-                    <a href="{{ pipeline_environment.url }}"
+                {% if environment.url %}
+                    <a href="{{ environment.url }}"
                        class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
-                        <span>{{ pipeline_environment.url }}</span>
+                        <span>{{ environment.url }}</span>
                         <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                              xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -65,7 +65,7 @@
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 <div class="flex items-center align-center">
-                    {% for country in pipeline_environment.countries %}
+                    {% for country in environment.countries %}
                         <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
                         {{ country.name }}
                     {% empty %}
@@ -79,11 +79,11 @@
                 {% translate "Owner" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ pipeline_environment.hexa_owner.name }}&nbsp;
-                <span class="text-gray-500">({{ pipeline_environment.hexa_owner.get_organization_type_display }})</span>
-                {% if pipeline_environment.hexa_owner.url %}
+                {{ environment.hexa_owner.name }}&nbsp;
+                <span class="text-gray-500">({{ environment.hexa_owner.get_organization_type_display }})</span>
+                {% if environment.hexa_owner.url %}
                     <br/>
-                    <a href="{{ pipeline_environment.hexa_owner.url }}"
+                    <a href="{{ environment.hexa_owner.url }}"
                        class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
                         <span>{% translate "Official website" %}</span>
@@ -101,8 +101,8 @@
                 {% translate "Contact" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if pipeline_environment.hexa_owner.contact_info %}
-                    {{ pipeline_environment.hexa_owner.contact_info|urlize }}
+                {% if environment.hexa_owner.contact_info %}
+                    {{ environment.hexa_owner.contact_info|urlize }}
                 {% else %}
                     -
                 {% endif %}
@@ -113,7 +113,7 @@
                 {% translate "Content" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ pipeline_environment.content_summary|default:"-" }}
+                {{ environment.content_summary|default:"-" }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -121,7 +121,7 @@
                 {% translate "Last sync" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% url "connector_airflow:pipeline_environment_sync" pipeline_environment.pk as sync_url %}
+                {% url "connector_airflow:environment_sync" environment.pk as sync_url %}
                 {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
             </dd>
         </div>
@@ -130,7 +130,7 @@
                 {% translate "Tags" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% for tag in pipeline_environment.content.tags %}
+                {% for tag in environment.content.tags %}
                     <span class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
                         {{ tag.label }}
                     </span>

@@ -11,7 +11,7 @@ from hexa.common.models import Base, LocaleField, PostgresTextSearchConfigField
 from hexa.common.search import locale_to_text_search_config
 
 
-class PipelineEnvironment(models.Model):
+class Environment(models.Model):
     class Meta:
         abstract = True
 

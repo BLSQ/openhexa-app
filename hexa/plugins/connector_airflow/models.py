@@ -4,9 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from google.oauth2 import service_account
 import requests
 
+from hexa.catalog.models import Content
 from hexa.common.models import Base
 from hexa.pipelines.models import (
-    PipelineEnvironment,
+    Environment as BaseEnvironment,
     PipelineIndex,
     PipelineIndexPermission,
 )
@@ -28,6 +29,7 @@ class Credentials(Base):
     """This class is a temporary way to store GCP Airflow credentials. This approach is not safe for production,
     as credentials are not encrypted.
     TODO: Store credentials in a secure storage engine like Vault.
+    TODO: Handle different kind of credentials (not just OIDC)
     """
 
     class Meta:
@@ -53,17 +55,17 @@ class Credentials(Base):
         return self.service_account_email
 
 
-class ComposerEnvironmentQuerySet(models.QuerySet):
+class EnvironmentQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 
         return self.filter(
-            composerenvironmentpermission__team__in=[t.pk for t in user.team_set.all()]
+            environmentpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 
-class ComposerEnvironment(PipelineEnvironment):
+class Environment(BaseEnvironment):
     class Meta:
         verbose_name = "GCP Composer environment"
         ordering = ("hexa_name",)
@@ -75,7 +77,7 @@ class ComposerEnvironment(PipelineEnvironment):
         "Credentials", null=True, on_delete=models.SET_NULL
     )
 
-    objects = ComposerEnvironmentQuerySet.as_manager()
+    objects = EnvironmentQuerySet.as_manager()
 
     def index(self):
         pipeline_index = PipelineIndex.objects.create_or_update(
@@ -85,12 +87,10 @@ class ComposerEnvironment(PipelineEnvironment):
             countries=self.hexa_countries,
             content_summary=self.content_summary,  # TODO: why?
             last_synced_at=self.hexa_last_synced_at,
-            detail_url=reverse(
-                "connector_airflow:pipeline_environment_detail", args=(self.pk,)
-            ),
+            detail_url=reverse("connector_airflow:environment_detail", args=(self.pk,)),
         )
 
-        for permission in self.composerenvironmentpermission_set.all():
+        for permission in self.environmentpermission_set.all():
             PipelineIndexPermission.objects.create(
                 catalog_index=pipeline_index, team=permission.team
             )
@@ -122,8 +122,27 @@ class ComposerEnvironment(PipelineEnvironment):
         return self.name
 
 
-class ComposerEnvironmentPermission(Base):
-    composer_environment = models.ForeignKey(
-        "ComposerEnvironment", on_delete=models.CASCADE
-    )
+class EnvironmentPermission(Base):
+    airflow_environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+
+
+# class DAG(Content):
+#     class Meta:
+#         verbose_name = "Airflow DAG"
+#         ordering = ["name"]
+#
+#     environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
+#     key = models.TextField()
+#     size = models.PositiveBigIntegerField()
+#     storage_class = models.CharField(max_length=200)  # TODO: choices
+#     type = models.CharField(max_length=200)  # TODO: choices
+#     name = models.CharField(max_length=200)
+#     last_modified = models.DateTimeField(null=True)
+#
+#     @property
+#     def display_name(self):
+#         return self.name
+#
+#     def index(self):
+#         pass  # TODO: implement

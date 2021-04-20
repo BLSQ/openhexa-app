@@ -1,7 +1,7 @@
 {% extends "layouts/page.html" %}
 
-{% block page_title %}{{ pipeline_environment.name }}{% endblock %}
+{% block page_title %}{{ environment.name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_airflow/partials/pipeline_environment_card.html" %}
+    {% include "connector_airflow/partials/environment_card.html" %}
 {% endblock %}
