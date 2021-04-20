@@ -122,7 +122,7 @@
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
                 {% url "connector_airflow:environment_sync" environment.pk as sync_url %}
-                {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
+                {% include "pipelines/partials/environment_sync_info.html" with sync_url=sync_url %}
             </dd>
         </div>
         <div class="sm:col-span-2">

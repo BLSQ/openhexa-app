@@ -1,8 +1,8 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
-import requests
 
 from hexa.catalog.models import Content
 from hexa.common.models import Base
@@ -33,8 +33,7 @@ class Credentials(Base):
     """
 
     class Meta:
-        verbose_name = "Airflow Credentials"
-        verbose_name_plural = "Airflow Credentials"
+        verbose_name_plural = "Credentials"
         ordering = ("service_account_email",)
 
     # TODO: unique?
@@ -67,7 +66,6 @@ class EnvironmentQuerySet(models.QuerySet):
 
 class Environment(BaseEnvironment):
     class Meta:
-        verbose_name = "GCP Composer environment"
         ordering = ("hexa_name",)
 
     name = models.CharField(max_length=200)
@@ -96,14 +94,18 @@ class Environment(BaseEnvironment):
             )
 
     def sync(self):
+
+        # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
+        # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
         credentials = service_account.IDTokenCredentials.from_service_account_info(
             self.api_credentials.service_account_key,
             target_audience=self.api_credentials.oidc_target_audience,
         )
+        session = AuthorizedSession(credentials)
 
-        response = requests.get(
+        response = session.get(
             self.api_url.rstrip("/") + "/dags/",
-            headers={"Authorization": f"Bearer {credentials}"},
+            headers={"Content-Type": "application/json"},
         )
         response_data = response.json()
 
@@ -127,22 +129,13 @@ class EnvironmentPermission(Base):
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
 
-# class DAG(Content):
-#     class Meta:
-#         verbose_name = "Airflow DAG"
-#         ordering = ["name"]
-#
-#     environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
-#     key = models.TextField()
-#     size = models.PositiveBigIntegerField()
-#     storage_class = models.CharField(max_length=200)  # TODO: choices
-#     type = models.CharField(max_length=200)  # TODO: choices
-#     name = models.CharField(max_length=200)
-#     last_modified = models.DateTimeField(null=True)
-#
-#     @property
-#     def display_name(self):
-#         return self.name
-#
-#     def index(self):
-#         pass  # TODO: implement
+class DAG(Content):
+    class Meta:
+        ordering = ["dag_id"]
+
+    environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
+    dag_id = models.CharField(max_length=200, blank=False)
+
+    @property
+    def display_name(self):
+        return self.dag_id

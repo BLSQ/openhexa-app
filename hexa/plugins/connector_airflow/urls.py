@@ -11,8 +11,8 @@ urlpatterns = [
         name="environment_detail",
     ),
     path(
-        "<str:pipeline_id>/sync",
+        "<str:environment_id>/sync",
         views.environment_sync,
-        name="datasource_sync",
+        name="environment_sync",
     ),
 ]

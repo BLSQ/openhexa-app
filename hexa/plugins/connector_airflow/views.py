@@ -30,9 +30,9 @@ def environment_detail(request, environment_id):
     )
 
 
-def environment_sync(request, datasource_id):
+def environment_sync(request, environment_id):
     environment = get_object_or_404(
-        Environment.objects.filter_for_user(request.user), pk=datasource_id
+        Environment.objects.filter_for_user(request.user), pk=environment_id
     )
     sync_result = environment.sync()
     messages.success(request, sync_result, extra_tags="green")

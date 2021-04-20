@@ -3,6 +3,7 @@ from .models import (
     Environment,
     Credentials,
     EnvironmentPermission,
+    DAG,
 )
 
 
@@ -13,7 +14,7 @@ class CredentialsAdmin(admin.ModelAdmin):
 
 
 @admin.register(Environment)
-class BucketAdmin(admin.ModelAdmin):
+class EnvironmentAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "url",
@@ -24,3 +25,9 @@ class BucketAdmin(admin.ModelAdmin):
 @admin.register(EnvironmentPermission)
 class EnvironmentPermissionAdmin(admin.ModelAdmin):
     list_display = ("airflow_environment", "team")
+
+
+@admin.register(DAG)
+class EnvironmentAdmin(admin.ModelAdmin):
+    list_display = ("dag_id",)
+    search_fields = ("dag_id",)
