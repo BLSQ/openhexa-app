@@ -39,7 +39,11 @@ class Credentials(Base):
 
     # TODO: unique?
     team = models.ForeignKey(
-        "user_management.Team", null=True, blank=True, on_delete=models.CASCADE
+        "user_management.Team",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="s3_credentials_set",
     )
     username = models.CharField(max_length=200)
     access_key_id = models.CharField(max_length=200)
