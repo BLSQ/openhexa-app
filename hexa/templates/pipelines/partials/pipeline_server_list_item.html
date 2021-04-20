@@ -1,0 +1,71 @@
+{% load static i18n date_utils %}
+
+{% url pipeline_server_index.app_label|add:':pipeline_server_detail' pipeline_server_index.object_id as detail_url %}
+<tr>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <a class="flex items-center" href="{{ detail_url }}">
+                <span class="block flex-shrink-0 h-10 w-10">
+                    <img class="h-10 w-10 rounded-full"
+                         src="{% static pipeline_server_index.app_label|add:"/img/symbol.svg" %}"
+                         alt="{{ pipeline_server_index.content_type_name }}">
+                </span>
+            <span class="block ml-4">
+                <span class="block text-sm font-medium text-gray-900">
+                    {{ pipeline_server_index.name }}
+                </span>
+                <span class="block text-sm text-gray-500">
+                    {{ pipeline_server_index.content_type_name }}
+                </span>
+            </span>
+        </a>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900">
+            {{ pipeline_server_index.owner.display_name|default:"-" }}
+        </div>
+        <div class="text-sm text-gray-500">{{ pipeline_server_index.owner.get_organization_type_display }}</div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900 flex items-center align-center">
+            {% for country in pipeline_server_index.countries %}
+                <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
+                {{ country.alpha3|default:country.name }}
+            {% empty %}
+                {% translate "Global" %}
+            {% endfor %}
+        </div>
+    </td>
+    <td class="px-6 py-4">
+        <span class="text-sm text-gray-500 whitespace-nowrap mr-1">
+            {{ pipeline_server_index.content_summary|default:"-" }}
+        </span>
+        {% for tag in pipeline_server_index.content.tags %}
+            <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
+            {{ tag.label }}
+        </span>
+        {% endfor %}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <div class="text-sm font-medium text-gray-900">
+                {% if pipeline_server_index.last_synced_at|about_now %}
+                    {% translate "Just now" %}
+                {% elif pipeline_server_index.last_synced_at %}
+                    {{ pipeline_server_index.last_synced_at|timesince }} {% translate "ago" %}
+                {% else %}
+                    {% translate "Never synced" %}
+                {% endif %}
+        </div>
+        <div class="text-sm text-gray-500">
+            {% translate "Daily" %}
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <a href="{{ detail_url }}"
+           class="text-blue-600 hover:text-blue-900 flex justify-end">
+            {% translate "View" %}
+            <div class="ml-1 flex-shrink-0">
+                {% include "partials/icons/chevron_right.html" %}
+            </div>
+        </a>
+    </td>
+</tr>

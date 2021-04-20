@@ -61,7 +61,7 @@ class ComposerEnvironmentQuerySet(models.QuerySet):
 
 class ComposerEnvironment(PipelineServer):
     class Meta:
-        verbose_name = "Airflow environment"
+        verbose_name = "GCP Composer environment"
         ordering = ("hexa_name",)
 
     name = models.CharField(max_length=200)
