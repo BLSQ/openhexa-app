@@ -4,6 +4,7 @@ from .models import (
     Credentials,
     EnvironmentPermission,
     DAG,
+    DAGConfig,
 )
 
 
@@ -28,6 +29,18 @@ class EnvironmentPermissionAdmin(admin.ModelAdmin):
 
 
 @admin.register(DAG)
-class EnvironmentAdmin(admin.ModelAdmin):
-    list_display = ("dag_id",)
+class DAGAdmin(admin.ModelAdmin):
+    list_display = (
+        "environment",
+        "dag_id",
+    )
     search_fields = ("dag_id",)
+
+
+@admin.register(DAGConfig)
+class DAGConfigAdmin(admin.ModelAdmin):
+    list_display = (
+        "dag",
+        "name",
+    )
+    search_fields = ("name",)

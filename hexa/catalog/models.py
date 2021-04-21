@@ -262,3 +262,9 @@ class Content(models.Model):
         """Each concrete content model can override this method to handle indexing in catalog."""
 
         pass
+
+    def __str__(self):
+        if hasattr(self, "display_name"):
+            return self.display_name
+
+        return str(self.pk)

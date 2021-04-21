@@ -16,6 +16,9 @@ class Base(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        if hasattr(self, "display_name"):
+            return self.display_name
+
         return str(self.pk)
 
 
