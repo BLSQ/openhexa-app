@@ -1,10 +1,10 @@
 {% load i18n date_utils %}
 
 <div class="flex align-center items-center">
-    {% if dag_config.last_run_at|about_now %}
+    {% if config.last_run_at|about_now %}
         <span>{% translate "Just now" %}</span>
-    {% elif dag_config.last_run_at %}
-        <span>{{ dag_config.last_run_at|timesince }} {% translate "ago" %}</span>
+    {% elif config.last_run_at %}
+        <span>{{ config.last_run_at|timesince }} {% translate "ago" %}</span>
     {% else %}
         <span>{% translate "Never run" %}</span>
     {% endif %}

@@ -1,0 +1,66 @@
+{% extends "partials/page_section.html" %}
+{% load i18n %}
+
+{% block section_heading %}
+    {% include "partials/section_heading_simple.html" with title=_("DAG runs") %}
+{% endblock %}
+
+{% block section_content %}
+    <div class="flex flex-col">
+        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Run ID" %}
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Execution date" %}
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {% translate "Status" %}
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        {% for run in dag_config_runs %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ run.run_id }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ run.execution_date|date:"M d, H:i:s (e)"|default:"-" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex align-center items-center">
+                                        <span>{{ run.state|default:_("Unknown")}}</span>
+                                        {% url "connector_airflow:dag_config_run_status" run.dag_config.dag.environment.pk run.dag_config.dag.pk run.dag_config.pk run.pk as run_status_url %}
+                                        <form
+                                                class="ml-2"
+                                                action="{{ run_status_url }}"
+                                                method="post"
+                                        >
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                {% include "partials/icons/refresh.html" %}
+                                                <span class="sr-only">{% translate "Refresh" %}</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    {% block card_footer %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

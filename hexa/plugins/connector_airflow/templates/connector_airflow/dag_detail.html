@@ -4,6 +4,6 @@
 
 {% block page_content %}
     {% include "connector_airflow/partials/dag_card.html" %}
-    {% include "connector_airflow/partials/dag_config_list.html" with dags=environment.dag_set.all %}
-    {# {% include "connector_airflow/partials/dag_run_list.html" with dags=environment.dag_set.all %} #}
+    {% include "connector_airflow/partials/dag_config_list.html" %}
+    {% include "connector_airflow/partials/dag_config_run_list.html" %}
 {% endblock %}

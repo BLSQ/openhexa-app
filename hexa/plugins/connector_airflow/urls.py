@@ -16,4 +16,9 @@ urlpatterns = [
         views.dag_config_run,
         name="dag_config_run",
     ),
+    path(
+        "<str:environment_id>/<str:dag_id>/<str:dag_config_id>/<str:dag_config_run_id>",
+        views.dag_config_run_status,
+        name="dag_config_run_status",
+    ),
 ]

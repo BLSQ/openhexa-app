@@ -1,4 +1,6 @@
 import json
+import uuid
+
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -119,7 +121,7 @@ class DAGQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            environment_environmentpermission__team__in=[
+            environment__environmentpermission__team__in=[
                 t.pk for t in user.team_set.all()
             ]
         )
@@ -146,7 +148,7 @@ class DAGConfigQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            dag_environment_environmentpermission__team__in=[
+            dag__environment__environmentpermission__team__in=[
                 t.pk for t in user.team_set.all()
             ]
         )
@@ -163,7 +165,12 @@ class DAGConfig(Base):
 
     objects = DAGConfigQuerySet.as_manager()
 
+    @property
+    def display_name(self):
+        return f"{self.dag.display_name}: {self.name}"
+
     def run(self):
+        # TODO: move
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
         credentials = service_account.IDTokenCredentials.from_service_account_info(
@@ -171,16 +178,30 @@ class DAGConfig(Base):
             target_audience=self.dag.environment.api_credentials.oidc_target_audience,
         )
         session = AuthorizedSession(credentials)
-
+        dag_config_run_id = str(uuid.uuid4())
         response = session.post(
             f"{self.dag.environment.api_url.rstrip('/')}/dags/{self.dag.dag_id}/dag_runs",
-            data=json.dumps(self.config_data),
+            data=json.dumps(
+                {
+                    "conf": self.config_data,
+                    "run_id": f"openhexa_{dag_config_run_id}",  # TODO: environment
+                }
+            ),
             headers={
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",
             },
         )
+        # TODO: handle non-200
         response_data = response.json()
+
+        DAGConfigRun.objects.create(
+            id=dag_config_run_id,
+            dag_config=self,
+            run_id=response_data["run_id"],
+            execution_date=response_data["execution_date"],
+            message=response_data["message"],
+        )
 
         self.last_run_at = timezone.now()
         self.save()
@@ -195,8 +216,71 @@ class DAGConfigRunResult:
         self.dag_config = dag_config
 
     def __str__(self):
-        # figures = (
-        #     f"{self.created} new, {self.updated} updated, {self.identical} unaffected"
-        # )
+        return f'The DAG config "{self.dag_config.display_name}" has been run'
 
-        return f'The DAG config "{self.dag_config.name}" has been run'
+
+class DAGConfigRunQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            dag_config__dag__environment__environmentpermission__team__in=[
+                t.pk for t in user.team_set.all()
+            ]
+        )
+
+    def filter_by_dag(self, dag):
+        return self.filter(dag_config__dag=dag)
+
+
+class DAGConfigRun(Base):
+    dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE)
+    run_id = models.CharField(max_length=200, blank=False)
+    message = models.TextField()
+    execution_date = models.DateTimeField()
+    state = models.CharField(max_length=200)
+
+    last_refreshed_at = models.DateTimeField(null=True)
+
+    objects = DAGConfigRunQuerySet.as_manager()
+
+    @property
+    def display_name(self):
+        return f"{self.dag_config.dag.display_name}: {self.dag_config.display_name} ({self.run_id})"
+
+    def refresh_status(self):
+        # TODO: move
+        # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
+        # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
+        credentials = service_account.IDTokenCredentials.from_service_account_info(
+            self.dag_config.dag.environment.api_credentials.service_account_key_data,
+            target_audience=self.dag_config.dag.environment.api_credentials.oidc_target_audience,
+        )
+        session = AuthorizedSession(credentials)
+
+        response = session.get(
+            f"{self.dag_config.dag.environment.api_url.rstrip('/')}/dags/{self.dag_config.dag.dag_id}/dag_runs/{self.execution_date.isoformat()}",
+            headers={
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+            },
+        )
+        # TODO: handle non-200
+        response_data = response.json()
+
+        self.last_refreshed_at = timezone.now()
+        self.state = response_data["state"]
+        self.save()
+
+        return DAGConfigRunRefreshResult(self)
+
+
+class DAGConfigRunRefreshResult:
+    # TODO: document and move
+
+    def __init__(self, dag_config_run):
+        self.dag_config_run = dag_config_run
+
+    def __str__(self):
+        return f'The DAG run "{self.dag_config_run.display_name}" has been refreshed'

@@ -5,6 +5,7 @@ from .models import (
     EnvironmentPermission,
     DAG,
     DAGConfig,
+    DAGConfigRun,
 )
 
 
@@ -44,3 +45,13 @@ class DAGConfigAdmin(admin.ModelAdmin):
         "name",
     )
     search_fields = ("name",)
+
+
+@admin.register(DAGConfigRun)
+class DAGConfigRunAdmin(admin.ModelAdmin):
+    list_display = (
+        "run_id",
+        "state",
+        "execution_date",
+    )
+    search_fields = ("run_id",)
