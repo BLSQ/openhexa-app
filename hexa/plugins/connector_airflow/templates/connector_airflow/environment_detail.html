@@ -1,5 +1,5 @@
 {% extends "layouts/page.html" %}
-{% load static embed %}
+{% load i18n static embed %}
 
 {% block page_title %}{{ environment.display_name }}{% endblock %}
 
@@ -19,8 +19,64 @@
                 {% endembed %}
             {% endwith %}
         {% endslot %}
-        {% slot content %}TBC{% endslot %}
+        {% slot content %}
+            {% embed "core/components/description_list/description_list.html" %}
+                {% slot content %}
+                    {# Name #}
+                    {% embed "core/components/description_list/list_item.html" with span=2 term=_("Environment name") %}
+                        {% slot definition %}{{ environment.name }}{% endslot %}
+                    {% endembed %}
+                    {# URL #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("URL") %}
+                        {% slot definition %}
+                            {% if environment.url %}
+                                {% include "core/components/description_list/link.html" with url=environment.url label=environment.url %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Countries #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/location.html" with countries=environment.countries %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Owner #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
+                        {% slot definition %}
+                            {{ environment.hexa_owner.name }}
+                            ({{ environment.hexa_owner.get_organization_type_display }})
+                            {% if environment.hexa_owner.url %}
+                                {% include "core/components/description_list/link.html" with url=environment.hexa_owner.url label=_("Official website") %}
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Contact #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
+                        {% slot definition %}
+                            {% if environment.hexa_owner.contact_info %}
+                                {{ environment.hexa_owner.contact_info|linebreaks|urlize }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Content #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
+                        {% slot definition %}
+                            {{ environment.content_summary|default:"-" }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Tags #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/tags.html" with tags=environment.tags %}
+                        {% endslot %}
+                    {% endembed %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
     {% endembed %}
-    {% include "connector_airflow/partials/environment_card.html" %}
     {% include "connector_airflow/partials/dag_list.html" with dags=environment.dag_set.all %}
 {% endblock %}
