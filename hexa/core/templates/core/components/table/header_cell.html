@@ -1,0 +1,13 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/lists/tables#component-822ab4bf111e9a34063e651275b381e6 #}
+{% if sr_only is not True %}
+    <th scope="col"
+        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        {% slot label %}{{ label|default:_("Missing label") }}{% endslot %}
+    </th>
+{% else %}
+    <th scope="col" class="relative px-6 py-3">
+        <span class="sr-only">{{ label|default:_("Missing label") }}</span>
+    </th>
+{% endif %}

@@ -1,57 +1,73 @@
 {% extends "layouts/page.html" %}
-{% load i18n component %}
+{% load i18n embed static date_utils %}
 
 {% block page_title %}{% translate "Data pipelines" %}{% endblock %}
 
 {% block page_content %}
-    {% component "core/components/section/page_section.html" %}
+    {% embed "core/components/section/page_section.html" %}
         {% slot header %}
             {% include "core/components/section/section_heading_simple.html" with title=_("Pipeline Environments") %}
         {% endslot %}
         {% slot content %}
-            <div class="flex flex-col">
-                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead>
-                                <tr>
-                                    <th scope="col"
-                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {% translate "Name" %}
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {% translate "Owner" %}
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {% translate "Location" %}
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {% translate "Content" %}
-                                    </th>
-                                    <th scope="col"
-                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {% translate "Last sync" %}
-                                    </th>
-
-                                    <th scope="col" class="px-6 py-3 bg-gray-50">
-                                        <span class="sr-only">{% translate "View" %}</span>
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                {% for environment_index in environment_indexes %}
-                                    {% include "pipelines/partials/environment_list_item.html" %}
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% embed "core/components/table/table.html" %}
+                {% slot header_columns %}
+                    {% include "core/components/table/header_cell.html" with label=_("Name") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Owner") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Location") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Content") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Last sync") %}
+                    {% include "core/components/table/header_cell.html" with label=_("View") sr_only=True %}
+                {% endslot %}
+                {% slot rows %}
+                    {% for environment_index in environment_indexes %}
+                        {% static environment_index.app_label|add:"/img/symbol.svg" as symbol_src %}
+                        {% url environment_index.app_label|add:':environment_detail' environment_index.object_id as detail_url %}
+                        <tr>
+                            {% embed "core/components/table/cell_multiline_with_image.html" with image_src=symbol_src %}
+                                {% slot top %}{{ environment_index.name }}{% endslot %}
+                                {% slot bottom %}{{ environment_index.content_type_name }}{% endslot %}
+                            {% endembed %}
+                            {% embed "core/components/table/cell_multiline.html" with image_src=symbol_src %}
+                                {% slot top %}{{ environment_index.owner.display_name|default:"-" }}{% endslot %}
+                                {% slot bottom %}
+                                    {{ environment_index.owner.get_organization_type_display }}{% endslot %}
+                            {% endembed %}
+                            {% embed "core/components/table/cell.html" with image_src=symbol_src %}
+                                {% slot label %}
+                                    <div class="flex items-center align-center">
+                                        {% for country in environment_index.countries %}
+                                            <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
+                                            {{ country.alpha3|default:country.name }}
+                                        {% empty %}
+                                            {% translate "Global" %}
+                                        {% endfor %}
+                                    </div>
+                                {% endslot %}
+                            {% endembed %}
+                            {% include "core/components/table/cell.html" with label=environment_index.content_summary|default:"-" %}
+                            {% embed "core/components/table/cell_multiline.html" with image_src=symbol_src %}
+                                {% slot top %}
+                                    {% if environment_index.last_synced_at|about_now %}
+                                        {% translate "Just now" %}
+                                    {% elif environment_index.last_synced_at %}
+                                        {{ environment_index.last_synced_at|timesince }} {% translate "ago" %}
+                                    {% else %}
+                                        {% translate "Never synced" %}
+                                    {% endif %}
+                                {% endslot %}
+                                {% slot bottom %}
+                                    {% translate "Daily" %}
+                                {% endslot %}
+                            {% endembed %}
+                            {% embed "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
+                                {% slot icon %}
+                                    {% include "partials/icons/chevron_right.html" with ml=1 %}
+                                {% endslot %}
+                            {% endembed %}
+                        </tr>
+                    {% endfor %}
+                {% endslot %}
+            {% endembed %}
         {% endslot %}
-    {% endcomponent %}
+    {% endembed %}
 {% endblock %}
