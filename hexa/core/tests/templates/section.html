@@ -1,4 +1,5 @@
+{% load embed %}
 <section>
-    <h1>{% block title %}Default title{% endblock %}</h1>
-    <div>{% block content %}Default content{% endblock %}</div>
+    <h1>{% slot title %}Default title{% endslot %}</h1>
+    <div>{% slot content %}Default content{% endslot %}</div>
 </section>

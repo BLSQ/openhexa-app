@@ -13,7 +13,7 @@ class TemplatetagsTest(SimpleTestCase):
         return self.assertEqual(remove_whitespace(first), remove_whitespace(second))
 
     def test_embed_simple(self):
-        """Simplest case, single embed on a template that does not extend anything"""
+        """Simplest case, two subsequent embeds on a template that does not extend anything"""
 
         context = Context(
             {"title_1": "First Embedded Title", "title_2": "Second Embedded Title"}
@@ -22,12 +22,12 @@ class TemplatetagsTest(SimpleTestCase):
             """
             {% load embed %}
             {% embed "section.html" %}
-                {% block title %}{{ title_1 }}{% endblock %}
-                {% block content %}<p>Some content</p>{% endblock %}
+                {% slot title %}{{ title_1 }}{% endslot %}
+                {% slot content %}<p>Some content</p>{% endslot %}
             {% endembed %}
             {% embed "section.html" %}
-                {% block title %}{{ title_2 }}{% endblock %}
-                {% block content %}<p>Another content</p>{% endblock %}
+                {% slot title %}{{ title_2 }}{% endslot %}
+                {% slot content %}<p>Another content</p>{% endslot %}
             {% endembed %}
             """,
             engine=ENGINE,
@@ -52,7 +52,7 @@ class TemplatetagsTest(SimpleTestCase):
         )
 
     def test_embed_extends(self):
-        """Make sure that embed does not conflict with extends."""
+        """Make sure that embed plays well with extends."""
 
         context = Context({"title": "Embedded Title"})
         template_to_render = Template(
@@ -62,9 +62,9 @@ class TemplatetagsTest(SimpleTestCase):
             {% block page_title %}Extended Title{% endblock %}
             {% block body %}
                 {% embed "section.html" %}
-                    {% block title %}{{ title }}{% endblock %}
-                {% block content %}<p>Content</p>{% endblock %}
-            {% endembed %}
+                    {% slot title %}{{ title }}{% endslot %}
+                    {% slot content %}<p>Content</p>{% endslot %}
+                {% endembed %}
             {% endblock %}
             """,
             engine=ENGINE,
@@ -92,22 +92,23 @@ class TemplatetagsTest(SimpleTestCase):
         )
 
     def test_embed_isolated(self):
-        context = Context({"extra_string": "extra string"})
         template_to_render = Template(
             """
             {% load embed %}
-            {% embed "section.html" only %}
-                {% block title %}Title{% endblock %}
-                {% block content %}<p>Content{{ extra_string }}</p>{% endblock %}
+            {% embed "section.html" with title="Extra Title" only %}
+                {% slot title %}Extra Title{% endslot %}
+                {% slot content %}<p>Content{{ context_string }}</p>{% endslot %}
             {% endembed %}
             """,
             engine=ENGINE,
         )
-        rendered_template = template_to_render.render(context)
+        rendered_template = template_to_render.render(
+            Context({"context_string": " (context string)"})
+        )
         self.assertTemplateContentEqual(
             """
             <section>
-                <h1>Title</h1>
+                <h1>Extra Title</h1>
                 <div>
                     <p>Content</p>
                 </div>
@@ -120,20 +121,22 @@ class TemplatetagsTest(SimpleTestCase):
         template_to_render = Template(
             """
             {% load embed %}
-            {% embed "section.html" with title="Context Title" %}
-                {% block title %}{{ title }}{% endblock %}
-                {% block content %}<p>Content</p>{% endblock %}
+            {% embed "section.html" with title="Extra Title" %}
+                {% slot title %}{{ title }}{% endslot %}
+                {% slot content %}<p>Content{{ context_string }}</p>{% endslot %}
             {% endembed %}
             """,
             engine=ENGINE,
         )
-        rendered_template = template_to_render.render(Context())
+        rendered_template = template_to_render.render(
+            Context({"context_string": " (context string)"})
+        )
         self.assertTemplateContentEqual(
             """
             <section>
-                <h1>Context Title</h1>
+                <h1>Extra Title</h1>
                 <div>
-                    <p>Content</p>
+                    <p>Content (context string)</p>
                 </div>
             </section>
             """,
