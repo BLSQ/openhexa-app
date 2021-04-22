@@ -123,7 +123,7 @@ class TemplatetagsTest(SimpleTestCase):
             {% load embed %}
             {% embed "section.html" with title="Extra Title" %}
                 {% slot title %}{{ title }}{% endslot %}
-                {% slot content %}<p>Content{{ context_string }}</p>{% endslot %}
+                {% slot content %}<p>Content{{ context_string }}</p>{% endslot content %}
             {% endembed %}
             """,
             engine=ENGINE,

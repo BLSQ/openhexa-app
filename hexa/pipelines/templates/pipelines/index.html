@@ -10,7 +10,7 @@
         {% endslot %}
         {% slot content %}
             {% embed "core/components/table/table.html" %}
-                {% slot header_columns %}
+                {% slot header_cells %}
                     {% include "core/components/table/header_cell.html" with label=_("Name") %}
                     {% include "core/components/table/header_cell.html" with label=_("Owner") %}
                     {% include "core/components/table/header_cell.html" with label=_("Location") %}

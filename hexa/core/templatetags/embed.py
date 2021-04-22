@@ -2,7 +2,7 @@ import string
 from django import template as django_template
 from django.template.base import Node, TextNode, token_kwargs
 from django.template.exceptions import TemplateSyntaxError
-from django.template.loader_tags import IncludeNode, construct_relative_path
+from django.template.loader_tags import construct_relative_path
 
 register = django_template.Library()
 
@@ -16,10 +16,13 @@ def is_valid_embedded_node(node):
     return False
 
 
+SLOT_CONTEXT_KEY_PREFIX = "slot_context_"
+
+
 class EmbedNode(Node):
     """Embedding a template is a lot like including it, with a few differences:
     - We accept a node list: the {% slot %} nodes found between {% embed %} and {% endembed %}
-    - We override render() to take the "with" and "only" arguments into account, like for {% include %}
+    - As slots can be overridden, we need to store slot values in the context
     """
 
     def __init__(self, template, nodelist, extra_context=None, isolated_context=False):
@@ -31,7 +34,7 @@ class EmbedNode(Node):
     def render(self, context):
         """Heavily inspired/borrowed from IncludeNode.render()"""
 
-        # Copy from IncludeNode.render()
+        # Exact copy from IncludeNode.render()
         template = self.template.resolve(context)
         # Does this quack like a Template?
         if not callable(getattr(template, "render", None)):
@@ -52,9 +55,9 @@ class EmbedNode(Node):
         values = {
             name: var.resolve(context) for name, var in self.extra_context.items()
         }
-        # End copy from IncludeNode.render()
+        # End exact copy from IncludeNode.render()
 
-        # First, make sure that we only have empty text nodes or valid slot nodes in the node list
+        # First, make sure that we only have valid slot nodes in the node list or empty text nodes as children
         try:
             invalid_node = next(
                 n for n in self.nodelist if not (is_valid_embedded_node(n))
@@ -67,34 +70,31 @@ class EmbedNode(Node):
         except StopIteration:
             slot_nodes = [n for n in self.nodelist if isinstance(n, SlotNode)]
 
-        # Finally, render the node, taking isolated_context into account ("only" arg)
-        # (This is similar to IncludeNode.render() but we also need to store overriden slot values in th context)
-        if self.isolated_context:
-            isolated_context = context.new(values)
-            slot_values = {n.name: n.render(isolated_context) for n in slot_nodes}
-            with isolated_context.push(slot_values):
-                return template.render(isolated_context)
-        else:
-            with context.push({**values}):
-                slot_values = {n.name: n.render(context) for n in slot_nodes}
-                with context.push(**slot_values):
-                    return template.render(context)
+        # Finally, render the node, taking isolated_context into account
+        # (This is similar to IncludeNode.render() but we also need to store overridden slot values in th context)
+        embedded_context = context.new() if self.isolated_context else context
+        with embedded_context.push(values):
+            slot_values = {
+                SLOT_CONTEXT_KEY_PREFIX + n.name: n.render(embedded_context)
+                for n in slot_nodes
+            }
+            with context.push(**slot_values):
+                return template.render(context)
 
 
 class SlotNode(Node):
-    """Embedding a template is a lot like extending it, with a few differences:
-    - The node list comes from the nodes found between {% embed %} and {% endembed %}
-    - We override render() to take the "with" and "only" arguments into account, like for {% include %}
-    """
+    """Slot nodes are simple nodes meant to be defined in embedded templates, and overridden at embed time."""
 
     def __init__(self, name, nodelist):
         self.name = name
         self.nodelist = nodelist
 
     def render(self, context):
-        if self.name in context:
-            return context[self.name]
+        # If slot has been overridden, fetch its rendered value from the context
+        if SLOT_CONTEXT_KEY_PREFIX + self.name in context:
+            return context[SLOT_CONTEXT_KEY_PREFIX + self.name]
 
+        # Otherwise, render default slot content
         return self.nodelist.render(context)
 
 
@@ -113,10 +113,7 @@ def do_embed(parser, token):
     You may use the ``only`` argument and keyword arguments using ``with`` like when using ``{% include %}``
     """
 
-    nodelist = parser.parse(("endembed",))
-    parser.delete_first_token()
-
-    # Copy from do_include_node()
+    # Exact copy from do_include_node()
     bits = token.split_contents()
     if len(bits) < 2:
         raise TemplateSyntaxError(
@@ -147,7 +144,10 @@ def do_embed(parser, token):
     isolated_context = options.get("only", False)
     namemap = options.get("with", {})
     bits[1] = construct_relative_path(parser.origin.template_name, bits[1])
-    # End copy from do_include_node()
+    # End exact copy from do_include_node()
+
+    nodelist = parser.parse(("endembed",))
+    parser.delete_first_token()
 
     return EmbedNode(
         parser.compile_filter(bits[1]),
