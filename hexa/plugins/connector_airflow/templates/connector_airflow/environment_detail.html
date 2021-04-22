@@ -1,8 +1,26 @@
 {% extends "layouts/page.html" %}
+{% load static embed %}
 
 {% block page_title %}{{ environment.display_name }}{% endblock %}
 
 {% block page_content %}
+    {% embed "core/components/card/card.html" %}
+        {% slot heading %}
+            {% with title=environment.display_name subtitle=environment.description symbol_alt=_("Airflow") %}
+                {% static "connector_airflow/img/symbol.svg" as symbol_src %}
+                {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
+                    {% slot actions %}
+                        {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
+                            {% slot icon %}
+                                {% include "core/components/icons/pencil_alt.html" with mr=2 %}
+                            {% endslot %}
+                        {% endembed %}
+                    {% endslot %}
+                {% endembed %}
+            {% endwith %}
+        {% endslot %}
+        {% slot content %}TBC{% endslot %}
+    {% endembed %}
     {% include "connector_airflow/partials/environment_card.html" %}
     {% include "connector_airflow/partials/dag_list.html" with dags=environment.dag_set.all %}
 {% endblock %}

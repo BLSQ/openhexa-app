@@ -2,7 +2,7 @@
 
 {# https://tailwindui.com/components/application-ui/lists/tables#component-822ab4bf111e9a34063e651275b381e6 #}
 <td class="px-6 py-4 whitespace-nowrap">
-    <div class="flex items-center">
+    <a href="{{ url }}" class="flex items-center">
         <div class="flex-shrink-0 h-10 w-10">
             <img class="h-10 w-10 rounded-full"
                  src="{{ image_src }}"
@@ -16,5 +16,5 @@
                 {% slot bottom %}{{ bottom|default:_("Missing bottom") }}{% endslot %}
             </div>
         </div>
-    </div>
+    </a>
 </td>

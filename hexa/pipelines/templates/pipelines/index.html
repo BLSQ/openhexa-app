@@ -23,7 +23,7 @@
                         {% static environment_index.app_label|add:"/img/symbol.svg" as symbol_src %}
                         {% url environment_index.app_label|add:':environment_detail' environment_index.object_id as detail_url %}
                         <tr>
-                            {% embed "core/components/table/cell_multiline_with_image.html" with image_src=symbol_src %}
+                            {% embed "core/components/table/cell_multiline_with_image_and_link.html" with image_src=symbol_src url=detail_url %}
                                 {% slot top %}{{ environment_index.name }}{% endslot %}
                                 {% slot bottom %}{{ environment_index.content_type_name }}{% endslot %}
                             {% endembed %}
