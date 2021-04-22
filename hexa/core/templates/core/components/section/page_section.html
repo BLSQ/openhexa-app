@@ -1,0 +1,11 @@
+{% load component %}
+<div class="my-8">
+    {% slot header %}
+        {% include "partials/section_heading_simple.html" with title="Untitled section" %}
+    {% endslot %}
+    <div class="mt-4">
+        {% slot content %}
+            {% include "partials/block_placeholder.html" %}
+        {% endslot %}
+    </div>
+</div>

@@ -1,0 +1,57 @@
+{% extends "layouts/page.html" %}
+{% load i18n component %}
+
+{% block page_title %}{% translate "Data pipelines" %}{% endblock %}
+
+{% block page_content %}
+    {% component "core/components/section/page_section.html" %}
+        {% slot header %}
+            {% include "core/components/section/section_heading_simple.html" with title=_("Pipeline Environments") %}
+        {% endslot %}
+        {% slot content %}
+            <div class="flex flex-col">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                <tr>
+                                    <th scope="col"
+                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {% translate "Name" %}
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {% translate "Owner" %}
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {% translate "Location" %}
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {% translate "Content" %}
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {% translate "Last sync" %}
+                                    </th>
+
+                                    <th scope="col" class="px-6 py-3 bg-gray-50">
+                                        <span class="sr-only">{% translate "View" %}</span>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                {% for environment_index in environment_indexes %}
+                                    {% include "pipelines/partials/environment_list_item.html" %}
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endslot %}
+    {% endcomponent %}
+{% endblock %}

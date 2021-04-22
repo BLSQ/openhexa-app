@@ -1,14 +1,11 @@
-import pathlib
-import string
 from django.test import SimpleTestCase
 from django.template import Context, Template, Engine
+import pathlib
+
+from hexa.core.string import remove_whitespace
 
 ENGINE = Engine.get_default()
 ENGINE.dirs.append(pathlib.Path(__file__).parent.absolute() / pathlib.Path("templates"))
-
-
-def remove_whitespace(original_string):
-    return original_string.translate(({ord(c): None for c in string.whitespace}))
 
 
 class TemplatetagsTest(SimpleTestCase):
