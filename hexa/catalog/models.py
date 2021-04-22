@@ -9,12 +9,12 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
-from hexa.common.models import (
+from hexa.core.models import (
     Base,
     PostgresTextSearchConfigField,
     LocaleField,
 )
-from hexa.common.search import locale_to_text_search_config
+from hexa.core.search import locale_to_text_search_config
 
 
 class CatalogIndexType(models.TextChoices):

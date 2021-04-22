@@ -3,7 +3,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import django_countries.fields
-import hexa.common.models
+import hexa.core.models
 import uuid
 
 
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ("last_synced_at", models.DateTimeField(blank=True, null=True)),
                 (
                     "locale",
-                    hexa.common.models.LocaleField(
+                    hexa.core.models.LocaleField(
                         choices=[
                             ("af", "Afrikaans"),
                             ("sq", "Albanian"),
@@ -158,7 +158,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "text_search_config",
-                    hexa.common.models.PostgresTextSearchConfigField(
+                    hexa.core.models.PostgresTextSearchConfigField(
                         choices=[
                             ("simple", "simple"),
                             ("french", "french"),

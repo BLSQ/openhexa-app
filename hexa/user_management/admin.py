@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 
 from .models import User, Organization, Team, Membership
-from ..common.admin import country_list
+from hexa.core.admin import country_list
 
 # We won't be using the Django group feature
 admin.site.unregister(Group)

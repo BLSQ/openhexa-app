@@ -9,7 +9,7 @@ from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
 from hexa.catalog.models import Content
-from hexa.common.models import Base
+from hexa.core.models import Base
 from hexa.pipelines.models import (
     Environment as BaseEnvironment,
     PipelineIndex,

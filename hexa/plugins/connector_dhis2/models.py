@@ -9,7 +9,7 @@ from hexa.catalog.models import (
     CatalogIndex,
     CatalogIndexPermission,
 )
-from hexa.common.models import Base
+from hexa.core.models import Base
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 

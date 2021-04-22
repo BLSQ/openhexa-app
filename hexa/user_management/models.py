@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 import uuid
 
-from hexa.common.models import Base
+from hexa.core.models import Base
 
 
 class UserManager(BaseUserManager):

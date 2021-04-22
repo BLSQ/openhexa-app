@@ -7,8 +7,8 @@ from django_countries.fields import CountryField
 from django.utils.translation import gettext_lazy as _
 import uuid
 
-from hexa.common.models import Base, LocaleField, PostgresTextSearchConfigField
-from hexa.common.search import locale_to_text_search_config
+from hexa.core.models import Base, LocaleField, PostgresTextSearchConfigField
+from hexa.core.search import locale_to_text_search_config
 
 
 class Environment(models.Model):
