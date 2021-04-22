@@ -24,6 +24,7 @@ class EmbedNode(Node):
         self.isolated_context = isolated_context
 
     def render(self, context):
+        # Handle keyword arguments ("with")
         values = {
             name: var.resolve(context) for name, var in self.extra_context.items()
         }
@@ -39,6 +40,7 @@ class EmbedNode(Node):
         block_context_key_value = loader_tags.BLOCK_CONTEXT_KEY
         loader_tags.BLOCK_CONTEXT_KEY = f"block_context_{uuid.uuid4()}"
 
+        # Handle "only"
         if self.isolated_context:
             rendered_node = extends_node.render(context.new(values))
         else:
