@@ -14,6 +14,6 @@
     <a href="{% url params.paginated_list_url datasource_id=datasource.pk %}"
        class="relative inline-flex items-center pl-4 pr-2 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
         <span>{% translate "View all" %}</span>
-        {% include "partials/icons/chevron_right.html" %}
+        {% include "core/components/icons/chevron_right.html" %}
     </a>
 {% endblock %}

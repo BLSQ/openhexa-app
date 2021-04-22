@@ -23,29 +23,27 @@
                         {% static environment_index.app_label|add:"/img/symbol.svg" as symbol_src %}
                         {% url environment_index.app_label|add:':environment_detail' environment_index.object_id as detail_url %}
                         <tr>
-                            {% embed "core/components/table/cell_multiline_with_image_and_link.html" with image_src=symbol_src url=detail_url %}
+                            {# Name and type #}
+                            {% embed "core/components/table/cell_first_with_image.html" with image_src=symbol_src url=detail_url %}
                                 {% slot top %}{{ environment_index.name }}{% endslot %}
                                 {% slot bottom %}{{ environment_index.content_type_name }}{% endslot %}
                             {% endembed %}
-                            {% embed "core/components/table/cell_multiline.html" with image_src=symbol_src %}
+                            {# Owner #}
+                            {% embed "core/components/table/cell_multiline.html" %}
                                 {% slot top %}{{ environment_index.owner.display_name|default:"-" }}{% endslot %}
                                 {% slot bottom %}
                                     {{ environment_index.owner.get_organization_type_display }}{% endslot %}
                             {% endembed %}
-                            {% embed "core/components/table/cell.html" with image_src=symbol_src %}
+                            {# Location #}
+                            {% embed "core/components/table/cell.html" %}
                                 {% slot label %}
-                                    <div class="flex items-center align-center">
-                                        {% for country in environment_index.countries %}
-                                            <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
-                                            {{ country.alpha3|default:country.name }}
-                                        {% empty %}
-                                            {% translate "Global" %}
-                                        {% endfor %}
-                                    </div>
+                                    {% include "core/components/table/location.html" with countries=environment_index.countries %}
                                 {% endslot %}
                             {% endembed %}
+                            {# Content #}
                             {% include "core/components/table/cell.html" with label=environment_index.content_summary|default:"-" %}
-                            {% embed "core/components/table/cell_multiline.html" with image_src=symbol_src %}
+                            {# Sync #}
+                            {% embed "core/components/table/cell_multiline.html" %}
                                 {% slot top %}
                                     {% if environment_index.last_synced_at|about_now %}
                                         {% translate "Just now" %}
@@ -59,11 +57,8 @@
                                     {% translate "Daily" %}
                                 {% endslot %}
                             {% endembed %}
-                            {% embed "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
-                                {% slot icon %}
-                                    {% include "partials/icons/chevron_right.html" with ml=1 %}
-                                {% endslot %}
-                            {% endembed %}
+                            {# View #}
+                            {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
                         </tr>
                     {% endfor %}
                 {% endslot %}

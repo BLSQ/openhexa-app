@@ -141,6 +141,22 @@ class DAG(Base):
     def display_name(self):
         return self.dag_id
 
+    @property
+    def last_run_at(self):
+        last_run_config = (
+            self.dagconfig_set.exclude(last_run_at=None)
+            .order_by("-last_run_at")
+            .first()
+        )
+
+        return last_run_config.last_run_at if last_run_config else None
+
+    @property
+    def content_summary(self):
+        return _("%(config_count)s configs") % {
+            "config_count": self.dagconfig_set.count(),
+        }
+
 
 class DAGConfigQuerySet(models.QuerySet):
     def filter_for_user(self, user):

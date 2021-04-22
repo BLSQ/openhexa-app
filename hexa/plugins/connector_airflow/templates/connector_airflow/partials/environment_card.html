@@ -1,143 +1,76 @@
-{% extends "partials/page_card_with_header.html" %}
-{% load static i18n %}
+{% load embed static %}
 
-{% block card_header_title %}
-    {{ environment.display_name }}
-{% endblock %}
-
-{% block card_header_image %}
-    <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static "connector_airflow/img/symbol.svg" %}"
-         alt="{% translate "Airflow" %}"
-    >
-{% endblock %}
-
-{% block card_header_description %}
-    {{ environment.description }}
-{% endblock %}
-
-{% block card_header_actions %}
-    <button type="button"
-            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-        </svg>
-        {% translate "Edit" %}
-    </button>
-{% endblock %}
-
-{% block card_content %}
-    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-    <div class="sm:col-span-2">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Environment name" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ environment.name }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "URL" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {% if environment.url %}
-                    <a href="{{ environment.url }}"
-                       class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
-                       target="_blank" rel="noopener">
-                        <span>{{ environment.url }}</span>
-                        <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                    </a>
-                {% else %}
-                    -
-                {% endif %}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Countries" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                <div class="flex items-center align-center">
-                    {% for country in environment.countries %}
-                        <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
-                        {{ country.name }}
-                    {% empty %}
-                        {% translate "Global" %}
-                    {% endfor %}
-                </div>
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Owner" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ environment.hexa_owner.name }}&nbsp;
-                <span class="text-gray-500">({{ environment.hexa_owner.get_organization_type_display }})</span>
-                {% if environment.hexa_owner.url %}
-                    <br/>
-                    <a href="{{ environment.hexa_owner.url }}"
-                       class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
-                       target="_blank" rel="noopener">
-                        <span>{% translate "Official website" %}</span>
-                        <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                             xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                        </svg>
-                    </a>
-                {% endif %}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Contact" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {% if environment.hexa_owner.contact_info %}
-                    {{ environment.hexa_owner.contact_info|urlize }}
-                {% else %}
-                    -
-                {% endif %}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Content" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ environment.content_summary|default:"-" }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Last sync" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {% url "connector_airflow:environment_sync" environment.pk as sync_url %}
-                {% include "pipelines/partials/environment_sync_info.html" with sync_url=sync_url %}
-            </dd>
-        </div>
-        <div class="sm:col-span-2">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Tags" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {% for tag in environment.content.tags %}
-                    <span class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
-                        {{ tag.label }}
-                    </span>
-                {% empty %}
-                    -
-                {% endfor %}
-            </dd>
-        </div>
-    </dl>
-{% endblock %}
+{% embed "core/components/card/card.html" %}
+        {% slot heading %}
+            {% with title=environment.display_name subtitle=environment.description symbol_alt=_("Airflow") %}
+                {% static "connector_airflow/img/symbol.svg" as symbol_src %}
+                {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
+                    {% slot actions %}
+                        {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
+                            {% slot icon %}
+                                {% include "core/components/icons/pencil_alt.html" with mr=2 %}
+                            {% endslot %}
+                        {% endembed %}
+                    {% endslot %}
+                {% endembed %}
+            {% endwith %}
+        {% endslot %}
+        {% slot content %}
+            {% embed "core/components/description_list/description_list.html" %}
+                {% slot content %}
+                    {# Name #}
+                    {% embed "core/components/description_list/list_item.html" with span=2 term=_("Environment name") %}
+                        {% slot definition %}{{ environment.name }}{% endslot %}
+                    {% endembed %}
+                    {# URL #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("URL") %}
+                        {% slot definition %}
+                            {% if environment.url %}
+                                {% include "core/components/description_list/link.html" with url=environment.url label=environment.url %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Countries #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/location.html" with countries=environment.countries %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Owner #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
+                        {% slot definition %}
+                            {{ environment.hexa_owner.name }}
+                            ({{ environment.hexa_owner.get_organization_type_display }})
+                            {% if environment.hexa_owner.url %}
+                                {% include "core/components/description_list/link.html" with url=environment.hexa_owner.url label=_("Official website") %}
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Contact #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
+                        {% slot definition %}
+                            {% if environment.hexa_owner.contact_info %}
+                                {{ environment.hexa_owner.contact_info|linebreaks|urlize }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Content #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
+                        {% slot definition %}
+                            {{ environment.content_summary|default:"-" }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Tags #}
+                    {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/tags.html" with tags=environment.tags %}
+                        {% endslot %}
+                    {% endembed %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
+    {% endembed %}
