@@ -100,12 +100,9 @@ class Environment(BaseEnvironment):
 
     @property
     def content_summary(self):
-        if self.hexa_last_synced_at is None:
-            return ""
+        dag_count = self.dag_set.count()
 
-        return _("%(dag_count)s DAGs") % {
-            "dag_count": self.dag_set.count(),
-        }
+        return f"{dag_count} DAG{'' if dag_count == 1 else 's'}"
 
     def __str__(self):
         return self.name
@@ -154,9 +151,9 @@ class DAG(Pipeline):
 
     @property
     def content_summary(self):
-        return _("%(config_count)s configs") % {
-            "config_count": self.dagconfig_set.count(),
-        }
+        config_count = self.dagconfig_set.count()
+
+        return f"{config_count} DAG config{'' if config_count == 1 else 's'}"
 
     def index(self):
         pass  # TODO: implementation

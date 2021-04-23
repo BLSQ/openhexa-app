@@ -1,33 +1,78 @@
-{% extends "partials/page_card_with_header.html" %}
-{% load static i18n %}
+{% load embed i18n static %}
 
-{% block card_header_title %}
-    {{ dag.display_name }}
-{% endblock %}
-
-{% block card_header_image %}
-    <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static "connector_airflow/img/symbol.svg" %}"
-         alt="{% translate "Airflow" %}"
-    >
-{% endblock %}
-
-{% block card_header_description %}
-    No description is available at this time.
-{% endblock %}
-
-{% block card_header_actions %}
-    <button type="button"
-            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-        </svg>
-        {% translate "Edit" %}
-    </button>
-{% endblock %}
-
-{% block card_content %}
-
-{% endblock %}
+{% embed "core/components/card/card.html" %}
+    {% slot heading %}
+        {% with title=dag.display_name subtitle=dag.hexa_description|default:_("No description") symbol_alt=_("Airflow") %}
+            {% static "connector_airflow/img/symbol.svg" as symbol_src %}
+            {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
+                {% slot actions %}
+                    {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
+                        {% slot icon %}
+                            {% include "core/components/icons/pencil_alt.html" with mr=2 %}
+                        {% endslot %}
+                    {% endembed %}
+                {% endslot %}
+            {% endembed %}
+        {% endwith %}
+    {% endslot %}
+    {% slot content %}
+        {% embed "core/components/description_list/description_list.html" %}
+            {% slot content %}
+                {# Environment #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Environment") %}
+                    {% slot definition %}{{ dag.environment.name }}{% endslot %}
+                {% endembed %}
+                {# Airflow ID #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Airflow ID") %}
+                    {% slot definition %}{{ dag.airflow_id }}{% endslot %}
+                {% endembed %}
+                {# Content #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
+                    {% slot definition %}
+                        {{ dag.content_summary|default:"-" }}
+                    {% endslot %}
+                {% endembed %}
+                {# Location #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
+                    {% slot definition %}
+                        {% include "core/components/description_list/location.html" with countries=dag.countries %}
+                    {% endslot %}
+                {% endembed %}
+                {# Owner #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
+                    {% slot definition %}
+                        {% with hexa_owner=dag.hexa_owner|default:dag.environment.hexa_owner %}
+                            {% if hexa_owner %}
+                                {{ hexa_owner.name }}
+                                ({{ hexa_owner.get_organization_type_display }})
+                                {% if hexa_owner.url %}
+                                    {% include "core/components/description_list/link.html" with url=hexa_owner.url label=_("Official website") %}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endwith %}
+                    {% endslot %}
+                {% endembed %}
+                {# Contact #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
+                    {% slot definition %}
+                        {% with hexa_owner=dag.hexa_owner|default:dag.environment.hexa_owner %}
+                            {% if hexa_owner.contact_info %}
+                                {{ hexa_owner.contact_info|linebreaks|urlize }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        {% endwith %}
+                    {% endslot %}
+                {% endembed %}
+                {# Tags #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
+                    {% slot definition %}
+                        {% include "core/components/description_list/tags.html" with tags=environment.tags %}
+                    {% endslot %}
+                {% endembed %}
+            {% endslot %}
+        {% endembed %}
+    {% endslot %}
+{% endembed %}

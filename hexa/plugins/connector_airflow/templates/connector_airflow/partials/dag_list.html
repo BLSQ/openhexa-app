@@ -18,7 +18,7 @@
                     {% url "connector_airflow:dag_detail" environment.pk dag.pk as detail_url %}
                     <tr>
                         {# DAG id #}
-                        {% include "core/components/table/cell_first.html" with url=detail_url label=dag.dag_id %}
+                        {% include "core/components/table/cell_first.html" with url=detail_url label=dag.airflow_id %}
                         {# Content #}
                         {% include "core/components/table/cell.html" with label=dag.content_summary|default:"-" %}
                         {# Created at #}

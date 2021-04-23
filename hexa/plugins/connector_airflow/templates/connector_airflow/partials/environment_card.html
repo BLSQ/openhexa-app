@@ -1,76 +1,80 @@
 {% load embed static %}
 
 {% embed "core/components/card/card.html" %}
-        {% slot heading %}
-            {% with title=environment.display_name subtitle=environment.description symbol_alt=_("Airflow") %}
-                {% static "connector_airflow/img/symbol.svg" as symbol_src %}
-                {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
-                    {% slot actions %}
-                        {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
-                            {% slot icon %}
-                                {% include "core/components/icons/pencil_alt.html" with mr=2 %}
-                            {% endslot %}
-                        {% endembed %}
+    {% slot heading %}
+        {% with title=environment.display_name subtitle=environment.hexa_description|default:_("No description") symbol_alt=_("Airflow") %}
+            {% static "connector_airflow/img/symbol.svg" as symbol_src %}
+            {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
+                {% slot actions %}
+                    {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
+                        {% slot icon %}
+                            {% include "core/components/icons/pencil_alt.html" with mr=2 %}
+                        {% endslot %}
+                    {% endembed %}
+                {% endslot %}
+            {% endembed %}
+        {% endwith %}
+    {% endslot %}
+    {% slot content %}
+        {% embed "core/components/description_list/description_list.html" %}
+            {% slot content %}
+                {# Name #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Environment name") %}
+                    {% slot definition %}{{ environment.name }}{% endslot %}
+                {% endembed %}
+                {# URL #}
+                {% embed "core/components/description_list/list_item.html" with term=_("URL") %}
+                    {% slot definition %}
+                        {% if environment.url %}
+                            {% include "core/components/description_list/link.html" with url=environment.url label=environment.url %}
+                        {% else %}
+                            -
+                        {% endif %}
                     {% endslot %}
                 {% endembed %}
-            {% endwith %}
-        {% endslot %}
-        {% slot content %}
-            {% embed "core/components/description_list/description_list.html" %}
-                {% slot content %}
-                    {# Name #}
-                    {% embed "core/components/description_list/list_item.html" with span=2 term=_("Environment name") %}
-                        {% slot definition %}{{ environment.name }}{% endslot %}
-                    {% endembed %}
-                    {# URL #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("URL") %}
-                        {% slot definition %}
-                            {% if environment.url %}
-                                {% include "core/components/description_list/link.html" with url=environment.url label=environment.url %}
-                            {% else %}
-                                -
-                            {% endif %}
-                        {% endslot %}
-                    {% endembed %}
-                    {# Countries #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
-                        {% slot definition %}
-                            {% include "core/components/description_list/location.html" with countries=environment.countries %}
-                        {% endslot %}
-                    {% endembed %}
-                    {# Owner #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
-                        {% slot definition %}
+                {# Content #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
+                    {% slot definition %}
+                        {{ environment.content_summary|default:"-" }}
+                    {% endslot %}
+                {% endembed %}
+                {# Location #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
+                    {% slot definition %}
+                        {% include "core/components/description_list/location.html" with countries=environment.countries %}
+                    {% endslot %}
+                {% endembed %}
+                {# Owner #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
+                    {% slot definition %}
+                        {% if environment.hexa_owner %}
                             {{ environment.hexa_owner.name }}
                             ({{ environment.hexa_owner.get_organization_type_display }})
                             {% if environment.hexa_owner.url %}
                                 {% include "core/components/description_list/link.html" with url=environment.hexa_owner.url label=_("Official website") %}
                             {% endif %}
-                        {% endslot %}
-                    {% endembed %}
-                    {# Contact #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
-                        {% slot definition %}
-                            {% if environment.hexa_owner.contact_info %}
-                                {{ environment.hexa_owner.contact_info|linebreaks|urlize }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        {% endslot %}
-                    {% endembed %}
-                    {# Content #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
-                        {% slot definition %}
-                            {{ environment.content_summary|default:"-" }}
-                        {% endslot %}
-                    {% endembed %}
-                    {# Tags #}
-                    {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
-                        {% slot definition %}
-                            {% include "core/components/description_list/tags.html" with tags=environment.tags %}
-                        {% endslot %}
-                    {% endembed %}
-                {% endslot %}
-            {% endembed %}
-        {% endslot %}
-    {% endembed %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% endslot %}
+                {% endembed %}
+                {# Contact #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
+                    {% slot definition %}
+                        {% if environment.hexa_owner.contact_info %}
+                            {{ environment.hexa_owner.contact_info|linebreaks|urlize }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    {% endslot %}
+                {% endembed %}
+                {# Tags #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
+                    {% slot definition %}
+                        {% include "core/components/description_list/tags.html" with tags=environment.tags %}
+                    {% endslot %}
+                {% endembed %}
+            {% endslot %}
+        {% endembed %}
+    {% endslot %}
+{% endembed %}
