@@ -33,9 +33,9 @@ class EnvironmentPermissionAdmin(admin.ModelAdmin):
 class DAGAdmin(admin.ModelAdmin):
     list_display = (
         "environment",
-        "dag_id",
+        "airflow_id",
     )
-    search_fields = ("dag_id",)
+    search_fields = ("airflow_id",)
 
 
 @admin.register(DAGConfig)

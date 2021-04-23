@@ -35,11 +35,11 @@ def environment_detail(request, environment_id):
     )
 
 
-def dag_detail(request, environment_id, dag_id):
+def dag_detail(request, environment_id, airflow_id):
     environment = get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
     dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter_by_dag(
         dag
@@ -52,7 +52,7 @@ def dag_detail(request, environment_id, dag_id):
             "connector_airflow:environment_detail",
             environment_id,
         ),
-        (dag.display_name, "connector_airflow:dag_detail", environment_id, dag_id),
+        (dag.display_name, "connector_airflow:dag_detail", environment_id, airflow_id),
     ]
 
     return render(
@@ -68,11 +68,11 @@ def dag_detail(request, environment_id, dag_id):
     )
 
 
-def dag_config_run(request, environment_id, dag_id, dag_config_id):
+def dag_config_run(request, environment_id, airflow_id, dag_config_id):
     get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
     dag_config = get_object_or_404(
         DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id
     )
@@ -83,12 +83,12 @@ def dag_config_run(request, environment_id, dag_id, dag_config_id):
 
 
 def dag_config_run_status(
-    request, environment_id, dag_id, dag_config_id, dag_config_run_id
+    request, environment_id, airflow_id, dag_config_id, dag_config_run_id
 ):
     get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
     get_object_or_404(DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id)
     config_run = get_object_or_404(
         DAGConfigRun.objects.filter_for_user(request.user), pk=dag_config_run_id

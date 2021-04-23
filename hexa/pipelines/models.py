@@ -7,11 +7,15 @@ from django_countries.fields import CountryField
 from django.utils.translation import gettext_lazy as _
 import uuid
 
-from hexa.core.models import Base, LocaleField, PostgresTextSearchConfigField
+from hexa.core.models import (
+    Base as CoreBase,
+    LocaleField,
+    PostgresTextSearchConfigField,
+)
 from hexa.core.search import locale_to_text_search_config
 
 
-class Environment(models.Model):
+class ExternalContent(models.Model):
     class Meta:
         abstract = True
 
@@ -30,29 +34,58 @@ class Environment(models.Model):
     hexa_updated_at = models.DateTimeField(auto_now=True)
 
     @property
-    def index_type(self):
-        return PipelineIndexType.PIPELINE_SERVER
-
-    @property
     def display_name(self):
         return self.hexa_short_name if self.hexa_short_name != "" else self.hexa_name
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        super().save(force_insert, force_update, using, update_fields)
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
         self.index()
 
+    @property
+    def index_type(self):
+        raise NotImplementedError(
+            "Each pipeline model should provide an index_type() property"
+        )
+
     def index(self):
-        """Each pipeline server model should implement this method to handle indexing in the pipelines."""
+        """Each pipeline model should implement this method to handle indexing in the pipelines."""
+
+        raise NotImplementedError("Each pipeline model should provide a index() method")
+
+
+class Environment(ExternalContent):
+    class Meta:
+        abstract = True
+
+    @property
+    def index_type(self):
+        return PipelineIndexType.PIPELINES_ENVIRONMENT
+
+    def index(self):
+        """Each pipeline environment model should implement this method to handle indexing in the pipelines."""
 
         raise NotImplementedError(
-            "Each pipeline server model subclass should provide a index() method"
+            "Each pipeline environment model should provide a index() method"
         )
 
 
+class Pipeline(ExternalContent):
+    class Meta:
+        abstract = True
+
+    @property
+    def index_type(self):
+        return PipelineIndexType.PIPELINES_PIPELINE
+
+    def index(self):
+        """Each pipeline model can implement this method to handle indexing in the pipelines."""
+
+        raise NotImplementedError("Each pipeline model should provide a index() method")
+
+
 class PipelineIndexType(models.TextChoices):
-    PIPELINE_SERVER = "PIPELINE_SERVER", _("Pipeline Server")
+    PIPELINES_ENVIRONMENT = "PIPELINES_ENVIRONMENT", _("Pipeline environment")
+    PIPELINES_PIPELINE = "PIPELINES_PIPELINE", _("Pipeline")
 
 
 class PipelineIndexQuerySet(models.QuerySet):
@@ -91,7 +124,7 @@ class PipelineIndexQuerySet(models.QuerySet):
         return index
 
 
-class PipelineIndex(Base):
+class PipelineIndex(CoreBase):
     class Meta:
         verbose_name = "Pipeline Index"
         verbose_name_plural = "Pipeline indexes"
@@ -175,6 +208,6 @@ class PipelineIndex(Base):
         }
 
 
-class PipelineIndexPermission(Base):
+class PipelineIndexPermission(CoreBase):
     pipeline_index = models.ForeignKey("PipelineIndex", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)

@@ -14,6 +14,7 @@ from hexa.pipelines.models import (
     Environment as BaseEnvironment,
     PipelineIndex,
     PipelineIndexPermission,
+    Pipeline,
 )
 
 
@@ -127,19 +128,19 @@ class DAGQuerySet(models.QuerySet):
         )
 
 
-class DAG(Base):
+class DAG(Pipeline):
     class Meta:
         verbose_name = "DAG"
-        ordering = ["dag_id"]
+        ordering = ["airflow_id"]
 
     environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
-    dag_id = models.CharField(max_length=200, blank=False)
+    airflow_id = models.CharField(max_length=200, blank=False)
 
     objects = DAGQuerySet.as_manager()
 
     @property
     def display_name(self):
-        return self.dag_id
+        return self.airflow_id
 
     @property
     def last_run_at(self):
@@ -156,6 +157,9 @@ class DAG(Base):
         return _("%(config_count)s configs") % {
             "config_count": self.dagconfig_set.count(),
         }
+
+    def index(self):
+        pass  # TODO: implementation
 
 
 class DAGConfigQuerySet(models.QuerySet):
@@ -196,7 +200,7 @@ class DAGConfig(Base):
         session = AuthorizedSession(credentials)
         dag_config_run_id = str(uuid.uuid4())
         response = session.post(
-            f"{self.dag.environment.api_url.rstrip('/')}/dags/{self.dag.dag_id}/dag_runs",
+            f"{self.dag.environment.api_url.rstrip('/')}/dags/{self.dag.airflow_id}/dag_runs",
             data=json.dumps(
                 {
                     "conf": self.config_data,
@@ -276,7 +280,7 @@ class DAGConfigRun(Base):
         session = AuthorizedSession(credentials)
 
         response = session.get(
-            f"{self.dag_config.dag.environment.api_url.rstrip('/')}/dags/{self.dag_config.dag.dag_id}/dag_runs/{self.execution_date.isoformat()}",
+            f"{self.dag_config.dag.environment.api_url.rstrip('/')}/dags/{self.dag_config.dag.airflow_id}/dag_runs/{self.execution_date.isoformat()}",
             headers={
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",

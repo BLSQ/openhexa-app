@@ -18,6 +18,7 @@ from hexa.core.search import locale_to_text_search_config
 
 
 class CatalogIndexType(models.TextChoices):
+    # TODO: prefix with CATALOG
     DATASOURCE = "DATASOURCE", _("Datasource")
     CONTENT = "CONTENT ", _("Content")
 
@@ -173,6 +174,9 @@ class CatalogIndex(Base):
 class CatalogIndexPermission(Base):
     catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+
+
+# TODO: common model for Datasource and Content
 
 
 class Datasource(models.Model):
