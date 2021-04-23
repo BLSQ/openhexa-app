@@ -140,20 +140,20 @@ class DAG(Pipeline):
         return self.airflow_id
 
     @property
-    def last_run_at(self):
-        last_run_config = (
-            self.dagconfig_set.exclude(last_run_at=None)
-            .order_by("-last_run_at")
+    def last_executed_at(self):
+        last_config_run = (
+            DAGConfigRun.objects.filter(dag_config__dag=self)
+            .order_by("-execution_date")
             .first()
         )
 
-        return last_run_config.last_run_at if last_run_config else None
+        return last_config_run.execution_date if last_config_run else None
 
     @property
     def content_summary(self):
         config_count = self.dagconfig_set.count()
 
-        return f"{config_count} DAG config{'' if config_count == 1 else 's'}"
+        return f"{config_count} DAG configuration{'' if config_count == 1 else 's'}"
 
     def index(self):
         pass  # TODO: implementation
@@ -178,13 +178,30 @@ class DAGConfig(Base):
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     config_data = models.JSONField(default=dict)
-    last_run_at = models.DateTimeField(null=True, blank=True)
 
     objects = DAGConfigQuerySet.as_manager()
 
     @property
     def display_name(self):
         return f"{self.dag.display_name}: {self.name}"
+
+    @property
+    def content_summary(self):
+        config_count = self.dagconfigrun_set.count()
+
+        return f"{config_count} DAG run{'' if config_count == 1 else 's'}"
+
+    @property
+    def last_executed_at(self):
+        last_config_run = self.dagconfigrun_set.order_by("-execution_date").first()
+
+        return last_config_run.execution_date if last_config_run else None
+
+    @property
+    def last_run_state(self):
+        last_config_run = self.dagconfigrun_set.order_by("-execution_date").first()
+
+        return last_config_run.state if last_config_run else None
 
     def run(self):
         # TODO: move
@@ -258,7 +275,7 @@ class DAGConfigRun(Base):
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200)
 
-    last_refreshed_at = models.DateTimeField(null=True)
+    hexa_last_refreshed_at = models.DateTimeField(null=True)
 
     objects = DAGConfigRunQuerySet.as_manager()
 

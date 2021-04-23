@@ -9,7 +9,7 @@ def index(request):
         (_("Data Pipelines"), "pipelines:index"),
     ]
     environment_indexes = PipelineIndex.objects.filter_for_user(request.user).filter(
-        index_type=PipelineIndexType.PIPELINE_SERVER.value
+        index_type=PipelineIndexType.PIPELINES_ENVIRONMENT.value
     )
 
     return render(

@@ -1,51 +1,38 @@
-{% extends "partials/page_section.html" %}
-{% load i18n %}
+{% load date_utils embed i18n static %}
 
-{% block section_heading %}
-    {% include "partials/section_heading_simple.html" with title=_("Configurations") %}
-{% endblock %}
-
-{% block section_content %}
-    <div class="flex flex-col">
-        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {% translate "Name" %}
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {% translate "Last run at at" %}
-                            </th>
-                            <th scope="col" class="px-6 py-3 bg-gray-50">
-                                <span class="sr-only">{% translate "Run" %}</span>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                        {% for config in dag_configs %}
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ config.name }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ config.last_run_at|date:"M d, H:i:s (e)"|default:"-" }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    {% url "connector_airflow:dag_config_run" config.dag.environment.pk config.dag.pk config.pk as run_url %}
-                                    {% include "connector_airflow/partials/dag_config_run_info.html" with run_url=run_url %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                    {% block card_footer %}{% endblock %}
-                </div>
-            </div>
-        </div>
-    </div>
-{% endblock %}
+{% embed "core/components/section/page_section.html" %}
+    {% slot header %}
+        {% include "core/components/section/section_heading_simple.html" with title=_("DAG configurations") %}
+    {% endslot %}
+    {% slot content %}
+        {% embed "core/components/table/table.html" %}
+            {% slot header_cells %}
+                {% include "core/components/table/header_cell.html" with label=_("Name") %}
+                {% include "core/components/table/header_cell.html" with label=_("Content") %}
+                {% include "core/components/table/header_cell.html" with label=_("Last run at") %}
+                {% include "core/components/table/header_cell.html" with label=_("Last run state") %}
+                {% include "core/components/table/header_cell.html" with label=_("Actions") sr_only=True %}
+            {% endslot %}
+            {% slot rows %}
+                {% for config in dag_configs %}
+                    {% url "connector_airflow:dag_config_detail" config.dag.environment.pk config.dag.pk config.pk as detail_url %}
+                    {% url "connector_airflow:dag_config_run" config.dag.environment.pk config.dag.pk config.pk as run_url %}
+                    <tr>
+                        {# Name #}
+                        {% include "core/components/table/cell_first.html" with url=detail_url label=config.name %}
+                        {# Content #}
+                        {% include "core/components/table/cell.html" with label=config.content_summary %}
+                        {# Last executed at #}
+                        {% include "core/components/table/cell.html" with label=config.last_executed_at|format_date|default:_("Never") %}
+                        {# Last run state #}
+                        {% include "core/components/table/cell.html" with label=config.last_run_state|default:"-" %}
+                        {# Actions #}
+                        {% include "core/components/table/cell_action.html" with url=run_url label=_("Run") icon="chevron_right" %}
+                    </tr>
+                {% empty %}
+                    {% include "core/components/table/cell_empty.html" with colspan=5 %}
+                {% endfor %}
+            {% endslot %}
+        {% endembed %}
+    {% endslot %}
+{% endembed %}

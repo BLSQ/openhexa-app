@@ -41,7 +41,7 @@
                                 {% endslot %}
                             {% endembed %}
                             {# Content #}
-                            {% include "core/components/table/cell.html" with label=environment_index.content_summary|default:"-" %}
+                            {% include "core/components/table/cell.html" with label=environment_index.content_summary %}
                             {# Sync #}
                             {% embed "core/components/table/cell_multiline.html" %}
                                 {% slot top %}
@@ -60,6 +60,8 @@
                             {# View #}
                             {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
                         </tr>
+                    {% empty %}
+                        {% include "core/components/table/cell_empty.html" with colspan=6 %}
                     {% endfor %}
                 {% endslot %}
             {% endembed %}

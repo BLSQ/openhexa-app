@@ -52,6 +52,12 @@ class ExternalContent(models.Model):
 
         raise NotImplementedError("Each pipeline model should provide a index() method")
 
+    def __str__(self):
+        if hasattr(self, "display_name"):
+            return self.display_name
+
+        return str(self.pk)
+
 
 class Environment(ExternalContent):
     class Meta:
