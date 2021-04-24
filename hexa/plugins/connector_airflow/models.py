@@ -10,7 +10,7 @@ from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
 from hexa.catalog.models import Content
-from hexa.core.models import Base
+from hexa.core.models import Base, WithStatus
 from hexa.pipelines.models import (
     Environment as BaseEnvironment,
     PipelineIndex,
@@ -277,7 +277,7 @@ class DAGConfigRunState(models.TextChoices):
     FAILED = "failed", _("Failed")
 
 
-class DAGConfigRun(Base):
+class DAGConfigRun(Base, WithStatus):
     dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE)
     run_id = models.CharField(max_length=200, blank=False)
     message = models.TextField()
@@ -319,8 +319,15 @@ class DAGConfigRun(Base):
         self.save()
 
     @property
-    def finished(self):
-        return self.state in ["queued"]
+    def hexa_status(self):
+        if self.state == DAGConfigRunState.RUNNING:
+            return WithStatus.PENDING
+        if self.state == DAGConfigRunState.FAILED:
+            return WithStatus.ERROR
+        if self.state == DAGConfigRunState.SUCCESS:
+            return WithStatus.SUCCESS
+
+        return WithStatus.UNKNOWN
 
     def to_dict(self):
         return {

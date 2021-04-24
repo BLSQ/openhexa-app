@@ -1,6 +1,6 @@
-{% load date_utils embed i18n static %}
+{% load colors date_utils embed i18n static %}
 
-{% url "connector_airflow:dag_config_run_list" dag.environment.id dag.id as refresh_url  %}
+{% url "connector_airflow:dag_config_run_list" dag.environment.id dag.id as refresh_url %}
 {% embed "core/components/section/page_section.html" with refresh_url=refresh_url %}
     {% slot header %}
         {% include "core/components/section/section_heading_simple.html" with title=_("DAG configuration run") %}
@@ -22,7 +22,7 @@
                             {# Execution date #}
                             {% include "core/components/table/cell.html" with label=run.execution_date|format_date %}
                             {# State #}
-                            {% include "core/components/table/cell.html" with label=run.get_state_display %}
+                            {% include "core/components/table/cell_badge.html" with label=run.get_state_display color=run|status_color %}
                             {# Last refreshed at #}
                             {% include "core/components/table/cell.html" with label=run.hexa_last_refreshed_at|format_date %}
                         {% endslot %}

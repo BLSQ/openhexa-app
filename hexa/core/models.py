@@ -96,3 +96,16 @@ class PostgresTextSearchConfigField(models.CharField):
         ]
         kwargs["default"] = "simple"
         super().__init__(*args, **kwargs)
+
+
+class WithStatus:
+    SUCCESS = "SUCCESS"
+    PENDING = "PENDING"
+    ERROR = "ERROR"
+    UNKNOWN = "UNKNOWN"
+
+    @property
+    def hexa_status(self):
+        raise NotImplementedError(
+            "Classes having the WithStatus should implement hexa_status()"
+        )
