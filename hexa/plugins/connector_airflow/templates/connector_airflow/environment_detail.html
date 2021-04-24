@@ -4,6 +4,6 @@
 {% block page_title %}{{ environment.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_airflow/partials/environment_card.html" %}
-    {% include "connector_airflow/partials/dag_list.html" %}
+    {% include "connector_airflow/components/environment_card.html" %}
+    {% include "connector_airflow/components/dag_list.html" %}
 {% endblock %}

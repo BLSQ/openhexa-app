@@ -7,6 +7,7 @@ from hexa.plugins.connector_airflow.models import (
     DAG,
     DAGConfig,
     DAGConfigRun,
+    DAGConfigRunState,
 )
 
 
@@ -35,11 +36,11 @@ def environment_detail(request, environment_id):
     )
 
 
-def dag_detail(request, environment_id, airflow_id):
+def dag_detail(request, environment_id, dag_id):
     environment = get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
+    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
     dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter_by_dag(
         dag
@@ -52,7 +53,7 @@ def dag_detail(request, environment_id, airflow_id):
             "connector_airflow:environment_detail",
             environment_id,
         ),
-        (dag.display_name, "connector_airflow:dag_detail", environment_id, airflow_id),
+        (dag.display_name, "connector_airflow:dag_detail", environment_id, dag_id),
     ]
 
     return render(
@@ -68,11 +69,11 @@ def dag_detail(request, environment_id, airflow_id):
     )
 
 
-def dag_config_run(request, environment_id, airflow_id, dag_config_id):
+def dag_config_run(request, environment_id, dag_id, dag_config_id):
     get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
+    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_config = get_object_or_404(
         DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id
     )
@@ -82,18 +83,27 @@ def dag_config_run(request, environment_id, airflow_id, dag_config_id):
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def dag_config_run_status(
-    request, environment_id, airflow_id, dag_config_id, dag_config_run_id
-):
+def dag_config_run_list(request, environment_id, dag_id):
     get_object_or_404(
         Environment.objects.filter_for_user(request.user), pk=environment_id
     )
-    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=airflow_id)
-    get_object_or_404(DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id)
-    config_run = get_object_or_404(
-        DAGConfigRun.objects.filter_for_user(request.user), pk=dag_config_run_id
-    )
-    status_result = config_run.refresh_status()
-    messages.success(request, status_result, extra_tags="green")
+    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
 
-    return redirect(request.META.get("HTTP_REFERER"))
+    dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
+    dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter(
+        dag_config__dag=dag
+    )
+
+    # TODO: actual refresh should be done using a CRON
+    for run in dag_config_runs.filter(state=DAGConfigRunState.RUNNING):
+        run.refresh()
+
+    return render(
+        request,
+        "connector_airflow/components/dag_config_run_list.html",
+        {
+            "dag": dag,
+            "dag_configs": dag_configs,
+            "dag_config_runs": dag_config_runs,
+        },
+    )

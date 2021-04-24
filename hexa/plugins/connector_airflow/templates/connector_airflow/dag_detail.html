@@ -3,7 +3,7 @@
 {% block page_title %}{{ dag.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_airflow/partials/dag_card.html" %}
-    {% include "connector_airflow/partials/dag_config_list.html" %}
-    {% include "connector_airflow/partials/dag_config_run_list.html" %}
+    {% include "connector_airflow/components/dag_card.html" %}
+    {% include "connector_airflow/components/dag_config_list.html" %}
+    {% include "connector_airflow/components/dag_config_run_list.html" %}
 {% endblock %}

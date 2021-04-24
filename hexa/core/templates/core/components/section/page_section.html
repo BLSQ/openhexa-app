@@ -1,6 +1,13 @@
 {% load embed %}
 
-<div class="my-8">
+<div
+        class="my-8"
+        {% if refresh_url %}
+            x-data="AutoRefresh('{{ refresh_url }}', {{ refresh_delay|default:10 }})"
+            x-init="init($el)"
+            x-html="refreshedHtml"
+        {% endif %}
+>
     {% slot header %}
         {% include "partials/section_heading_simple.html" with title="Untitled section" %}
     {% endslot %}

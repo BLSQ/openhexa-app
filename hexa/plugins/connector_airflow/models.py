@@ -4,6 +4,7 @@ import uuid
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
@@ -235,6 +236,8 @@ class DAGConfig(Base):
             run_id=response_data["run_id"],
             execution_date=response_data["execution_date"],
             message=response_data["message"],
+            state=DAGConfigRunState.RUNNING,
+            hexa_last_refreshed_at=timezone.now(),
         )
 
         self.last_run_at = timezone.now()
@@ -268,12 +271,20 @@ class DAGConfigRunQuerySet(models.QuerySet):
         return self.filter(dag_config__dag=dag)
 
 
+class DAGConfigRunState(models.TextChoices):
+    SUCCESS = "success", _("Success")
+    RUNNING = "running", _("Running")
+    FAILED = "failed", _("Failed")
+
+
 class DAGConfigRun(Base):
     dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE)
     run_id = models.CharField(max_length=200, blank=False)
     message = models.TextField()
     execution_date = models.DateTimeField()
-    state = models.CharField(max_length=200)
+    state = models.CharField(
+        max_length=200, blank=False, choices=DAGConfigRunState.choices
+    )
 
     hexa_last_refreshed_at = models.DateTimeField(null=True)
 
@@ -283,7 +294,7 @@ class DAGConfigRun(Base):
     def display_name(self):
         return f"{self.dag_config.dag.display_name}: {self.dag_config.display_name} ({self.run_id})"
 
-    def refresh_status(self):
+    def refresh(self):
         # TODO: move
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
@@ -303,18 +314,27 @@ class DAGConfigRun(Base):
         # TODO: handle non-200
         response_data = response.json()
 
-        self.last_refreshed_at = timezone.now()
+        self.hexa_last_refreshed_at = timezone.now()
         self.state = response_data["state"]
         self.save()
 
-        return DAGConfigRunRefreshResult(self)
+    @property
+    def finished(self):
+        return self.state in ["queued"]
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "run_id": self.run_id,
+            "message": self.message,
+            "execution_date": date_format(
+                self.execution_date, "M d, H:i:s (e)"
+            ),  # TODO: helper method
+            "hexa_last_refreshed_at": date_format(
+                self.hexa_last_refreshed_at, "M d, H:i:s (e)"
+            ),
+            "state": self.state,
+        }
 
-class DAGConfigRunRefreshResult:
-    # TODO: document and move
-
-    def __init__(self, dag_config_run):
-        self.dag_config_run = dag_config_run
-
-    def __str__(self):
-        return f'The DAG run "{self.dag_config_run.display_name}" has been refreshed'
+    class Meta:
+        ordering = ("-hexa_last_refreshed_at",)
