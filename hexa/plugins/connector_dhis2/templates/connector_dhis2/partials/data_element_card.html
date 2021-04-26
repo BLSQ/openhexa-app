@@ -1,5 +1,5 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n %}
+{% load date_utils i18n static %}
 
 {% block card_header_title %}
     {{ data_element.name }}
@@ -130,7 +130,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_created|date:"M d, H:i:s (e)" }}
+                {{ data_element.dhis2_created|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -138,7 +138,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_last_updated|date:"M d, H:i:s (e)" }}
+                {{ data_element.dhis2_last_updated|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">

@@ -20,11 +20,11 @@
                             {# Run ID #}
                             {% include "core/components/table/cell_first.html" with label=run.run_id %}
                             {# Execution date #}
-                            {% include "core/components/table/cell.html" with label=run.execution_date|format_date %}
+                            {% include "core/components/table/cell.html" with label=run.execution_date|date_format %}
                             {# State #}
                             {% include "core/components/table/cell_badge.html" with label=run.get_state_display color=run|status_color %}
                             {# Last refreshed at #}
-                            {% include "core/components/table/cell.html" with label=run.last_refreshed_at|format_date %}
+                            {% include "core/components/table/cell.html" with label=run.last_refreshed_at|date_format %}
                         {% endslot %}
                     {% endembed %}
                 {% empty %}

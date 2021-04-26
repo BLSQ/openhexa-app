@@ -1,12 +1,12 @@
 import uuid
 
-from django.conf import locale, settings
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.formats import date_format
 from django_countries.fields import CountryField
 
+from hexa.core.date_utils import date_format
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.postgres import (
     PostgresTextSearchConfigField,
@@ -135,7 +135,7 @@ class Index(RichContent):
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
             "detail_url": self.detail_url,
-            "last_synced_at": date_format(self.last_synced_at, "M d, H:i:s (e)")
+            "last_synced_at": date_format(self.last_synced_at)
             if self.last_synced_at is not None
             else None,
         }

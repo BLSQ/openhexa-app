@@ -23,7 +23,7 @@
                         {# Content #}
                         {% include "core/components/table/cell.html" with label=config.content_summary %}
                         {# Last executed at #}
-                        {% include "core/components/table/cell.html" with label=config.last_executed_at|format_date|default:_("Never") %}
+                        {% include "core/components/table/cell.html" with label=config.last_executed_at|date_format|default:_("Never") %}
                         {# Last run state #}
                         {% include "core/components/table/cell.html" with label=config.last_run_state|default:"-" %}
                         {# Actions #}

@@ -22,9 +22,9 @@
                         {# Content #}
                         {% include "core/components/table/cell.html" with label=dag.content_summary %}
                         {# Created at #}
-                        {% include "core/components/table/cell.html" with label=dag.created_at|format_date %}
+                        {% include "core/components/table/cell.html" with label=dag.created_at|date_format %}
                         {# Last executed at #}
-                        {% include "core/components/table/cell.html" with label=dag.last_executed_at|format_date %}
+                        {% include "core/components/table/cell.html" with label=dag.last_executed_at|date_format %}
                         {# View #}
                         {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
                     </tr>
