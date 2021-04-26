@@ -55,7 +55,7 @@ class Credentials(Base):
 
     objects = CredentialsQuerySet.as_manager()
 
-    def __str__(self):
+    def display_name(self):
         return self.service_account_email
 
 

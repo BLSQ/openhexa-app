@@ -52,7 +52,8 @@ class Credentials(Base):
 
     objects = CredentialsQuerySet.as_manager()
 
-    def __str__(self):
+    @property
+    def display_name(self):
         return self.username
 
 

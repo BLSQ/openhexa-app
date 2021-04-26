@@ -137,6 +137,9 @@ class Content(BaseContent):
             else self.hexa_or_dhis2_name
         )
 
+    def sync(self):
+        raise NotImplementedError("DHIS2 Content classes should implement sync()")
+
 
 class DomainType(models.TextChoices):
     AGGREGATE = "AGGREGATE", _("Aggregate")
