@@ -10,12 +10,12 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("user_management", "0001_initial"),
-        ("catalog", "0001_initial"),
+        ("pipelines", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="catalogindexpermission",
+            model_name="pipelinesindexpermission",
             name="team",
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE, to="user_management.team"

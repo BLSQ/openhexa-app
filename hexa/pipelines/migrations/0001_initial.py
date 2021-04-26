@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="CatalogIndex",
+            name="PipelinesIndex",
             fields=[
                 (
                     "index_ptr",
@@ -31,19 +31,22 @@ class Migration(migrations.Migration):
                 (
                     "index_type",
                     models.CharField(
-                        choices=[("DATASOURCE", "Datasource"), ("CONTENT ", "Content")],
+                        choices=[
+                            ("PIPELINES_ENVIRONMENT", "Pipeline environment"),
+                            ("PIPELINES_PIPELINE", "Pipeline"),
+                        ],
                         max_length=100,
                     ),
                 ),
             ],
             options={
-                "verbose_name": "Catalog Index",
-                "verbose_name_plural": "Catalog indexes",
+                "verbose_name": "Pipeline Index",
+                "verbose_name_plural": "Pipeline indexes",
             },
             bases=("core.index",),
         ),
         migrations.CreateModel(
-            name="CatalogIndexPermission",
+            name="PipelinesIndexPermission",
             fields=[
                 (
                     "id",
@@ -57,10 +60,10 @@ class Migration(migrations.Migration):
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 (
-                    "catalog_index",
+                    "pipeline_index",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="catalog.catalogindex",
+                        to="pipelines.pipelinesindex",
                     ),
                 ),
             ],

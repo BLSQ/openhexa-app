@@ -10,24 +10,31 @@ from .models import (
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("url", "hexa_name", "hexa_last_synced_at")
-    list_filter = ("hexa_name",)
-    search_fields = ("hexa_name",)
+    list_display = ("dhis2_url", "name", "last_synced_at")
+    list_filter = ("name",)
+    search_fields = ("name",)
 
 
 @admin.register(DataElement)
 class DataElementAdmin(admin.ModelAdmin):
     list_display = (
         "instance",
+        "display_name",
         "dhis2_id",
-        "name",
-        "code",
-        "domain_type",
-        "value_type",
-        "aggregation_type",
+        "dhis2_code",
+        "dhis2_domain_type",
+        "dhis2_value_type",
+        "dhis2_aggregation_type",
     )
-    list_filter = ("instance__hexa_name",)
-    search_fields = ["name", "short_name", "dhis2_id", "code"]
+    list_filter = ("instance__name",)
+    search_fields = [
+        "name",
+        "short_name",
+        "dhis2_name",
+        "dhis2_short_name",
+        "dhis2_id",
+        "dhis2_code",
+    ]
 
 
 @admin.register(IndicatorType)
@@ -35,8 +42,8 @@ class IndicatorTypeAdmin(admin.ModelAdmin):
     list_display = (
         "dhis2_id",
         "name",
-        "number",
-        "factor",
+        "dhis2_number",
+        "dhis2_factor",
     )
 
 
@@ -44,12 +51,19 @@ class IndicatorTypeAdmin(admin.ModelAdmin):
 class IndicatorAdmin(admin.ModelAdmin):
     list_display = (
         "instance",
+        "display_name",
         "dhis2_id",
-        "name",
-        "indicator_type",
+        "dhis2_indicator_type",
     )
-    list_filter = ("instance__hexa_name",)
-    search_fields = ["name", "short_name", "dhis2_id", "code"]
+    list_filter = ("instance__name",)
+    search_fields = [
+        "name",
+        "dhis2_name",
+        "short_name",
+        "dhis2_short_name",
+        "dhis2_id",
+        "dhis2_code",
+    ]
 
 
 @admin.register(InstancePermission)

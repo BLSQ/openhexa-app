@@ -79,11 +79,11 @@
                 {% translate "Owner" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ datasource.hexa_owner.name }}&nbsp;
-                <span class="text-gray-500">({{ datasource.hexa_owner.get_organization_type_display }})</span>
-                {% if datasource.hexa_owner.url %}
+                {{ datasource.owner.name }}&nbsp;
+                <span class="text-gray-500">({{ datasource.owner.get_organization_type_display }})</span>
+                {% if datasource.owner.url %}
                     <br/>
-                    <a href="{{ datasource.hexa_owner.url }}"
+                    <a href="{{ datasource.owner.url }}"
                        class="flex items-center font-medium text-blue-600 hover:text-blue-500 focus:outline-none"
                        target="_blank" rel="noopener">
                         <span>{% translate "Official website" %}</span>
@@ -101,8 +101,8 @@
                 {% translate "Contact" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% if datasource.hexa_owner.contact_info %}
-                    {{ datasource.hexa_owner.contact_info|urlize }}
+                {% if datasource.owner.contact_info %}
+                    {{ datasource.owner.contact_info|urlize }}
                 {% else %}
                     -
                 {% endif %}

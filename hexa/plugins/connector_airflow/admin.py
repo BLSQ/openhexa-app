@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import (
-    Environment,
+    Cluster,
     Credentials,
-    EnvironmentPermission,
+    ClusterPermission,
     DAG,
     DAGConfig,
     DAGConfigRun,
@@ -15,24 +15,24 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("service_account_email",)
 
 
-@admin.register(Environment)
-class EnvironmentAdmin(admin.ModelAdmin):
+@admin.register(Cluster)
+class ClusterAdmin(admin.ModelAdmin):
     list_display = (
         "name",
-        "url",
+        "airflow_web_url",
     )
     search_fields = ("name",)
 
 
-@admin.register(EnvironmentPermission)
-class EnvironmentPermissionAdmin(admin.ModelAdmin):
-    list_display = ("airflow_environment", "team")
+@admin.register(ClusterPermission)
+class ClusterPermissionAdmin(admin.ModelAdmin):
+    list_display = ("cluster", "team")
 
 
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
     list_display = (
-        "environment",
+        "cluster",
         "airflow_id",
     )
     search_fields = ("airflow_id",)
@@ -50,8 +50,8 @@ class DAGConfigAdmin(admin.ModelAdmin):
 @admin.register(DAGConfigRun)
 class DAGConfigRunAdmin(admin.ModelAdmin):
     list_display = (
-        "run_id",
-        "state",
-        "execution_date",
+        "airflow_run_id",
+        "airflow_state",
+        "airflow_execution_date",
     )
     search_fields = ("run_id",)

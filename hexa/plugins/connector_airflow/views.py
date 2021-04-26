@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.plugins.connector_airflow.models import (
-    Environment,
+    Cluster,
     DAG,
     DAGConfig,
     DAGConfigRun,
@@ -11,34 +11,34 @@ from hexa.plugins.connector_airflow.models import (
 )
 
 
-def environment_detail(request, environment_id):
-    environment = get_object_or_404(
-        Environment.objects.filter_for_user(request.user),
-        pk=environment_id,
+def cluster_detail(request, cluster_id):
+    cluster = get_object_or_404(
+        Cluster.objects.filter_for_user(request.user),
+        pk=cluster_id,
     )
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (
-            environment.display_name,
-            "connector_airflow:environment_detail",
-            environment_id,
+            cluster.display_name,
+            "connector_airflow:cluster_detail",
+            cluster_id,
         ),
     ]
 
     return render(
         request,
-        "connector_airflow/environment_detail.html",
+        "connector_airflow/cluster_detail.html",
         {
-            "environment": environment,
+            "cluster": cluster,
             "breadcrumbs": breadcrumbs,
         },
     )
 
 
-def dag_detail(request, environment_id, dag_id):
-    environment = get_object_or_404(
-        Environment.objects.filter_for_user(request.user), pk=environment_id
+def dag_detail(request, cluster_id, dag_id):
+    cluster = get_object_or_404(
+        Cluster.objects.filter_for_user(request.user), pk=cluster_id
     )
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
@@ -49,11 +49,11 @@ def dag_detail(request, environment_id, dag_id):
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (
-            environment.display_name,
-            "connector_airflow:environment_detail",
-            environment_id,
+            cluster.display_name,
+            "connector_airflow:cluster_detail",
+            cluster_id,
         ),
-        (dag.display_name, "connector_airflow:dag_detail", environment_id, dag_id),
+        (dag.display_name, "connector_airflow:dag_detail", cluster_id, dag_id),
     ]
 
     return render(
@@ -61,7 +61,7 @@ def dag_detail(request, environment_id, dag_id):
         "connector_airflow/dag_detail.html",
         {
             "breadcrumbs": breadcrumbs,
-            "environment": environment,
+            "cluster": cluster,
             "dag": dag,
             "dag_configs": dag_configs,
             "dag_config_runs": dag_config_runs,
@@ -69,10 +69,8 @@ def dag_detail(request, environment_id, dag_id):
     )
 
 
-def dag_config_run(request, environment_id, dag_id, dag_config_id):
-    get_object_or_404(
-        Environment.objects.filter_for_user(request.user), pk=environment_id
-    )
+def dag_config_run(request, cluster_id, dag_id, dag_config_id):
+    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_config = get_object_or_404(
         DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id
@@ -83,10 +81,8 @@ def dag_config_run(request, environment_id, dag_id, dag_config_id):
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def dag_config_run_list(request, environment_id, dag_id):
-    get_object_or_404(
-        Environment.objects.filter_for_user(request.user), pk=environment_id
-    )
+def dag_config_run_list(request, cluster_id, dag_id):
+    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
 
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)

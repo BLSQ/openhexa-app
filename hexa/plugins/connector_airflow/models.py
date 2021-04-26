@@ -4,17 +4,16 @@ import uuid
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
 from hexa.catalog.models import Content
-from hexa.core.models import Base, WithStatus
+from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.pipelines.models import (
     Environment as BaseEnvironment,
-    PipelineIndex,
-    PipelineIndexPermission,
+    PipelinesIndex,
+    PipelinesIndexPermission,
     Pipeline,
 )
 
@@ -70,32 +69,35 @@ class EnvironmentQuerySet(models.QuerySet):
         )
 
 
-class Environment(BaseEnvironment):
+class Cluster(BaseEnvironment):
     class Meta:
-        ordering = ("hexa_name",)
+        ordering = (
+            "name",
+            "airflow_name",
+        )
 
-    name = models.CharField(max_length=200)
-    url = models.URLField(blank=False)
-    api_url = models.URLField()
     api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
+    airflow_name = models.CharField(max_length=200)
+    airflow_web_url = models.URLField(blank=False)
+    airflow_api_url = models.URLField()
 
     objects = EnvironmentQuerySet.as_manager()
 
     def index(self):
-        pipeline_index = PipelineIndex.objects.create_or_update(
+        pipeline_index = PipelinesIndex.objects.create_or_update(
             indexed_object=self,
-            owner=self.hexa_owner,
+            owner=self.owner,
             name=self.name,
-            countries=self.hexa_countries,
+            external_name=self.airflow_name,
+            countries=self.countries,
             content_summary=self.content_summary,  # TODO: why?
-            last_synced_at=self.hexa_last_synced_at,
             detail_url=reverse("connector_airflow:environment_detail", args=(self.pk,)),
         )
 
         for permission in self.environmentpermission_set.all():
-            PipelineIndexPermission.objects.create(
+            PipelinesIndexPermission.objects.create(
                 catalog_index=pipeline_index, team=permission.team
             )
 
@@ -105,13 +107,9 @@ class Environment(BaseEnvironment):
 
         return f"{dag_count} DAG{'' if dag_count == 1 else 's'}"
 
-    def __str__(self):
-        return self.name
 
-
-class EnvironmentPermission(Base):
-    airflow_environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
-    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+class ClusterPermission(Permission):
+    cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
 
 
 class DAGQuerySet(models.QuerySet):
@@ -131,14 +129,10 @@ class DAG(Pipeline):
         verbose_name = "DAG"
         ordering = ["airflow_id"]
 
-    environment = models.ForeignKey("Environment", on_delete=models.CASCADE)
+    cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     airflow_id = models.CharField(max_length=200, blank=False)
 
     objects = DAGQuerySet.as_manager()
-
-    @property
-    def display_name(self):
-        return self.airflow_id
 
     @property
     def last_executed_at(self):
@@ -156,9 +150,6 @@ class DAG(Pipeline):
 
         return f"{config_count} DAG configuration{'' if config_count == 1 else 's'}"
 
-    def index(self):
-        pass  # TODO: implementation
-
 
 class DAGConfigQuerySet(models.QuerySet):
     def filter_for_user(self, user):
@@ -172,19 +163,14 @@ class DAGConfigQuerySet(models.QuerySet):
         )
 
 
-class DAGConfig(Base):
+class DAGConfig(RichContent):
     class Meta:
         verbose_name = "DAG config"
 
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
     config_data = models.JSONField(default=dict)
 
     objects = DAGConfigQuerySet.as_manager()
-
-    @property
-    def display_name(self):
-        return f"{self.dag.display_name}: {self.name}"
 
     @property
     def content_summary(self):
@@ -205,21 +191,22 @@ class DAGConfig(Base):
         return last_config_run.state if last_config_run else None
 
     def run(self):
-        # TODO: move
+        # TODO: move in API module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
         credentials = service_account.IDTokenCredentials.from_service_account_info(
-            self.dag.environment.api_credentials.service_account_key_data,
-            target_audience=self.dag.environment.api_credentials.oidc_target_audience,
+            self.dag.cluster.api_credentials.service_account_key_data,
+            target_audience=self.dag.cluster.api_credentials.oidc_target_audience,
         )
         session = AuthorizedSession(credentials)
         dag_config_run_id = str(uuid.uuid4())
+        api_url = self.dag.cluster.airflow_api_url
         response = session.post(
-            f"{self.dag.environment.api_url.rstrip('/')}/dags/{self.dag.airflow_id}/dag_runs",
+            f"{api_url.rstrip('/')}/dags/{self.dag.airflow_id}/dag_runs",
             data=json.dumps(
                 {
                     "conf": self.config_data,
-                    "run_id": f"openhexa_{dag_config_run_id}",  # TODO: environment
+                    "run_id": f"openhexa_{self.dag.airflow_id}_{dag_config_run_id}",  # TODO: environment
                 }
             ),
             headers={
@@ -233,11 +220,11 @@ class DAGConfig(Base):
         DAGConfigRun.objects.create(
             id=dag_config_run_id,
             dag_config=self,
-            run_id=response_data["run_id"],
-            execution_date=response_data["execution_date"],
-            message=response_data["message"],
-            state=DAGConfigRunState.RUNNING,
-            hexa_last_refreshed_at=timezone.now(),
+            last_refreshed_at=timezone.now(),
+            airflow_run_id=response_data["run_id"],
+            airflow_execution_date=response_data["execution_date"],
+            airflow_message=response_data["message"],
+            airflow_state=DAGConfigRunState.RUNNING,
         )
 
         self.last_run_at = timezone.now()
@@ -247,13 +234,15 @@ class DAGConfig(Base):
 
 
 class DAGConfigRunResult:
-    # TODO: document and move
+    # TODO: document and move in api module
 
     def __init__(self, dag_config):
         self.dag_config = dag_config
 
     def __str__(self):
-        return f'The DAG config "{self.dag_config.display_name}" has been run'
+        return _('The DAG config "%(name)" has been run') % {
+            "name": self.dag_config.display_name
+        }
 
 
 class DAGConfigRunQuerySet(models.QuerySet):
@@ -278,34 +267,33 @@ class DAGConfigRunState(models.TextChoices):
 
 
 class DAGConfigRun(Base, WithStatus):
+    class Meta:
+        ordering = ("-last_refreshed_at",)
+
     dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE)
-    run_id = models.CharField(max_length=200, blank=False)
-    message = models.TextField()
-    execution_date = models.DateTimeField()
-    state = models.CharField(
+    last_refreshed_at = models.DateTimeField(null=True)
+    airflow_run_id = models.CharField(max_length=200, blank=False)
+    airflow_message = models.TextField()
+    airflow_execution_date = models.DateTimeField()
+    airflow_state = models.CharField(
         max_length=200, blank=False, choices=DAGConfigRunState.choices
     )
 
-    hexa_last_refreshed_at = models.DateTimeField(null=True)
-
     objects = DAGConfigRunQuerySet.as_manager()
 
-    @property
-    def display_name(self):
-        return f"{self.dag_config.dag.display_name}: {self.dag_config.display_name} ({self.run_id})"
-
     def refresh(self):
-        # TODO: move
+        # TODO: move in api module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
         credentials = service_account.IDTokenCredentials.from_service_account_info(
-            self.dag_config.dag.environment.api_credentials.service_account_key_data,
-            target_audience=self.dag_config.dag.environment.api_credentials.oidc_target_audience,
+            self.dag_config.dag.cluster.api_credentials.service_account_key_data,
+            target_audience=self.dag_config.dag.cluster.api_credentials.oidc_target_audience,
         )
         session = AuthorizedSession(credentials)
-
+        api_url = self.dag_config.dag.cluster.airflow_api_url
+        execution_date = self.airflow_execution_date.isoformat()
         response = session.get(
-            f"{self.dag_config.dag.environment.api_url.rstrip('/')}/dags/{self.dag_config.dag.airflow_id}/dag_runs/{self.execution_date.isoformat()}",
+            f"{api_url.rstrip('/')}/dags/{self.dag_config.dag.airflow_id}/dag_runs/{execution_date}",
             headers={
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",
@@ -314,34 +302,13 @@ class DAGConfigRun(Base, WithStatus):
         # TODO: handle non-200
         response_data = response.json()
 
-        self.hexa_last_refreshed_at = timezone.now()
-        self.state = response_data["state"]
+        self.last_refreshed_at = timezone.now()
+        self.airflow_state = response_data["state"]
         self.save()
 
     @property
-    def hexa_status(self):
-        if self.state == DAGConfigRunState.RUNNING:
-            return WithStatus.PENDING
-        if self.state == DAGConfigRunState.FAILED:
-            return WithStatus.ERROR
-        if self.state == DAGConfigRunState.SUCCESS:
-            return WithStatus.SUCCESS
-
-        return WithStatus.UNKNOWN
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "run_id": self.run_id,
-            "message": self.message,
-            "execution_date": date_format(
-                self.execution_date, "M d, H:i:s (e)"
-            ),  # TODO: helper method
-            "hexa_last_refreshed_at": date_format(
-                self.hexa_last_refreshed_at, "M d, H:i:s (e)"
-            ),
-            "state": self.state,
-        }
-
-    class Meta:
-        ordering = ("-hexa_last_refreshed_at",)
+    def status(self):
+        try:
+            return DAGConfigRunState[self.airflow_state]
+        except KeyError:
+            return WithStatus.UNKNOWN

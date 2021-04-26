@@ -2,7 +2,7 @@
 
 {% embed "core/components/card/card.html" %}
     {% slot heading %}
-        {% with title=environment.display_name subtitle=environment.hexa_description|default:_("No description") symbol_alt=_("Airflow") %}
+        {% with title=environment.display_name subtitle=environment.description|default:_("No description") symbol_alt=_("Airflow") %}
             {% static "connector_airflow/img/symbol.svg" as symbol_src %}
             {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
                 {% slot actions %}
@@ -47,11 +47,11 @@
                 {# Owner #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
                     {% slot definition %}
-                        {% if environment.hexa_owner %}
-                            {{ environment.hexa_owner.name }}
-                            ({{ environment.hexa_owner.get_organization_type_display }})
-                            {% if environment.hexa_owner.url %}
-                                {% include "core/components/description_list/link.html" with url=environment.hexa_owner.url label=_("Official website") %}
+                        {% if environment.owner %}
+                            {{ environment.owner.name }}
+                            ({{ environment.owner.get_organization_type_display }})
+                            {% if environment.owner.url %}
+                                {% include "core/components/description_list/link.html" with url=environment.owner.url label=_("Official website") %}
                             {% endif %}
                         {% else %}
                             -
@@ -61,8 +61,8 @@
                 {# Contact #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
                     {% slot definition %}
-                        {% if environment.hexa_owner.contact_info %}
-                            {{ environment.hexa_owner.contact_info|linebreaks|urlize }}
+                        {% if environment.owner.contact_info %}
+                            {{ environment.owner.contact_info|linebreaks|urlize }}
                         {% else %}
                             -
                         {% endif %}

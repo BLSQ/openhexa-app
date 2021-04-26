@@ -12,6 +12,7 @@ from hexa.catalog.models import (
     CatalogIndexPermission,
 )
 from hexa.catalog.sync import DatasourceSyncResult
+from hexa.core.models import Permission
 
 
 class CredentialsQuerySet(models.QuerySet):
@@ -68,16 +69,23 @@ class BucketQuerySet(models.QuerySet):
 class Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
-        ordering = ("hexa_name",)
+        ordering = (
+            "name",
+            "s3_name",
+        )
 
-    name = models.CharField(max_length=200)
     sync_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
+    s3_name = models.CharField(max_length=200)
 
     objects = BucketQuerySet.as_manager()
 
-    def sync(self):
+    @property
+    def hexa_or_s3_name(self):
+        return self.name if self.name != "" else self.s3_name
+
+    def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
         if self.sync_credentials is True:
@@ -95,7 +103,7 @@ class Bucket(Datasource):
             result = self.create_objects(fs, f"{self.name}")
 
             # Flag the datasource as synced
-            self.hexa_last_synced_at = timezone.now()
+            self.last_synced_at = timezone.now()
             self.save()
 
         return result
@@ -119,7 +127,7 @@ class Bucket(Datasource):
                 size=object_data["size"],
                 storage_class=object_data["StorageClass"],
                 type=object_data["type"],
-                name=object_data["name"],
+                s3_name=object_data["name"],
                 last_modified=object_data.get("LastModified"),
             )
 
@@ -139,8 +147,8 @@ class Bucket(Datasource):
 
     @property
     def content_summary(self):
-        if self.hexa_last_synced_at is None:
-            return ""
+        if self.last_synced_at is None:
+            return "Never synced"
 
         return _("%(object_count)s objects") % {
             "object_count": self.object_set.count(),
@@ -149,11 +157,11 @@ class Bucket(Datasource):
     def index(self):
         catalog_index = CatalogIndex.objects.create_or_update(
             indexed_object=self,
-            owner=self.hexa_owner,
+            owner=self.owner,
             name=self.name,
-            countries=self.hexa_countries,
-            content_summary=self.content_summary,  # TODO: why?
-            last_synced_at=self.hexa_last_synced_at,
+            external_name=self.s3_name,
+            countries=self.countries,
+            last_synced_at=self.last_synced_at,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
@@ -162,11 +170,12 @@ class Bucket(Datasource):
                 catalog_index=catalog_index, team=permission.team
             )
 
-    def __str__(self):
-        return self.name
+    @property
+    def display_name(self):
+        return self.hexa_or_s3_name
 
 
-class BucketPermission(Base):
+class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
@@ -176,18 +185,19 @@ class Object(Content):
         verbose_name = "S3 Object"
         ordering = ["name"]
 
-    instance = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
-    key = models.TextField()
-    size = models.PositiveBigIntegerField()
-    storage_class = models.CharField(max_length=200)  # TODO: choices
-    type = models.CharField(max_length=200)  # TODO: choices
-    name = models.CharField(max_length=200)
-    last_modified = models.DateTimeField(null=True)
+    s3_key = models.TextField()
+    s3_size = models.PositiveBigIntegerField()
+    s3_storage_class = models.CharField(max_length=200)  # TODO: choices
+    s3_type = models.CharField(max_length=200)  # TODO: choices
+    s3_name = models.CharField(max_length=200)
+    s3_last_modified = models.DateTimeField(null=True)
+
+    @property
+    def hexa_or_s3_name(self):
+        return self.name if self.name != "" else self.s3_name
 
     @property
     def display_name(self):
-        return self.name
-
-    def index(self):
-        pass  # TODO: implement
+        return self.hexa_or_s3_name

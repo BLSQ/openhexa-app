@@ -15,6 +15,6 @@ STATUS_MAPPINGS = {
 @register.filter(name="status_color")
 def status_color(value):
     try:
-        return STATUS_MAPPINGS[value.hexa_status]
+        return STATUS_MAPPINGS[value.status]
     except AttributeError:
         return STATUS_MAPPINGS[WithStatus.UNKNOWN]
