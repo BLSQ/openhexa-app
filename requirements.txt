@@ -1,6 +1,6 @@
 coverage==5.*
-dhis2.py==2.*
 Django==3.*
+django-contrib-comments==2.*
 django-countries==7.*
 django-tailwind==1.*
 gunicorn==20.*
@@ -9,3 +9,9 @@ psycopg2-binary==2.*
 stringcase==1.*
 tblib==1.*
 whitenoise==5.*
+
+# connector_dhis2
+dhis2.py==2.*
+
+# connector_s3
+s3fs==0.*

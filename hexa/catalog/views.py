@@ -1,15 +1,13 @@
-from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from .models import CatalogIndex, CatalogIndexType
-from .search import perform_search
 
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
-    datasource_indexes = CatalogIndex.objects.filter(
+    datasource_indexes = CatalogIndex.objects.filter_for_user(request.user).filter(
         index_type=CatalogIndexType.DATASOURCE.value
     )
 
@@ -24,14 +22,17 @@ def index(request):
 
 
 def quick_search(request):
-    results = perform_search(request.GET.get("query", ""))
+    query = request.GET.get("query", "")
+    results = CatalogIndex.objects.filter_for_user(request.user).search(query)
 
     return JsonResponse({"results": [result.to_dict() for result in results]})
 
 
 def search(request):
     query = request.POST.get("query", "")
-    results = perform_search(query, limit=100)
+    results = CatalogIndex.objects.filter_for_user(request.user).search(
+        query, limit=100
+    )
 
     return render(
         request,

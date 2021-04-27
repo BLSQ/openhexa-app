@@ -6,4 +6,5 @@ app_name = "notebooks"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("credentials/", views.credentials, name="credentials"),
 ]

@@ -7,7 +7,9 @@ from .models import Instance
 
 
 def datasource_detail(request, datasource_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -53,7 +55,9 @@ def datasource_detail(request, datasource_id):
 
 
 def data_element_list(request, datasource_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -86,7 +90,9 @@ def data_element_list(request, datasource_id):
 
 
 def data_element_detail(request, datasource_id, data_element_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
     data_element = get_object_or_404(datasource.dataelement_set, pk=data_element_id)
 
     breadcrumbs = [
@@ -108,7 +114,9 @@ def data_element_detail(request, datasource_id, data_element_id):
 
 
 def indicator_list(request, datasource_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -141,7 +149,9 @@ def indicator_list(request, datasource_id):
 
 
 def indicator_detail(request, datasource_id, indicator_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
     indicator = get_object_or_404(datasource.indicator_set, pk=indicator_id)
 
     breadcrumbs = [
@@ -163,7 +173,9 @@ def indicator_detail(request, datasource_id, indicator_id):
 
 
 def datasource_sync(request, datasource_id):
-    datasource = get_object_or_404(Instance, pk=datasource_id)
+    datasource = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=datasource_id
+    )
     sync_result = datasource.sync()
     messages.success(request, sync_result, extra_tags="green")
 

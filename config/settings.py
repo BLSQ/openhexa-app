@@ -36,16 +36,19 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "django_countries",
     "tailwind",
     "hexa.common.apps.CommonConfig",
     "hexa.user_management.apps.UserManagementConfig",
-    "hexa.core.apps.CoreConfig",
-    "hexa.catalog.apps.CatalogConfig",
-    "hexa.notebooks.apps.NotebooksConfig",
-    "hexa.pipelines.apps.PipelinesConfig",
-    "hexa.tailwindui.apps.TailwinduiConfig",
+    "hexa.core",
+    "hexa.catalog",
+    "hexa.notebooks",
+    "hexa.pipelines",
+    "hexa.comments",
+    "hexa.tailwindui",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
+    "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
 ]
 
 MIDDLEWARE = [
@@ -120,8 +123,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication backends
+# https://docs.djangoproject.com/en/3.1/ref/settings/#authentication-backends
+AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
+
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
+SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -142,5 +151,11 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 
+# Comments
+COMMENTS_APP = "hexa.comments"
+
 # Tailwind
 TAILWIND_APP_NAME = "hexa.tailwindui"
+
+# Notebooks component
+NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")

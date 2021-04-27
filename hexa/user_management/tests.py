@@ -1,5 +1,4 @@
 from django import test
-from django.conf import settings
 from django.urls import reverse
 
 from hexa.user_management.models import User
@@ -12,6 +11,7 @@ class AuthTest(test.TestCase):
             "john@bluesquarehub.com",
             "john@bluesquarehub.com",
             "regular",
+            is_superuser=True,
         )
 
     def test_any_page_anonymous_302(self):
