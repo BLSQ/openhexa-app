@@ -98,6 +98,4 @@ variable "kubernetes_secret_sql_proxy_name" {
 variable "kubernetes_secret_django_name" {
   default = "app-secret"
 }
-variable "secret" {
-  type = string
-}
+

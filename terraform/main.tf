@@ -38,7 +38,7 @@ resource "google_sql_database" "hexa" {
 }
 
 resource "random_password" "user_password" {
-  length  = 48
+  length  = 20
   special = false
   lifecycle {
     ignore_changes = all
@@ -177,10 +177,13 @@ resource "kubernetes_secret" "sql_proxy" {
   }
 }
 # Generate a secret key for the Django app
-data "external" "secret" {
-  program = ["bash", "./secret.sh"]
+resource "random_password" "secret" {
+  length  = 50
+  special = true
+  lifecycle {
+    ignore_changes = all
+  }
 }
-
 # Create a secret for the Django environment variables
 resource "kubernetes_secret" "django" {
   metadata {
@@ -192,8 +195,7 @@ resource "kubernetes_secret" "django" {
     DATABASE_PASSWORD = google_sql_database.hexa.name
     DATABASE_NAME     = google_sql_database.hexa.name
     DATABASE_PORT     = 5432
-    SECRET            = var.secret
-   # SECRET            = data.external.secret.result.secret
+    SECRET            = random_password.secret.result
   }
 
 }
