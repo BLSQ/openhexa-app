@@ -13,7 +13,7 @@ def notebooks_credentials(credentials, user):
             {
                 "AWS_ACCESS_KEY_ID": s3_credentials.access_key_id,
                 "AWS_SECRET_ACCESS_KEY": s3_credentials.secret_access_key,
-                "S3_BUCKET_NAMES": ",".join([b.name for b in allowed_buckets]),
+                "S3_BUCKET_NAMES": ",".join([b.s3_name for b in allowed_buckets]),
             }
         )
 

@@ -1,5 +1,5 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n %}
+{% load date_utils i18n static %}
 
 {% block card_header_title %}
     {{ data_element.name }}
@@ -24,7 +24,7 @@
     </button>
     <button type="button"
             class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        {% include "partials/icons/pencil_alt.html" %}
+        {% include "core/components/icons/pencil_alt.html" %}
         <span class="ml-2">{% translate "Edit" %}</span>
     </button>
 {% endblock %}
@@ -98,7 +98,7 @@
                 {% translate "Value type" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_value_type_display }}
+                {{ data_element.get_dhis2_value_type_display }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -106,7 +106,7 @@
                 {% translate "Aggregation type" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_aggregation_type_display }}
+                {{ data_element.get_dhis2_aggregation_type_display }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -114,7 +114,7 @@
                 {% translate "External access" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.external_access|yesno:_("Yes,No") }}
+                {{ data_element.dhis2_external_access|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -122,7 +122,7 @@
                 {% translate "Favorite" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.favorite|yesno:_("Yes,No") }}
+                {{ data_element.dhis2_favorite|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -130,7 +130,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.created|date:"M d, H:i:s (e)" }}
+                {{ data_element.dhis2_created|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -138,7 +138,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.last_updated|date:"M d, H:i:s (e)" }}
+                {{ data_element.dhis2_last_updated|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">

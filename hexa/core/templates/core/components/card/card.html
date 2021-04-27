@@ -1,0 +1,10 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/layout/panels#component-dff902cd785d85863f5f9cfe84e8a1b8 #}
+<div class="bg-white overflow-hidden shadow sm:rounded-lg divide-y divide-gray-200">
+    {% slot heading %}{% endslot %}
+    <div class="px-4 py-5 sm:p-6">
+        {% slot content %}{% endslot %}
+    </div>
+    {% slot footer %}{% endslot %}
+</div>

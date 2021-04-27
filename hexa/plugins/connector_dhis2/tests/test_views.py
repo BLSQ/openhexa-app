@@ -24,12 +24,12 @@ class ConnectorDhis2Test(test.TestCase):
             is_superuser=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            hexa_name="DHIS2 Play",
-            hexa_short_name="Play",
-            hexa_description="The DHIS2 official demo instance with realistic sample medical data",
-            api_url="https://play.dhis2.org/demo",
-            api_username="admin",
-            api_password="district",
+            name="DHIS2 Play",
+            short_name="Play",
+            description="The DHIS2 official demo instance with realistic sample medical data",
+            dhis2_api_url="https://play.dhis2.org/demo",
+            dhis2_api_username="admin",
+            dhis2_api_password="district",
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
@@ -37,50 +37,50 @@ class ConnectorDhis2Test(test.TestCase):
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="O1BccPF5yci",
-            name="ANC First visit",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="ANC First visit",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_ELEMENT_2 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="eLW6jbvVcPZ",
-            name="ANC Second visit",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="ANC Second visit",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_ELEMENT_3 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="kmaHyZXMHCz",
-            name="C-sections",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="C-sections",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_INDICATOR_1 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="xaG3AfYG2Ts",
-            name="Ante-Natal Care visits",
-            description="Uses different ANC data indicators",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
-            annualized=False,
+            dhis2_name="Ante-Natal Care visits",
+            dhis2_description="Uses different ANC data indicators",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
+            dhis2_annualized=False,
         )
         cls.DATA_INDICATOR_2 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="oNzq8duNBx6",
-            name="Medical displays",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
-            annualized=False,
+            dhis2_name="Medical displays",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
+            dhis2_annualized=False,
         )
 
     def test_catalog_index_empty_200(self):
@@ -182,7 +182,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
-                and r["name"] == "ANC First visit"
+                and r["external_name"] == "ANC First visit"
             )
         )
         self.assertTrue(
@@ -191,7 +191,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
-                and r["name"] == "ANC Second visit"
+                and r["external_name"] == "ANC Second visit"
             )
         )
         self.assertTrue(
@@ -200,7 +200,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
-                and r["name"] == "Ante-Natal Care visits"
+                and r["external_name"] == "Ante-Natal Care visits"
             )
         )
 
@@ -223,7 +223,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
-                and r["name"] == "Medical displays"
+                and r["external_name"] == "Medical displays"
             )
         )
 
@@ -293,8 +293,10 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(http_referer, response.url)
 
         # Test that all data elements have a value type and an aggregation type
-        self.assertEqual(0, len(DataElement.objects.filter(value_type=None)))
-        self.assertEqual(0, len(DataElement.objects.filter(aggregation_type=None)))
+        self.assertEqual(0, len(DataElement.objects.filter(dhis2_value_type=None)))
+        self.assertEqual(
+            0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
+        )
 
     def test_data_elements_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""

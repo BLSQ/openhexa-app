@@ -30,10 +30,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if item.datasource.hexa_last_synced_at|about_now %}
+            {% if item.datasource.last_synced_at|about_now %}
                 <span>{% translate "Just now" %}</span>
-            {% elif item.datasource.hexa_last_synced_at %}
-                <span>{{ item.datasource.hexa_last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% elif item.datasource.last_synced_at %}
+                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
                 <span>{% translate "Never synced" %}</span>
             {% endif %}
@@ -47,7 +47,7 @@
            class="text-blue-600 hover:text-blue-900 flex justify-end">
             View
             <div class="ml-1 flex-shrink-0">
-                {% include "partials/icons/chevron_right.html" %}
+                {% include "core/components/icons/chevron_right.html" %}
             </div>
         </a>
     </td>
