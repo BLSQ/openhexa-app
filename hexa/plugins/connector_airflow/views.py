@@ -78,7 +78,7 @@ def dag_config_run(request, cluster_id, dag_id, dag_config_id):
     run_result = dag_config.run()
     messages.success(request, run_result, extra_tags="green")
 
-    return redirect(request.META.get("HTTP_REFERER"))
+    return redirect(f"{request.META.get('HTTP_REFERER')}#dag_config_runs")
 
 
 def dag_config_list(request, cluster_id, dag_id):

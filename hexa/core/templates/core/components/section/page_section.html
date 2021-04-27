@@ -7,6 +7,7 @@
             x-init="init($el)"
             x-html="refreshedHtml"
         {% endif %}
+        {% if id %}id="{{ id }}"{% endif %}
 >
     {% slot header %}
         {% include "partials/section_heading_simple.html" with title="Untitled section" %}

@@ -208,7 +208,7 @@ class DAGConfig(RichContent):
             data=json.dumps(
                 {
                     "conf": self.config_data,
-                    "run_id": f"openhexa_{self.dag.airflow_id}_{dag_config_run_id}",
+                    "run_id": dag_config_run_id,
                 }
             ),
             headers={
