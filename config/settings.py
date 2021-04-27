@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "django_countries",
     "tailwind",
-    "hexa.user_management.apps.UserManagementConfig",
+    "hexa.user_management",
     "hexa.core",
     "hexa.catalog",
     "hexa.notebooks",
