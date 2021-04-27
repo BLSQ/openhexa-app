@@ -14,6 +14,8 @@ STATUS_MAPPINGS = {
 
 @register.filter(name="status_color")
 def status_color(value):
+    """Maps OpenHexa status (see WithStatus behaviours) to colors for our templates"""
+
     try:
         return STATUS_MAPPINGS[value.status]
     except AttributeError:
