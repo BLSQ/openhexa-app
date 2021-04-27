@@ -57,10 +57,10 @@ class RichContent(Base):
 
     @property
     def content_summary(self):
-        return "No content summary available"
+        return ""
 
 
-class Index(RichContent):
+class Index(Base):
     class Meta:
         verbose_name = "Pipeline Index"
         verbose_name_plural = "Pipeline indexes"
@@ -84,7 +84,9 @@ class Index(RichContent):
     description = models.TextField(blank=True)
     external_description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
+    locale = LocaleField(default="en")
     detail_url = models.URLField()
+    content_summary = models.TextField(blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
     text_search_config = PostgresTextSearchConfigField()
 

@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.db import models
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -94,6 +95,7 @@ class Cluster(BaseEnvironment):
             external_name=self.airflow_name,
             countries=self.countries,
             detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
+            content_summary=self.content_summary,
         )
 
         for permission in self.clusterpermission_set.all():
@@ -103,9 +105,14 @@ class Cluster(BaseEnvironment):
 
     @property
     def content_summary(self):
-        dag_count = self.dag_set.count()
+        count = self.dag_set.count()
 
-        return f"{dag_count} DAG{'' if dag_count == 1 else 's'}"
+        return (
+            ""
+            if count == 0
+            else _("%(dag_count)d DAG%(suffix)s")
+            % {"dag_count": count, "suffix": pluralize(count)}
+        )
 
 
 class ClusterPermission(Permission):
@@ -144,9 +151,14 @@ class DAG(Pipeline):
 
     @property
     def content_summary(self):
-        config_count = self.dagconfig_set.count()
+        count = self.dagconfig_set.count()
 
-        return f"{config_count} DAG configuration{'' if config_count == 1 else 's'}"
+        return (
+            ""
+            if count == 0
+            else _("%(count)d DAG configuration%(suffix)s")
+            % {"count": count, "suffix": pluralize(count)}
+        )
 
 
 class DAGConfigQuerySet(models.QuerySet):
@@ -172,9 +184,14 @@ class DAGConfig(RichContent):
 
     @property
     def content_summary(self):
-        config_count = self.dagconfigrun_set.count()
+        count = self.dagconfigrun_set.count()
 
-        return f"{config_count} DAG run{'' if config_count == 1 else 's'}"
+        return (
+            ""
+            if count == 0
+            else _("%(count)d DAG configuration%(suffix)s")
+            % {"count": count, "suffix": pluralize(count)}
+        )
 
     @property
     def last_executed_at(self):

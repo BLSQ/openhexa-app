@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -75,15 +76,22 @@ class Instance(Datasource):
 
     @property
     def content_summary(self):
-        if self.last_synced_at is None:
-            return "Never synced"
+        de_count = self.dataelement_set.count()
+        i_count = self.indicator_set.count()
 
-        return _(
-            "%(data_element_count)s data elements, %(indicator_count)s indicators"
-        ) % {
-            "data_element_count": self.dataelement_set.count(),
-            "indicator_count": self.indicator_set.count(),
-        }
+        return (
+            ""
+            if de_count == 0 and i_count == 0
+            else _(
+                "%(de_count)d data element%(de_suffix)s, %(i_count)d indicator%(i_suffix)s"
+            )
+            % {
+                "de_count": de_count,
+                "de_suffix": pluralize(de_count),
+                "i_count": i_count,
+                "i_suffix": pluralize(i_count),
+            }
+        )
 
     def index(self):
         catalog_index = CatalogIndex.objects.create_or_update(
@@ -95,6 +103,7 @@ class Instance(Datasource):
             countries=self.countries,
             last_synced_at=self.last_synced_at,
             detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
+            content_summary=self.content_summary,
         )
         for permission in self.instancepermission_set.all():
             CatalogIndexPermission.objects.create(

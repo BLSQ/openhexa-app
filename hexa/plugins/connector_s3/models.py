@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -148,12 +149,14 @@ class Bucket(Datasource):
 
     @property
     def content_summary(self):
-        if self.last_synced_at is None:
-            return "Never synced"
+        count = self.object_set.count()
 
-        return _("%(object_count)s objects") % {
-            "object_count": self.object_set.count(),
-        }
+        return (
+            ""
+            if count == 0
+            else _("%(count)d object%(suffix)s")
+            % {"count": count, "suffix": pluralize(count)}
+        )
 
     def index(self):
         catalog_index = CatalogIndex.objects.create_or_update(
@@ -164,6 +167,7 @@ class Bucket(Datasource):
             countries=self.countries,
             last_synced_at=self.last_synced_at,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
+            content_summary=self.content_summary,
         )
 
         for permission in self.bucketpermission_set.all():
