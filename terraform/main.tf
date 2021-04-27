@@ -183,7 +183,8 @@ resource "kubernetes_secret" "django" {
     DATABASE_PASSWORD = google_sql_database.hexa.name
     DATABASE_NAME     = google_sql_database.hexa.name
     DATABASE_PORT     = 5432
-    SECRET            = data.external.secret.result.secret
+    SECRET            = var.secret
+   # SECRET            = data.external.secret.result.secret
   }
 
 }
