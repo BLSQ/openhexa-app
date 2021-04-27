@@ -14,8 +14,8 @@
                 {% include "core/components/table/header_cell.html" with label=_("View") sr_only=True %}
             {% endslot %}
             {% slot rows %}
-                {% for dag in environment.dag_set.all %}
-                    {% url "connector_airflow:dag_detail" environment.pk dag.pk as detail_url %}
+                {% for dag in cluster.dag_set.all %}
+                    {% url "connector_airflow:dag_detail" cluster.pk dag.pk as detail_url %}
                     <tr>
                         {# DAG id #}
                         {% include "core/components/table/cell_first.html" with url=detail_url label=dag.airflow_id %}
@@ -24,7 +24,7 @@
                         {# Created at #}
                         {% include "core/components/table/cell.html" with label=dag.created_at|date_format %}
                         {# Last executed at #}
-                        {% include "core/components/table/cell.html" with label=dag.last_executed_at|date_format %}
+                        {% include "core/components/table/cell.html" with label=dag.last_executed_at|date_format|default:_("Never") %}
                         {# View #}
                         {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
                     </tr>

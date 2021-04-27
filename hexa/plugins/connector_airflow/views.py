@@ -91,7 +91,7 @@ def dag_config_run_list(request, cluster_id, dag_id):
     )
 
     # TODO: actual refresh should be done using a CRON
-    for run in dag_config_runs.filter(state=DAGConfigRunState.RUNNING):
+    for run in dag_config_runs.filter(airflow_state=DAGConfigRunState.RUNNING):
         run.refresh()
 
     return render(

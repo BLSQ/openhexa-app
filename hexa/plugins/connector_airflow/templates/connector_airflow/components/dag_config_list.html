@@ -15,8 +15,8 @@
             {% endslot %}
             {% slot rows %}
                 {% for config in dag_configs %}
-                    {% url "connector_airflow:dag_config_detail" config.dag.environment.pk config.dag.pk config.pk as detail_url %}
-                    {% url "connector_airflow:dag_config_run" config.dag.environment.pk config.dag.pk config.pk as run_url %}
+                    {% url "connector_airflow:dag_config_detail" config.dag.cluster.pk config.dag.pk config.pk as detail_url %}
+                    {% url "connector_airflow:dag_config_run" config.dag.cluster.pk config.dag.pk config.pk as run_url %}
                     <tr>
                         {# Name #}
                         {% include "core/components/table/cell_first.html" with url=detail_url label=config.name %}

@@ -24,12 +24,12 @@ class Base(models.Model):
 
     @property
     def display_name(self):
-        if hasattr(self, "short_name"):
+        if hasattr(self, "short_name") and getattr(self, "short_name") != "":
             return self.short_name
-        elif hasattr(self, "name"):
+        elif hasattr(self, "name") and getattr(self, "name") != "":
             return self.name
 
-        return self.id
+        return str(self.id)
 
     def __str__(self):
         return self.display_name

@@ -18,9 +18,9 @@
     {% slot content %}
         {% embed "core/components/description_list/description_list.html" %}
             {% slot content %}
-                {# Environment #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Environment") %}
-                    {% slot definition %}{{ dag.environment.name }}{% endslot %}
+                {# Cluster #}
+                {% embed "core/components/description_list/list_item.html" with term=_("Cluster") %}
+                    {% slot definition %}{{ dag.cluster.name }}{% endslot %}
                 {% endembed %}
                 {# Airflow ID #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Airflow ID") %}
@@ -41,7 +41,7 @@
                 {# Owner #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
                     {% slot definition %}
-                        {% with owner=dag.owner|default:dag.environment.owner %}
+                        {% with owner=dag.owner|default:dag.cluster.owner %}
                             {% if owner %}
                                 {{ owner.name }}
                                 ({{ owner.get_organization_type_display }})
@@ -57,7 +57,7 @@
                 {# Contact #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
                     {% slot definition %}
-                        {% with owner=dag.owner|default:dag.environment.owner %}
+                        {% with owner=dag.owner|default:dag.cluster.owner %}
                             {% if owner.contact_info %}
                                 {{ owner.contact_info|linebreaks|urlize }}
                             {% else %}
@@ -69,7 +69,7 @@
                 {# Tags #}
                 {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
                     {% slot definition %}
-                        {% include "core/components/description_list/tags.html" with tags=environment.tags %}
+                        {% include "core/components/description_list/tags.html" with tags=cluster.tags %}
                     {% endslot %}
                 {% endembed %}
             {% endslot %}

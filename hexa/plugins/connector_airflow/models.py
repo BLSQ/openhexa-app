@@ -55,17 +55,18 @@ class Credentials(Base):
 
     objects = CredentialsQuerySet.as_manager()
 
+    @property
     def display_name(self):
         return self.service_account_email
 
 
-class EnvironmentQuerySet(models.QuerySet):
+class ClusterQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 
         return self.filter(
-            environmentpermission__team__in=[t.pk for t in user.team_set.all()]
+            clusterpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 
@@ -83,7 +84,7 @@ class Cluster(BaseEnvironment):
     airflow_web_url = models.URLField(blank=False)
     airflow_api_url = models.URLField()
 
-    objects = EnvironmentQuerySet.as_manager()
+    objects = ClusterQuerySet.as_manager()
 
     def index(self):
         pipeline_index = PipelinesIndex.objects.create_or_update(
@@ -92,11 +93,10 @@ class Cluster(BaseEnvironment):
             name=self.name,
             external_name=self.airflow_name,
             countries=self.countries,
-            content_summary=self.content_summary,  # TODO: why?
-            detail_url=reverse("connector_airflow:environment_detail", args=(self.pk,)),
+            detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
         )
 
-        for permission in self.environmentpermission_set.all():
+        for permission in self.clusterpermission_set.all():
             PipelinesIndexPermission.objects.create(
                 catalog_index=pipeline_index, team=permission.team
             )
@@ -118,9 +118,7 @@ class DAGQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            environment__environmentpermission__team__in=[
-                t.pk for t in user.team_set.all()
-            ]
+            cluster__clusterpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 
@@ -138,11 +136,11 @@ class DAG(Pipeline):
     def last_executed_at(self):
         last_config_run = (
             DAGConfigRun.objects.filter(dag_config__dag=self)
-            .order_by("-execution_date")
+            .order_by("-airflow_execution_date")
             .first()
         )
 
-        return last_config_run.execution_date if last_config_run else None
+        return last_config_run.airflow_execution_date if last_config_run else None
 
     @property
     def content_summary(self):
@@ -157,7 +155,7 @@ class DAGConfigQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            dag__environment__environmentpermission__team__in=[
+            dag__cluster__clusterpermission__team__in=[
                 t.pk for t in user.team_set.all()
             ]
         )
@@ -180,15 +178,19 @@ class DAGConfig(RichContent):
 
     @property
     def last_executed_at(self):
-        last_config_run = self.dagconfigrun_set.order_by("-execution_date").first()
+        last_config_run = self.dagconfigrun_set.order_by(
+            "-airflow_execution_date"
+        ).first()
 
-        return last_config_run.execution_date if last_config_run else None
+        return last_config_run.airflow_execution_date if last_config_run else None
 
     @property
     def last_run_state(self):
-        last_config_run = self.dagconfigrun_set.order_by("-execution_date").first()
+        last_config_run = self.dagconfigrun_set.order_by(
+            "-airflow_execution_date"
+        ).first()
 
-        return last_config_run.state if last_config_run else None
+        return last_config_run.airflow_state if last_config_run else None
 
     def run(self):
         # TODO: move in API module
@@ -206,7 +208,7 @@ class DAGConfig(RichContent):
             data=json.dumps(
                 {
                     "conf": self.config_data,
-                    "run_id": f"openhexa_{self.dag.airflow_id}_{dag_config_run_id}",  # TODO: environment
+                    "run_id": f"openhexa_{self.dag.airflow_id}_{dag_config_run_id}",
                 }
             ),
             headers={
@@ -240,7 +242,7 @@ class DAGConfigRunResult:
         self.dag_config = dag_config
 
     def __str__(self):
-        return _('The DAG config "%(name)" has been run') % {
+        return _('The DAG config "%(name)s" has been run') % {
             "name": self.dag_config.display_name
         }
 
@@ -251,7 +253,7 @@ class DAGConfigRunQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            dag_config__dag__environment__environmentpermission__team__in=[
+            dag_config__dag__cluster__clusterpermission__team__in=[
                 t.pk for t in user.team_set.all()
             ]
         )
@@ -267,6 +269,12 @@ class DAGConfigRunState(models.TextChoices):
 
 
 class DAGConfigRun(Base, WithStatus):
+    STATUS_MAPPINGS = {
+        DAGConfigRunState.SUCCESS: WithStatus.SUCCESS,
+        DAGConfigRunState.RUNNING: WithStatus.PENDING,
+        DAGConfigRunState.FAILED: WithStatus.ERROR,
+    }
+
     class Meta:
         ordering = ("-last_refreshed_at",)
 
@@ -309,6 +317,6 @@ class DAGConfigRun(Base, WithStatus):
     @property
     def status(self):
         try:
-            return DAGConfigRunState[self.airflow_state]
+            return self.STATUS_MAPPINGS[self.airflow_state]
         except KeyError:
             return WithStatus.UNKNOWN
