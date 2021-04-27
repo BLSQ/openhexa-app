@@ -271,13 +271,6 @@ If you need to run a command in a pod, you can use the following:
 kubectl exec -it deploy/app-deployment -n hexa-app -- bash
 ```
 
-Once the deployment is complete, you can get the public IP of the load balancer and create a DNS record that points
-to it:
-
-```bash
-kubectl get service app-service -n hexa-app
-```
-
 Building the Docker image
 -------------------------
 

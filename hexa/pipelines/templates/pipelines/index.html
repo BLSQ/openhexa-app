@@ -1,0 +1,69 @@
+{% extends "layouts/page.html" %}
+{% load i18n embed static date_utils %}
+
+{% block page_title %}{% translate "Data pipelines" %}{% endblock %}
+
+{% block page_content %}
+    {% embed "core/components/section/page_section.html" %}
+        {% slot header %}
+            {% include "core/components/section/section_heading_simple.html" with title=_("Pipeline Environments") %}
+        {% endslot %}
+        {% slot content %}
+            {% embed "core/components/table/table.html" %}
+                {% slot header_cells %}
+                    {% include "core/components/table/header_cell.html" with label=_("Name") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Owner") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Location") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Content") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Last sync") %}
+                    {% include "core/components/table/header_cell.html" with label=_("View") sr_only=True %}
+                {% endslot %}
+                {% slot rows %}
+                    {% for environment_index in environment_indexes %}
+                        {% static environment_index.app_label|add:"/img/symbol.svg" as symbol_src %}
+                        <tr>
+                            {# Name and type #}
+                            {% embed "core/components/table/cell_first_with_image.html" with image_src=symbol_src url=environment_index.detail_url %}
+                                {% slot top %}{{ environment_index.name }}{% endslot %}
+                                {% slot bottom %}{{ environment_index.content_type_name }}{% endslot %}
+                            {% endembed %}
+                            {# Owner #}
+                            {% embed "core/components/table/cell_multiline.html" %}
+                                {% slot top %}{{ environment_index.owner.display_name|default:"-" }}{% endslot %}
+                                {% slot bottom %}
+                                    {{ environment_index.owner.get_organization_type_display }}{% endslot %}
+                            {% endembed %}
+                            {# Location #}
+                            {% embed "core/components/table/cell.html" %}
+                                {% slot label %}
+                                    {% include "core/components/table/location.html" with countries=environment_index.countries %}
+                                {% endslot %}
+                            {% endembed %}
+                            {# Content #}
+                            {% include "core/components/table/cell.html" with label=environment_index.content_summary %}
+                            {# Sync #}
+                            {% embed "core/components/table/cell_multiline.html" %}
+                                {% slot top %}
+                                    {% if environment_index.last_synced_at|about_now %}
+                                        {% translate "Just now" %}
+                                    {% elif environment_index.last_synced_at %}
+                                        {{ environment_index.last_synced_at|timesince }} {% translate "ago" %}
+                                    {% else %}
+                                        {% translate "Never synced" %}
+                                    {% endif %}
+                                {% endslot %}
+                                {% slot bottom %}
+                                    {% translate "Daily" %}
+                                {% endslot %}
+                            {% endembed %}
+                            {# View #}
+                            {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
+                        </tr>
+                    {% empty %}
+                        {% include "core/components/table/cell_empty.html" with colspan=6 %}
+                    {% endfor %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

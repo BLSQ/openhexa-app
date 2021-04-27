@@ -1,5 +1,5 @@
 {% extends "partials/page_card_with_header.html" %}
-{% load static i18n %}
+{% load date_utils i18n static %}
 
 {% block card_header_title %}
     {{ indicator.name }}
@@ -25,7 +25,7 @@
     </button>
     <button type="button"
             class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        {% include "partials/icons/pencil_alt.html" %}
+        {% include "core/components/icons/pencil_alt.html" %}
         <span class="ml-2">{% translate "Edit" %}</span>
     </button>
 {% endblock %}
@@ -102,7 +102,7 @@
                 {% translate "External access" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.external_access|yesno:_("Yes,No") }}
+                {{ indicator.dhis2_external_access|yesno:_("Yes,No") }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -118,7 +118,7 @@
                 {% translate "Creation date" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.created|date:"M d, H:i:s (e)" }}
+                {{ indicator.created|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">
@@ -126,7 +126,7 @@
                 {% translate "Last update" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ indicator.last_updated|date:"M d, H:i:s (e)" }}
+                {{ indicator.last_updated|date_format }}
             </dd>
         </div>
         <div class="sm:col-span-1">

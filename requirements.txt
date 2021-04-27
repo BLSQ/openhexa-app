@@ -15,3 +15,6 @@ dhis2.py==2.*
 
 # connector_s3
 s3fs==0.*
+
+# connector_airflow
+google-auth==1.*

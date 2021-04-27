@@ -1,0 +1,8 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/elements/badges#component-879455c9558517ae6e4747f957e4ff8a #}
+<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ color }}-100 text-{{ color }}-800">
+      {% slot label %}{{ label|default:_("Missing label") }}{% endslot %}
+    </span>
+</td>
