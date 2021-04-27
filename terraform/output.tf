@@ -1,3 +1,6 @@
+output "gcp_sql_instance_connection_name" {
+  value = google_sql_database_instance.hexa.connection_name
+}
 output "gcp_sql_database_name" {
   value = google_sql_database.hexa.name
 }
@@ -25,4 +28,8 @@ output "hexa_domain" {
 }
 output "NODE_POOL_SELECTOR" {
   value = google_container_cluster.hexa.node_pool.0.name
+}
+
+output "kubernetes_namespace" {
+  value = kubernetes_namespace.hexa.metadata.0.name
 }

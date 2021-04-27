@@ -7,9 +7,6 @@ on:
       namespace:
         description: Namespace
         required: true
-    output_file_path:
-        description: Get outputs from file
-        required: true
   
 
 jobs:
@@ -67,96 +64,27 @@ jobs:
            
       # Get outputs from file
       - name: Terraform Output
-        run: terraform output >> "$output_file_path"
+        run: terraform output -json >> ./output.json
         
-      # Export variables from output file
-      - name: Export Variables
-        run: |
-          sed -i 's/ //g' ${{ github.event.inputs.output_file_path }} && sed -i 's/"//g' ${{ github.event.inputs.output_file_path }}
-          . $output_file_path
-
-      # Get the connection string of your Cloud SQL instance and add it into $output_file_path
-      - name: Export Variables
-        run: |
-         gcloud sql instances describe $gcp_sql_database_name  >> instance_description.yaml
-         ConnectionName=$(yq -r .connectionName test.yaml)
-         rm instance_description.yaml
-         echo CLOUDSQL_CONNECTION_STRING=$ConnectionName >> ${{ github.event.inputs.output_file_path }}  
 
       # Make sure that the kubectl utility can access the newly created cluster
       - name: Access to cluster
         run: |
-         gcloud container clusters get-credentials $gcp_gke_cluster_name --zone $gcp_gke_cluster_zone
- 
-      # Create a specific Kubernetes namespace
-      - name: Create a Kubernetes namespace
-        run: |
-         kubectl create namespace ${{ github.event.inputs.namesapce }} 
-
-      # Create a secret for the Cloud SQL proxy
-      - name : Create a secret
-        run: |
-         kubectl create secret generic cloudsql-oauth-credentials -n  ${{ github.event.inputs.namesapce }} 
-         
-      # Generate a secret key for the Django app
-      - name: Generate a secret key
-        run: |
-         SECRET_KEY=$(docker-compose run app manage generate_secret_key)
-
-      # Create a secret for the Django environment variables
-      - name: Create a secret for the Django environment variables
-        run: |
-         kubectl create secret generic app-secret -n  ${{ github.event.inputs.namesapce }}  \
-         --from-literal DATABASE_USER=$gcp_sql_database_password\
-         --from-literal DATABASE_PASSWORD=$gcp_sql_database_password \
-         --from-literal DATABASE_NAME=$gcp_sql_database_password \
-         --from-literal DATABASE_PORT=5432 \
-         --from-literal SECRET_KEY=$SECRET_KEY
+         gcloud container clusters get-credentials $(terraform output -raw gcp_gke_cluster_name) --zone $(terraform output -raw gcp_gke_cluster_zone)
 
       # Copy the sample file
       - name: Copy the sample file
         run: |
          cp k8s/app.yaml.dist k8s/app.yaml
 
-      # Transform output file to YAML
-      - name: Transform output file to YAML
-        run: |
-         sed -i 's/=/: /g' ${{ github.event.inputs.output_file_path }} 
-
       # Update app file using Python
       - name: Update app file
         run: |
          python bin/update_app_file.py  \
-         ${{ github.event.inputs.output_file_path }} \
          k8s/app.yaml 
          
-       # Delete output file
-      - name: Delete output file
-        run: |
-          rm ${{ github.event.inputs.output_file_path }} 
-
       # Deploy the app component 
       - name: Deploy app
         run: |
-          kubectl apply -n ${{ github.event.inputs.namespace }}  -f k8s/app.yaml
+          kubectl apply -n ${{ github.event.inputs.namespace }} -f k8s/app.yaml
 
-
-      # Migrate
-      - name: Migration
-        run: |
-          kubectl exec deploy/app-deployment -n  ${{ github.event.inputs.namesapce }}  -- python manage.py migrate
-          
-      # Load fixtures
-      - name: Load fixtures
-        run: |
-          kubectl exec deploy/app-deployment -n  ${{ github.event.inputs.namesapce }}  -- python manage.py loaddata demo.json
-
-      # Need to run a command in a pod
-      - name: Run command in pod
-        run: |
-          kubectl exec -it deploy/app-deployment -n  ${{ github.event.inputs.namesapce }}  -- bash
-
-      # Get the public IP of the load balancer
-      - name: Get public IP of load balancer
-        run: |
-          kubectl get service app-service -n  ${{ github.event.inputs.namesapce }} 

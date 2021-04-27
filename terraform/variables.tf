@@ -4,7 +4,7 @@ variable "gcp_project_id" {
 }
 # Cloud SQL instance
 variable "gcp_sql_instance_name" {
-  default = "hexa-app"
+  default = "hexa-main"
 }
 variable "gcp_sql_instance_region" {
   default     = "europe-west1"
@@ -26,55 +26,75 @@ variable "gcp_sql_user_name" {
 
 #Service account for the Cloud SQL proxy
 variable "account_id" {
-  default = "cloud-sql-proxy"
+  default = "hexa-cloud-sql-proxy"
 }
 variable "display_name" {
-  default = "cloud-sql-proxy"
+  default = "hexa-cloud-sql-proxy"
 }
 
 #GKE cluster
 variable "gcp_gke_cluster_zone" {
-  default = "europe-west1-b"
+  default     = "europe-west1-b"
   description = "The zone for the GKE cluster"
 }
 variable "gcp_gke_cluster_name" {
-  default = "hexa-main"
+  default     = "hexa-main"
   description = "name of cluster"
 }
 variable "gcp_gke_default_machine_type" {
-  default = "n2-standard-2"
+  default     = "n2-standard-2"
   description = " GCP machine type"
 }
 variable "gcp_gke_default_pool_name" {
-  default = "default-pool-n2s2"
+  default = "default-pool"
 }
-variable "gcp_gke_default_node_pool_labels" {
+variable "gcp_gke_user_machine_type" {
+  default     = "n2-highmem-2"
+  description = " GCP machine type"
+}
+variable "gcp_gke_user_node_pool_name" {
+  default = "user-pool-n2h2"
+}
+variable "gcp_gke_user_node_pool_zone" {
+  default = "europe-west1-b"
+}
+variable "gcp_gke_user_node_pool_labels" {
   default = {
-    "hub.jupyter.org/node-purpose" = "default"
+    "hub.jupyter.org/node-purpose" = "user"
   }
 }
-variable "gcp_gke_default_node_pool_taint_effect" {
+variable "gcp_gke_user_node_pool_taint_effect" {
   default = "NO_SCHEDULE"
 }
-variable "gcp_gke_default_node_pool_taint_key" {
+variable "gcp_gke_user_node_pool_taint_key" {
   default = "hub.jupyter.org_dedicated"
 }
-variable "gcp_gke_default_node_pool_taint_value" {
-  default = "default"
+variable "gcp_gke_user_node_pool_taint_value" {
+  default = "user"
 }
 
 # Global IP address
 variable "gcp_global_address_name" {
-  default = "openhexa-test"
+  default = "hexa-test-app"
 }
 
 # Bucket
 variable "gcp_bucket_name" {
-  default = "hexa-app"
+  default     = "hexa-app"
   description = "Bucket name"
 }
 variable "gcp_bucket_location" {
-  default = "EU"
+  default     = "EU"
   description = "Bucket location"
 }
 
+# Kubernetes
+variable "kubernetes_namespace_name" {
+  default = "hexa-app"
+}
+variable "kubernetes_secret_sql_proxy_name" {
+  default = "hexa-cloudsql-oauth-credentials"
+}
+variable "kubernetes_secret_django_name" {
+  default = "app-secret"
+}

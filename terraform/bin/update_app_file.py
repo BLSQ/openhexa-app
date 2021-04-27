@@ -1,8 +1,9 @@
 import sys
 import yaml
+import json
 
-terraform_output_file_path = sys.argv[1]
-config_file_path = sys.argv[2]
+terraform_output_file_path = "./output.json"
+config_file_path = sys.argv[1]
 HEXA_APP_IMAGE = "blsq/openhexa-app:latest"
 
 
@@ -10,26 +11,26 @@ print(f"Config Map using Terraform output")
 
 # Open & load the terraform output file to fetch relevant project config values
 with open(terraform_output_file_path, "r") as terraform_output_file:
-    terraform_output = yaml.load(terraform_output_file, Loader=yaml.FullLoader)
+    terraform_output = json.load(terraform_output_file)
 
     # Open and load the project config file and update it with the values from the terraform output
     with open(config_file_path, "r+") as project_config_file:
         config = list(yaml.load_all(project_config_file, Loader=yaml.FullLoader))
-        config[0]["data"]["ALLOWED_HOSTS"] = terraform_output.get("hexa_domain")
+        config[0]["data"]["ALLOWED_HOSTS"] = terraform_output["hexa_domain"]["value"]
         config[1]["spec"]["template"]["spec"]["nodeSelector"][
             "cloud.google.com/gke-nodepool"
         ] = terraform_output.get("NODE_POOL_SELECTOR")
         config[1]["spec"]["template"]["spec"]["containers"][0]["image"] = HEXA_APP_IMAGE
         config[1]["spec"]["template"]["spec"]["containers"][0]["readinessProbe"][
             "httpGet"
-        ]["httpHeaders"][0]["value"] = terraform_output.get("hexa_domain")
+        ]["httpHeaders"][0]["value"] = terraform_output["hexa_domain"]["value"]
         config[1]["spec"]["template"]["spec"]["containers"][1]["command"][
             2
-        ] = f"-instances=\"{terraform_output.get('CLOUDSQL_CONNECTION_STRING')}\"=tcp:5432"
-        config[2]["spec"]["domains"][0] = terraform_output.get("hexa_domain")
+        ] = f"-instances={terraform_output['gcp_sql_instance_connection_name']['value']}=tcp:5432"
+        config[2]["spec"]["domains"][0] = terraform_output["hexa_domain"]["value"]
         config[4]["metadata"]["annotations"][
             "kubernetes.io/ingress.global-static-ip-name"
-        ] = terraform_output.get("gcp_global_address")
+        ] = terraform_output["gcp_global_address"]["value"]
 
         # Write back the updated file data to disk
         # (We need to truncate the file first, as we want to overwrite its content with the updated config)
