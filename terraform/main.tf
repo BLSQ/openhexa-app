@@ -1,3 +1,12 @@
+terraform {
+  backend "s3" {
+    bucket  = "terraform-openhexa-app-state"
+    key     = "openhexa-app-test/terraform.tfstate"
+    region  = "eu-central-1"
+    encrypt = true
+  }
+}
+
 provider "google" {
   project = var.gcp_project_id
 }
