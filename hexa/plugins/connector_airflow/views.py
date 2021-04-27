@@ -81,10 +81,24 @@ def dag_config_run(request, cluster_id, dag_id, dag_config_id):
     return redirect(request.META.get("HTTP_REFERER"))
 
 
+def dag_config_list(request, cluster_id, dag_id):
+    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
+    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
+
+    return render(
+        request,
+        "connector_airflow/components/dag_config_list.html",
+        {
+            "dag": dag,
+            "dag_configs": dag_configs,
+        },
+    )
+
+
 def dag_config_run_list(request, cluster_id, dag_id):
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
     dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter(
         dag_config__dag=dag

@@ -34,6 +34,8 @@ function AutoRefresh(url, delay) {
                 this.refreshedHtml = await response.text();
             } catch (e) {
                 console.error(`Error while submitting form: ${e}`);
+            } finally {
+                clearInterval(this.interval);
             }
         },
     }
