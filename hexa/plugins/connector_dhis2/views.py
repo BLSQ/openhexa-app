@@ -18,7 +18,7 @@ def datasource_detail(request, datasource_id):
 
     return render(
         request,
-        "connector_dhis2/datasource_detail.html",
+        "connector_dhis2/instance_detail.html",
         {
             "datasource": datasource,
             "data_elements_list_params": build_summary_list_params(
@@ -33,7 +33,7 @@ def datasource_detail(request, datasource_id):
                 ],
                 paginated_list_url="connector_dhis2:data_element_list",
                 item_name=_("data element"),
-                item_template="connector_dhis2/partials/data_element_list_item.html",
+                item_template="connector_dhis2/components/data_element_list_item.html",
             ),
             "indicators_list_params": build_summary_list_params(
                 datasource.indicator_set.all(),
@@ -47,7 +47,7 @@ def datasource_detail(request, datasource_id):
                 ],
                 paginated_list_url="connector_dhis2:indicator_list",
                 item_name=_("indicator"),
-                item_template="connector_dhis2/partials/indicator_list_item.html",
+                item_template="connector_dhis2/components/indicator_list_item.html",
             ),
             "breadcrumbs": breadcrumbs,
         },
@@ -82,7 +82,7 @@ def data_element_list(request, datasource_id):
                     _("Last update"),
                 ],
                 item_name=_("data element"),
-                item_template="connector_dhis2/partials/data_element_list_item.html",
+                item_template="connector_dhis2/components/data_element_list_item.html",
             ),
             "breadcrumbs": breadcrumbs,
         },
@@ -141,7 +141,7 @@ def indicator_list(request, datasource_id):
                     _("Last update"),
                 ],
                 item_name=_("indicator"),
-                item_template="connector_dhis2/partials/indicator_list_item.html",
+                item_template="connector_dhis2/components/indicator_list_item.html",
             ),
             "breadcrumbs": breadcrumbs,
         },
