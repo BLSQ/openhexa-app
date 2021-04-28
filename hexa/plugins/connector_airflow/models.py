@@ -140,14 +140,8 @@ class DAG(Pipeline):
     objects = DAGQuerySet.as_manager()
 
     @property
-    def last_executed_at(self):
-        last_config_run = (
-            DAGConfigRun.objects.filter(dag_config__dag=self)
-            .order_by("-airflow_execution_date")
-            .first()
-        )
-
-        return last_config_run.airflow_execution_date if last_config_run else None
+    def last_run(self):
+        return DAGConfigRun.objects.get_last_for_dag_and_config(dag=self)
 
     @property
     def content_summary(self):
@@ -194,20 +188,8 @@ class DAGConfig(RichContent):
         )
 
     @property
-    def last_executed_at(self):
-        last_config_run = self.dagconfigrun_set.order_by(
-            "-airflow_execution_date"
-        ).first()
-
-        return last_config_run.airflow_execution_date if last_config_run else None
-
-    @property
-    def last_run_state(self):
-        last_config_run = self.dagconfigrun_set.order_by(
-            "-airflow_execution_date"
-        ).first()
-
-        return last_config_run.airflow_state if last_config_run else None
+    def last_run(self):
+        return DAGConfigRun.objects.get_last_for_dag_and_config(dag_config=self)
 
     def run(self):
         # TODO: move in API module
@@ -277,6 +259,15 @@ class DAGConfigRunQuerySet(models.QuerySet):
 
     def filter_by_dag(self, dag):
         return self.filter(dag_config__dag=dag)
+
+    def get_last_for_dag_and_config(self, *, dag=None, dag_config=None):
+        qs = self.all()
+        if dag is not None:
+            qs = qs.filter(dag_config__dag=dag)
+        if dag_config is not None:
+            qs = qs.filter(dag_config=dag_config)
+
+        return qs.order_by("-airflow_execution_date").first()
 
 
 class DAGConfigRunState(models.TextChoices):

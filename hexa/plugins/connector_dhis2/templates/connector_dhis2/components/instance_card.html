@@ -7,14 +7,14 @@
             {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
                 {% slot actions %}
                     {% url "connector_dhis2:instance_sync" instance.pk as sync_url %}
-                    {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") %}
-                        {% slot icon %}
-                            {% include "core/components/icons/refresh.html" %}
-                        {% endslot %}
-                    {% endembed %}
                     {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
                         {% slot icon %}
                             {% include "core/components/icons/pencil_alt.html" %}
+                        {% endslot %}
+                    {% endembed %}
+                    {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") variant="primary" %}
+                        {% slot icon %}
+                            {% include "core/components/icons/refresh.html" %}
                         {% endslot %}
                     {% endembed %}
                 {% endslot %}
