@@ -2,13 +2,13 @@
 
 {% embed "core/components/card/card.html" %}
     {% slot heading %}
-        {% with title=cluster.display_name subtitle=cluster.description|default:_("No description") symbol_alt=_("Airflow") %}
+        {% with title=cluster.name subtitle=cluster.description|default:_("No description") symbol_alt=_("Airflow") %}
             {% static "connector_airflow/img/symbol.svg" as symbol_src %}
             {% embed "core/components/card/heading_with_image_and_actions.html" with title=title subtitle=subtitle image_src=symbol_src image_alt=symbol_alt %}
                 {% slot actions %}
                     {% embed "core/components/card/heading_action.html" with label=_("Edit") %}
                         {% slot icon %}
-                            {% include "core/components/icons/pencil_alt.html" with mr=2 %}
+                            {% include "core/components/icons/pencil_alt.html" %}
                         {% endslot %}
                     {% endembed %}
                 {% endslot %}
@@ -16,42 +16,42 @@
         {% endwith %}
     {% endslot %}
     {% slot content %}
-        {% embed "core/components/description_list/description_list.html" %}
+        {% embed "core/components/description_list/list.html" %}
             {% slot content %}
                 {# Name #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Cluster name") %}
+                {% embed "core/components/description_list/item.html" with term=_("Cluster name") %}
                     {% slot definition %}{{ cluster.name }}{% endslot %}
                 {% endembed %}
                 {# URL #}
-                {% embed "core/components/description_list/list_item.html" with term=_("URL") %}
+                {% embed "core/components/description_list/item.html" with term=_("URL") %}
                     {% slot definition %}
                         {% if cluster.url %}
-                            {% include "core/components/description_list/link.html" with url=cluster.url label=cluster.url %}
+                            {% include "core/components/description_list/item_link.html" with url=cluster.url label=cluster.url %}
                         {% else %}
                             -
                         {% endif %}
                     {% endslot %}
                 {% endembed %}
                 {# Content #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Content") %}
+                {% embed "core/components/description_list/item.html" with term=_("Content") %}
                     {% slot definition %}
                         {{ cluster.content_summary|default:"-" }}
                     {% endslot %}
                 {% endembed %}
                 {# Location #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Location") %}
+                {% embed "core/components/description_list/item.html" with term=_("Location") %}
                     {% slot definition %}
-                        {% include "core/components/description_list/location.html" with countries=cluster.countries %}
+                        {% include "core/components/description_list/item_location.html" with countries=cluster.countries %}
                     {% endslot %}
                 {% endembed %}
                 {# Owner #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Owner") %}
+                {% embed "core/components/description_list/item.html" with term=_("Owner") %}
                     {% slot definition %}
                         {% if cluster.owner %}
                             {{ cluster.owner.name }}
                             ({{ cluster.owner.get_organization_type_display }})
                             {% if cluster.owner.url %}
-                                {% include "core/components/description_list/link.html" with url=cluster.owner.url label=_("Official website") %}
+                                {% include "core/components/description_list/item_link.html" with url=cluster.owner.url label=_("Official website") %}
                             {% endif %}
                         {% else %}
                             -
@@ -59,7 +59,7 @@
                     {% endslot %}
                 {% endembed %}
                 {# Contact #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Contact") %}
+                {% embed "core/components/description_list/item.html" with term=_("Contact") %}
                     {% slot definition %}
                         {% if cluster.owner.contact_info %}
                             {{ cluster.owner.contact_info|linebreaks|urlize }}
@@ -69,9 +69,9 @@
                     {% endslot %}
                 {% endembed %}
                 {# Tags #}
-                {% embed "core/components/description_list/list_item.html" with term=_("Tags") %}
+                {% embed "core/components/description_list/item.html" with term=_("Tags") %}
                     {% slot definition %}
-                        {% include "core/components/description_list/tags.html" with tags=cluster.tags %}
+                        {% include "core/components/description_list/item_tags.html" with tags=cluster.tags %}
                     {% endslot %}
                 {% endembed %}
             {% endslot %}

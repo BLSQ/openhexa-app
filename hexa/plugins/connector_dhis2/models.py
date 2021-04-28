@@ -30,7 +30,6 @@ class Instance(Datasource):
         verbose_name = "DHIS2 Instance"
         ordering = ("name",)
 
-    dhis2_url = models.URLField()
     dhis2_api_url = models.URLField()
     dhis2_api_username = models.CharField(max_length=200)  # TODO: secure
     dhis2_api_password = models.CharField(max_length=200)  # TODO: secure
@@ -102,7 +101,7 @@ class Instance(Datasource):
             description=self.description,
             countries=self.countries,
             last_synced_at=self.last_synced_at,
-            detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
+            detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
             content_summary=self.content_summary,
         )
         for permission in self.instancepermission_set.all():

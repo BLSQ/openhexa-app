@@ -1,28 +1,29 @@
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
 from .models import Instance
 
 
-def datasource_detail(request, datasource_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def instance_detail(request, instance_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (datasource.display_name, "connector_dhis2:datasource_detail", datasource_id),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
     ]
 
     return render(
         request,
         "connector_dhis2/instance_detail.html",
         {
-            "datasource": datasource,
+            "instance": instance,
             "data_elements_list_params": build_summary_list_params(
-                datasource.dataelement_set.all(),
+                instance.dataelement_set.all(),
                 title=_("Data elements"),
                 columns=[
                     _("Name"),
@@ -31,12 +32,15 @@ def datasource_detail(request, datasource_id):
                     _("Tags"),
                     _("Last update"),
                 ],
-                paginated_list_url="connector_dhis2:data_element_list",
+                paginated_list_url=reverse(
+                    "connector_dhis2:data_element_list",
+                    kwargs={"instance_id": instance_id},
+                ),
                 item_name=_("data element"),
                 item_template="connector_dhis2/components/data_element_list_item.html",
             ),
             "indicators_list_params": build_summary_list_params(
-                datasource.indicator_set.all(),
+                instance.indicator_set.all(),
                 title=_("Indicators"),
                 columns=[
                     _("Name"),
@@ -45,7 +49,10 @@ def datasource_detail(request, datasource_id):
                     _("Tags"),
                     _("Last update"),
                 ],
-                paginated_list_url="connector_dhis2:indicator_list",
+                paginated_list_url=reverse(
+                    "connector_dhis2:indicator_list",
+                    kwargs={"instance_id": instance_id},
+                ),
                 item_name=_("indicator"),
                 item_template="connector_dhis2/components/indicator_list_item.html",
             ),
@@ -54,14 +61,14 @@ def datasource_detail(request, datasource_id):
     )
 
 
-def data_element_list(request, datasource_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def data_element_list(request, instance_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (datasource.display_name, "connector_dhis2:datasource_detail", datasource_id),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
         (_("Data Elements"),),
     ]
 
@@ -69,9 +76,9 @@ def data_element_list(request, datasource_id):
         request,
         "connector_dhis2/data_element_list.html",
         {
-            "datasource": datasource,
+            "instance": instance,
             "data_elements_list_params": build_paginated_list_params(
-                datasource.dataelement_set.all(),
+                instance.dataelement_set.all(),
                 title=_("Data elements"),
                 page_number=int(request.GET.get("page", "1")),
                 columns=[
@@ -89,16 +96,16 @@ def data_element_list(request, datasource_id):
     )
 
 
-def data_element_detail(request, datasource_id, data_element_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def data_element_detail(request, instance_id, data_element_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    data_element = get_object_or_404(datasource.dataelement_set, pk=data_element_id)
+    data_element = get_object_or_404(instance.dataelement_set, pk=data_element_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (datasource.display_name, "connector_dhis2:datasource_detail", datasource_id),
-        (_("Data Elements"), "connector_dhis2:data_element_list", datasource_id),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Elements"), "connector_dhis2:data_element_list", instance_id),
         (data_element.display_name,),
     ]
 
@@ -106,21 +113,21 @@ def data_element_detail(request, datasource_id, data_element_id):
         request,
         "connector_dhis2/data_element_detail.html",
         {
-            "datasource": datasource,
+            "instance": instance,
             "data_element": data_element,
             "breadcrumbs": breadcrumbs,
         },
     )
 
 
-def indicator_list(request, datasource_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def indicator_list(request, instance_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (datasource.display_name, "connector_dhis2:datasource_detail", datasource_id),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
         (_("Indicators"),),
     ]
 
@@ -128,9 +135,9 @@ def indicator_list(request, datasource_id):
         request,
         "connector_dhis2/indicator_list.html",
         {
-            "datasource": datasource,
+            "instance": instance,
             "indicators_list_params": build_paginated_list_params(
-                datasource.indicator_set.all(),
+                instance.indicator_set.all(),
                 title=_("Indicators"),
                 page_number=int(request.GET.get("page", "1")),
                 columns=[
@@ -148,16 +155,16 @@ def indicator_list(request, datasource_id):
     )
 
 
-def indicator_detail(request, datasource_id, indicator_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def indicator_detail(request, instance_id, indicator_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    indicator = get_object_or_404(datasource.indicator_set, pk=indicator_id)
+    indicator = get_object_or_404(instance.indicator_set, pk=indicator_id)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (datasource.display_name, "connector_dhis2:datasource_detail", datasource_id),
-        (_("Indicators"), "connector_dhis2:indicator_list", datasource_id),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Indicators"), "connector_dhis2:indicator_list", instance_id),
         (indicator.display_name,),
     ]
 
@@ -165,18 +172,18 @@ def indicator_detail(request, datasource_id, indicator_id):
         request,
         "connector_dhis2/indicator_detail.html",
         {
-            "datasource": datasource,
+            "instance": instance,
             "indicator": indicator,
             "breadcrumbs": breadcrumbs,
         },
     )
 
 
-def datasource_sync(request, datasource_id):
-    datasource = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=datasource_id
+def instance_sync(request, instance_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    sync_result = datasource.sync()
+    sync_result = instance.sync()
     messages.success(request, sync_result, extra_tags="green")
 
     return redirect(request.META.get("HTTP_REFERER"))
