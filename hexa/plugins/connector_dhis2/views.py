@@ -1,7 +1,7 @@
 import json
 
 from django.contrib import messages
-from django.http import HttpResponse
+from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -105,6 +105,7 @@ def data_element_detail(request, instance_id, data_element_id):
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     data_element = get_object_or_404(instance.dataelement_set, pk=data_element_id)
+    content_type_key = ContentType.objects.get_for_model(data_element).natural_key()
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -120,6 +121,8 @@ def data_element_detail(request, instance_id, data_element_id):
             "instance": instance,
             "data_element": data_element,
             "breadcrumbs": breadcrumbs,
+            "content_type_key": ".".join(content_type_key),
+            "object_id": data_element.id,
         },
     )
 

@@ -26,6 +26,7 @@ urlpatterns = [
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
+    path("comments/", include("hexa.comments.urls")),
     path("auth/", include("django.contrib.auth.urls")),
 ]
 

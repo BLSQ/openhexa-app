@@ -1,7 +1,7 @@
 import uuid
 
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django_countries.fields import CountryField
@@ -49,6 +49,7 @@ class RichContent(Base):
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
+    comments = GenericRelation("comments.Comment")
     name = models.CharField(max_length=200, blank=True)
     short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
@@ -105,6 +106,10 @@ class Index(Base):
     @property
     def content_type_name(self):
         return self.content_type.name
+
+    @property
+    def display_name(self):
+        return self.external_name if self.external_name != "" else self.name
 
     @property
     def summary(self):

@@ -1,0 +1,46 @@
+{% load i18n %}
+
+<li x-ref="form-container">
+    <div class="relative pb-8">
+
+        <div class="relative flex items-start space-x-3">
+            <div class="relative">
+                {% include "core/components/avatar.html" with initials=user.initials %}
+                <span class="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
+                    {% include "comments/components/chat_alt.html" %}
+                </span>
+            </div>
+            <div class="min-w-0 flex-1">
+                <form method="post" class="mb-4 text-sm text-gray-700 flex flex-col">
+                    <label for="comment" class="sr-only">{% translate "Comment" %}</label>
+                    <textarea
+                            id="comment"
+                            name="comment"
+                            rows="3"
+                            class="resize-none max-w-2xl shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md"
+                            placeholder="Add a comment"
+                            x-model="text"
+                            x-ref="textarea"
+                            @keyup="startCommenting($event)"
+                    ></textarea>
+                    <div class="flex mt-2" x-show="commenting">
+                        <button
+                                type="button"
+                                class="bg-white px-2.5 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                @click="cancel($event)"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                                type="submit"
+                                class="ml-2 inline-flex justify-center px-2.5 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                @click="submit($event)"
+                        >
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</li>

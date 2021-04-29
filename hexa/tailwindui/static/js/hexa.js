@@ -4,12 +4,6 @@
  * @param delay (in seconds)
  * @returns {{init(*): void, submit(): Promise<void>, interval: null, refreshedHtml: null}}
  * @constructor
- *
- * Usage:
- *
- * <div x-data="AutoRefresh('/some/url', 5)" x-init="init()" x-html="refreshedHtml || $el.innerHTML">
- *     <p>This content will be refreshed</p>
- * </div>
  */
 function AutoRefresh(url, delay) {
     return {
@@ -42,16 +36,10 @@ function AutoRefresh(url, delay) {
 }
 
 /**
- * Editable Card component
+ * Updatable component
  * @param url
  * @returns {{init(*): void, submit(): Promise<void>, interval: null, refreshedHtml: null}}
  * @constructor
- *
- * Usage:
- *
- * <div x-data="AutoRefresh('/some/url', 5)" x-init="init()" x-html="refreshedHtml || $el.innerHTML">
- *     <p>This content will be refreshed</p>
- * </div>
  */
 function Updatable(url) {
     return {
@@ -84,12 +72,21 @@ function Updatable(url) {
     }
 }
 
+/**
+ * Editable component
+ *
+ * @param key
+ * @param value
+ * @param originalValue
+ * @returns {{isChanged(): *, displayedValue(): *|string, originalValue, toggle(): void, value: *, key, editing: boolean}|boolean|*|string}
+ * @constructor
+ */
 function Editable(key, value, originalValue) {
     return {
         key,
         // TODO: check
         // value,
-        value : value !== "" ? value : originalValue,
+        value: value !== "" ? value : originalValue,
         originalValue,
         editing: false,
         isChanged() {
@@ -107,6 +104,57 @@ function Editable(key, value, originalValue) {
                     this.$refs.input.focus();
                     this.$refs.input.setSelectionRange(10000, 10000);
                 }, 100)
+            }
+        },
+    }
+}
+
+/**
+ * Commentable component
+ *
+ * @param url
+ * @param contentTypeKey
+ * @param objectId
+ * @returns {{cancel(*): void, submit(*): Promise<void>, startCommenting(*): void, text: string, commenting: boolean}}
+ * @constructor
+ */
+function Commentable(url, contentTypeKey, objectId) {
+    return {
+        text: "",
+        commenting: false,
+        startCommenting($event) {
+            this.commenting = $event.target.value !== "";
+        },
+        cancel($event) {
+            this.comment = "";
+            $event.target.blur();
+        },
+        async submit($event) {
+            $event.preventDefault();
+            try {
+                let formData = new FormData();
+                formData.append("text", this.text);
+                formData.append("content_type_key", contentTypeKey);
+                formData.append("object_id", objectId);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        "X-CSRFToken": document.cookie
+                            .split('; ')
+                            .find(row => row.startsWith('csrftoken='))
+                            .split('=')[1]
+                    },
+                    body: formData
+                });
+                const responseText = await response.text();
+                const newContent = document.createElement("div");
+                newContent.innerHTML = responseText;
+                this.$refs['form-container'].after(newContent.querySelector("li"));
+                this.comment = "";
+                this.$refs.textarea.focus();
+            } catch (e) {
+                console.error(`Error while submitting form: ${e}`);
             }
         },
     }
