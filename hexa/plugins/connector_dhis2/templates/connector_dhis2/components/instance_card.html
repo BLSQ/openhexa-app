@@ -3,6 +3,14 @@
 {% with title=instance.name subtitle=instance.description|default:_("No description") image_alt=_("DHIS2") %}
     {% static "connector_dhis2/img/symbol.svg" as image_src %}
     {% embed "core/components/card/card.html" %}
+        {% slot actions %}
+            {% url "connector_dhis2:instance_sync" instance.pk as sync_url %}
+            {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") variant="primary" %}
+                {% slot icon %}
+                    {% include "core/components/icons/refresh.html" %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
         {% slot content %}
             {% embed "core/components/description_list/list.html" %}
                 {% slot content %}

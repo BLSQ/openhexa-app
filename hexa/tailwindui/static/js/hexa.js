@@ -87,7 +87,9 @@ function Updatable(url) {
 function Editable(key, value, originalValue) {
     return {
         key,
-        value,
+        // TODO: check
+        // value,
+        value : value !== "" ? value : originalValue,
         originalValue,
         editing: false,
         isChanged() {
