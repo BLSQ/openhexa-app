@@ -17,7 +17,7 @@
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {{ item.code|default:"-" }}
+        {{ item.dhis2_code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-900">{{ item.get_dhis2_value_type_display }}</div>
@@ -34,10 +34,10 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if item.datasource.last_synced_at|about_now %}
+            {% if item.instance.last_synced_at|about_now %}
                 <span>{% translate "Just now" %}</span>
-            {% elif item.datasource.last_synced_at %}
-                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% elif item.instance.last_synced_at %}
+                <span>{{ item.instance.last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
                 <span>{% translate "Never synced" %}</span>
             {% endif %}

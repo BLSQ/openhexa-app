@@ -8,16 +8,16 @@
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.indicator_type.display_name }}
+                    {{ item.dhis2_indicator_type.display_name }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {{ item.code|default:"-" }}
+        {{ item.dhis2_code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.indicator_type.display_name }}</div>
+        <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}

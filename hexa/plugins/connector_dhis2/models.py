@@ -138,12 +138,22 @@ class Content(BaseContent):
         return self.name if self.name != "" else self.dhis2_name
 
     @property
+    def hexa_or_dhis2_description(self):
+        return self.description if self.description != "" else self.dhis2_description
+
+    @property
     def display_name(self):
         return (
             self.hexa_or_dhis2_short_name
             if self.hexa_or_dhis2_short_name != ""
             else self.hexa_or_dhis2_name
         )
+
+    def update(self, **kwargs):
+        for key in {"name", "short_name", 'description'} & set(kwargs.keys()):
+            setattr(self, key, kwargs[key])
+
+        self.save()
 
     def sync(self):
         raise NotImplementedError("DHIS2 Content classes should implement sync()")
