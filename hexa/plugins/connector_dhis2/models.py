@@ -145,6 +145,13 @@ class Content(BaseContent):
             else self.hexa_or_dhis2_name
         )
 
+    @property
+    def tags(self):
+        return [
+            {"label": "Must see", "color": "red", "dot": False},
+            {"label": "Great content", "color": "green", "dot": False},
+        ]
+
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
             setattr(self, key, kwargs[key])

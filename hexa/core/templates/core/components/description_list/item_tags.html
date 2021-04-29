@@ -1,9 +1,7 @@
-{% for tag in tags %}
-    <span
-            class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800"
-    >
-        {{ tag.label }}
-    </span>
-{% empty %}
-    -
-{% endfor %}
+<div class="mt-1">
+    {% for tag in tags %}
+        {% include "partials/label.html" with text=tag.label color=tag.color dot=tag.dot %}
+    {% empty %}
+        -
+    {% endfor %}
+</div>
