@@ -81,14 +81,10 @@ class Instance(Datasource):
         return (
             ""
             if de_count == 0 and i_count == 0
-            else _(
-                "%(de_count)d data element%(de_suffix)s, %(i_count)d indicator%(i_suffix)s"
-            )
+            else _("%(count)d item%(suffix)s")
             % {
-                "de_count": de_count,
-                "de_suffix": pluralize(de_count),
-                "i_count": i_count,
-                "i_suffix": pluralize(i_count),
+                "count": de_count + i_count,
+                "suffix": pluralize(de_count + i_count),
             }
         )
 
@@ -150,7 +146,7 @@ class Content(BaseContent):
         )
 
     def update(self, **kwargs):
-        for key in {"name", "short_name", 'description'} & set(kwargs.keys()):
+        for key in {"name", "short_name", "description"} & set(kwargs.keys()):
             setattr(self, key, kwargs[key])
 
         self.save()

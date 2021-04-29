@@ -1,7 +1,11 @@
+import json
+
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
 from .models import Instance
@@ -116,6 +120,26 @@ def data_element_detail(request, instance_id, data_element_id):
             "instance": instance,
             "data_element": data_element,
             "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+@require_http_methods(["POST"])
+def data_element_update(request, instance_id, data_element_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+    data_element = get_object_or_404(instance.dataelement_set, pk=data_element_id)
+
+    update_data = json.loads(request.body)
+    data_element.update(**update_data)
+
+    return render(
+        request,
+        "connector_dhis2/components/data_element_card.html",
+        {
+            "instance": instance,
+            "data_element": data_element,
         },
     )
 

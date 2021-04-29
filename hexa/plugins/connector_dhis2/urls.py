@@ -17,6 +17,11 @@ urlpatterns = [
         name="data_element_detail",
     ),
     path(
+        "<str:instance_id>/data-elements/<str:data_element_id>/update",
+        views.data_element_update,
+        name="data_element_update",
+    ),
+    path(
         "<str:instance_id>/indicators/",
         views.indicator_list,
         name="indicator_list",

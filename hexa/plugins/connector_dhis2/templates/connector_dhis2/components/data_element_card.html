@@ -1,153 +1,101 @@
-{% extends "partials/page_card_with_header.html" %}
-{% load date_utils i18n static %}
+{% load date_utils embed i18n static %}
 
-{% block card_header_title %}
-    {{ data_element.name }}
-{% endblock %}
-
-{% block card_header_image %}
-    <img class="h-10 w-10 rounded-full mr-2"
-         src="{% static "connector_dhis2/img/symbol.svg" %}"
-         alt="{% translate "DHIS2" %}"
-    >
-{% endblock %}
-
-{% block card_header_description %}
-    {{ data_element.get_domain_type_display }}
-{% endblock %}
-
-{% block card_header_actions %}
-    <button type="button"
-            class="mr-4 relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        {% include "partials/icons/external_link.html" %}
-        <span class="ml-2">{% translate "Extract" %}</span>
-    </button>
-    <button type="button"
-            class="relative inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        {% include "core/components/icons/pencil_alt.html" %}
-        <span class="ml-2">{% translate "Edit" %}</span>
-    </button>
-{% endblock %}
-
-{% block card_content %}
-    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-        <div class="sm:col-span-2 max-w-4xl">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Labels" %}
-            </dt>
-            <dd class="mt-1 py-1 text-sm text-gray-900 flex items-center">
-                {% include "partials/label.html" with text="Must see" color="red" dot=False %}
-                {% include "partials/label.html" with text="Great content" color="green" dot=False %}
-                {% include "partials/label_button.html"  with text="Add label" %}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Datasource" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                <a
-                        class="text-blue-600 hover:text-blue-900"
-                        href="{% url "connector_dhis2:instance_detail" instance.pk %}"
-                >
-                    {{ datasource.name }}
-                </a>
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "DHIS2 id" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                <div class="flex items-center align-center">
-                    {{ data_element.dhis2_id }}
-                </div>
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Domain Type" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                <div class="flex items-center align-center">
-                    <span class="text-gray-500 mr-1">
-                        {% include "connector_dhis2/components/data_element_domain_type_icon.html" %}
-                    </span>
-                    {{ data_element.get_domain_type_display }}
-                </div>
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Short name" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.short_name|default:"-" }}
-            </dd>
-        </div>
-        <div class="sm:col-span-2 max-w-4xl">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Description" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.description|default:"-" }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Value type" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_dhis2_value_type_display }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Aggregation type" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.get_dhis2_aggregation_type_display }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "External access" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_external_access|yesno:_("Yes,No") }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Favorite" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_favorite|yesno:_("Yes,No") }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Creation date" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_created|date_format }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Last update" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {{ data_element.dhis2_last_updated|date_format }}
-            </dd>
-        </div>
-        <div class="sm:col-span-1">
-            <dt class="text-sm font-medium text-gray-500">
-                {% translate "Last sync" %}
-            </dt>
-            <dd class="mt-1 text-sm text-gray-900">
-                {% include "catalog/partials/datasource_sync_info.html" %}
-            </dd>
-        </div>
-    </dl>
-{% endblock %}
+{% with title=data_element.hexa_or_dhis2_name subtitle=data_element.hexa_or_dhis2_description|default:_("No description") image_alt=_("DHIS2") %}
+    {% url "connector_dhis2:data_element_update" data_element.instance.pk data_element.pk as update_url %}
+    {% static "connector_dhis2/img/symbol.svg" as image_src %}
+    {% embed "core/components/card/card.html" %}
+        {% slot actions %}
+            {% include "core/components/card/heading_action.html" with label=_("Extract") icon="filter" variant="primary" %}
+        {% endslot %}
+        {% slot content %}
+            {% embed "core/components/description_list/list.html" %}
+                {% slot content %}
+                    {# Name #}
+                    {% with key="name" value=data_element.name original_value=data_element.dhis2_name %}
+                        {% include "connector_dhis2/components/description_list/item_editable.html" with term=_("Name") %}
+                    {% endwith %}
+                    {# Short name #}
+                    {% with key="short_name" value=data_element.short_name original_value=data_element.dhis2_short_name %}
+                        {% include "connector_dhis2/components/description_list/item_editable.html" with term=_("Short name") %}
+                    {% endwith %}
+                    {# Description #}
+                    {% with key="description" value=data_element.description original_value=data_element.dhis2_description %}
+                        {% include "connector_dhis2/components/description_list/item_editable.html" with term=_("Description") %}
+                    {% endwith %}
+                    {# Location #}
+                    {% embed "core/components/description_list/item.html" with term=_("Location") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/item_location.html" with countries=data_element.countries %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Tags #}
+                    {% embed "core/components/description_list/item.html" with term=_("Tags") %}
+                        {% slot definition %}
+                            {% include "core/components/description_list/item_tags.html" with tags=data_element.tags %}
+                        {% endslot %}
+                    {% endembed %}
+                    {# Last sync #}
+                    {% embed "core/components/description_list/item.html" with term=_("Last synced") %}
+                        {% slot definition %}
+                            {{ data_element.instance.last_synced_at|date_format|default:_("Never") }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 ID #}
+                    {% embed "core/components/description_list/item.html" with term=_("Id") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_id }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Code #}
+                    {% embed "core/components/description_list/item.html" with term=_("Code") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_code }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Domain Type #}
+                    {% embed "core/components/description_list/item.html" with term=_("Domain Type") %}
+                        {% slot definition %}
+                            {{ data_element.get_dhis2_domain_type_display }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Value Type #}
+                    {% embed "core/components/description_list/item.html" with term=_("Value Type") %}
+                        {% slot definition %}
+                            {{ data_element.get_dhis2_value_type_display }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Aggregation Type #}
+                    {% embed "core/components/description_list/item.html" with term=_("Aggregation Type") %}
+                        {% slot definition %}
+                            {{ data_element.get_dhis2_aggregation_type_display }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 External Access #}
+                    {% embed "core/components/description_list/item.html" with term=_("External Access") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_external_access|yesno:_("Yes,No") }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Favorite #}
+                    {% embed "core/components/description_list/item.html" with term=_("Favorite") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_favorite|yesno:_("Yes,No") }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Created #}
+                    {% embed "core/components/description_list/item.html" with term=_("Creation date") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_created|date_format }}
+                        {% endslot %}
+                    {% endembed %}
+                    {# DHIS2 Last Updated #}
+                    {% embed "core/components/description_list/item.html" with term=_("Last Updated") %}
+                        {% slot definition %}
+                            {{ data_element.dhis2_last_updated|date_format }}
+                        {% endslot %}
+                    {% endembed %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
+    {% endembed %}
+{% endwith %}
