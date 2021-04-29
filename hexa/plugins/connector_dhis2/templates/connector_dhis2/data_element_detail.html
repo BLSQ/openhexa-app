@@ -4,5 +4,5 @@
 
 {% block page_content %}
     {% include "connector_dhis2/components/data_element_card.html" %}
-    {% include "comments/components/feed.html" with comments=data_element.comments.all %}
+    {% include "comments/page_section_comments.html" with comments=data_element.comments.all %}
 {% endblock %}

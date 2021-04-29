@@ -1,0 +1,9 @@
+{% load embed %}
+
+{% embed "core/components/section/page_section.html" %}
+    {% slot extra_wrapper_attrs %}
+        x-data="AutoRefresh('{{ refresh_url }}', {{ refresh_delay|default:10 }})"
+        x-init="init($el)"
+        x-html="refreshedHtml"
+    {% endslot %}
+{% endembed %}
