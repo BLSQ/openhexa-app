@@ -1,3 +1,8 @@
-<span class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-gray-500">
-  <span class="font-medium leading-none text-white">{{ initials|upper }}</span>
-</span>
+{% load colors %}
+
+<div
+        class="inline-flex items-center justify-center h-10 w-10 rounded-full"
+        style="background-color: {{ user.username|hash_color }}"
+>
+    <span class="font-medium text-md leading-none text-white">{{ user.initials|upper }}</span>
+</div>

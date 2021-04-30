@@ -1,5 +1,6 @@
 import enum
 
+from colorhash import ColorHash
 from django import template as django_template
 from django.template import TemplateSyntaxError
 
@@ -67,3 +68,10 @@ def color(variant, part):
         return COLORS_WHITE[part]
 
     raise TemplateSyntaxError(f'Invalid variant "{variant}"')
+
+
+@register.filter(name="hash_color")
+def hash_color(value, mode='hex'):
+    """Generates a deterministic color value for the provided string."""
+
+    return getattr(ColorHash(value), mode)
