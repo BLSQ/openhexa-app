@@ -126,7 +126,8 @@ function Commentable(url, contentTypeKey, objectId) {
             this.commenting = $event.target.value !== "";
         },
         cancel($event) {
-            this.comment = "";
+            this.text = "";
+            this.commenting = false;
             $event.target.blur();
         },
         async submit($event) {
@@ -151,8 +152,8 @@ function Commentable(url, contentTypeKey, objectId) {
                 const newContent = document.createElement("div");
                 newContent.innerHTML = responseText;
                 this.$refs['form-container'].after(newContent.querySelector("li"));
-                this.comment = "";
-                this.$refs.textarea.focus();
+                this.text = "";
+                $event.target.blur();
             } catch (e) {
                 console.error(`Error while submitting form: ${e}`);
             }

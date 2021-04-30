@@ -12,7 +12,7 @@
             <div class="px-4 py-5 sm:p-6">
                 <div class="flow-root">
                     <ul class="-mb-8">
-                        {% include "comments/components/comment_form.html" %}
+                        {% include "comments/components/form.html" %}
                         {% for comment in comments %}
                             {% include "comments/components/feed_item.html" with last=forloop.last %}
                         {% endfor %}

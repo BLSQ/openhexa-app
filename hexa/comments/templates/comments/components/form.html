@@ -1,8 +1,7 @@
-{% load i18n %}
+{% load embed i18n %}
 
 <li x-ref="form-container">
-    <div class="relative pb-8">
-
+    <div class="relative pb-4">
         <div class="relative flex items-start space-x-3">
             <div class="relative">
                 {% include "core/components/avatar.html" %}
@@ -11,7 +10,7 @@
                 </span>
             </div>
             <div class="min-w-0 flex-1">
-                <form method="post" class="mb-4 text-sm text-gray-700 flex flex-col">
+                <form method="post" class="text-sm text-gray-700 flex flex-col">
                     <label for="comment" class="sr-only">{% translate "Comment" %}</label>
                     <textarea
                             id="comment"
@@ -23,21 +22,13 @@
                             x-ref="textarea"
                             @keyup="startCommenting($event)"
                     ></textarea>
-                    <div class="flex mt-2" x-show="commenting">
-                        <button
-                                type="button"
-                                class="bg-white px-2.5 py-1.5 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                @click="cancel($event)"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                                type="submit"
-                                class="ml-2 inline-flex justify-center px-2.5 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                @click="submit($event)"
-                        >
-                            Save
-                        </button>
+                    <div class="h-12 flex items-center space-x-2" x-show="commenting">
+                        {% embed "core/components/buttons/button.html" with size="xs" color="neutral" label=_("Cancel") %}
+                            {% slot extra_attrs %}@click="cancel($event)"{% endslot %}
+                        {% endembed %}
+                        {% embed "core/components/buttons/button.html" with size="xs" color="primary" label=_("Save") %}
+                            {% slot extra_attrs %}@click="submit($event)"{% endslot %}
+                        {% endembed %}
                     </div>
                 </form>
             </div>

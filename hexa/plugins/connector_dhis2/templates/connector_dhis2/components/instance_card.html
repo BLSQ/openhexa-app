@@ -5,7 +5,7 @@
     {% embed "core/components/card/card.html" %}
         {% slot actions %}
             {% url "connector_dhis2:instance_sync" instance.pk as sync_url %}
-            {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") variant="primary" %}
+            {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") color="primary" %}
                 {% slot icon %}
                     {% include "core/components/icons/refresh.html" %}
                 {% endslot %}

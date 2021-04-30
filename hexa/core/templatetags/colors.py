@@ -37,24 +37,26 @@ def status_color(with_status):
         return STATUS_MAPPINGS[WithStatus.UNKNOWN].value
 
 
-class Variant(str, enum.Enum):
+class ColorVariant(str, enum.Enum):
     PRIMARY = "primary"
-    WHITE = "white"
+    NEUTRAL = "neutral"
 
 
-COLORS_PRIMARY = {
-    "border": f"{Colors.TRANSPARENT}",
-    "text": f"{Colors.WHITE}",
-    "bg": f"{Colors.BLUE}-600",
-    "hover:bg": f"{Colors.BLUE}-700",
-    "focus:ring": f"{Colors.BLUE}-500",
-}
-COLORS_WHITE = {
-    "border": f"{Colors.GRAY}-300",
-    "text": f"{Colors.GRAY}-700",
-    "bg": f"{Colors.WHITE}",
-    "hover:bg": f"{Colors.GRAY}-50",
-    "focus:ring": f"{Colors.BLUE}-500",
+COLORS = {
+    ColorVariant.PRIMARY: {
+        "border": f"{Colors.TRANSPARENT}",
+        "text": f"{Colors.WHITE}",
+        "bg": f"{Colors.BLUE}-600",
+        "hover:bg": f"{Colors.BLUE}-700",
+        "focus:ring": f"{Colors.BLUE}-500",
+    },
+    ColorVariant.NEUTRAL: {
+        "border": f"{Colors.GRAY}-300",
+        "text": f"{Colors.GRAY}-700",
+        "bg": f"{Colors.WHITE}",
+        "hover:bg": f"{Colors.GRAY}-50",
+        "focus:ring": f"{Colors.BLUE}-500",
+    },
 }
 
 
@@ -62,16 +64,14 @@ COLORS_WHITE = {
 def color(variant, part):
     """Return the color to use for the specified variant (example: primary) and part (example: border)"""
 
-    if variant == Variant.PRIMARY:
-        return COLORS_PRIMARY[part]
-    elif variant == Variant.WHITE:
-        return COLORS_WHITE[part]
-
-    raise TemplateSyntaxError(f'Invalid variant "{variant}"')
+    try:
+        return COLORS[ColorVariant(variant)][part]
+    except (KeyError, ValueError):
+        raise TemplateSyntaxError(f'Invalid color variant "{variant}"')
 
 
 @register.filter(name="hash_color")
-def hash_color(value, mode='hex'):
+def hash_color(value, mode="hex"):
     """Generates a deterministic color value for the provided string."""
 
     return getattr(ColorHash(value), mode)
