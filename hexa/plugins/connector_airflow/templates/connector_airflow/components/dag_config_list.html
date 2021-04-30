@@ -26,7 +26,7 @@
                         {# Last run at #}
                         {% include "core/components/table/cell.html" with label=config.last_run.airflow_execution_date|date_format|default:_("Never") %}
                         {# Last run state #}
-                        {% include "core/components/table/cell_badge.html" with label=config.last_run.get_airflow_state_display color=config.last_run|status_color %}
+                        {% include "core/components/table/cell_badge.html" with label=config.last_run.get_airflow_state_display|default:"None" color=config.last_run|status_color %}
                         {# Actions #}
                         {% include "core/components/table/cell_action.html" with url=run_url label=_("Run") icon="chevron_right" %}
                     </tr>

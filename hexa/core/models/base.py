@@ -108,8 +108,20 @@ class Index(Base):
         return self.content_type.name
 
     @property
+    def name_or_external_name(self):
+        return self.name if self.name != "" else self.external_name
+
+    @property
+    def short_name_or_external_short_name(self):
+        return self.short_name if self.short_name != "" else self.external_short_name
+
+    @property
     def display_name(self):
-        return self.external_name if self.external_name != "" else self.name
+        return (
+            self.short_name_or_external_short_name
+            if self.short_name_or_external_short_name != ""
+            else self.name_or_external_name
+        )
 
     @property
     def summary(self):
