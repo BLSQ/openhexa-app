@@ -22,13 +22,15 @@
                             x-ref="textarea"
                             @keyup="startCommenting($event)"
                     ></textarea>
-                    <div class="h-12 flex items-center space-x-2" x-show="commenting">
-                        {% embed "core/components/buttons/button.html" with size="xs" color="neutral" label=_("Cancel") %}
-                            {% slot extra_attrs %}@click="cancel($event)"{% endslot %}
-                        {% endembed %}
-                        {% embed "core/components/buttons/button.html" with size="xs" color="primary" label=_("Save") %}
-                            {% slot extra_attrs %}@click="submit($event)"{% endslot %}
-                        {% endembed %}
+                    <div class="h-12 flex items-center space-x-2">
+                        <div x-show="commenting">
+                            {% embed "core/components/buttons/button.html" with size="xs" color="neutral" label=_("Cancel") %}
+                                {% slot extra_attrs %}@click="cancel($event)"{% endslot %}
+                            {% endembed %}
+                            {% embed "core/components/buttons/button.html" with size="xs" color="primary" label=_("Save") %}
+                                {% slot extra_attrs %}@click="submit($event)"{% endslot %}
+                            {% endembed %}
+                        </div>
                     </div>
                 </form>
             </div>

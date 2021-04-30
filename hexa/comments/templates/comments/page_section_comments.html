@@ -1,8 +1,8 @@
-{% load embed i18n static %}
+{% load contenttypes embed i18n static %}
 
 {% embed "core/components/section/page_section.html" %}
     {% slot extra_wrapper_attrs %}
-        x-data="Commentable('{% url "comments:post_comment" %}', '{{ content_type_key }}', '{{ object_id }}')"
+        x-data="Commentable('{% url "comments:post_comment" %}', '{{ object|content_type_key }}', '{{ object.id }}')"
     {% endslot %}
     {% slot header %}
         {% include "core/components/section/section_heading_simple.html" with title=_("Feed") %}
@@ -13,7 +13,7 @@
                 <div class="flow-root">
                     <ul class="-mb-8">
                         {% include "comments/components/form.html" %}
-                        {% for comment in comments %}
+                        {% for comment in object.comments.all %}
                             {% include "comments/components/feed_item.html" with last=forloop.last %}
                         {% endfor %}
                     </ul>

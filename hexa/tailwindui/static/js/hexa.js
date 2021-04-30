@@ -119,6 +119,8 @@ function Editable(key, value, originalValue) {
  * @constructor
  */
 function Commentable(url, contentTypeKey, objectId) {
+    console.log(`Creating Commentable (url: ${url}, contentTypeKey: ${contentTypeKey}, objectId: ${objectId})`);
+
     return {
         text: "",
         commenting: false,
