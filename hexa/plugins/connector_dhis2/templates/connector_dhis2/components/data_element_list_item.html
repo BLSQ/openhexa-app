@@ -1,23 +1,27 @@
 {% load i18n date_utils %}
 
 <tr>
-    <td class="px-2 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'connector_dhis2:indicator_detail' datasource.pk item.pk %}">
+    <td class="px-6 py-4 whitespace-nowrap">
+        <a class="flex items-center" href="{% url 'connector_dhis2:data_element_detail' instance.pk item.pk %}">
+            <div class="text-gray-400">
+                {% include "connector_dhis2/components/data_element_domain_type_icon.html" with data_element=item %}
+            </div>
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.indicator_type.display_name }}
+                    {{ item.get_domain_type_display }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {{ item.code|default:"-" }}
+        {{ item.dhis2_code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.indicator_type.display_name }}</div>
+        <div class="text-sm text-gray-900">{{ item.get_dhis2_value_type_display }}</div>
+        <div class="text-sm text-gray-500">{{ item.get_dhis2_aggregation_type_display }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}
@@ -30,16 +34,16 @@
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
         <div class="text-sm font-medium text-gray-900">
-            {% if item.datasource.last_synced_at|about_now %}
+            {% if item.instance.last_synced_at|about_now %}
                 <span>{% translate "Just now" %}</span>
-            {% elif item.datasource.last_synced_at %}
-                <span>{{ item.datasource.last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% elif item.instance.last_synced_at %}
+                <span>{{ item.instance.last_synced_at|timesince }} {% translate "ago" %}</span>
             {% else %}
                 <span>{% translate "Never synced" %}</span>
             {% endif %}
         </div>
         <div class="text-sm text-gray-500">
-            Daily
+            {% translate "Daily" %}
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

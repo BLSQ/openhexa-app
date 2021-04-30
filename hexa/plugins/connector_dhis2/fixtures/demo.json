@@ -15,7 +15,7 @@
       "locale": "en",
       "created_at": "2021-01-25T15:55:37.392Z",
       "updated_at": "2021-04-08T07:22:42.989Z",
-      "dhis2_url": "https://play.dhis2.org",
+      "url": "https://play.dhis2.org",
       "dhis2_api_url": "https://play.dhis2.org/demo",
       "dhis2_api_username": "admin",
       "dhis2_api_password": "district"
@@ -37,7 +37,7 @@
       "locale": "en",
       "created_at": "2021-04-08T07:57:46.486Z",
       "updated_at": "2021-04-08T07:58:18.198Z",
-      "dhis2_url": "https://who-demos.dhis2.org/demo",
+      "url": "https://who-demos.dhis2.org/demo",
       "dhis2_api_url": "https://who-demos.dhis2.org/demo",
       "dhis2_api_username": "admin",
       "dhis2_api_password": "District#1"
@@ -59,7 +59,7 @@
       "locale": "en",
       "created_at": "2021-04-08T07:59:13.273Z",
       "updated_at": "2021-04-08T07:59:44.430Z",
-      "dhis2_url": "https://who-demos.dhis2.org/tracker_demo",
+      "url": "https://who-demos.dhis2.org/tracker_demo",
       "dhis2_api_url": "https://who-demos.dhis2.org/tracker_demo",
       "dhis2_api_username": "TB_Demo",
       "dhis2_api_password": "TBDemo2020!"

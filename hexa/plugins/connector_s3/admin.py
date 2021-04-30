@@ -15,9 +15,9 @@ class CredentialsAdmin(admin.ModelAdmin):
 
 @admin.register(Bucket)
 class BucketAdmin(admin.ModelAdmin):
-    list_display = ("name", "name", "last_synced_at")
-    list_filter = ("name",)
-    search_fields = ("name",)
+    list_display = ("s3_name", "name", "last_synced_at")
+    list_filter = ("s3_name", "name")
+    search_fields = ("s3_name", "name")
 
 
 @admin.register(Object)

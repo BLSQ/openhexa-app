@@ -36,6 +36,13 @@ class User(AbstractUser):
     def display_name(self):
         return self.username
 
+    @property
+    def initials(self):
+        if self.first_name != "" and self.last_name != "":
+            return self.first_name[0] and self.last_name[0]
+
+        return self.username[:2]
+
     def __str__(self):
         return self.display_name
 

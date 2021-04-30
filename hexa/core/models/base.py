@@ -1,7 +1,7 @@
 import uuid
 
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django_countries.fields import CountryField
@@ -49,6 +49,7 @@ class RichContent(Base):
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
+    comments = GenericRelation("comments.Comment")
     name = models.CharField(max_length=200, blank=True)
     short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
@@ -57,10 +58,10 @@ class RichContent(Base):
 
     @property
     def content_summary(self):
-        return "No content summary available"
+        return ""
 
 
-class Index(RichContent):
+class Index(Base):
     class Meta:
         verbose_name = "Pipeline Index"
         verbose_name_plural = "Pipeline indexes"
@@ -84,7 +85,9 @@ class Index(RichContent):
     description = models.TextField(blank=True)
     external_description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
+    locale = LocaleField(default="en")
     detail_url = models.URLField()
+    content_summary = models.TextField(blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
     text_search_config = PostgresTextSearchConfigField()
 
@@ -103,6 +106,22 @@ class Index(RichContent):
     @property
     def content_type_name(self):
         return self.content_type.name
+
+    @property
+    def name_or_external_name(self):
+        return self.name if self.name != "" else self.external_name
+
+    @property
+    def short_name_or_external_short_name(self):
+        return self.short_name if self.short_name != "" else self.external_short_name
+
+    @property
+    def display_name(self):
+        return (
+            self.short_name_or_external_short_name
+            if self.short_name_or_external_short_name != ""
+            else self.name_or_external_name
+        )
 
     @property
     def summary(self):

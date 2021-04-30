@@ -1,4 +1,5 @@
 {% extends "partials/page_section.html" %}
+{% load i18n %}
 
 {% block section_heading %}
     {% include "partials/section_heading_simple.html" with title="Overview" %}
@@ -22,7 +23,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm leading-5 font-medium text-cool-gray-500 truncate">
-                            Datasource{{ counts.datasources|pluralize }}
+                            {% translate "Datasources" %}
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
@@ -37,7 +38,7 @@
             <div class="text-sm leading-5">
                 <a href="{% url 'catalog:index' %}"
                    class="font-medium text-blue-600 hover:text-blue-900 transition ease-in-out duration-150">
-                    View all
+                    {% translate "View all" %}
                 </a>
             </div>
         </div>
@@ -59,7 +60,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm leading-5 font-medium text-cool-gray-500 truncate">
-                            Notebooks
+                            {% translate "Notebooks" %}
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
@@ -72,9 +73,9 @@
         </div>
         <div class="bg-cool-gray-50 px-5 py-3">
             <div class="text-sm leading-5">
-                <a href="#"
+                <a href="{% url "notebooks:index" %}"
                    class="font-medium text-blue-600 hover:text-blue-900 transition ease-in-out duration-150">
-                    View all
+                    {% translate "View all" %}
                 </a>
             </div>
         </div>
@@ -97,7 +98,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm leading-5 font-medium text-cool-gray-500 truncate">
-                            Pipelines
+                            {% translate "Pipelines" %}
                         </dt>
                         <dd>
                             <div class="text-lg leading-7 font-medium text-cool-gray-900">
@@ -110,9 +111,9 @@
         </div>
         <div class="bg-cool-gray-50 px-5 py-3">
             <div class="text-sm leading-5">
-                <a href="#"
+                <a href="{% url "pipelines:index" %}"
                    class="font-medium text-blue-600 hover:text-blue-900 transition ease-in-out duration-150">
-                    View all
+                    {% translate "View all" %}
                 </a>
             </div>
         </div>

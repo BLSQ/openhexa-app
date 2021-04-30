@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -29,7 +30,6 @@ class Instance(Datasource):
         verbose_name = "DHIS2 Instance"
         ordering = ("name",)
 
-    dhis2_url = models.URLField()
     dhis2_api_url = models.URLField()
     dhis2_api_username = models.CharField(max_length=200)  # TODO: secure
     dhis2_api_password = models.CharField(max_length=200)  # TODO: secure
@@ -75,15 +75,18 @@ class Instance(Datasource):
 
     @property
     def content_summary(self):
-        if self.last_synced_at is None:
-            return "Never synced"
+        de_count = self.dataelement_set.count()
+        i_count = self.indicator_set.count()
 
-        return _(
-            "%(data_element_count)s data elements, %(indicator_count)s indicators"
-        ) % {
-            "data_element_count": self.dataelement_set.count(),
-            "indicator_count": self.indicator_set.count(),
-        }
+        return (
+            ""
+            if de_count == 0 and i_count == 0
+            else _("%(count)d item%(suffix)s")
+            % {
+                "count": de_count + i_count,
+                "suffix": pluralize(de_count + i_count),
+            }
+        )
 
     def index(self):
         catalog_index = CatalogIndex.objects.create_or_update(
@@ -94,7 +97,8 @@ class Instance(Datasource):
             description=self.description,
             countries=self.countries,
             last_synced_at=self.last_synced_at,
-            detail_url=reverse("connector_dhis2:datasource_detail", args=(self.pk,)),
+            detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
+            content_summary=self.content_summary,
         )
         for permission in self.instancepermission_set.all():
             CatalogIndexPermission.objects.create(
@@ -130,12 +134,29 @@ class Content(BaseContent):
         return self.name if self.name != "" else self.dhis2_name
 
     @property
+    def hexa_or_dhis2_description(self):
+        return self.description if self.description != "" else self.dhis2_description
+
+    @property
     def display_name(self):
         return (
             self.hexa_or_dhis2_short_name
             if self.hexa_or_dhis2_short_name != ""
             else self.hexa_or_dhis2_name
         )
+
+    @property
+    def tags(self):
+        return [
+            {"label": "Must see", "color": "red", "dot": False},
+            {"label": "Great content", "color": "green", "dot": False},
+        ]
+
+    def update(self, **kwargs):
+        for key in {"name", "short_name", "description"} & set(kwargs.keys()):
+            setattr(self, key, kwargs[key])
+
+        self.save()
 
     def sync(self):
         raise NotImplementedError("DHIS2 Content classes should implement sync()")

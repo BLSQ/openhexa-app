@@ -10,7 +10,7 @@ from .models import (
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("dhis2_url", "name", "last_synced_at")
+    list_display = ("name", "dhis2_api_url", "last_synced_at")
     list_filter = ("name",)
     search_fields = ("name",)
 

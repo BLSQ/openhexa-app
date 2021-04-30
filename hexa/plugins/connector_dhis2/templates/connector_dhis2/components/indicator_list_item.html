@@ -1,27 +1,23 @@
 {% load i18n date_utils %}
 
 <tr>
-    <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'connector_dhis2:data_element_detail' datasource.pk item.pk %}">
-            <div class="text-gray-400">
-                {% include "connector_dhis2/partials/data_element_domain_type_icon.html" with data_element=item %}
-            </div>
+    <td class="px-2 py-4 whitespace-nowrap">
+        <a class="flex items-center" href="{% url 'connector_dhis2:indicator_detail' instance.pk item.pk %}">
             <span class="block ml-4">
                 <span class="block text-sm font-medium text-gray-900">
                     {{ item.display_name }}
                 </span>
                 <span class="block text-sm text-gray-500">
-                    {{ item.get_domain_type_display }}
+                    {{ item.dhis2_indicator_type.display_name }}
                 </span>
             </span>
         </a>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {{ item.code|default:"-" }}
+        {{ item.dhis2_code|default:"-" }}
     </td>
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ item.get_dhis2_value_type_display }}</div>
-        <div class="text-sm text-gray-500">{{ item.get_dhis2_aggregation_type_display }}</div>
+        <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
         {% for tag in item.tags %}
@@ -43,7 +39,7 @@
             {% endif %}
         </div>
         <div class="text-sm text-gray-500">
-            {% translate "Daily" %}
+            Daily
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

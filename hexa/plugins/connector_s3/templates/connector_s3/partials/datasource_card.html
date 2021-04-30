@@ -2,7 +2,7 @@
 {% load static i18n %}
 
 {% block card_header_title %}
-    {{ datasource.name }}
+    {{ datasource.s3_name }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -35,7 +35,7 @@
                 {% translate "Bucket name" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ datasource.name }}
+                {{ datasource.s3_name }}
             </dd>
         </div>
         <div class="sm:col-span-1">

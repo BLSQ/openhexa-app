@@ -24,7 +24,7 @@
                         {# Created at #}
                         {% include "core/components/table/cell.html" with label=dag.created_at|date_format %}
                         {# Last executed at #}
-                        {% include "core/components/table/cell.html" with label=dag.last_executed_at|date_format|default:_("Never") %}
+                        {% include "core/components/table/cell.html" with label=dag.last_run.airflow_execution_date|date_format|default:_("Never") %}
                         {# View #}
                         {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
                     </tr>

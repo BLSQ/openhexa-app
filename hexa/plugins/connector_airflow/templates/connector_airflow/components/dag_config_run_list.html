@@ -1,7 +1,7 @@
 {% load colors date_utils embed i18n static %}
 
 {% url "connector_airflow:dag_config_run_list" dag.cluster.id dag.id as refresh_url %}
-{% embed "core/components/section/page_section.html" with refresh_url=refresh_url id="dag_config_runs" %}
+{% embed "core/components/section/page_section_autorefresh.html" with refresh_url=refresh_url id="dag_config_runs" %}
     {% slot header %}
         {% include "core/components/section/section_heading_simple.html" with title=_("DAG configuration run") %}
     {% endslot %}
