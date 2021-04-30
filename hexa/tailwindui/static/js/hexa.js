@@ -42,6 +42,8 @@ function AutoRefresh(url, delay) {
  * @constructor
  */
 function Updatable(url) {
+    console.log(`Creating Updatable (url: ${url})`);
+
     return {
         editing: [],
         updates: {},

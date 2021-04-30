@@ -77,7 +77,7 @@
                         {% endslot %}
                     {% endembed %}
                     {# DHIS2 Favorite #}
-                    {% embed "core/components/description_list/item.html" with term=_("Favorite") %}
+                    {% embed "core/components/description_list/item.html" with term=_("Favorite") span=2 %}
                         {% slot definition %}
                             {{ data_element.dhis2_favorite|yesno:_("Yes,No") }}
                         {% endslot %}

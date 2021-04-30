@@ -32,6 +32,11 @@ urlpatterns = [
         name="indicator_detail",
     ),
     path(
+        "<str:instance_id>/indicators/<str:indicator_id>/update",
+        views.indicator_update,
+        name="indicator_update",
+    ),
+    path(
         "<str:instance_id>/sync",
         views.instance_sync,
         name="instance_sync",

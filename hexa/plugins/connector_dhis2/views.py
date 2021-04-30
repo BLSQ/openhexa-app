@@ -1,14 +1,13 @@
 import json
 
 from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
-from .models import Instance
+from .models import Instance, Indicator, DataElement
 
 
 def instance_detail(request, instance_id):
@@ -100,11 +99,20 @@ def data_element_list(request, instance_id):
     )
 
 
-def data_element_detail(request, instance_id, data_element_id):
+def _get_instance_and_data_element(request, instance_id, data_element_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    data_element = get_object_or_404(instance.dataelement_set, pk=data_element_id)
+
+    return instance, get_object_or_404(
+        DataElement.objects.filter(instance=instance), pk=data_element_id
+    )
+
+
+def data_element_detail(request, instance_id, data_element_id):
+    instance, data_element = _get_instance_and_data_element(
+        request, instance_id, data_element_id
+    )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -126,10 +134,9 @@ def data_element_detail(request, instance_id, data_element_id):
 
 @require_http_methods(["POST"])
 def data_element_update(request, instance_id, data_element_id):
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+    instance, data_element = _get_instance_and_data_element(
+        request, instance_id, data_element_id
     )
-    data_element = get_object_or_404(instance.dataelement_set, pk=data_element_id)
 
     update_data = json.loads(request.body)
     data_element.update(**update_data)
@@ -179,11 +186,20 @@ def indicator_list(request, instance_id):
     )
 
 
-def indicator_detail(request, instance_id, indicator_id):
+def _get_instance_and_indicator(request, instance_id, indicator_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    indicator = get_object_or_404(instance.indicator_set, pk=indicator_id)
+
+    return instance, get_object_or_404(
+        Indicator.objects.filter(instance=instance), pk=indicator_id
+    )
+
+
+def indicator_detail(request, instance_id, indicator_id):
+    instance, indicator = _get_instance_and_indicator(
+        request, instance_id, indicator_id
+    )
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -199,6 +215,25 @@ def indicator_detail(request, instance_id, indicator_id):
             "instance": instance,
             "indicator": indicator,
             "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+@require_http_methods(["POST"])
+def indicator_update(request, instance_id, indicator_id):
+    instance, indicator = _get_instance_and_indicator(
+        request, instance_id, indicator_id
+    )
+
+    update_data = json.loads(request.body)
+    indicator.update(**update_data)
+
+    return render(
+        request,
+        "connector_dhis2/components/indicator_card.html",
+        {
+            "instance": instance,
+            "indicator": indicator,
         },
     )
 
