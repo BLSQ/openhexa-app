@@ -93,7 +93,7 @@ jobs:
         name: Terraform Output
         run: terraform -chdir=terraform output -json
       - name: Store output in JSON file
-        run: echo ${{ steps.output_json.outputs.stdout }} >> terraform/output.json
+        run: echo '${{ steps.output_json.outputs.stdout }}' >> terraform/output.json
 
       # Store individual outputs
       - id: output_cluster_name
