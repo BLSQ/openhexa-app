@@ -13,7 +13,7 @@ def about_now(value, delay=60):
 
 @register.filter(name="date_format")
 def date_format(value, format_string=DEFAULT_DATE_FORMAT):
-    if value is None:
+    if value is None or value == "":
         return None
 
     return core_date_format(value, format_string)

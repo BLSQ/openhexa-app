@@ -114,6 +114,7 @@ class Datasource(RichContent, WithIndex, WithSync):
     class Meta:
         abstract = True
 
+    url = models.URLField(blank=True)
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")

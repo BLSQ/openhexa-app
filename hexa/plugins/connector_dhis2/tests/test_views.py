@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from hexa.user_management.models import User, Team
-from hexa.catalog.models import Datasource, CatalogIndexQuerySet
+from hexa.catalog.models import CatalogIndexQuerySet
 from ..models import Instance, DataElement, Indicator, InstancePermission
 
 
@@ -227,35 +227,35 @@ class ConnectorDhis2Test(test.TestCase):
             )
         )
 
-    def test_datasource_detail_404(self):
+    def test_instance_detail_404(self):
         """Bjorn is not a superuser, he can't access the datasource detail page."""
 
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_detail",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_datasource_detail_200(self):
+    def test_instance_detail_200(self):
         """As a superuser, Kristen can access any datasource detail screen."""
 
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_detail",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["data_elements_list_params"], dict)
         self.assertIsInstance(response.context["indicators_list_params"], dict)
 
     @test.tag("external")
-    def test_datasource_sync_404(self):
+    def test_instance_sync_404(self):
         """Bjorn is not a superuser, he can't sync datasources."""
 
         self.client.force_login(self.USER_BJORN)
@@ -264,8 +264,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_sync",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_sync",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
         )
@@ -273,7 +273,7 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(response.status_code, 404)
 
     @test.tag("external")
-    def test_datasource_sync_302(self):
+    def test_instance_sync_302(self):
         """As a superuser, Kristen can sync every datasource."""
 
         self.client.force_login(self.USER_KRISTEN)
@@ -282,8 +282,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_sync",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_sync",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
         )
@@ -305,7 +305,7 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:data_element_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
@@ -317,11 +317,11 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:data_element_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["data_elements_list_params"], dict)
 
     def test_indicators_404(self):
@@ -331,7 +331,7 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:indicator_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
@@ -343,9 +343,9 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:indicator_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["indicators_list_params"], dict)
