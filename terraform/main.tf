@@ -60,6 +60,11 @@ resource "google_service_account" "cloud_sql_proxy" {
 }
 resource "google_service_account_key" "cloud_sql_proxy" {
   service_account_id = google_service_account.cloud_sql_proxy.name
+
+  keepers = {
+    # Keep the key alive as long as the service account ID stays the same
+    service_account_id = google_service_account.cloud_sql_proxy.name
+  }
 }
 resource "google_project_iam_binding" "hexa" {
   project = var.gcp_project_id
