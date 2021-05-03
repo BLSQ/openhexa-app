@@ -13,6 +13,7 @@ print(f"Config Map using Terraform output")
 
 # Open & load the terraform output file to fetch relevant project config values
 with open(terraform_output_file_path, "r") as terraform_output_file:
+    print(terraform_output_file.read())
     terraform_output = json.load(terraform_output_file)
 
     # Open and load the project config file and update it with the values from the terraform output
