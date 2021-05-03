@@ -126,7 +126,7 @@ resource "kubernetes_secret" "django" {
   }
   data = {
     DATABASE_USER     = google_sql_user.app_database_user.name
-    DATABASE_PASSWORD = random_password.app_database_password
+    DATABASE_PASSWORD = random_password.app_database_password.result
     DATABASE_NAME     = google_sql_database.app_database.name
     DATABASE_PORT     = 5432
     SECRET_KEY        = random_password.django_secret_key.result
