@@ -115,7 +115,7 @@ jobs:
       # Update app file using Python
       - name: Update app file
         run: |
-          python scripts/update_app_file.py k8s/app.yaml ${{ github.event.inputs.tag }}
+          python terraform/scripts/update_app_file.py k8s/app.yaml ${{ github.event.inputs.tag }}
 
       # Deploy the app component
       - name: Deploy app
