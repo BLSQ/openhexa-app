@@ -102,6 +102,7 @@ resource "google_container_cluster" "app_cluster" {
 # KUBERNETES
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
+  load_config_file = false
   host  = "https://${google_container_cluster.app_cluster.endpoint}"
   token = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
