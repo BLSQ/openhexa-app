@@ -96,7 +96,7 @@ jobs:
 #      - name: Access to cluster
 #        run: |
 #          gcloud container clusters get-credentials $(terraform output -raw gcp_gke_cluster_name) \
-#            --zone $(terraform output -raw gcp_gke_cluster_zone)
+#            --zone $(terraform output -raw gcp_gke_cluster_location)
 #
 #      # Copy the sample file
 #      - name: Copy the sample file

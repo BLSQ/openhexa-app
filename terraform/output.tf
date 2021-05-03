@@ -1,8 +1,8 @@
 output "gcp_sql_instance_connection_name" {
   value = google_sql_database_instance.sql_instance.connection_name
 }
-output "gcp_gke_cluster_zone" {
-  value = google_container_cluster.app_cluster.zone
+output "gcp_gke_cluster_location" {
+  value = google_container_cluster.app_cluster.location
 }
 output "gcp_gke_cluster_name" {
   value = google_container_cluster.app_cluster.name
