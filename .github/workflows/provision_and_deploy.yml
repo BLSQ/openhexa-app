@@ -7,7 +7,7 @@ on:
       environment:
         description: Name of the environment (in Github)
         required: true
-        default: test
+        default: Test
       tag:
         description: App component image tag
         required: true
