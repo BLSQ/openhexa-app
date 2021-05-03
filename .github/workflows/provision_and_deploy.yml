@@ -1,4 +1,4 @@
-name: Provision and deploy app on GKE using Terraform
+name: Provision & deploy
 on:
   release:
     types: [ published ]
