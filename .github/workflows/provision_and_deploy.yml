@@ -50,16 +50,17 @@ jobs:
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state,
       # downloading modules, etc.
       - name: Terraform Init
-        run: terraform -chdir=terraform init
+        run: |
+          terraform -chdir=terraform init \
+            -backend-config="bucket=${{ secrets.AWS_S3_TERRAFORM_STATE_BUCKET_NAME }}" \
+            -backend-config="key=openhexa-app-$ENVIRONMENT/terraform.tfstate" \
+            -backend-config="region=${{ secrets.AWS_REGION }}"
 
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         run: |
           ENVIRONMENT=$(echo ${{ github.event.inputs.environment }}|tr '[:upper:]' '[:lower:]')
           terraform -chdir=terraform plan \
-            -backend-config="bucket=${{ secrets.AWS_S3_TERRAFORM_STATE_BUCKET_NAME }}" \
-            -backend-config="key=openhexa-app-$ENVIRONMENT/terraform.tfstate" \
-            -backend-config="region=${{ secrets.AWS_REGION }}" \
             -var 'gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' \
             -var 'gcp_region=${{ secrets.GCP_REGION }}' \
             -var 'gcp_zone=${{ secrets.GCP_ZONE }}' \
