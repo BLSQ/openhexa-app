@@ -93,16 +93,19 @@ jobs:
         run: terraform -chdir=terraform output -json >> output.json
 
       # Make sure that the kubectl utility can access the newly created cluster
-      - id: set_outputs
-        name: Set various outputs
-        run: |
-          echo "::set-output name=CLUSTER_NAME::$(terraform -chdir=terraform output -raw gcp_gke_cluster_name)"
-          echo "::set-output name=CLUSTER_LOCATION::$(terraform -chdir=terraform output -raw gcp_gke_cluster_location)"
-          echo "::set-output name=KUBERNETES_NAMESPACE::$(terraform -chdir=terraform output -raw kubernetes_namespace)"
+      - id: output_cluster_name
+        name: Output cluster name
+        run: terraform -chdir=terraform output -raw gcp_gke_cluster_name
+      - id: output_cluster_location
+        name: Output cluster location
+        run: terraform -chdir=terraform output -raw gcp_gke_cluster_location
+      - id: output_kubernetes_namespace
+        name: Output Kubernetes namespace
+        run: terraform -chdir=terraform output -raw kubernetes_namespace
       - name: Access to cluster
         run: |
-          gcloud container clusters get-credentials ${{ steps.set_outputs.outputs.CLUSTER_NAME }} \
-            --zone ${{ steps.set_outputs.outputs.CLUSTER_LOCATION }}
+          gcloud container clusters get-credentials ${{ steps.output_cluster_name.outputs.stdout }} \
+            --zone ${{ steps.output_cluster_location.outputs.stdout }}
 
       # Copy the sample file
       - name: Copy the sample file
@@ -117,11 +120,11 @@ jobs:
       # Deploy the app component
       - name: Deploy app
         run: |
-          kubectl apply -n ${{ steps.set_outputs.outputs.KUBERNETES_NAMESPACE }} -f k8s/app.yaml
+          kubectl apply -n ${{ steps.output_kubernetes_namespace.outputs.stdout }} -f k8s/app.yaml
 
       # Migrate
       - name: Migrate
         run: |
           kubectl exec deploy/app-deployment \
-            -n ${{ steps.set_outputs.outputs.KUBERNETES_NAMESPACE }} \
+            -n ${{ steps.output_kubernetes_namespace.outputs.stdout }} \
             -- python manage.py migrate
