@@ -2,10 +2,12 @@ import sys
 import yaml
 import json
 
-terraform_output_file_path = "../output.json"
+from pathlib import Path
+
+terraform_output_file_path = Path(__file__).parent / Path("../output.json")
+
 config_file_path = sys.argv[1]
 hexa_app_image = sys.argv[2]
-
 
 print(f"Config Map using Terraform output")
 
