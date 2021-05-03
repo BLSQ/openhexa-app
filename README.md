@@ -112,7 +112,7 @@ Unless you already have a ready-to-use Google Cloud SQL instance, you can create
 ```bash
 gcloud sql instances create hexa-main \
  --database-version=POSTGRES_12 \
- --cpu=2 --memory=7680MiB --zone=europe-west1-b --root-password=asecurepassword
+ --tier=db-custom-1-3840 --zone=europe-west1-b --root-password=asecurepassword
 ```
 
 You will then need to create a database for the App component:
