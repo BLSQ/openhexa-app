@@ -61,7 +61,7 @@ jobs:
         run: |
           ENVIRONMENT=$(echo ${{ github.event.inputs.environment }}|tr '[:upper:]' '[:lower:]')
           terraform -chdir=terraform plan \
-            -out=./terraform/saved_plan
+            -out=./terraform/saved_plan \
             -var 'gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' \
             -var 'gcp_region=${{ secrets.GCP_REGION }}' \
             -var 'gcp_zone=${{ secrets.GCP_ZONE }}' \
