@@ -88,11 +88,14 @@ jobs:
           service_account_key: ${{ secrets.GKE_SA_KEY }}
           export_default_credentials: true
 
-      # Get outputs from file
-      - name: Terraform Output
-        run: terraform -chdir=terraform output -json >> terraform/output.json
+      # Store output in JSON format
+      - id: output_json
+        name: Terraform Output
+        run: terraform -chdir=terraform output -json
+      - name: Store output in JSON file
+        run: echo ${{ steps.output_json.outputs.stdout }} >> terraform/output.json
 
-      # Make sure that the kubectl utility can access the newly created cluster
+      # Store individual outputs
       - id: output_cluster_name
         name: Output cluster name
         run: terraform -chdir=terraform output -raw gcp_gke_cluster_name
@@ -102,6 +105,8 @@ jobs:
       - id: output_kubernetes_namespace
         name: Output Kubernetes namespace
         run: terraform -chdir=terraform output -raw kubernetes_namespace
+
+      # Make sure that the kubectl utility can access the newly created cluster
       - name: Access to cluster
         run: |
           gcloud container clusters get-credentials ${{ steps.output_cluster_name.outputs.stdout }} \
