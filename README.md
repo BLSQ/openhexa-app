@@ -110,7 +110,7 @@ Then, you can create a DNS record that points to the ip address returned by the 
 Unless you already have a ready-to-use Google Cloud SQL instance, you can create one using the following command:
 
 ```bash
-gcloud sql instances create hexa-main \
+gcloud sql instances create hexa-prime \
  --database-version=POSTGRES_12 \
  --tier=db-custom-1-3840 --zone=europe-west1-b --root-password=asecurepassword
 ```
@@ -118,13 +118,13 @@ gcloud sql instances create hexa-main \
 You will then need to create a database for the App component:
 
 ```bash
-gcloud sql databases create hexa-app --instance=hexa-main
+gcloud sql databases create hexa-app --instance=hexa-prime
 ```
 
 You will need a user as well:
 
 ```bash
-gcloud sql users create hexa-app --instance=hexa-main --password=asecurepassword
+gcloud sql users create hexa-app --instance=hexa-prime --password=asecurepassword
 ```
 
 🚨 The created user will have root access on your instance. You should make sure to adapt its permissions accordingly if
@@ -134,7 +134,7 @@ The last step is to get the connection string of your Cloud SQL instance. Launch
 the value next to the `connectionName` key, you will need it later:
 
 ```bash
-gcloud sql instances describe hexa-main
+gcloud sql instances describe hexa-prime
 ```
 
 ### Create a service account for the Cloud SQL proxy
@@ -174,7 +174,7 @@ Unless you already have a running Kubernetes cluster, you need to create one. Th
 will create a new cluster in Google Kubernetes Engine, along with a default node pool:
 
 ```bash
-gcloud container clusters create hexa-main \
+gcloud container clusters create hexa-prime \
   --machine-type=n2-standard-2 \
   --zone=europe-west1-b \
   --enable-autoscaling \
@@ -190,7 +190,7 @@ user node pool.
 To make sure that the `kubectl` utility can access the newly created cluster, you need to launch another command:
 
 ```bash
-gcloud container clusters get-credentials hexa-main --region=europe-west1-b
+gcloud container clusters get-credentials hexa-prime --region=europe-west1-b
 ```
 
 Deploying

@@ -17,7 +17,7 @@ variable "gcp_global_address_name" {
 # Cloud SQL instance
 variable "gcp_sql_instance_name" {
   description = "The name of the GCP Cloud SQL instance"
-  default     = "hexa-main"
+  default     = "hexa-prime"
 }
 variable "gcp_sql_instance_tier" {
   description = "The tier to use for the Cloud SQL instance"
@@ -43,7 +43,7 @@ variable "gcp_iam_service_account_display_name" {
 # GKE cluster
 variable "gcp_gke_cluster_name" {
   description = "The name of the Kubernetes cluster in GKE"
-  default     = "hexa-main"
+  default     = "hexa-prime"
 }
 variable "gcp_gke_default_pool_name" {
   default = "default-pool"
