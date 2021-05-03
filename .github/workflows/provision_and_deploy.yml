@@ -90,13 +90,13 @@ jobs:
 
       # Get outputs from file
       - name: Terraform Output
-        run: terraform output -json >> ./output.json
+        run: terraform -chdir=terraform output -json >> output.json
 
       # Make sure that the kubectl utility can access the newly created cluster
       - name: Access to cluster
         run: |
-          gcloud container clusters get-credentials $(terraform output -raw gcp_gke_cluster_name) \
-            --zone $(terraform output -raw gcp_gke_cluster_location)
+          gcloud container clusters get-credentials $(terraform -chdir=terraform output -raw gcp_gke_cluster_name) \
+            --zone $(terraform output -chdir=terraform -raw gcp_gke_cluster_location)
 
       # Copy the sample file
       - name: Copy the sample file
@@ -111,9 +111,9 @@ jobs:
       # Deploy the app component
       - name: Deploy app
         run: |
-          kubectl apply -n $(terraform output -raw kubernetes_namespace) -f k8s/app.yaml
+          kubectl apply -n $(terraform -chdir=terraform output -raw kubernetes_namespace) -f k8s/app.yaml
 
       # Migrate
       - name: Migrate
         run: |
-          kubectl exec deploy/app-deployment -n $(terraform output -raw kubernetes_namespace) -- python manage.py migrate
+          kubectl exec deploy/app-deployment -n $(terraform -chdir=terraform output -raw kubernetes_namespace) -- python manage.py migrate
