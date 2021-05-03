@@ -95,6 +95,7 @@ jobs:
       # Make sure that the kubectl utility can access the newly created cluster
       - name: Access to cluster
         run: |
+          echo $(terraform -chdir=terraform output -raw gcp_gke_cluster_name)
           gcloud container clusters get-credentials $(terraform -chdir=terraform output -raw gcp_gke_cluster_name) \
             --zone $(terraform -chdir=terraform output -raw gcp_gke_cluster_location)
 
