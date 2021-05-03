@@ -90,7 +90,7 @@ jobs:
 
       # Get outputs from file
       - name: Terraform Output
-        run: terraform -chdir=terraform output -json >> output.json
+        run: terraform -chdir=terraform output -json >> terraform/output.json
 
       # Make sure that the kubectl utility can access the newly created cluster
       - id: output_cluster_name
