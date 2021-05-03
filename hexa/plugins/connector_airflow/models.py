@@ -195,6 +195,7 @@ class DAGConfig(RichContent):
         # TODO: move in API module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
+        # as well as https://cloud.google.com/composer/docs/samples/composer-get-environment-client-id
         credentials = service_account.IDTokenCredentials.from_service_account_info(
             self.dag.cluster.api_credentials.service_account_key_data,
             target_audience=self.dag.cluster.api_credentials.oidc_target_audience,
