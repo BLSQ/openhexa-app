@@ -24,6 +24,11 @@ resource "google_sql_database_instance" "sql_instance" {
     tier = var.gcp_sql_instance_tier
     ip_configuration {
       ipv4_enabled = true
+      # TODO: find a safer way to access Cloud SQL instance
+      authorized_networks {
+        name = "external-access"
+        value = "0.0.0.0/0"
+      }
     }
   }
 }
@@ -95,8 +100,13 @@ resource "google_container_cluster" "app_cluster" {
 }
 
 # KUBERNETES
+data "google_client_config" "terraform" {}
 provider "kubernetes" {
-  load_config_file = true
+  host  = "https://${google_container_cluster.app_cluster.endpoint}"
+  token = data.google_client_config.terraform.access_token
+  cluster_ca_certificate = base64decode(
+    google_container_cluster.app_cluster.master_auth[0].cluster_ca_certificate,
+  )
 }
 # Namespace
 resource "kubernetes_namespace" "app_namespace" {
