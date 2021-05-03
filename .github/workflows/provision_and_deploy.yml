@@ -96,9 +96,9 @@ jobs:
       - id: set_outputs
         name: Set various outputs
         run: |
-          echo '::set-output name=CLUSTER_NAME::$(terraform -chdir=terraform output -raw gcp_gke_cluster_name)'
-          echo '::set-output name=CLUSTER_LOCATION::$(terraform -chdir=terraform output -raw gcp_gke_cluster_location)'
-          echo '::set-output name=KUBERNETES_NAMESPACE::$(terraform -chdir=terraform output -raw kubernetes_namespace)'
+          echo "::set-output name=CLUSTER_NAME::$(terraform -chdir=terraform output -raw gcp_gke_cluster_name)"
+          echo "::set-output name=CLUSTER_LOCATION::$(terraform -chdir=terraform output -raw gcp_gke_cluster_location)"
+          echo "::set-output name=KUBERNETES_NAMESPACE::$(terraform -chdir=terraform output -raw kubernetes_namespace)"
       - name: Access to cluster
         run: |
           gcloud container clusters get-credentials ${{ steps.set_outputs.outputs.CLUSTER_NAME }} \
