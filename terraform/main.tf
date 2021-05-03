@@ -1,8 +1,5 @@
 terraform {
   backend "s3" {
-    bucket  = var.aws_s3_terraform_state_bucket_name
-    key     = "openhexa-app-${lower(var.environment)}/terraform.tfstate"
-    region  = var.aws_region
     encrypt = true
   }
 }

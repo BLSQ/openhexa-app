@@ -1,10 +1,3 @@
-variable "environment" {
-  description = "An arbitrary name for the environment to provision (test or prod for example)"
-}
-variable "aws_s3_terraform_state_bucket_name" {
-  description = "The name of the bucket that will hold the Terraform state"
-}
-
 # GCP
 variable "gcp_project_id" {
   description = "The ID of your Google Cloud Platform project"
