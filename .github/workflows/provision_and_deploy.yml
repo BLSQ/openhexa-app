@@ -2,15 +2,15 @@ name: Provision & deploy
 on:
   release:
     types: [ published ]
-    workflow_dispatch:
-      inputs:
-        environment:
-          description: Name of the environment (in Github)
-          required: true
-          default: test
-        tag:
-          description: App component image tag
-          required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Name of the environment (in Github)
+        required: true
+        default: test
+      tag:
+        description: App component image tag
+        required: true
 
 jobs:
   provision_and_deploy:
