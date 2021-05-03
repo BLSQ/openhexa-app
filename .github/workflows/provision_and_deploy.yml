@@ -106,3 +106,8 @@ jobs:
       - name: Deploy app
         run: |
           kubectl apply -n $(terraform output -raw kubernetes_namespace) -f k8s/app.yaml
+
+      # Migrate
+      - name: Migrate
+        run: |
+          kubectl exec deploy/app-deployment -n $(terraform output -raw kubernetes_namespace) -- python manage.py migrate
