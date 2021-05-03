@@ -1,101 +1,83 @@
-# Project ID
+variable "environment" {
+  description = "An arbitrary name for the environment to provision (test or prod for example)"
+}
+variable "aws_s3_terraform_state_bucket_name" {
+  description = "The name of the bucket that will hold the Terraform state"
+}
+
+# GCP
 variable "gcp_project_id" {
-  default = "blsq-dip-test"
+  description = "The ID of your Google Cloud Platform project"
 }
-# Cloud SQL instance
-variable "gcp_sql_instance_name" {
-  default = "hexa-main"
+variable "gcp_region" {
+  description = "The name of the region to use for GCP resources"
 }
-variable "gcp_sql_instance_region" {
-  default     = "europe-west1"
-  description = "The region for the Cloud SQL instances"
-}
-variable "gcp_sql_hub_instance_access_cidr" {
-  default     = "0.0.0.0/0"
-  description = "The IPv4 CIDR to provide access the database instance"
-}
-variable "gcp_sql_machine_type_tier" {
-  default = "db-custom-2-7680"
-}
-variable "gcp_sql_database_name" {
-  default = "hexa-app"
-}
-variable "gcp_sql_user_name" {
-  default = "hexa-app"
-}
-
-#Service account for the Cloud SQL proxy
-variable "account_id" {
-  default = "hexa-cloud-sql-proxy"
-}
-variable "display_name" {
-  default = "hexa-cloud-sql-proxy"
-}
-
-#GKE cluster
-variable "gcp_gke_cluster_zone" {
-  default     = "europe-west1-b"
-  description = "The zone for the GKE cluster"
-}
-variable "gcp_gke_cluster_name" {
-  default     = "hexa-main"
-  description = "name of cluster"
-}
-variable "gcp_gke_default_machine_type" {
-  default     = "n2-standard-2"
-  description = " GCP machine type"
-}
-variable "gcp_gke_default_pool_name" {
-  default = "default-pool"
-}
-variable "gcp_gke_user_machine_type" {
-  default     = "n2-highmem-2"
-  description = " GCP machine type"
-}
-variable "gcp_gke_user_node_pool_name" {
-  default = "user-pool-n2h2"
-}
-variable "gcp_gke_user_node_pool_zone" {
-  default = "europe-west1-b"
-}
-variable "gcp_gke_user_node_pool_labels" {
-  default = {
-    "hub.jupyter.org/node-purpose" = "user"
-  }
-}
-variable "gcp_gke_user_node_pool_taint_effect" {
-  default = "NO_SCHEDULE"
-}
-variable "gcp_gke_user_node_pool_taint_key" {
-  default = "hub.jupyter.org_dedicated"
-}
-variable "gcp_gke_user_node_pool_taint_value" {
-  default = "user"
+variable "gcp_zone" {
+  description = "The name of the zone to use for GCP resources"
 }
 
 # Global IP address
 variable "gcp_global_address_name" {
-  default = "hexa-test-app"
+  description = "The name of the GCP global address to use for the app component"
 }
 
-# Bucket
-variable "gcp_bucket_name" {
-  default     = "hexa-app"
-  description = "Bucket name"
+# Cloud SQL instance
+variable "gcp_sql_instance_name" {
+  description = "The name of the GCP Cloud SQL instance"
+  default     = "hexa-main"
 }
-variable "gcp_bucket_location" {
-  default     = "EU"
-  description = "Bucket location"
+variable "gcp_sql_instance_tier" {
+  description = "The tier to use for the Cloud SQL instance"
+}
+variable "gcp_sql_database_name" {
+  description = "The name of the app component database"
+  default     = "hexa-app"
+}
+variable "gcp_sql_user_name" {
+  description = "The username for the app component database"
+  default     = "hexa-app"
+}
+# Service account for the Cloud SQL proxy
+variable "gcp_iam_service_account_id" {
+  description = "The ID of the service account use for the Cloud SQL proxy"
+  default     = "hexa-cloud-sql-proxy"
+}
+variable "gcp_iam_service_account_display_name" {
+  description = "The display name of the service account use for the Cloud SQL proxy"
+  default     = "hexa-cloud-sql-proxy"
+}
+
+# GKE cluster
+variable "gcp_gke_cluster_name" {
+  description = "The name of the Kubernetes cluster in GKE"
+  default     = "hexa-main"
+}
+variable "gcp_gke_default_pool_name" {
+  default = "default-pool"
+}
+variable "gcp_gke_default_pool_max_node_count" {
+  description = "The max number of nodes in the default GKE pool"
+  default     = 3
+}
+variable "gcp_gke_default_pool_machine_type" {
+  description = "The machine type to use for nodes in the default GKE pool"
+  default     = "e2-standard-2"
 }
 
 # Kubernetes
-variable "kubernetes_namespace_name" {
-  default = "hexa-app"
-}
-variable "kubernetes_secret_sql_proxy_name" {
-  default = "hexa-cloudsql-oauth-credentials"
-}
-variable "kubernetes_secret_django_name" {
-  default = "app-secret"
+variable "kubernetes_namespace" {
+  description = "The Kubernetes namespace in which to deploy the resources of the app component"
+  default     = "hexa-app"
 }
 
+# AWS
+variable "aws_region" {
+  description = "The name of the region to use for AWS resources"
+}
+# Route53
+variable "aws_route53_zone_name" {
+  description = "The name of the Route53 hosted zone"
+}
+variable "aws_route53_record_name" {
+  description = "The record to add in the hosted zone"
+}
