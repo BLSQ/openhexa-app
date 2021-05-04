@@ -252,7 +252,7 @@ resource "kubernetes_deployment" "app" {
         volume {
           name = "cloudsql-oauth-credentials"
           secret {
-            secret_name = "hexa-cloudsql-oauth-credentials"
+            secret_name = "cloud-sql-proxy-secret"
           }
         }
         volume {
