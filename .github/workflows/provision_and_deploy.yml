@@ -71,7 +71,7 @@ jobs:
       - name: Terraform apply
         run: terraform -chdir=terraform apply saved_plan
 
-      # TODO: the following 4 steps could be replaced by a migration pod
+      # TODO: the following 4 steps could be replaced by a Kubernetes job
       # Store individual outputs
       - id: output_cluster_name
         name: Output cluster name
