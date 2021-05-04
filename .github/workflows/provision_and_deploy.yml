@@ -45,8 +45,9 @@ jobs:
 
       # TODO: remove
       - name: Terraform import
-        run: |
-          terraform -chdir=terraform import google_sql_database_instance.app hexa-prime
+        run: terraform -chdir=terraform import google_sql_database_instance.app blsq-dip-test/hexa-prime
+        env:
+          TF_LOG: DEBUG
 
       # Generates an execution plan for Terraform
       - name: Terraform Plan
