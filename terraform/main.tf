@@ -148,7 +148,7 @@ resource "kubernetes_secret" "app" {
 
 resource "kubernetes_secret" "cloud_sql_proxy" {
   metadata {
-    name      = "cloud_sql_proxy-secret"
+    name      = "cloud-sql-proxy-secret"
     namespace = var.kubernetes_namespace
   }
   # TODO: Use workload identity, see # https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
