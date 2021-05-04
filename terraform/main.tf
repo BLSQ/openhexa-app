@@ -176,6 +176,8 @@ resource "kubernetes_deployment" "app" {
             secret_ref {
               name = "app-secret"
             }
+          }
+          env_from {
             config_map_ref {
               name = "app-config"
             }
