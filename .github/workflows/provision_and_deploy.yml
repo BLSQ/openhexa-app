@@ -29,21 +29,14 @@ jobs:
         with:
           fetch-depth: 0  # fetch all history for all branches and tags
 
-      # Python setup
-      - name: setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: Install dependencies and PyYaml
-        run: |
-          python -m pip install --upgrade pip
-          pip install PyYaml
-
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform
       # Cloud user API token
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@3d8debd658c92063839bc97da5c2427100420dec
+
+      - name: Set environment name (lowercase)
+        id: environment_name
+        run: echo "::set-output name=value::'${{ github.event.inputs.environment }}'|tr '[:upper:]' '[:lower:]')"
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state,
       # downloading modules, etc.
@@ -51,13 +44,12 @@ jobs:
         run: |
           terraform -chdir=terraform init \
             -backend-config="bucket=${{ secrets.AWS_S3_TERRAFORM_STATE_BUCKET_NAME }}" \
-            -backend-config="key=openhexa-app-$ENVIRONMENT/terraform.tfstate" \
+            -backend-config="key=openhexa-app-${{ steps.environment_name.outputs.value }}/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_REGION }}"
 
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         run: |
-          ENVIRONMENT=$(echo ${{ github.event.inputs.environment }}|tr '[:upper:]' '[:lower:]')
           terraform -chdir=terraform plan \
             -out=saved_plan \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
