@@ -43,6 +43,11 @@ jobs:
             -backend-config="key=openhexa-app-${{ github.event.inputs.environment }}/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_REGION }}"
 
+      # TODO: remove
+      - name: Terraform import
+        run: |
+          terraform -chdir=terraform import google_sql_database_instance.app hexa-prime
+
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         run: |
