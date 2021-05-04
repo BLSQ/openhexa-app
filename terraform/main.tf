@@ -124,10 +124,43 @@ resource "kubernetes_namespace" "app" {
     name = var.kubernetes_namespace
   }
 }
+# Secrets
+resource "random_password" "django_secret_key" {
+  length  = 50
+  special = true
+  lifecycle {
+    ignore_changes = all
+  }
+}
+resource "kubernetes_secret" "app" {
+  metadata {
+    name      = "app-secret"
+    namespace = var.kubernetes_namespace
+  }
+  data = {
+    DATABASE_USER     = google_sql_user.app.name
+    DATABASE_PASSWORD = random_password.app_database.result
+    DATABASE_NAME     = google_sql_database.app.name
+    DATABASE_PORT     = 5432
+    SECRET_KEY        = random_password.django_secret_key.result
+  }
+}
+
+resource "kubernetes_secret" "cloud_sql_proxy" {
+  metadata {
+    name      = "cloud_sql_proxy-secret"
+    namespace = var.kubernetes_namespace
+  }
+  # TODO: Use workload identity, see # https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+  data = {
+    "credentials.json" = base64decode(google_service_account_key.cloud_sql_proxy.private_key)
+  }
+}
 # Config map
 resource "kubernetes_config_map" "app" {
   metadata {
     name = "app-config"
+    namespace = var.kubernetes_namespace
     labels = {
       component = "app"
     }
@@ -145,6 +178,7 @@ resource "kubernetes_config_map" "app" {
 resource "kubernetes_deployment" "app" {
   metadata {
     name = "app-deployment"
+    namespace = var.kubernetes_namespace
     labels = {
       component = "app"
     }
@@ -235,43 +269,11 @@ resource "kubernetes_deployment" "app" {
     }
   }
 }
-# SQL Proxy secret
-resource "kubernetes_secret" "cloud_sql_proxy" {
-  metadata {
-    name      = "hexa-cloudsql-oauth-credentials"
-    namespace = var.kubernetes_namespace
-  }
-  # TODO: Use workload identity, see # https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
-  data = {
-    "credentials.json" = base64decode(google_service_account_key.cloud_sql_proxy.private_key)
-  }
-}
-# Generate a secret key for the Django app
-resource "random_password" "django_secret_key" {
-  length  = 50
-  special = true
-  lifecycle {
-    ignore_changes = all
-  }
-}
-# App secret
-resource "kubernetes_secret" "app" {
-  metadata {
-    name      = "app-secret"
-    namespace = var.kubernetes_namespace
-  }
-  data = {
-    DATABASE_USER     = google_sql_user.app.name
-    DATABASE_PASSWORD = random_password.app_database.result
-    DATABASE_NAME     = google_sql_database.app.name
-    DATABASE_PORT     = 5432
-    SECRET_KEY        = random_password.django_secret_key.result
-  }
-}
 # Service
 resource "kubernetes_service" "app" {
   metadata {
     name = "app-service"
+    namespace = var.kubernetes_namespace
     labels = {
       component = "app"
     }
@@ -291,6 +293,7 @@ resource "kubernetes_service" "app" {
 resource "kubernetes_ingress" "app" {
   metadata {
     name = "app-ingress"
+    namespace = var.kubernetes_namespace
     labels = {
       component = "app"
     }
