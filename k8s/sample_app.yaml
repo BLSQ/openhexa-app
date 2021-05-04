@@ -104,10 +104,11 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: app-ingress
+  labels:
+    component: app
   annotations:
     kubernetes.io/ingress.global-static-ip-name: <HEXA_APP_ADDRESS_NAME>
     networking.gke.io/managed-certificates: app-certificate
-    kubernetes.io/ingress.class: "gce"
 spec:
   backend:
     serviceName: app-service
