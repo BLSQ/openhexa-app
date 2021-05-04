@@ -101,7 +101,7 @@ resource "google_container_cluster" "cluster" {
 # GCP GCE managed certificate
 # (See https://github.com/hashicorp/terraform-provider-kubernetes/issues/446)
 resource "google_compute_managed_ssl_certificate" "app" {
-  name = "app-certificate-${var.app_domain}"
+  name = var.kubernetes_namespace
 
   managed {
     domains = [var.app_domain]
