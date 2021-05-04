@@ -1,3 +1,4 @@
+/*
 terraform {
   backend "s3" {
     encrypt = true
@@ -14,7 +15,7 @@ resource "google_compute_global_address" "app" {
   address_type = "EXTERNAL"
   ip_version   = "IPV4"
 }
-
+*/
 # GCP Cloud SQL
 resource "google_sql_database_instance" "app" {
   database_version = "POSTGRES_12"
@@ -32,7 +33,7 @@ resource "google_sql_database_instance" "app" {
     }
   }
 }
-resource "google_sql_database" "app" {
+/*resource "google_sql_database" "app" {
   name     = var.gcp_sql_database_name
   instance = google_sql_database_instance.app.name
 }
@@ -323,3 +324,4 @@ resource "aws_route53_record" "app" {
     google_compute_global_address.app.address
   ]
 }
+*/
