@@ -34,17 +34,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@3d8debd658c92063839bc97da5c2427100420dec
 
-      - name: Set environment name (lowercase)
-        id: environment_name
-        run: echo "::set-output name=value::$(echo '${{ github.event.inputs.environment }}'|tr '[:upper:]' '[:lower:]')"
-
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state,
       # downloading modules, etc.
       - name: Terraform Init
         run: |
           terraform -chdir=terraform init \
             -backend-config="bucket=${{ secrets.AWS_S3_TERRAFORM_STATE_BUCKET_NAME }}" \
-            -backend-config="key=openhexa-app-${{ steps.environment_name.outputs.value }}/terraform.tfstate" \
+            -backend-config="key=openhexa-app-${{ github.event.inputs.environment }}/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_REGION }}"
 
       # Generates an execution plan for Terraform

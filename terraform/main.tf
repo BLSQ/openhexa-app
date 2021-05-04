@@ -71,7 +71,7 @@ resource "google_service_account_key" "cloud_sql_proxy" {
     service_account_id = google_service_account.cloud_sql_proxy.name
   }
 }
-resource "google_project_iam_binding" "hexa" {
+resource "google_project_iam_binding" "cloud_sql_proxy" {
   project = var.gcp_project_id
   role    = "roles/cloudsql.client"
   members = [
@@ -80,7 +80,7 @@ resource "google_project_iam_binding" "hexa" {
 }
 
 # GCP GKE cluster
-resource "google_container_cluster" "app_cluster" {
+resource "google_container_cluster" "cluster" {
   name     = var.gcp_gke_cluster_name
   location = var.gcp_zone
   node_pool {
@@ -112,10 +112,10 @@ resource "google_compute_managed_ssl_certificate" "app" {
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
   load_config_file = false
-  host             = "https://${google_container_cluster.app_cluster.endpoint}"
+  host             = "https://${google_container_cluster.cluster.endpoint}"
   token            = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
-    google_container_cluster.app_cluster.master_auth[0].cluster_ca_certificate,
+    google_container_cluster.cluster.master_auth[0].cluster_ca_certificate,
   )
 }
 # Namespace
@@ -164,7 +164,7 @@ resource "kubernetes_deployment" "app" {
       }
       spec {
         node_selector = {
-          "cloud.google.com/gke-nodepool" = google_container_cluster.app_cluster.node_pool[0].name
+          "cloud.google.com/gke-nodepool" = google_container_cluster.cluster.node_pool[0].name
         }
         container {
           name  = "app-container"
@@ -234,7 +234,7 @@ resource "kubernetes_deployment" "app" {
   }
 }
 # SQL Proxy secret
-resource "kubernetes_secret" "sql_proxy" {
+resource "kubernetes_secret" "cloud_sql_proxy" {
   metadata {
     name      = "hexa-cloudsql-oauth-credentials"
     namespace = var.kubernetes_namespace
