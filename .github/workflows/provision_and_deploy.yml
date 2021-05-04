@@ -54,7 +54,7 @@ jobs:
             -out=saved_plan \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
             -var 'cookie_domain=${{ secrets.COOKIE_DOMAIN }}' \
-            -var 'notebooks_domain=${{ secrets.NOTEBOOKS_URL }}' \
+            -var 'notebooks_url=${{ secrets.NOTEBOOKS_URL }}' \
             -var 'app_image_tag=${{ github.event.inputs.tag }}' \
             -var 'gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' \
             -var 'gcp_region=${{ secrets.GCP_REGION }}' \
