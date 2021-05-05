@@ -95,20 +95,22 @@ resource "google_project_iam_binding" "app_cloud_sql_proxy" {
 }
 # GKE cluster
 resource "google_container_cluster" "cluster" {
-  name     = var.gcp_gke_cluster_name
-  location = var.gcp_zone
-  node_pool {
-    name       = var.gcp_gke_default_pool_name
-    node_count = 1
-    autoscaling {
-      min_node_count = 1
-      max_node_count = var.gcp_gke_default_pool_max_node_count
-    }
-    node_config {
-      machine_type = var.gcp_gke_default_pool_machine_type
-      metadata = {
-        disable-legacy-endpoints = true
-      }
+  name                     = var.gcp_gke_cluster_name
+  location                 = var.gcp_zone
+  remove_default_node_pool = true
+}
+resource "google_container_node_pool" "default_pool" {
+  cluster    = google_container_cluster.cluster.name
+  name       = var.gcp_gke_default_pool_name
+  node_count = 1
+  autoscaling {
+    min_node_count = 1
+    max_node_count = var.gcp_gke_default_pool_max_node_count
+  }
+  node_config {
+    machine_type = var.gcp_gke_default_pool_machine_type
+    metadata = {
+      disable-legacy-endpoints = true
     }
   }
 }
