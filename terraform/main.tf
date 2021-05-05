@@ -125,7 +125,11 @@ resource "google_compute_managed_ssl_certificate" "app" {
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
   host  = "https://${google_container_cluster.cluster.endpoint}"
-  token = data.google_client_config.terraform.access_token
+  client_certificate = base64decode(google_container_cluster.cluster.master_auth[0].client_certificate)
+  client_key = base64decode(google_container_cluster.cluster.master_auth[0].client_key)
+  cluster_ca_certificate = base64decode(
+    google_container_cluster.cluster.master_auth[0].cluster_ca_certificate,
+  )
 }
 # Namespace
 resource "kubernetes_namespace" "app" {
