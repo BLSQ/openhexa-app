@@ -32,6 +32,9 @@ resource "google_sql_database_instance" "app" {
   database_version = "POSTGRES_12"
   name             = var.gcp_sql_instance_name
   region           = var.gcp_region
+  lifecycle {
+    prevent_destroy = true
+  }
   settings {
     tier = var.gcp_sql_instance_tier
     ip_configuration {
@@ -124,8 +127,8 @@ resource "google_compute_managed_ssl_certificate" "app" {
 # KUBERNETES
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
-  host             = "https://${google_container_cluster.cluster.endpoint}"
-  token            = data.google_client_config.terraform.access_token
+  host  = "https://${google_container_cluster.cluster.endpoint}"
+  token = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
     google_container_cluster.cluster.master_auth[0].cluster_ca_certificate,
   )
