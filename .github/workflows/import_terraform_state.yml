@@ -37,7 +37,7 @@ jobs:
       # downloading modules, etc.
       - name: Terraform Init
         run: |
-          terraform -chdir=terraform init \
+          terraform -chdir=terraform_import init \
             -backend-config="bucket=${{ secrets.TERRAFORM_AWS_S3_BUCKET_NAME }}" \
             -backend-config="key=openhexa-app-${{ github.event.inputs.environment }}/terraform.tfstate" \
             -backend-config="region=${{ secrets.AWS_REGION }}"
@@ -45,7 +45,7 @@ jobs:
       # Terraform import
       - name: Terraform import (sql instance)
         run: |
-          terraform -chdir=terraform import \
+          terraform -chdir=terraform_import import \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
             -var 'cookie_domain=${{ secrets.COOKIE_DOMAIN }}' \
             -var 'notebooks_url=${{ secrets.NOTEBOOKS_URL }}' \
@@ -67,7 +67,7 @@ jobs:
 
       - name: Terraform import (IAM SA)
         run: |
-          terraform -chdir=terraform import \
+          terraform -chdir=terraform_import import \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
             -var 'cookie_domain=${{ secrets.COOKIE_DOMAIN }}' \
             -var 'notebooks_url=${{ secrets.NOTEBOOKS_URL }}' \
@@ -89,7 +89,7 @@ jobs:
 
       - name: Terraform import (IAM SA binding)
         run: |
-          terraform -chdir=terraform import \
+          terraform -chdir=terraform_import import \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
             -var 'cookie_domain=${{ secrets.COOKIE_DOMAIN }}' \
             -var 'notebooks_url=${{ secrets.NOTEBOOKS_URL }}' \
