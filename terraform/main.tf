@@ -213,7 +213,7 @@ resource "kubernetes_deployment" "app" {
       }
       spec {
         node_selector = {
-          "cloud.google.com/gke-nodepool" = google_container_cluster.cluster.node_pool[0].name
+          "cloud.google.com/gke-nodepool" = google_container_node_pool.default_pool.name
         }
         container {
           name  = "app-container"
