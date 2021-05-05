@@ -64,6 +64,7 @@ variable "gcp_gke_cluster_name" {
   default     = "hexa-prime"
 }
 variable "gcp_gke_default_pool_name" {
+  description = "The name of the default node pool"
   default = "default-pool"
 }
 variable "gcp_gke_default_pool_max_node_count" {
