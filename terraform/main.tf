@@ -267,7 +267,7 @@ resource "kubernetes_deployment" "app" {
         volume {
           name = "cloudsql-oauth-credentials"
           secret {
-            secret_name = "cloud-sql-proxy-secret"
+            secret_name = kubernetes_secret.cloud_sql_proxy.metadata.name
           }
         }
         volume {
@@ -313,7 +313,7 @@ resource "kubernetes_ingress" "app" {
       component = "app"
     }
     annotations = {
-      "kubernetes.io/ingress.global-static-ip-name" = var.gcp_global_address_name
+      "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.app.name
       "ingress.gcp.kubernetes.io/pre-shared-cert"   = google_compute_managed_ssl_certificate.app.name
     }
   }
