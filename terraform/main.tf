@@ -102,6 +102,7 @@ resource "google_container_cluster" "cluster" {
 resource "google_container_node_pool" "default_pool" {
   cluster    = google_container_cluster.cluster.name
   name       = var.gcp_gke_default_pool_name
+  location   = var.gcp_zone
   node_count = 1
   autoscaling {
     min_node_count = 1
