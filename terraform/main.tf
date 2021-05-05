@@ -110,7 +110,6 @@ resource "google_compute_managed_ssl_certificate" "app" {
 # KUBERNETES
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
-  load_config_file = false
   host             = "https://${google_container_cluster.cluster.endpoint}"
   token            = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
