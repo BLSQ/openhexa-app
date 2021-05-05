@@ -97,7 +97,6 @@ resource "google_project_iam_binding" "app_cloud_sql_proxy" {
 resource "google_container_cluster" "cluster" {
   name     = var.gcp_gke_cluster_name
   location = var.gcp_zone
-  # Default node pool
   node_pool {
     name       = var.gcp_gke_default_pool_name
     node_count = 1
