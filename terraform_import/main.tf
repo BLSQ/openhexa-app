@@ -22,7 +22,6 @@ terraform {
 provider "google" {
   project = var.gcp_project_id
 }
-
 # Cloud SQL
 resource "google_sql_database_instance" "app" {
   database_version = "POSTGRES_12"
@@ -39,19 +38,4 @@ resource "google_sql_database_instance" "app" {
       }
     }
   }
-}
-
-# IAM (Cloud SQL proxy)
-resource "google_service_account" "cloud_sql_proxy" {
-  account_id   = var.gcp_iam_service_account_id
-  display_name = var.gcp_iam_service_account_display_name
-  project      = var.gcp_project_id
-  description  = "Used to allow pods to access Cloud SQL"
-}
-resource "google_project_iam_binding" "cloud_sql_proxy" {
-  project = var.gcp_project_id
-  role    = "roles/cloudsql.client"
-  members = [
-    "serviceAccount:${google_service_account.cloud_sql_proxy.email}",
-  ]
 }
