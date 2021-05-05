@@ -11,11 +11,9 @@ provider "google" {
 # Global IP address
 resource "google_compute_global_address" "app" {
   name         = var.gcp_global_address_name
-  address_type = "EXTERNAL"
-  ip_version   = "IPV4"
 }
 
-# GCP Cloud SQL
+# Cloud SQL
 resource "google_sql_database_instance" "app" {
   database_version = "POSTGRES_12"
   name             = var.gcp_sql_instance_name
@@ -56,7 +54,7 @@ resource "google_sql_user" "app" {
   }
 }
 
-# GCP IAM (Cloud SQL proxy)
+# IAM (Cloud SQL proxy)
 resource "google_service_account" "cloud_sql_proxy" {
   account_id   = var.gcp_iam_service_account_id
   display_name = var.gcp_iam_service_account_display_name
@@ -79,10 +77,11 @@ resource "google_project_iam_binding" "cloud_sql_proxy" {
   ]
 }
 
-# GCP GKE cluster
+# GKE cluster
 resource "google_container_cluster" "cluster" {
   name     = var.gcp_gke_cluster_name
   location = var.gcp_zone
+  # Default node pool
   node_pool {
     name       = var.gcp_gke_default_pool_name
     node_count = 1
@@ -98,7 +97,7 @@ resource "google_container_cluster" "cluster" {
     }
   }
 }
-# GCP GCE managed certificate
+# GCE managed certificate
 # (See https://github.com/hashicorp/terraform-provider-kubernetes/issues/446)
 resource "google_compute_managed_ssl_certificate" "app" {
   name = var.kubernetes_namespace

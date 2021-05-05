@@ -67,17 +67,17 @@ variable "gcp_gke_default_pool_name" {
   default = "default-pool"
 }
 variable "gcp_gke_default_pool_max_node_count" {
-  description = "The max number of nodes in the default GKE pool"
+  description = "The max number of nodes in the default pool"
   default     = 3
 }
 variable "gcp_gke_default_pool_machine_type" {
-  description = "The machine type to use for nodes in the default GKE pool"
+  description = "The machine type to use for nodes in the default pool"
   default     = "e2-standard-2"
 }
 
 # KUBERNETES
 variable "kubernetes_namespace" {
-  description = "The Kubernetes namespace in which to deploy the resources of the app component"
+  description = "The namespace in which to deploy the resources of the app component"
   default     = "hexa-app"
 }
 
