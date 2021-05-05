@@ -73,8 +73,8 @@ resource "google_sql_user" "app" {
 
 # IAM (Cloud SQL proxy)
 resource "google_service_account" "app_cloud_sql_proxy" {
-  account_id   = var.gcp_iam_service_account_id
-  display_name = var.gcp_iam_service_account_display_name
+  account_id   = var.gcp_iam_cloud_sql_proxy_service_account_id
+  display_name = var.gcp_iam_cloud_sql_proxy_service_account_display_name
   project      = var.gcp_project_id
   description  = "Used to allow pods to access Cloud SQL"
 }
@@ -167,7 +167,7 @@ resource "kubernetes_secret" "cloud_sql_proxy" {
   }
   # TODO: Use workload identity, see # https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
   data = {
-    "credentials.json" = base64decode(google_service_account_key.cloud_sql_proxy.private_key)
+    "credentials.json" = base64decode(google_service_account_key.app_cloud_sql_proxy.private_key)
   }
 }
 # Config map

@@ -62,8 +62,8 @@ jobs:
             -var 'gcp_sql_instance_tier=${{ secrets.GCP_SQL_INSTANCE_TIER }}' \
             -var 'gcp_sql_database_name=${{ secrets.GCP_SQL_DATABASE_NAME }}' \
             -var 'gcp_sql_user_name=${{ secrets.GCP_SQL_USER_NAME }}' \
-            -var 'gcp_iam_service_account_id=${{ secrets.GCP_IAM_SERVICE_ACCOUNT_ID }}' \
-            -var 'gcp_iam_service_account_display_name=${{ secrets.GCP_IAM_SERVICE_ACCOUNT_DISPLAY_NAME }}' \
+            -var 'gcp_iam_cloud_sql_proxy_service_account_id=${{ secrets.GCP_IAM_CLOUD_SQL_PROXY_SERVICE_ACCOUNT_ID }}' \
+            -var 'gcp_iam_cloud_sql_proxy_service_account_display_name=${{ secrets.GCP_IAM_SERVICE_CLOUD_SQL_PROXY_ACCOUNT_DISPLAY_NAME }}' \
             -var 'gcp_gke_default_pool_max_node_count=${{ secrets.GCP_GKE_DEFAULT_POOL_MAX_NODE_COUNT }}' \
             -var 'gcp_gke_default_pool_machine_type=${{ secrets.GCP_GKE_DEFAULT_POOL_MACHINE_TYPE }}' \
             -var 'kubernetes_namespace=${{ secrets.KUBERNETES_NAMESPACE }}' \
