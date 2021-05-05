@@ -2,6 +2,20 @@ terraform {
   backend "s3" {
     encrypt = true
   }
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "3.66.1"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.1.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "3.38.0"
+    }
+  }
 }
 
 # GCP
@@ -10,7 +24,7 @@ provider "google" {
 }
 # Global IP address
 resource "google_compute_global_address" "app" {
-  name         = var.gcp_global_address_name
+  name = var.gcp_global_address_name
 }
 
 # Cloud SQL
@@ -110,8 +124,8 @@ resource "google_compute_managed_ssl_certificate" "app" {
 # KUBERNETES
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
-  host             = "https://${google_container_cluster.cluster.endpoint}"
-  token            = data.google_client_config.terraform.access_token
+  host  = "https://${google_container_cluster.cluster.endpoint}"
+  token = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
     google_container_cluster.cluster.master_auth[0].cluster_ca_certificate,
   )
@@ -157,7 +171,7 @@ resource "kubernetes_secret" "cloud_sql_proxy" {
 # Config map
 resource "kubernetes_config_map" "app" {
   metadata {
-    name = "app-config"
+    name      = "app-config"
     namespace = var.kubernetes_namespace
     labels = {
       component = "app"
@@ -175,7 +189,7 @@ resource "kubernetes_config_map" "app" {
 # Deployment
 resource "kubernetes_deployment" "app" {
   metadata {
-    name = "app-deployment"
+    name      = "app-deployment"
     namespace = var.kubernetes_namespace
     labels = {
       component = "app"
@@ -270,7 +284,7 @@ resource "kubernetes_deployment" "app" {
 # Service
 resource "kubernetes_service" "app" {
   metadata {
-    name = "app-service"
+    name      = "app-service"
     namespace = var.kubernetes_namespace
     labels = {
       component = "app"
@@ -290,7 +304,7 @@ resource "kubernetes_service" "app" {
 # Ingress
 resource "kubernetes_ingress" "app" {
   metadata {
-    name = "app-ingress"
+    name      = "app-ingress"
     namespace = var.kubernetes_namespace
     labels = {
       component = "app"

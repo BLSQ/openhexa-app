@@ -65,7 +65,7 @@ variable "gcp_gke_cluster_name" {
 }
 variable "gcp_gke_default_pool_name" {
   description = "The name of the default node pool"
-  default = "default-pool"
+  default     = "default-pool"
 }
 variable "gcp_gke_default_pool_max_node_count" {
   description = "The max number of nodes in the default pool"
