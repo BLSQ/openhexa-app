@@ -76,7 +76,7 @@ resource "google_service_account" "app_cloud_sql_proxy" {
   account_id   = var.gcp_iam_cloud_sql_proxy_service_account_id
   display_name = var.gcp_iam_cloud_sql_proxy_service_account_display_name
   project      = var.gcp_project_id
-  description  = "Used to allow pods to access Cloud SQL"
+  description  = "Cloud SQL Proxy"
 }
 resource "google_service_account_key" "app_cloud_sql_proxy" {
   service_account_id = google_service_account.app_cloud_sql_proxy.name
