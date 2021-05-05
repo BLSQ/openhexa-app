@@ -37,10 +37,11 @@ jobs:
       # downloading modules, etc.
       - name: Terraform Init
         run: |
-          terraform -chdir=terraform init \
+          terraform -chdir=terraform \
             -backend-config="bucket=${{ secrets.TERRAFORM_AWS_S3_BUCKET_NAME }}" \
             -backend-config="key=openhexa-app-${{ github.event.inputs.environment }}/terraform.tfstate" \
-            -backend-config="region=${{ secrets.AWS_REGION }}"
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            init
 
       # Terraform import
       - name: Terraform import (sql instance)
