@@ -7,10 +7,9 @@ terraform {
       source  = "hashicorp/google"
       version = "3.66.1"
     }
-    # TODO: update once we figure out https://github.com/hashicorp/terraform-provider-kubernetes/issues/1179
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "1.13.3"
+      version = "2.1.0"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -125,7 +124,6 @@ resource "google_compute_managed_ssl_certificate" "app" {
 # KUBERNETES
 data "google_client_config" "terraform" {}
 provider "kubernetes" {
-  load_config_file = false
   host             = "https://${google_container_cluster.cluster.endpoint}"
   token            = data.google_client_config.terraform.access_token
   cluster_ca_certificate = base64decode(
