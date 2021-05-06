@@ -53,10 +53,6 @@ variable "gcp_iam_cloud_sql_proxy_service_account_id" {
   description = "The ID of the service account used for the Cloud SQL proxy"
   default     = "hexa-app-csp"
 }
-variable "gcp_iam_cloud_sql_proxy_service_account_display_name" {
-  description = "The display name of the service account used for the Cloud SQL proxy"
-  default     = "Hexa App Cloud SQL Proxy"
-}
 
 # GKE cluster
 variable "gcp_gke_cluster_name" {

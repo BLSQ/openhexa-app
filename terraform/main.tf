@@ -74,7 +74,7 @@ resource "google_sql_user" "app" {
 # IAM (Cloud SQL proxy)
 resource "google_service_account" "app_cloud_sql_proxy" {
   account_id   = var.gcp_iam_cloud_sql_proxy_service_account_id
-  display_name = var.gcp_iam_cloud_sql_proxy_service_account_display_name
+  display_name = var.gcp_iam_cloud_sql_proxy_service_account_id
   project      = var.gcp_project_id
   description  = "Cloud SQL Proxy"
 }
@@ -97,6 +97,7 @@ resource "google_project_iam_binding" "app_cloud_sql_proxy" {
 resource "google_container_cluster" "cluster" {
   name                     = var.gcp_gke_cluster_name
   location                 = var.gcp_zone
+  initial_node_count       = 1
   remove_default_node_pool = true
 }
 resource "google_container_node_pool" "default_pool" {
