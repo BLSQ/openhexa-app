@@ -59,16 +59,16 @@ variable "gcp_gke_cluster_name" {
   description = "The name of the Kubernetes cluster in GKE"
   default     = "hexa-prime"
 }
-variable "gcp_gke_default_pool_name" {
-  description = "The name of the default node pool"
-  default     = "default-pool"
+variable "gcp_gke_shared_pool_name" {
+  description = "The name of the shared node pool (app & notebooks)"
+  default     = "shared-pool"
 }
-variable "gcp_gke_default_pool_max_node_count" {
-  description = "The max number of nodes in the default pool"
+variable "gcp_gke_shared_pool_max_node_count" {
+  description = "The max number of nodes in the shared pool"
   default     = 3
 }
-variable "gcp_gke_default_pool_machine_type" {
-  description = "The machine type to use for nodes in the default pool"
+variable "gcp_gke_shared_pool_machine_type" {
+  description = "The machine type to use for nodes in the shared pool"
   default     = "e2-standard-2"
 }
 variable "gcp_gke_user_pool_name" {

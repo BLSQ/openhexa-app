@@ -103,17 +103,17 @@ resource "google_container_cluster" "cluster" {
   initial_node_count       = 1
   remove_default_node_pool = true
 }
-resource "google_container_node_pool" "default_pool" {
+resource "google_container_node_pool" "shared_pool" {
   cluster    = google_container_cluster.cluster.name
-  name       = var.gcp_gke_default_pool_name
+  name       = var.gcp_gke_shared_pool_name
   location   = var.gcp_zone
   node_count = 1
   autoscaling {
     min_node_count = 1
-    max_node_count = var.gcp_gke_default_pool_max_node_count
+    max_node_count = var.gcp_gke_shared_pool_max_node_count
   }
   node_config {
-    machine_type = var.gcp_gke_default_pool_machine_type
+    machine_type = var.gcp_gke_shared_pool_machine_type
     metadata = {
       disable-legacy-endpoints = true
     }
@@ -242,7 +242,7 @@ resource "kubernetes_deployment" "app" {
       }
       spec {
         node_selector = {
-          "cloud.google.com/gke-nodepool" = google_container_node_pool.default_pool.name
+          "cloud.google.com/gke-nodepool" = google_container_node_pool.shared_pool.name
         }
         container {
           name  = "app-container"
