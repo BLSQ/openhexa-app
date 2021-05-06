@@ -180,7 +180,7 @@ resource "random_password" "django_secret_key" {
 resource "kubernetes_secret" "app" {
   metadata {
     name      = "app-secret"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
   data = {
     DATABASE_USER     = google_sql_user.app.name
@@ -194,7 +194,7 @@ resource "kubernetes_secret" "app" {
 resource "kubernetes_secret" "cloud_sql_proxy" {
   metadata {
     name      = "cloud-sql-proxy-secret"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
   # TODO: Use workload identity, see # https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
   data = {
@@ -205,7 +205,7 @@ resource "kubernetes_secret" "cloud_sql_proxy" {
 resource "kubernetes_config_map" "app" {
   metadata {
     name      = "app-config"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
     labels = {
       component = "app"
     }
@@ -223,7 +223,7 @@ resource "kubernetes_config_map" "app" {
 resource "kubernetes_deployment" "app" {
   metadata {
     name      = "app-deployment"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
     labels = {
       component = "app"
     }
@@ -318,7 +318,7 @@ resource "kubernetes_deployment" "app" {
 resource "kubernetes_service" "app" {
   metadata {
     name      = "app-service"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
     labels = {
       component = "app"
     }
@@ -338,7 +338,7 @@ resource "kubernetes_service" "app" {
 resource "kubernetes_ingress" "app" {
   metadata {
     name      = "app-ingress"
-    namespace = var.kubernetes_namespace
+    namespace = kubernetes_namespace.app.metadata[0].name
     labels = {
       component = "app"
     }
