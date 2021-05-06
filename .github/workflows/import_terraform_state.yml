@@ -49,4 +49,4 @@ jobs:
             -var 'gcp_project_id=${{ secrets.GCP_PROJECT_ID }}' \
             -var 'gcp_region=${{ secrets.GCP_REGION }}' \
             -var 'gcp_sql_instance_tier=${{ secrets.GCP_SQL_INSTANCE_TIER }}' \
-            google_sql_database_instance.app blsq-dip-test/hexa-prime
+            google_sql_database_instance.app hexa-prime
