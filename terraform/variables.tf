@@ -71,6 +71,18 @@ variable "gcp_gke_default_pool_machine_type" {
   description = "The machine type to use for nodes in the default pool"
   default     = "e2-standard-2"
 }
+variable "gcp_gke_user_pool_name" {
+  description = "The name of the user node pool"
+  default     = "user-pool"
+}
+variable "gcp_gke_user_pool_max_node_count" {
+  description = "The max number of nodes in the user pool"
+  default     = 3
+}
+variable "gcp_gke_user_pool_machine_type" {
+  description = "The machine type to use for nodes in the user pool"
+  default     = "e2-highmem-2"
+}
 
 # KUBERNETES
 variable "kubernetes_namespace" {
