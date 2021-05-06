@@ -102,6 +102,9 @@ resource "google_container_cluster" "cluster" {
   location                 = var.gcp_zone
   initial_node_count       = 1
   remove_default_node_pool = true
+  lifecycle {
+    ignore_changes = [remove_default_node_pool]
+  }
 }
 resource "google_container_node_pool" "shared_pool" {
   cluster    = google_container_cluster.cluster.name
@@ -122,7 +125,7 @@ resource "google_container_node_pool" "shared_pool" {
 resource "google_container_node_pool" "user_pool" {
   cluster    = google_container_cluster.cluster.name
   name       = var.gcp_gke_user_pool_name
-  location = var.gcp_zone
+  location   = var.gcp_zone
   node_count = 1
   autoscaling {
     min_node_count = 1
