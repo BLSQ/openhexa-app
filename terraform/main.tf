@@ -86,12 +86,10 @@ resource "google_service_account_key" "app_cloud_sql_proxy" {
     service_account_id = google_service_account.app_cloud_sql_proxy.account_id
   }
 }
-resource "google_project_iam_binding" "app_cloud_sql_proxy" {
+resource "google_project_iam_member" "app_cloud_sql_proxy" {
   project = var.gcp_project_id
   role    = "roles/cloudsql.client"
-  members = [
-    "serviceAccount:${google_service_account.app_cloud_sql_proxy.email}",
-  ]
+  member  = "serviceAccount:${google_service_account.app_cloud_sql_proxy.email}"
 }
 # GKE cluster
 # Please note that as we will share the cluster between the app and notebooks components, we need to declare
