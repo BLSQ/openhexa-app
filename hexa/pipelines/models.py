@@ -34,7 +34,7 @@ class PipelinesIndexQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            pipelineindexpermission__team__in=[t.pk for t in user.team_set.all()]
+            pipelinesindexpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
     def create_or_update(self, *, indexed_object, parent_object=None, **kwargs):

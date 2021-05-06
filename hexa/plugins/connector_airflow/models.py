@@ -100,7 +100,7 @@ class Cluster(BaseEnvironment):
 
         for permission in self.clusterpermission_set.all():
             PipelinesIndexPermission.objects.create(
-                catalog_index=pipeline_index, team=permission.team
+                pipeline_index=pipeline_index, team=permission.team
             )
 
     @property
@@ -117,6 +117,9 @@ class Cluster(BaseEnvironment):
 
 class ClusterPermission(Permission):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
+
+    def index_object(self):
+        self.cluster.index()
 
 
 class DAGQuerySet(models.QuerySet):

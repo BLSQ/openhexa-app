@@ -41,6 +41,13 @@ class Permission(Base):
 
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index_object()
+
+    def index_object(self):
+        pass
+
 
 class RichContent(Base):
     class Meta:
