@@ -39,9 +39,9 @@ class User(AbstractUser):
     @property
     def initials(self):
         if self.first_name != "" and self.last_name != "":
-            return self.first_name[0] and self.last_name[0]
+            return f"{self.first_name[0]}{self.last_name[0]}".upper()
 
-        return self.username[:2]
+        return self.username[:2].upper()
 
     def __str__(self):
         return self.display_name

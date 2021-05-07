@@ -4,7 +4,7 @@ from django.urls import reverse
 from hexa.user_management.models import User
 
 
-class AuthTest(test.TestCase):
+class ViewsTest(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
