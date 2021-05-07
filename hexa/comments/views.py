@@ -19,6 +19,6 @@ def comments(request):
 
     return render(
         request,
-        "comments/components/feed_item.html",
+        "comments/components/comment.html",
         {"comment": comment, "last": last},
     )

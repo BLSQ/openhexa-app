@@ -21,6 +21,7 @@
                             x-model="text"
                             x-ref="textarea"
                             @keyup="startCommenting($event)"
+                            @keydown.cmd.enter="submit($event)"
                     ></textarea>
                     <div class="h-12 flex items-center space-x-2">
                         <div x-show="commenting">
