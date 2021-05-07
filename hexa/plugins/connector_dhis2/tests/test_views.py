@@ -105,7 +105,7 @@ class ConnectorDhis2Test(test.TestCase):
 
         self.client.force_login(self.USER_BJORN)
 
-        response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
+        response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(0, response.context["results"].count())
@@ -115,7 +115,7 @@ class ConnectorDhis2Test(test.TestCase):
 
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
+        response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(3, response.context["results"].count())
@@ -123,7 +123,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_datasource_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "play type:dhis2_instance"}
         )
         self.assertEqual(response.status_code, 200)
@@ -133,7 +133,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_data_element_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "anc type:dhis2_dataelement"}
         )
         self.assertEqual(response.status_code, 200)
@@ -143,7 +143,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_indicator_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "anc type:dhis2_indicator"}
         )
         self.assertEqual(response.status_code, 200)

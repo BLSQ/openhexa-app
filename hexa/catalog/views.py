@@ -29,7 +29,7 @@ def quick_search(request):
 
 
 def search(request):
-    query = request.POST.get("query", "")
+    query = request.GET.get("query", "")
     results = CatalogIndex.objects.filter_for_user(request.user).search(
         query, limit=100
     )

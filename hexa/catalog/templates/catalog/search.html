@@ -6,13 +6,12 @@
 {% block page_content %}
     <!-- This example requires Tailwind CSS v2.0+ -->
     <div class="bg-white shadow overflow-hidden sm:rounded-md mb-12">
-        <ul class="divide-y divide-gray-200">
-            <li class="px-4 py-2 sm:px-6">
+        <div class="divide-y divide-gray-200">
+            <div class="px-4 py-2 sm:px-6">
                 <form
-                        method="post"
+                        method="get"
                         action="{% url "catalog:search" %}"
                 >
-                    {% csrf_token %}
                     <div class="relative">
                         <div class="text-gray-400 absolute inset-y-0 left-0 flex items-center pointer-events-none">
                             {% include "partials/icons/search.html" %}
@@ -28,66 +27,54 @@
                         >
                     </div>
                 </form>
-            </li>
-            <li>
+            </div>
+            <div class="bg-blue-50 p-4">
+                <div class="ml-3 flex-1">
+                    <p class="text-sm text-blue-700">
+                        {% blocktranslate %}
+                            Enter one or more search terms separated by spaces. You can also filter results by
+                            data type
+                            using the <code class="bg-blue-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:</code>
+                            filter.
+                        {% endblocktranslate %}
+                    </p>
+                    <div class="flex my-2 items-center">
+                        <p class="text-sm text-blue-700 font-bold">
+                            {% translate "Examples" %}:
+                        </p>
+                        <ul class="ml-4 flex items-center space-x-2">
+                            <li>
+                                {% include "core/components/search/query_link.html" with query="severe" %}
+                            </li>
+                            <li>
+                                {% include "core/components/search/query_link.html" with query="play type:dhis2_instance" %}
+                            </li>
+                            <li>
+                                {% include "core/components/search/query_link.html" with query="anc type:dhis2_dataelement" %}
+                            </li>
+                            <li>
+                                {% include "core/components/search/query_link.html" with query="anc type:dhis2_indicator" %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div>
                 {% if results|length > 0 %}
                     <ul class="divide-y divide-gray-200">
                         {% for result in results %}
                             {% include "catalog/partials/search/search_result.html" %}
                         {% endfor %}
                     </ul>
-                {% else %}
+                {% elif query|length > 0 %}
                     <div class="px-4 py-4 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                            {% if query|length > 0 %}
-                                {% translate "No results was found for " %}"{{ query }}"
-                            {% else %}
-                                {% translate "Search tips" %}
-                            {% endif %}
-                        </h3>
-                        <div class="mt-2 text-sm text-gray-500 max-w-xl">
-                            <p class="my-4">
-                                {% blocktranslate %}
-                                    Enter one or more search terms separated by spaces. If you want to filter your
-                                    search
-                                    by type, you can use the
-                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:type_name</code>
-                                    filter.
-                                {% endblocktranslate %}
-                            </p>
-                            <p class="my-4">
-                                {% translate "You can search for:" %}
-                            </p>
-                            <ul class="my-4 ml-4 pl-4 list-disc">
-                                <li>
-                                    {% translate "Any type of content" %}:
-                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
-                                        severe
-                                    </code>
-                                </li>
-                                <li>
-                                    {% translate "DHIS2 onstances" %}:
-                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
-                                        play type:dhis2_instance
-                                    </code>
-                                </li>
-                                <li>
-                                    {% translate "DHIS2 data elements" %}:
-                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
-                                        anc type:dhis2_dataelement
-                                    </code>
-                                </li>
-                                <li>
-                                    {% translate "DHIS2 indicators" %}:
-                                    <code class="bg-gray-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">
-                                        anc type:dhis2_indicator
-                                    </code>
-                                </li>
-                            </ul>
-                        </div>
+                        <p class="my-2 text-sm text-grey-700">
+                            {% translate "No results found for" %}"{{ query }}".
+                            {% translate "Please try another term." %}
+                        </p>
                     </div>
                 {% endif %}
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 {% endblock %}
