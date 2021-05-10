@@ -13,6 +13,7 @@ from hexa.catalog.models import (
 from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
+from ...core.date_utils import date_format
 
 
 class InstanceQuerySet(models.QuerySet):
@@ -291,3 +292,29 @@ class Indicator(Content):
             CatalogIndexPermission.objects.create(
                 catalog_index=catalog_index, team=permission.team
             )
+
+
+class ExtractStatus(models.TextChoices):
+    PENDING = "PENDING", _("Pending")
+    REQUESTED = "REQUESTED", _("Requested")
+    SUCCESS = "SUCCESS", _("Success")
+    FAILED = "FAILED", _("Failed")
+
+
+class ExtractQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        return self.filter(user=user)
+
+
+class Extract(Base):
+    data_elements = models.ManyToManyField("DataElement")
+    indicators = models.ManyToManyField("Indicator")
+    period = models.CharField(max_length=200)
+    status = models.CharField(max_length=100, choices=ExtractStatus.choices)
+    user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
+
+    objects = ExtractQuerySet.as_manager()
+
+    @property
+    def display_name(self):
+        return f"{_('Extract')} {date_format(self.created_at)}"

@@ -1,6 +1,6 @@
 {% load colors embed sizes %}
 
-{% with tag=tag|default:"button" sv=size|default:"md" cv=color|default:"primary" %}
+{% with sv=size|default:"md" cv=color|default:"primary" %}
     <button
             type="button"
             class="inline-flex items-center px-{{ sv|size:"px" }} py-{{ sv|size:"py" }} border
