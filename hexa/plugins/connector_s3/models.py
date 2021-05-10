@@ -90,7 +90,7 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
-        if self.sync_credentials is True:
+        if self.sync_credentials is None:
             fs = S3FileSystem(anon=True)
         else:
             fs = S3FileSystem(
@@ -102,7 +102,7 @@ class Bucket(Datasource):
         with transaction.atomic():
             # TODO: update or create
             self.object_set.all().delete()
-            result = self.create_objects(fs, f"{self.name}")
+            result = self.create_objects(fs, f"{self.s3_name}")
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -124,17 +124,17 @@ class Bucket(Datasource):
                 continue  # TODO: check if safer way
 
             s3_object = Object.objects.create(
-                instance=self,
-                key=object_data["Key"],
-                size=object_data["size"],
-                storage_class=object_data["StorageClass"],
-                type=object_data["type"],
+                bucket=self,
+                s3_key=object_data["Key"],
+                s3_size=object_data["size"],
+                s3_storage_class=object_data["StorageClass"],
+                s3_type=object_data["type"],
                 s3_name=object_data["name"],
-                last_modified=object_data.get("LastModified"),
+                s3_last_modified=object_data.get("LastModified"),
             )
 
-            if s3_object.type == "directory":  # TODO: choices
-                results += self.create_objects(fs, s3_object.key)
+            if s3_object.s3_type == "directory":  # TODO: choices
+                results += self.create_objects(fs, s3_object.s3_key)
 
             created += 1
 
