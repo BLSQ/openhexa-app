@@ -5,7 +5,8 @@
     {% static "connector_dhis2/img/symbol.svg" as image_src %}
     {% embed "core/components/card/card.html" %}
         {% slot actions %}
-            {% include "core/components/card/heading_action.html" with label=_("Extract") icon="filter" color="primary" %}
+            {% url "connector_dhis2:indicator_extract" indicator.instance.pk indicator.pk as extract_url %}
+            {% include "core/components/card/heading_action.html" with label=_("Extract") url=extract_url icon="filter" color="primary" %}
         {% endslot %}
         {% slot content %}
             {% embed "core/components/description_list/list.html" %}
