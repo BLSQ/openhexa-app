@@ -38,6 +38,15 @@ class Credentials(Base):
     TODO: Handle different kind of credentials (not just OIDC)
     """
 
+    OIDC_TARGET_AUDIENCE_DOC_URL = (
+        "https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf"
+        "#get_the_client_id_of_the_iam_proxy"
+    )
+    OIDC_TARGET_AUDIENCE_HELP_TEXT = (
+        f'Corresponds to the <a href="{OIDC_TARGET_AUDIENCE_DOC_URL}" target="_blank">'
+        f"client_id of the IAM Proxy</a>"
+    )
+
     class Meta:
         verbose_name_plural = "Credentials"
         ordering = ("service_account_email",)
@@ -51,8 +60,14 @@ class Credentials(Base):
         related_name="airflow_credential_set",
     )
     service_account_email = models.EmailField()
-    service_account_key_data = models.JSONField()
-    oidc_target_audience = models.CharField(max_length=200, blank=False)
+    service_account_key_data = models.JSONField(
+        help_text="The content of the JSON key in GCP"
+    )
+    oidc_target_audience = models.CharField(
+        max_length=200,
+        blank=False,
+        help_text=OIDC_TARGET_AUDIENCE_HELP_TEXT,
+    )
 
     objects = CredentialsQuerySet.as_manager()
 

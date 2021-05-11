@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from hexa.catalog.connectors import get_connector_app_configs
+from hexa.plugins.app import get_connector_app_configs
 
 # Core URLs
 urlpatterns = [

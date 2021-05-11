@@ -5,7 +5,6 @@
     "fields": {
       "created_at": "2021-05-03T06:56:43.158Z",
       "updated_at": "2021-05-03T06:56:43.158Z",
-      "team": "026c2c52-30db-4ce3-9d8f-4be13f56ce42",
       "service_account_email": "service-account-email@developer.gserviceaccount.com",
       "service_account_key_data": {
         "replace": "me"
