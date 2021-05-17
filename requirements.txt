@@ -1,5 +1,6 @@
 colorhash==1.*
 coverage==5.*
+cryptography==3.*
 Django==3.*
 django-countries==7.*
 django-tailwind==1.*
