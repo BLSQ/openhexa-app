@@ -22,9 +22,11 @@ resource "google_sql_database_instance" "hexa" {
   database_version = "POSTGRES_12"
   region           = var.gcp_sql_instance_region
   settings {
-    tier                           = var.gcp_sql_machine_type_tier
-    enabled                        = true
-    point_in_time_recovery_enabled = true
+    tier = var.gcp_sql_machine_type_tier
+    backup_configuration {
+      enabled                        = true
+      point_in_time_recovery_enabled = true
+    }
     ip_configuration {
       ipv4_enabled = true
 
