@@ -1,0 +1,11 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/lists/tables#component-822ab4bf111e9a34063e651275b381e6 #}
+<td class="px-6 py-4 whitespace-nowrap">
+    <div class="text-sm text-gray-900">
+        {% slot top %}{{ top|default:_("Missing top") }}{% endslot %}
+    </div>
+    <div class="text-sm text-gray-500">
+        {% slot bottom %}{{ bottom|default:_("Missing bottom") }}{% endslot %}
+    </div>
+</td>

@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 import uuid
 
-from hexa.common.models import Base
+from hexa.core.models import Base
 
 
 class UserManager(BaseUserManager):
@@ -32,6 +32,20 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    @property
+    def display_name(self):
+        return self.username
+
+    @property
+    def initials(self):
+        if self.first_name != "" and self.last_name != "":
+            return f"{self.first_name[0]}{self.last_name[0]}".upper()
+
+        return self.username[:2].upper()
+
+    def __str__(self):
+        return self.display_name
+
 
 class OrganizationType(models.TextChoices):
     CORPORATE = "CORPORATE", _("Corporate")
@@ -51,25 +65,16 @@ class Organization(Base):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
 
-    @property
-    def display_name(self):
-        return self.short_name if self.short_name is not None else self.name
-
-    def __str__(self):
-        return self.name
-
 
 class Team(Base):
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
-
-    def __str__(self):
-        return self.name
 
 
 class Membership(Base):
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.team.name}"
+    @property
+    def display_name(self):
+        return f"{self.user.display_name} / {self.team.display_name}"

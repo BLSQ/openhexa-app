@@ -1,8 +1,8 @@
-{% extends "layouts/page.html" %}
+{% extends "connector_dhis2/page.html" %}
 
 {% block page_title %}{{ indicator.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_dhis2/partials/indicator_card.html" %}
-    {% include "comments/partials/feed_section.html" %}
+    {% include "connector_dhis2/components/indicator_card.html" %}
+    {% include "comments/components/page_section_comments.html" with object=indicator %}
 {% endblock %}

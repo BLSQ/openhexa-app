@@ -1,0 +1,11 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/data-display/description-lists#component-04580360f17ae91c953fda614240075e #}
+<div class="sm:col-span-{{ span|default:1 }}">
+    <dt class="text-sm font-medium text-gray-500">
+        {% slot term %}{{ term|default:_("Missing term") }}{% endslot %}
+    </dt>
+    <dd class="mt-1 text-sm text-gray-900">
+        {% slot definition %}{{ definition|default:_("Missing definition") }}{% endslot %}
+    </dd>
+</div>

@@ -1,0 +1,17 @@
+{% load colors embed %}
+
+{# https://tailwindui.com/components/application-ui/headings/card-headings#component-c8f5fb604fcc6cf6614aab0bfec6a3f2 #}
+{% with cv=color|default:"neutral" %}
+    <a
+            href="{{ url }}"
+            type="button"
+            class="ml-2 inline-flex items-center px-2.5 py-1.5 border border-{{ cv|color:"border" }} shadow-sm text-xs leading-4 font-medium rounded-md text-{{ cv|color:"text" }} bg-{{ cv|color:"bg" }} hover:bg-{{ cv|color:"hover:bg" }} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-{{ cv|color:"focus:ring" }}"
+    >
+        <span class="mr-2">
+            {% slot icon %}
+                 {% include "core/components/icons/"|add:icon|add:".html" %}
+            {% endslot %}
+        </span>
+        <span>{{ label }}</span>
+    </a>
+{% endwith %}

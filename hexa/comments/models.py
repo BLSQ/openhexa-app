@@ -1,20 +1,23 @@
-import uuid
-
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django_comments.abstracts import CommentAbstractModel
+
+from hexa.core.models import Base
 
 
-class Base(models.Model):
+class CommentQuerySet(models.QuerySet):
+    def for_content(self, content):
+        return self.filter(object=content)
+
+
+class Comment(Base):
     class Meta:
-        abstract = True
+        ordering = ["-created_at"]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    object = GenericForeignKey("content_type", "object_id")
+    text = models.TextField()
 
-    def __str__(self):
-        return str(self.pk)
-
-
-class Comment(Base, CommentAbstractModel):
-    pass
+    objects = CommentQuerySet.as_manager()

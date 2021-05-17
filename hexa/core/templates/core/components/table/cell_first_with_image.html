@@ -1,0 +1,20 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/lists/tables#component-822ab4bf111e9a34063e651275b381e6 #}
+<td class="px-6 py-4 whitespace-nowrap">
+    <a href="{{ url }}" class="flex items-center">
+        <div class="flex-shrink-0 h-10 w-10">
+            <img class="h-10 w-10 rounded-full"
+                 src="{{ image_src }}"
+                 alt="{{ image_alt }}">
+        </div>
+        <div class="ml-4">
+            <div class="text-sm font-medium text-gray-900">
+                {% slot top %}{{ top|default:_("Missing top") }}{% endslot %}
+            </div>
+            <div class="text-sm text-gray-500">
+                {% slot bottom %}{{ bottom|default:_("Missing bottom") }}{% endslot %}
+            </div>
+        </div>
+    </a>
+</td>

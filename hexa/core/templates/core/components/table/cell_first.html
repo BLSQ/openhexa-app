@@ -1,0 +1,8 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/lists/tables#component-822ab4bf111e9a34063e651275b381e6 #}
+<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+    {% if url %}<a href="{{ url }}">{% endif %}
+        {% slot label %}{{ label|default:_("Missing label") }}{% endslot %}
+    {% if url %}</a>{% endif %}
+</td>

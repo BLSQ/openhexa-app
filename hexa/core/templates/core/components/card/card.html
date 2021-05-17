@@ -1,0 +1,47 @@
+{% load embed %}
+
+{# https://tailwindui.com/components/application-ui/layout/panels#component-dff902cd785d85863f5f9cfe84e8a1b8 #}
+<div
+        class="bg-white overflow-hidden shadow sm:rounded-lg divide-y divide-gray-200"
+        {% if update_url %}
+        x-data="Updatable('{{ update_url }}')"
+        @editablechange="update($event.detail.key, $event.detail.value)"
+        @updatableclick="submit()"
+        {% endif %}
+>
+    <div class="bg-white px-4 py-5 sm:px-6">
+        <div class="-ml-4 -mt-4 flex justify-between items-center flex-wrap sm:flex-nowrap">
+            <div class="ml-4 mt-4">
+                <div class="flex items-center">
+                    {% if image_src %}
+                        <div class="flex-shrink-0 mr-4">
+                            <img class="h-12 w-12 rounded-full"
+                                 src="{{ image_src }}"
+                                 alt="{{ image_alt }}">
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            {{ title }}
+                        </h3>
+                        {% if subtitle %}
+                            <p class="text-sm text-gray-500">
+                                {{ subtitle }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="ml-4 mt-4 flex-shrink-0 flex">
+                {% if update_url %}
+                    {% include "core/components/card/heading_action_save.html" %}
+                {% endif %}
+                {% slot actions %}{% endslot %}
+            </div>
+        </div>
+    </div>
+    <div class="px-4 py-5 sm:p-6">
+        {% slot content %}{% endslot %}
+    </div>
+    {% slot footer %}{% endslot %}
+</div>

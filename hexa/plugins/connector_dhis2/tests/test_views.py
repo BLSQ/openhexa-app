@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from hexa.user_management.models import User, Team
-from hexa.catalog.models import Datasource, CatalogIndexQuerySet
+from hexa.catalog.models import CatalogIndexQuerySet
 from ..models import Instance, DataElement, Indicator, InstancePermission
 
 
@@ -24,12 +24,12 @@ class ConnectorDhis2Test(test.TestCase):
             is_superuser=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            hexa_name="DHIS2 Play",
-            hexa_short_name="Play",
-            hexa_description="The DHIS2 official demo instance with realistic sample medical data",
-            api_url="https://play.dhis2.org/demo",
-            api_username="admin",
-            api_password="district",
+            name="DHIS2 Play",
+            short_name="Play",
+            description="The DHIS2 official demo instance with realistic sample medical data",
+            dhis2_api_url="https://play.dhis2.org/demo",
+            dhis2_api_username="admin",
+            dhis2_api_password="district",
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
@@ -37,50 +37,50 @@ class ConnectorDhis2Test(test.TestCase):
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="O1BccPF5yci",
-            name="ANC First visit",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="ANC First visit",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_ELEMENT_2 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="eLW6jbvVcPZ",
-            name="ANC Second visit",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="ANC Second visit",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_ELEMENT_3 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="kmaHyZXMHCz",
-            name="C-sections",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
+            dhis2_name="C-sections",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
         )
         cls.DATA_INDICATOR_1 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="xaG3AfYG2Ts",
-            name="Ante-Natal Care visits",
-            description="Uses different ANC data indicators",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
-            annualized=False,
+            dhis2_name="Ante-Natal Care visits",
+            dhis2_description="Uses different ANC data indicators",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
+            dhis2_annualized=False,
         )
         cls.DATA_INDICATOR_2 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="oNzq8duNBx6",
-            name="Medical displays",
-            created=timezone.now(),
-            last_updated=timezone.now(),
-            external_access=False,
-            favorite=False,
-            annualized=False,
+            dhis2_name="Medical displays",
+            dhis2_created=timezone.now(),
+            dhis2_last_updated=timezone.now(),
+            dhis2_external_access=False,
+            dhis2_favorite=False,
+            dhis2_annualized=False,
         )
 
     def test_catalog_index_empty_200(self):
@@ -105,7 +105,7 @@ class ConnectorDhis2Test(test.TestCase):
 
         self.client.force_login(self.USER_BJORN)
 
-        response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
+        response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(0, response.context["results"].count())
@@ -115,7 +115,7 @@ class ConnectorDhis2Test(test.TestCase):
 
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(reverse("catalog:search"), data={"query": "anc"})
+        response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], CatalogIndexQuerySet)
         self.assertEqual(3, response.context["results"].count())
@@ -123,7 +123,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_datasource_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "play type:dhis2_instance"}
         )
         self.assertEqual(response.status_code, 200)
@@ -133,7 +133,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_data_element_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "anc type:dhis2_dataelement"}
         )
         self.assertEqual(response.status_code, 200)
@@ -143,7 +143,7 @@ class ConnectorDhis2Test(test.TestCase):
     def test_catalog_search_indicator_200(self):
         self.client.force_login(self.USER_KRISTEN)
 
-        response = self.client.post(
+        response = self.client.get(
             reverse("catalog:search"), data={"query": "anc type:dhis2_indicator"}
         )
         self.assertEqual(response.status_code, 200)
@@ -182,7 +182,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
-                and r["name"] == "ANC First visit"
+                and r["external_name"] == "ANC First visit"
             )
         )
         self.assertTrue(
@@ -191,7 +191,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Data Element"
-                and r["name"] == "ANC Second visit"
+                and r["external_name"] == "ANC Second visit"
             )
         )
         self.assertTrue(
@@ -200,7 +200,7 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
-                and r["name"] == "Ante-Natal Care visits"
+                and r["external_name"] == "Ante-Natal Care visits"
             )
         )
 
@@ -223,39 +223,39 @@ class ConnectorDhis2Test(test.TestCase):
                 for r in results
                 if r["app_label"] == "connector_dhis2"
                 and r["content_type_name"] == "DHIS2 Indicator"
-                and r["name"] == "Medical displays"
+                and r["external_name"] == "Medical displays"
             )
         )
 
-    def test_datasource_detail_404(self):
+    def test_instance_detail_404(self):
         """Bjorn is not a superuser, he can't access the datasource detail page."""
 
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_detail",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_datasource_detail_200(self):
+    def test_instance_detail_200(self):
         """As a superuser, Kristen can access any datasource detail screen."""
 
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_detail",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["data_elements_list_params"], dict)
         self.assertIsInstance(response.context["indicators_list_params"], dict)
 
     @test.tag("external")
-    def test_datasource_sync_404(self):
+    def test_instance_sync_404(self):
         """Bjorn is not a superuser, he can't sync datasources."""
 
         self.client.force_login(self.USER_BJORN)
@@ -264,8 +264,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_sync",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_sync",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
         )
@@ -273,7 +273,7 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(response.status_code, 404)
 
     @test.tag("external")
-    def test_datasource_sync_302(self):
+    def test_instance_sync_302(self):
         """As a superuser, Kristen can sync every datasource."""
 
         self.client.force_login(self.USER_KRISTEN)
@@ -282,8 +282,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         response = self.client.get(
             reverse(
-                "connector_dhis2:datasource_sync",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                "connector_dhis2:instance_sync",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
             HTTP_REFERER=http_referer,
         )
@@ -293,8 +293,10 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(http_referer, response.url)
 
         # Test that all data elements have a value type and an aggregation type
-        self.assertEqual(0, len(DataElement.objects.filter(value_type=None)))
-        self.assertEqual(0, len(DataElement.objects.filter(aggregation_type=None)))
+        self.assertEqual(0, len(DataElement.objects.filter(dhis2_value_type=None)))
+        self.assertEqual(
+            0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
+        )
 
     def test_data_elements_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""
@@ -303,7 +305,7 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:data_element_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
@@ -315,11 +317,11 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:data_element_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["data_elements_list_params"], dict)
 
     def test_indicators_404(self):
@@ -329,7 +331,7 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:indicator_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 404)
@@ -341,9 +343,9 @@ class ConnectorDhis2Test(test.TestCase):
         response = self.client.get(
             reverse(
                 "connector_dhis2:indicator_list",
-                kwargs={"datasource_id": self.DHIS2_INSTANCE_PLAY.pk},
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["datasource"], Datasource)
+        self.assertIsInstance(response.context["instance"], Instance)
         self.assertIsInstance(response.context["indicators_list_params"], dict)

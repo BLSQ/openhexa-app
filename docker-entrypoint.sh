@@ -49,13 +49,13 @@ case "$command" in
   ;;
 "fixtures")
   if [[ $DEBUG == "true" ]]; then
-    export DJANGO_SUPERUSER_USERNAME=root
+    export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
     export DJANGO_SUPERUSER_PASSWORD=root
-    export DJANGO_SUPERUSER_EMAIL=root@bluesquarehub.com
+    export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
     python manage.py migrate
     python manage.py createsuperuser --no-input || true
     python manage.py loaddata demo.json
-    python manage.py reindex_catalog
+    python manage.py reindex_content
   else
     echo "The \"fixtures\" command can only be executed in dev mode"
   fi

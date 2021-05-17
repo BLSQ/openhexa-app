@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from hexa.catalog.connectors import get_connector_app_configs
+from hexa.plugins.app import get_connector_app_configs
 
 # Core URLs
 urlpatterns = [
@@ -26,6 +26,7 @@ urlpatterns = [
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
+    path("comments/", include("hexa.comments.urls")),
     path("auth/", include("django.contrib.auth.urls")),
 ]
 

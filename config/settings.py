@@ -39,8 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "django_countries",
     "tailwind",
-    "hexa.common.apps.CommonConfig",
-    "hexa.user_management.apps.UserManagementConfig",
+    "hexa.user_management",
     "hexa.core",
     "hexa.catalog",
     "hexa.notebooks",
@@ -49,6 +48,7 @@ INSTALLED_APPS = [
     "hexa.tailwindui",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
+    "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
 ]
 
 MIDDLEWARE = [
@@ -76,7 +76,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "hexa.common.context_processors.global_variables",
+                "hexa.core.context_processors.global_variables",
+                "hexa.plugins.connector_dhis2.context_processors.current_extract",
             ],
         },
     },

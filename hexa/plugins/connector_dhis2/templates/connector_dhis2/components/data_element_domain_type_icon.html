@@ -1,0 +1,7 @@
+{% if data_element.dhis2_domain_type == "AGGREGATE" %}
+    {% include "partials/icons/chart_bar.html" %}
+{% elif data_element.dhis2_domain_type == "TRACKER" %}
+    {% include "partials/icons/user_circle.html" %}
+{% else %}
+    {% include "partials/icons/exclamation.html" %}
+{% endif %}
