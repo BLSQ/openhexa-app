@@ -36,7 +36,12 @@ resource "google_sql_database_instance" "app" {
     prevent_destroy = true
   }
   settings {
-    tier = var.gcp_sql_instance_tier
+    tier = var.gcp_sql_machine_type_tier
+    backup_configuration {
+      enabled                        = true
+      point_in_time_recovery_enabled = true
+    }
+
     ip_configuration {
       ipv4_enabled = true
       # TODO: find a safer way to access Cloud SQL instance
