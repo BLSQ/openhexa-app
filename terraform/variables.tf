@@ -48,6 +48,12 @@ variable "gcp_sql_user_name" {
   description = "The username for the app component database"
   default     = "hexa-app"
 }
+variable "availability_type" {
+  description = "The availability type for the master instance.This is only used to set up high availability for the PostgreSQL instance. Can be either `ZONAL` or `REGIONAL`."
+  type        = string
+  default     = "ZONAL"
+}
+
 # Service account for the Cloud SQL proxy
 variable "gcp_iam_cloud_sql_proxy_service_account_id" {
   description = "The ID of the service account used for the Cloud SQL proxy"
