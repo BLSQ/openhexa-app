@@ -20,9 +20,9 @@ variable "gcp_sql_instance_availability_type" {
 }
 variable "gcp_sql_instance_backup_enabled" {
   description = "True if backup configuration is enabled"
-  default     = false
+  default     = true
 }
 variable "gcp_sql_instance_point_in_time_recovery_enabled" {
   description = "True if Point-in-time recovery is enabled"
-  default     = false
+  default     = true
 }
