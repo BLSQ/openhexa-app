@@ -41,6 +41,10 @@ variable "gcp_sql_instance_tier" {
   description = "The tier to use for the Cloud SQL instance"
   default     = "db-custom-1-3840"
 }
+variable "gcp_sql_instance_availability_type" {
+  description = "The availability type for the master instance.This is only used to set up high availability for the PostgreSQL instance. Can be either `ZONAL` or `REGIONAL`."
+  default     = "ZONAL"
+}
 variable "gcp_sql_database_name" {
   description = "The name of the app component database"
   default     = "hexa-app"
@@ -48,11 +52,6 @@ variable "gcp_sql_database_name" {
 variable "gcp_sql_user_name" {
   description = "The username for the app component database"
   default     = "hexa-app"
-}
-variable "availability_type" {
-  description = "The availability type for the master instance.This is only used to set up high availability for the PostgreSQL instance. Can be either `ZONAL` or `REGIONAL`."
-  type        = string
-  default     = "ZONAL"
 }
 
 # Service account for the Cloud SQL proxy

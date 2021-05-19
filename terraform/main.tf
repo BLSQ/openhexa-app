@@ -41,7 +41,7 @@ resource "google_sql_database_instance" "app" {
   }
   settings {
     tier              = var.gcp_sql_instance_tier
-    availability_type = var.availability_type
+    availability_type = var.gcp_sql_instance_availability_type
     backup_configuration {
       enabled                        = true
       point_in_time_recovery_enabled = true
