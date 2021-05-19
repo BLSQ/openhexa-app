@@ -27,6 +27,10 @@ resource "google_compute_global_address" "app" {
   name = var.gcp_global_address_name
 }
 
+# If prevent_destroy is set to true, the deploy will fail 
+# And the plan too when a resource which attribute (if changed) causes the resource to be destroyed and recreated.
+# It is applied  for cluster, node pools, Database instances, Databases, Database users
+
 # Cloud SQL
 resource "google_sql_database_instance" "app" {
   database_version = "POSTGRES_12"
@@ -36,7 +40,13 @@ resource "google_sql_database_instance" "app" {
     prevent_destroy = true
   }
   settings {
-    tier = var.gcp_sql_instance_tier
+    tier              = var.gcp_sql_instance_tier
+    availability_type = var.gcp_sql_instance_availability_type
+    backup_configuration {
+      enabled                        = var.gcp_sql_instance_backup_enabled
+      point_in_time_recovery_enabled = var.gcp_sql_instance_point_in_time_recovery_enabled
+    }
+
     ip_configuration {
       ipv4_enabled = true
       # TODO: find a safer way to access Cloud SQL instance
@@ -50,6 +60,9 @@ resource "google_sql_database_instance" "app" {
 resource "google_sql_database" "app" {
   name     = var.gcp_sql_database_name
   instance = google_sql_database_instance.app.name
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 resource "random_password" "app_database" {
   length  = 20
@@ -68,6 +81,9 @@ resource "google_sql_user" "app" {
       GRANT ALL PRIVILEGES ON DATABASE ${google_sql_database.app.name} TO "${google_sql_user.app.name}";
       GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "${google_sql_user.app.name}";
     EOT
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -101,7 +117,8 @@ resource "google_container_cluster" "cluster" {
   initial_node_count       = 1
   remove_default_node_pool = true
   lifecycle {
-    ignore_changes = [remove_default_node_pool]
+    ignore_changes  = [remove_default_node_pool]
+    prevent_destroy = true
   }
 }
 resource "google_container_node_pool" "shared_pool" {
@@ -118,6 +135,9 @@ resource "google_container_node_pool" "shared_pool" {
     metadata = {
       disable-legacy-endpoints = true
     }
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 resource "google_container_node_pool" "user_pool" {
@@ -142,6 +162,9 @@ resource "google_container_node_pool" "user_pool" {
     labels = {
       "hub.jupyter.org/node-purpose" = "user"
     }
+  }
+  lifecycle {
+    prevent_destroy = true
   }
 }
 # GCE managed certificate

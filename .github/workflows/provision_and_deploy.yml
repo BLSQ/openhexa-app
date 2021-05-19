@@ -60,6 +60,7 @@ jobs:
             -var 'gcp_zone=${{ secrets.GCP_ZONE }}' \
             -var 'gcp_global_address_name=${{ secrets.GCP_GLOBAL_ADDRESS_NAME }}' \
             -var 'gcp_sql_instance_tier=${{ secrets.GCP_SQL_INSTANCE_TIER }}' \
+            -var 'gcp_sql_instance_availability_type=${{ secrets.GCP_SQL_INSTANCE_AVAILABILITY_TYPE }}' \
             -var 'gcp_sql_database_name=${{ secrets.GCP_SQL_DATABASE_NAME }}' \
             -var 'gcp_sql_user_name=${{ secrets.GCP_SQL_USER_NAME }}' \
             -var 'gcp_iam_cloud_sql_proxy_service_account_id=${{ secrets.GCP_IAM_CLOUD_SQL_PROXY_SERVICE_ACCOUNT_ID }}' \
