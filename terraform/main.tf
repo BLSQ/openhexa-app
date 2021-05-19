@@ -40,10 +40,11 @@ resource "google_sql_database_instance" "app" {
     prevent_destroy = true
   }
   settings {
-    tier = var.gcp_sql_machine_type_tier
+    tier              = var.gcp_sql_instance_tier
+    availability_type = var.gcp_sql_instance_availability_type
     backup_configuration {
-      enabled                        = true
-      point_in_time_recovery_enabled = true
+      enabled                        = var.gcp_sql_instance_backup_enabled
+      point_in_time_recovery_enabled = var.gcp_sql_instance_point_in_time_recovery_enabled
     }
 
     ip_configuration {
