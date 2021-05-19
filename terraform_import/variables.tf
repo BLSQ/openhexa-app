@@ -18,3 +18,11 @@ variable "gcp_sql_instance_availability_type" {
   description = "The availability type for the master instance.This is only used to set up high availability for the PostgreSQL instance. Can be either `ZONAL` or `REGIONAL`."
   default     = "ZONAL"
 }
+variable "gcp_sql_instance_backup_enabled" {
+  description = "True if backup configuration is enabled"
+  default     = false
+}
+variable "gcp_sql_instance_point_in_time_recovery_enabled" {
+  description = "True if Point-in-time recovery is enabled"
+  default     = false
+}
