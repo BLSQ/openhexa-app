@@ -12,4 +12,5 @@ variable "gcp_sql_instance_name" {
 }
 variable "gcp_sql_instance_tier" {
   description = "The tier to use for the Cloud SQL instance"
+  default     = "db-custom-1-3840"
 }
