@@ -28,7 +28,7 @@ class ConnectorS3Test(test.TestCase):
             secret_access_key="BAR",
         )
         cls.BUCKET = Bucket.objects.create(
-            s3_name="test-bucket", sync_credentials=cls.APP_CREDENTIALS
+            s3_name="test-bucket", api_credentials=cls.APP_CREDENTIALS
         )
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
 
@@ -40,12 +40,13 @@ class ConnectorS3Test(test.TestCase):
         response_data = response.json()
         self.assertIn("username", response_data)
         self.assertEqual("jim@bluesquarehub.com", response_data["username"])
-        self.assertIn("env", response_data)
+        self.assertIn("data", response_data)
         self.assertEqual(
             {
-                "AWS_ACCESS_KEY_ID": "FOO",
-                "AWS_SECRET_ACCESS_KEY": "BAR",
-                "S3_BUCKET_NAMES": "test-bucket",
+                "test-bucket": {
+                    "AWS_ACCESS_KEY_ID": "FOO",
+                    "AWS_SECRET_ACCESS_KEY": "BAR",
+                }
             },
-            response_data["env"],
+            response_data["data"],
         )

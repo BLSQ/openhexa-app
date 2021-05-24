@@ -48,8 +48,8 @@ def notebooks_credentials(notebook_credentials: NotebooksCredentials, user: User
     # Now that we have all credentials (STS and API credentials), we can build the credentials data itself
     for bucket in api_credentials_buckets:
         notebook_credentials_data[bucket.s3_name] = {
-            "AWS_ACCESS_KEY_ID": bucket.api_credentials.access_key_id,
-            "AWS_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key,
+            "AWS_ACCESS_KEY_ID": bucket.api_credentials.access_key_id.decrypt(),
+            "AWS_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key.decrypt(),
         }
     for principal_username, credentials_data in sts_credentials.items():
         for bucket in credentials_data["buckets"]:

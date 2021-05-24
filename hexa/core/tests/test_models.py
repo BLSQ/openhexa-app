@@ -3,7 +3,7 @@ from django import test
 from django.conf import settings
 from django.db import connection
 
-from hexa.core.models.cryptography import EncryptedValue, EncryptedField
+from hexa.core.models.cryptography import EncryptedValue, EncryptedTextField
 
 
 class ModelsTest(test.TestCase):
@@ -28,7 +28,7 @@ class ModelsTest(test.TestCase):
         )
 
     def test_encrypted_field_get_db_prep_value(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertIsInstance(
             field.get_db_prep_value(
                 EncryptedValue(decrypted_value="john123"), connection=connection
@@ -37,29 +37,29 @@ class ModelsTest(test.TestCase):
         )
 
     def test_encrypted_field_get_db_prep_value_none(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(None, field.get_db_prep_value(None, connection=connection))
 
     def test_encrypted_field_to_python(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(
             EncryptedValue(decrypted_value="john123").decrypt(),
             field.to_python("john123").decrypt(),
         )
 
     def test_encrypted_field_to_python_none(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(None, field.to_python(None))
 
     def test_encrypted_field_to_python_already_encrypted(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(
             EncryptedValue(decrypted_value="john123").decrypt(),
             field.to_python(EncryptedValue(decrypted_value="john123")).decrypt(),
         )
 
     def test_encrypted_field_from_db_value(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(
             EncryptedValue(decrypted_value="john123").decrypt(),
             field.from_db_value(
@@ -70,7 +70,7 @@ class ModelsTest(test.TestCase):
         )
 
     def test_encrypted_field_from_db_value_none(self):
-        field = EncryptedField()
+        field = EncryptedTextField()
         self.assertEqual(
             None, field.from_db_value(None, expression=None, connection=connection)
         )

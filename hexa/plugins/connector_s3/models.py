@@ -14,6 +14,7 @@ from hexa.catalog.models import (
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
+from hexa.core.models.cryptography import EncryptedTextField
 
 
 class CredentialsQuerySet(models.QuerySet):
@@ -48,8 +49,8 @@ class Credentials(Base):
         related_name="s3_credentials_set",
     )
     username = models.CharField(max_length=200)
-    access_key_id = models.CharField(max_length=200)
-    secret_access_key = models.CharField(max_length=200)
+    access_key_id = EncryptedTextField()
+    secret_access_key = EncryptedTextField()
     role_arn = models.CharField(max_length=200, blank=True)
 
     objects = CredentialsQuerySet.as_manager()
@@ -91,12 +92,12 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
-        if self.sync_credentials is None:
+        if self.api_credentials is None:
             fs = S3FileSystem(anon=True)
         else:
             fs = S3FileSystem(
-                key=self.sync_credentials.access_key_id,
-                secret=self.sync_credentials.secret_access_key,
+                key=self.api_credentials.access_key_id,
+                secret=self.api_credentials.secret_access_key,
             )
 
         # Sync data elements

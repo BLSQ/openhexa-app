@@ -29,7 +29,13 @@ def credentials(request):
             for credentials_function in credentials_functions:
                 credentials_function(notebooks_credentials, request.user)
 
+    if notebooks_credentials.authenticated:
+        return JsonResponse(
+            notebooks_credentials.to_dict(),
+            status=200,
+        )
+
     return JsonResponse(
-        notebooks_credentials.to_dict(),
-        status=200 if notebooks_credentials.authenticated else 401,
+        {},
+        status=401,
     )

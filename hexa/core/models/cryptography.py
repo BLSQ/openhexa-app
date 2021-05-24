@@ -7,7 +7,7 @@ from django.forms import forms
 
 
 class EncryptedValue:
-    """Value object for the EncryptedField class.
+    """Value object for the EncryptedTextField class.
     Uses Fernet symmetric encryption from the cryptography library"""
 
     def __init__(self, *, encrypted_value: bytes = None, decrypted_value: str = None):
@@ -39,7 +39,7 @@ class EncryptedValue:
         return "Encrypted value not displayed for obvious security reason"
 
 
-class EncryptedField(models.TextField):
+class EncryptedTextField(models.TextField):
     description = "A Fernet-encrypted text field"
 
     def from_db_value(
