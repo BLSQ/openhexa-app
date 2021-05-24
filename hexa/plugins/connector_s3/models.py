@@ -50,6 +50,7 @@ class Credentials(Base):
     username = models.CharField(max_length=200)
     access_key_id = models.CharField(max_length=200)
     secret_access_key = models.CharField(max_length=200)
+    role_arn = models.CharField(max_length=200, blank=True)
 
     objects = CredentialsQuerySet.as_manager()
 
@@ -76,7 +77,7 @@ class Bucket(Datasource):
             "s3_name",
         )
 
-    sync_credentials = models.ForeignKey(
+    api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
     s3_name = models.CharField(max_length=200)

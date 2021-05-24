@@ -7,8 +7,9 @@
       "updated_at": "2021-04-07T11:49:42.561Z",
       "team": null,
       "username": "hexa-app-test",
-      "access_key_id": "REPLACE",
-      "secret_access_key": "ME"
+      "access_key_id": "",
+      "secret_access_key": "",
+      "role_arn": ""
     }
   },
   {
