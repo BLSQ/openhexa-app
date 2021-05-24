@@ -13,8 +13,8 @@ OpenHexa is an **open-source data integration platform** that allows users to:
 - Create rich data **visualizations**
 
 <div align="center">
-   <img alt="OpenHexa Screenshot" src="https://app.test.openhexa.org/static/img/screenshots/screenshot_catalog.png" hspace="10" height="150">
-   <img alt="OpenHexa Screenshot" src="https://app.test.openhexa.org/static/img/screenshots/screenshot_pipelines.png" hspace="10" height="150">
+   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_catalog.png" hspace="10" height="150">
+   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_pipelines.png" hspace="10" height="150">
 </div>
 
 OpenHexa architecture
