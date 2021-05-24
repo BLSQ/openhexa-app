@@ -59,6 +59,10 @@ class Credentials(Base):
     def display_name(self):
         return self.username
 
+    @property
+    def use_sts_credentials(self) -> bool:
+        return self.role_arn != ""
+
 
 class BucketQuerySet(models.QuerySet):
     def filter_for_user(self, user):

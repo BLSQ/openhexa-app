@@ -40,13 +40,12 @@ class ConnectorS3Test(test.TestCase):
         response_data = response.json()
         self.assertIn("username", response_data)
         self.assertEqual("jim@bluesquarehub.com", response_data["username"])
-        self.assertIn("data", response_data)
+        self.assertIn("env", response_data)
         self.assertEqual(
             {
-                "test-bucket": {
-                    "AWS_ACCESS_KEY_ID": "FOO",
-                    "AWS_SECRET_ACCESS_KEY": "BAR",
-                }
+                "S3_TEST_BUCKET_BUCKET_NAME": "test-bucket",
+                "S3_TEST_BUCKET_ACCESS_KEY_ID": "FOO",
+                "S3_TEST_BUCKET_SECRET_ACCESS_KEY": "BAR",
             },
-            response_data["data"],
+            response_data["env"],
         )

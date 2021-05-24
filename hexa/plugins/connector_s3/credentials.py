@@ -1,66 +1,83 @@
+import stringcase
+import typing
+
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.models import User
 
 
-def notebooks_credentials(notebook_credentials: NotebooksCredentials, user: User):
+def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access S3 buckets in the notebooks component."""
 
-    notebook_credentials_data = {}
-    allowed_buckets = Bucket.objects.filter_for_user(user)
+    buckets = Bucket.objects.filter_for_user(credentials.user)
 
-    # The first step is to distinguish between:
-    # - buckets that will be accessed using AWS STS temporary credentials (the recommended approach)
-    # - buckets that will be access through the credentials attached to the bucket (when we can't use STS)
-    sts_credentials_buckets = [
-        b for b in allowed_buckets if b.api_credentials.role_arn != ""
-    ]
-    api_credentials_buckets = [
-        b for b in allowed_buckets if b.api_credentials.role_arn == ""
-    ]
+    # STS temporary credentials (preferred approach)
+    _sts_bucket_credentials(
+        credentials, [b for b in buckets if b.api_credentials.use_sts_credentials]
+    )
 
-    # For STS credentials, the first step is to group the buckets by "principal credentials"
-    sts_credentials = {}
-    for bucket in sts_credentials_buckets:
-        if (
-            bucket.api_credentials.username not in sts_credentials
-        ):  # STS temporary credentials
-            sts_credentials[bucket.api_credentials.username] = {
-                "principal_credentials": bucket.api_credentials,
-                "buckets": [],
+    # API credentials (when we can't use STS)
+    _api_bucket_credentials(
+        credentials, [b for b in buckets if not b.api_credentials.use_sts_credentials]
+    )
+
+
+def _api_bucket_credentials(
+    credentials: NotebooksCredentials, buckets: typing.Sequence[Bucket]
+):
+    """Build credentials env variables for "API credentials" buckets"""
+
+    env = {}
+    for bucket in buckets:
+        env_key = _bucket_env_key(bucket.s3_name)
+        env.update(
+            {
+                f"{env_key}_BUCKET_NAME": bucket.s3_name,
+                f"{env_key}_ACCESS_KEY_ID": bucket.api_credentials.access_key_id.decrypt(),
+                f"{env_key}_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key.decrypt(),
             }
-
-        sts_credentials[bucket.api_credentials.username]["buckets"].append(bucket)
-
-    # Now that we now which principal credentials to use for a set of buckets, we can generate the STS credentials
-    for principal_username in sts_credentials:
-        sts_credentials[principal_username][
-            "sts_credentials"
-        ] = generate_sts_buckets_credentials(
-            user=user,
-            principal_credentials=sts_credentials[principal_username][
-                "principal_credentials"
-            ],
-            buckets=sts_credentials[principal_username]["buckets"],
         )
 
-    # Now that we have all credentials (STS and API credentials), we can build the credentials data itself
-    for bucket in api_credentials_buckets:
-        notebook_credentials_data[bucket.s3_name] = {
-            "AWS_ACCESS_KEY_ID": bucket.api_credentials.access_key_id.decrypt(),
-            "AWS_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key.decrypt(),
-        }
-    for principal_username, credentials_data in sts_credentials.items():
-        for bucket in credentials_data["buckets"]:
-            notebook_credentials_data[bucket.s3_name] = {
-                "AWS_ACCESS_KEY_ID": credentials_data["sts_credentials"]["AccessKeyId"],
-                "AWS_SECRET_ACCESS_KEY": credentials_data["sts_credentials"][
-                    "SecretAccessKey"
-                ],
-                "AWS_SESSION_TOKEN": credentials_data["sts_credentials"][
-                    "SessionToken"
-                ],
-            }
+    credentials.update_env(env)
 
-    notebook_credentials.update_data(notebook_credentials_data)
+
+def _sts_bucket_credentials(
+    credentials: NotebooksCredentials, buckets: typing.Sequence[Bucket]
+):
+    """Build credentials env variables for "STS credentials" buckets"""
+
+    # The first step is to group the buckets by "principal credentials"
+    buckets_by_credentials = {}
+    for bucket in buckets:
+        if bucket.api_credentials not in buckets_by_credentials:
+            buckets_by_credentials[bucket.api_credentials] = []
+
+        buckets_by_credentials[bucket.api_credentials].append(bucket)
+
+    # Now that we now which principal credentials to use for a set of buckets, we can generate the STS credentials
+    env = {}
+    for api_credentials, buckets in buckets_by_credentials:
+        sts_credentials = generate_sts_buckets_credentials(
+            user=credentials.user,
+            principal_credentials=api_credentials,
+            buckets=buckets,
+        )
+
+        for bucket in buckets:
+            env_key = _bucket_env_key(bucket.s3_name)
+            env.update(
+                {
+                    f"{env_key}_BUCKET_NAME": bucket.s3_name,
+                    f"{env_key}_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
+                    f"{env_key}_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
+                    f"{env_key}_SESSION_TOKEN": sts_credentials["SessionToken"],
+                }
+            )
+
+    credentials.update_env(env)
+
+
+def _bucket_env_key(bucket_name: str) -> str:
+    """Generates a nice prefix for bucket environment variables"""
+
+    return f"S3_{stringcase.snakecase(bucket_name).upper()}"

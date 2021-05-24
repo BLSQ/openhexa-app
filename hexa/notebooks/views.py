@@ -27,7 +27,7 @@ def credentials(request):
         for app_config in get_connector_app_configs():
             credentials_functions = app_config.get_notebooks_credentials()
             for credentials_function in credentials_functions:
-                credentials_function(notebooks_credentials, request.user)
+                credentials_function(notebooks_credentials)
 
     if notebooks_credentials.authenticated:
         return JsonResponse(
