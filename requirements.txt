@@ -1,3 +1,4 @@
+boto3==1.*
 colorhash==1.*
 coverage==5.*
 cryptography==3.*

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('connector_s3', '0004_sync_to_api_credentials'),
+        ("connector_s3", "0004_sync_to_api_credentials"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='credentials',
-            name='role_arn',
+            model_name="credentials",
+            name="role_arn",
             field=models.CharField(blank=True, max_length=200),
         ),
     ]
