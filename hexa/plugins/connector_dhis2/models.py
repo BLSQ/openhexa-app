@@ -14,6 +14,26 @@ from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 from ...core.date_utils import date_format
+from ...core.models.cryptography import EncryptedTextField
+
+
+class Credentials(Base):
+    """This class is a temporary way to store S3 credentials. This approach is not safe for production,
+    as credentials are not encrypted.
+    """
+
+    class Meta:
+        verbose_name = "DHIS2 API Credentials"
+        verbose_name_plural = "DHIS2 API Credentials"
+        ordering = ("api_url",)
+
+    api_url = models.URLField()
+    username = EncryptedTextField()
+    password = EncryptedTextField()
+
+    @property
+    def display_name(self):
+        return self.api_url
 
 
 class InstanceQuerySet(models.QuerySet):
@@ -31,9 +51,9 @@ class Instance(Datasource):
         verbose_name = "DHIS2 Instance"
         ordering = ("name",)
 
-    dhis2_api_url = models.URLField()
-    dhis2_api_username = models.CharField(max_length=200)  # TODO: secure
-    dhis2_api_password = models.CharField(max_length=200)  # TODO: secure
+    api_credentials = models.ForeignKey(
+        "Credentials", null=True, on_delete=models.SET_NULL
+    )
 
     objects = InstanceQuerySet.as_manager()
 
@@ -41,9 +61,9 @@ class Instance(Datasource):
         """Sync the datasource by querying the DHIS2 API"""
 
         client = Dhis2Client(
-            url=self.dhis2_api_url,
-            username=self.dhis2_api_username,
-            password=self.dhis2_api_password,
+            url=self.api_credentials.api_url,
+            username=self.api_credentials.username,
+            password=self.api_credentials.password,
         )
 
         # Sync data elements

@@ -28,9 +28,6 @@ class ConnectorDhis2Test(test.TestCase):
             name="DHIS2 Play",
             short_name="Play",
             description="The DHIS2 official demo instance with realistic sample medical data",
-            dhis2_api_url="https://play.dhis2.org/demo",
-            dhis2_api_username="admin",
-            dhis2_api_password="district",
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY

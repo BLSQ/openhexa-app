@@ -11,7 +11,10 @@ from .models import (
 
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("service_account_email", "oidc_target_audience", "team")
+    list_display = (
+        "service_account_email",
+        "oidc_target_audience",
+    )
     search_fields = ("service_account_email",)
 
 
