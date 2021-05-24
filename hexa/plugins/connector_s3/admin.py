@@ -9,7 +9,7 @@ from .models import (
 
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("username", "team")
+    list_display = ("username", "use_sts_credentials")
     search_fields = ("username",)
 
 

@@ -33,8 +33,8 @@ def _api_bucket_credentials(
         env.update(
             {
                 f"{env_key}_BUCKET_NAME": bucket.s3_name,
-                f"{env_key}_ACCESS_KEY_ID": bucket.api_credentials.access_key_id.decrypt(),
-                f"{env_key}_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key.decrypt(),
+                f"{env_key}_ACCESS_KEY_ID": bucket.api_credentials.access_key_id,
+                f"{env_key}_SECRET_ACCESS_KEY": bucket.api_credentials.secret_access_key,
             }
         )
 
@@ -56,7 +56,7 @@ def _sts_bucket_credentials(
 
     # Now that we now which principal credentials to use for a set of buckets, we can generate the STS credentials
     env = {}
-    for api_credentials, buckets in buckets_by_credentials:
+    for api_credentials, buckets in buckets_by_credentials.items():
         sts_credentials = generate_sts_buckets_credentials(
             user=credentials.user,
             principal_credentials=api_credentials,

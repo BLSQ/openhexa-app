@@ -17,18 +17,6 @@ from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 
 
-class CredentialsQuerySet(models.QuerySet):
-    def get_for_team(self, user):
-        # TODO: root credentials concept?
-        if user.is_active and user.is_superuser:
-            return self.get(team=None)
-
-        if user.team_set.count() == 0:
-            raise Credentials.DoesNotExist()
-
-        return self.get(team=user.team_set.first().pk)  # TODO: multiple teams?
-
-
 class Credentials(Base):
     """This class is a temporary way to store S3 credentials. This approach is not safe for production,
     as credentials are not encrypted.
@@ -40,20 +28,10 @@ class Credentials(Base):
         verbose_name_plural = "S3 Credentials"
         ordering = ("username",)
 
-    # TODO: unique?
-    team = models.ForeignKey(
-        "user_management.Team",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="s3_credentials_set",
-    )
     username = models.CharField(max_length=200)
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
     role_arn = models.CharField(max_length=200, blank=True)
-
-    objects = CredentialsQuerySet.as_manager()
 
     @property
     def display_name(self):

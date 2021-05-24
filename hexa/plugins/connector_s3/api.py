@@ -30,8 +30,8 @@ def generate_sts_buckets_credentials(
 
     client = boto3.client(
         "sts",
-        aws_access_key_id=principal_credentials.access_key_id.decrypt(),
-        aws_secret_access_key=principal_credentials.secret_access_key.decrypt(),
+        aws_access_key_id=principal_credentials.access_key_id,
+        aws_secret_access_key=principal_credentials.secret_access_key,
     )
     policy = {
         "Version": "2012-10-17",
