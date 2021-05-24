@@ -85,15 +85,15 @@ class Index(Base):
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200)
-    external_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, blank=True)
+    external_name = models.CharField(max_length=200, blank=True)
     short_name = models.CharField(max_length=100, blank=True)
     external_short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     external_description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     locale = LocaleField(default="en")
-    detail_url = models.URLField()
+    detail_url = models.TextField()
     content_summary = models.TextField(blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
     text_search_config = PostgresTextSearchConfigField()
