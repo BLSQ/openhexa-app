@@ -11,24 +11,13 @@ from google.oauth2 import service_account
 
 from hexa.catalog.models import Content
 from hexa.core.models import Base, WithStatus, Permission, RichContent
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (
     Environment as BaseEnvironment,
     PipelinesIndex,
     PipelinesIndexPermission,
     Pipeline,
 )
-
-
-class CredentialsQuerySet(models.QuerySet):
-    def get_for_team(self, user):
-        # TODO: root credentials concept?
-        if user.is_active and user.is_superuser:
-            return self.get(team=None)
-
-        if user.team_set.count() == 0:
-            raise Credentials.DoesNotExist()
-
-        return self.get(team=user.team_set.first().pk)  # TODO: multiple teams?
 
 
 class Credentials(Base):
@@ -51,16 +40,8 @@ class Credentials(Base):
         verbose_name_plural = "Credentials"
         ordering = ("service_account_email",)
 
-    # TODO: unique?
-    team = models.ForeignKey(
-        "user_management.Team",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="airflow_credential_set",
-    )
-    service_account_email = models.EmailField()
-    service_account_key_data = models.JSONField(
+    service_account_email = EncryptedTextField()
+    service_account_key_data = EncryptedTextField(
         help_text="The content of the JSON key in GCP"
     )
     oidc_target_audience = models.CharField(
@@ -68,8 +49,6 @@ class Credentials(Base):
         blank=False,
         help_text=OIDC_TARGET_AUDIENCE_HELP_TEXT,
     )
-
-    objects = CredentialsQuerySet.as_manager()
 
     @property
     def display_name(self):
@@ -214,11 +193,15 @@ class DAGConfig(RichContent):
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
         # as well as https://cloud.google.com/composer/docs/samples/composer-get-environment-client-id
-        credentials = service_account.IDTokenCredentials.from_service_account_info(
-            self.dag.cluster.api_credentials.service_account_key_data,
-            target_audience=self.dag.cluster.api_credentials.oidc_target_audience,
+        api_credentials = self.dag.cluster.api_credentials
+        service_account_key_data = json.loads(api_credentials.service_account_key_data)
+        id_token_credentials = (
+            service_account.IDTokenCredentials.from_service_account_info(
+                service_account_key_data,
+                target_audience=api_credentials.oidc_target_audience,
+            )
         )
-        session = AuthorizedSession(credentials)
+        session = AuthorizedSession(id_token_credentials)
         dag_config_run_id = str(uuid.uuid4())
         api_url = self.dag.cluster.airflow_api_url
         response = session.post(
@@ -320,11 +303,15 @@ class DAGConfigRun(Base, WithStatus):
         # TODO: move in api module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
-        credentials = service_account.IDTokenCredentials.from_service_account_info(
-            self.dag_config.dag.cluster.api_credentials.service_account_key_data,
-            target_audience=self.dag_config.dag.cluster.api_credentials.oidc_target_audience,
+        api_credentials = self.dag_config.dag.cluster.api_credentials
+        service_account_key_data = json.loads(api_credentials.service_account_key_data)
+        id_token_credentials = (
+            service_account.IDTokenCredentials.from_service_account_info(
+                service_account_key_data,
+                target_audience=api_credentials.oidc_target_audience,
+            )
         )
-        session = AuthorizedSession(credentials)
+        session = AuthorizedSession(id_token_credentials)
         api_url = self.dag_config.dag.cluster.airflow_api_url
         execution_date = self.airflow_execution_date.isoformat()
         response = session.get(

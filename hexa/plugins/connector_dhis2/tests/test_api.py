@@ -1,4 +1,5 @@
 from django import test
+from unittest import skip
 
 from ..api import (
     Dhis2Client,
@@ -17,6 +18,7 @@ class Dhis2Test(test.TestCase):
         )
 
     @test.tag("external")
+    @skip("Deactivated for now - mocks needed")
     def test_fetch_data_elements(self):
         results = self.dhis2_client.fetch_data_elements()
 
@@ -25,6 +27,7 @@ class Dhis2Test(test.TestCase):
         self.assertIsInstance(results[0], DataElementResult)
 
     @test.tag("external")
+    @skip("Deactivated for now - mocks needed")
     def test_fetch_indicator_types(self):
         results = self.dhis2_client.fetch_indicator_types()
 
@@ -33,6 +36,7 @@ class Dhis2Test(test.TestCase):
         self.assertIsInstance(results[0], IndicatorTypeResult)
 
     @test.tag("external")
+    @skip("Deactivated for now - mocks needed")
     def test_fetch_indicators(self):
         results = self.dhis2_client.fetch_indicators()
 

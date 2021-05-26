@@ -5,12 +5,19 @@ from .models import (
     Indicator,
     IndicatorType,
     InstancePermission,
+    Credentials,
 )
+
+
+@admin.register(Credentials)
+class CredentialsAdmin(admin.ModelAdmin):
+    list_display = ("api_url",)
+    search_fields = ("api_url",)
 
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("name", "dhis2_api_url", "last_synced_at")
+    list_display = ("name", "url", "last_synced_at")
     list_filter = ("name",)
     search_fields = ("name",)
 

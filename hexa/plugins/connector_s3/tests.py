@@ -16,19 +16,13 @@ class ConnectorS3Test(test.TestCase):
             is_superuser=True,
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER)
-        cls.APP_CREDENTIALS = Credentials.objects.create(
+        cls.API_CREDENTIALS = Credentials.objects.create(
             username="app-iam-username",
             access_key_id="FOO",
             secret_access_key="BAR",
         )
-        cls.TEAM_CREDENTIALS = Credentials.objects.create(
-            team=cls.TEAM,
-            username="test-iam-username",
-            access_key_id="FOO",
-            secret_access_key="BAR",
-        )
         cls.BUCKET = Bucket.objects.create(
-            s3_name="test-bucket", sync_credentials=cls.APP_CREDENTIALS
+            s3_name="test-bucket", api_credentials=cls.API_CREDENTIALS
         )
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
 
@@ -43,9 +37,9 @@ class ConnectorS3Test(test.TestCase):
         self.assertIn("env", response_data)
         self.assertEqual(
             {
-                "AWS_ACCESS_KEY_ID": "FOO",
-                "AWS_SECRET_ACCESS_KEY": "BAR",
-                "S3_BUCKET_NAMES": "test-bucket",
+                "S3_TEST_BUCKET_BUCKET_NAME": "test-bucket",
+                "S3_TEST_BUCKET_ACCESS_KEY_ID": "FOO",
+                "S3_TEST_BUCKET_SECRET_ACCESS_KEY": "BAR",
             },
             response_data["env"],
         )

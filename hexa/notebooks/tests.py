@@ -27,3 +27,5 @@ class NotebooksTest(test.TestCase):
         response = self.client.post(reverse("notebooks:credentials"))
 
         self.assertEqual(response.status_code, 401)
+        response_data = response.json()
+        self.assertEqual(0, len(response_data))

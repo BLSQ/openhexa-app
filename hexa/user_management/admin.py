@@ -11,7 +11,14 @@ admin.site.unregister(Group)
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    pass
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "is_superuser",
+    )
 
 
 @admin.register(Organization)

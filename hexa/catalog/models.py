@@ -100,6 +100,7 @@ class CatalogIndex(Index):
     class Meta:
         verbose_name = "Catalog Index"
         verbose_name_plural = "Catalog indexes"
+        ordering = ("name",)
 
     index_type = models.CharField(max_length=100, choices=CatalogIndexType.choices)
 

@@ -5,22 +5,10 @@
     "fields": {
       "created_at": "2021-04-06T19:09:50.903Z",
       "updated_at": "2021-04-07T11:49:42.561Z",
-      "team": null,
-      "username": "openhexa-test",
-      "access_key_id": "REPLACE",
-      "secret_access_key": "ME"
-    }
-  },
-  {
-    "model": "connector_s3.credentials",
-    "pk": "4d84a9b6-44db-4c6d-89b8-53afc7b0afaf",
-    "fields": {
-      "created_at": "2021-04-08T07:14:24.938Z",
-      "updated_at": "2021-04-08T07:14:24.938Z",
-      "team": "026c2c52-30db-4ce3-9d8f-4be13f56ce42",
-      "username": "openhexa-test-bluesquare-team-1",
-      "access_key_id": "REPLACE",
-      "secret_access_key": "ME"
+      "username": "hexa-app-test",
+      "access_key_id": "",
+      "secret_access_key": "",
+      "role_arn": ""
     }
   },
   {
@@ -39,8 +27,8 @@
       "locale": "en",
       "created_at": "2021-04-08T07:04:41.864Z",
       "updated_at": "2021-04-08T07:22:43.021Z",
-      "s3_name": "openhexa-test-bucket-2",
-      "sync_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
+      "s3_name": "hexa-test-covid",
+      "api_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
     }
   },
   {
@@ -59,13 +47,23 @@
       "locale": "en",
       "created_at": "2021-04-07T14:07:58.094Z",
       "updated_at": "2021-04-08T07:22:43.028Z",
-      "s3_name": "openhexa-test-bucket-1",
-      "sync_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
+      "s3_name": "hexa-test-malaria",
+      "api_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
     }
   },
   {
     "model": "connector_s3.bucketpermission",
     "pk": "f918a9fb-57bc-40e8-bd38-64f4d13727f3",
+    "fields": {
+      "created_at": "2021-04-07T14:12:45.070Z",
+      "updated_at": "2021-04-07T14:12:45.070Z",
+      "bucket": "9a0771e0-d8b5-4950-b2b0-05426caa21be",
+      "team": "026c2c52-30db-4ce3-9d8f-4be13f56ce42"
+    }
+  },
+  {
+    "model": "connector_s3.bucketpermission",
+    "pk": "e84a5a51-8059-460d-9a85-53ca999ec64e",
     "fields": {
       "created_at": "2021-04-07T14:12:45.070Z",
       "updated_at": "2021-04-07T14:12:45.070Z",

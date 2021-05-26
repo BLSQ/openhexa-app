@@ -14,18 +14,7 @@ from hexa.catalog.models import (
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
-
-
-class CredentialsQuerySet(models.QuerySet):
-    def get_for_team(self, user):
-        # TODO: root credentials concept?
-        if user.is_active and user.is_superuser:
-            return self.get(team=None)
-
-        if user.team_set.count() == 0:
-            raise Credentials.DoesNotExist()
-
-        return self.get(team=user.team_set.first().pk)  # TODO: multiple teams?
+from hexa.core.models.cryptography import EncryptedTextField
 
 
 class Credentials(Base):
@@ -39,23 +28,18 @@ class Credentials(Base):
         verbose_name_plural = "S3 Credentials"
         ordering = ("username",)
 
-    # TODO: unique?
-    team = models.ForeignKey(
-        "user_management.Team",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="s3_credentials_set",
-    )
     username = models.CharField(max_length=200)
-    access_key_id = models.CharField(max_length=200)
-    secret_access_key = models.CharField(max_length=200)
-
-    objects = CredentialsQuerySet.as_manager()
+    access_key_id = EncryptedTextField()
+    secret_access_key = EncryptedTextField()
+    role_arn = models.CharField(max_length=200, blank=True)
 
     @property
     def display_name(self):
         return self.username
+
+    @property
+    def use_sts_credentials(self) -> bool:
+        return self.role_arn != ""
 
 
 class BucketQuerySet(models.QuerySet):
@@ -76,7 +60,7 @@ class Bucket(Datasource):
             "s3_name",
         )
 
-    sync_credentials = models.ForeignKey(
+    api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
     s3_name = models.CharField(max_length=200)
@@ -90,12 +74,12 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
-        if self.sync_credentials is None:
+        if self.api_credentials is None:
             fs = S3FileSystem(anon=True)
         else:
             fs = S3FileSystem(
-                key=self.sync_credentials.access_key_id,
-                secret=self.sync_credentials.secret_access_key,
+                key=self.api_credentials.access_key_id,
+                secret=self.api_credentials.secret_access_key,
             )
 
         # Sync data elements
