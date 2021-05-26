@@ -200,6 +200,12 @@ resource "random_password" "django_secret_key" {
     ignore_changes = all
   }
 }
+resource "random_id" "django_encryption_key" {
+  byte_length = 32
+  lifecycle {
+    ignore_changes = all
+  }
+}
 resource "kubernetes_secret" "app" {
   metadata {
     name      = "app-secret"
@@ -211,6 +217,7 @@ resource "kubernetes_secret" "app" {
     DATABASE_NAME     = google_sql_database.app.name
     DATABASE_PORT     = 5432
     SECRET_KEY        = random_password.django_secret_key.result
+    ENCRYPTION_KEY    = random_id.django_encryption_key.b64_url
   }
 }
 
