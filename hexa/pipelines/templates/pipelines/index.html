@@ -15,7 +15,7 @@
                     {% include "core/components/table/header_cell.html" with label=_("Owner") %}
                     {% include "core/components/table/header_cell.html" with label=_("Location") %}
                     {% include "core/components/table/header_cell.html" with label=_("Content") %}
-                    {% include "core/components/table/header_cell.html" with label=_("Last sync") %}
+                    {% include "core/components/table/header_cell.html" with label=_("Last run") %}
                     {% include "core/components/table/header_cell.html" with label=_("View") sr_only=True %}
                 {% endslot %}
                 {% slot rows %}
@@ -42,8 +42,8 @@
                             {# Content #}
                             {% include "core/components/table/cell.html" with label=environment_index.content_summary|default:"-" %}
                             {# Sync #}
-                            {% embed "core/components/table/cell_multiline.html" %}
-                                {% slot top %}
+                            {% embed "core/components/table/cell.html" %}
+                                {% slot label %}
                                     {% if environment_index.last_synced_at|about_now %}
                                         {% translate "Just now" %}
                                     {% elif environment_index.last_synced_at %}
@@ -51,9 +51,6 @@
                                     {% else %}
                                         {% translate "Never synced" %}
                                     {% endif %}
-                                {% endslot %}
-                                {% slot bottom %}
-                                    {% translate "Daily" %}
                                 {% endslot %}
                             {% endembed %}
                             {# View #}

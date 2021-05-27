@@ -7,7 +7,7 @@
     {% slot content %}
         {% embed "core/components/table/table.html" %}
             {% slot header_cells %}
-                {% include "core/components/table/header_cell.html" with label=_("Run ID") %}
+                {% include "core/components/table/header_cell.html" with label=_("DAG") %}
                 {% include "core/components/table/header_cell.html" with label=_("Configuration") %}
                 {% include "core/components/table/header_cell.html" with label=_("Execution date") %}
                 {% include "core/components/table/header_cell.html" with label=_("State") %}
@@ -17,8 +17,8 @@
                 {% for run in dag_config_runs %}
                     {% embed "core/components/table/row.html" %}
                         {% slot content %}
-                            {# Run ID #}
-                            {% include "core/components/table/cell_first.html" with label=run.airflow_run_id %}
+                            {# DAG #}
+                            {% include "core/components/table/cell_first.html" with label=run.dag_config.dag.name %}
                             {# Configuration #}
                             {% include "core/components/table/cell.html" with label=run.dag_config.display_name %}
                             {# Execution date #}
