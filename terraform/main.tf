@@ -217,7 +217,7 @@ resource "kubernetes_secret" "app" {
     DATABASE_NAME     = google_sql_database.app.name
     DATABASE_PORT     = 5432
     SECRET_KEY        = random_password.django_secret_key.result
-    ENCRYPTION_KEY    = random_id.django_encryption_key.b64_url
+    ENCRYPTION_KEY    = "${random_id.django_encryption_key.b64_url}="
   }
 }
 
