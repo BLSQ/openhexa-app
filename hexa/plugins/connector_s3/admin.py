@@ -22,7 +22,7 @@ class BucketAdmin(admin.ModelAdmin):
 
 @admin.register(Object)
 class ObjectAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "s3_key", "s3_type", "s3_size", "last_synced_at")
+    list_display = ("display_name", "s3_key", "s3_type", "s3_size")
     list_filter = ("s3_type",)
     search_fields = ("name", "s3_name")
 

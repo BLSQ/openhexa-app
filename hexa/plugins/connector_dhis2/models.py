@@ -57,7 +57,7 @@ class Instance(Datasource):
 
     objects = InstanceQuerySet.as_manager()
 
-    def sync(self):
+    def sync(self, user):
         """Sync the datasource by querying the DHIS2 API"""
 
         client = Dhis2Client(
@@ -179,9 +179,6 @@ class Content(BaseContent):
 
         self.save()
 
-    def sync(self):
-        raise NotImplementedError("DHIS2 Content classes should implement sync()")
-
 
 class DomainType(models.TextChoices):
     AGGREGATE = "AGGREGATE", _("Aggregate")
@@ -256,7 +253,7 @@ class DataElement(Content):
             description=self.description,
             external_description=self.dhis2_description,
             countries=self.instance.countries,
-            last_synced_at=self.last_synced_at,
+            last_synced_at=self.instance.last_synced_at,
             detail_url=reverse(
                 "connector_dhis2:data_element_detail",
                 args=(self.instance.pk, self.pk),
@@ -301,7 +298,7 @@ class Indicator(Content):
             description=self.description,
             external_description=self.dhis2_description,
             countries=self.instance.countries,
-            last_synced_at=self.last_synced_at,
+            last_synced_at=self.instance.last_synced_at,
             detail_url=reverse(
                 "connector_dhis2:indicator_detail",
                 args=(self.instance.pk, self.pk),

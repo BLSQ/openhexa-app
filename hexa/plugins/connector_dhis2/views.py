@@ -258,7 +258,7 @@ def instance_sync(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    sync_result = instance.sync()
+    sync_result = instance.sync(request.user)
     messages.success(request, sync_result, extra_tags="green")
 
     return redirect(request.META.get("HTTP_REFERER"))

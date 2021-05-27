@@ -61,7 +61,6 @@ def sync_from_dhis2_results(*, model_class, instance, results):
                         hexa_name,
                         diff_values[hexa_name],
                     )
-                existing_hexa_item.last_synced_at = timezone.now()
                 existing_hexa_item.save()
                 updated += 1
             else:

@@ -15,6 +15,7 @@ from hexa.catalog.models import (
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
 
 
 class Credentials(Base):
@@ -71,11 +72,22 @@ class Bucket(Datasource):
     def hexa_or_s3_name(self):
         return self.name if self.name != "" else self.s3_name
 
-    def sync(self):  # TODO: move in api/sync module
+    def sync(self, user):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
         if self.api_credentials is None:
             fs = S3FileSystem(anon=True)
+        elif self.api_credentials.use_sts_credentials:
+            sts_credentials = generate_sts_buckets_credentials(
+                user=user,
+                principal_credentials=self.api_credentials,
+                buckets=[self],
+            )
+            fs = S3FileSystem(
+                key=sts_credentials["AccessKeyId"],
+                secret=sts_credentials["SecretAccessKey"],
+                token=sts_credentials["SessionToken"],
+            )
         else:
             fs = S3FileSystem(
                 key=self.api_credentials.access_key_id,

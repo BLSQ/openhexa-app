@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 import boto3
 import json
 import typing
 
 import stringcase
 
-from hexa.plugins.connector_s3.models import Bucket, Credentials
-from hexa.user_management.models import User
+import hexa.user_management.models
+import hexa.plugins.connector_s3.models
 
 
 class S3ApiError(Exception):
@@ -19,7 +21,10 @@ def _generate_policy_sid(string: str):
 
 
 def generate_sts_buckets_credentials(
-    *, user: User, principal_credentials: Credentials, buckets: typing.Sequence[Bucket]
+    *,
+    user: hexa.user_management.models.User,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
 ) -> typing.Dict[str, str]:
     """Generate temporary credentials for the provided buckets using the provided principal credentials"""
 
