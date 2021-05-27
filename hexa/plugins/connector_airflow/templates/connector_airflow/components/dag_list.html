@@ -7,7 +7,7 @@
     {% slot content %}
         {% embed "core/components/table/table.html" %}
             {% slot header_cells %}
-                {% include "core/components/table/header_cell.html" with label=_("ID") %}
+                {% include "core/components/table/header_cell.html" with label=_("Name") %}
                 {% include "core/components/table/header_cell.html" with label=_("Content") %}
                 {% include "core/components/table/header_cell.html" with label=_("Created at") %}
                 {% include "core/components/table/header_cell.html" with label=_("Last run at") %}
@@ -18,7 +18,7 @@
                     {% url "connector_airflow:dag_detail" cluster.pk dag.pk as detail_url %}
                     <tr>
                         {# DAG id #}
-                        {% include "core/components/table/cell_first.html" with url=detail_url label=dag.airflow_id %}
+                        {% include "core/components/table/cell_first.html" with url=detail_url label=dag.name %}
                         {# Content #}
                         {% include "core/components/table/cell.html" with label=dag.content_summary %}
                         {# Created at #}
