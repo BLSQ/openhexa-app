@@ -50,7 +50,6 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform -chdir=terraform plan \
-            -out=saved_plan \
             -var 'app_domain=${{ secrets.APP_DOMAIN }}' \
             -var 'cookie_domain=${{ secrets.COOKIE_DOMAIN }}' \
             -var 'notebooks_url=${{ secrets.NOTEBOOKS_URL }}' \
