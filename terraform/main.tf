@@ -283,12 +283,12 @@ resource "kubernetes_deployment" "app" {
           }
           env_from {
             secret_ref {
-              name = "app-secret"
+              name = kubernetes_secret.app.metadata[0].name
             }
           }
           env_from {
             config_map_ref {
-              name = "app-config"
+              name = kubernetes_config_map.app.metadata[0].name
             }
           }
           command = ["/code/docker-entrypoint.sh"]
