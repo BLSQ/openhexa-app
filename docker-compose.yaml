@@ -22,6 +22,7 @@ services:
       - DEBUG=true
       - SESSION_COOKIE_SECURE=false
       - CSRF_COOKIE_SECURE=false
+      - SECURE_SSL_REDIRECT=false
       - ALLOWED_HOSTS=*
       - DATABASE_HOST=db
       - DATABASE_PORT=5432

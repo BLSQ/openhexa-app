@@ -136,6 +136,9 @@ SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "fals
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
+SECURE_REDIRECT_EXEMPT = [r"^ready$"]
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
