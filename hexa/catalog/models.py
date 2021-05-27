@@ -124,11 +124,11 @@ class Datasource(RichContent, WithIndex, WithSync):
     def index_type(self):
         return CatalogIndexType.DATASOURCE
 
-    def sync(self):
+    def sync(self, user):
         raise NotImplementedError("Datasource classes should implement sync()")
 
 
-class Content(RichContent, WithIndex, WithSync):
+class Content(RichContent, WithIndex):
     class Meta:
         abstract = True
 

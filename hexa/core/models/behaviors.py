@@ -40,7 +40,7 @@ class WithSync(models.Model):
 
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
-    def sync(self):
+    def sync(self, user):
         raise NotImplementedError(
             "Classes having the WithSync behavior should implement sync()"
         )
