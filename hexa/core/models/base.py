@@ -70,8 +70,7 @@ class RichContent(Base):
 
 class Index(Base):
     class Meta:
-        verbose_name = "Pipeline Index"
-        verbose_name_plural = "Pipeline indexes"
+        abstract = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
