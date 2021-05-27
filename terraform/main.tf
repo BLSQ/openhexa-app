@@ -218,6 +218,7 @@ resource "kubernetes_secret" "app" {
     DATABASE_PORT     = 5432
     SECRET_KEY        = random_password.django_secret_key.result
     ENCRYPTION_KEY    = "${random_id.django_encryption_key.b64_url}="
+    TEST_SECRET_VALUE = "test"
   }
 }
 
