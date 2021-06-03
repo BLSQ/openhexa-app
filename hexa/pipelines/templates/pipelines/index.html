@@ -54,7 +54,7 @@
                                 {% endslot %}
                             {% endembed %}
                             {# View #}
-                            {% include "core/components/table/cell_link.html" with url=detail_url label=_("View") %}
+                            {% include "core/components/table/cell_link.html" with url=environment_index.detail_url label=_("View") %}
                         </tr>
                     {% empty %}
                         {% include "core/components/table/cell_empty.html" with colspan=6 %}
