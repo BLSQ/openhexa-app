@@ -11,7 +11,7 @@
                 class="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
         >
             <span class="sr-only">{% translate "Open profile menu" %}</span>
-            {% include "core/components/avatar.html" %}
+            {% include "core/components/avatar.html" with user=request.user %}
         </button>
     </div>
     <div

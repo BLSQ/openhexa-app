@@ -4,7 +4,7 @@
     <div class="relative pb-4">
         <div class="relative flex items-start space-x-3">
             <div class="relative">
-                {% include "core/components/avatar.html" %}
+                {% include "core/components/avatar.html" with user=request.user %}
                 <span class="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
                     {% include "comments/components/chat_alt.html" %}
                 </span>
