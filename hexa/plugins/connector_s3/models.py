@@ -19,10 +19,9 @@ from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
 
 
 class Credentials(Base):
-    """This class is a temporary way to store S3 credentials. This approach is not safe for production,
-    as credentials are not encrypted.
-    TODO: Store credentials in a secure storage engine like Vault.
-    """
+    """We actually only need one set of credentials. These "principal" credentials will be then used to generate
+    short-lived credentials with a tailored policy giving access only to the buckets that the user team can
+    access"""
 
     class Meta:
         verbose_name = "S3 Credentials"
@@ -32,7 +31,7 @@ class Credentials(Base):
     username = models.CharField(max_length=200)
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
-    role_arn = models.CharField(max_length=200, blank=True)
+    role_arn = models.CharField(max_length=200)
 
     @property
     def display_name(self):
@@ -61,9 +60,6 @@ class Bucket(Datasource):
             "s3_name",
         )
 
-    api_credentials = models.ForeignKey(
-        "Credentials", null=True, on_delete=models.SET_NULL
-    )
     s3_name = models.CharField(max_length=200)
 
     objects = BucketQuerySet.as_manager()
@@ -75,24 +71,23 @@ class Bucket(Datasource):
     def sync(self, user):  # TODO: move in api/sync module
         """Sync the bucket by querying the DHIS2 API"""
 
-        if self.api_credentials is None:
-            fs = S3FileSystem(anon=True)
-        elif self.api_credentials.use_sts_credentials:
-            sts_credentials = generate_sts_buckets_credentials(
-                user=user,
-                principal_credentials=self.api_credentials,
-                buckets=[self],
+        try:
+            principal_s3_credentials = Credentials.objects.get()
+        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
+            raise ValueError(
+                "Your s3 connector plugin should have a single credentials entry"
             )
-            fs = S3FileSystem(
-                key=sts_credentials["AccessKeyId"],
-                secret=sts_credentials["SecretAccessKey"],
-                token=sts_credentials["SessionToken"],
-            )
-        else:
-            fs = S3FileSystem(
-                key=self.api_credentials.access_key_id,
-                secret=self.api_credentials.secret_access_key,
-            )
+
+        sts_credentials = generate_sts_buckets_credentials(
+            user=user,
+            principal_credentials=principal_s3_credentials,
+            buckets=[self],
+        )
+        fs = S3FileSystem(
+            key=sts_credentials["AccessKeyId"],
+            secret=sts_credentials["SecretAccessKey"],
+            token=sts_credentials["SessionToken"],
+        )
 
         # Sync data elements
         with transaction.atomic():

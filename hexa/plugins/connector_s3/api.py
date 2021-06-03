@@ -14,17 +14,12 @@ class S3ApiError(Exception):
     pass
 
 
-def _generate_policy_sid(string: str):
-    """Generates a valid alphanumeric policy SID"""
-
-    return stringcase.pascalcase(stringcase.snakecase(string))
-
-
 def generate_sts_buckets_credentials(
     *,
     user: hexa.user_management.models.User,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
+    duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary credentials for the provided buckets using the provided principal credentials"""
 
@@ -42,7 +37,9 @@ def generate_sts_buckets_credentials(
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": _generate_policy_sid(f"{bucket.s3_name}-all-actions"),
+                "Sid": stringcase.pascalcase(
+                    stringcase.snakecase(f"{bucket.s3_name}-all-actions")
+                ),
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
@@ -57,7 +54,7 @@ def generate_sts_buckets_credentials(
         Policy=json.dumps(policy),
         RoleArn=principal_credentials.role_arn,
         RoleSessionName=f"sts-{principal_credentials.username}-{user.username}",
-        DurationSeconds=60 * 60 * 12,
+        DurationSeconds=duration,
     )
 
     response_status_code = response["ResponseMetadata"]["HTTPStatusCode"]

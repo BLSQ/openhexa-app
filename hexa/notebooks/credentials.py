@@ -1,3 +1,7 @@
+class NotebooksCredentialsError(Exception):
+    pass
+
+
 class NotebooksCredentials:
     """This class acts as a container for credentials to be provided to the notebooks component."""
 
