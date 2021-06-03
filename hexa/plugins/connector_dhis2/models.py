@@ -168,10 +168,7 @@ class Content(BaseContent):
 
     @property
     def tags(self):
-        return [
-            {"label": "Must see", "color": "red", "dot": False},
-            {"label": "Great content", "color": "green", "dot": False},
-        ]
+        return []
 
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
