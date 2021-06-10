@@ -3,3 +3,7 @@
 
 k8s/*
 !k8s/sample_app.yaml
+
+# TODO: remove
+credentials
+.terraform*
