@@ -3,6 +3,7 @@
 .idea
 docker-compose.yml
 k8s
+terraform
 
 **/*.DS_Store
 **/*.pyc
