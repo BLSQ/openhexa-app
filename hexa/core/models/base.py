@@ -57,8 +57,8 @@ class RichContent(Base):
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
     comments = GenericRelation("comments.Comment")
-    name = models.CharField(max_length=200, blank=True)
-    short_name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
+    short_name = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     locale = LocaleField(default="en")
@@ -84,10 +84,10 @@ class Index(Base):
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.CharField(max_length=200, blank=True)
-    external_name = models.CharField(max_length=200, blank=True)
-    short_name = models.CharField(max_length=100, blank=True)
-    external_short_name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
+    external_name = models.TextField(blank=True)
+    short_name = models.CharField(max_length=200, blank=True)
+    external_short_name = models.CharField(max_length=200, blank=True)
     description = models.TextField(blank=True)
     external_description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)

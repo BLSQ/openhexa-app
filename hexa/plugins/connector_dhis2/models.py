@@ -138,8 +138,8 @@ class Content(BaseContent):
 
     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
     dhis2_id = models.CharField(max_length=200)
-    dhis2_name = models.CharField(max_length=200)
-    dhis2_short_name = models.CharField(max_length=100, blank=True)
+    dhis2_name = models.TextField()
+    dhis2_short_name = models.CharField(max_length=200, blank=True)
     dhis2_description = models.TextField(blank=True)
     dhis2_external_access = models.BooleanField()
     dhis2_favorite = models.BooleanField()

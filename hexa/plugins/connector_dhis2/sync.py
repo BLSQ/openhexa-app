@@ -70,7 +70,6 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             model_class.objects.create(
                 **dhis2_values,
                 instance=instance,
-                last_synced_at=timezone.now(),
             )
             created += 1
 
