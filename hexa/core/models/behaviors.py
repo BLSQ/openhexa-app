@@ -10,15 +10,15 @@ class WithIndex(models.Model):
         self.index()
 
     @property
-    def index_type(self):
+    def index_type(self):  # TODO: remove
         raise NotImplementedError(
-            "Each Indexed subclass model should implement the index_type() property"
+            "Each indexable model should implement the index_type() property"
         )
 
     def index(self):
-        """Each pipeline model may implement this method to handle indexing in the pipelines."""
-
-        pass
+        raise NotImplementedError(
+            "Each indexable model should implement the index() method"
+        )
 
 
 class WithStatus:
