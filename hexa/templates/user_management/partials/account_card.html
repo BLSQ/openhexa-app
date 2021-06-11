@@ -6,11 +6,7 @@
 {% endblock %}
 
 {% block card_header_image %}
-    <img
-            class="h-12 w-12 rounded-full"
-            src="{% static 'img/avatar.jpg' %}"
-            alt=""
-    >
+    {% include "core/components/avatar.html" with user=request.user %}
 {% endblock %}
 
 {% block card_header_description %}
