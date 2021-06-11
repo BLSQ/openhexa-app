@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.db import models
@@ -119,6 +120,7 @@ class Datasource(RichContent, WithIndex, WithSync):
     active_from = models.DateTimeField(null=True, blank=True)
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
+    indexes = GenericRelation("catalog.CatalogIndex")
 
     @property
     def index_type(self):
@@ -131,6 +133,8 @@ class Datasource(RichContent, WithIndex, WithSync):
 class Content(RichContent, WithIndex):
     class Meta:
         abstract = True
+
+    indexes = GenericRelation("catalog.CatalogIndex")
 
     @property
     def index_type(self):

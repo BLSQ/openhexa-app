@@ -2,6 +2,7 @@ from django import test
 from django.urls import reverse
 from unittest import skip
 
+from hexa.catalog.models import CatalogIndex
 from hexa.plugins.connector_s3.models import Credentials, Bucket, BucketPermission
 from hexa.user_management.models import User, Team, Membership
 
@@ -43,3 +44,12 @@ class ConnectorS3Test(test.TestCase):
             },
             response_data["env"],
         )
+
+    def test_bucket_delete(self):
+        """Deleting a bucket should delete its index as well"""
+
+        bucket = Bucket.objects.create(s3_name="some-bucket")
+        bucket_id = bucket.id
+        self.assertEqual(1, CatalogIndex.objects.filter(object_id=bucket_id).count())
+        bucket.delete()
+        self.assertEqual(0, CatalogIndex.objects.filter(object_id=bucket_id).count())
