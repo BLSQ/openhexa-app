@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -17,6 +18,7 @@ from hexa.pipelines.models import (
     PipelinesIndex,
     PipelinesIndexPermission,
     Pipeline,
+    PipelinesIndexType,
 )
 
 
@@ -82,18 +84,22 @@ class Cluster(BaseEnvironment):
     objects = ClusterQuerySet.as_manager()
 
     def index(self):
-        pipeline_index = PipelinesIndex.objects.create_or_update(
-            indexed_object=self,
-            owner=self.owner,
-            name=self.name,
-            external_name=self.airflow_name,
-            countries=self.countries,
+        pipeline_index, _ = PipelinesIndex.objects.update_or_create(
+            defaults={
+                "owner": self.owner,
+                "name": self.name,
+                "external_name": self.airflow_name,
+                "countries": self.countries,
+                "content_summary": self.content_summary,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT,
             detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
-            content_summary=self.content_summary,
         )
 
         for permission in self.clusterpermission_set.all():
-            PipelinesIndexPermission.objects.create(
+            PipelinesIndexPermission.objects.get_or_create(
                 pipeline_index=pipeline_index, team=permission.team
             )
 

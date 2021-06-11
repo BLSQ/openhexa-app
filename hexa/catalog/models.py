@@ -65,37 +65,6 @@ class CatalogIndexQuerySet(models.QuerySet):
 
         return results
 
-    def create_or_update(self, *, indexed_object, parent_object=None, **kwargs):
-        index_type = ContentType.objects.get_for_model(self.model)
-
-        try:
-            index = index_type.get_object_for_this_type(object_id=indexed_object.pk)
-        except CatalogIndex.DoesNotExist:
-            model_type = ContentType.objects.get_for_model(indexed_object)
-            if parent_object is not None:
-                parent = index_type.get_object_for_this_type(object_id=parent_object.pk)
-            else:
-                parent = None
-
-            index = CatalogIndex(
-                content_type=model_type,
-                object_id=indexed_object.pk,
-                index_type=indexed_object.index_type,
-                parent=parent,
-            )
-
-        for name, value in kwargs.items():
-            try:
-                setattr(index, name, value)
-            except AttributeError:
-                raise AttributeError(
-                    f'Cannot set attribute "{name}" with value "{value}" on {index}'
-                )
-
-        index.save()
-
-        return index
-
 
 class CatalogIndex(Index):
     class Meta:

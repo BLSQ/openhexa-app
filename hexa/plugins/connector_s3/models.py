@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -11,6 +12,7 @@ from hexa.catalog.models import (
     Datasource,
     CatalogIndex,
     CatalogIndexPermission,
+    CatalogIndexType,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
@@ -150,19 +152,23 @@ class Bucket(Datasource):
         )
 
     def index(self):
-        catalog_index = CatalogIndex.objects.create_or_update(
-            indexed_object=self,
-            owner=self.owner,
-            name=self.name,
-            external_name=self.s3_name,
-            countries=self.countries,
-            last_synced_at=self.last_synced_at,
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.last_synced_at,
+                "content_summary": self.content_summary,
+                "owner": self.owner,
+                "name": self.name,
+                "external_name": self.s3_name,
+                "countries": self.countries,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.DATASOURCE,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
-            content_summary=self.content_summary,
         )
 
         for permission in self.bucketpermission_set.all():
-            CatalogIndexPermission.objects.create(
+            CatalogIndexPermission.objects.get_or_create(
                 catalog_index=catalog_index, team=permission.team
             )
 
@@ -197,3 +203,6 @@ class Object(Content):
     @property
     def display_name(self):
         return self.hexa_or_s3_name
+
+    def index(self):  # TODO: fishy
+        pass

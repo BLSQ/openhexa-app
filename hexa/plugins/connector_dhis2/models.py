@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -9,6 +10,7 @@ from hexa.catalog.models import (
     Datasource,
     CatalogIndex,
     CatalogIndexPermission,
+    CatalogIndexType,
 )
 from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
@@ -110,19 +112,23 @@ class Instance(Datasource):
         )
 
     def index(self):
-        catalog_index = CatalogIndex.objects.create_or_update(
-            indexed_object=self,
-            owner=self.owner,
-            name=self.name,
-            short_name=self.short_name,
-            description=self.description,
-            countries=self.countries,
-            last_synced_at=self.last_synced_at,
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.last_synced_at,
+                "owner": self.owner,
+                "name": self.name,
+                "short_name": self.short_name,
+                "description": self.description,
+                "countries": self.countries,
+                "content_summary": self.content_summary,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.DATASOURCE,
             detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
-            content_summary=self.content_summary,
         )
         for permission in self.instancepermission_set.all():
-            CatalogIndexPermission.objects.create(
+            CatalogIndexPermission.objects.get_or_create(
                 catalog_index=catalog_index, team=permission.team
             )
 
@@ -239,18 +245,22 @@ class DataElement(Content):
     )
 
     def index(self):
-        catalog_index = CatalogIndex.objects.create_or_update(
-            indexed_object=self,
-            parent_object=self.instance,
-            owner=self.instance.owner,
-            name=self.name,
-            external_name=self.dhis2_name,
-            short_name=self.short_name,
-            external_short_name=self.dhis2_short_name,
-            description=self.description,
-            external_description=self.dhis2_description,
-            countries=self.instance.countries,
-            last_synced_at=self.instance.last_synced_at,
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.instance.last_synced_at,
+                "owner": self.instance.owner,
+                "name": self.name,
+                "external_name": self.dhis2_name,
+                "short_name": self.short_name,
+                "external_short_name": self.dhis2_short_name,
+                "description": self.description,
+                "external_description": self.dhis2_description,
+                "countries": self.instance.countries,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.CONTENT,
+            parent=CatalogIndex.objects.get(object_id=self.instance.id),
             detail_url=reverse(
                 "connector_dhis2:data_element_detail",
                 args=(self.instance.pk, self.pk),
@@ -258,7 +268,7 @@ class DataElement(Content):
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.create(
+            CatalogIndexPermission.objects.get_or_create(
                 catalog_index=catalog_index, team=permission.team
             )
 
@@ -270,6 +280,9 @@ class IndicatorType(Content):
 
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
+
+    def index(self):  # TODO: fishy
+        pass
 
 
 class Indicator(Content):
@@ -284,18 +297,22 @@ class Indicator(Content):
     dhis2_annualized = models.BooleanField()
 
     def index(self):
-        catalog_index = CatalogIndex.objects.create_or_update(
-            indexed_object=self,
-            parent_object=self.instance,
-            owner=self.instance.owner,
-            name=self.name,
-            external_name=self.dhis2_name,
-            short_name=self.short_name,
-            external_short_name=self.dhis2_short_name,
-            description=self.description,
-            external_description=self.dhis2_description,
-            countries=self.instance.countries,
-            last_synced_at=self.instance.last_synced_at,
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.instance.last_synced_at,
+                "owner": self.instance.owner,
+                "name": self.name,
+                "external_name": self.dhis2_name,
+                "short_name": self.short_name,
+                "external_short_name": self.dhis2_short_name,
+                "description": self.description,
+                "external_description": self.dhis2_description,
+                "countries": self.instance.countries,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.CONTENT,
+            parent=CatalogIndex.objects.get(object_id=self.instance.id),
             detail_url=reverse(
                 "connector_dhis2:indicator_detail",
                 args=(self.instance.pk, self.pk),
@@ -303,7 +320,7 @@ class Indicator(Content):
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.create(
+            CatalogIndexPermission.objects.update_or_create(
                 catalog_index=catalog_index, team=permission.team
             )
 
