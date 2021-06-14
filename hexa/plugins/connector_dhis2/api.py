@@ -103,25 +103,13 @@ class Dhis2Client:
         self._api = Api(url, username, password)
 
     def fetch_data_elements(self):
-        return [
-            DataElementResult(data)
-            for data in self._api.get_paged(
-                "dataElements", params={"fields": ":all"}, page_size=100, merge=True
-            )["dataElements"]
-        ]
+        for page in self._api.get_paged("dataElements", params={"fields": ":all"}, page_size=100):
+            yield [DataElementResult(data) for data in page["dataElements"]]
 
     def fetch_indicator_types(self):
-        return [
-            IndicatorTypeResult(data)
-            for data in self._api.get_paged(
-                "indicatorTypes", params={"fields": ":all"}, page_size=100, merge=True
-            )["indicatorTypes"]
-        ]
+        for page in self._api.get_paged("indicatorTypes", params={"fields": ":all"}, page_size=100):
+            yield [IndicatorTypeResult(data) for data in page["indicatorTypes"]]
 
     def fetch_indicators(self):
-        return [
-            IndicatorResult(data)
-            for data in self._api.get_paged(
-                "indicators", params={"fields": ":all"}, page_size=100, merge=True
-            )["indicators"]
-        ]
+        for page in self._api.get_paged("indicators", params={"fields": ":all"}, page_size=100):
+            yield [IndicatorResult(data) for data in page["indicators"]]

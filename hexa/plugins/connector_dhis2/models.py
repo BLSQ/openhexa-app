@@ -15,6 +15,7 @@ from hexa.catalog.models import (
 from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
+from ...catalog.sync import DatasourceSyncResult
 from ...core.date_utils import date_format
 from ...core.models.cryptography import EncryptedTextField
 
@@ -68,33 +69,38 @@ class Instance(Datasource):
             password=self.api_credentials.password,
         )
 
+        results = DatasourceSyncResult(datasource=self)
+
         # Sync data elements
         with transaction.atomic():
-            data_element_results = sync_from_dhis2_results(
-                model_class=DataElement,
-                instance=self,
-                results=client.fetch_data_elements(),
-            )
+            for results_batch in client.fetch_data_elements():
+                results += sync_from_dhis2_results(
+                    model_class=DataElement,
+                    instance=self,
+                    results=results_batch,
+                )
 
             # Sync indicator types
-            indicator_type_results = sync_from_dhis2_results(
-                model_class=IndicatorType,
-                instance=self,
-                results=client.fetch_indicator_types(),
-            )
+            for results_batch in client.fetch_indicator_types():
+                results += sync_from_dhis2_results(
+                    model_class=IndicatorType,
+                    instance=self,
+                    results=results_batch,
+                )
 
             # Sync indicators
-            indicator_results = sync_from_dhis2_results(
-                model_class=Indicator,
-                instance=self,
-                results=client.fetch_indicators(),
-            )
+            for results_batch in client.fetch_indicators():
+                results += sync_from_dhis2_results(
+                    model_class=Indicator,
+                    instance=self,
+                    results=results_batch,
+                )
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
 
-        return data_element_results + indicator_type_results + indicator_results
+        return results
 
     @property
     def content_summary(self):
