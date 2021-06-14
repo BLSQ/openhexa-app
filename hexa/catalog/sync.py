@@ -1,7 +1,7 @@
 class DatasourceSyncResult:
     """Represents the result of a datasource sync operation performed by a connector"""
 
-    def __init__(self, datasource, created, updated, identical):
+    def __init__(self, *, datasource, created=0, updated=0, identical=0):
         self.datasource = datasource
         self.created = created
         self.updated = updated
