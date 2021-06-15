@@ -79,8 +79,10 @@ class Index(Base):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     object = GenericForeignKey("content_type", "object_id")
+    # TODO: remove?
     parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
 
+    # TODO: remove?
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
