@@ -1,4 +1,4 @@
-from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
+from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType
 from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.templatetags.static import static
@@ -7,9 +7,6 @@ from hexa.catalog.models import CatalogIndex, CatalogIndexType
 
 catalog_type_defs = """
     extend type Query {
-        catalog: Catalog!
-    }
-    type Catalog {
         datasources(page: Int!, perPage: Int!): CatalogIndexPage!
         search(page: Int!, perPage: Int!, query: String!): CatalogIndexPage!
     }
@@ -31,22 +28,19 @@ catalog_type_defs = """
         countries: [Country!]
         lastSyncedAt: DateTime
     }
+    type CatalogTag {
+        id: String!
+        name: String!
+    }
     enum CatalogIndexType {
       DATASOURCE
       CONTENT
     }
 """
 catalog_query = QueryType()
-catalog_mutations = MutationType()
-catalog = ObjectType("Catalog")
 
 
-@catalog_query.field("catalog")
-def resolve_catalog(*_):
-    return {}
-
-
-@catalog.field("datasources")
+@catalog_query.field("datasources")
 @convert_kwargs_to_snake_case
 def resolve_datasources(_, info, page, per_page):
     request: HttpRequest = info.context["request"]
@@ -64,7 +58,7 @@ def resolve_datasources(_, info, page, per_page):
     }
 
 
-@catalog.field("search")
+@catalog_query.field("search")
 @convert_kwargs_to_snake_case
 def resolve_search(_, info, page, per_page, query):
     request: HttpRequest = info.context["request"]
@@ -93,4 +87,4 @@ def resolve_icon(obj: CatalogIndex, info):
     return request.build_absolute_uri(static(f"{obj.app_label}/img/symbol.svg"))
 
 
-catalog_bindables = [catalog_query, catalog, catalog_index]
+catalog_bindables = [catalog_query, catalog_index]

@@ -7,9 +7,6 @@ from hexa.user_management.models import Organization
 
 identity_type_defs = """
     extend type Query {
-        identity: Identity!
-    }
-    type Identity  {
         me: User
     }
     type User {
@@ -20,6 +17,7 @@ identity_type_defs = """
         id: String!
         name: String!
         type: String!
+        contactInfo: String!
     }
     type Country {
         code: String!
@@ -34,15 +32,9 @@ identity_type_defs = """
 
 identity_query = QueryType()
 identity_mutations = MutationType()
-identity = ObjectType("Identity")
 
 
-@identity_query.field("identity")
-def resolve_identity(*_):
-    return {}
-
-
-@identity.field("me")
+@identity_query.field("me")
 def resolve_me(_, info):
     request = info.context["request"]
 
@@ -86,7 +78,6 @@ def resolve_type(obj: Organization, *_):
 
 identity_bindables = [
     identity_query,
-    identity,
     country,
     organization,
     identity_mutations,

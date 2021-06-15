@@ -6,6 +6,8 @@ from ariadne import (
 from hexa.catalog.schema import catalog_type_defs, catalog_bindables
 from hexa.user_management.schema import identity_type_defs, identity_bindables
 
+from hexa.plugins.connector_dhis2.schema import dhis2_type_defs, dhis2_bindables
+
 type_defs = """
     scalar Date
     scalar DateTime
@@ -15,6 +17,11 @@ type_defs = """
 """
 
 schema = make_executable_schema(
-    [type_defs, catalog_type_defs, identity_type_defs],
-    [*catalog_bindables, *identity_bindables, snake_case_fallback_resolvers],
+    [type_defs, catalog_type_defs, identity_type_defs, dhis2_type_defs],
+    [
+        *catalog_bindables,
+        *identity_bindables,
+        *dhis2_bindables,
+        snake_case_fallback_resolvers,
+    ],
 )
