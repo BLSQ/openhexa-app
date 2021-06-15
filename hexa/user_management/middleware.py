@@ -13,6 +13,7 @@ def login_required_middleware(get_response):
             reverse("core:index"),
             reverse("core:ready"),
             reverse("notebooks:credentials"),
+            reverse("graphql"),
         ]
 
     def middleware(request):

@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "corsheaders",
     "django_countries",
+    "ariadne.contrib.django",
     "tailwind",
     "hexa.user_management",
     "hexa.core",
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -135,6 +138,13 @@ AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
+
+# CORS
+# https://github.com/adamchainz/django-cors-headers
+# TODO: configure for prod
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+CORS_URLS_REGEX = r"^/graphql/$"
+CORS_ALLOW_CREDENTIALS = True
 
 # SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 # SECURE_REDIRECT_EXEMPT = [r"^ready$"]

@@ -61,7 +61,8 @@ class CatalogIndexQuerySet(models.QuerySet):
         if content_type is not None:
             results = results.filter(content_type=content_type)
 
-        results = results[:limit]
+        if limit is not None:
+            results = results[:limit]
 
         return results
 

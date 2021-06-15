@@ -13,9 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from ariadne.contrib.django.views import GraphQLView
 from django.contrib import admin
 from django.urls import include, path
 
+from .schema import schema
 from hexa.plugins.app import get_connector_app_configs
 
 # Core URLs
@@ -28,6 +30,7 @@ urlpatterns = [
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("comments/", include("hexa.comments.urls")),
     path("auth/", include("django.contrib.auth.urls")),
+    path("graphql/", GraphQLView.as_view(schema=schema), name="graphql"),
 ]
 
 # Connector apps URLs
