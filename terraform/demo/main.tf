@@ -33,5 +33,5 @@ module "release" {
   source      = "../modules/release"
   environment = "demo"
   domain      = "app.demo.openhexa.org"
-  image_tag   = "0.6.9"
+  image_tag   = "0.6.11"
 }
