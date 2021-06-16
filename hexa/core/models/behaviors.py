@@ -44,3 +44,10 @@ class WithSync(models.Model):
         raise NotImplementedError(
             "Classes having the WithSync behavior should implement sync()"
         )
+
+
+class WithTags(models.Model):
+    class Meta:
+        abstract = True
+
+    tags = models.ManyToManyField("catalog.Tag")
