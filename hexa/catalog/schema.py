@@ -27,6 +27,7 @@ catalog_type_defs = """
         owner: Organization!
         countries: [Country!]
         lastSyncedAt: DateTime
+        detailUrl: String!
     }
     type CatalogTag {
         id: String!
@@ -85,6 +86,11 @@ catalog_index.set_alias("type", "content_type_name")
 def resolve_icon(obj: CatalogIndex, info):
     request: HttpRequest = info.context["request"]
     return request.build_absolute_uri(static(f"{obj.app_label}/img/symbol.svg"))
+
+
+@catalog_index.field("detailUrl")
+def resolve_detail_url(obj: CatalogIndex, *_):
+    return obj.detail_url.replace("dhis2", "dhis2/catalog")
 
 
 catalog_bindables = [catalog_query, catalog_index]
