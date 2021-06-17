@@ -32,7 +32,7 @@
                     {# Tags #}
                     {% embed "core/components/description_list/item.html" with term=_("Tags") %}
                         {% slot definition %}
-                            {% include "core/components/description_list/item_tags.html" with tags=indicator.tags %}
+                            {% include "core/components/description_list/item_tags.html" with tags=indicator.tags.all %}
                         {% endslot %}
                     {% endembed %}
                     {# Last sync #}
