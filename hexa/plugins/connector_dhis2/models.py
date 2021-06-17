@@ -178,10 +178,6 @@ class Content(BaseContent):
             else self.hexa_or_dhis2_name
         )
 
-    @property
-    def tags(self):
-        return []
-
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
             setattr(self, key, kwargs[key])

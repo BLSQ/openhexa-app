@@ -20,7 +20,7 @@
         <div class="text-sm text-gray-900">{{ item.dhis2_indicator_type.display_name }}</div>
     </td>
     <td class="px-6 py-4">
-        {% for tag in item.tags %}
+        {% for tag in item.tags.all %}
             <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
