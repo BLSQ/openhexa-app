@@ -35,7 +35,7 @@ s3_type_defs = """
         s3Name: String
     }
     extend type Mutation {
-        s3BucketUpdate(id: String!, input: S3BucketInput!): Dhis2Instance!
+        s3BucketUpdate(id: String!, input: S3BucketInput!): S3Bucket!
     }
 """
 s3_query = QueryType()
