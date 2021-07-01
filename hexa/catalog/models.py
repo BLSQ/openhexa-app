@@ -90,6 +90,7 @@ class Datasource(RichContent, WithIndex, WithSync):
     active_to = models.DateTimeField(null=True, blank=True)
     public = models.BooleanField(default=False, verbose_name="Public dataset")
     indexes = GenericRelation("catalog.CatalogIndex")
+    tags = models.ManyToManyField("catalog.Tag")
 
     @property
     def index_type(self):
