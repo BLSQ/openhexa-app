@@ -29,7 +29,7 @@ dhis2_type_defs = """
         countries: [String!]
     }
     extend type Mutation {
-        dhis2InstanceUpdate(id: String!, instance: Dhis2InstanceInput!): Dhis2Instance!
+        dhis2InstanceUpdate(id: String!, input: Dhis2InstanceInput!): Dhis2Instance!
     }
 """
 dhis2_query = QueryType()
@@ -63,9 +63,15 @@ dhis2_mutation = MutationType()
 @dhis2_mutation.field("dhis2InstanceUpdate")
 def resolve_dhis2_instance_update(_, info, **kwargs):
     updated_instance = Instance.objects.get(id=kwargs["id"])
+    instance_data = kwargs["input"]
 
-    for key, value in kwargs["instance"].items():
-        setattr(updated_instance, key, value)
+    if "name" in instance_data:
+        updated_instance.name = instance_data["name"]
+    if "shortName" in instance_data:
+        updated_instance.short_name = instance_data["shortName"]
+    if "countries" in instance_data:
+        updated_instance.countries = instance_data["countries"]
+
     updated_instance.save()
 
     return updated_instance
