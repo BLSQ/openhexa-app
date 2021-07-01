@@ -27,6 +27,10 @@ dhis2_type_defs = """
         name: String
         shortName: String
         countries: [String!]
+        tags: [String!]
+        url: String
+        description: String
+        owner: String
     }
     extend type Mutation {
         dhis2InstanceUpdate(id: String!, input: Dhis2InstanceInput!): Dhis2Instance!
@@ -38,9 +42,11 @@ dhis2_query = QueryType()
 @dhis2_query.field("dhis2Instance")
 def resolve_dhis2_instance(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    instance = Instance.objects.filter_for_user(request.user).get(pk=kwargs["id"])
+    resolved_instance = Instance.objects.filter_for_user(request.user).get(
+        pk=kwargs["id"]
+    )
 
-    return instance
+    return resolved_instance
 
 
 instance = ObjectType("Dhis2Instance")
@@ -50,6 +56,11 @@ instance = ObjectType("Dhis2Instance")
 def resolve_icon(obj: Instance, info):
     request: HttpRequest = info.context["request"]
     return request.build_absolute_uri(static(f"connector_dhis2/img/symbol.svg"))
+
+
+@instance.field("tags")
+def resolve_tags(obj: Instance, *_):
+    return obj.tags.all()
 
 
 @instance.field("contentType")
@@ -65,12 +76,19 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     updated_instance = Instance.objects.get(id=kwargs["id"])
     instance_data = kwargs["input"]
 
+    # Obviously we need some kind of serializer here
     if "name" in instance_data:
         updated_instance.name = instance_data["name"]
     if "shortName" in instance_data:
         updated_instance.short_name = instance_data["shortName"]
     if "countries" in instance_data:
         updated_instance.countries = instance_data["countries"]
+    if "tags" in instance_data:
+        updated_instance.tags.set(instance_data["tags"])
+    if "url" in instance_data:
+        updated_instance.url = instance_data["url"]
+    if "description" in instance_data:
+        updated_instance.description = instance_data["description"]
 
     updated_instance.save()
 

@@ -10,6 +10,7 @@ identity_type_defs = """
     extend type Query {
         me: User
         countries: [Country!]
+        organizations: [Organization!]
     }
     type User {
         id: String!
@@ -47,6 +48,11 @@ def resolve_me(_, info):
 @identity_query.field("countries")
 def resolve_countries(*_):
     return [Country(c) for c, _ in countries]
+
+
+@identity_query.field("organizations")
+def resolve_organizations(*_):
+    return [o for o in Organization.objects.all()]
 
 
 @identity_mutations.field("identityCheck")
