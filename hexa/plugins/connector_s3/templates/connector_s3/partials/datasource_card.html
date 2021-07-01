@@ -130,7 +130,7 @@
                 {% translate "Tags" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {% for tag in datasource.content.tags %}
+                {% for tag in datasource.content.tags.all %}
                     <span class="mr-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
                         {{ tag.label }}
                     </span>

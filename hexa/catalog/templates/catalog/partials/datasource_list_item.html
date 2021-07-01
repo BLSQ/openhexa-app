@@ -38,7 +38,7 @@
         <span class="text-sm text-gray-500 whitespace-nowrap mr-1">
             {{ datasource_index.content_summary|default:"-" }}
         </span>
-        {% for tag in datasource_index.content.tags %}
+        {% for tag in datasource_index.content.tags.all %}
             <span class="mr-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ tag.color }}-100 text-{{ tag.color }}-800">
             {{ tag.label }}
         </span>
