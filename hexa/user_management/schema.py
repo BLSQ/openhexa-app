@@ -1,6 +1,7 @@
 from ariadne import ObjectType, MutationType, QueryType
 from django.contrib.auth import authenticate, login
 from django.http import HttpRequest
+from django_countries import countries
 from django_countries.fields import Country
 
 from hexa.user_management.models import Organization
@@ -8,6 +9,7 @@ from hexa.user_management.models import Organization
 identity_type_defs = """
     extend type Query {
         me: User
+        countries: [Country!]
     }
     type User {
         id: String!
@@ -17,11 +19,12 @@ identity_type_defs = """
         id: String!
         name: String!
         type: String!
+        url: String!
         contactInfo: String!
     }
     type Country {
         code: String!
-        alpha3: String
+        alpha3: String!
         name: String!
         flag: String!
     }
@@ -39,6 +42,11 @@ def resolve_me(_, info):
     request = info.context["request"]
 
     return request.user if request.user.is_authenticated else None
+
+
+@identity_query.field("countries")
+def resolve_countries(*_):
+    return [Country(c) for c, _ in countries]
 
 
 @identity_mutations.field("identityCheck")
