@@ -22,6 +22,7 @@ class ConnectorS3Test(test.TestCase):
             username="app-iam-username",
             access_key_id="FOO",
             secret_access_key="BAR",
+            default_region="us-west-2",
         )
         cls.BUCKET = Bucket.objects.create(s3_name="test-bucket")
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)

@@ -33,6 +33,7 @@ class Credentials(Base):
     username = models.CharField(max_length=200)
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
+    default_region = models.CharField(max_length=200, default="")
     role_arn = models.CharField(max_length=200)
 
     @property

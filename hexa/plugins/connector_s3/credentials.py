@@ -32,3 +32,9 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 f"AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
             }
         )
+        if principal_s3_credentials.default_region != "":
+            credentials.update_env(
+                {
+                    f"AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                }
+            )
