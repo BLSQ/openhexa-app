@@ -12,9 +12,9 @@ catalog_type_defs = """
         tags: [CatalogTag!]
     }
     type CatalogIndexPage {
-        page: Int!
+        pageNumber: Int!
         totalPages: Int!
-        total: Int!
+        totalItems: Int!
         items: [CatalogIndex!]!
     }
     type CatalogIndex {
@@ -53,9 +53,9 @@ def resolve_datasources(_, info, page, per_page):
     paginator = Paginator(queryset, per_page)
 
     return {
-        "page": page,
+        "page_number": page,
         "total_pages": paginator.num_pages,
-        "total": paginator.count,
+        "total_items": paginator.count,
         "items": paginator.page(1),
     }
 
