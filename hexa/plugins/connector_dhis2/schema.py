@@ -26,11 +26,11 @@ dhis2_type_defs = """
     input Dhis2InstanceInput {
         name: String
         shortName: String
-        countries: [String!]
-        tags: [String!]
+        countries: [CountryInput!]
+        tags: [CatalogTagInput!]
         url: String
         description: String
-        owner: String
+        owner: OrganizationInput
     }
     extend type Mutation {
         dhis2InstanceUpdate(id: String!, input: Dhis2InstanceInput!): Dhis2Instance!
@@ -82,9 +82,11 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     if "shortName" in instance_data:
         updated_instance.short_name = instance_data["shortName"]
     if "countries" in instance_data:
-        updated_instance.countries = instance_data["countries"]
+        updated_instance.countries = [country["code"] for country in instance_data["countries"]]
     if "tags" in instance_data:
-        updated_instance.tags.set(instance_data["tags"])
+        updated_instance.tags.set([tag["id"] for tag in instance_data["tags"]])
+    if "owner" in instance_data:
+        updated_instance.owner_id = instance_data["owner"]["id"]
     if "url" in instance_data:
         updated_instance.url = instance_data["url"]
     if "description" in instance_data:

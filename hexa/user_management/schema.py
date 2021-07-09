@@ -23,11 +23,24 @@ identity_type_defs = """
         url: String!
         contactInfo: String!
     }
+    input OrganizationInput {
+        id: String!
+        name: String
+        type: String
+        url: String
+        contactInfo: String
+    }
     type Country {
         code: String!
         alpha3: String!
         name: String!
         flag: String!
+    }
+    input CountryInput {
+        code: String!
+        alpha3: String
+        name: String
+        flag: String
     }
     extend type Mutation {
         identityCheck(username: String!, password: String!): User

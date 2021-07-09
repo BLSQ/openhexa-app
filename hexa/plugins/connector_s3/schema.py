@@ -27,11 +27,11 @@ s3_type_defs = """
     input S3BucketInput {
         name: String
         shortName: String
-        countries: [String!]
-        tags: [String!]
+        countries: [CountryInput!]
+        tags: [CatalogTagInput!]
         url: String
         description: String
-        owner: String
+        owner: OrganizationInput
         s3Name: String
     }
     extend type Mutation {
@@ -82,9 +82,11 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     if "shortName" in bucket_data:
         updated_bucket.short_name = bucket_data["shortName"]
     if "countries" in bucket_data:
-        updated_bucket.countries = bucket_data["countries"]
+        updated_bucket.countries = [country["code"] for country in bucket_data["countries"]]
     if "tags" in bucket_data:
-        updated_bucket.tags.set(bucket_data["tags"])
+        updated_bucket.tags.set([tag["id"] for tag in bucket_data["tags"]])
+    if "owner" in bucket_data:
+        updated_bucket.owner_id = bucket_data["owner"]["id"]
     if "url" in bucket_data:
         updated_bucket.url = bucket_data["url"]
     if "description" in bucket_data:

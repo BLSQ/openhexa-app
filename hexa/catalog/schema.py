@@ -1,4 +1,4 @@
-from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType
+from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
 from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.templatetags.static import static
@@ -30,6 +30,10 @@ catalog_type_defs = """
         lastSyncedAt: DateTime
         detailUrl: String!
     }
+    input CatalogTagInput {
+        id: String!
+        name: String
+    }
     type CatalogTag {
         id: String!
         name: String!
@@ -37,6 +41,10 @@ catalog_type_defs = """
     enum CatalogIndexType {
       DATASOURCE
       CONTENT
+    }
+    
+    extend type Mutation {
+        catalogTagCreate(name: String!): CatalogTag!
     }
 """
 catalog_query = QueryType()
@@ -99,4 +107,12 @@ def resolve_detail_url(obj: CatalogIndex, *_):
     return obj.detail_url.replace("dhis2", "dhis2/catalog").replace("s3", "s3/catalog")
 
 
-catalog_bindables = [catalog_query, catalog_index]
+catalog_mutation = MutationType()
+
+
+@catalog_mutation.field("catalogTagCreate")
+def resolve_dhis2_instance_update(_, info, **kwargs):
+    return Tag.objects.create(name=kwargs["name"])
+
+
+catalog_bindables = [catalog_query, catalog_mutation, catalog_index]
