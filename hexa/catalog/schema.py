@@ -31,7 +31,7 @@ catalog_type_defs = """
         detailUrl: String!
     }
     input CatalogTagInput {
-        id: String!
+        id: String
         name: String
     }
     type CatalogTag {
@@ -44,7 +44,7 @@ catalog_type_defs = """
     }
     
     extend type Mutation {
-        catalogTagCreate(name: String!): CatalogTag!
+        catalogTagCreate(input: CatalogTagInput!): CatalogTag!
     }
 """
 catalog_query = QueryType()
@@ -112,7 +112,7 @@ catalog_mutation = MutationType()
 
 @catalog_mutation.field("catalogTagCreate")
 def resolve_dhis2_instance_update(_, info, **kwargs):
-    return Tag.objects.create(name=kwargs["name"])
+    return Tag.objects.create(name=kwargs["input"]["name"])
 
 
 catalog_bindables = [catalog_query, catalog_mutation, catalog_index]
