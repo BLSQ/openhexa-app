@@ -27,8 +27,7 @@
       "locale": "en",
       "created_at": "2021-04-08T07:04:41.864Z",
       "updated_at": "2021-04-08T07:22:43.021Z",
-      "s3_name": "hexa-test-covid",
-      "api_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
+      "s3_name": "hexa-test-covid"
     }
   },
   {
@@ -47,8 +46,7 @@
       "locale": "en",
       "created_at": "2021-04-07T14:07:58.094Z",
       "updated_at": "2021-04-08T07:22:43.028Z",
-      "s3_name": "hexa-test-malaria",
-      "api_credentials": "040213b0-28c9-4054-9b7b-a68aacc944d5"
+      "s3_name": "hexa-test-malaria"
     }
   },
   {
