@@ -109,14 +109,15 @@ def resolve_S3_objects(obj: Instance, info, path, page, per_page=10):
     }
 
 
-s3_mutation = MutationType()
-
 s3_object = ObjectType("S3Object")
 
+s3_object.set_alias("s3Key", "s3_key")
+s3_object.set_alias("s3Size", "s3_size")
+s3_object.set_alias("s3StorageClass", "s3_storage_class")
+s3_object.set_alias("s3Type", "s3_type")
+s3_object.set_alias("s3Name", "s3_name")
 
-@s3_object.field("s3Name")
-def resolve_s3_name(obj: Instance, info):
-    return obj.s3_name
+s3_mutation = MutationType()
 
 
 @s3_mutation.field("s3BucketUpdate")
