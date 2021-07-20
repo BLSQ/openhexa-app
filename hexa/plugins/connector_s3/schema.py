@@ -57,6 +57,7 @@ s3_type_defs = """
         s3Key: String
         s3Size: Int
         s3StorageClass: String
+        "enum: 'file' or 'directory'"
         s3Type: String
         s3Name: String
         s3LastModified: DateTime
