@@ -7,8 +7,8 @@ from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
 
 catalog_type_defs = """
     extend type Query {
-        datasources(page: Int!, perPage: Int!): CatalogIndexPage!
-        search(page: Int!, perPage: Int!, query: String!): CatalogIndexPage!
+        datasources(page: Int!, perPage: Int): CatalogIndexPage!
+        search(page: Int!, perPage: Int, query: String!): CatalogIndexPage!
         tags: [CatalogTag!]
     }
     type CatalogIndexPage {
@@ -42,7 +42,7 @@ catalog_type_defs = """
       DATASOURCE
       CONTENT
     }
-    
+
     extend type Mutation {
         catalogTagCreate(input: CatalogTagInput!): CatalogTag!
     }
@@ -52,7 +52,7 @@ catalog_query = QueryType()
 
 @catalog_query.field("datasources")
 @convert_kwargs_to_snake_case
-def resolve_datasources(_, info, page, per_page):
+def resolve_datasources(_, info, page, per_page=10):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).filter(
         index_type=CatalogIndexType.DATASOURCE.value
@@ -64,13 +64,13 @@ def resolve_datasources(_, info, page, per_page):
         "page_number": page,
         "total_pages": paginator.num_pages,
         "total_items": paginator.count,
-        "items": paginator.page(1),
+        "items": paginator.page(page),
     }
 
 
 @catalog_query.field("search")
 @convert_kwargs_to_snake_case
-def resolve_search(_, info, page, per_page, query):
+def resolve_search(_, info, page, per_page=10, query):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).search(
         query, limit=100
@@ -82,7 +82,7 @@ def resolve_search(_, info, page, per_page, query):
         "page": page,
         "total_pages": paginator.num_pages,
         "total": paginator.count,
-        "items": paginator.page(1),
+        "items": paginator.page(page),
     }
 
 
