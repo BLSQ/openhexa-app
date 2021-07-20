@@ -1,7 +1,9 @@
-from ariadne import QueryType, ObjectType, MutationType
+from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, MutationType
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
+from django.core.paginator import Paginator
+
 
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.plugins.connector_s3.models import Bucket
@@ -9,11 +11,6 @@ from hexa.plugins.connector_s3.models import Bucket
 s3_type_defs = """
     extend type Query {
         s3Bucket(id: String!): S3Bucket!
-        s3Objects(
-            s3BucketId: Int!, # BucketId or a S3BucketInput with only id required ?
-            page: Int!,
-            perPage: Int!
-        ): S3ObjectPage!
     }
     type S3Bucket {
         id: String!
@@ -28,16 +25,23 @@ s3_type_defs = """
         lastSyncedAt: DateTime
         tags: [CatalogTag!]
         icon: String!
+
+        S3Objects(
+            path: String!,
+            page: Int!,
+            perPage: Int
+        ): S3ObjectPage!
     }
     type S3Object {
-        bucket: S3Bucket!
+        bucket: S3Bucket
         parent: S3Object
-        #s3Key: should it be included ?
-        #s3Size: how to send a bigint custom scalar ?
-        s3StorageClass: String!
-        s3Type: String!
-        s3Name: String!
-        s3LastModified: DateTime!
+        "Path of the object within the bucket"
+        s3Key: String
+        s3Size: Int
+        s3StorageClass: String
+        s3Type: String
+        s3Name: String
+        s3LastModified: DateTime
     }
     type S3ObjectPage {
         pageNumber: Int!
@@ -90,7 +94,29 @@ def resolve_content_type(obj: Instance, info):
     return _("S3 Bucket")
 
 
+@bucket.field("S3Objects")
+@convert_kwargs_to_snake_case
+def resolve_S3_objects(obj: Instance, info, path, page, per_page=10):
+    queryset = obj.object_set.filter(parent__s3_key=path)
+
+    paginator = Paginator(queryset, per_page)
+
+    return {
+        "page_number": page,
+        "total_pages": paginator.num_pages,
+        "total_items": paginator.count,
+        "items": paginator.page(page),
+    }
+
+
 s3_mutation = MutationType()
+
+s3_object = ObjectType("S3Object")
+
+
+@s3_object.field("s3Name")
+def resolve_s3_name(obj: Instance, info):
+    return obj.s3_name
 
 
 @s3_mutation.field("s3BucketUpdate")
@@ -121,4 +147,4 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     return updated_bucket
 
 
-s3_bindables = [s3_query, s3_mutation, bucket]
+s3_bindables = [s3_query, s3_mutation, bucket, s3_object]
