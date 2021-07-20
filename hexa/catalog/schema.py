@@ -19,6 +19,7 @@ catalog_type_defs = """
     }
     type CatalogIndex {
         id: String!
+        objectId: String!
         name: String!
         icon: String
         externalName: String!
