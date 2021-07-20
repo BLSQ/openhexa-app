@@ -1,12 +1,13 @@
 from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 
 def build_summary_list_params(
     queryset,
     *,
     title,
-    per_page=5,
+    per_page=settings.GRAPHQL_PAGE_SIZE,
     columns,
     paginated_list_url,
     item_name,
@@ -30,7 +31,14 @@ def build_summary_list_params(
 
 
 def build_paginated_list_params(
-    queryset, *, title, per_page=10, page_number, columns, item_name, item_template
+    queryset,
+    *,
+    title,
+    per_page=settings.GRAPHQL_PAGE_SIZE,
+    page_number,
+    columns,
+    item_name,
+    item_template
 ):
     """Build the template params required for the paginated list partials"""
 

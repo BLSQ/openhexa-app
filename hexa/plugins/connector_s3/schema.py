@@ -3,6 +3,7 @@ from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 from django.core.paginator import Paginator
+from django.conf import settings
 
 
 from hexa.plugins.connector_dhis2.models import Instance
@@ -25,13 +26,13 @@ s3_type_defs = """
         lastSyncedAt: DateTime
         tags: [CatalogTag!]
         icon: String!
-
         S3Objects(
             path: String!,
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
     }
+
     type S3Object {
         bucket: S3Bucket
         parent: S3Object
@@ -96,7 +97,9 @@ def resolve_content_type(obj: Instance, info):
 
 @bucket.field("S3Objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(obj: Instance, info, path, page, per_page=10):
+def resolve_S3_objects(
+    obj: Instance, info, path, page, per_page=settings.GRAPHQL_PAGE_SIZE
+):
     queryset = obj.object_set.filter(parent__s3_key=path)
 
     paginator = Paginator(queryset, per_page)
