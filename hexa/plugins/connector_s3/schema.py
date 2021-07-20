@@ -104,7 +104,9 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     if "shortName" in bucket_data:
         updated_bucket.short_name = bucket_data["shortName"]
     if "countries" in bucket_data:
-        updated_bucket.countries = [country["code"] for country in bucket_data["countries"]]
+        updated_bucket.countries = [
+            country["code"] for country in bucket_data["countries"]
+        ]
     if "tags" in bucket_data:
         updated_bucket.tags.set([tag["id"] for tag in bucket_data["tags"]])
     if "owner" in bucket_data:
