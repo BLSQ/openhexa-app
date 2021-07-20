@@ -9,6 +9,11 @@ from hexa.plugins.connector_s3.models import Bucket
 s3_type_defs = """
     extend type Query {
         s3Bucket(id: String!): S3Bucket!
+        s3Objects(
+            s3BucketId: Int!, # BucketId or a S3BucketInput with only id required ?
+            page: Int!,
+            perPage: Int!
+        ): S3ObjectPage!
     }
     type S3Bucket {
         id: String!
@@ -24,6 +29,23 @@ s3_type_defs = """
         tags: [CatalogTag!]
         icon: String!
     }
+    type S3Object {
+        bucket: S3Bucket!
+        parent: S3Object
+        #s3Key: should it be included ?
+        #s3Size: how to send a bigint custom scalar ?
+        s3StorageClass: String!
+        s3Type: String!
+        s3Name: String!
+        s3LastModified: DateTime!
+    }
+    type S3ObjectPage {
+        pageNumber: Int!
+        totalPages: Int!
+        totalItems: Int!
+        items: [S3Object!]!
+    }
+
     input S3BucketInput {
         name: String
         shortName: String
