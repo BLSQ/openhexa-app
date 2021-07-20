@@ -189,7 +189,7 @@ class Object(Content):
         ordering = ["name"]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE, blank=True)
     s3_key = models.TextField()
     s3_size = models.PositiveBigIntegerField()
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
