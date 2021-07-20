@@ -34,6 +34,23 @@ s3_type_defs = """
     }
 
     type S3Object {
+        # Base
+        id: String!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+
+        # RichContent
+        owner: Organization
+        name: String!
+        shortName: String!
+        description: String!
+        countries: [Country!]
+        locale: String!
+
+        # Content
+        tags: [CatalogTag!]
+
+        # S3Object
         bucket: S3Bucket
         parent: S3Object
         "Path of the object within the bucket"
@@ -119,6 +136,7 @@ s3_object.set_alias("s3Size", "s3_size")
 s3_object.set_alias("s3StorageClass", "s3_storage_class")
 s3_object.set_alias("s3Type", "s3_type")
 s3_object.set_alias("s3Name", "s3_name")
+s3_object.set_alias("s3LastModified", "s3_last_modified")
 
 s3_mutation = MutationType()
 
