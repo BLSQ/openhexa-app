@@ -1,10 +1,10 @@
-from ariadne import ObjectType, MutationType, QueryType
-from django.contrib.auth import authenticate, login
+from ariadne import ObjectType, MutationType, QueryType, UnionType
+from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django_countries import countries
 from django_countries.fields import Country
 
-from hexa.user_management.models import Organization
+from hexa.user_management.models import Organization, User
 
 identity_type_defs = """
     extend type Query {
@@ -14,7 +14,9 @@ identity_type_defs = """
     }
     type User {
         id: String!
-        username: String!
+        email: String!
+        firstName: String
+        lastName: String
     }
     type Organization {
         id: String!
@@ -42,8 +44,20 @@ identity_type_defs = """
         name: String
         flag: String
     }
+    type LoginResult {
+        success: Boolean!
+        me: User
+    }
+    type LogoutResult {
+        success: Boolean!
+    }
+    input LoginInput {
+        email: String!
+        password: String!
+    }
     extend type Mutation {
-        identityCheck(username: String!, password: String!): User
+        login(input: LoginInput!): LoginResult
+        logout: LogoutResult
     }
 """
 
@@ -68,17 +82,29 @@ def resolve_organizations(*_):
     return [o for o in Organization.objects.all()]
 
 
-@identity_mutations.field("identityCheck")
-def resolve_login(_, info, username, password):
+@identity_mutations.field("login")
+def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    user_candidate = authenticate(request, username=username, password=password)
+    user_candidate = authenticate(
+        request, email=kwargs["input"]["email"], password=kwargs["input"]["password"]
+    )
 
     if user_candidate is not None:
         login(request, user_candidate)
 
-        return user_candidate
+        return {"success": True, "me": user_candidate}
     else:
-        return None
+        return {"success": False}
+
+
+@identity_mutations.field("logout")
+def resolve_logout(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    if request.user.is_authenticated:
+        logout(request)
+
+    return {"success": True}
 
 
 country = ObjectType("Country")
