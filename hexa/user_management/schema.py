@@ -4,6 +4,7 @@ from django.http import HttpRequest
 from django_countries import countries
 from django_countries.fields import Country
 
+from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import Organization, User
 
 identity_type_defs = """
@@ -17,6 +18,11 @@ identity_type_defs = """
         email: String!
         firstName: String
         lastName: String
+        avatar: Avatar!
+    }
+    type Avatar {
+        initials: String!
+        color: String!
     }
     type Organization {
         id: String!
@@ -107,6 +113,14 @@ def resolve_logout(_, info, **kwargs):
     return {"success": True}
 
 
+user = ObjectType("User")
+
+
+@user.field("avatar")
+def resolve_avatar(obj: User, *_):
+    return {"initials": obj.initials, "color": hash_color(obj.email)}
+
+
 country = ObjectType("Country")
 
 
@@ -131,6 +145,7 @@ def resolve_type(obj: Organization, *_):
 
 identity_bindables = [
     identity_query,
+    user,
     country,
     organization,
     identity_mutations,
