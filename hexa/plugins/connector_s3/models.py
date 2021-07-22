@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
+import os
 
 from hexa.catalog.models import (
     Base,
@@ -189,7 +190,7 @@ class Object(Content):
         ordering = ["name"]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE)
+    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE, blank=True)
     s3_key = models.TextField()
     s3_size = models.PositiveBigIntegerField()
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
@@ -204,6 +205,10 @@ class Object(Content):
     @property
     def display_name(self):
         return self.hexa_or_s3_name
+
+    @property
+    def s3_extension(self):
+        return os.path.splitext(self.s3_key)[1].lstrip(".")
 
     def index(self):  # TODO: fishy
         pass

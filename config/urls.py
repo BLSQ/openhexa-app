@@ -30,7 +30,13 @@ urlpatterns = [
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("comments/", include("hexa.comments.urls")),
     path("auth/", include("django.contrib.auth.urls")),
-    path("graphql/", GraphQLView.as_view(schema=schema), name="graphql"),
+    path(
+        "graphql/",
+        GraphQLView.as_view(
+            schema=schema, playground_options={"request.credentials": "include"}
+        ),
+        name="graphql",
+    ),
 ]
 
 # Connector apps URLs

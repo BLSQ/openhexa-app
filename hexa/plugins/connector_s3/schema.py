@@ -1,10 +1,15 @@
-from ariadne import QueryType, ObjectType, MutationType
+from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, MutationType
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
+from hexa.catalog.models import Tag
+from hexa.core.resolvers import resolve_tags
+
 
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.plugins.connector_s3.models import Bucket
+from hexa.core.graphql import result_page
 
 s3_type_defs = """
     extend type Query {
@@ -23,7 +28,54 @@ s3_type_defs = """
         lastSyncedAt: DateTime
         tags: [CatalogTag!]
         icon: String!
+        objects(
+            page: Int!,
+            perPage: Int
+        ): S3ObjectPage!
     }
+
+    type S3Object {
+        # Base
+        id: String!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+
+        # RichContent
+        owner: Organization
+        name: String!
+        shortName: String!
+        description: String!
+        countries: [Country!]
+        locale: String!
+
+        # Content
+        tags: [CatalogTag!]
+
+        # S3Object
+        bucket: S3Bucket
+        parent: S3Object
+        "Path of the object within the bucket"
+        s3Key: String
+        s3Size: Int
+        s3StorageClass: String
+        "enum: 'file' or 'directory'"
+        s3Type: String
+        s3Name: String
+        s3LastModified: DateTime
+        s3Extension: String
+
+        objects(
+            page: Int!,
+            perPage: Int
+        ): S3ObjectPage!
+    }
+    type S3ObjectPage {
+        pageNumber: Int!
+        totalPages: Int!
+        totalItems: Int!
+        items: [S3Object!]!
+    }
+
     input S3BucketInput {
         name: String
         shortName: String
@@ -50,6 +102,7 @@ def resolve_s3_bucket(_, info, **kwargs):
 
 
 bucket = ObjectType("S3Bucket")
+bucket.set_field("tags", resolve_tags)
 
 
 @bucket.field("icon")
@@ -58,14 +111,35 @@ def resolve_icon(obj: Instance, info):
     return request.build_absolute_uri(static(f"connector_s3/img/symbol.svg"))
 
 
-@bucket.field("tags")
-def resolve_tags(obj: Instance, *_):
-    return obj.tags.all()
-
-
 @bucket.field("contentType")
 def resolve_content_type(obj: Instance, info):
     return _("S3 Bucket")
+
+
+@bucket.field("objects")
+@convert_kwargs_to_snake_case
+def resolve_S3_objects(obj: Instance, info, page, per_page=None):
+    queryset = obj.object_set.filter(parent=None)
+    return result_page(queryset, page, per_page)
+
+
+s3_object = ObjectType("S3Object")
+
+s3_object.set_alias("s3Key", "s3_key")
+s3_object.set_alias("s3Size", "s3_size")
+s3_object.set_alias("s3StorageClass", "s3_storage_class")
+s3_object.set_alias("s3Type", "s3_type")
+s3_object.set_alias("s3Name", "s3_name")
+s3_object.set_alias("s3LastModified", "s3_last_modified")
+s3_object.set_alias("s3Extension", "s3_extension")
+s3_object.set_field("tags", resolve_tags)
+
+
+@s3_object.field("objects")
+@convert_kwargs_to_snake_case
+def resolve_S3_objects_on_object(obj: Instance, info, page, per_page=None):
+    queryset = obj.object_set.all()
+    return result_page(queryset, page, per_page)
 
 
 s3_mutation = MutationType()
@@ -99,4 +173,4 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     return updated_bucket
 
 
-s3_bindables = [s3_query, s3_mutation, bucket]
+s3_bindables = [s3_query, s3_mutation, bucket, s3_object]

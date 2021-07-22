@@ -1,10 +1,16 @@
 from django import test
 from django.urls import reverse
 from unittest import skip
+import json
 
 from hexa.catalog.models import CatalogIndex
-from hexa.plugins.connector_s3.models import Credentials, Bucket, BucketPermission
-from hexa.user_management.models import User, Team, Membership
+from hexa.plugins.connector_s3.models import (
+    Credentials,
+    Bucket,
+    BucketPermission,
+    Object,
+)
+from hexa.user_management.models import User, Team, Membership, Organization
 
 
 class ConnectorS3Test(test.TestCase):
