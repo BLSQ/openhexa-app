@@ -27,7 +27,7 @@ s3_type_defs = """
         lastSyncedAt: DateTime
         tags: [CatalogTag!]
         icon: String!
-        Objects(
+        objects(
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
@@ -63,7 +63,7 @@ s3_type_defs = """
         s3LastModified: DateTime
         s3Extension: String
 
-        Objects(
+        objects(
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
@@ -119,7 +119,7 @@ def resolve_content_type(obj: Instance, info):
     return _("S3 Bucket")
 
 
-@bucket.field("Objects")
+@bucket.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects(
     obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE
@@ -159,7 +159,7 @@ def resolve_tags(*_):
     return [tag for tag in Tag.objects.all()]
 
 
-@s3_object.field("Objects")
+@s3_object.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(
     obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE

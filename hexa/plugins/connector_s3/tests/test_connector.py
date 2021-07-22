@@ -132,7 +132,7 @@ class ConnectorS3Test(test.TestCase):
             """
                 query {
                   s3Bucket(id: "%s") {
-                    Objects(page: 1) {
+                    objects(page: 1) {
                       items {
                         owner {
                           name
@@ -159,17 +159,17 @@ class ConnectorS3Test(test.TestCase):
                         s3StorageClass
                         s3Type
                         s3Name
-                        Objects(page: 1) {
+                        objects(page: 1) {
                           items {
                             name
                             s3Key
                             s3Extension
-                            Objects(page: 1) {
+                            objects(page: 1) {
                               items {
                                 name
                                 s3Key
                                 s3Extension
-                                Objects(page: 1) {
+                                objects(page: 1) {
                                   items {
                                     id
                                     s3Extension
@@ -190,7 +190,7 @@ class ConnectorS3Test(test.TestCase):
         )
 
         self.assertEquals(
-            r["data"]["s3Bucket"]["Objects"]["items"][0],
+            r["data"]["s3Bucket"]["objects"]["items"][0],
             {
                 "owner": {"name": "Bluesquare"},
                 "name": "name1",
@@ -207,19 +207,19 @@ class ConnectorS3Test(test.TestCase):
                 "s3Type": "directory",
                 "s3Name": "s3Name1",
                 "s3Extension": "",
-                "Objects": {
+                "objects": {
                     "items": [
                         {
                             "name": "name2",
                             "s3Key": "/dir1/dir2/",
                             "s3Extension": "",
-                            "Objects": {
+                            "objects": {
                                 "items": [
                                     {
                                         "name": "name3",
                                         "s3Key": "/dir1/dir2/file1.csv",
                                         "s3Extension": "csv",
-                                        "Objects": {"items": []},
+                                        "objects": {"items": []},
                                     }
                                 ]
                             },
