@@ -197,7 +197,6 @@ class Object(Content):
     s3_type = models.CharField(max_length=200)  # TODO: choices
     s3_name = models.CharField(max_length=200)
     s3_last_modified = models.DateTimeField(null=True)
-    s3_mime_type = models.CharField(max_length=200, null=True, blank=True)
 
     @property
     def hexa_or_s3_name(self):

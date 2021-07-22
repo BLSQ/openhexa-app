@@ -67,7 +67,6 @@ class ConnectorS3Test(GraphQLTestCase):
             s3_storage_class="GLACIER",
             s3_name="s3Name1",
             owner=o,
-            s3_mime_type="application/octet-stream",
         )
 
         level2 = Object.objects.create(
