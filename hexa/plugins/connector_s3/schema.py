@@ -2,13 +2,13 @@ from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, Mutatio
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
-from django.core.paginator import Paginator
 from django.conf import settings
 from hexa.catalog.models import Tag
 
 
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.plugins.connector_s3.models import Bucket
+from hexa.core.graphql import result_page
 
 s3_type_defs = """
     extend type Query {
@@ -121,19 +121,9 @@ def resolve_content_type(obj: Instance, info):
 
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(
-    obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE
-):
+def resolve_S3_objects(obj: Instance, info, page, per_page=None):
     queryset = obj.object_set.filter(parent=None)
-
-    paginator = Paginator(queryset, per_page)
-
-    return {
-        "page_number": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
-        "items": paginator.page(page),
-    }
+    return result_page(queryset, page, per_page)
 
 
 @bucket.field("tags")
@@ -161,19 +151,9 @@ def resolve_tags(*_):
 
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects_on_object(
-    obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE
-):
+def resolve_S3_objects_on_object(obj: Instance, info, page, per_page=None):
     queryset = obj.object_set.all()
-
-    paginator = Paginator(queryset, per_page)
-
-    return {
-        "page_number": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
-        "items": paginator.page(page),
-    }
+    return result_page(queryset, page, per_page)
 
 
 s3_mutation = MutationType()

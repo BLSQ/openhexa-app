@@ -178,3 +178,4 @@ TAILWIND_APP_NAME = "hexa.tailwindui"
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
+GRAPHQL_MAX_PAGE_SIZE = 10_000

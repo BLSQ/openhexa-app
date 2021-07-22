@@ -1,10 +1,10 @@
 from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
-from django.core.paginator import Paginator
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.conf import settings
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
+from hexa.core.graphql import result_page
 
 catalog_type_defs = """
     extend type Query {
@@ -54,38 +54,24 @@ catalog_query = QueryType()
 
 @catalog_query.field("datasources")
 @convert_kwargs_to_snake_case
-def resolve_datasources(_, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE):
+def resolve_datasources(_, info, page, per_page=None):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).filter(
         index_type=CatalogIndexType.DATASOURCE.value
     )
 
-    paginator = Paginator(queryset, per_page)
-
-    return {
-        "page_number": page,
-        "total_pages": paginator.num_pages,
-        "total_items": paginator.count,
-        "items": paginator.page(page),
-    }
+    return result_page(queryset, page, per_page)
 
 
 @catalog_query.field("search")
 @convert_kwargs_to_snake_case
-def resolve_search(_, info, page, query, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE):
+def resolve_search(_, info, page, query, per_page=None):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).search(
         query, limit=100
     )
 
-    paginator = Paginator(queryset, per_page)
-
-    return {
-        "page": page,
-        "total_pages": paginator.num_pages,
-        "total": paginator.count,
-        "items": paginator.page(page),
-    }
+    return result_page(queryset, page, per_page)
 
 
 @catalog_query.field("tags")
