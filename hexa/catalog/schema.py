@@ -54,7 +54,7 @@ catalog_query = QueryType()
 
 @catalog_query.field("datasources")
 @convert_kwargs_to_snake_case
-def resolve_datasources(_, info, page, per_page=settings.GRAPHQL_PAGE_SIZE):
+def resolve_datasources(_, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).filter(
         index_type=CatalogIndexType.DATASOURCE.value
@@ -72,7 +72,7 @@ def resolve_datasources(_, info, page, per_page=settings.GRAPHQL_PAGE_SIZE):
 
 @catalog_query.field("search")
 @convert_kwargs_to_snake_case
-def resolve_search(_, info, page, query, per_page=settings.GRAPHQL_PAGE_SIZE):
+def resolve_search(_, info, page, query, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE):
     request: HttpRequest = info.context["request"]
     queryset = CatalogIndex.objects.filter_for_user(request.user).search(
         query, limit=100

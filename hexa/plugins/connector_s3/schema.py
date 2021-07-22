@@ -121,7 +121,9 @@ def resolve_content_type(obj: Instance, info):
 
 @bucket.field("Objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(obj: Instance, info, page, per_page=settings.GRAPHQL_PAGE_SIZE):
+def resolve_S3_objects(
+    obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE
+):
     queryset = obj.object_set.filter(parent=None)
 
     paginator = Paginator(queryset, per_page)
@@ -160,7 +162,7 @@ def resolve_tags(*_):
 @s3_object.field("Objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(
-    obj: Instance, info, page, per_page=settings.GRAPHQL_PAGE_SIZE
+    obj: Instance, info, page, per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE
 ):
     queryset = obj.object_set.all()
 
