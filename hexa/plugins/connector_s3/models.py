@@ -125,6 +125,7 @@ class Bucket(Datasource):
                 s3_type=object_data["type"],
                 s3_name=object_data["name"],
                 s3_last_modified=object_data.get("LastModified"),
+                s3_mime_type=object_data.metadata.get("Content-Type"),
             )
 
             if s3_object.s3_type == "directory":  # TODO: choices
@@ -196,6 +197,7 @@ class Object(Content):
     s3_type = models.CharField(max_length=200)  # TODO: choices
     s3_name = models.CharField(max_length=200)
     s3_last_modified = models.DateTimeField(null=True)
+    s3_mime_type = models.CharField(max_length=200, null=True, blank=True)
 
     @property
     def hexa_or_s3_name(self):

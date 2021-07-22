@@ -61,6 +61,7 @@ s3_type_defs = """
         s3Type: String
         s3Name: String
         s3LastModified: DateTime
+        s3MimeType: String
 
         Objects(
             page: Int!,
@@ -147,6 +148,7 @@ s3_object.set_alias("s3StorageClass", "s3_storage_class")
 s3_object.set_alias("s3Type", "s3_type")
 s3_object.set_alias("s3Name", "s3_name")
 s3_object.set_alias("s3LastModified", "s3_last_modified")
+s3_object.set_alias("s3MimeType", "s3_mime_type")
 
 
 @s3_object.field("tags")

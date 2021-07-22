@@ -94,6 +94,7 @@ class ConnectorS3Test(test.TestCase):
             s3_storage_class="GLACIER",
             s3_name="s3Name1",
             owner=o,
+            s3_mime_type="application/octet-stream",
         )
 
         level2 = Object.objects.create(
@@ -137,6 +138,7 @@ class ConnectorS3Test(test.TestCase):
                           name
                         }
                         name
+                        s3MimeType
                         shortName
                         description
                         countries {
@@ -200,6 +202,7 @@ class ConnectorS3Test(test.TestCase):
                 "s3StorageClass": "GLACIER",
                 "s3Type": "directory",
                 "s3Name": "s3Name1",
+                "s3MimeType": "application/octet-stream",
                 "Objects": {
                     "items": [
                         {
