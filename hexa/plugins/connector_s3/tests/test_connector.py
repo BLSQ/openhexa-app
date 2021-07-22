@@ -119,7 +119,7 @@ class ConnectorS3Test(test.TestCase):
             short_name="short3",
             description="desc",
             locale="en",
-            s3_key="/dir1/dir2/file1",
+            s3_key="/dir1/dir2/file1.csv",
             s3_type="directory",
             s3_storage_class="GLACIER",
             s3_name="s3Name3",
@@ -138,7 +138,7 @@ class ConnectorS3Test(test.TestCase):
                           name
                         }
                         name
-                        s3MimeType
+                        s3Extension
                         shortName
                         description
                         countries {
@@ -163,12 +163,16 @@ class ConnectorS3Test(test.TestCase):
                           items {
                             name
                             s3Key
+                            s3Extension
                             Objects(page: 1) {
                               items {
                                 name
                                 s3Key
+                                s3Extension
                                 Objects(page: 1) {
-                                  items {id
+                                  items {
+                                    id
+                                    s3Extension
                                     name
                                     s3Key
                                   }
@@ -202,17 +206,19 @@ class ConnectorS3Test(test.TestCase):
                 "s3StorageClass": "GLACIER",
                 "s3Type": "directory",
                 "s3Name": "s3Name1",
-                "s3MimeType": "application/octet-stream",
+                "s3Extension": "",
                 "Objects": {
                     "items": [
                         {
                             "name": "name2",
                             "s3Key": "/dir1/dir2/",
+                            "s3Extension": "",
                             "Objects": {
                                 "items": [
                                     {
                                         "name": "name3",
-                                        "s3Key": "/dir1/dir2/file1",
+                                        "s3Key": "/dir1/dir2/file1.csv",
+                                        "s3Extension": "csv",
                                         "Objects": {"items": []},
                                     }
                                 ]

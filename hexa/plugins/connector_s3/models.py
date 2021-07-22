@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
+import os
 
 from hexa.catalog.models import (
     Base,
@@ -125,7 +126,6 @@ class Bucket(Datasource):
                 s3_type=object_data["type"],
                 s3_name=object_data["name"],
                 s3_last_modified=object_data.get("LastModified"),
-                s3_mime_type=object_data.metadata.get("Content-Type"),
             )
 
             if s3_object.s3_type == "directory":  # TODO: choices
@@ -206,6 +206,10 @@ class Object(Content):
     @property
     def display_name(self):
         return self.hexa_or_s3_name
+
+    @property
+    def s3_extension(self):
+        return os.path.splitext(self.s3_key)[1].lstrip(".")
 
     def index(self):  # TODO: fishy
         pass
