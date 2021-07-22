@@ -4,6 +4,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 from django.core.paginator import Paginator
 from django.conf import settings
+from hexa.catalog.models import Tag
 
 
 from hexa.plugins.connector_dhis2.models import Instance
@@ -26,8 +27,7 @@ s3_type_defs = """
         lastSyncedAt: DateTime
         tags: [CatalogTag!]
         icon: String!
-        S3Objects(
-            path: String!,
+        Objects(
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
@@ -61,6 +61,11 @@ s3_type_defs = """
         s3Type: String
         s3Name: String
         s3LastModified: DateTime
+
+        Objects(
+            page: Int!,
+            perPage: Int
+        ): S3ObjectPage!
     }
     type S3ObjectPage {
         pageNumber: Int!
@@ -113,12 +118,10 @@ def resolve_content_type(obj: Instance, info):
     return _("S3 Bucket")
 
 
-@bucket.field("S3Objects")
+@bucket.field("Objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(
-    obj: Instance, info, path, page, per_page=settings.GRAPHQL_PAGE_SIZE
-):
-    queryset = obj.object_set.filter(parent__s3_key=path)
+def resolve_S3_objects(obj: Instance, info, page, per_page=settings.GRAPHQL_PAGE_SIZE):
+    queryset = obj.object_set.filter(parent=None)
 
     paginator = Paginator(queryset, per_page)
 
@@ -130,6 +133,12 @@ def resolve_S3_objects(
     }
 
 
+@bucket.field("tags")
+def resolve_tags(*_):
+    # TODO: create a collection of generic resolvers
+    return [tag for tag in Tag.objects.all()]
+
+
 s3_object = ObjectType("S3Object")
 
 s3_object.set_alias("s3Key", "s3_key")
@@ -138,6 +147,30 @@ s3_object.set_alias("s3StorageClass", "s3_storage_class")
 s3_object.set_alias("s3Type", "s3_type")
 s3_object.set_alias("s3Name", "s3_name")
 s3_object.set_alias("s3LastModified", "s3_last_modified")
+
+
+@s3_object.field("tags")
+def resolve_tags(*_):
+    # TODO: create a collection of generic resolvers
+    return [tag for tag in Tag.objects.all()]
+
+
+@s3_object.field("Objects")
+@convert_kwargs_to_snake_case
+def resolve_S3_objects_on_object(
+    obj: Instance, info, page, per_page=settings.GRAPHQL_PAGE_SIZE
+):
+    queryset = obj.object_set.all()
+
+    paginator = Paginator(queryset, per_page)
+
+    return {
+        "page_number": page,
+        "total_pages": paginator.num_pages,
+        "total_items": paginator.count,
+        "items": paginator.page(page),
+    }
+
 
 s3_mutation = MutationType()
 
