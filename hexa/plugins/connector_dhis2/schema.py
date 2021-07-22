@@ -4,6 +4,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 from hexa.plugins.connector_dhis2.models import Instance
+from hexa.core.resolvers import resolve_tags
 
 dhis2_type_defs = """
     extend type Query {
@@ -58,9 +59,7 @@ def resolve_icon(obj: Instance, info):
     return request.build_absolute_uri(static(f"connector_dhis2/img/symbol.svg"))
 
 
-@instance.field("tags")
-def resolve_tags(obj: Instance, *_):
-    return obj.tags.all()
+instance.set_field("tags", resolve_tags)
 
 
 @instance.field("contentType")
@@ -82,7 +81,9 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     if "shortName" in instance_data:
         updated_instance.short_name = instance_data["shortName"]
     if "countries" in instance_data:
-        updated_instance.countries = [country["code"] for country in instance_data["countries"]]
+        updated_instance.countries = [
+            country["code"] for country in instance_data["countries"]
+        ]
     if "tags" in instance_data:
         updated_instance.tags.set([tag["id"] for tag in instance_data["tags"]])
     if "owner" in instance_data:

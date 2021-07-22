@@ -4,6 +4,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from hexa.catalog.models import Tag
+from hexa.core.resolvers import resolve_tags
 
 
 from hexa.plugins.connector_dhis2.models import Instance
@@ -101,17 +102,13 @@ def resolve_s3_bucket(_, info, **kwargs):
 
 
 bucket = ObjectType("S3Bucket")
+bucket.set_field("tags", resolve_tags)
 
 
 @bucket.field("icon")
 def resolve_icon(obj: Instance, info):
     request: HttpRequest = info.context["request"]
     return request.build_absolute_uri(static(f"connector_s3/img/symbol.svg"))
-
-
-@bucket.field("tags")
-def resolve_tags(obj: Instance, *_):
-    return obj.tags.all()
 
 
 @bucket.field("contentType")
@@ -126,12 +123,6 @@ def resolve_S3_objects(obj: Instance, info, page, per_page=None):
     return result_page(queryset, page, per_page)
 
 
-@bucket.field("tags")
-def resolve_tags(*_):
-    # TODO: create a collection of generic resolvers
-    return [tag for tag in Tag.objects.all()]
-
-
 s3_object = ObjectType("S3Object")
 
 s3_object.set_alias("s3Key", "s3_key")
@@ -141,12 +132,7 @@ s3_object.set_alias("s3Type", "s3_type")
 s3_object.set_alias("s3Name", "s3_name")
 s3_object.set_alias("s3LastModified", "s3_last_modified")
 s3_object.set_alias("s3Extension", "s3_extension")
-
-
-@s3_object.field("tags")
-def resolve_tags(*_):
-    # TODO: create a collection of generic resolvers
-    return [tag for tag in Tag.objects.all()]
+s3_object.set_field("tags", resolve_tags)
 
 
 @s3_object.field("objects")

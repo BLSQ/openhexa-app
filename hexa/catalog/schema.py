@@ -5,6 +5,7 @@ from django.conf import settings
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
 from hexa.core.graphql import result_page
+from hexa.core.resolvers import resolve_tags
 
 catalog_type_defs = """
     extend type Query {
@@ -49,7 +50,9 @@ catalog_type_defs = """
         catalogTagCreate(input: CatalogTagInput!): CatalogTag!
     }
 """
+
 catalog_query = QueryType()
+catalog_query.set_field("tags", resolve_tags)
 
 
 @catalog_query.field("datasources")
@@ -72,11 +75,6 @@ def resolve_search(_, info, page, query, per_page=None):
     )
 
     return result_page(queryset, page, per_page)
-
-
-@catalog_query.field("tags")
-def resolve_tags(*_):
-    return [tag for tag in Tag.objects.all()]
 
 
 # Catalog Index
