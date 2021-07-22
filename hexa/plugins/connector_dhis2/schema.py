@@ -82,7 +82,9 @@ def resolve_dhis2_instance_update(_, info, **kwargs):
     if "shortName" in instance_data:
         updated_instance.short_name = instance_data["shortName"]
     if "countries" in instance_data:
-        updated_instance.countries = [country["code"] for country in instance_data["countries"]]
+        updated_instance.countries = [
+            country["code"] for country in instance_data["countries"]
+        ]
     if "tags" in instance_data:
         updated_instance.tags.set([tag["id"] for tag in instance_data["tags"]])
     if "owner" in instance_data:
