@@ -13,23 +13,24 @@ from hexa.plugins.connector_s3.models import (
 from hexa.user_management.models import User, Team, Membership, Organization
 
 
-def query(client, payload):
-    return json.loads(
-        client.post(
-            "/graphql/",
-            json.dumps(
-                {
-                    "operationName": None,
-                    "variables": {},
-                    "query": payload,
-                }
-            ),
-            content_type="application/json",
-        ).content
-    )
+class GraphQLTestCase(test.TestCase):
+    def run_query(self, client, query):
+        return json.loads(
+            client.post(
+                "/graphql/",
+                json.dumps(
+                    {
+                        "operationName": None,
+                        "variables": {},
+                        "query": query,
+                    }
+                ),
+                content_type="application/json",
+            ).content
+        )
 
 
-class ConnectorS3Test(test.TestCase):
+class ConnectorS3Test(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")
@@ -48,34 +49,6 @@ class ConnectorS3Test(test.TestCase):
         )
         cls.BUCKET = Bucket.objects.create(s3_name="test-bucket")
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
-
-    @skip("Deactivated for now - mocks needed")
-    def test_credentials_200(self):
-        self.client.login(email="jim@bluesquarehub.com", password="regular")
-        response = self.client.post(reverse("notebooks:credentials"))
-
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIn("username", response_data)
-        self.assertEqual("jim@bluesquarehub.com", response_data["username"])
-        self.assertIn("env", response_data)
-        self.assertEqual(
-            {
-                "S3_TEST_BUCKET_BUCKET_NAME": "test-bucket",
-                "S3_TEST_BUCKET_ACCESS_KEY_ID": "FOO",
-                "S3_TEST_BUCKET_SECRET_ACCESS_KEY": "BAR",
-            },
-            response_data["env"],
-        )
-
-    def test_bucket_delete(self):
-        """Deleting a bucket should delete its index as well"""
-
-        bucket = Bucket.objects.create(s3_name="some-bucket")
-        bucket_id = bucket.id
-        self.assertEqual(1, CatalogIndex.objects.filter(object_id=bucket_id).count())
-        bucket.delete()
-        self.assertEqual(0, CatalogIndex.objects.filter(object_id=bucket_id).count())
 
     def test_graph(self):
         self.maxDiff = None
@@ -127,7 +100,7 @@ class ConnectorS3Test(test.TestCase):
             parent=level2,
         )
 
-        r = query(
+        r = self.run_query(
             self.client,
             """
                 query {
