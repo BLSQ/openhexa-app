@@ -184,6 +184,16 @@ class BucketPermission(Permission):
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
 
+class ObjectQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            bucket__bucketpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
+
 class Object(Content):
     class Meta:
         verbose_name = "S3 Object"
@@ -197,6 +207,8 @@ class Object(Content):
     s3_type = models.CharField(max_length=200)  # TODO: choices
     s3_name = models.CharField(max_length=200)
     s3_last_modified = models.DateTimeField(null=True)
+
+    objects = ObjectQuerySet.as_manager()
 
     @property
     def hexa_or_s3_name(self):

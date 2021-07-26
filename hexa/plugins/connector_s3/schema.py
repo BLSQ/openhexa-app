@@ -2,23 +2,25 @@ from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, Mutatio
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
 
-
-from hexa.plugins.connector_dhis2.models import Instance
-from hexa.plugins.connector_s3.models import Bucket
+from hexa.plugins.connector_s3.models import Bucket, Object
 from hexa.core.graphql import result_page
 
 s3_type_defs = """
     extend type Query {
         s3Bucket(id: String!): S3Bucket!
+        s3Objects(
+            bucketId: String!, 
+            page: Int!,
+            perPage: Int
+         ): S3ObjectPage!
     }
     type S3Bucket {
         id: String!
         contentType: String!
         name: String!
+        s3Name: String!
         shortName: String!
         description: String!
         url: String!
@@ -59,7 +61,7 @@ s3_type_defs = """
         s3Size: Int
         s3StorageClass: String
         "enum: 'file' or 'directory'"
-        s3Type: String
+        s3Type: ObjectS3Type
         s3Name: String
         s3LastModified: DateTime
         s3Extension: String
@@ -68,6 +70,12 @@ s3_type_defs = """
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
+        
+        detailUrl: String!
+    }
+    enum ObjectS3Type {
+        file
+        directory
     }
     type S3ObjectPage {
         pageNumber: Int!
@@ -101,24 +109,33 @@ def resolve_s3_bucket(_, info, **kwargs):
     return resolved_bucket
 
 
+@s3_query.field("s3Objects")
+def resolve_s3_objects(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    objects_queryset = Object.objects.filter_for_user(request.user)
+
+    return result_page(queryset=objects_queryset, page=kwargs["page"])
+
+
 bucket = ObjectType("S3Bucket")
 bucket.set_field("tags", resolve_tags)
+bucket.set_alias("s3Name", "s3_name")
 
 
 @bucket.field("icon")
-def resolve_icon(obj: Instance, info):
+def resolve_icon(obj: Bucket, info):
     request: HttpRequest = info.context["request"]
     return request.build_absolute_uri(static(f"connector_s3/img/symbol.svg"))
 
 
 @bucket.field("contentType")
-def resolve_content_type(obj: Instance, info):
+def resolve_content_type(obj: Bucket, info):
     return _("S3 Bucket")
 
 
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(obj: Instance, info, page, per_page=None):
+def resolve_S3_objects(obj: Bucket, info, page, per_page=None):
     queryset = obj.object_set.filter(parent=None)
     return result_page(queryset, page, per_page)
 
@@ -137,7 +154,7 @@ s3_object.set_field("tags", resolve_tags)
 
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects_on_object(obj: Instance, info, page, per_page=None):
+def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
     queryset = obj.object_set.all()
     return result_page(queryset, page, per_page)
 
@@ -145,8 +162,13 @@ def resolve_S3_objects_on_object(obj: Instance, info, page, per_page=None):
 s3_mutation = MutationType()
 
 
+@s3_object.field("detailUrl")
+def resolve_detail_url(obj: Object, *_):
+    return f"/s3/catalog/{obj.bucket.id}/objects/{obj.id}"
+
+
 @s3_mutation.field("s3BucketUpdate")
-def resolve_dhis2_instance_update(_, info, **kwargs):
+def resolve_s3_bucket_update(_, info, **kwargs):
     updated_bucket = Bucket.objects.get(id=kwargs["id"])
     bucket_data = kwargs["input"]
 
