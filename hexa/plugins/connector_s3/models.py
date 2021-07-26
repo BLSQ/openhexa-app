@@ -73,7 +73,7 @@ class Bucket(Datasource):
         return self.name if self.name != "" else self.s3_name
 
     def sync(self, user):  # TODO: move in api/sync module
-        """Sync the bucket by querying the DHIS2 API"""
+        """Sync the bucket by querying the S3 API"""
 
         try:
             principal_s3_credentials = Credentials.objects.get()
@@ -93,51 +93,87 @@ class Bucket(Datasource):
             token=sts_credentials["SessionToken"],
         )
 
-        # Sync data elements
+        # Lock the bucket
         with transaction.atomic():
-            # TODO: update or create
-            self.object_set.all().delete()
-            result = self.create_objects(fs, f"{self.s3_name}")
+            Bucket.objects.select_for_update().get(pk=self.pk)
+            # Sync data elements
+            with transaction.atomic():
+                result = self.sync_objects(fs)
 
-            # Flag the datasource as synced
-            self.last_synced_at = timezone.now()
-            self.save()
+                # Flag the datasource as synced
+                self.last_synced_at = timezone.now()
+                self.save()
 
         return result
 
-    def create_objects(self, fs, path):
-        results = DatasourceSyncResult(
-            datasource=self,
-            created=0,
-            updated=0,
-            identical=0,
-        )
-
-        created = 0
+    def list_objects(self, fs, path):
         for object_data in fs.ls(path, detail=True):
             if object_data["Key"][-1] == "/" and object_data["size"] == 0:
-                continue  # TODO: check if safer way
+                # FIXME: What is this ?
+                # FIXME: seems to be because directories appear in double
+                # FIXME: once with a /, once without
+                # TODO: check if safer way
+                continue
 
-            s3_object = Object.objects.create(
-                bucket=self,
-                s3_key=object_data["Key"],
-                s3_size=object_data["size"],
-                s3_storage_class=object_data["StorageClass"],
-                s3_type=object_data["type"],
-                s3_name=object_data["name"],
-                s3_last_modified=object_data.get("LastModified"),
-            )
+            yield object_data
 
-            if s3_object.s3_type == "directory":  # TODO: choices
-                results += self.create_objects(fs, s3_object.s3_key)
+            if object_data["type"] == "directory":
+                yield from self.list_objects(fs, object_data["Key"])
 
-            created += 1
+    def sync_objects(self, fs):
+        existing = {x.s3_key: x for x in self.object_set.all()}
 
-        results += DatasourceSyncResult(
+        created = {}
+        updated_count = 0
+        identical_count = 0
+        merged_count = 0
+
+        for object_data in self.list_objects(fs, f"{self.s3_name}"):
+            key = object_data["Key"]
+
+            if key in existing:
+                if object_data["ETag"] == existing[key].s3_etag:
+                    identical_count += 1
+                else:
+                    existing[key].update_from_data(object_data)
+                    existing[key].save()
+                    updated_count += 1
+                del existing[key]
+            else:
+                created[key] = Object.objects.create(
+                    bucket=self,
+                    s3_key=object_data["Key"],
+                    s3_size=object_data["size"],
+                    s3_storage_class=object_data["StorageClass"],
+                    s3_type=object_data["type"],
+                    s3_name=object_data["name"],
+                    s3_last_modified=object_data.get("LastModified"),
+                    s3_etag=object_data["ETag"],
+                )
+
+        orphans_by_etag = {x.s3_etag: x for x in existing.values()}
+
+        for created_obj in created.values():
+            etag = created_obj.s3_etag
+            orphan_obj = orphans_by_etag.get(etag)
+            if orphan_obj:
+                del orphans_by_etag[etag]
+                orphan_obj.delete()
+                # TODO: copy metadata from old to new
+                merged_count += 1
+
+        new_orphans_count = len([x for x in orphans_by_etag.values() if not x.orphan])
+
+        for obj in orphans_by_etag.values():
+            obj.orphan = True
+            obj.save()
+
+        results = DatasourceSyncResult(
             datasource=self,
-            created=created,
-            updated=0,
-            identical=0,
+            created=len(created) - merged_count,
+            updated=updated_count + merged_count,
+            identical=identical_count,
+            orphaned=new_orphans_count,
         )
 
         return results
@@ -223,6 +259,8 @@ class Object(Content):
     s3_type = models.CharField(max_length=200)  # TODO: choices
     s3_name = models.CharField(max_length=200)
     s3_last_modified = models.DateTimeField(null=True)
+    s3_etag = models.CharField(max_length=200, null=True)
+    orphan = models.BooleanField(default=False)
 
     objects = ObjectQuerySet.as_manager()
 
@@ -240,3 +278,10 @@ class Object(Content):
 
     def index(self):  # TODO: fishy
         pass
+
+    def update_from_data(self, object_data):
+        self.orphan = False
+
+        self.s3_size = object_data["size"]
+        self.s3_etag = object_data["ETag"]
+        # TODO: update other fields too
