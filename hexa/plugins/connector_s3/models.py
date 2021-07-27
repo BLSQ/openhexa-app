@@ -1,3 +1,6 @@
+import os
+import json
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -19,6 +22,8 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
+
+METADATA_FILENAME = ".openhexa.json"
 
 
 class Credentials(Base):
@@ -73,7 +78,7 @@ class Bucket(Datasource):
         return self.name if self.name != "" else self.s3_name
 
     def sync(self, user):  # TODO: move in api/sync module
-        """Sync the bucket by querying the DHIS2 API"""
+        """Sync the bucket by querying the S3 API"""
 
         try:
             principal_s3_credentials = Credentials.objects.get()
@@ -93,54 +98,144 @@ class Bucket(Datasource):
             token=sts_credentials["SessionToken"],
         )
 
-        # Sync data elements
+        # Lock the bucket
         with transaction.atomic():
-            # TODO: update or create
-            self.object_set.all().delete()
-            result = self.create_objects(fs, f"{self.s3_name}")
+            Bucket.objects.select_for_update().get(pk=self.pk)
+            # Sync data elements
+            with transaction.atomic():
+                objects = list(self.list_objects(fs, f"{self.s3_name}"))
+                result = self.sync_directories(fs, objects)
+                result += self.sync_objects(fs, objects)
 
-            # Flag the datasource as synced
-            self.last_synced_at = timezone.now()
-            self.save()
+                # Flag the datasource as synced
+                self.last_synced_at = timezone.now()
+                self.save()
 
         return result
 
-    def create_objects(self, fs, path):
-        results = DatasourceSyncResult(
-            datasource=self,
-            created=0,
-            updated=0,
-            identical=0,
-        )
-
-        created = 0
+    def list_objects(self, fs, path):
         for object_data in fs.ls(path, detail=True):
-            if object_data["Key"][-1] == "/" and object_data["size"] == 0:
-                continue  # TODO: check if safer way
+            if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
+                # Detects the current directory. Ignore it as we already got it from the parent listing
+                continue
 
-            s3_object = Object.objects.create(
-                bucket=self,
-                s3_key=object_data["Key"],
-                s3_size=object_data["size"],
-                s3_storage_class=object_data["StorageClass"],
-                s3_type=object_data["type"],
-                s3_name=object_data["name"],
-                s3_last_modified=object_data.get("LastModified"),
-            )
+            # Manually add a / at the end of the directory paths to be more POSIX-compliant
+            if object_data["type"] == "directory" and not object_data["Key"].endswith(
+                "/"
+            ):
+                object_data["Key"] = object_data["Key"] + "/"
 
-            if s3_object.s3_type == "directory":  # TODO: choices
-                results += self.create_objects(fs, s3_object.s3_key)
+            # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
+            if "ETag" in object_data and object_data["ETag"].startswith('"'):
+                object_data["ETag"] = object_data["ETag"].replace('"', "")
 
-            created += 1
+            yield object_data
 
-        results += DatasourceSyncResult(
+            if object_data["type"] == "directory":
+                yield from self.list_objects(fs, object_data["Key"])
+
+    def sync_directories(self, fs, s3_objects):
+        created_count = 0
+        updated_count = 0
+        identical_count = 0
+        new_orphans_count = 0
+
+        existing_directories_by_uid = {
+            str(x.id): x for x in self.object_set.filter(s3_type="directory")
+        }
+
+        for s3_obj in s3_objects:
+            if s3_obj["type"] == "directory":
+                metadata_path = os.path.join(s3_obj["Key"], METADATA_FILENAME)
+                s3_uid = None
+                if fs.exists(metadata_path):
+                    with fs.open(metadata_path, mode="rb") as fd:
+                        try:
+                            metadata = json.load(fd)
+                            s3_uid = metadata.get("uid")
+                        except json.decoder.JSONDecodeError:
+                            pass
+
+                db_obj = existing_directories_by_uid.get(s3_uid)
+                if db_obj:
+                    if db_obj.s3_key != s3_obj["Key"]:  # Directory moved
+                        db_obj.update_metadata(s3_obj)
+                        db_obj.save()
+                        updated_count += 1
+                    else:  # Not moved
+                        identical_count += 1
+                    del existing_directories_by_uid[s3_uid]
+                else:  # Not in the DB yet
+                    db_obj = Object.create_from_object_data(self, s3_obj)
+                    metadata_path = os.path.join(db_obj.s3_key, METADATA_FILENAME)
+                    with fs.open(metadata_path, mode="wb") as fd:
+                        fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
+                    created_count += 1
+
+        for obj in existing_directories_by_uid.values():
+            if not obj.orphan:
+                new_orphans_count += 1
+                obj.orphan = True
+                obj.save()
+
+        return DatasourceSyncResult(
             datasource=self,
-            created=created,
-            updated=0,
-            identical=0,
+            created=created_count,
+            updated=updated_count,
+            identical=identical_count,
+            orphaned=new_orphans_count,
         )
 
-        return results
+    def sync_objects(self, fs, discovered_objects):
+        existing_objects = list(self.object_set.filter(s3_type="file"))
+        existing_by_key = {x.s3_key: x for x in existing_objects}
+
+        created = {}
+        updated_count = 0
+        identical_count = 0
+        merged_count = 0
+
+        for object_data in discovered_objects:
+            if object_data["type"] != "file":
+                continue
+            key = object_data["Key"]
+            if key.endswith("/.openhexa.json"):
+                continue
+
+            if key in existing_by_key:
+                if object_data.get("ETag") == existing_by_key[key].s3_etag:
+                    identical_count += 1
+                else:
+                    existing_by_key[key].update_metadata(object_data)
+                    existing_by_key[key].save()
+                    updated_count += 1
+                del existing_by_key[key]
+            else:
+                created[key] = Object.create_from_object_data(self, object_data)
+
+        orphans_by_etag = {x.s3_etag: x for x in existing_by_key.values()}
+
+        for created_obj in created.values():
+            etag = created_obj.s3_etag
+            orphan_obj = orphans_by_etag.get(etag)
+            if orphan_obj:
+                del orphans_by_etag[etag]
+                orphan_obj.delete()
+                merged_count += 1
+
+        new_orphans_count = len([x for x in orphans_by_etag.values() if not x.orphan])
+
+        for obj in orphans_by_etag.values():
+            obj.orphan = True
+            obj.save()
+
+        return DatasourceSyncResult(
+            datasource=self,
+            created=len(created) - merged_count,
+            updated=updated_count + merged_count,
+            identical=identical_count,
+            orphaned=new_orphans_count,
+        )
 
     @property
     def content_summary(self):
@@ -194,20 +289,14 @@ class ObjectQuerySet(models.QuerySet):
         )
 
     def filter_by_bucket_id_and_path(self, bucket_id: str, path: str):
+        if not path.startswith("/"):
+            raise ValueError("S3 path name must be absolute (start with a `/` )")
         try:
             bucket = Bucket.objects.get(id=bucket_id)
         except Bucket.DoesNotExist:
             return self.none()
 
-        if path == "/":
-            parent = None
-        else:
-            try:
-                parent = Object.objects.get(parent__s3_key=f"{bucket.s3_name}/{path}")
-            except Object.DoesNotExist:
-                return self.none()
-
-        return self.filter(bucket=bucket, parent=parent)
+        return self.filter(bucket=bucket, s3_dirname=f"{bucket.s3_name}{path}")
 
 
 class Object(Content):
@@ -216,23 +305,25 @@ class Object(Content):
         ordering = ["s3_key"]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE, blank=True)
+    s3_dirname = models.TextField()
     s3_key = models.TextField()
     s3_size = models.PositiveBigIntegerField()
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
     s3_type = models.CharField(max_length=200)  # TODO: choices
-    s3_name = models.CharField(max_length=200)
-    s3_last_modified = models.DateTimeField(null=True)
+    s3_last_modified = models.DateTimeField(null=True, blank=True)
+    s3_etag = models.CharField(max_length=200, null=True, blank=True)
+    orphan = models.BooleanField(default=False)
 
     objects = ObjectQuerySet.as_manager()
 
-    @property
-    def hexa_or_s3_name(self):
-        return self.name if self.name != "" else self.s3_name
+    def save(self, *args, **kwargs):
+        if self.s3_dirname is None:
+            self.s3_dirname = self.compute_dirname(self.s3_key)
+        super().save(*args, **kwargs)
 
     @property
     def display_name(self):
-        return self.hexa_or_s3_name
+        return self.name if self.name else self.s3_key
 
     @property
     def s3_extension(self):
@@ -240,3 +331,36 @@ class Object(Content):
 
     def index(self):  # TODO: fishy
         pass
+
+    @classmethod
+    def compute_dirname(cls, key):
+        if key.endswith("/"):  # This is a directory
+            return os.path.dirname(os.path.dirname(key)) + "/"
+        else:  # This is a file
+            return os.path.dirname(key) + "/"
+
+    def update_metadata(self, object_data):
+        self.orphan = False
+
+        self.s3_key = object_data["Key"]
+        self.s3_dirname = self.compute_dirname(object_data["Key"])
+        self.s3_size = object_data["size"]
+        self.s3_etag = object_data["ETag"]
+        self.s3_storage_class = object_data["StorageClass"]
+        self.s3_type = object_data["type"]
+        self.s3_last_modified = object_data.get("LastModified")
+        self.s3_etag = object_data.get("ETag")
+
+    @classmethod
+    def create_from_object_data(cls, bucket, object_data):
+        # TODO: move to manager
+        return cls.objects.create(
+            bucket=bucket,
+            s3_key=object_data["Key"],
+            s3_dirname=cls.compute_dirname(object_data["Key"]),
+            s3_size=object_data["size"],
+            s3_storage_class=object_data["StorageClass"],
+            s3_type=object_data["type"],
+            s3_last_modified=object_data.get("LastModified"),
+            s3_etag=object_data.get("ETag"),
+        )
