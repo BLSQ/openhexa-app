@@ -52,7 +52,11 @@ catalog_type_defs = """
 """
 
 catalog_query = QueryType()
-catalog_query.set_field("tags", resolve_tags)
+
+
+@catalog_query.field("tags")
+def resolve_tags(obj, *_):
+    return [tag for tag in Tag.objects.all()]
 
 
 @catalog_query.field("datasources")
