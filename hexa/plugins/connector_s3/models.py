@@ -114,16 +114,6 @@ class Bucket(Datasource):
         return result
 
     def list_objects(self, fs, path):
-        if "/" not in path:
-            # fs.ls does not list the root directory of a bucket, add it ourselves
-            yield {
-                "Key": f"{path}/",
-                "size": 0,
-                "StorageClass": "DIRECTORY",
-                "type": "directory",
-                "name": f"{path} bucket",
-            }
-
         for object_data in fs.ls(path, detail=True):
             if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
                 # Detects the current directory. Ignore it as we already got it from the parent listing
@@ -356,6 +346,7 @@ class Object(Content):
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
+        # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
             s3_key=object_data["Key"],
