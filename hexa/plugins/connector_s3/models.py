@@ -183,9 +183,10 @@ class Bucket(Datasource):
                     created_count += 1
 
         for obj in existing_directories_by_uid.values():
-            obj.orphan = True
-            obj.save()
-            new_orphans_count += 1
+            if not obj.orphan:
+                new_orphans_count += 1
+                obj.orphan = True
+                obj.save()
 
         return DatasourceSyncResult(
             datasource=self,
