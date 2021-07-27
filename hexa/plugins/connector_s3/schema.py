@@ -1,9 +1,10 @@
 from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, MutationType
 from django.http import HttpRequest
+from django.template.defaultfilters import filesizeformat
 from django.templatetags.static import static
-from django.utils.translation import gettext_lazy as _
-from hexa.core.resolvers import resolve_tags
+from django.utils.translation import gettext_lazy as trans
 
+from hexa.core.resolvers import resolve_tags
 from hexa.plugins.connector_s3.models import Bucket, Object
 from hexa.core.graphql import result_page
 
@@ -12,6 +13,7 @@ s3_type_defs = """
         s3Bucket(id: String!): S3Bucket!
         s3Objects(
             bucketId: String!, 
+            path: String,
             page: Int!,
             perPage: Int
          ): S3ObjectPage!
@@ -44,7 +46,6 @@ s3_type_defs = """
 
         # RichContent
         owner: Organization
-        name: String!
         shortName: String!
         description: String!
         countries: [Country!]
@@ -55,14 +56,10 @@ s3_type_defs = """
 
         # S3Object
         bucket: S3Bucket
-        parent: S3Object
         "Path of the object within the bucket"
         s3Key: String
         s3Size: Int
-        s3StorageClass: String
-        "enum: 'file' or 'directory'"
         s3Type: ObjectS3Type
-        s3Name: String
         s3LastModified: DateTime
         s3Extension: String
 
@@ -70,6 +67,10 @@ s3_type_defs = """
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
+        
+        name: String!
+        typeDescription: String!
+        sizeDescription: String!
         
         detailUrl: String!
     }
@@ -110,9 +111,12 @@ def resolve_s3_bucket(_, info, **kwargs):
 
 
 @s3_query.field("s3Objects")
+@convert_kwargs_to_snake_case
 def resolve_s3_objects(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    objects_queryset = Object.objects.filter_for_user(request.user)
+    objects_queryset = Object.objects.filter_for_user(
+        request.user
+    ).filter_by_bucket_id_and_path(kwargs["bucket_id"], kwargs.get("path", "/"))
 
     return result_page(queryset=objects_queryset, page=kwargs["page"])
 
@@ -130,12 +134,12 @@ def resolve_icon(obj: Bucket, info):
 
 @bucket.field("contentType")
 def resolve_content_type(obj: Bucket, info):
-    return _("S3 Bucket")
+    return trans("S3 Bucket")
 
 
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_S3_objects(obj: Bucket, info, page, per_page=None):
+def resolve_objects(obj: Bucket, info, page, per_page=None):
     queryset = obj.object_set.filter(parent=None)
     return result_page(queryset, page, per_page)
 
@@ -144,9 +148,7 @@ s3_object = ObjectType("S3Object")
 
 s3_object.set_alias("s3Key", "s3_key")
 s3_object.set_alias("s3Size", "s3_size")
-s3_object.set_alias("s3StorageClass", "s3_storage_class")
 s3_object.set_alias("s3Type", "s3_type")
-s3_object.set_alias("s3Name", "s3_name")
 s3_object.set_alias("s3LastModified", "s3_last_modified")
 s3_object.set_alias("s3Extension", "s3_extension")
 s3_object.set_field("tags", resolve_tags)
@@ -160,6 +162,34 @@ def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
 
 
 s3_mutation = MutationType()
+
+
+@s3_object.field("name")
+def resolve_file_name(obj: Object, *_):  # TODO: proper method or property on model
+    if obj.s3_type == "directory":
+        return obj.s3_key.rstrip("/").split("/")[-1] + "/"
+
+    return obj.s3_key.split("/")[-1]
+
+
+@s3_object.field("typeDescription")
+def resolve_object_type(obj: Object, *_):
+    if obj.s3_type == "directory":
+        return trans("Directory")
+
+    file_type = {
+        "xlsx": "Excel file",
+        "md": "Markdown document",
+        "ipynb": "Jupyter Notebook",
+        "csv": "CSV file",
+    }.get(obj.s3_extension, "File")
+
+    return trans(file_type)
+
+
+@s3_object.field("sizeDescription")
+def resolve_file_size_display(obj: Object, *_):
+    return filesizeformat(obj.s3_size) if obj.s3_size > 0 else "-"
 
 
 @s3_object.field("detailUrl")

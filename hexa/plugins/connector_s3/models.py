@@ -193,11 +193,27 @@ class ObjectQuerySet(models.QuerySet):
             bucket__bucketpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
+    def filter_by_bucket_id_and_path(self, bucket_id: str, path: str):
+        try:
+            bucket = Bucket.objects.get(id=bucket_id)
+        except Bucket.DoesNotExist:
+            return self.none()
+
+        if path == "/":
+            parent = None
+        else:
+            try:
+                parent = Object.objects.get(parent__s3_key=f"{bucket.s3_name}/{path}")
+            except Object.DoesNotExist:
+                return self.none()
+
+        return self.filter(bucket=bucket, parent=parent)
+
 
 class Object(Content):
     class Meta:
         verbose_name = "S3 Object"
-        ordering = ["name"]
+        ordering = ["s3_key"]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE, blank=True)

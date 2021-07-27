@@ -30,27 +30,23 @@ class S3GraphTest(GraphQLTestCase):
             bucket=self.BUCKET,
             s3_size=1234,
             name="name1",
-            short_name="short1",
             description="desc",
             locale="en",
-            s3_key="/dir1",
+            s3_key="test-bucket/dir1/",
             s3_type="directory",
             s3_storage_class="GLACIER",
-            s3_name="s3Name1",
             owner=o,
         )
 
         level2 = Object.objects.create(
             bucket=self.BUCKET,
             s3_size=1234,
-            name="name2",
-            short_name="short2",
+            name="dir2/",
             description="desc",
             locale="en",
-            s3_key="/dir1/dir2/",
+            s3_key="test-bucket/dir1/dir2/",
             s3_type="directory",
             s3_storage_class="GLACIER",
-            s3_name="s3Name2",
             owner=o,
             parent=level1,
         )
@@ -59,11 +55,10 @@ class S3GraphTest(GraphQLTestCase):
             bucket=self.BUCKET,
             s3_size=1234,
             name="name3",
-            short_name="short3",
             description="desc",
             locale="en",
-            s3_key="/dir1/dir2/file1.csv",
-            s3_type="directory",
+            s3_key="test-bucket/dir1/dir2/file1.csv",
+            s3_type="file",
             s3_storage_class="GLACIER",
             s3_name="s3Name3",
             owner=o,
@@ -81,7 +76,6 @@ class S3GraphTest(GraphQLTestCase):
                         }
                         name
                         s3Extension
-                        shortName
                         description
                         countries {
                           name
@@ -93,14 +87,9 @@ class S3GraphTest(GraphQLTestCase):
                         bucket {
                           name
                         }
-                        parent {
-                          name
-                        }
                         s3Key
                         s3Size
-                        s3StorageClass
                         s3Type
-                        s3Name
                         objects(page: 1) {
                           items {
                             name
@@ -135,31 +124,27 @@ class S3GraphTest(GraphQLTestCase):
             r["data"]["s3Bucket"]["objects"]["items"][0],
             {
                 "owner": {"name": "Bluesquare"},
-                "name": "name1",
-                "shortName": "short1",
+                "name": "dir1/",
                 "description": "desc",
                 "countries": [],
                 "locale": "en",
                 "tags": [],
                 "bucket": {"name": ""},
-                "parent": None,
-                "s3Key": "/dir1",
+                "s3Key": "test-bucket/dir1/",
                 "s3Size": 1234,
-                "s3StorageClass": "GLACIER",
                 "s3Type": "directory",
-                "s3Name": "s3Name1",
                 "s3Extension": "",
                 "objects": {
                     "items": [
                         {
-                            "name": "name2",
-                            "s3Key": "/dir1/dir2/",
+                            "name": "dir2/",
+                            "s3Key": "test-bucket/dir1/dir2/",
                             "s3Extension": "",
                             "objects": {
                                 "items": [
                                     {
-                                        "name": "name3",
-                                        "s3Key": "/dir1/dir2/file1.csv",
+                                        "name": "file1.csv",
+                                        "s3Key": "test-bucket/dir1/dir2/file1.csv",
                                         "s3Extension": "csv",
                                         "objects": {"items": []},
                                     }
@@ -178,27 +163,21 @@ class S3GraphTest(GraphQLTestCase):
         o1 = Object.objects.create(
             bucket=self.BUCKET,
             s3_size=1234,
-            name="name1",
-            short_name="short1",
             description="desc",
             locale="en",
-            s3_key="/dir1",
+            s3_key="test-bucket/dir1/",
             s3_type="directory",
             s3_storage_class="GLACIER",
-            s3_name="s3Name1",
         )
 
         o2 = Object.objects.create(
             bucket=self.BUCKET,
             s3_size=1234,
-            name="name2",
-            short_name="short2",
             description="desc",
             locale="en",
-            s3_key="/dir1/dir2/",
-            s3_type="directory",
+            s3_key="test-bucket/dir1/test.csv",
+            s3_type="file",
             s3_storage_class="GLACIER",
-            s3_name="s3Name2",
         )
 
         r = self.run_query(
@@ -211,7 +190,6 @@ class S3GraphTest(GraphQLTestCase):
                     items {
                       id
                       name
-                      s3Name
                     }
                   }
                 }
@@ -228,8 +206,8 @@ class S3GraphTest(GraphQLTestCase):
                         "totalPages": 1,
                         "totalItems": 2,
                         "items": [
-                            {"id": str(o1.id), "name": "name1", "s3Name": "s3Name1"},
-                            {"id": str(o2.id), "name": "name2", "s3Name": "s3Name2"},
+                            {"id": str(o1.id), "name": "dir1/"},
+                            {"id": str(o2.id), "name": "test.csv"},
                         ],
                     }
                 }
