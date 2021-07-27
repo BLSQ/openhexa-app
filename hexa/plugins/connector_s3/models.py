@@ -306,8 +306,8 @@ class Object(Content):
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
     s3_type = models.CharField(max_length=200)  # TODO: choices
     s3_name = models.CharField(max_length=200)
-    s3_last_modified = models.DateTimeField(null=True)
-    s3_etag = models.CharField(max_length=200, null=True)
+    s3_last_modified = models.DateTimeField(null=True, blank=True)
+    s3_etag = models.CharField(max_length=200, null=True, blank=True)
     orphan = models.BooleanField(default=False)
 
     objects = ObjectQuerySet.as_manager()
