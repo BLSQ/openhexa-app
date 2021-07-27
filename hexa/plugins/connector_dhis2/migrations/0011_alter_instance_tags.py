@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("catalog", "0008_tags"),
-        ("connector_dhis2", "0010_auto_20210727_0957"),
+        ("connector_dhis2", "0010_tags_blank"),
     ]
 
     operations = [
