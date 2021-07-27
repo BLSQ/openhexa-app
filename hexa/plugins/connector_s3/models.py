@@ -305,7 +305,6 @@ class Object(Content):
     s3_size = models.PositiveBigIntegerField()
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
     s3_type = models.CharField(max_length=200)  # TODO: choices
-    s3_name = models.CharField(max_length=200)
     s3_last_modified = models.DateTimeField(null=True, blank=True)
     s3_etag = models.CharField(max_length=200, null=True, blank=True)
     orphan = models.BooleanField(default=False)
@@ -313,12 +312,8 @@ class Object(Content):
     objects = ObjectQuerySet.as_manager()
 
     @property
-    def hexa_or_s3_name(self):
-        return self.name if self.name != "" else self.s3_name
-
-    @property
     def display_name(self):
-        return self.hexa_or_s3_name
+        return self.name
 
     @property
     def s3_extension(self):
@@ -342,7 +337,6 @@ class Object(Content):
             s3_size=object_data["size"],
             s3_storage_class=object_data["StorageClass"],
             s3_type=object_data["type"],
-            s3_name=object_data["name"],
             s3_last_modified=object_data.get("LastModified"),
             s3_etag=object_data.get("ETag"),
         )

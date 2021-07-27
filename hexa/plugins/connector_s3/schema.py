@@ -12,7 +12,7 @@ s3_type_defs = """
     extend type Query {
         s3Bucket(id: String!): S3Bucket!
         s3Objects(
-            bucketId: String!, 
+            bucketId: String!,
             path: String,
             page: Int!,
             perPage: Int
@@ -67,11 +67,11 @@ s3_type_defs = """
             page: Int!,
             perPage: Int
         ): S3ObjectPage!
-        
+
         name: String!
         typeDescription: String!
         sizeDescription: String!
-        
+
         detailUrl: String!
     }
     enum ObjectS3Type {

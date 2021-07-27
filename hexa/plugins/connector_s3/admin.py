@@ -31,7 +31,7 @@ class ObjectAdmin(admin.ModelAdmin):
         "s3_etag",
     )
     list_filter = ("s3_type",)
-    search_fields = ("name", "s3_name")
+    search_fields = ("name",)
 
 
 @admin.register(BucketPermission)
