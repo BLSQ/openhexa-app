@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("connector_s3", "0011_object_orphan"),
+        ("connector_s3", "0011_allow_blank_parent_blank_tags"),
     ]
 
     operations = [
