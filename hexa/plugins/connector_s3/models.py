@@ -1,3 +1,6 @@
+import os
+import json
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -19,6 +22,8 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
+
+METADATA_FILENAME = ".openhexa.json"
 
 
 class Credentials(Base):
@@ -98,7 +103,9 @@ class Bucket(Datasource):
             Bucket.objects.select_for_update().get(pk=self.pk)
             # Sync data elements
             with transaction.atomic():
-                result = self.sync_objects(fs)
+                objects = list(self.list_objects(fs, f"{self.s3_name}"))
+                self.sync_directories(fs, objects)
+                result = self.sync_objects(fs, objects)
 
                 # Flag the datasource as synced
                 self.last_synced_at = timezone.now()
@@ -107,12 +114,20 @@ class Bucket(Datasource):
         return result
 
     def list_objects(self, fs, path):
+        if "/" not in path:
+            # fs.ls does not list the root directory of a bucket, add it ourselves
+            yield {
+                "Key": f"{path}/",
+                "size": 0,
+                "StorageClass": "DIRECTORY",
+                "type": "directory",
+                "name": f"{path} bucket",
+            }
+
         for object_data in fs.ls(path, detail=True):
-            if object_data["Key"][-1] == "/" and object_data["size"] == 0:
-                # FIXME: What is this ?
-                # FIXME: seems to be because directories appear in double
-                # FIXME: once with a /, once without
-                # TODO: check if safer way
+            if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
+                # Detects the current directory (children do not have a trailing slash)
+                # Ignore it as we already got it from the parent listing
                 continue
 
             yield object_data
@@ -120,38 +135,71 @@ class Bucket(Datasource):
             if object_data["type"] == "directory":
                 yield from self.list_objects(fs, object_data["Key"])
 
-    def sync_objects(self, fs):
-        existing = {x.s3_key: x for x in self.object_set.all()}
+    def sync_directories(self, fs, s3_objects):
+        existing_directories_by_uid = {
+            str(x.id): x for x in self.object_set.filter(s3_type="directory")
+        }
+
+        for s3_obj in s3_objects:
+            if s3_obj["type"] == "directory":
+                metadata_path = os.path.join(s3_obj["Key"], METADATA_FILENAME)
+                s3_uid = None
+                if fs.exists(metadata_path):
+                    with fs.open(metadata_path, mode="rb") as fd:
+                        try:
+                            metadata = json.load(fd)
+                            s3_uid = metadata.get("uid")
+                        except json.decoder.JSONDecodeError:
+                            pass
+
+                db_obj = existing_directories_by_uid.get(s3_uid)
+                if db_obj:
+                    if db_obj.s3_key != s3_obj["Key"]:  # Directory moved
+                        db_obj.s3_key = s3_obj["Key"]
+                        db_obj.save()
+                    else:  # Not moved
+                        pass
+                    del existing_directories_by_uid[s3_uid]
+                else:  # Not in the DB yet
+                    db_obj = Object.create_from_object_data(self, s3_obj)
+                    metadata_path = os.path.join(db_obj.s3_key, METADATA_FILENAME)
+                    with fs.open(metadata_path, mode="wb") as fd:
+                        fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
+
+        for obj in existing_directories_by_uid.values():
+            obj.orphan = True
+            obj.save()
+
+        pass
+
+    def sync_objects(self, fs, discovered_objects):
+        existing_objects = list(self.object_set.filter(s3_type="file"))
+        existing_by_key = {x.s3_key: x for x in existing_objects}
 
         created = {}
         updated_count = 0
         identical_count = 0
         merged_count = 0
 
-        for object_data in self.list_objects(fs, f"{self.s3_name}"):
+        for object_data in discovered_objects:
+            if object_data["type"] != "file":
+                continue
             key = object_data["Key"]
+            if key.endswith("/.openhexa.json"):
+                continue
 
-            if key in existing:
-                if object_data["ETag"] == existing[key].s3_etag:
+            if key in existing_by_key:
+                if object_data.get("ETag") == existing_by_key[key].s3_etag:
                     identical_count += 1
                 else:
-                    existing[key].update_from_data(object_data)
-                    existing[key].save()
+                    existing_by_key[key].update_from_data(object_data)
+                    existing_by_key[key].save()
                     updated_count += 1
-                del existing[key]
+                del existing_by_key[key]
             else:
-                created[key] = Object.objects.create(
-                    bucket=self,
-                    s3_key=object_data["Key"],
-                    s3_size=object_data["size"],
-                    s3_storage_class=object_data["StorageClass"],
-                    s3_type=object_data["type"],
-                    s3_name=object_data["name"],
-                    s3_last_modified=object_data.get("LastModified"),
-                    s3_etag=object_data["ETag"],
-                )
+                created[key] = Object.create_from_object_data(self, object_data)
 
-        orphans_by_etag = {x.s3_etag: x for x in existing.values()}
+        orphans_by_etag = {x.s3_etag: x for x in existing_by_key.values()}
 
         for created_obj in created.values():
             etag = created_obj.s3_etag
@@ -168,7 +216,7 @@ class Bucket(Datasource):
             obj.orphan = True
             obj.save()
 
-        results = DatasourceSyncResult(
+        result = DatasourceSyncResult(
             datasource=self,
             created=len(created) - merged_count,
             updated=updated_count + merged_count,
@@ -176,7 +224,7 @@ class Bucket(Datasource):
             orphaned=new_orphans_count,
         )
 
-        return results
+        return result
 
     @property
     def content_summary(self):
@@ -285,3 +333,16 @@ class Object(Content):
         self.s3_size = object_data["size"]
         self.s3_etag = object_data["ETag"]
         # TODO: update other fields too
+
+    @classmethod
+    def create_from_object_data(cls, bucket, object_data):
+        return cls.objects.create(
+            bucket=bucket,
+            s3_key=object_data["Key"],
+            s3_size=object_data["size"],
+            s3_storage_class=object_data["StorageClass"],
+            s3_type=object_data["type"],
+            s3_name=object_data["name"],
+            s3_last_modified=object_data.get("LastModified"),
+            s3_etag=object_data.get("ETag"),
+        )
