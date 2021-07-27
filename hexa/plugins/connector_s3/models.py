@@ -169,7 +169,7 @@ class Bucket(Datasource):
                 db_obj = existing_directories_by_uid.get(s3_uid)
                 if db_obj:
                     if db_obj.s3_key != s3_obj["Key"]:  # Directory moved
-                        db_obj.s3_key = s3_obj["Key"]
+                        db_obj.update_metadata(s3_obj)
                         db_obj.save()
                         updated_count += 1
                     else:  # Not moved
@@ -215,7 +215,7 @@ class Bucket(Datasource):
                 if object_data.get("ETag") == existing_by_key[key].s3_etag:
                     identical_count += 1
                 else:
-                    existing_by_key[key].update_matadata(object_data)
+                    existing_by_key[key].update_metadata(object_data)
                     existing_by_key[key].save()
                     updated_count += 1
                 del existing_by_key[key]
@@ -342,7 +342,7 @@ class Object(Content):
     def index(self):  # TODO: fishy
         pass
 
-    def update_matadata(self, object_data):
+    def update_metadata(self, object_data):
         self.orphan = False
 
         self.s3_key = object_data["Key"]
