@@ -289,20 +289,14 @@ class ObjectQuerySet(models.QuerySet):
         )
 
     def filter_by_bucket_id_and_path(self, bucket_id: str, path: str):
+        if not path.startswith("/"):
+            raise ValueError("S3 path name must be absolute (start with a `/` )")
         try:
             bucket = Bucket.objects.get(id=bucket_id)
         except Bucket.DoesNotExist:
             return self.none()
 
-        if path == "/":
-            parent = None
-        else:
-            try:
-                parent = Object.objects.get(parent__s3_key=f"{bucket.s3_name}/{path}")
-            except Object.DoesNotExist:
-                return self.none()
-
-        return self.filter(bucket=bucket, parent=parent)
+        return self.filter(bucket=bucket, s3_dirname=f"{bucket.s3_name}{path}")
 
 
 class Object(Content):
@@ -311,7 +305,7 @@ class Object(Content):
         ordering = ["s3_key"]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    parent = models.ForeignKey("self", null=True, on_delete=models.CASCADE, blank=True)
+    s3_dirname = models.TextField()
     s3_key = models.TextField()
     s3_size = models.PositiveBigIntegerField()
     s3_storage_class = models.CharField(max_length=200)  # TODO: choices
@@ -321,6 +315,11 @@ class Object(Content):
     orphan = models.BooleanField(default=False)
 
     objects = ObjectQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        if self.s3_dirname is None:
+            self.s3_dirname = self.compute_dirname(self.s3_key)
+        super().save(*args, **kwargs)
 
     @property
     def display_name(self):
@@ -333,10 +332,18 @@ class Object(Content):
     def index(self):  # TODO: fishy
         pass
 
+    @classmethod
+    def compute_dirname(cls, key):
+        if key.endswith("/"):  # This is a directory
+            return os.path.dirname(os.path.dirname(key)) + "/"
+        else:  # This is a file
+            return os.path.dirname(key) + "/"
+
     def update_metadata(self, object_data):
         self.orphan = False
 
         self.s3_key = object_data["Key"]
+        self.s3_dirname = self.compute_dirname(object_data["Key"])
         self.s3_size = object_data["size"]
         self.s3_etag = object_data["ETag"]
         self.s3_storage_class = object_data["StorageClass"]
@@ -350,6 +357,7 @@ class Object(Content):
         return cls.objects.create(
             bucket=bucket,
             s3_key=object_data["Key"],
+            s3_dirname=cls.compute_dirname(object_data["Key"]),
             s3_size=object_data["size"],
             s3_storage_class=object_data["StorageClass"],
             s3_type=object_data["type"],

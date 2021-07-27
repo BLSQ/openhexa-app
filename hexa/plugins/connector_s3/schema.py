@@ -140,7 +140,7 @@ def resolve_content_type(obj: Bucket, info):
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_objects(obj: Bucket, info, page, per_page=None):
-    queryset = obj.object_set.filter(parent=None)
+    queryset = obj.object_set.filter(s3_dirname=f"{obj.s3_name}/")
     return result_page(queryset, page, per_page)
 
 
