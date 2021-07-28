@@ -1,4 +1,5 @@
 from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.conf import settings
@@ -6,6 +7,7 @@ from django.conf import settings
 from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
 from hexa.core.graphql import result_page
 from hexa.core.resolvers import resolve_tags
+from hexa.plugins.connector_s3.models import Bucket
 
 catalog_type_defs = """
     extend type Query {
@@ -90,6 +92,9 @@ def resolve_icon(obj: CatalogIndex, info):
 
 @catalog_index.field("detailUrl")
 def resolve_detail_url(obj: CatalogIndex, *_):
+    if ContentType.objects.get_for_model(Bucket) == obj.content_type:
+        return f"s3/{obj.object.s3_name}"
+
     return obj.detail_url.replace("dhis2", "dhis2/catalog").replace("s3", "s3/catalog")
 
 
