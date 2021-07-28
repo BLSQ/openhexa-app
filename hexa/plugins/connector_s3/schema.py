@@ -6,9 +6,17 @@ from django.utils.translation import gettext_lazy as trans
 
 from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
+from graphql import GraphQLMultipleChoiceField, EmptyValue
 from hexa.plugins.connector_s3.models import Bucket, Object
+from graphql.models import (
+    GraphQLModelForm,
+    GraphQLModelChoiceField,
+    GraphQLModelMultipleChoiceField,
+)
 from hexa.core.graphql import result_page
 from hexa.user_management.models import Organization
+from django import forms
+from django_countries import countries
 
 s3_type_defs = """
     extend type Query {
@@ -214,102 +222,9 @@ def resolve_detail_url(obj: Object, *_):
     return f"/s3/catalog/{obj.bucket.id}/objects/{obj.id}"
 
 
-from django import forms
-from ariadne.utils import convert_camel_case_to_snake
-
-
-def convert_snake_to_camel_case(snake: str):
-    parts = snake.split("_")
-    return "".join([x.capitalize() for x in parts])
-
-
-class GraphQLForm(forms.Form):
-    def __init__(self, data=None, instance=None, *args, **kwargs):
-        if instance is None:
-            # TODO: implement instance creation
-            raise NotImplementedError("GraphQLForm must be given an instance")
-
-        # TODO: convert back the field name in the errors to CamelCase
-        # TODO: provide an escape hatch for more flexible renaming
-        data = {convert_camel_case_to_snake(k): v for k, v in data.items()}
-        self.instance = instance
-        super().__init__(data, *args, **kwargs)
-
-    @property
-    def provided_fields(self):
-        return [
-            field_name for field_name in self.fields.keys() if field_name in self.data
-        ]
-
-    def save(self):
-        # TODO: make GraphQLForm.save() behave like ModelForm.save() with regards to the
-        # TODO: validation, clean, full_clean, ...
-        # TODO: where do we handle validation looking at multiple fields at the time ?
-        # HINT: look at _post_clean()
-        for field_name in self.provided_fields:
-            # TODO: make a check on the model field (is a M2M or not) and not on the form field
-            # TODO: split model update and M2M update like in the ModelForm
-            # TODO: Warn if we are setattr on something that is not a model field
-            if isinstance(self.fields[field_name], forms.ModelMultipleChoiceField):
-                getattr(self.instance, field_name).set(self.cleaned_data[field_name])
-            else:
-                setattr(self.instance, field_name, self.cleaned_data[field_name])
-
-        self.instance.save()
-        return self.instance
-
-    @property
-    def graphql_errors(self):
-        return [
-            {"field": convert_snake_to_camel_case(k), "message": v}
-            for k, v in self.errors.get_json_data().items()
-        ]
-
-
-class GraphQLModelChoiceField(forms.ModelChoiceField):
-    def to_python(self, value):
-        # TODO: ValueError/ValidationError if not a dict ? Still accept a single id as int/str ?
-        if isinstance(value, dict):
-            value = value["id"]
-        return super().to_python(value)
-
-
-class GraphQLModelMultipleChoiceField(forms.ModelMultipleChoiceField):
-    # TODO: ValueError/ValidationError if not a list of dict ? Still accept a list of int/str ?
-    def _check_values(self, value):
-        value = [x["id"] for x in value if isinstance(x, dict)]
-        return super()._check_values(value)
-
-
-class GraphQLMultipleChoiceField(forms.MultipleChoiceField):
-    def __init__(self, key_name="id", *args, **kwargs):
-        self.key_name = key_name
-        super().__init__(*args, **kwargs)
-
-    def to_python(self, value):
-        # TODO: ValueError/ValidationError if not a list of dict ? Still accept a list of int/str ?
-        if not value:
-            return []
-        value = [x[self.key_name] for x in value]
-        return super().to_python(value)
-
-
-class GraphQLChoiceField(forms.ChoiceField):
-    def __init__(self, key_name="id", *args, **kwargs):
-        self.key_name = key_name
-        super().__init__(*args, **kwargs)
-
-    def to_python(self, value):
-        # TODO: ValueError/ValidationError if not a dict ? Still accept a single str/int ?
-        return super().to_python(value[self.key_name])
-
-
-from django_countries import countries
-
-
-class BucketForm(GraphQLForm):
-    name = forms.CharField(required=False, min_length=2)
-    short_name = forms.CharField(required=False, min_length=2)
+class BucketForm(GraphQLModelForm):
+    name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue)
+    short_name = forms.CharField(required=False)
     tags = GraphQLModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
     countries = GraphQLMultipleChoiceField(
         required=False, key_name="code", choices=dict(countries).items()
