@@ -6,9 +6,9 @@ from django.utils.translation import gettext_lazy as trans
 
 from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
-from graphql import GraphQLMultipleChoiceField, EmptyValue
+from djgraph.forms import GraphQLMultipleChoiceField, EmptyValue
 from hexa.plugins.connector_s3.models import Bucket, Object
-from graphql.models import (
+from djgraph.models import (
     GraphQLModelForm,
     GraphQLModelChoiceField,
     GraphQLModelMultipleChoiceField,
@@ -223,7 +223,7 @@ def resolve_detail_url(obj: Object, *_):
 
 
 class BucketForm(GraphQLModelForm):
-    name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue)
+    name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue())
     short_name = forms.CharField(required=False)
     tags = GraphQLModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
     countries = GraphQLMultipleChoiceField(

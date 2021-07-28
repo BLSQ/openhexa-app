@@ -1,7 +1,7 @@
 from ariadne import convert_camel_case_to_snake
 from django import forms
 
-from graphql.utils import convert_snake_to_camel_case
+from djgraph.utils import convert_snake_to_camel_case
 
 
 class GraphQLForm(forms.Form):
@@ -10,12 +10,9 @@ class GraphQLForm(forms.Form):
         # TODO: provide an escape hatch for more flexible renaming
         data = {convert_camel_case_to_snake(k): v for k, v in data.items()}
         super().__init__(data, *args, **kwargs)
-
-    @property
-    def provided_fields(self):
-        return [
-            field_name for field_name in self.fields.keys() if field_name in self.data
-        ]
+        for field_name in self.base_fields.keys():
+            if field_name not in data.keys():
+                self.fields.pop(field_name)
 
     @property
     def graphql_errors(self):
@@ -50,7 +47,7 @@ class GraphQLChoiceField(forms.ChoiceField):
 
 class EmptyValue:
     """
-    Can be used in forms.CharField like `CharField(required=False, min_length=3, empty_value=EmptyValue)`.
+    Can be used in forms.CharField like `CharField(required=False, min_length=3, empty_value=EmptyValue())`.
     This is useful to force the min_length validator to trigger is you send it an empty string.
     without the `empty_value=EmptyValue` and when `required=False`.
 
@@ -67,3 +64,6 @@ class EmptyValue:
 
     def __eq__(self, other):
         return False
+
+    def __len__(self):
+        return 0
