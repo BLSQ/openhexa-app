@@ -49,4 +49,21 @@ class GraphQLChoiceField(forms.ChoiceField):
 
 
 class EmptyValue:
-    pass
+    """
+    Can be used in forms.CharField like `CharField(required=False, min_length=3, empty_value=EmptyValue)`.
+    This is useful to force the min_length validator to trigger is you send it an empty string.
+    without the `empty_value=EmptyValue` and when `required=False`.
+
+    Technical explanation: in `.run_validators()` (inherited from Field), the validators are short circuited
+    when `value in self.empty_values` evaluates to True and `empty_value=''` for CharField so the value `''`
+    (the empty string) bypasses all validation.
+
+    Deeper technical explanation: this is needed only when `required=False` because otherwise `Field.validate()`
+    raises a Validation error when the field value equals to `empty_value`.
+
+    We need to go deeper technical explanation: by setting `empty_value=EmptyValue`, there is no chance that
+    the field value will ever be equal to EmptyValue.
+    """
+
+    def __eq__(self, other):
+        return False
