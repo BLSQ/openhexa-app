@@ -22,7 +22,7 @@ s3_type_defs = """
         s3Bucket(id: String, s3Name: String): S3Bucket
         s3Object(id: String, bucketS3Name: String, s3Key: String): S3Object
         s3Objects(
-            bucketS3Name: String,
+            bucketS3Name: String!,
             parentS3Key: String,
             page: Int!,
             perPage: Int
@@ -156,20 +156,18 @@ def resolve_s3_object(_, info, **kwargs):
 def resolve_s3_objects(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    queryset = Object.objects.filter_for_user(request.user)
+    queryset = Object.objects.filter_for_user(request.user).filter(
+        bucket__s3_name=kwargs["bucketS3Name"]
+    )
 
-    if "bucketS3Name" in kwargs and "parentS3Key" in kwargs:
+    if "parentS3Key" in kwargs:
         queryset = queryset.filter(
-            bucket__s3_name=kwargs["bucketS3Name"],
             s3_dirname=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
         )
-    elif "bucketS3Name" in kwargs:
+    else:
         queryset = queryset.filter(
-            bucket__s3_name=kwargs["bucketS3Name"],
             s3_dirname=f"{kwargs['bucketS3Name']}/",
         )
-    else:
-        queryset = queryset.none()
 
     return result_page(queryset=queryset, page=kwargs["page"])
 
