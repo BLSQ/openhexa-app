@@ -6,14 +6,13 @@ from django.utils.translation import gettext_lazy as trans
 
 from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
-from djgraph.forms import GraphQLMultipleChoiceField, EmptyValue
+from hexa.core.graphql import GraphQLMultipleChoiceField, EmptyValue, result_page
 from hexa.plugins.connector_s3.models import Bucket, Object
-from djgraph.models import (
+from hexa.core.graphql.models import (
     GraphQLModelForm,
     GraphQLModelChoiceField,
     GraphQLModelMultipleChoiceField,
 )
-from hexa.core.graphql import result_page
 from hexa.user_management.models import Organization
 from django import forms
 from django_countries import countries
@@ -116,10 +115,6 @@ s3_type_defs = """
 
     type FormError {
         field: String
-        message: ErrorMessage
-    }
-
-    type ErrorMessage {
         message: String
         code: String
     }
@@ -239,7 +234,6 @@ def resolve_s3_bucket_update(_, info, **kwargs):
     bucket = Bucket.objects.get(id=kwargs["id"])
     form = BucketForm(kwargs["input"], instance=bucket)
     if form.is_valid():
-        pass
         return form.save()
     else:
         return form.graphql_errors

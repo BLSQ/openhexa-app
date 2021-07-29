@@ -1,7 +1,6 @@
+import stringcase
 from ariadne import convert_camel_case_to_snake
 from django import forms
-
-from djgraph.utils import convert_snake_to_camel_case
 
 
 class GraphQLForm(forms.Form):
@@ -11,15 +10,23 @@ class GraphQLForm(forms.Form):
         data = {convert_camel_case_to_snake(k): v for k, v in data.items()}
         super().__init__(data, *args, **kwargs)
         for field_name in self.base_fields.keys():
-            if field_name not in data.keys():
+            if field_name not in data.keys() and not self.fields[field_name].required:
                 self.fields.pop(field_name)
 
     @property
     def graphql_errors(self):
-        return [
-            {"field": convert_snake_to_camel_case(k), "message": v}
-            for k, v in self.errors.get_json_data().items()
-        ]
+        errors = []
+        for field_name, error_list in self.errors.get_json_data().items():
+            for error in error_list:
+                errors.append(
+                    {
+                        "field": stringcase.camelcase(field_name),
+                        "message": error["message"],
+                        "code": error["code"],
+                    }
+                )
+
+        return errors
 
 
 class GraphQLMultipleChoiceField(forms.MultipleChoiceField):
@@ -58,7 +65,7 @@ class EmptyValue:
     Deeper technical explanation: this is needed only when `required=False` because otherwise `Field.validate()`
     raises a Validation error when the field value equals to `empty_value`.
 
-    We need to go deeper technical explanation: by setting `empty_value=EmptyValue`, there is no chance that
+    "We need to go deeper" technical explanation: by setting `empty_value=EmptyValue`, there is no chance that
     the field value will ever be equal to EmptyValue.
     """
 
