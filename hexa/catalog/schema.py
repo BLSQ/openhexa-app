@@ -2,7 +2,6 @@ from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, Mutatio
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static
-from django.conf import settings
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
 from hexa.core.graphql import result_page
@@ -54,7 +53,11 @@ catalog_type_defs = """
 """
 
 catalog_query = QueryType()
-catalog_query.set_field("tags", resolve_tags)
+
+
+@catalog_query.field("tags")
+def resolve_tags(obj, *_):
+    return [tag for tag in Tag.objects.all()]
 
 
 @catalog_query.field("datasources")

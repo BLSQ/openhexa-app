@@ -4,9 +4,18 @@ from django.template.defaultfilters import filesizeformat
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as trans
 
+from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
+from hexa.core.graphql import GraphQLMultipleChoiceField, EmptyValue, result_page
 from hexa.plugins.connector_s3.models import Bucket, Object
-from hexa.core.graphql import result_page
+from hexa.core.graphql.models import (
+    GraphQLModelForm,
+    GraphQLModelChoiceField,
+    GraphQLModelMultipleChoiceField,
+)
+from hexa.user_management.models import Organization
+from django import forms
+from django_countries import countries
 
 s3_type_defs = """
     extend type Query {
@@ -98,6 +107,17 @@ s3_type_defs = """
     }
     extend type Mutation {
         s3BucketUpdate(id: String!, input: S3BucketInput!): S3Bucket!
+    }
+
+    type S3BucketUpdateResult {
+        bucket: S3Bucket
+        errors: [FormError!]
+    }
+
+    type FormError {
+        field: String
+        message: String
+        code: String
     }
 """
 s3_query = QueryType()
@@ -256,6 +276,28 @@ def resolve_s3_bucket_update(_, info, **kwargs):
     updated_bucket.save()
 
     return updated_bucket
+
+
+# class BucketForm(GraphQLModelForm):
+#     name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue())
+#     short_name = forms.CharField(required=False)
+#     tags = GraphQLModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+#     countries = GraphQLMultipleChoiceField(
+#         required=False, key_name="code", choices=dict(countries).items()
+#     )
+#     owner = GraphQLModelChoiceField(queryset=Organization.objects.all(), required=False)
+#     url = forms.URLField(required=False)
+#     description = forms.CharField(required=False)
+#
+#
+# @s3_mutation.field("s3BucketUpdate")
+# def resolve_s3_bucket_update(_, info, **kwargs):
+#     bucket = Bucket.objects.get(id=kwargs["id"])
+#     form = BucketForm(kwargs["input"], instance=bucket)
+#     if form.is_valid():
+#         return form.save()
+#     else:
+#         return form.graphql_errors
 
 
 s3_bindables = [s3_query, s3_mutation, bucket, s3_object]
