@@ -1,11 +1,9 @@
 from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
 from django.http import HttpRequest
 from django.templatetags.static import static
-from django.conf import settings
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
 from hexa.core.graphql import result_page
-from hexa.core.resolvers import resolve_tags
 
 catalog_type_defs = """
     extend type Query {

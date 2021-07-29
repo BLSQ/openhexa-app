@@ -1,4 +1,3 @@
-import os
 import json
 
 from django.contrib.contenttypes.models import ContentType
