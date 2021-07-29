@@ -33,6 +33,7 @@ class S3GraphTest(GraphQLTestCase):
             description="desc",
             locale="en",
             s3_key="test-bucket/dir1/",
+            s3_dirname="test-bucket/",
             s3_type="directory",
             s3_storage_class="GLACIER",
             owner=o,
@@ -45,10 +46,10 @@ class S3GraphTest(GraphQLTestCase):
             description="desc",
             locale="en",
             s3_key="test-bucket/dir1/dir2/",
+            s3_dirname="test-bucket/dir1/",
             s3_type="directory",
             s3_storage_class="GLACIER",
             owner=o,
-            parent=level1,
         )
 
         Object.objects.create(
@@ -58,11 +59,10 @@ class S3GraphTest(GraphQLTestCase):
             description="desc",
             locale="en",
             s3_key="test-bucket/dir1/dir2/file1.csv",
+            s3_dirname="test-bucket/dir1/dir2/",
             s3_type="file",
             s3_storage_class="GLACIER",
-            s3_name="s3Name3",
             owner=o,
-            parent=level2,
         )
 
         r = self.run_query(
@@ -166,6 +166,7 @@ class S3GraphTest(GraphQLTestCase):
             description="desc",
             locale="en",
             s3_key="test-bucket/dir1/",
+            s3_dirname="test-bucket/",
             s3_type="directory",
             s3_storage_class="GLACIER",
         )
@@ -176,14 +177,15 @@ class S3GraphTest(GraphQLTestCase):
             description="desc",
             locale="en",
             s3_key="test-bucket/dir1/test.csv",
+            s3_dirname="test-bucket/",
             s3_type="file",
             s3_storage_class="GLACIER",
         )
 
         r = self.run_query(
             """
-                query s3Objects($bucketId: String!, $page: Int!) {
-                  s3Objects(bucketId: $bucketId, page: $page) {
+                query s3Objects($bucketS3Name: String!, $page: Int!) {
+                  s3Objects(bucketS3Name: $bucketS3Name, page: $page) {
                     pageNumber
                     totalPages
                     totalItems
@@ -194,7 +196,7 @@ class S3GraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"bucketId": str(self.BUCKET.id), "page": 1},
+            {"bucketS3Name": str(self.BUCKET.s3_name), "page": 1},
         )
 
         self.assertEquals(

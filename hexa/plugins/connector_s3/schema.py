@@ -190,7 +190,7 @@ s3_object.set_field("tags", resolve_tags)
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
-    queryset = obj.object_set.all()
+    queryset = Object.objects.filter(s3_dirname=obj.s3_key)
     return result_page(queryset, page, per_page)
 
 
