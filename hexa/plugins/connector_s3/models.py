@@ -287,16 +287,6 @@ class ObjectQuerySet(models.QuerySet):
             bucket__bucketpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
-    def filter_by_bucket_id_and_path(self, bucket_id: str, path: str):
-        if not path.startswith("/"):
-            raise ValueError("S3 path name must be absolute (start with a `/` )")
-        try:
-            bucket = Bucket.objects.get(id=bucket_id)
-        except Bucket.DoesNotExist:
-            return self.none()
-
-        return self.filter(bucket=bucket, s3_dirname=f"{bucket.s3_name}{path}")
-
 
 class Object(Content):
     class Meta:

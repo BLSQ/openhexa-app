@@ -19,10 +19,11 @@ from django_countries import countries
 
 s3_type_defs = """
     extend type Query {
-        s3Bucket(id: String!): S3Bucket!
+        s3Bucket(id: String, s3Name: String): S3Bucket
+        s3Object(id: String, bucketS3Name: String, s3Key: String): S3Object
         s3Objects(
-            bucketId: String!,
-            path: String,
+            bucketS3Name: String!,
+            parentS3Key: String,
             page: Int!,
             perPage: Int
          ): S3ObjectPage!
@@ -125,20 +126,50 @@ s3_query = QueryType()
 @s3_query.field("s3Bucket")
 def resolve_s3_bucket(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    resolved_bucket = Bucket.objects.filter_for_user(request.user).get(pk=kwargs["id"])
 
-    return resolved_bucket
+    if "s3Name" in kwargs:
+        return Bucket.objects.filter_for_user(request.user).get(
+            s3_name=kwargs["s3Name"]
+        )
+    elif "id" in kwargs:
+        return Bucket.objects.filter_for_user(request.user).get(pk=kwargs["id"])
+
+    return None
+
+
+@s3_query.field("s3Object")
+def resolve_s3_object(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    if "bucketS3Name" and "s3Key" in kwargs:
+        return Object.objects.filter_for_user(request.user).get(
+            bucket__s3_name=kwargs["bucketS3Name"],
+            s3_key=f"{kwargs['bucketS3Name']}/{kwargs['s3Key']}",
+        )
+    elif "id" in kwargs:
+        return Object.objects.filter_for_user(request.user).get(pk=kwargs["id"])
+
+    return None
 
 
 @s3_query.field("s3Objects")
-@convert_kwargs_to_snake_case
 def resolve_s3_objects(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    objects_queryset = Object.objects.filter_for_user(
-        request.user
-    ).filter_by_bucket_id_and_path(kwargs["bucket_id"], kwargs.get("path", "/"))
 
-    return result_page(queryset=objects_queryset, page=kwargs["page"])
+    queryset = Object.objects.filter_for_user(request.user).filter(
+        bucket__s3_name=kwargs["bucketS3Name"]
+    )
+
+    if "parentS3Key" in kwargs:
+        queryset = queryset.filter(
+            s3_dirname=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
+        )
+    else:
+        queryset = queryset.filter(
+            s3_dirname=f"{kwargs['bucketS3Name']}/",
+        )
+
+    return result_page(queryset=queryset, page=kwargs["page"])
 
 
 bucket = ObjectType("S3Bucket")
@@ -177,7 +208,7 @@ s3_object.set_field("tags", resolve_tags)
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
-    queryset = obj.object_set.all()
+    queryset = Object.objects.filter(s3_dirname=obj.s3_key)
     return result_page(queryset, page, per_page)
 
 
@@ -214,7 +245,7 @@ def resolve_file_size_display(obj: Object, *_):
 
 @s3_object.field("detailUrl")
 def resolve_detail_url(obj: Object, *_):
-    return f"/s3/catalog/{obj.bucket.id}/objects/{obj.id}"
+    return f"/s3/{obj.s3_key}"
 
 
 @s3_mutation.field("s3BucketUpdate")
