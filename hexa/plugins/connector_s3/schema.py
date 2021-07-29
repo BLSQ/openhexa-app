@@ -217,26 +217,54 @@ def resolve_detail_url(obj: Object, *_):
     return f"/s3/catalog/{obj.bucket.id}/objects/{obj.id}"
 
 
-class BucketForm(GraphQLModelForm):
-    name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue())
-    short_name = forms.CharField(required=False)
-    tags = GraphQLModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
-    countries = GraphQLMultipleChoiceField(
-        required=False, key_name="code", choices=dict(countries).items()
-    )
-    owner = GraphQLModelChoiceField(queryset=Organization.objects.all(), required=False)
-    url = forms.URLField(required=False)
-    description = forms.CharField(required=False)
-
-
 @s3_mutation.field("s3BucketUpdate")
 def resolve_s3_bucket_update(_, info, **kwargs):
-    bucket = Bucket.objects.get(id=kwargs["id"])
-    form = BucketForm(kwargs["input"], instance=bucket)
-    if form.is_valid():
-        return form.save()
-    else:
-        return form.graphql_errors
+    updated_bucket = Bucket.objects.get(id=kwargs["id"])
+    bucket_data = kwargs["input"]
+
+    # Obviously we need some kind of serializer here
+    if "name" in bucket_data:
+        updated_bucket.name = bucket_data["name"]
+    if "shortName" in bucket_data:
+        updated_bucket.short_name = bucket_data["shortName"]
+    if "countries" in bucket_data:
+        updated_bucket.countries = [
+            country["code"] for country in bucket_data["countries"]
+        ]
+    if "tags" in bucket_data:
+        updated_bucket.tags.set([tag["id"] for tag in bucket_data["tags"]])
+    if "owner" in bucket_data:
+        updated_bucket.owner_id = bucket_data["owner"]["id"]
+    if "url" in bucket_data:
+        updated_bucket.url = bucket_data["url"]
+    if "description" in bucket_data:
+        updated_bucket.description = bucket_data["description"]
+
+    updated_bucket.save()
+
+    return updated_bucket
+
+
+# class BucketForm(GraphQLModelForm):
+#     name = forms.CharField(required=False, min_length=3, empty_value=EmptyValue())
+#     short_name = forms.CharField(required=False)
+#     tags = GraphQLModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
+#     countries = GraphQLMultipleChoiceField(
+#         required=False, key_name="code", choices=dict(countries).items()
+#     )
+#     owner = GraphQLModelChoiceField(queryset=Organization.objects.all(), required=False)
+#     url = forms.URLField(required=False)
+#     description = forms.CharField(required=False)
+#
+#
+# @s3_mutation.field("s3BucketUpdate")
+# def resolve_s3_bucket_update(_, info, **kwargs):
+#     bucket = Bucket.objects.get(id=kwargs["id"])
+#     form = BucketForm(kwargs["input"], instance=bucket)
+#     if form.is_valid():
+#         return form.save()
+#     else:
+#         return form.graphql_errors
 
 
 s3_bindables = [s3_query, s3_mutation, bucket, s3_object]
