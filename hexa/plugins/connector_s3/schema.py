@@ -145,7 +145,8 @@ def resolve_s3_objects(_, info, **kwargs):
         )
     elif "bucketS3Name" in kwargs:
         queryset = queryset.filter(
-            bucket__s3_name=kwargs["bucketS3Name"], s3_dirname=f"{kwargs['bucketS3Name']}/",
+            bucket__s3_name=kwargs["bucketS3Name"],
+            s3_dirname=f"{kwargs['bucketS3Name']}/",
         )
     else:
         queryset = queryset.none()
