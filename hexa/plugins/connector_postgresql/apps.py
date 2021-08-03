@@ -13,4 +13,4 @@ class SQLConnectorConfig(ConnectorAppConfig):
 
     @property
     def route_prefix(self):
-        return "sql"
+        return "postgresql"
