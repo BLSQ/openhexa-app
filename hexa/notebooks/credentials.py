@@ -1,3 +1,7 @@
+import base64
+from typing import Dict
+
+
 class NotebooksCredentialsError(Exception):
     pass
 
@@ -7,7 +11,8 @@ class NotebooksCredentials:
 
     def __init__(self, user):
         self.user = user
-        self.env = {}
+        self.env: Dict[str, str] = {}
+        self.files: Dict[str, bytes] = {}
 
     @property
     def authenticated(self):
@@ -17,4 +22,8 @@ class NotebooksCredentials:
         self.env.update(**env_dict)
 
     def to_dict(self):
-        return {"username": self.user.username, "env": self.env}
+        return {
+            "username": self.user.username,
+            "env": self.env,
+            "files": {k: base64.b64encode(v).decode() for k, v in self.files.items()},
+        }

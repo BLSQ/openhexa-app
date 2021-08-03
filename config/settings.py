@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
     "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
+    "hexa.plugins.connector_postgresql.apps.SQLConnectorConfig",
 ]
 
 MIDDLEWARE = [
