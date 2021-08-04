@@ -19,7 +19,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 f"{database.env_name}_USERNAME": database.username,
                 f"{database.env_name}_PASSWORD": database.password,
                 f"{database.env_name}_DATABASE": database.database,
-                f"{database.env_name}_PORT": database.port,
+                f"{database.env_name}_PORT": str(database.port),
                 f"{database.env_name}_URL": database.url,
             }
         )
