@@ -1,7 +1,7 @@
 from hexa.plugins.app import ConnectorAppConfig
 
 
-class SQLConnectorConfig(ConnectorAppConfig):
+class PostgresqlConnectorConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_postgresql"
     label = "connector_postgresql"
 
