@@ -180,3 +180,17 @@ NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
+
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
+
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=1.0,
+        send_default_pii=True,
+        environment=os.environ.get("SENTRY_ENVIRONMENT"),
+    )
