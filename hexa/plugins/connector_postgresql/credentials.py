@@ -28,7 +28,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
         )
 
     credentials.update_env(
-        {f"POSTGRESQL_DATABASE_NAMES": ",".join([x.hostname for x in databases])}
+        {f"POSTGRESQL_DATABASE_NAMES": ",".join([x.unique_name for x in databases])}
     )
 
     if len(pgpass_lines) > 0:

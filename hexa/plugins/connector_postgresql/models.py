@@ -21,7 +21,7 @@ class PostgresqlDatabaseQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()]
+            postgresqldatabasepermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 
