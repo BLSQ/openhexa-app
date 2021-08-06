@@ -46,7 +46,7 @@ class Permission(Base):
         self.index_object()
 
     def index_object(self):
-        pass
+        raise NotImplementedError
 
 
 class RichContent(Base):

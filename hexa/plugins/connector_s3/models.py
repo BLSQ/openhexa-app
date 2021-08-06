@@ -277,6 +277,9 @@ class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
+    def index_object(self):
+        self.bucket.index()
+
 
 class ObjectQuerySet(models.QuerySet):
     def filter_for_user(self, user):

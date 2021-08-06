@@ -142,6 +142,9 @@ class Instance(Datasource):
 class InstancePermission(Permission):
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
 
+    def index_object(self):
+        self.instance.index()
+
 
 class Content(BaseContent):
     class Meta:

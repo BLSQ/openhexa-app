@@ -97,4 +97,6 @@ class PostgresqlDatabasePermission(Permission):
     database = models.ForeignKey(
         "connector_postgresql.PostgresqlDatabase", on_delete=models.CASCADE
     )
-    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+
+    def index_object(self):
+        self.database.index()
