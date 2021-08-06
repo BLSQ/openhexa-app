@@ -1,10 +1,9 @@
-[tool.black]
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-  )/
-  | node_modules
-)
-'''
+[tool.mypy]
+python_version = 3.9
+ignore_missing_imports = true
+files = ["hexa"]
+exclude = "(templates|migrations)/.*"
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings"
