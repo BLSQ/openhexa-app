@@ -45,7 +45,7 @@ class PipelinesIndex(Index):
 
     index_type = models.CharField(max_length=100, choices=PipelinesIndexType.choices)
 
-    objects = PipelinesIndexQuerySet.as_manager()
+    objects = models.Manager.from_queryset(PipelinesIndexQuerySet)
 
 
 class PipelinesIndexPermission(Permission):

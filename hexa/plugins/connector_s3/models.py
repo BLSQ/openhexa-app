@@ -70,7 +70,7 @@ class Bucket(Datasource):
 
     s3_name = models.CharField(max_length=200)
 
-    objects = BucketQuerySet.as_manager()
+    objects = models.Manager.from_queryset(BucketQuerySet)
 
     @property
     def hexa_or_s3_name(self):
@@ -303,7 +303,7 @@ class Object(Content):
     s3_etag = models.CharField(max_length=200, null=True, blank=True)
     orphan = models.BooleanField(default=False)
 
-    objects = ObjectQuerySet.as_manager()
+    objects = models.Manager.from_queryset(ObjectQuerySet)
 
     def save(self, *args, **kwargs):
         if self.s3_dirname is None:

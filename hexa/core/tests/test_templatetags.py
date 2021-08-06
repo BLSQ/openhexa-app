@@ -5,7 +5,9 @@ import pathlib
 from hexa.core.string import remove_whitespace
 
 ENGINE = Engine.get_default()
-ENGINE.dirs.append(pathlib.Path(__file__).parent.absolute() / pathlib.Path("templates"))
+ENGINE.dirs.append(
+    str(pathlib.Path(__file__).parent.absolute() / pathlib.Path("templates"))
+)
 
 
 class TemplatetagsTest(SimpleTestCase):

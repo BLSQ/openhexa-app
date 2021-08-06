@@ -75,7 +75,7 @@ class CatalogIndex(Index):
 
     index_type = models.CharField(max_length=100, choices=CatalogIndexType.choices)
 
-    objects = CatalogIndexQuerySet.as_manager()
+    objects = models.Manager.from_queryset(CatalogIndexQuerySet)
 
 
 class CatalogIndexPermission(Permission):

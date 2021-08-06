@@ -81,7 +81,7 @@ class Cluster(BaseEnvironment):
     airflow_web_url = models.URLField(blank=False)
     airflow_api_url = models.URLField()
 
-    objects = ClusterQuerySet.as_manager()
+    objects = models.Manager.from_queryset(ClusterQuerySet)
 
     def index(self):
         pipeline_index, _ = PipelinesIndex.objects.update_or_create(
@@ -140,7 +140,7 @@ class DAG(Pipeline):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     airflow_id = models.CharField(max_length=200, blank=False)
 
-    objects = DAGQuerySet.as_manager()
+    objects = models.Manager.from_queryset(DAGQuerySet)
 
     @property
     def last_run(self):
@@ -177,7 +177,7 @@ class DAGConfig(RichContent):
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     config_data = models.JSONField(default=dict)
 
-    objects = DAGConfigQuerySet.as_manager()
+    objects = models.Manager.from_queryset(DAGConfigQuerySet)
 
     @property
     def content_summary(self):
@@ -303,7 +303,7 @@ class DAGConfigRun(Base, WithStatus):
         max_length=200, blank=False, choices=DAGConfigRunState.choices
     )
 
-    objects = DAGConfigRunQuerySet.as_manager()
+    objects = models.Manager.from_queryset(DAGConfigRunQuerySet)
 
     def refresh(self):
         # TODO: move in api module

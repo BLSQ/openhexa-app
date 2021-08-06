@@ -30,8 +30,8 @@ class EncryptedTextField(models.TextField):
         prepared: bool = False,
     ) -> typing.Optional[str]:
         db_prep_value = super().get_db_prep_value(value, connection, prepared)
-        if db_prep_value is None:
-            return
+        if db_prep_value is None or value is None:
+            return None
 
         return (
             Fernet(settings.ENCRYPTION_KEY)

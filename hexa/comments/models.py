@@ -20,4 +20,4 @@ class Comment(Base):
     object = GenericForeignKey("content_type", "object_id")
     text = models.TextField()
 
-    objects = CommentQuerySet.as_manager()
+    objects = models.Manager.from_queryset(CommentQuerySet)

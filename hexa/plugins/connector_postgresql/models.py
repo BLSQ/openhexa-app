@@ -41,7 +41,7 @@ class PostgresqlDatabase(models.Model):
         ordering = ("hostname",)
         unique_together = [("database", "postfix")]
 
-    objects = PostgresqlDatabaseQuerySet.as_manager()
+    objects = models.Manager.from_queryset(PostgresqlDatabaseQuerySet)
 
     @property
     def unique_name(self):

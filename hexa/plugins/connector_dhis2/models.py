@@ -58,7 +58,7 @@ class Instance(Datasource):
         "Credentials", null=True, on_delete=models.SET_NULL
     )
 
-    objects = InstanceQuerySet.as_manager()
+    objects = models.Manager.from_queryset(InstanceQuerySet)
 
     def sync(self, user):
         """Sync the datasource by querying the DHIS2 API"""
@@ -346,7 +346,7 @@ class Extract(Base):
     status = models.CharField(max_length=100, choices=ExtractStatus.choices)
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
 
-    objects = ExtractQuerySet.as_manager()
+    objects = models.Manager.from_queryset(ExtractQuerySet)
 
     @property
     def display_name(self):

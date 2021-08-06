@@ -1,3 +1,5 @@
+from typing import List
+
 from django.contrib.auth.models import AbstractUser, UserManager as BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -16,7 +18,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: List[str] = []
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(
