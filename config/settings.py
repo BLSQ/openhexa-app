@@ -186,6 +186,12 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import ignore_logger
+
+    # Ignore "Invalid HTTP_HOST header" errors
+    # as crawlers/bots hit the production hundreds of times per day
+    # with the IP instead of the host
+    ignore_logger("django.security.DisallowedHost")
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
