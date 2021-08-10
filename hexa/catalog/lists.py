@@ -9,7 +9,7 @@ def build_summary_list_params(
     title,
     per_page=settings.GRAPHQL_DEFAULT_PAGE_SIZE,
     columns,
-    paginated_list_url,
+    paginated_list_url=None,
     item_name,
     item_template
 ):

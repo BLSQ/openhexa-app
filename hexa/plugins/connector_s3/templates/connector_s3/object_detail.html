@@ -1,0 +1,10 @@
+{% extends "layouts/page.html" %}
+
+{% block page_title %}{{ object.display_name }}{% endblock %}
+
+{% block page_content %}
+    {% include "connector_s3/partials/object_card.html" %}
+    {% if object.s3_type == 'directory' %}
+      {% include "catalog/partials/summary_list.html" with params=object_list_params %}
+    {% endif%}
+{% endblock %}
