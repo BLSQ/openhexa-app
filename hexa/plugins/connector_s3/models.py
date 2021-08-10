@@ -277,6 +277,9 @@ class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = [("bucket", "team")]
+
     def index_object(self):
         self.bucket.index()
 

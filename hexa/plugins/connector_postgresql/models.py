@@ -98,5 +98,8 @@ class PostgresqlDatabasePermission(Permission):
         "connector_postgresql.PostgresqlDatabase", on_delete=models.CASCADE
     )
 
+    class Meta:
+        unique_together = [("database", "team")]
+
     def index_object(self):
         self.database.index()

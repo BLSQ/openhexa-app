@@ -142,6 +142,9 @@ class Instance(Datasource):
 class InstancePermission(Permission):
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = [("instance", "team")]
+
     def index_object(self):
         self.instance.index()
 
