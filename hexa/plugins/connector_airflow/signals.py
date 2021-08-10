@@ -7,7 +7,7 @@ from hexa.catalog.models import (
 
 
 def delete_callback(sender, instance, **kwargs):
-    datasource = instance.bucket
+    datasource = instance.cluster
     catalog_index = CatalogIndex.objects.get(
         content_type=ContentType.objects.get_for_model(datasource),
         object_id=datasource.id,
