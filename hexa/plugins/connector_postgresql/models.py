@@ -15,17 +15,17 @@ from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 
 
-class PostgresqlDatabaseQuerySet(models.QuerySet):
+class DatabaseQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 
         return self.filter(
-            postgresqldatabasepermission__team__in=[t.pk for t in user.team_set.all()]
+            databasepermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
 
-class PostgresqlDatabase(models.Model):
+class Database(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     hostname = models.CharField(max_length=200)
@@ -41,7 +41,7 @@ class PostgresqlDatabase(models.Model):
         ordering = ("hostname",)
         unique_together = [("database", "postfix")]
 
-    objects = PostgresqlDatabaseQuerySet.as_manager()
+    objects = DatabaseQuerySet.as_manager()
 
     @property
     def unique_name(self):
@@ -83,7 +83,7 @@ class PostgresqlDatabase(models.Model):
             ),
         )
 
-        for permission in self.postgresqldatabasepermission_set.all():
+        for permission in self.databasepermission_set.all():
             CatalogIndexPermission.objects.get_or_create(
                 catalog_index=catalog_index, team=permission.team
             )
@@ -96,9 +96,9 @@ class PostgresqlDatabase(models.Model):
         return self.display_name
 
 
-class PostgresqlDatabasePermission(Permission):
+class DatabasePermission(Permission):
     database = models.ForeignKey(
-        "connector_postgresql.PostgresqlDatabase", on_delete=models.CASCADE
+        "connector_postgresql.Database", on_delete=models.CASCADE
     )
 
     class Meta:

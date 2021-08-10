@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import PostgresqlDatabase, PostgresqlDatabasePermission
+from .models import Database, DatabasePermission
 
 
-@admin.register(PostgresqlDatabase)
-class PostgresqlDatabaseAdmin(admin.ModelAdmin):
+@admin.register(Database)
+class DatabaseAdmin(admin.ModelAdmin):
     list_display = ("database", "hostname", "port", "username")
 
 
-@admin.register(PostgresqlDatabasePermission)
-class PostgresqlDatabasePermissionAdmin(admin.ModelAdmin):
+@admin.register(DatabasePermission)
+class DatabasePermissionAdmin(admin.ModelAdmin):
     list_display = ("database", "team")

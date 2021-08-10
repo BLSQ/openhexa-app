@@ -2,8 +2,8 @@ from django import test
 from django.urls import reverse
 
 from hexa.plugins.connector_postgresql.models import (
-    PostgresqlDatabase,
-    PostgresqlDatabasePermission,
+    Database,
+    DatabasePermission,
 )
 from hexa.user_management.models import User, Team, Membership
 
@@ -25,15 +25,13 @@ class CredentialsTest(test.TestCase):
             is_superuser=False,
         )
         Membership.objects.create(team=cls.TEAM, user=cls.REGULAR_USER)
-        cls.DATABASE_1 = PostgresqlDatabase.objects.create(
+        cls.DATABASE_1 = Database.objects.create(
             hostname="localhost", username="db1", password="db1", database="db1"
         )
-        cls.DATABASE_2 = PostgresqlDatabase.objects.create(
+        cls.DATABASE_2 = Database.objects.create(
             hostname="localhost", username="db2", password="db2", database="db2"
         )
-        PostgresqlDatabasePermission.objects.create(
-            database=cls.DATABASE_1, team=cls.TEAM
-        )
+        DatabasePermission.objects.create(database=cls.DATABASE_1, team=cls.TEAM)
 
     def test_credentials_200_super_user(self):
         self.client.force_login(self.SUPER_USER)

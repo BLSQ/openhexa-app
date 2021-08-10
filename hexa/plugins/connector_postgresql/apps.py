@@ -18,10 +18,10 @@ class PostgresqlConnectorConfig(ConnectorAppConfig):
 
     def ready(self):
         from .signals import delete_callback
-        from .models import PostgresqlDatabasePermission
+        from .models import DatabasePermission
 
         post_delete.connect(
             delete_callback,
-            sender=PostgresqlDatabasePermission,
-            dispatch_uid="connector_postgresql_PostgresqlDatabasePermission_delete",
+            sender=DatabasePermission,
+            dispatch_uid="connector_postgresql_DatabasePermission_delete",
         )

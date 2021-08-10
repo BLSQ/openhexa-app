@@ -1,5 +1,5 @@
 from hexa.notebooks.credentials import NotebooksCredentials
-from hexa.plugins.connector_postgresql.models import PostgresqlDatabase
+from hexa.plugins.connector_postgresql.models import Database
 
 
 def notebooks_credentials(credentials: NotebooksCredentials):
@@ -8,7 +8,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     in the notebooks component.
     """
 
-    databases = PostgresqlDatabase.objects.filter_for_user(credentials.user)
+    databases = Database.objects.filter_for_user(credentials.user)
 
     pgpass_lines = []
 
