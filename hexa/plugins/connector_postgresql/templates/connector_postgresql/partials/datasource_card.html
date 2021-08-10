@@ -1,5 +1,7 @@
 {% extends "partials/page_card_with_header.html" %}
 {% load static i18n %}
+{% load syntax %}
+
 
 {% block card_header_title %}
     {{ datasource.unique_name }}
@@ -71,20 +73,22 @@
             </dd>
         </div>
 
+        <link rel="stylesheet" type="text/css" href="{% static 'css/pygments.css' %}">
+
         <div class="sm:col-span-2">
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "Usage in Python" %}
             </dt>
-            <dd class="mt-1 text-sm">
-                <pre class="rounded bg-gray-900 text-gray-200 p-5">{% include "connector_postgresql/partials/datasource_demo.py" %}</pre>
+            <dd class="mt-1 text-sm rounded text-gray-900 bg-gray-200 p-5">
+              {% highlight-file "connector_postgresql/partials/datasource_demo.py" "python" %}
             </dd>
         </div>
         <div class="sm:col-span-2">
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "Usage in R" %}
             </dt>
-            <dd class="mt-1 text-sm">
-                <pre class="rounded bg-gray-900 text-gray-200 p-5">{% include "connector_postgresql/partials/datasource_demo.r" %}</pre>
+            <dd class="mt-1 text-sm rounded text-gray-900 bg-gray-200 p-5">
+              {% highlight-file "connector_postgresql/partials/datasource_demo.r" "r" %}
             </dd>
         </div>
     </dl>
