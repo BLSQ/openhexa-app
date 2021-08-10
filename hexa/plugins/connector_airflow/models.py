@@ -124,6 +124,9 @@ class ClusterPermission(Permission):
     def index_object(self):
         self.cluster.index()
 
+    def __str__(self):
+        return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
+
 
 class DAGQuerySet(models.QuerySet):
     def filter_for_user(self, user):

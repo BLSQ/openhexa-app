@@ -148,6 +148,9 @@ class InstancePermission(Permission):
     def index_object(self):
         self.instance.index()
 
+    def __str__(self):
+        return f"Permission for team '{self.team}' on instance '{self.instance}'"
+
 
 class Content(BaseContent):
     class Meta:

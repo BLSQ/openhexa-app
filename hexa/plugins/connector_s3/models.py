@@ -283,6 +283,9 @@ class BucketPermission(Permission):
     def index_object(self):
         self.bucket.index()
 
+    def __str__(self):
+        return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
+
 
 class ObjectQuerySet(models.QuerySet):
     def filter_for_user(self, user):

@@ -92,6 +92,9 @@ class PostgresqlDatabase(models.Model):
     def display_name(self):
         return self.unique_name
 
+    def __str__(self):
+        return self.display_name
+
 
 class PostgresqlDatabasePermission(Permission):
     database = models.ForeignKey(
@@ -103,3 +106,6 @@ class PostgresqlDatabasePermission(Permission):
 
     def index_object(self):
         self.database.index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on database '{self.database}'"
