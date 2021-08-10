@@ -11,9 +11,11 @@
 {% endblock %}
 
 {% block footer_buttons %}
+    {% if params.paginated_list_url %}
     <a href="{{ params.paginated_list_url }}"
        class="relative inline-flex items-center pl-4 pr-2 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
         <span>{% translate "View all" %}</span>
         {% include "core/components/icons/chevron_right.html" %}
     </a>
+    {% endif %}
 {% endblock %}

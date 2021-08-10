@@ -11,4 +11,9 @@ urlpatterns = [
         views.datasource_sync,
         name="datasource_sync",
     ),
+    path(
+        "<str:bucket_id>/object/<path:path>",
+        views.object_detail,
+        name="object_detail",
+    ),
 ]

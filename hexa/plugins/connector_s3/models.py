@@ -6,6 +6,8 @@ from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.template.defaultfilters import filesizeformat
+
 from s3fs import S3FileSystem
 import os
 
@@ -335,6 +337,24 @@ class Object(Content):
             return os.path.dirname(os.path.dirname(key)) + "/"
         else:  # This is a file
             return os.path.dirname(key) + "/"
+
+    @property
+    def file_size_display(self):
+        return filesizeformat(self.s3_size) if self.s3_size > 0 else "-"
+
+    @property
+    def type_display(self):
+        if self.s3_type == "directory":
+            return _("Directory")
+
+        file_type = {
+            "xlsx": "Excel file",
+            "md": "Markdown document",
+            "ipynb": "Jupyter Notebook",
+            "csv": "CSV file",
+        }.get(self.s3_extension, "File")
+
+        return _(file_type)
 
     def update_metadata(self, object_data):
         self.orphan = False
