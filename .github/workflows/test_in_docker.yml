@@ -9,7 +9,7 @@ jobs:
     name: Run test suite
     runs-on: ubuntu-latest
     env:
-      COMPOSE_FILE: .ci/docker-compose.yml
+      COMPOSE_FILE: docker-compose.yml
       DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
 
@@ -23,5 +23,5 @@ jobs:
       - name: Build docker images
         run: docker-compose build
 
-      - name: Run mypy
+      - name: Run Django tests
         run: docker-compose run app test
