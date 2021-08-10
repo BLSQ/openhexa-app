@@ -1,0 +1,27 @@
+name: Test
+on:
+  pull_request:
+  push:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_FILE: .ci/docker-compose.yml
+      DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKER_PASS: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+      - name: Build docker images
+        run: docker-compose build
+
+      - name: Run mypy
+        run: docker-compose run app test
