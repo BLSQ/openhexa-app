@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
@@ -78,7 +80,12 @@ class CatalogIndex(Index):
     objects = CatalogIndexQuerySet.as_manager()
 
 
-class CatalogIndexPermission(Permission):
+class CatalogIndexPermission(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
     catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
 
 
