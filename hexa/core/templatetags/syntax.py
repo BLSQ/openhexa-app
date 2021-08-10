@@ -9,13 +9,15 @@ register = template.Library()
 
 
 @register.filter(name="highlight", is_safe=True)
-def code(code, lang):
+def highlight_code(code, lang):
     lexer = get_lexer_by_name(lang, stripall=True)
     formatter = HtmlFormatter()
     return highlight(code, lexer, formatter)
 
 
-@register.simple_tag(name="highlight-file")
-def code_file(filename, lang):
+@register.simple_tag(takes_context=True, name="highlight-file")
+def highlight_file(context, filename, lang):
     t = get_template(filename)
-    return mark_safe(code(t.render(), lang))
+    context = dict(context.flatten())
+    code = t.render(context)
+    return mark_safe(highlight_code(code, lang))
