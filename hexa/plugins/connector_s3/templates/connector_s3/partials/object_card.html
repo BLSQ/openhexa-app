@@ -1,0 +1,53 @@
+{% extends "partials/page_card_with_header.html" %}
+{% load static i18n %}
+{% load syntax %}
+
+{% block card_header_title %}
+    s3://{{ object.s3_key }}
+{% endblock %}
+
+{% block card_header_image %}
+    <img class="h-10 w-10 rounded-full mr-2"
+         src="{% static "connector_s3/img/symbol.svg" %}"
+         alt="{% translate "S3" %}"
+    >
+{% endblock %}
+
+{% block card_header_description %}
+    {{ object.type_display }}
+{% endblock %}
+
+{% block card_header_actions %}
+{% endblock %}
+
+{% block card_content %}
+    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">
+                    {% translate "Object key" %}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    s3://{{ object.s3_key }}
+                </dd>
+        </div>
+        {% if object.s3_type == 'file' %}
+        <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    {% translate "File size" %}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ object.file_size_display}}
+                </dd>
+        </div>
+        <div class="sm:col-span-1">
+                <dt class="text-sm font-medium text-gray-500">
+                    {% translate "Extension" %}
+                </dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                    {{ object.s3_extension|default:"-"}}
+                </dd>
+        </div>
+        {% else %}
+        {% endif %}
+    </dl>
+{% endblock %}

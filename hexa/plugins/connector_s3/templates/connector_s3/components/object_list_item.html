@@ -1,0 +1,48 @@
+{% load i18n date_utils %}
+
+<tr>
+    <td class="px-6 py-4 whitespace-nowrap">
+        <a class="flex items-center" href="{% url 'connector_s3:object_detail' datasource.pk item.s3_key %}">
+            <div class="text-gray-400">
+                {% include "connector_s3/components/object_type_icon.html" with object=item %}
+            </div>
+            <span class="block ml-4">
+                <span class="block text-sm font-medium text-gray-900">
+                    s3://{{ item.display_name }}
+                </span>
+                <span class="block text-sm text-gray-500">
+                    {{ item.get_domain_type_display }}
+                </span>
+            </span>
+        </a>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {{ item.file_size_display }}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {{ item.type_display}}
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <div class="text-sm font-medium text-gray-900">
+            {% if item.instance.last_synced_at|about_now %}
+                <span>{% translate "Just now" %}</span>
+            {% elif item.instance.last_synced_at %}
+                <span>{{ item.instance.last_synced_at|timesince }} {% translate "ago" %}</span>
+            {% else %}
+                <span>{% translate "Never synced" %}</span>
+            {% endif %}
+        </div>
+        <div class="text-sm text-gray-500">
+            {% translate "Daily" %}
+        </div>
+    </td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <a href="{% url 'connector_s3:object_detail' datasource.pk item.s3_key %}"
+           class="text-blue-600 hover:text-blue-900 flex justify-end">
+            View
+            <div class="ml-1 flex-shrink-0">
+                {% include "core/components/icons/chevron_right.html" %}
+            </div>
+        </a>
+    </td>
+</tr>
