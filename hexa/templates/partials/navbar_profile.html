@@ -35,6 +35,15 @@
         >
             {% translate "Your account" %}
         </a>
+        {% if user.is_staff %}
+        <a
+                href="/admin"
+                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                role="menuitem"
+        >
+            {% translate "Admin" %}
+        </a>
+        {% endif %}
         <a
                 href="{% url "logout" %}"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
