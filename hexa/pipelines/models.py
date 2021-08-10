@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -48,5 +50,10 @@ class PipelinesIndex(Index):
     objects = PipelinesIndexQuerySet.as_manager()
 
 
-class PipelinesIndexPermission(Permission):
+class PipelinesIndexPermission(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
     pipeline_index = models.ForeignKey("PipelinesIndex", on_delete=models.CASCADE)

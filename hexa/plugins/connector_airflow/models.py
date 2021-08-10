@@ -118,8 +118,14 @@ class Cluster(BaseEnvironment):
 class ClusterPermission(Permission):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = [("cluster", "team")]
+
     def index_object(self):
         self.cluster.index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
 
 
 class DAGQuerySet(models.QuerySet):
