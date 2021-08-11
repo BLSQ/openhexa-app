@@ -200,3 +200,5 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

@@ -16,8 +16,16 @@ def login_required_middleware(get_response):
             reverse("graphql"),
         ]
 
+    anonymous_prefixes = ["/auth/reset/"]
+
     def middleware(request):
-        if not request.user.is_authenticated and request.path not in anonymous_urls():
+        matches_prefix = False
+        for prefix in anonymous_prefixes:
+            if request.path.startswith(prefix):
+                matches_prefix = True
+
+        requires_auth = request.path not in anonymous_urls() and not matches_prefix
+        if not request.user.is_authenticated and requires_auth:
             return redirect("%s?next=%s" % (reverse("core:index"), request.path))
 
         return get_response(request)
