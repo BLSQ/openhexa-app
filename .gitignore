@@ -3,6 +3,7 @@
 
 k8s/*
 !k8s/sample_app.yaml
+static/
 
 # TODO: remove
 credentials
