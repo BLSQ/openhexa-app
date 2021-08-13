@@ -13,12 +13,10 @@ class ModelsTest(test.TestCase):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_REGULAR = User.objects.create_user(
             "jim@bluesquarehub.com",
-            "jim@bluesquarehub.com",
             "regular",
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER_REGULAR)
         cls.USER_SUPER = User.objects.create_user(
-            "mary@bluesquarehub.com",
             "mary@bluesquarehub.com",
             "super",
             is_superuser=True,

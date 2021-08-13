@@ -23,7 +23,7 @@ class NotebooksCredentials:
 
     def to_dict(self):
         return {
-            "username": self.user.username,
+            "username": self.user.email,
             "env": self.env,
             "files": {k: base64.b64encode(v).decode() for k, v in self.files.items()},
         }

@@ -13,7 +13,6 @@ class S3GraphTest(GraphQLTestCase):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER = User.objects.create_user(
             "jim@bluesquarehub.com",
-            "jim@bluesquarehub.com",
             "regular",
             is_superuser=True,
         )

@@ -9,7 +9,6 @@ class CoreTest(test.TestCase):
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
             "simi@bluesquarehub.com",
-            "simi@bluesquarehub.com",
             "regular",
         )
 

@@ -11,7 +11,6 @@ class CatalogTest(test.TestCase):
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
-            "jane@bluesquarehub.com",
             "janerocks2",
             is_superuser=True,
         )
