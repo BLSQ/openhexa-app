@@ -2,8 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.crypto import get_random_string
 
@@ -14,7 +13,7 @@ from hexa.core.admin import country_list
 admin.site.unregister(Group)
 
 
-class UserCreationForm(UserCreationForm):
+class UserCreationForm(BaseUserCreationForm):
     """
     A UserCreationForm with optional password inputs.
     """
@@ -58,7 +57,7 @@ class CustomUserAdmin(UserAdmin):
                 )
             },
         ),
-        ("Permissions", {"fields": ("is_staff", "is_active")}),
+        ("Permissions", {"fields": ("is_staff", "is_superuser", "is_active")}),
     )
 
     add_form = UserCreationForm
@@ -76,6 +75,7 @@ class CustomUserAdmin(UserAdmin):
                     "first_name",
                     "last_name",
                     "is_staff",
+                    "is_superuser",
                 ),
             },
         ),

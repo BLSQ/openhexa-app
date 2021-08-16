@@ -14,6 +14,8 @@ def login_required_middleware(get_response):
             reverse("core:ready"),
             reverse("notebooks:credentials"),
             reverse("graphql"),
+            reverse("password_reset"),
+            reverse("password_reset_done"),
         ]
 
     anonymous_prefixes = ["/auth/reset/"]
