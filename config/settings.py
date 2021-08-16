@@ -140,6 +140,10 @@ SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "fals
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 
+# Trust the X_FORWARDED_PROTO header from the GCP load balancer so Django is aware it is accessed by https
+if "TRUST_FORWARDED_PROTO" in os.environ:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # CORS
 # https://github.com/adamchainz/django-cors-headers
 # TODO: configure for prod
