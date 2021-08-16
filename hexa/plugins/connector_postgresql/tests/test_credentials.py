@@ -14,12 +14,10 @@ class CredentialsTest(test.TestCase):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.SUPER_USER = User.objects.create_user(
             "jim@bluesquarehub.com",
-            "jim@bluesquarehub.com",
             "jim2021__",
             is_superuser=True,
         )
         cls.REGULAR_USER = User.objects.create_user(
-            "john@bluesquarehub.com",
             "john@bluesquarehub.com",
             "john2021__",
             is_superuser=False,

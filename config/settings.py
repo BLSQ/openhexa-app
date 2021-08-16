@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.staticfiles",
-    "django.contrib.sites",
     "corsheaders",
     "django_countries",
     "ariadne.contrib.django",
@@ -107,6 +106,7 @@ DATABASES = {
 }
 
 # Auth settings
+LOGIN_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 # Custom user model
@@ -200,3 +200,18 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
+
+# Email settings
+EMAIL_HOST = os.environ.get("EMAIL_HOST")
+EMAIL_PORT = os.environ.get("EMAIL_PORT")
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "true"
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "hexatron@notifications.openhexa.org"
+)
+
+if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

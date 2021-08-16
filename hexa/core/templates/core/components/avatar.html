@@ -2,7 +2,7 @@
 
 <div
         class="inline-flex items-center justify-center h-10 w-10 rounded-full"
-        style="background-color: {{ user.username|hash_color }}"
+        style="background-color: {{ user.email|hash_color }}"
 >
     <span class="font-medium text-md leading-none text-white">{{ user.initials }}</span>
 </div>

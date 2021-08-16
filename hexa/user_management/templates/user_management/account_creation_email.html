@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}
+{% blocktranslate %}Your OpenHexa account was created by an admin.{% endblocktranslate %}
+
+{% translate "Please go to the following page and choose a password:" %}
+{% block reset_link %}
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+{% endblock %}
+{% translate 'Your username is' %} {{ user.get_username }}
+
+{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+
+{% endautoescape %}

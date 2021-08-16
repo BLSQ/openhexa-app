@@ -15,11 +15,9 @@ class ConnectorDhis2Test(test.TestCase):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_BJORN = User.objects.create_user(
             "bjorn@bluesquarehub.com",
-            "bjorn@bluesquarehub.com",
             "bjornbjorn",
         )
         cls.USER_KRISTEN = User.objects.create_user(
-            "kristen@bluesquarehub.com",
             "kristen@bluesquarehub.com",
             "kristen2000",
             is_superuser=True,

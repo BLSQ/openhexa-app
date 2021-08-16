@@ -9,7 +9,6 @@ class NotebooksTest(test.TestCase):
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
             "john@bluesquarehub.com",
-            "john@bluesquarehub.com",
             "regular",
             is_superuser=True,
         )
