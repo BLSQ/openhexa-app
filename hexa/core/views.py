@@ -1,8 +1,9 @@
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseServerError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.db import connection
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType
 
@@ -50,4 +51,16 @@ def dashboard(request):
 
 
 def ready(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1;")
+            row = cursor.fetchone()
+            expected = (1,)
+            if row != expected:
+                return HttpResponseServerError(
+                    f"Error: invalid database response (is `{row}`, should be `{expected}`)"
+                )
+    except Exception as e:
+        return HttpResponseServerError(f"Error: can not connect to the database ({e})")
+
     return HttpResponse("ok")
