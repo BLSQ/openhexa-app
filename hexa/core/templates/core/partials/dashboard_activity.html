@@ -71,6 +71,53 @@
                 </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
+                  <tr class="bg-white">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div class="flex">
+                              <a href="#" class="group inline-flex space-x-2 truncate text-sm">
+                                  <!-- Heroicon name: book -->
+                                  <svg class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  <p class="text-gray-500 truncate group-hover:text-gray-900">
+                                      {{request.user}} logged in!
+                                  </p>
+                              </a>
+                          </div>
+                      </td>
+                      <td class="w-24 hidden px-6 py-4 whitespace-nowrap text-sm text-gray-500 md:block">
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
+                            success
+                          </span>
+                      </td>
+                      <td class="w-36 px-6 py-4 text-right whitespace-nowrap text-sm text-gray-500">
+                          {% now "F j, Y" %}
+                      </td>
+                  </tr>
+                  <tr class="bg-white">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div class="flex">
+                              <a href="#" class="group inline-flex space-x-2 truncate text-sm">
+                                  <!-- Heroicon name: book -->
+                                  <svg class="flex-shrink-0 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  <p class="text-gray-500 truncate group-hover:text-gray-900">
+                                      Datasources are up to date.
+                                  </p>
+                              </a>
+                          </div>
+                      </td>
+                      <td class="w-24 hidden px-6 py-4 whitespace-nowrap text-sm text-gray-500 md:block">
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
+                            success
+                          </span>
+                      </td>
+                      <td class="w-36 px-6 py-4 text-right whitespace-nowrap text-sm text-gray-500">
+                          {% now "F j, Y" %}
+                      </td>
+                  </tr>
+                {% comment %}
                 <tr class="bg-white">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div class="flex">
@@ -201,6 +248,7 @@
                         July 7, 2020
                     </td>
                 </tr>
+                {% endcomment %}
                 </tbody>
             </table>
         </div>

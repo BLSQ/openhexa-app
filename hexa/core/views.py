@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db import connection
 
 from hexa.catalog.models import CatalogIndex, CatalogIndexType
+from hexa.plugins.connector_s3.models import Object
 
 
 def index(request):
@@ -33,17 +34,22 @@ def index(request):
 
 def dashboard(request):
     breadcrumbs = [(_("Dashboard"), "core:dashboard")]
+    accessible_datasources = CatalogIndex.objects.filter(
+        index_type=CatalogIndexType.DATASOURCE
+    ).filter_for_user(request.user)
+
+    # TODO: We should instead filter on "executable file"-like on the index to avoid referencing a plugin here
+    accessible_notebooks = Object.objects.filter(
+        s3_key__iendswith=".ipynb"
+    ).filter_for_user(request.user)
 
     return render(
         request,
         "core/dashboard.html",
         {
             "counts": {
-                "datasources": CatalogIndex.objects.filter(
-                    index_type=CatalogIndexType.DATASOURCE
-                )
-                .filter_for_user(request.user)
-                .count()
+                "datasources": accessible_datasources.count(),
+                "notebooks": accessible_notebooks.count(),
             },
             "breadcrumbs": breadcrumbs,
         },
