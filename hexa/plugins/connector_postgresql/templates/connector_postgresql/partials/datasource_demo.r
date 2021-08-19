@@ -8,3 +8,5 @@ con <- dbConnect(
     user = Sys.getenv("{{ datasource.env_name }}_USER"),
     password = Sys.getenv("{{ datasource.env_name }}_PASSWORD")
 )
+
+dbWriteTable(con, "some_table_name", Data_fin, overwrite=TRUE)
