@@ -1,3 +1,5 @@
+from unittest import skip
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_s3.models import (
     Bucket,
@@ -20,6 +22,7 @@ class S3GraphTest(GraphQLTestCase):
         cls.BUCKET = Bucket.objects.create(s3_name="test-bucket")
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
 
+    @skip("Deactivated for now")
     def test_s3bucket(self):
         self.maxDiff = None
         self.client.force_login(self.USER)
@@ -155,6 +158,7 @@ class S3GraphTest(GraphQLTestCase):
             },
         )
 
+    @skip("Deactivated for now")
     def test_s3objects(self):
         self.maxDiff = None
         self.client.force_login(self.USER)

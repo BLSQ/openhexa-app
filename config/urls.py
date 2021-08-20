@@ -14,8 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from ariadne.contrib.django.views import GraphQLView
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 from .schema import schema
 from hexa.plugins.app import get_connector_app_configs
@@ -34,7 +36,9 @@ urlpatterns = [
         "graphql/",
         GraphQLView.as_view(
             schema=schema, playground_options={"request.credentials": "include"}
-        ),
+        )
+        if settings.DEBUG is True
+        else TemplateView.as_view(template_name="404.html"),
         name="graphql",
     ),
 ]
