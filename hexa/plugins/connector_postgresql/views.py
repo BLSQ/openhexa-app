@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Database
+from ...catalog.lists import build_summary_list_params
 
 
 def datasource_detail(request, datasource_id):
@@ -25,6 +26,16 @@ def datasource_detail(request, datasource_id):
         {
             "datasource": datasource,
             "breadcrumbs": breadcrumbs,
+            "object_list_params": build_summary_list_params(
+                datasource.table_set.all(),
+                per_page=200,
+                title=_("Tables"),
+                columns=[
+                    _("Name"),
+                ],
+                item_name=_("table"),
+                item_template="connector_postgresql/components/object_list_item.html",
+            ),
         },
     )
 
