@@ -1,6 +1,7 @@
 import json
 import uuid
 import psycopg2
+from django.contrib.contenttypes.fields import GenericRelation
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
@@ -158,12 +159,42 @@ class Table(models.Model):
 
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
+    indexes = GenericRelation("catalog.CatalogIndex")
 
     class Meta:
         verbose_name = "PostgreSQL table"
         ordering = ["name"]
 
     objects = TableQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
+
+    @property
+    def index_type(self):
+        return CatalogIndexType.CONTENT
+
+    def index(self):
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.database.last_synced_at,
+                "name": self.name,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.CONTENT,
+            parent=CatalogIndex.objects.get(object_id=self.database.id),
+            detail_url=reverse(
+                "connector_postgresql:datasource_detail",
+                args=(self.database.pk,),
+            ),
+        )
+
+        for permission in self.database.databasepermission_set.all():
+            CatalogIndexPermission.objects.get_or_create(
+                catalog_index=catalog_index, team=permission.team
+            )
 
 
 class DatabasePermission(Permission):
