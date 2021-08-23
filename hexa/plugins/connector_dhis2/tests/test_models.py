@@ -16,11 +16,11 @@ class ConnectorDhis2Test(test.TestCase):
         """Deleting a data element should delete its index as well"""
 
         data_element = DataElement.objects.create(
-            dhis2_name="some-data-element",
-            dhis2_external_access=False,
-            dhis2_favorite=False,
-            dhis2_created=timezone.now(),
-            dhis2_last_updated=timezone.now(),
+            name="some-data-element",
+            external_access=False,
+            favorite=False,
+            created=timezone.now(),
+            last_updated=timezone.now(),
             instance=self.DHIS2_INSTANCE_PLAY,
         )
         data_element_id = data_element.id

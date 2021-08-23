@@ -160,17 +160,17 @@ class Dhis2Entry(Entry):
 
     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
     dhis2_id = models.CharField(max_length=200)
-    dhis2_name = models.TextField()
-    dhis2_short_name = models.CharField(max_length=200, blank=True)
-    dhis2_description = models.TextField(blank=True)
-    dhis2_external_access = models.BooleanField()
-    dhis2_favorite = models.BooleanField()
-    dhis2_created = models.DateTimeField()
-    dhis2_last_updated = models.DateTimeField()
+    name = models.TextField()
+    short_name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    external_access = models.BooleanField()
+    favorite = models.BooleanField()
+    created = models.DateTimeField()
+    last_updated = models.DateTimeField()
 
     @property
     def display_name(self):
-        return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
+        return self.short_name if self.short_name != "" else self.name
 
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
@@ -231,22 +231,20 @@ class AggregationType(models.TextChoices):
 class DataElement(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Data Element"
-        ordering = ("dhis2_name",)
+        ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_domain_type = models.CharField(choices=DomainType.choices, max_length=100)
-    dhis2_value_type = models.CharField(choices=ValueType.choices, max_length=100)
-    dhis2_aggregation_type = models.CharField(
-        choices=AggregationType.choices, max_length=100
-    )
+    code = models.CharField(max_length=100, blank=True)
+    domain_type = models.CharField(choices=DomainType.choices, max_length=100)
+    value_type = models.CharField(choices=ValueType.choices, max_length=100)
+    aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     def index(self):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "external_name": self.dhis2_name,
-                "external_short_name": self.dhis2_short_name,
-                "external_description": self.dhis2_description,
+                "external_name": self.name,
+                "external_short_name": self.short_name,
+                "external_description": self.description,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -267,10 +265,10 @@ class DataElement(Dhis2Entry):
 class IndicatorType(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator type"
-        ordering = ("dhis2_name",)
+        ordering = ("name",)
 
-    dhis2_number = models.BooleanField()
-    dhis2_factor = models.IntegerField()
+    number = models.BooleanField()
+    factor = models.IntegerField()
 
     def index(self):  # TODO: fishy
         pass
@@ -279,21 +277,21 @@ class IndicatorType(Dhis2Entry):
 class Indicator(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator"
-        ordering = ("dhis2_name",)
+        ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_indicator_type = models.ForeignKey(
+    code = models.CharField(max_length=100, blank=True)
+    indicator_type = models.ForeignKey(
         "IndicatorType", null=True, on_delete=models.SET_NULL
     )
-    dhis2_annualized = models.BooleanField()
+    annualized = models.BooleanField()
 
     def index(self):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "external_name": self.dhis2_name,
-                "external_short_name": self.dhis2_short_name,
-                "external_description": self.dhis2_description,
+                "external_name": self.name,
+                "external_short_name": self.short_name,
+                "external_description": self.description,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
