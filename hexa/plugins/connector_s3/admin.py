@@ -15,23 +15,23 @@ class CredentialsAdmin(admin.ModelAdmin):
 
 @admin.register(Bucket)
 class BucketAdmin(admin.ModelAdmin):
-    list_display = ("s3_name", "last_synced_at")
-    list_filter = ("s3_name",)
-    search_fields = ("s3_name",)
+    list_display = ("name", "last_synced_at")
+    list_filter = ("name",)
+    search_fields = ("name",)
 
 
 @admin.register(Object)
 class ObjectAdmin(admin.ModelAdmin):
     list_display = (
         "display_name",
-        "s3_key",
-        "s3_type",
-        "s3_size",
+        "key",
+        "type",
+        "size",
         "orphan",
-        "s3_etag",
+        "etag",
     )
-    list_filter = ("s3_type",)
-    search_fields = ("s3_key",)
+    list_filter = ("type",)
+    search_fields = ("key",)
 
 
 @admin.register(BucketPermission)

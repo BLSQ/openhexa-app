@@ -40,7 +40,7 @@ def dashboard(request):
 
     # TODO: We should instead filter on "executable file"-like on the index to avoid referencing a plugin here
     accessible_notebooks = Object.objects.filter(
-        s3_key__iendswith=".ipynb"
+        key__iendswith=".ipynb"
     ).filter_for_user(request.user)
 
     return render(

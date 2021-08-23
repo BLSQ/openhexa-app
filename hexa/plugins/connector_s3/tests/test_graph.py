@@ -19,7 +19,7 @@ class S3GraphTest(GraphQLTestCase):
             is_superuser=True,
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER)
-        cls.BUCKET = Bucket.objects.create(s3_name="test-bucket")
+        cls.BUCKET = Bucket.objects.create(name="test-bucket")
         BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
 
     @skip("Deactivated for now")
@@ -30,40 +30,40 @@ class S3GraphTest(GraphQLTestCase):
 
         level1 = Object.objects.create(
             bucket=self.BUCKET,
-            s3_size=1234,
+            size=1234,
             name="name1",
             description="desc",
             locale="en",
-            s3_key="test-bucket/dir1/",
-            s3_dirname="test-bucket/",
-            s3_type="directory",
-            s3_storage_class="GLACIER",
+            key="test-bucket/dir1/",
+            dirname="test-bucket/",
+            type="directory",
+            storage_class="GLACIER",
             owner=o,
         )
 
         level2 = Object.objects.create(
             bucket=self.BUCKET,
-            s3_size=1234,
+            size=1234,
             name="dir2/",
             description="desc",
             locale="en",
-            s3_key="test-bucket/dir1/dir2/",
-            s3_dirname="test-bucket/dir1/",
-            s3_type="directory",
-            s3_storage_class="GLACIER",
+            key="test-bucket/dir1/dir2/",
+            dirname="test-bucket/dir1/",
+            type="directory",
+            storage_class="GLACIER",
             owner=o,
         )
 
         Object.objects.create(
             bucket=self.BUCKET,
-            s3_size=1234,
+            size=1234,
             name="name3",
             description="desc",
             locale="en",
-            s3_key="test-bucket/dir1/dir2/file1.csv",
-            s3_dirname="test-bucket/dir1/dir2/",
-            s3_type="file",
-            s3_storage_class="GLACIER",
+            key="test-bucket/dir1/dir2/file1.csv",
+            dirname="test-bucket/dir1/dir2/",
+            type="file",
+            storage_class="GLACIER",
             owner=o,
         )
 
@@ -165,24 +165,24 @@ class S3GraphTest(GraphQLTestCase):
 
         o1 = Object.objects.create(
             bucket=self.BUCKET,
-            s3_size=1234,
+            size=1234,
             description="desc",
             locale="en",
-            s3_key="test-bucket/dir1/",
-            s3_dirname="test-bucket/",
-            s3_type="directory",
-            s3_storage_class="GLACIER",
+            key="test-bucket/dir1/",
+            dirname="test-bucket/",
+            type="directory",
+            storage_class="GLACIER",
         )
 
         o2 = Object.objects.create(
             bucket=self.BUCKET,
-            s3_size=1234,
+            size=1234,
             description="desc",
             locale="en",
-            s3_key="test-bucket/dir1/test.csv",
-            s3_dirname="test-bucket/",
-            s3_type="file",
-            s3_storage_class="GLACIER",
+            key="test-bucket/dir1/test.csv",
+            dirname="test-bucket/",
+            type="file",
+            storage_class="GLACIER",
         )
 
         r = self.run_query(
@@ -199,7 +199,7 @@ class S3GraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"bucketS3Name": str(self.BUCKET.s3_name), "page": 1},
+            {"bucketS3Name": str(self.BUCKET.name), "page": 1},
         )
 
         self.assertEquals(

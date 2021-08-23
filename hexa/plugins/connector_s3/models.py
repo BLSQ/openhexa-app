@@ -65,15 +65,11 @@ class BucketQuerySet(models.QuerySet):
 class Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
-        ordering = ("s3_name",)
+        ordering = ("name",)
 
-    s3_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
 
     objects = BucketQuerySet.as_manager()
-
-    @property
-    def hexa_or_s3_name(self):
-        return self.name if self.name != "" else self.s3_name
 
     def sync(self, user):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
@@ -251,7 +247,7 @@ class Bucket(Datasource):
             defaults={
                 "last_synced_at": self.last_synced_at,
                 "content_summary": self.content_summary,
-                "external_name": self.s3_name,
+                "external_name": self.name,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -266,7 +262,7 @@ class Bucket(Datasource):
 
     @property
     def display_name(self):
-        return self.s3_name
+        return self.name
 
 
 class BucketPermission(Permission):
@@ -295,31 +291,31 @@ class ObjectQuerySet(models.QuerySet):
 class Object(Entry):
     class Meta:
         verbose_name = "S3 Object"
-        ordering = ["s3_key"]
+        ordering = ("key",)
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    s3_dirname = models.TextField()
-    s3_key = models.TextField()
-    s3_size = models.PositiveBigIntegerField()
-    s3_storage_class = models.CharField(max_length=200)  # TODO: choices
-    s3_type = models.CharField(max_length=200)  # TODO: choices
-    s3_last_modified = models.DateTimeField(null=True, blank=True)
-    s3_etag = models.CharField(max_length=200, null=True, blank=True)
-    orphan = models.BooleanField(default=False)
+    dirname = models.TextField()  # TODO: rename to parent_key
+    key = models.TextField()
+    size = models.PositiveBigIntegerField()
+    storage_class = models.CharField(max_length=200)  # TODO: choices
+    type = models.CharField(max_length=200)  # TODO: choices
+    last_modified = models.DateTimeField(null=True, blank=True)
+    etag = models.CharField(max_length=200, null=True, blank=True)
+    orphan = models.BooleanField(default=False)  # TODO: remove?
 
     objects = ObjectQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
-        if self.s3_dirname is None:
-            self.s3_dirname = self.compute_dirname(self.s3_key)
+        if self.dirname is None:
+            self.dirname = self.compute_dirname(self.key)
         super().save(*args, **kwargs)
 
     @property
     def display_name(self):
-        return self.s3_key
+        return self.key
 
     @property
-    def s3_extension(self):
+    def extension(self):
         return os.path.splitext(self.s3_key)[1].lstrip(".")
 
     def index(self):  # TODO: fishy
@@ -334,7 +330,7 @@ class Object(Entry):
 
     @property
     def file_size_display(self):
-        return filesizeformat(self.s3_size) if self.s3_size > 0 else "-"
+        return filesizeformat(self.size) if self.size > 0 else "-"
 
     @property
     def type_display(self):
