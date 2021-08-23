@@ -320,6 +320,33 @@ class Object(Content):
             self.s3_dirname = self.compute_dirname(self.s3_key)
         super().save(*args, **kwargs)
 
+    def index(self):
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.bucket.last_synced_at,
+                "content_summary": self.content_summary,
+                "owner": self.owner,
+                "name": self.name,
+                "external_name": self.s3_key,
+                "countries": self.countries,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.DATASOURCE,
+            detail_url=reverse(
+                "connector_s3:object_detail",
+                args=(
+                    self.bucket.pk,
+                    self.s3_key,
+                ),
+            ),
+        )
+
+        for permission in self.bucket.bucketpermission_set.all():
+            CatalogIndexPermission.objects.get_or_create(
+                catalog_index=catalog_index, team=permission.team
+            )
+
     @property
     def display_name(self):
         return self.name if self.name else self.s3_key
@@ -327,9 +354,6 @@ class Object(Content):
     @property
     def s3_extension(self):
         return os.path.splitext(self.s3_key)[1].lstrip(".")
-
-    def index(self):  # TODO: fishy
-        pass
 
     @classmethod
     def compute_dirname(cls, key):

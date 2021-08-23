@@ -2,7 +2,13 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.contrib.postgres.search import (
+    SearchVector,
+    SearchQuery,
+    SearchRank,
+    TrigramSimilarity,
+    TrigramDistance,
+)
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -57,7 +63,13 @@ class CatalogIndexQuerySet(models.QuerySet):
         search_rank = SearchRank(vector=search_vector, query=search_query)
 
         results = (
-            self.annotate(rank=search_rank).filter(rank__gt=0.01).order_by("-rank")
+            self.annotate(
+                rank=search_rank
+                + TrigramSimilarity("external_name", query)
+                + TrigramSimilarity("name", query)
+            )
+            .filter(rank__gt=0.1)
+            .order_by("-rank")
         )
 
         if content_type is not None:
