@@ -1,5 +1,5 @@
 from django.contrib import admin
-from hexa.catalog.models import CatalogIndex, CatalogIndexPermission, Tag
+from hexa.catalog.models import CatalogIndex, CatalogIndexPermission
 
 
 @admin.register(CatalogIndex)
@@ -12,8 +12,3 @@ class CatalogIndexAdmin(admin.ModelAdmin):
 @admin.register(CatalogIndexPermission)
 class CatalogIndexPermissionAdmin(admin.ModelAdmin):
     list_display = ("catalog_index", "team")
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("name",)

@@ -137,7 +137,3 @@ class Entry(models.Model):
         raise NotImplementedError(
             "Datasource models should implement the index() method"
         )
-
-
-class Tag(RichContent):
-    pass

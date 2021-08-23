@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "hexa.notebooks",
     "hexa.pipelines",
     "hexa.comments",
+    "hexa.tags",
     "hexa.tailwindui",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
