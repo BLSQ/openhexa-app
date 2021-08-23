@@ -23,9 +23,7 @@ class ConnectorDhis2Test(test.TestCase):
             is_superuser=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            name="DHIS2 Play",
-            short_name="Play",
-            description="The DHIS2 official demo instance with realistic sample medical data",
+            url="https://play.dhis2.org",
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY

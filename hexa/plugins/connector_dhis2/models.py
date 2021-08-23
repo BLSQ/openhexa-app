@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -6,8 +7,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import (
-    Content as BaseContent,
     Datasource,
+    Entry,
     CatalogIndex,
     CatalogIndexPermission,
     CatalogIndexType,
@@ -52,13 +53,19 @@ class InstanceQuerySet(models.QuerySet):
 class Instance(Datasource):
     class Meta:
         verbose_name = "DHIS2 Instance"
-        ordering = ("name",)
+        ordering = ("url",)
 
     api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
+    url = models.URLField(blank=True)
+    indexes = GenericRelation("catalog.CatalogIndex")
 
     objects = InstanceQuerySet.as_manager()
+
+    @property
+    def display_name(self):
+        return self.url
 
     def sync(self, user):
         """Sync the datasource by querying the DHIS2 API"""
@@ -121,11 +128,6 @@ class Instance(Datasource):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
-                "owner": self.owner,
-                "name": self.name,
-                "short_name": self.short_name,
-                "description": self.description,
-                "countries": self.countries,
                 "content_summary": self.content_summary,
             },
             content_type=ContentType.objects.get_for_model(self),
@@ -152,10 +154,9 @@ class InstancePermission(Permission):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
 
 
-class Content(BaseContent):
+class Dhis2Entry(Entry):
     class Meta:
         abstract = True
-        ordering = ["name"]
 
     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
     dhis2_id = models.CharField(max_length=200)
@@ -168,24 +169,8 @@ class Content(BaseContent):
     dhis2_last_updated = models.DateTimeField()
 
     @property
-    def hexa_or_dhis2_short_name(self):
-        return self.short_name if self.short_name != "" else self.dhis2_short_name
-
-    @property
-    def hexa_or_dhis2_name(self):
-        return self.name if self.name != "" else self.dhis2_name
-
-    @property
-    def hexa_or_dhis2_description(self):
-        return self.description if self.description != "" else self.dhis2_description
-
-    @property
     def display_name(self):
-        return (
-            self.hexa_or_dhis2_short_name
-            if self.hexa_or_dhis2_short_name != ""
-            else self.hexa_or_dhis2_name
-        )
+        return self.dhis2_short_name if self.dhis2_short_name != "" else self.dhis2_name
 
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
@@ -243,10 +228,10 @@ class AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class DataElement(Content):
+class DataElement(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Data Element"
-        ordering = ("name",)
+        ordering = ("dhis2_name",)
 
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_domain_type = models.CharField(choices=DomainType.choices, max_length=100)
@@ -259,14 +244,9 @@ class DataElement(Content):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "owner": self.instance.owner,
-                "name": self.name,
                 "external_name": self.dhis2_name,
-                "short_name": self.short_name,
                 "external_short_name": self.dhis2_short_name,
-                "description": self.description,
                 "external_description": self.dhis2_description,
-                "countries": self.instance.countries,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -284,10 +264,10 @@ class DataElement(Content):
             )
 
 
-class IndicatorType(Content):
+class IndicatorType(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator type"
-        ordering = ("name",)
+        ordering = ("dhis2_name",)
 
     dhis2_number = models.BooleanField()
     dhis2_factor = models.IntegerField()
@@ -296,10 +276,10 @@ class IndicatorType(Content):
         pass
 
 
-class Indicator(Content):
+class Indicator(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator"
-        ordering = ("name",)
+        ordering = ("dhis2_name",)
 
     dhis2_code = models.CharField(max_length=100, blank=True)
     dhis2_indicator_type = models.ForeignKey(
@@ -311,14 +291,9 @@ class Indicator(Content):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "owner": self.instance.owner,
-                "name": self.name,
                 "external_name": self.dhis2_name,
-                "short_name": self.short_name,
                 "external_short_name": self.dhis2_short_name,
-                "description": self.description,
                 "external_description": self.dhis2_description,
-                "countries": self.instance.countries,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,

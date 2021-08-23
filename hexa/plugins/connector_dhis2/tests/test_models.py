@@ -9,9 +9,7 @@ class ConnectorDhis2Test(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            name="DHIS2 Play",
-            short_name="Play",
-            description="The DHIS2 official demo instance with realistic sample medical data",
+            url="https://play.dhis2.org",
         )
 
     def test_delete_data_element(self):

@@ -89,35 +89,54 @@ class CatalogIndexPermission(models.Model):
     catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
 
 
-class Datasource(RichContent, WithIndex, WithSync):
+class Datasource(models.Model):
     class Meta:
         abstract = True
 
-    url = models.URLField(blank=True)
-    active_from = models.DateTimeField(null=True, blank=True)
-    active_to = models.DateTimeField(null=True, blank=True)
-    public = models.BooleanField(default=False, verbose_name="Public dataset")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
     indexes = GenericRelation("catalog.CatalogIndex")
-    tags = models.ManyToManyField("catalog.Tag", blank=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
 
     @property
-    def index_type(self):
-        return CatalogIndexType.DATASOURCE
+    def display_name(self):
+        raise NotImplementedError(
+            "Datasource models should implement the display_name() property"
+        )
+
+    def index(self):
+        raise NotImplementedError(
+            "Datasource models should implement the index() method"
+        )
 
     def sync(self, user):
-        raise NotImplementedError("Datasource classes should implement sync()")
+        raise NotImplementedError(
+            "Datasource models should implement the sync() method"
+        )
 
 
-class Content(RichContent, WithIndex):
+class Entry(models.Model):
     class Meta:
         abstract = True
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     indexes = GenericRelation("catalog.CatalogIndex")
-    tags = models.ManyToManyField("catalog.Tag", blank=True)
 
-    @property
-    def index_type(self):
-        return CatalogIndexType.CONTENT
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
+
+    def index(self):
+        raise NotImplementedError(
+            "Datasource models should implement the index() method"
+        )
 
 
 class Tag(RichContent):

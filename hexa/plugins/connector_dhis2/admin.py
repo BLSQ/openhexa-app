@@ -17,9 +17,9 @@ class CredentialsAdmin(admin.ModelAdmin):
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("name", "url", "last_synced_at")
-    list_filter = ("name",)
-    search_fields = ("name",)
+    list_display = ("url", "last_synced_at")
+    list_filter = ("url",)
+    search_fields = ("url",)
 
 
 @admin.register(DataElement)
@@ -33,10 +33,8 @@ class DataElementAdmin(admin.ModelAdmin):
         "dhis2_value_type",
         "dhis2_aggregation_type",
     )
-    list_filter = ("instance__name",)
+    list_filter = ("instance__url",)
     search_fields = [
-        "name",
-        "short_name",
         "dhis2_name",
         "dhis2_short_name",
         "dhis2_id",
@@ -48,7 +46,6 @@ class DataElementAdmin(admin.ModelAdmin):
 class IndicatorTypeAdmin(admin.ModelAdmin):
     list_display = (
         "dhis2_id",
-        "name",
         "dhis2_number",
         "dhis2_factor",
     )
@@ -62,9 +59,8 @@ class IndicatorAdmin(admin.ModelAdmin):
         "dhis2_id",
         "dhis2_indicator_type",
     )
-    list_filter = ("instance__name",)
+    list_filter = ("instance__url",)
     search_fields = [
-        "name",
         "dhis2_name",
         "short_name",
         "dhis2_short_name",

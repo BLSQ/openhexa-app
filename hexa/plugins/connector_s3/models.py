@@ -13,8 +13,8 @@ import os
 
 from hexa.catalog.models import (
     Base,
-    Content,
     Datasource,
+    Entry,
     CatalogIndex,
     CatalogIndexPermission,
     CatalogIndexType,
@@ -65,10 +65,7 @@ class BucketQuerySet(models.QuerySet):
 class Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
-        ordering = (
-            "name",
-            "s3_name",
-        )
+        ordering = ("s3_name",)
 
     s3_name = models.CharField(max_length=200)
 
@@ -254,10 +251,7 @@ class Bucket(Datasource):
             defaults={
                 "last_synced_at": self.last_synced_at,
                 "content_summary": self.content_summary,
-                "owner": self.owner,
-                "name": self.name,
                 "external_name": self.s3_name,
-                "countries": self.countries,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -272,7 +266,7 @@ class Bucket(Datasource):
 
     @property
     def display_name(self):
-        return self.hexa_or_s3_name
+        return self.s3_name
 
 
 class BucketPermission(Permission):
@@ -298,7 +292,7 @@ class ObjectQuerySet(models.QuerySet):
         )
 
 
-class Object(Content):
+class Object(Entry):
     class Meta:
         verbose_name = "S3 Object"
         ordering = ["s3_key"]
@@ -322,7 +316,7 @@ class Object(Content):
 
     @property
     def display_name(self):
-        return self.name if self.name else self.s3_key
+        return self.s3_key
 
     @property
     def s3_extension(self):
