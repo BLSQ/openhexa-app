@@ -20,6 +20,7 @@ from hexa.core.models import (
     WithIndex,
     WithSync,
 )
+from django.db.models.functions import Greatest
 
 
 class CatalogIndexType(models.TextChoices):
@@ -50,7 +51,7 @@ class CatalogIndexQuerySet(models.QuerySet):
         except StopIteration:
             content_type = None
 
-        search_vector = SearchVector(
+        fields = [
             "name",
             "external_name",
             "short_name",
@@ -58,17 +59,17 @@ class CatalogIndexQuerySet(models.QuerySet):
             "description",
             "external_description",
             "countries",
-        )
+        ]
+        search_vector = SearchVector(*fields)
         search_query = SearchQuery(query, config=models.F("text_search_config"))
         search_rank = SearchRank(vector=search_vector, query=search_query)
 
+        trigrams = [TrigramSimilarity(field, query) for field in fields]
+        max_trigram = Greatest(*trigrams)
+
         results = (
-            self.annotate(
-                rank=search_rank
-                + TrigramSimilarity("external_name", query)
-                + TrigramSimilarity("name", query)
-            )
-            .filter(rank__gt=0.1)
+            self.annotate(rank=search_rank + max_trigram)
+            .filter(rank__gt=0.11)
             .order_by("-rank")
         )
 
