@@ -332,7 +332,7 @@ class Object(Content):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
+            index_type=CatalogIndexType.CONTENT,
             detail_url=reverse(
                 "connector_s3:object_detail",
                 args=(
