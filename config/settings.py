@@ -154,6 +154,10 @@ CORS_ALLOW_CREDENTIALS = True
 # SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 # SECURE_REDIRECT_EXEMPT = [r"^ready$"]
 
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 

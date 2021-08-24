@@ -1,23 +1,9 @@
 version: "3.8"
 
-services:
-  db:
-    image: postgres:12.5
-    environment:
-      - POSTGRES_DB=hexa-app
-      - POSTGRES_USER=hexa-app
-      - POSTGRES_PASSWORD=hexa-app
-    ports:
-      - 5432:5432
-  app:
+x-app: &default-app
     build: .
-    command: [ "wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000" ]
     volumes:
       - .:/code
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
     environment:
       - DEBUG=true
       - SESSION_COOKIE_SECURE=false
@@ -31,3 +17,28 @@ services:
       - DATABASE_PASSWORD=hexa-app
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
       - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
+
+
+services:
+  db:
+    image: postgres:12.5
+    environment:
+      - POSTGRES_DB=hexa-app
+      - POSTGRES_USER=hexa-app
+      - POSTGRES_PASSWORD=hexa-app
+    ports:
+      - 5432:5432
+
+  app:
+    <<: *default-app
+    command: [ "wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000" ]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  tailwind:
+    <<: *default-app
+    command: "manage tailwind start"
+    ports:
+      - "8383:8383"

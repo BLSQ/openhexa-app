@@ -5,5 +5,7 @@ docker-compose.yml
 k8s
 terraform
 
+**/node_module
+
 **/*.DS_Store
 **/*.pyc
