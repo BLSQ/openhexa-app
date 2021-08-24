@@ -72,6 +72,15 @@
                 {{ datasource.safe_url }}
             </dd>
         </div>
+        <div class="sm:col-span-1">
+            <dt class="text-sm font-medium text-gray-500">
+                {% translate "Last sync" %}
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900">
+                {% url "connector_postgresql:datasource_sync" datasource.pk as sync_url %}
+                {% include "catalog/partials/datasource_sync_info.html" with sync_url=sync_url %}
+            </dd>
+        </div>
 
         <link rel="stylesheet" type="text/css" href="{% static 'css/pygments.css' %}">
 
