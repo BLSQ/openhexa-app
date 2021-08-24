@@ -20,6 +20,7 @@ module.exports = {
     logSnippet: false,
     open: false,
     reloadOnRestart: true,
+    notify: false,
     files: [
         '../static/css/dist/styles.css',
         ...tailwindConfig.purge
