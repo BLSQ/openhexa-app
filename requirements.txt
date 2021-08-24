@@ -8,9 +8,9 @@ ariadne==0.13.0
     # via -r requirements.in
 asgiref==3.4.1
     # via django
-boto3==1.18.15
+boto3==1.18.27
     # via -r requirements.in
-botocore==1.21.15
+botocore==1.21.27
     # via
     #   boto3
     #   s3fs
