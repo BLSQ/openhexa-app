@@ -7,7 +7,6 @@ from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
     TrigramSimilarity,
-    TrigramDistance,
 )
 from django.db import models
 from django.utils.translation import gettext_lazy as _
