@@ -97,7 +97,7 @@ class Bucket(Datasource):
             Bucket.objects.select_for_update().get(pk=self.pk)
             # Sync data elements
             with transaction.atomic():
-                objects = list(self.list_objects(fs, f"{self.s3_name}"))
+                objects = list(self.list_objects(fs, f"{self.name}"))
                 result = self.sync_directories(fs, objects)
                 result += self.sync_objects(fs, objects)
 

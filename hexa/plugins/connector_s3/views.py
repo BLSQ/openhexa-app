@@ -25,7 +25,7 @@ def datasource_detail(request, datasource_id):
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
             "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(s3_dirname=f"{bucket.s3_name}/"),
+                bucket.object_set.filter(s3_dirname=f"{bucket.name}/"),
                 title=_("Objects"),
                 columns=[
                     _("Name"),
@@ -58,7 +58,7 @@ def object_detail(request, bucket_id, path):
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (bucket.s3_name, "connector_s3:bucket_detail", bucket_id),
+        (bucket.name, "connector_s3:bucket_detail", bucket_id),
     ]
 
     acc = []

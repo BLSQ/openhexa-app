@@ -26,7 +26,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
         credentials.update_env(
             {
-                f"AWS_S3_BUCKET_NAMES": ",".join(b.s3_name for b in buckets),
+                f"AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
                 f"AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
                 f"AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
                 f"AWS_SESSION_TOKEN": sts_credentials["SessionToken"],

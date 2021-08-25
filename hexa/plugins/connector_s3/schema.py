@@ -4,18 +4,9 @@ from django.template.defaultfilters import filesizeformat
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as trans
 
-from hexa.catalog.models import Tag
 from hexa.core.resolvers import resolve_tags
-from hexa.core.graphql import GraphQLMultipleChoiceField, EmptyValue, result_page
+from hexa.core.graphql import result_page
 from hexa.plugins.connector_s3.models import Bucket, Object
-from hexa.core.graphql.models import (
-    GraphQLModelForm,
-    GraphQLModelChoiceField,
-    GraphQLModelMultipleChoiceField,
-)
-from hexa.user_management.models import Organization
-from django import forms
-from django_countries import countries
 
 s3_type_defs = """
     extend type Query {
@@ -128,9 +119,7 @@ def resolve_s3_bucket(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     if "s3Name" in kwargs:
-        return Bucket.objects.filter_for_user(request.user).get(
-            s3_name=kwargs["s3Name"]
-        )
+        return Bucket.objects.filter_for_user(request.user).get(name=kwargs["s3Name"])
     elif "id" in kwargs:
         return Bucket.objects.filter_for_user(request.user).get(pk=kwargs["id"])
 
@@ -143,7 +132,7 @@ def resolve_s3_object(_, info, **kwargs):
 
     if "bucketS3Name" and "s3Key" in kwargs:
         return Object.objects.filter_for_user(request.user).get(
-            bucket__s3_name=kwargs["bucketS3Name"],
+            bucket__name=kwargs["bucketS3Name"],
             s3_key=f"{kwargs['bucketS3Name']}/{kwargs['s3Key']}",
         )
     elif "id" in kwargs:
@@ -157,7 +146,7 @@ def resolve_s3_objects(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = Object.objects.filter_for_user(request.user).filter(
-        bucket__s3_name=kwargs["bucketS3Name"]
+        bucket__name=kwargs["bucketS3Name"]
     )
 
     if "parentS3Key" in kwargs:
@@ -174,7 +163,7 @@ def resolve_s3_objects(_, info, **kwargs):
 
 bucket = ObjectType("S3Bucket")
 bucket.set_field("tags", resolve_tags)
-bucket.set_alias("s3Name", "s3_name")
+bucket.set_alias("s3Name", "name")
 
 
 @bucket.field("icon")
@@ -191,7 +180,7 @@ def resolve_content_type(obj: Bucket, info):
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_objects(obj: Bucket, info, page, per_page=None):
-    queryset = obj.object_set.filter(s3_dirname=f"{obj.s3_name}/")
+    queryset = obj.object_set.filter(s3_dirname=f"{obj.name}/")
     return result_page(queryset, page, per_page)
 
 

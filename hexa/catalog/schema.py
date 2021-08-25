@@ -3,10 +3,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static
 
-from hexa.catalog.models import CatalogIndex, CatalogIndexType, Tag
+from hexa.catalog.models import CatalogIndex, CatalogIndexType
 from hexa.core.graphql import result_page
-from hexa.core.resolvers import resolve_tags
 from hexa.plugins.connector_s3.models import Bucket
+from hexa.tags.models import Tag
 
 catalog_type_defs = """
     extend type Query {

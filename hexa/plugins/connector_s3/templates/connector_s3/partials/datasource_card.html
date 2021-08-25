@@ -3,7 +3,7 @@
 {% load syntax %}
 
 {% block card_header_title %}
-    {{ datasource.s3_name }}
+    {{ datasource.name }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -36,7 +36,7 @@
                 {% translate "Bucket name" %}
             </dt>
             <dd class="mt-1 text-sm text-gray-900">
-                {{ datasource.s3_name }}
+                {{ datasource.name }}
             </dd>
         </div>
         <div class="sm:col-span-1">
