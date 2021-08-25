@@ -135,7 +135,7 @@ class Bucket(Datasource):
         new_orphans_count = 0
 
         existing_directories_by_uid = {
-            str(x.id): x for x in self.object_set.filter(s3_type="directory")
+            str(x.id): x for x in self.object_set.filter(type="directory")
         }
 
         for s3_obj in s3_objects:
@@ -152,7 +152,7 @@ class Bucket(Datasource):
 
                 db_obj = existing_directories_by_uid.get(s3_uid)
                 if db_obj:
-                    if db_obj.s3_key != s3_obj["Key"]:  # Directory moved
+                    if db_obj.key != s3_obj["Key"]:  # Directory moved
                         db_obj.update_metadata(s3_obj)
                         db_obj.save()
                         updated_count += 1
@@ -161,7 +161,7 @@ class Bucket(Datasource):
                     del existing_directories_by_uid[s3_uid]
                 else:  # Not in the DB yet
                     db_obj = Object.create_from_object_data(self, s3_obj)
-                    metadata_path = os.path.join(db_obj.s3_key, METADATA_FILENAME)
+                    metadata_path = os.path.join(db_obj.key, METADATA_FILENAME)
                     with fs.open(metadata_path, mode="wb") as fd:
                         fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
                     created_count += 1
@@ -181,8 +181,8 @@ class Bucket(Datasource):
         )
 
     def sync_objects(self, fs, discovered_objects):
-        existing_objects = list(self.object_set.filter(s3_type="file"))
-        existing_by_key = {x.s3_key: x for x in existing_objects}
+        existing_objects = list(self.object_set.filter(type="file"))
+        existing_by_key = {x.key: x for x in existing_objects}
 
         created = {}
         updated_count = 0
@@ -197,7 +197,7 @@ class Bucket(Datasource):
                 continue
 
             if key in existing_by_key:
-                if object_data.get("ETag") == existing_by_key[key].s3_etag:
+                if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
                 else:
                     existing_by_key[key].update_metadata(object_data)
@@ -207,10 +207,10 @@ class Bucket(Datasource):
             else:
                 created[key] = Object.create_from_object_data(self, object_data)
 
-        orphans_by_etag = {x.s3_etag: x for x in existing_by_key.values()}
+        orphans_by_etag = {x.etag: x for x in existing_by_key.values()}
 
         for created_obj in created.values():
-            etag = created_obj.s3_etag
+            etag = created_obj.etag
             orphan_obj = orphans_by_etag.get(etag)
             if orphan_obj:
                 del orphans_by_etag[etag]
@@ -314,11 +314,7 @@ class Object(Entry):
         catalog_index, _ = CatalogIndex.objects.update_or_create(
             defaults={
                 "last_synced_at": self.bucket.last_synced_at,
-                "content_summary": self.content_summary,
-                "owner": self.owner,
-                "name": self.name,
-                "external_name": self.s3_key,
-                "countries": self.countries,
+                "external_name": self.key,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -327,7 +323,7 @@ class Object(Entry):
                 "connector_s3:object_detail",
                 args=(
                     self.bucket.pk,
-                    self.s3_key,
+                    self.key,
                 ),
             ),
         )
@@ -343,7 +339,7 @@ class Object(Entry):
 
     @property
     def extension(self):
-        return os.path.splitext(self.s3_key)[1].lstrip(".")
+        return os.path.splitext(self.key)[1].lstrip(".")
 
     @classmethod
     def compute_dirname(cls, key):
@@ -358,7 +354,7 @@ class Object(Entry):
 
     @property
     def type_display(self):
-        if self.s3_type == "directory":
+        if self.type == "directory":
             return _("Directory")
 
         file_type = {
@@ -366,32 +362,32 @@ class Object(Entry):
             "md": "Markdown document",
             "ipynb": "Jupyter Notebook",
             "csv": "CSV file",
-        }.get(self.s3_extension, "File")
+        }.get(self.extension, "File")
 
         return _(file_type)
 
     def update_metadata(self, object_data):
         self.orphan = False
 
-        self.s3_key = object_data["Key"]
-        self.s3_dirname = self.compute_dirname(object_data["Key"])
-        self.s3_size = object_data["size"]
-        self.s3_etag = object_data["ETag"]
-        self.s3_storage_class = object_data["StorageClass"]
-        self.s3_type = object_data["type"]
-        self.s3_last_modified = object_data.get("LastModified")
-        self.s3_etag = object_data.get("ETag")
+        self.key = object_data["Key"]
+        self.dirname = self.compute_dirname(object_data["Key"])
+        self.size = object_data["size"]
+        self.etag = object_data["ETag"]
+        self.storage_class = object_data["StorageClass"]
+        self.type = object_data["type"]
+        self.last_modified = object_data.get("LastModified")
+        self.etag = object_data.get("ETag")
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
-            s3_key=object_data["Key"],
-            s3_dirname=cls.compute_dirname(object_data["Key"]),
-            s3_size=object_data["size"],
-            s3_storage_class=object_data["StorageClass"],
-            s3_type=object_data["type"],
-            s3_last_modified=object_data.get("LastModified"),
-            s3_etag=object_data.get("ETag"),
+            key=object_data["Key"],
+            dirname=cls.compute_dirname(object_data["Key"]),
+            size=object_data["size"],
+            storage_class=object_data["StorageClass"],
+            type=object_data["type"],
+            last_modified=object_data.get("LastModified"),
+            etag=object_data.get("ETag"),
         )

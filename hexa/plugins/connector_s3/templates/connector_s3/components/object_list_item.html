@@ -2,7 +2,7 @@
 
 <tr>
     <td class="px-6 py-4 whitespace-nowrap">
-        <a class="flex items-center" href="{% url 'connector_s3:object_detail' datasource.pk item.s3_key %}">
+        <a class="flex items-center" href="{% url 'connector_s3:object_detail' datasource.pk item.key %}">
             <div class="text-gray-400">
                 {% include "connector_s3/components/object_type_icon.html" with object=item %}
             </div>
@@ -37,7 +37,7 @@
         </div>
     </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-        <a href="{% url 'connector_s3:object_detail' datasource.pk item.s3_key %}"
+        <a href="{% url 'connector_s3:object_detail' datasource.pk item.key %}"
            class="text-blue-600 hover:text-blue-900 flex justify-end">
             View
             <div class="ml-1 flex-shrink-0">

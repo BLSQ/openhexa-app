@@ -3,7 +3,7 @@
 {% load syntax %}
 
 {% block card_header_title %}
-    s3://{{ object.s3_key }}
+    s3://{{ object.key }}
 {% endblock %}
 
 {% block card_header_image %}
@@ -27,7 +27,7 @@
                     {% translate "Object key" %}
                 </dt>
                 <dd class="mt-1 text-sm text-gray-900">
-                    s3://{{ object.s3_key }}
+                    s3://{{ object.key }}
                 </dd>
         </div>
         {% if object.s3_type == 'file' %}

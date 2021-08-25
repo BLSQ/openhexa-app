@@ -25,7 +25,7 @@ def datasource_detail(request, datasource_id):
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
             "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(s3_dirname=f"{bucket.name}/"),
+                bucket.object_set.filter(dirname=f"{bucket.name}/"),
                 title=_("Objects"),
                 columns=[
                     _("Name"),
@@ -54,7 +54,7 @@ def object_detail(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    object = get_object_or_404(bucket.object_set.all(), s3_key=path)
+    object = get_object_or_404(bucket.object_set.all(), key=path)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -62,7 +62,7 @@ def object_detail(request, bucket_id, path):
     ]
 
     acc = []
-    for i, part in enumerate(object.s3_key.split("/")):
+    for i, part in enumerate(object.key.split("/")):
         acc.append(path)
         if i == 0:
             continue
@@ -78,7 +78,7 @@ def object_detail(request, bucket_id, path):
             "object": object,
             "breadcrumbs": breadcrumbs,
             "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(s3_dirname=object.s3_key),
+                bucket.object_set.filter(dirname=object.key),
                 title=_("Objects"),
                 columns=[
                     _("Name"),

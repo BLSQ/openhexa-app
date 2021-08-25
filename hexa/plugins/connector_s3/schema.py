@@ -133,7 +133,7 @@ def resolve_s3_object(_, info, **kwargs):
     if "bucketS3Name" and "s3Key" in kwargs:
         return Object.objects.filter_for_user(request.user).get(
             bucket__name=kwargs["bucketS3Name"],
-            s3_key=f"{kwargs['bucketS3Name']}/{kwargs['s3Key']}",
+            key=f"{kwargs['bucketS3Name']}/{kwargs['s3Key']}",
         )
     elif "id" in kwargs:
         return Object.objects.filter_for_user(request.user).get(pk=kwargs["id"])
@@ -151,11 +151,11 @@ def resolve_s3_objects(_, info, **kwargs):
 
     if "parentS3Key" in kwargs:
         queryset = queryset.filter(
-            s3_dirname=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
+            dirname=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
         )
     else:
         queryset = queryset.filter(
-            s3_dirname=f"{kwargs['bucketS3Name']}/",
+            dirname=f"{kwargs['bucketS3Name']}/",
         )
 
     return result_page(queryset=queryset, page=kwargs["page"])
@@ -180,24 +180,24 @@ def resolve_content_type(obj: Bucket, info):
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_objects(obj: Bucket, info, page, per_page=None):
-    queryset = obj.object_set.filter(s3_dirname=f"{obj.name}/")
+    queryset = obj.object_set.filter(dirname=f"{obj.name}/")
     return result_page(queryset, page, per_page)
 
 
 s3_object = ObjectType("S3Object")
 
-s3_object.set_alias("s3Key", "s3_key")
-s3_object.set_alias("s3Size", "s3_size")
-s3_object.set_alias("s3Type", "s3_type")
-s3_object.set_alias("s3LastModified", "s3_last_modified")
-s3_object.set_alias("s3Extension", "s3_extension")
+s3_object.set_alias("s3Key", "key")
+s3_object.set_alias("s3Size", "size")
+s3_object.set_alias("s3Type", "type")
+s3_object.set_alias("s3LastModified", "last_modified")
+s3_object.set_alias("s3Extension", "extension")
 s3_object.set_field("tags", resolve_tags)
 
 
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
-    queryset = Object.objects.filter(s3_dirname=obj.s3_key)
+    queryset = Object.objects.filter(dirname=obj.key)
     return result_page(queryset, page, per_page)
 
 
@@ -206,15 +206,15 @@ s3_mutation = MutationType()
 
 @s3_object.field("name")
 def resolve_file_name(obj: Object, *_):  # TODO: proper method or property on model
-    if obj.s3_type == "directory":
-        return obj.s3_key.rstrip("/").split("/")[-1] + "/"
+    if obj.type == "directory":
+        return obj.key.rstrip("/").split("/")[-1] + "/"
 
-    return obj.s3_key.split("/")[-1]
+    return obj.key.split("/")[-1]
 
 
 @s3_object.field("typeDescription")
 def resolve_object_type(obj: Object, *_):
-    if obj.s3_type == "directory":
+    if obj.type == "directory":
         return trans("Directory")
 
     file_type = {
@@ -222,19 +222,19 @@ def resolve_object_type(obj: Object, *_):
         "md": "Markdown document",
         "ipynb": "Jupyter Notebook",
         "csv": "CSV file",
-    }.get(obj.s3_extension, "File")
+    }.get(obj.extension, "File")
 
     return trans(file_type)
 
 
 @s3_object.field("sizeDescription")
 def resolve_file_size_display(obj: Object, *_):
-    return filesizeformat(obj.s3_size) if obj.s3_size > 0 else "-"
+    return filesizeformat(obj.size) if obj.size > 0 else "-"
 
 
 @s3_object.field("detailUrl")
 def resolve_detail_url(obj: Object, *_):
-    return f"/s3/{obj.s3_key}"
+    return f"/s3/{obj.key}"
 
 
 @s3_mutation.field("s3BucketUpdate")
