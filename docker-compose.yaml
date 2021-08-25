@@ -11,6 +11,7 @@ services:
       - 5432:5432
   app:
     build: .
+    restart: unless-stopped
     command: [ "wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000" ]
     volumes:
       - .:/code
