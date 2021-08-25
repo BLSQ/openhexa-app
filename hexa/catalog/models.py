@@ -2,7 +2,12 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+from django.contrib.postgres.search import (
+    SearchVector,
+    SearchQuery,
+    SearchRank,
+    TrigramSimilarity,
+)
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -14,6 +19,7 @@ from hexa.core.models import (
     WithIndex,
     WithSync,
 )
+from django.db.models.functions import Greatest
 
 
 class CatalogIndexType(models.TextChoices):
@@ -44,7 +50,8 @@ class CatalogIndexQuerySet(models.QuerySet):
         except StopIteration:
             content_type = None
 
-        search_vector = SearchVector(
+        # We want the text search to lookup all those fields
+        fields = [
             "name",
             "external_name",
             "short_name",
@@ -52,12 +59,28 @@ class CatalogIndexQuerySet(models.QuerySet):
             "description",
             "external_description",
             "countries",
-        )
+        ]
+
+        # We use SearchVector to instruct the SearchQuery
+        # to look in all those fields
+        search_vector = SearchVector(*fields)
         search_query = SearchQuery(query, config=models.F("text_search_config"))
         search_rank = SearchRank(vector=search_vector, query=search_query)
 
+        # Unfortunately, using `SearchQuery` works nicely only when the user
+        # types a full word (or better, multiple words).
+        # But if you type only part of a word `SearchQuery` will not return a match
+        # This is particularly annoying for S3 objects as their "name" is
+        # considered as single word (slashes don't count as spaces)
+        # So we also match on trigrams for all fields and take the field
+        # that has the highest match and combine it with the match from the SearchVector
+        trigrams = [TrigramSimilarity(field, query) for field in fields]
+        max_trigram = Greatest(*trigrams)
+
         results = (
-            self.annotate(rank=search_rank).filter(rank__gt=0.01).order_by("-rank")
+            self.annotate(rank=search_rank + max_trigram)
+            .filter(rank__gt=0.11)
+            .order_by("-rank")
         )
 
         if content_type is not None:
