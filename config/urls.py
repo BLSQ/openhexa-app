@@ -55,7 +55,5 @@ for app_config in get_connector_app_configs():
 
 if settings.DEBUG:
     import debug_toolbar
-    from django.conf import settings
-    from django.urls import include, path
 
     urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
