@@ -12,7 +12,10 @@ RUN mkdir /code
 WORKDIR /code
 
 COPY requirements.txt /code/
-RUN pip install -r requirements.txt
+
+# Mount a tmp folder inside the container to keep a cache for pip
+# see https://pythonspeed.com/articles/docker-cache-pip-downloads/
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install -r requirements.txt
 
 COPY . /code/
 
