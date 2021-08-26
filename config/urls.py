@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from django.conf import settings
 
 from .schema import schema
 from hexa.plugins.app import get_connector_app_configs
@@ -51,3 +52,8 @@ for app_config in get_connector_app_configs():
             include(app_config.name + ".urls", namespace=app_config.label),
         )
     )
+
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
