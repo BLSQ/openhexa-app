@@ -20,6 +20,8 @@ jobs:
         run: docker login -u $DOCKER_USER -p $DOCKER_PASS
 
       - name: Build docker images
+        env:
+          DOCKER_BUILDKIT: 1
         run: docker-compose build
 
       - name: Run Django tests
