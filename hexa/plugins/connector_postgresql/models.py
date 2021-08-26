@@ -1,15 +1,19 @@
 import json
 import uuid
+import psycopg2
+from django.contrib.contenttypes.fields import GenericRelation
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 
 from hexa.catalog.models import (
     CatalogIndex,
     CatalogIndexPermission,
     CatalogIndexType,
 )
+from hexa.catalog.sync import DatasourceSyncResult
 
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
@@ -27,6 +31,7 @@ class DatabaseQuerySet(models.QuerySet):
 
 class Database(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
 
     hostname = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
@@ -94,6 +99,102 @@ class Database(models.Model):
 
     def __str__(self):
         return self.display_name
+
+    def sync(self, user):
+        with psycopg2.connect(self.url) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                    ORDER BY table_name;
+                """
+                )
+                response = cursor.fetchall()
+
+        created_count = 0
+        updated_count = 0
+        identical_count = 0
+        new_orphans_count = 0
+
+        with transaction.atomic():
+            tables = {x[0] for x in response}
+            existing_tables = Table.objects.filter(database=self)
+            for table in existing_tables:
+                if table.name not in tables:
+                    new_orphans_count += 1
+                    table.delete()
+                else:
+                    identical_count += 1
+            for new_table in tables - {x.name for x in existing_tables}:
+                created_count += 1
+                Table.objects.create(name=new_table, database=self)
+
+            # Flag the datasource as synced
+            self.last_synced_at = timezone.now()
+            self.save()
+
+        return DatasourceSyncResult(
+            datasource=self,
+            created=created_count,
+            updated=updated_count,
+            identical=identical_count,
+            orphaned=new_orphans_count,
+        )
+
+
+class TableQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            database__databasepermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
+
+class Table(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    database = models.ForeignKey("Database", on_delete=models.CASCADE)
+    name = models.CharField(max_length=512)
+    indexes = GenericRelation("catalog.CatalogIndex")
+
+    class Meta:
+        verbose_name = "PostgreSQL table"
+        ordering = ["name"]
+
+    objects = TableQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
+
+    @property
+    def index_type(self):
+        return CatalogIndexType.CONTENT
+
+    def index(self):
+        catalog_index, _ = CatalogIndex.objects.update_or_create(
+            defaults={
+                "last_synced_at": self.database.last_synced_at,
+                "name": self.name,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=CatalogIndexType.CONTENT,
+            parent=CatalogIndex.objects.get(object_id=self.database.id),
+            detail_url=reverse(
+                "connector_postgresql:datasource_detail",
+                args=(self.database.pk,),
+            ),
+        )
+
+        for permission in self.database.databasepermission_set.all():
+            CatalogIndexPermission.objects.get_or_create(
+                catalog_index=catalog_index, team=permission.team
+            )
 
 
 class DatabasePermission(Permission):

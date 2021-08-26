@@ -49,10 +49,13 @@ django==3.2.6
     # via
     #   -r requirements.in
     #   django-cors-headers
+    #   django-debug-toolbar
     #   django-tailwind
 django-cors-headers==3.7.0
     # via -r requirements.in
 django-countries==7.2.1
+    # via -r requirements.in
+django-debug-toolbar==3.2.2
     # via -r requirements.in
 django-tailwind==2.2.0
     # via -r requirements.in
@@ -131,7 +134,9 @@ six==1.16.0
     #   google-auth
     #   python-dateutil
 sqlparse==0.4.1
-    # via django
+    # via
+    #   django
+    #   django-debug-toolbar
 starlette==0.14.2
     # via ariadne
 stringcase==1.2.0

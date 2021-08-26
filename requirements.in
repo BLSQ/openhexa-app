@@ -14,6 +14,7 @@ stringcase
 tblib
 whitenoise
 sentry-sdk
+django-debug-toolbar
 
 # connector_dhis2
 dhis2.py
