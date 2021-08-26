@@ -154,6 +154,14 @@ CORS_ALLOW_CREDENTIALS = True
 # SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 # SECURE_REDIRECT_EXEMPT = [r"^ready$"]
 
+# Django tailwinds specifically asks for INTERNAL_IPS to be set
+# https://django-tailwind.readthedocs.io/en/latest/installation.html
+# > Make sure that the INTERNAL_IPS list is present in the settings.py
+# > file and contains the 127.0.0.1 ip address
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
