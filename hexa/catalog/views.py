@@ -2,13 +2,13 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
-from .models import CatalogIndex, CatalogIndexType
+from .models import Index, IndexType
 
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
-    datasource_indexes = CatalogIndex.objects.filter_for_user(request.user).filter(
-        index_type=CatalogIndexType.DATASOURCE.value
+    datasource_indexes = Index.objects.filter_for_user(request.user).filter(
+        index_type=IndexType.DATASOURCE.value
     )
 
     return render(
@@ -23,16 +23,14 @@ def index(request):
 
 def quick_search(request):
     query = request.GET.get("query", "")
-    results = CatalogIndex.objects.filter_for_user(request.user).search(query)
+    results = Index.objects.filter_for_user(request.user).search(query)
 
     return JsonResponse({"results": [result.to_dict() for result in results]})
 
 
 def search(request):
     query = request.GET.get("query", "")
-    results = CatalogIndex.objects.filter_for_user(request.user).search(
-        query, limit=100
-    )
+    results = Index.objects.filter_for_user(request.user).search(query, limit=100)
 
     return render(
         request,

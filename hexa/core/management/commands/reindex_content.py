@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from hexa.catalog.models import CatalogIndex
+from hexa.catalog.models import Index
 from hexa.pipelines.models import PipelinesIndex
 from hexa.plugins.app import get_connector_app_configs
 
@@ -13,7 +13,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Re-indexing...")
 
         self.stdout.write("Deleting existing catalog indexes")
-        CatalogIndex.objects.all().delete()
+        Index.objects.all().delete()
         self.stdout.write("Deleting existing pipelines indexes")
         PipelinesIndex.objects.all().delete()
 

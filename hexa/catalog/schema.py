@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static
 
-from hexa.catalog.models import CatalogIndex, CatalogIndexType
+from hexa.catalog.models import Index, IndexType
 from hexa.core.graphql import result_page
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.tags.models import Tag
@@ -64,8 +64,8 @@ def resolve_tags(obj, *_):
 @convert_kwargs_to_snake_case
 def resolve_datasources(_, info, page, per_page=None):
     request: HttpRequest = info.context["request"]
-    queryset = CatalogIndex.objects.filter_for_user(request.user).filter(
-        index_type=CatalogIndexType.DATASOURCE.value
+    queryset = Index.objects.filter_for_user(request.user).filter(
+        index_type=IndexType.DATASOURCE.value
     )
 
     return result_page(queryset, page, per_page)
@@ -75,9 +75,7 @@ def resolve_datasources(_, info, page, per_page=None):
 @convert_kwargs_to_snake_case
 def resolve_search(_, info, page, query, per_page=None):
     request: HttpRequest = info.context["request"]
-    queryset = CatalogIndex.objects.filter_for_user(request.user).search(
-        query, limit=100
-    )
+    queryset = Index.objects.filter_for_user(request.user).search(query, limit=100)
 
     return result_page(queryset, page, per_page)
 
@@ -88,13 +86,13 @@ catalog_index.set_alias("type", "content_type_name")
 
 
 @catalog_index.field("icon")
-def resolve_icon(obj: CatalogIndex, info):
+def resolve_icon(obj: Index, info):
     request: HttpRequest = info.context["request"]
     return request.build_absolute_uri(static(f"{obj.app_label}/img/symbol.svg"))
 
 
 @catalog_index.field("detailUrl")
-def resolve_detail_url(obj: CatalogIndex, *_):
+def resolve_detail_url(obj: Index, *_):
     # TODO: this is just a temporary workaround, we need to find a good way to handle index routing
     if ContentType.objects.get_for_model(Bucket) == obj.content_type:
         return f"s3/{obj.object.s3_name}"

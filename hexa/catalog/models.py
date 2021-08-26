@@ -40,7 +40,7 @@ class IndexQuerySet(models.QuerySet):
             return self
 
         return self.filter(
-            catalogindexpermission__team__in=[t.pk for t in user.team_set.all()]
+            indexpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
     def search(self, query, *, limit=10):
@@ -146,7 +146,9 @@ class Index(Base):
     external_type = models.TextField(blank=True)
     external_subtype = models.TextField(blank=True)  # Do we need that?
     external_name = models.TextField(blank=True)
-    external_alternate_name = models.CharField(max_length=200, blank=True)  # TODO: skip for now
+    external_alternate_name = models.CharField(
+        max_length=200, blank=True
+    )  # TODO: skip for now
     external_description = models.TextField(blank=True)
 
     # Search fields / optimizations
@@ -154,7 +156,9 @@ class Index(Base):
     search = SearchVectorField()  # TODO: search_primary?
 
     # To sort
-    detail_url = models.TextField()  # TODO: check / not ideal? or OH URI? Or Redirect? Or plugin function? -> remove
+    detail_url = (
+        models.TextField()
+    )  # TODO: check / not ideal? or OH URI? Or Redirect? Or plugin function? -> remove
     "dhis2/dataelement/<id>"
 
     objects = IndexQuerySet.as_manager()
@@ -207,13 +211,13 @@ class Index(Base):
         }
 
 
-class CatalogIndexPermission(models.Model):
+class IndexPermission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
-    catalog_index = models.ForeignKey("Index", on_delete=models.CASCADE)
+    index = models.ForeignKey("Index", on_delete=models.CASCADE)
 
 
 class Datasource(models.Model):
@@ -224,7 +228,7 @@ class Datasource(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
-    indexes = GenericRelation("catalog.CatalogIndex")
+    indexes = GenericRelation("catalog.Index")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -254,7 +258,7 @@ class Entry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    indexes = GenericRelation("catalog.CatalogIndex")
+    indexes = GenericRelation("catalog.Index")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

@@ -15,9 +15,9 @@ from hexa.catalog.models import (
     Base,
     Datasource,
     Entry,
-    CatalogIndex,
-    CatalogIndexPermission,
-    CatalogIndexType,
+    Index,
+    IndexPermission,
+    IndexType,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
@@ -243,7 +243,7 @@ class Bucket(Datasource):
         )
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
                 "content_summary": self.content_summary,
@@ -251,14 +251,12 @@ class Bucket(Datasource):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
+            index_type=IndexType.DATASOURCE,
             detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
         for permission in self.bucketpermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
     @property
     def display_name(self):
@@ -311,14 +309,14 @@ class Object(Entry):
         super().save(*args, **kwargs)
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.bucket.last_synced_at,
                 "external_name": self.key,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
+            index_type=IndexType.CONTENT,
             detail_url=reverse(
                 "connector_s3:object_detail",
                 args=(
@@ -329,9 +327,7 @@ class Object(Entry):
         )
 
         for permission in self.bucket.bucketpermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
     @property
     def display_name(self):

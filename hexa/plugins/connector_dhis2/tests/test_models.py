@@ -1,7 +1,7 @@
 from django import test
 from django.utils import timezone
 
-from hexa.catalog.models import CatalogIndex
+from hexa.catalog.models import Index
 from ..models import Instance, DataElement
 
 
@@ -24,10 +24,6 @@ class ConnectorDhis2Test(test.TestCase):
             instance=self.DHIS2_INSTANCE_PLAY,
         )
         data_element_id = data_element.id
-        self.assertEqual(
-            1, CatalogIndex.objects.filter(object_id=data_element_id).count()
-        )
+        self.assertEqual(1, Index.objects.filter(object_id=data_element_id).count())
         data_element.delete()
-        self.assertEqual(
-            0, CatalogIndex.objects.filter(object_id=data_element_id).count()
-        )
+        self.assertEqual(0, Index.objects.filter(object_id=data_element_id).count())

@@ -9,9 +9,9 @@ from django.urls import reverse
 from django.utils import timezone
 
 from hexa.catalog.models import (
-    CatalogIndex,
-    CatalogIndexPermission,
-    CatalogIndexType,
+    Index,
+    IndexPermission,
+    IndexType,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 
@@ -75,23 +75,21 @@ class Database(models.Model):
         self.index()
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "name": self.unique_name,
                 "external_name": self.database,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
+            index_type=IndexType.DATASOURCE,
             detail_url=reverse(
                 "connector_postgresql:datasource_detail", args=(self.pk,)
             ),
         )
 
         for permission in self.databasepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
     @property
     def display_name(self):
@@ -159,7 +157,7 @@ class Table(models.Model):
 
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
-    indexes = GenericRelation("catalog.CatalogIndex")
+    indexes = GenericRelation("catalog.Index")
 
     class Meta:
         verbose_name = "PostgreSQL table"
@@ -173,18 +171,18 @@ class Table(models.Model):
 
     @property
     def index_type(self):
-        return CatalogIndexType.CONTENT
+        return IndexType.CONTENT
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.database.last_synced_at,
                 "name": self.name,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            parent=CatalogIndex.objects.get(object_id=self.database.id),
+            index_type=IndexType.CONTENT,
+            parent=Index.objects.get(object_id=self.database.id),
             detail_url=reverse(
                 "connector_postgresql:datasource_detail",
                 args=(self.database.pk,),
@@ -192,9 +190,7 @@ class Table(models.Model):
         )
 
         for permission in self.database.databasepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
 
 class DatabasePermission(Permission):

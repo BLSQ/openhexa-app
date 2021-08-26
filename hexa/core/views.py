@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.db import connection
 
-from hexa.catalog.models import CatalogIndex, CatalogIndexType
+from hexa.catalog.models import Index, IndexType
 from hexa.plugins.connector_s3.models import Object
 
 
@@ -34,8 +34,8 @@ def index(request):
 
 def dashboard(request):
     breadcrumbs = [(_("Dashboard"), "core:dashboard")]
-    accessible_datasources = CatalogIndex.objects.filter(
-        index_type=CatalogIndexType.DATASOURCE
+    accessible_datasources = Index.objects.filter(
+        index_type=IndexType.DATASOURCE
     ).filter_for_user(request.user)
 
     # TODO: We should instead filter on "executable file"-like on the index to avoid referencing a plugin here

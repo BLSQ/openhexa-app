@@ -9,9 +9,9 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.models import (
     Datasource,
     Entry,
-    CatalogIndex,
-    CatalogIndexPermission,
-    CatalogIndexType,
+    Index,
+    IndexPermission,
+    IndexType,
 )
 from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
@@ -59,7 +59,7 @@ class Instance(Datasource):
         "Credentials", null=True, on_delete=models.SET_NULL
     )
     url = models.URLField(blank=True)
-    indexes = GenericRelation("catalog.CatalogIndex")
+    indexes = GenericRelation("catalog.Index")
 
     objects = InstanceQuerySet.as_manager()
 
@@ -125,20 +125,18 @@ class Instance(Datasource):
         )
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
                 "content_summary": self.content_summary,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
+            index_type=IndexType.DATASOURCE,
             detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
         )
         for permission in self.instancepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
 
 class InstancePermission(Permission):
@@ -239,7 +237,7 @@ class DataElement(Dhis2Entry):
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
                 "external_name": self.name,
@@ -248,8 +246,8 @@ class DataElement(Dhis2Entry):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            parent=CatalogIndex.objects.get(object_id=self.instance.id),
+            index_type=IndexType.CONTENT,
+            parent=Index.objects.get(object_id=self.instance.id),
             detail_url=reverse(
                 "connector_dhis2:data_element_detail",
                 args=(self.instance.pk, self.pk),
@@ -257,9 +255,7 @@ class DataElement(Dhis2Entry):
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
 
 class IndicatorType(Dhis2Entry):
@@ -286,7 +282,7 @@ class Indicator(Dhis2Entry):
     annualized = models.BooleanField()
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
                 "external_name": self.name,
@@ -295,8 +291,8 @@ class Indicator(Dhis2Entry):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            parent=CatalogIndex.objects.get(object_id=self.instance.id),
+            index_type=IndexType.CONTENT,
+            parent=Index.objects.get(object_id=self.instance.id),
             detail_url=reverse(
                 "connector_dhis2:indicator_detail",
                 args=(self.instance.pk, self.pk),
@@ -304,9 +300,7 @@ class Indicator(Dhis2Entry):
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.update_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.update_or_create(index=index, team=permission.team)
 
 
 class ExtractStatus(models.TextChoices):
