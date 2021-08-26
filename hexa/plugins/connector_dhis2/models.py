@@ -1,4 +1,6 @@
+from dhis2 import RequestException
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -20,6 +22,11 @@ from ...core.date_utils import date_format
 from ...core.models.cryptography import EncryptedTextField
 
 
+def validate_dhis2_base_url(value):
+    if value.endswith("/"):
+        raise ValidationError("DHIS2 url should not end with a '/'")
+
+
 class Credentials(Base):
     """This class is a temporary way to store S3 credentials. This approach is not safe for production,
     as credentials are not encrypted.
@@ -30,13 +37,29 @@ class Credentials(Base):
         verbose_name_plural = "DHIS2 API Credentials"
         ordering = ("api_url",)
 
-    api_url = models.URLField()
+    api_url = models.URLField(validators=[validate_dhis2_base_url])
     username = EncryptedTextField()
     password = EncryptedTextField()
 
     @property
     def display_name(self):
         return self.api_url
+
+    def clean(self):
+        client = Dhis2Client(
+            url=self.api_url,
+            username=self.username,
+            password=self.password,
+        )
+        try:
+            client._api.get_info()
+        except RequestException as e:
+            if e.code == 401:
+                raise ValidationError(
+                    "DHIS2 Credentials are invalid, please check username and password"
+                )
+            if e.code == 500:
+                raise ValidationError("DHIS2 URL is invalid")
 
 
 class InstanceQuerySet(models.QuerySet):
