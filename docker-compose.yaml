@@ -1,5 +1,6 @@
 version: "3.8"
 
+# Defines a service that can be reused multiple times later
 x-app: &default-app
     build: .
     volumes:
@@ -30,6 +31,7 @@ services:
       - 5432:5432
 
   app:
+    # Inherit from the block defined on top and override some fields
     <<: *default-app
     command: [ "wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000" ]
     ports:
@@ -38,6 +40,7 @@ services:
       - db
 
   tailwind:
+    # Inherit from the block defined on top and override some fields
     <<: *default-app
     command: "manage tailwind start"
     ports:
