@@ -8,6 +8,7 @@ from django.contrib.postgres.search import (
     SearchQuery,
     SearchRank,
     TrigramSimilarity,
+    SearchVectorField,
 )
 from django.db import models
 from django.db.models.functions import Greatest
@@ -27,13 +28,13 @@ from hexa.core.models import (
 from hexa.core.models.postgres import locale_to_text_search_config
 
 
-class CatalogIndexType(models.TextChoices):
+class IndexType(models.TextChoices):
     # TODO: prefix with CATALOG
     DATASOURCE = "DATASOURCE", _("Datasource")
-    CONTENT = "CONTENT ", _("Content")
+    CONTENT = "Entry ", _("Entry")
 
 
-class CatalogIndexQuerySet(models.QuerySet):
+class IndexQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -97,7 +98,7 @@ class CatalogIndexQuerySet(models.QuerySet):
         return results
 
 
-class CatalogIndex(Base):
+class Index(Base):
     class Meta:
         verbose_name = "Catalog Index"
         verbose_name_plural = "Catalog indexes"
@@ -107,31 +108,56 @@ class CatalogIndex(Base):
         super().__init__(*args, **kwargs)
         self.rank = None
 
+    # Content-type
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     object = GenericForeignKey("content_type", "object_id")
-    # TODO: remove?
-    parent = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
 
-    # TODO: remove?
+    # Hierarchy / type
+    index_type = models.CharField(max_length=100, choices=IndexType.choices)
+    parent = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.CASCADE
+    )  # TODO: needed?
+    source = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        limit_choices_to={"index_type": IndexType.DATASOURCE},
+    )  # TODO: root?
+    # path = LtreeField()
+
+    # Hexa Metadata
+    label = models.TextField(blank=True)
+    description = models.TextField(blank=True)
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    name = models.TextField(blank=True)
-    external_name = models.TextField(blank=True)
-    short_name = models.CharField(max_length=200, blank=True)
-    external_short_name = models.CharField(max_length=200, blank=True)
-    description = models.TextField(blank=True)
-    external_description = models.TextField(blank=True)
+    context = models.TextField(blank=True)
+    content = models.TextField(blank=True)  # TODO: replaces content_summary - to check
     countries = CountryField(multiple=True, blank=True)
+    tags = models.ManyToManyField("tags.Tag")
     locale = LocaleField(default="en")
-    detail_url = models.TextField()
-    content_summary = models.TextField(blank=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
-    text_search_config = PostgresTextSearchConfigField()
-    index_type = models.CharField(max_length=100, choices=CatalogIndexType.choices)
 
-    objects = CatalogIndexQuerySet.as_manager()
+    # External data
+    external_id = models.TextField(blank=True)
+    external_id_2 = models.TextField(blank=True)
+    external_type = models.TextField(blank=True)
+    external_subtype = models.TextField(blank=True)  # Do we need that?
+    external_name = models.TextField(blank=True)
+    external_alternate_name = models.CharField(max_length=200, blank=True)  # TODO: skip for now
+    external_description = models.TextField(blank=True)
+
+    # Search fields / optimizations
+    text_search_config = PostgresTextSearchConfigField()
+    search = SearchVectorField()  # TODO: search_primary?
+
+    # To sort
+    detail_url = models.TextField()  # TODO: check / not ideal? or OH URI? Or Redirect? Or plugin function? -> remove
+    "dhis2/dataelement/<id>"
+
+    objects = IndexQuerySet.as_manager()
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
@@ -142,40 +168,19 @@ class CatalogIndex(Base):
         super().save(force_insert, force_update, using, update_fields)
 
     @property
-    def app_label(self):
+    def app_label(self):  # TODO: check
         return self.content_type.app_label
 
     @property
-    def content_type_name(self):
+    def content_type_name(self):  # TODO: check
         return self.content_type.name
 
     @property
-    def name_or_external_name(self):
-        return self.name if self.name != "" else self.external_name
-
-    @property
-    def short_name_or_external_short_name(self):
-        return self.short_name if self.short_name != "" else self.external_short_name
-
-    @property
     def display_name(self):
-        return (
-            self.short_name_or_external_short_name
-            if self.short_name_or_external_short_name != ""
-            else self.name_or_external_name
-        )
+        return self.external_name
 
     @property
-    def summary(self):
-        summary = self.content_type_name
-
-        if self.parent is not None:
-            summary += f" ({self.parent.display_name})"
-
-        return summary
-
-    @property
-    def symbol(self):
+    def symbol(self):  # TODO: check
         return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
 
     def to_dict(self):
@@ -208,7 +213,7 @@ class CatalogIndexPermission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
-    catalog_index = models.ForeignKey("CatalogIndex", on_delete=models.CASCADE)
+    catalog_index = models.ForeignKey("Index", on_delete=models.CASCADE)
 
 
 class Datasource(models.Model):
