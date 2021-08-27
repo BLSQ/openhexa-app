@@ -39,6 +39,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - tailwind
 
   tailwind:
     # Inherit from the block defined on top and override some fields
