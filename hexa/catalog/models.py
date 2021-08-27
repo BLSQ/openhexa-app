@@ -95,7 +95,10 @@ class IndexQuerySet(TreeQuerySet):
 
 
 class IndexManager(TreeManager):
-    def get_queryset(self):
+    """Only used to override TreeManager.get_queryset(), which prevented us from having our
+    own queryset."""
+
+    def get_queryset(self):  # TODO: PR in django-ltree?
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
 
 
@@ -115,7 +118,7 @@ class Index(Base):
     object = GenericForeignKey("content_type", "object_id")
 
     # Hierarchy
-    path = PathField(null=True, blank=True, unique=True)
+    path = PathField(null=True, blank=True, unique=True)  # TODO: not null? not blank?
 
     # Hexa Metadata
     label = models.TextField(blank=True)
@@ -129,6 +132,7 @@ class Index(Base):
     tags = models.ManyToManyField("tags.Tag")
     locale = LocaleField(default="en")
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    # TODO: add comments
 
     # External data
     external_id = models.TextField(blank=True)
@@ -139,7 +143,7 @@ class Index(Base):
 
     # Search fields / optimizations
     text_search_config = PostgresTextSearchConfigField()
-    search = SearchVectorField()
+    search = SearchVectorField()  # TODO: blank?
 
     objects = IndexManager.from_queryset(IndexQuerySet)()
 
