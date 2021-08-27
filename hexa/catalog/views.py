@@ -2,14 +2,12 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Index, IndexType
+from .models import Index
 
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
-    datasource_indexes = Index.objects.filter_for_user(request.user).filter(
-        index_type=IndexType.DATASOURCE.value
-    )
+    datasource_indexes = Index.objects.filter_for_user(request.user).roots()
 
     return render(
         request,

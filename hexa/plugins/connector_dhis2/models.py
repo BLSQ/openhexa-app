@@ -11,7 +11,6 @@ from hexa.catalog.models import (
     Entry,
     Index,
     IndexPermission,
-    IndexType,
 )
 from hexa.core.models import Base, Permission, RichContent
 from .api import Dhis2Client
@@ -132,8 +131,6 @@ class Instance(Datasource):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.DATASOURCE,
-            detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
         )
         for permission in self.instancepermission_set.all():
             IndexPermission.objects.get_or_create(index=index, team=permission.team)
@@ -246,12 +243,7 @@ class DataElement(Dhis2Entry):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.CONTENT,
             parent=Index.objects.get(object_id=self.instance.id),
-            detail_url=reverse(
-                "connector_dhis2:data_element_detail",
-                args=(self.instance.pk, self.pk),
-            ),
         )
 
         for permission in self.instance.instancepermission_set.all():
@@ -291,12 +283,7 @@ class Indicator(Dhis2Entry):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.CONTENT,
             parent=Index.objects.get(object_id=self.instance.id),
-            detail_url=reverse(
-                "connector_dhis2:indicator_detail",
-                args=(self.instance.pk, self.pk),
-            ),
         )
 
         for permission in self.instance.instancepermission_set.all():

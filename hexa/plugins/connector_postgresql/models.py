@@ -11,7 +11,6 @@ from django.utils import timezone
 from hexa.catalog.models import (
     Index,
     IndexPermission,
-    IndexType,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 
@@ -82,10 +81,6 @@ class Database(models.Model):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.DATASOURCE,
-            detail_url=reverse(
-                "connector_postgresql:datasource_detail", args=(self.pk,)
-            ),
         )
 
         for permission in self.databasepermission_set.all():
@@ -169,10 +164,6 @@ class Table(models.Model):
         super().save(*args, **kwargs)
         self.index()
 
-    @property
-    def index_type(self):
-        return IndexType.CONTENT
-
     def index(self):
         index, _ = Index.objects.update_or_create(
             defaults={
@@ -181,12 +172,6 @@ class Table(models.Model):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.CONTENT,
-            parent=Index.objects.get(object_id=self.database.id),
-            detail_url=reverse(
-                "connector_postgresql:datasource_detail",
-                args=(self.database.pk,),
-            ),
         )
 
         for permission in self.database.databasepermission_set.all():

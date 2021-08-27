@@ -6,6 +6,7 @@ cryptography
 Django
 django-cors-headers
 django-countries
+django-ltree
 django-tailwind
 gunicorn
 pandas

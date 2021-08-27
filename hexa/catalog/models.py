@@ -14,6 +14,8 @@ from django.db import models
 from django.db.models.functions import Greatest
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from django_ltree.fields import PathField
+from django_ltree.managers import TreeQuerySet, TreeManager
 
 from hexa.core.date_utils import date_format
 from hexa.core.models import (
@@ -28,13 +30,7 @@ from hexa.core.models import (
 from hexa.core.models.postgres import locale_to_text_search_config
 
 
-class IndexType(models.TextChoices):
-    # TODO: prefix with CATALOG
-    DATASOURCE = "DATASOURCE", _("Datasource")
-    CONTENT = "Entry ", _("Entry")
-
-
-class IndexQuerySet(models.QuerySet):
+class IndexQuerySet(TreeQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -113,19 +109,8 @@ class Index(Base):
     object_id = models.UUIDField()
     object = GenericForeignKey("content_type", "object_id")
 
-    # Hierarchy / type
-    index_type = models.CharField(max_length=100, choices=IndexType.choices)
-    parent = models.ForeignKey(
-        "self", null=True, blank=True, on_delete=models.CASCADE
-    )  # TODO: needed?
-    source = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        limit_choices_to={"index_type": IndexType.DATASOURCE},
-    )  # TODO: root?
-    # path = LtreeField()
+    # Hierarchy
+    path = PathField(null=True, blank=True, unique=True)
 
     # Hexa Metadata
     label = models.TextField(blank=True)
@@ -133,8 +118,7 @@ class Index(Base):
     owner = models.ForeignKey(
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
-    context = models.TextField(blank=True)
-    content = models.TextField(blank=True)  # TODO: replaces content_summary - to check
+    content = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     tags = models.ManyToManyField("tags.Tag")
     locale = LocaleField(default="en")
@@ -142,26 +126,16 @@ class Index(Base):
 
     # External data
     external_id = models.TextField(blank=True)
-    external_id_2 = models.TextField(blank=True)
     external_type = models.TextField(blank=True)
-    external_subtype = models.TextField(blank=True)  # Do we need that?
+    external_subtype = models.TextField(blank=True)
     external_name = models.TextField(blank=True)
-    external_alternate_name = models.CharField(
-        max_length=200, blank=True
-    )  # TODO: skip for now
     external_description = models.TextField(blank=True)
 
     # Search fields / optimizations
     text_search_config = PostgresTextSearchConfigField()
-    search = SearchVectorField()  # TODO: search_primary?
+    search = SearchVectorField()
 
-    # To sort
-    detail_url = (
-        models.TextField()
-    )  # TODO: check / not ideal? or OH URI? Or Redirect? Or plugin function? -> remove
-    "dhis2/dataelement/<id>"
-
-    objects = IndexQuerySet.as_manager()
+    objects = TreeManager.from_queryset(IndexQuerySet)
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None

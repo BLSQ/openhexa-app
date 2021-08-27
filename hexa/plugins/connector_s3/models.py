@@ -17,7 +17,6 @@ from hexa.catalog.models import (
     Entry,
     Index,
     IndexPermission,
-    IndexType,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
@@ -251,8 +250,6 @@ class Bucket(Datasource):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.DATASOURCE,
-            detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
         for permission in self.bucketpermission_set.all():
@@ -316,14 +313,6 @@ class Object(Entry):
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=IndexType.CONTENT,
-            detail_url=reverse(
-                "connector_s3:object_detail",
-                args=(
-                    self.bucket.pk,
-                    self.key,
-                ),
-            ),
         )
 
         for permission in self.bucket.bucketpermission_set.all():

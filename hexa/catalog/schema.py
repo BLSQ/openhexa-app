@@ -3,7 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static
 
-from hexa.catalog.models import Index, IndexType
+from hexa.catalog.models import Index
 from hexa.core.graphql import result_page
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.tags.models import Tag
@@ -64,9 +64,7 @@ def resolve_tags(obj, *_):
 @convert_kwargs_to_snake_case
 def resolve_datasources(_, info, page, per_page=None):
     request: HttpRequest = info.context["request"]
-    queryset = Index.objects.filter_for_user(request.user).filter(
-        index_type=IndexType.DATASOURCE.value
-    )
+    queryset = Index.objects.filter_for_user(request.user).roots()
 
     return result_page(queryset, page, per_page)
 
