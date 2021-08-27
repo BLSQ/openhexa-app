@@ -94,11 +94,16 @@ class IndexQuerySet(TreeQuerySet):
         return results
 
 
+class IndexManager(TreeManager):
+    def get_queryset(self):
+        return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
+
+
 class Index(Base):
     class Meta:
         verbose_name = "Catalog Index"
         verbose_name_plural = "Catalog indexes"
-        ordering = ("name",)
+        ordering = ("external_name",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -119,6 +124,7 @@ class Index(Base):
         "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
     )
     content = models.TextField(blank=True)
+    context = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
     tags = models.ManyToManyField("tags.Tag")
     locale = LocaleField(default="en")
@@ -135,7 +141,7 @@ class Index(Base):
     text_search_config = PostgresTextSearchConfigField()
     search = SearchVectorField()
 
-    objects = TreeManager.from_queryset(IndexQuerySet)
+    objects = IndexManager.from_queryset(IndexQuerySet)()
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None

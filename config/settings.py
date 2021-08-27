@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "django_countries",
+    "django_ltree",
     "ariadne.contrib.django",
     "tailwind",
     "hexa.user_management",
