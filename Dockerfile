@@ -19,7 +19,8 @@ RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install -r requirem
 
 COPY . /code/
 
-ENV SECRET_KEY="connectstatic"
+ENV SECRET_KEY="collectstatic"
+RUN python manage.py tailwind build --noinput
 RUN python manage.py collectstatic --noinput
 
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
