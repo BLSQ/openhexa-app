@@ -39,10 +39,12 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - tailwind
 
   tailwind:
     # Inherit from the block defined on top and override some fields
     <<: *default-app
     command: "manage tailwind start"
+    restart: unless-stopped
     ports:
       - "8383:8383"
