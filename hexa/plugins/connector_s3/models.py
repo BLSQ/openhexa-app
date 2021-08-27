@@ -1,6 +1,9 @@
 import json
 
+import boto3
+from botocore.exceptions import ClientError
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -77,6 +80,31 @@ class Bucket(Datasource):
     @property
     def hexa_or_s3_name(self):
         return self.name if self.name != "" else self.s3_name
+
+    def clean(self):
+        try:
+            principal_s3_credentials = Credentials.objects.get()
+        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
+            raise ValidationError(
+                "Ensure the S3 connector plugin first has a single credentials entry"
+            )
+
+        sts_credentials = generate_sts_buckets_credentials(
+            user=None,
+            principal_credentials=principal_s3_credentials,
+            buckets=[self],
+            duration=900,
+        )
+        client = boto3.client(
+            "s3",
+            aws_access_key_id=sts_credentials["AccessKeyId"],
+            aws_secret_access_key=sts_credentials["SecretAccessKey"],
+            aws_session_token=sts_credentials["SessionToken"],
+        )
+        try:
+            client.head_bucket(Bucket=self.s3_name)
+        except ClientError as e:
+            raise ValidationError(e)
 
     def sync(self, user):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
