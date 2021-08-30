@@ -44,7 +44,7 @@ services:
   tailwind:
     # Inherit from the block defined on top and override some fields
     <<: *default-app
-    command: "manage tailwind start"
+    command: "tailwind"
     restart: unless-stopped
     ports:
       - "8383:8383"
