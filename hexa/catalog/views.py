@@ -3,16 +3,19 @@ from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Index
+from .datagrids import DatasourceGrid
 
 
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
     datasource_indexes = Index.objects.filter_for_user(request.user).roots()
+    datasource_grid = DatasourceGrid(datasource_indexes)
 
     return render(
         request,
         "catalog/index.html",
         {
+            "datasource_grid": datasource_grid,
             "datasource_indexes": datasource_indexes,
             "breadcrumbs": breadcrumbs,
         },
