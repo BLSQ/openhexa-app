@@ -22,6 +22,7 @@ show_help() {
   manage           : run django manage.py
   fixtures         : migrate, create superuser, load fixtures and reindex
   bash             : run bash
+  tailwind         : run tailwind browser-sync
 
   Any arguments passed will be forwarded to the executed command
   """
@@ -70,6 +71,10 @@ case "$command" in
   ;;
 "bash")
   bash $arguments
+  ;;
+"tailwind")
+  python manage.py tailwind install
+  python manage.py tailwind start
   ;;
 *)
   show_help
