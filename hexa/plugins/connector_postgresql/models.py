@@ -128,6 +128,7 @@ class Database(models.Model):
                     new_orphans_count += 1
                     table.delete()
                 else:
+                    table.save()
                     identical_count += 1
             for new_table in tables - {x.name for x in existing_tables}:
                 created_count += 1
@@ -177,7 +178,12 @@ class Table(models.Model):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.database.last_synced_at,
-                "name": self.name,
+                "external_name": self.name,
+                "external_type": ExternalType.TABLE.value,
+                "path": f"{self.database.pk}.{self.pk}".replace("-", ""),
+                "external_id": f"{self.database.safe_url}/{self.name}",
+                "context": self.database.database,
+                "search": f"{self.name}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
