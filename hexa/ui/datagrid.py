@@ -37,13 +37,6 @@ class Datagrid(metaclass=DatagridMeta):
         """Render the datagrid"""
 
         template = loader.get_template("ui/datagrid/datagrid.html")
-        column_config = [
-            {
-                "label": _(column.label if column.label is not None else column_name),
-                "template": column.template,
-            }
-            for column_name, column in self._meta.columns.items()
-        ]
         row_data = []
         for row in self.queryset:
             single_row_data = []
@@ -54,7 +47,7 @@ class Datagrid(metaclass=DatagridMeta):
 
             row_data.append(single_row_data)
 
-        context = {"rows": row_data, "columns": column_config}
+        context = {"rows": row_data, "columns": self._meta.columns.values()}
 
         return template.render(context)
 
@@ -62,8 +55,9 @@ class Datagrid(metaclass=DatagridMeta):
 class Column:
     """Base column class (to be extended)"""
 
-    def __init__(self, *, label=None):
-        self.label = label
+    def __init__(self, *, label=None, hide_label=False):
+        self._label = label
+        self.hide_label = hide_label
         self.name = None
         self.grid = None
 
@@ -72,6 +66,10 @@ class Column:
         self.grid = grid
 
         return self
+
+    @property
+    def label(self):
+        return _(self._label) if self._label is not None else _(self.name)
 
     @property
     def template(self):
@@ -92,24 +90,34 @@ class Column:
         if not self.bound:
             raise ValueError("Cannot get row value for unbound column")
 
-        paths = accessor.split(".")
-        value = row
-        for path in paths:
-            value = getattr(value, path)
+        if hasattr(self.grid, accessor) and callable(getattr(self.grid, accessor)):
+            return getattr(self.grid, accessor)(self.grid, row)
 
-        return value
+        paths = accessor.split(".")
+        row_value = row
+        for path in paths:
+            if hasattr(row_value, path):
+                row_value = getattr(row_value, path)
+            else:
+                row_value = None
+                break
+        if row_value is not None:
+            return row_value
+
+        return None
 
 
 class LeadingColumn(Column):
     """First column, with link, image and two rows of text"""
 
     def __init__(
-        self, *, image_src=None, main_text=None, secondary_text=None, **kwargs
+        self, *, main_text, secondary_text, detail_url=None, image_src=None, **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_src = image_src
         self.main_text = main_text
         self.secondary_text = secondary_text
+        self.detail_url = detail_url
+        self.image_src = image_src
 
     @property
     def template(self):
@@ -117,6 +125,7 @@ class LeadingColumn(Column):
 
     def data(self, row):
         return {
+            "detail_url": self.get_row_value(row, self.detail_url),
             "main_text": self.get_row_value(row, self.main_text),
             "secondary_text": self.get_row_value(row, self.secondary_text),
             "image_src": self.get_row_value(row, self.image_src),
@@ -161,6 +170,13 @@ class TextColumn(Column):
 
 class LinkColumn(Column):
     def __init__(self, *, text, url, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, hide_label=True)
         self.text = text
         self.url = url
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_link.html"
+
+    def data(self, row):
+        return {"label": _(self.text), "url": self.get_row_value(row, self.url)}

@@ -135,6 +135,11 @@ class Instance(Datasource):
         for permission in self.instancepermission_set.all():
             IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:instance_detail", kwargs={"instance_id": self.id}
+        )
+
 
 class InstancePermission(Permission):
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
