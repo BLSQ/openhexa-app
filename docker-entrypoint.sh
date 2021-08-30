@@ -22,6 +22,7 @@ show_help() {
   manage           : run django manage.py
   fixtures         : migrate, create superuser, load fixtures and reindex
   bash             : run bash
+  tailwind         : run tailwind browser-sync
 
   Any arguments passed will be forwarded to the executed command
   """
@@ -32,12 +33,15 @@ case "$command" in
   $command $arguments
   ;;
 "start")
+  wait-for-it db:5432
   gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
 "makemigrations" | "migrate")
+  wait-for-it db:5432
   python manage.py $command $arguments
   ;;
 "test")
+  wait-for-it db:5432
   python manage.py test --parallel $arguments
   ;;
 "coverage")
@@ -45,9 +49,11 @@ case "$command" in
   coverage report
   ;;
 "manage")
+  wait-for-it db:5432
   python manage.py $arguments
   ;;
 "fixtures")
+  wait-for-it db:5432
   if [[ $DEBUG == "true" ]]; then
     export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
     export DJANGO_SUPERUSER_PASSWORD=root
@@ -65,6 +71,10 @@ case "$command" in
   ;;
 "bash")
   bash $arguments
+  ;;
+"tailwind")
+  python manage.py tailwind install
+  python manage.py tailwind start
   ;;
 *)
   show_help
