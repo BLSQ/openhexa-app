@@ -2,7 +2,7 @@
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ data.text|default:"-" }}</td>
 {% else %}
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">{{ data.main_text|default:"-" }}</div>
+        <div class="text-sm text-gray-900">{{ data.text|default:"-" }}</div>
         <div class="text-sm text-gray-500">{{ data.secondary_text|default:"-" }}</div>
     </td>
 {% endif %}

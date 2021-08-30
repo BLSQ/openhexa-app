@@ -113,10 +113,10 @@ class LeadingColumn(Column):
     """First column, with link, image and two rows of text"""
 
     def __init__(
-        self, *, main_text, secondary_text, detail_url=None, image_src=None, **kwargs
+        self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
     ):
         super().__init__(**kwargs)
-        self.main_text = main_text
+        self.text = text
         self.secondary_text = secondary_text
         self.detail_url = detail_url
         self.image_src = image_src
@@ -128,7 +128,7 @@ class LeadingColumn(Column):
     def data(self, row):
         return {
             "detail_url": self.get_row_value(row, self.detail_url),
-            "main_text": self.get_row_value(row, self.main_text),
+            "text": self.get_row_value(row, self.text),
             "secondary_text": self.get_row_value(row, self.secondary_text),
             "image_src": self.get_row_value(row, self.image_src),
         }
@@ -137,37 +137,25 @@ class LeadingColumn(Column):
 class TextColumn(Column):
     """Simple text column, with one or two rows"""
 
-    def __init__(self, *, text=None, main_text=None, secondary_text=None, **kwargs):
+    def __init__(self, *, text=None, secondary_text=None, **kwargs):
         super().__init__(**kwargs)
 
-        # just "text"
-        if text is not None and (main_text is None and secondary_text is None):
-            self.text = text
-            self.main_text = None
-            self.secondary_text = None
-        # "main" and "secondary" text
-        elif text is None and (main_text is not None and secondary_text is not None):
-            self.main_text = main_text
-            self.secondary_text = secondary_text
-            self.text = None
-        else:
-            raise ValueError(
-                'Text columns either have a "text" property or both "main_text" and "secondary_text"'
-            )
+        self.text = text
+        self.secondary_text = secondary_text
 
     @property
     def template(self):
         return "ui/datagrid/column_text.html"
 
     def data(self, row):
-        if self.text is not None:
-            return {"text": self.get_row_value(row, self.text), "single": True}
-
-        return {
-            "main_text": self.get_row_value(row, self.main_text),
-            "secondary_text": self.get_row_value(row, self.secondary_text),
-            "single": False,
+        data = {
+            "text": self.get_row_value(row, self.text),
+            "single": self.secondary_text is None,
         }
+        if self.secondary_text is not None:
+            data.update(secondary_text=self.get_row_value(row, self.secondary_text))
+
+        return data
 
 
 class DateColumn(Column):
@@ -199,16 +187,32 @@ class DateColumn(Column):
             return NotImplementedError('Only the "timesince" format is implemented')
 
     def data(self, row):
-        data = {"date": self.format_date(self.get_row_value(row, self.date))}
+        data = {
+            "date": self.format_date(self.get_row_value(row, self.date)),
+            "single": self.secondary_text is None,
+        }
         if self.secondary_text is not None:
             data.update(
                 secondary_text=self.get_row_value(row, self.secondary_text),
-                single=False,
             )
-        else:
-            data.update(single=True)
 
         return data
+
+
+class CountryColumn(Column):
+    """Country column"""
+
+    def __init__(self, *, countries=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.countries = countries
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_countries.html"
+
+    def data(self, row):
+        return {"countries": self.get_row_value(row, self.countries)}
 
 
 class LinkColumn(Column):

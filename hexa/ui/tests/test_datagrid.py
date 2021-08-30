@@ -18,12 +18,10 @@ class DatagridTest(test.TestCase):
     def build_simple_datagrid_class(self):
         class BikeDatagrid(Datagrid):
             leading = LeadingColumn(
-                image="get_datasource_image", main_text="model", secondary_text="brand"
+                image="get_datasource_image", text="model", secondary_text="brand"
             )
             category = TextColumn(text="category")
-            characteristics = TextColumn(
-                main_text="suspension", secondary_text="groupset"
-            )
+            characteristics = TextColumn(text="suspension", secondary_text="groupset")
             view = LinkColumn(url="get_url", text=_("View"))
 
         return BikeDatagrid
