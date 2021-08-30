@@ -33,7 +33,7 @@ services:
   app:
     # Inherit from the block defined on top and override some fields
     <<: *default-app
-    command: [ "wait-for-it", "db:5432", "--", "python", "manage.py", "runserver", "0:8000" ]
+    command: "manage runserver 0:8000"
     restart: unless-stopped
     ports:
       - "8000:8000"
