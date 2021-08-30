@@ -1,5 +1,7 @@
 import json
 import uuid
+from enum import Enum
+
 import psycopg2
 from django.contrib.contenttypes.fields import GenericRelation
 
@@ -16,6 +18,11 @@ from hexa.catalog.sync import DatasourceSyncResult
 
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
+
+
+class ExternalType(Enum):
+    DATABASE = "database"
+    TABLE = "table"
 
 
 class DatabaseQuerySet(models.QuerySet):
@@ -76,8 +83,10 @@ class Database(models.Model):
     def index(self):
         index, _ = Index.objects.update_or_create(
             defaults={
-                "name": self.unique_name,
                 "external_name": self.database,
+                "external_id": self.safe_url,
+                "external_type": ExternalType.DATABASE.value,
+                "search": f"{self.database}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
