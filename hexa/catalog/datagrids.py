@@ -1,5 +1,5 @@
 from hexa.catalog.models import Index
-from hexa.ui.datagrid import Datagrid, LeadingColumn, TextColumn, LinkColumn
+from hexa.ui.datagrid import Datagrid, LeadingColumn, TextColumn, LinkColumn, DateColumn
 
 
 class DatasourceGrid(Datagrid):
@@ -15,6 +15,7 @@ class DatasourceGrid(Datagrid):
         secondary_text="owner.get_organization_type_display",
     )
     content = TextColumn(text="content")
+    last_sync = DateColumn(date="last_synced_at")
     view = LinkColumn(text="View", url="get_datasource_url")
 
     def get_datasource_url(self, index: Index):

@@ -1,4 +1,6 @@
 from django.template import loader
+from django.utils import timezone
+from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -166,6 +168,47 @@ class TextColumn(Column):
             "secondary_text": self.get_row_value(row, self.secondary_text),
             "single": False,
         }
+
+
+class DateColumn(Column):
+    """Date column, with one or two rows"""
+
+    def __init__(
+        self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        self.date = date
+        self.date_format = date_format
+        self.secondary_text = secondary_text
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_date.html"
+
+    def format_date(self, date):
+        if date is None:
+            return date
+
+        if self.date_format == "timesince":
+            if (timezone.now() - date).seconds < 60:
+                return _("Just now")
+
+            return f"{timesince(date)} {_('ago')}"
+        else:
+            return NotImplementedError('Only the "timesince" format is implemented')
+
+    def data(self, row):
+        data = {"date": self.format_date(self.get_row_value(row, self.date))}
+        if self.secondary_text is not None:
+            data.update(
+                secondary_text=self.get_row_value(row, self.secondary_text),
+                single=False,
+            )
+        else:
+            data.update(single=True)
+
+        return data
 
 
 class LinkColumn(Column):
