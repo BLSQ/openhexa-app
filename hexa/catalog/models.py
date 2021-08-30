@@ -129,7 +129,7 @@ class Index(Base):
     content = models.TextField(blank=True)
     context = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
-    tags = models.ManyToManyField("tags.Tag")
+    tags = models.ManyToManyField("tags.Tag", blank=True)
     locale = LocaleField(default="en")
     last_synced_at = models.DateTimeField(null=True, blank=True)
     # TODO: add comments
