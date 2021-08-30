@@ -18,7 +18,7 @@ class DatagridTest(test.TestCase):
     def build_simple_datagrid_class(self):
         class BikeDatagrid(Datagrid):
             leading = LeadingColumn(
-                image="get_datasource_image", text="model", secondary_text="brand"
+                image_src="get_datasource_image", text="model", secondary_text="brand"
             )
             category = TextColumn(text="category")
             characteristics = TextColumn(text="suspension", secondary_text="groupset")
@@ -63,5 +63,5 @@ class DatagridTest(test.TestCase):
             ]
         )
 
-        datagrid = self.build_simple_datagrid_class()(queryset=qs)
+        datagrid = self.build_simple_datagrid_class()(queryset=qs, page=1)
         self.assertGreater(len(str(datagrid)), 0)

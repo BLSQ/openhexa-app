@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.template import loader
 from django.utils import timezone
 from django.utils.timesince import timesince
@@ -32,15 +33,16 @@ class DatagridMeta(type):
 
 
 class Datagrid(metaclass=DatagridMeta):
-    def __init__(self, queryset):
-        self.queryset = queryset
+    def __init__(self, queryset, *, per_page=10, page):
+        paginator = Paginator(queryset, per_page)
+        self.page = paginator.page(page)
 
     def __str__(self):
         """Render the datagrid"""
 
         template = loader.get_template("ui/datagrid/datagrid.html")
         row_data = []
-        for row in self.queryset:
+        for row in self.page:
             single_row_data = []
             for column_name, column in self._meta.columns.items():
                 single_row_data.append(
@@ -113,7 +115,7 @@ class LeadingColumn(Column):
     """First column, with link, image and two rows of text"""
 
     def __init__(
-        self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
+            self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
     ):
         super().__init__(**kwargs)
         self.text = text
@@ -162,7 +164,7 @@ class DateColumn(Column):
     """Date column, with one or two rows"""
 
     def __init__(
-        self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
+            self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
     ):
         super().__init__(**kwargs)
 
