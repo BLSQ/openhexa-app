@@ -274,7 +274,7 @@ class Bucket(Datasource):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
-                "path": self.pk.hex,
+                "path": [self.pk.hex],
                 "external_id": self.name,
                 "external_name": self.name,
                 "external_type": "bucket",
@@ -342,7 +342,7 @@ class Object(Entry):
             defaults={
                 "last_synced_at": self.bucket.last_synced_at,
                 "external_name": self.filename,
-                "path": f"{self.bucket.pk.hex}.{self.pk.hex}",
+                "path": [self.bucket.pk.hex, self.pk.hex],
                 "context": self.parent_key,
                 "external_id": self.key,
                 "external_type": self.type,
