@@ -27,6 +27,9 @@
                     {% endfor %}
                     </tbody>
                 </table>
+                {% if pagination is not None %}
+                    {% include "ui/datagrid/pagination.html" %}
+                {% endif %}
             </div>
         </div>
     </div>

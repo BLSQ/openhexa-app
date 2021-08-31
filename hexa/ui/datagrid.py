@@ -33,9 +33,10 @@ class DatagridMeta(type):
 
 
 class Datagrid(metaclass=DatagridMeta):
-    def __init__(self, queryset, *, per_page=10, page):
-        paginator = Paginator(queryset, per_page)
-        self.page = paginator.page(page)
+    def __init__(self, queryset, *, paginate=True, per_page=10, page):
+        self.paginator = Paginator(queryset, per_page)
+        self.page = self.paginator.page(page)
+        self.paginate = paginate
 
     def __str__(self):
         """Render the datagrid"""
@@ -51,7 +52,30 @@ class Datagrid(metaclass=DatagridMeta):
 
             row_data.append(single_row_data)
 
-        context = {"rows": row_data, "columns": self._meta.columns.values()}
+        context = {
+            "rows": row_data,
+            "columns": self._meta.columns.values(),
+            "pagination": None
+            if not self.paginate
+            else {
+                "item_label": _("Item") if self.paginator.count == 1 else _("items"),
+                "previous_page_number": self.page.previous_page_number()
+                if self.page.has_previous()
+                else None,
+                "next_page_number": self.page.next_page_number()
+                if self.page.has_next()
+                else None,
+                "current_page_number": self.page.number,
+                "current_page_count": len(self.page),
+                "total_count": self.paginator.count,
+                "total_page_count": self.paginator.num_pages,
+                "range": self.paginator.get_elided_page_range(
+                    self.page.number, on_ends=1
+                ),
+                "start_index": self.page.start_index(),
+                "end_index": self.page.end_index(),
+            },
+        }
 
         return template.render(context)
 
