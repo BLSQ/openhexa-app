@@ -4,8 +4,8 @@
      aria-label="Pagination">
     <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
-            {% blocktranslate with current_page_count=pagination.current_page_count %}
-                Showing <span class="font-medium">{{ current_page_count }}</span> results
+            {% blocktranslate with current_page_count=pagination.current_page_count item_label=pagination.item_label %}
+                Showing <span class="font-medium">{{ current_page_count }}</span> {{ item_label }}
             {% endblocktranslate %}
         </p>
     </div>

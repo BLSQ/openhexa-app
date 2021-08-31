@@ -20,11 +20,17 @@
     <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
             <p class="text-sm text-gray-700">
-                {% blocktranslate with start_index=pagination.start_index end_index=pagination.end_index item_label=pagination.item_label total_count=pagination.total_count %}
-                    Showing <span class="font-medium">{{ start_index }}</span> to
-                    <span class="font-medium">{{ end_index }}</span> of
-                    <span class="font-medium">{{ total_count }}</span> {{ item_label }}
-                {% endblocktranslate %}
+                {% if pagination.total_page_count > 1 %}
+                    {% blocktranslate with start_index=pagination.start_index end_index=pagination.end_index item_label=pagination.item_label total_count=pagination.total_count %}
+                        Showing <span class="font-medium">{{ start_index }}</span> to
+                        <span class="font-medium">{{ end_index }}</span> of
+                        <span class="font-medium">{{ total_count }}</span> {{ item_label }}
+                    {% endblocktranslate %}
+                {% else %}
+                    {% blocktranslate with item_label=pagination.item_label total_count=pagination.total_count %}
+                        Showing <span class="font-medium">{{ total_count }}</span> {{ item_label }}
+                    {% endblocktranslate %}
+                {% endif %}
             </p>
         </div>
         {% if pagination.total_page_count > 1 %}
