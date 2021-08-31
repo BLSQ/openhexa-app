@@ -115,25 +115,47 @@ class LeadingColumn(Column):
     """First column, with link, image and two rows of text"""
 
     def __init__(
-        self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
+        self,
+        *,
+        text,
+        secondary_text=None,
+        detail_url=None,
+        image_src=None,
+        icon=None,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.text = text
         self.secondary_text = secondary_text
         self.detail_url = detail_url
         self.image_src = image_src
+        self.icon = icon
 
     @property
     def template(self):
         return "ui/datagrid/column_leading.html"
 
     def data(self, row):
-        return {
-            "detail_url": self.get_row_value(row, self.detail_url),
-            "text": self.get_row_value(row, self.text),
-            "secondary_text": self.get_row_value(row, self.secondary_text),
-            "image_src": self.get_row_value(row, self.image_src),
-        }
+        text_value = self.get_row_value(row, self.text)
+        data = {"text": text_value, "single": self.secondary_text is None}
+        if self.detail_url is not None:
+            data.update(detail_url=self.get_row_value(row, self.detail_url))
+        if self.secondary_text is not None:
+            secondary_text_value = self.get_row_value(row, self.secondary_text)
+            data.update(
+                secondary_text=secondary_text_value,
+                empty=text_value is None and secondary_text_value is None,
+            )
+        else:
+            data.update(empty=text_value is None)
+        if self.image_src is not None:
+            data.update(image_src=self.get_row_value(row, self.image_src))
+        if self.icon is not None:
+            data.update(icon=self.get_row_value(row, self.icon))
+
+        data["image_alt"] = data.get("secondary_text", data["text"])
+
+        return data
 
 
 class TextColumn(Column):

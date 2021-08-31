@@ -4,5 +4,6 @@
 
 {% block page_content %}
     {% include "connector_postgresql/partials/datasource_card.html" %}
+    {{ table_grid }}
     {% include "catalog/partials/summary_list.html" with params=object_list_params %}
 {% endblock %}

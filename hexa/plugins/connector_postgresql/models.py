@@ -206,7 +206,7 @@ class Table(models.Model):
                 "last_synced_at": self.database.last_synced_at,
                 "external_name": self.name,
                 "external_type": ExternalType.TABLE.value,
-                "path": f"{self.database.pk}.{self.pk}".replace("-", ""),
+                "path": f"{self.database.id.hex}.{self.id.hex}",
                 "external_id": f"{self.database.safe_url}/{self.name}",
                 "context": self.database.database,
                 "search": f"{self.name}",
