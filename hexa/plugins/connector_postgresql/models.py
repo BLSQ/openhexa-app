@@ -128,8 +128,9 @@ class Database(models.Model):
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT table_name
+                    SELECT table_name, table_type, pg_class.reltuples
                     FROM information_schema.tables
+                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
                     WHERE table_schema = 'public'
                     ORDER BY table_name;
                 """
@@ -142,18 +143,25 @@ class Database(models.Model):
         new_orphans_count = 0
 
         with transaction.atomic():
-            tables = {x[0] for x in response}
+            new_tables = {x[0]: x for x in response}
             existing_tables = Table.objects.filter(database=self)
             for table in existing_tables:
-                if table.name not in tables:
+                if table.name not in new_tables.keys():
                     new_orphans_count += 1
                     table.delete()
                 else:
+                    data = new_tables[table.name]
+                    if table.rows == data[2]:
+                        identical_count += 1
+                    else:
+                        table.rows = data[2]
+                        updated_count += 1
                     table.save()
-                    identical_count += 1
-            for new_table in tables - {x.name for x in existing_tables}:
-                created_count += 1
-                Table.objects.create(name=new_table, database=self)
+
+            for new_table_name, new_table in new_tables.items():
+                if new_table_name not in {x.name for x in existing_tables}:
+                    created_count += 1
+                    Table.objects.create(name=new_table, database=self, rows=data[2])
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -188,6 +196,7 @@ class Table(models.Model):
 
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
+    rows = models.IntegerField(default=0)
     indexes = GenericRelation("catalog.Index")
 
     class Meta:
