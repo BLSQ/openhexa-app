@@ -4,8 +4,8 @@
      aria-label="Pagination">
     <div class="hidden sm:block">
         <p class="text-sm text-gray-700">
-            {% blocktranslate with total_count=pagination.total_count %}
-                Showing <span class="font-medium">{{ total_count }}</span> results
+            {% blocktranslate with current_page_count=pagination.current_page_count %}
+                Showing <span class="font-medium">{{ current_page_count }}</span> results
             {% endblocktranslate %}
         </p>
     </div>
@@ -13,6 +13,7 @@
         <a href="{{ more_url }}"
            class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
             {% translate "View all" %}
+            {% include "ui/icons/chevron_right.html" with ml=2 %}
         </a>
     </div>
 </nav>
