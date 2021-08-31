@@ -142,8 +142,11 @@ class Database(models.Model):
         identical_count = 0
         new_orphans_count = 0
 
+        # Ignore tables from postgis as there is no value in showing them in the catalog
+        IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
         with transaction.atomic():
-            new_tables = {x[0]: x for x in response}
+            new_tables = {x[0]: x for x in response if x[0] not in IGNORE_TABLES}
             existing_tables = Table.objects.filter(database=self)
             for table in existing_tables:
                 if table.name not in new_tables.keys():
