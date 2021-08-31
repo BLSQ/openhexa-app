@@ -27,8 +27,10 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                {% if pagination is not None %}
-                    {% include "ui/datagrid/pagination.html" %}
+                {% if pagination.display %}
+                    {% include "ui/datagrid/footer_pagination.html" %}
+                {% elif more_url %}
+                    {% include "ui/datagrid/footer_view_all.html" %}
                 {% endif %}
             </div>
         </div>

@@ -33,10 +33,11 @@ class DatagridMeta(type):
 
 
 class Datagrid(metaclass=DatagridMeta):
-    def __init__(self, queryset, *, paginate=True, per_page=10, page):
+    def __init__(self, queryset, *, paginate=True, per_page=10, page=1, more_url=None):
         self.paginator = Paginator(queryset, per_page)
         self.page = self.paginator.page(page)
         self.paginate = paginate
+        self.more_url = more_url
 
     def __str__(self):
         """Render the datagrid"""
@@ -55,9 +56,8 @@ class Datagrid(metaclass=DatagridMeta):
         context = {
             "rows": row_data,
             "columns": self._meta.columns.values(),
-            "pagination": None
-            if not self.paginate
-            else {
+            "pagination": {
+                "display": self.paginate,
                 "item_label": _("Item") if self.paginator.count == 1 else _("items"),
                 "previous_page_number": self.page.previous_page_number()
                 if self.page.has_previous()
@@ -67,17 +67,34 @@ class Datagrid(metaclass=DatagridMeta):
                 else None,
                 "current_page_number": self.page.number,
                 "current_page_count": len(self.page),
-                "total_count": self.paginator.count,
-                "total_page_count": self.paginator.num_pages,
+                "total_count": self.total_count,
+                "total_page_count": self.total_page_count,
                 "range": self.paginator.get_elided_page_range(
                     self.page.number, on_ends=1
                 ),
-                "start_index": self.page.start_index(),
-                "end_index": self.page.end_index(),
+                "start_index": self.start_index,
+                "end_index": self.end_index,
             },
+            "more_url": self.more_url,
         }
 
         return template.render(context)
+
+    @property
+    def total_count(self):
+        return self.paginator.count
+
+    @property
+    def total_page_count(self):
+        return self.paginator.num_pages
+
+    @property
+    def start_index(self):
+        return self.page.start_index()
+
+    @property
+    def end_index(self):
+        return self.page.end_index()
 
 
 class Column:

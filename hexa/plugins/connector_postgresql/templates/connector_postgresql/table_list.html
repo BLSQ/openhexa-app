@@ -1,0 +1,14 @@
+{% extends "layouts/page.html" %}
+{% load i18n embed %}
+{% block page_title %}{{ datasource.name }} {% translate "tables" %}{% endblock %}
+
+{% block page_content %}
+    {% embed "ui/section/section.html" %}
+        {% slot header %}
+            {% include "ui/section/section_heading_with_label.html" with title=section_title label=section_label %}
+        {% endslot %}
+        {% slot content %}
+            {{ table_grid }}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}
