@@ -45,7 +45,7 @@ def datasource_sync(request, datasource_id):
         Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
     sync_result = datasource.sync(request.user)
-    messages.success(request, sync_result, extra_tags="green")
+    messages.success(request, sync_result)
 
     return redirect(request.META.get("HTTP_REFERER"))
 

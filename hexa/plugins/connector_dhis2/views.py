@@ -152,9 +152,7 @@ def data_element_extract(
     current_extract.data_elements.add(data_element)
     current_extract.save()
 
-    messages.success(
-        request, _("Added data element to current extract"), extra_tags="green"
-    )
+    messages.success(request, _("Added data element to current extract"))
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -247,9 +245,7 @@ def indicator_extract(
     current_extract.indicators.add(indicator)
     current_extract.save()
 
-    messages.success(
-        request, _("Added indicator to current extract"), extra_tags="green"
-    )
+    messages.success(request, _("Added indicator to current extract"))
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -259,7 +255,7 @@ def instance_sync(request, instance_id):
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     sync_result = instance.sync(request.user)
-    messages.success(request, sync_result, extra_tags="green")
+    messages.success(request, sync_result)
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -290,7 +286,7 @@ def extract_delete(request, extract_id):
     )
     extract.delete()
 
-    messages.success(request, _("Delete current extract"), extra_tags="green")
+    messages.success(request, _("Delete current extract"))
 
     return redirect(reverse("catalog:index"))
 
