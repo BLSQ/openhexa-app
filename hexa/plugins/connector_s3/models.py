@@ -94,7 +94,7 @@ class Bucket(Datasource):
             aws_session_token=sts_credentials["SessionToken"],
         )
         try:
-            client.head_bucket(Bucket=self.s3_name)
+            client.head_bucket(Bucket=self.name)
         except ClientError as e:
             raise ValidationError(e)
 
@@ -226,6 +226,7 @@ class Bucket(Datasource):
             if key in existing_by_key:
                 if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
+                    existing_by_key[key].save()
                 else:
                     existing_by_key[key].update_metadata(object_data)
                     existing_by_key[key].save()
@@ -273,8 +274,11 @@ class Bucket(Datasource):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
-                "content_summary": self.content_summary,
+                "path": self.pk.hex,
+                "external_id": self.name,
                 "external_name": self.name,
+                "external_type": "bucket",
+                "search": f"{self.name}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -317,8 +321,8 @@ class Object(Entry):
         ordering = ("key",)
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    dirname = models.TextField()  # TODO: rename to parent_key
     key = models.TextField()
+    parent_key = models.TextField()
     size = models.PositiveBigIntegerField()
     storage_class = models.CharField(max_length=200)  # TODO: choices
     type = models.CharField(max_length=200)  # TODO: choices
@@ -329,15 +333,21 @@ class Object(Entry):
     objects = ObjectQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
-        if self.dirname is None:
-            self.dirname = self.compute_dirname(self.key)
+        if self.parent_key is None:
+            self.parent_key = self.compute_parent_key(self.key)
         super().save(*args, **kwargs)
 
     def index(self):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.bucket.last_synced_at,
-                "external_name": self.key,
+                "external_name": self.filename,
+                "path": f"{self.bucket.pk.hex}.{self.pk.hex}",
+                "context": self.parent_key,
+                "external_id": self.key,
+                "external_type": self.type,
+                "external_subtype": self.extension,
+                "search": f"{self.filename} {self.key}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -348,14 +358,18 @@ class Object(Entry):
 
     @property
     def display_name(self):
-        return self.key
+        return self.filename
+
+    @property
+    def filename(self):
+        return os.path.basename(self.key)
 
     @property
     def extension(self):
         return os.path.splitext(self.key)[1].lstrip(".")
 
     @classmethod
-    def compute_dirname(cls, key):
+    def compute_parent_key(cls, key):
         if key.endswith("/"):  # This is a directory
             return os.path.dirname(os.path.dirname(key)) + "/"
         else:  # This is a file
@@ -383,7 +397,7 @@ class Object(Entry):
         self.orphan = False
 
         self.key = object_data["Key"]
-        self.dirname = self.compute_dirname(object_data["Key"])
+        self.parent_key = self.compute_parent_key(object_data["Key"])
         self.size = object_data["size"]
         self.etag = object_data["ETag"]
         self.storage_class = object_data["StorageClass"]
@@ -397,7 +411,7 @@ class Object(Entry):
         return cls.objects.create(
             bucket=bucket,
             key=object_data["Key"],
-            dirname=cls.compute_dirname(object_data["Key"]),
+            parent_key=cls.compute_parent_key(object_data["Key"]),
             size=object_data["size"],
             storage_class=object_data["StorageClass"],
             type=object_data["type"],

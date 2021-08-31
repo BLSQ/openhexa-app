@@ -151,11 +151,11 @@ def resolve_s3_objects(_, info, **kwargs):
 
     if "parentS3Key" in kwargs:
         queryset = queryset.filter(
-            dirname=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
+            parent_key=f"{kwargs['bucketS3Name']}/{kwargs['parentS3Key']}",
         )
     else:
         queryset = queryset.filter(
-            dirname=f"{kwargs['bucketS3Name']}/",
+            parent_key=f"{kwargs['bucketS3Name']}/",
         )
 
     return result_page(queryset=queryset, page=kwargs["page"])
@@ -180,7 +180,7 @@ def resolve_content_type(obj: Bucket, info):
 @bucket.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_objects(obj: Bucket, info, page, per_page=None):
-    queryset = obj.object_set.filter(dirname=f"{obj.name}/")
+    queryset = obj.object_set.filter(parent_key=f"{obj.name}/")
     return result_page(queryset, page, per_page)
 
 
@@ -197,7 +197,7 @@ s3_object.set_field("tags", resolve_tags)
 @s3_object.field("objects")
 @convert_kwargs_to_snake_case
 def resolve_S3_objects_on_object(obj: Object, info, page, per_page=None):
-    queryset = Object.objects.filter(dirname=obj.key)
+    queryset = Object.objects.filter(parent_key=obj.key)
     return result_page(queryset, page, per_page)
 
 

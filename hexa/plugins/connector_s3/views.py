@@ -25,7 +25,7 @@ def datasource_detail(request, datasource_id):
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
             "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(dirname=f"{bucket.name}/"),
+                bucket.object_set.filter(parent_key=f"{bucket.name}/"),
                 title=_("Objects"),
                 columns=[
                     _("Name"),
@@ -78,7 +78,7 @@ def object_detail(request, bucket_id, path):
             "object": object,
             "breadcrumbs": breadcrumbs,
             "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(dirname=object.key),
+                bucket.object_set.filter(parent_key=object.key),
                 title=_("Objects"),
                 columns=[
                     _("Name"),
