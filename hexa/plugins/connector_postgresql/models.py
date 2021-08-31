@@ -6,9 +6,11 @@ import psycopg2
 from django.contrib.contenttypes.fields import GenericRelation
 
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
+from psycopg2 import OperationalError
 
 from hexa.catalog.models import (
     Index,
@@ -101,6 +103,23 @@ class Database(models.Model):
 
     def __str__(self):
         return self.display_name
+
+    def clean(self):
+        try:
+            with psycopg2.connect(self.url) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1 = 1")
+                    cursor.fetchall()
+        except OperationalError as e:
+            if "could not connect to server" in str(e):
+                raise ValidationError(
+                    "Could not connect to server, please check hostname and port"
+                )
+            elif str(e).startswith("FATAL: "):
+                err = str(e).removeprefix("FATAL: ")
+                raise ValidationError(err)
+            else:
+                raise ValidationError(e)
 
     def sync(self, user):
         with psycopg2.connect(self.url) as conn:
