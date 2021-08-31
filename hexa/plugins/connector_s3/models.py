@@ -98,6 +98,11 @@ class Bucket(Datasource):
         except ClientError as e:
             raise ValidationError(e)
 
+    def get_absolute_url(self):
+        return reverse(
+            "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
+        )
+
     def sync(self, user):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
