@@ -85,10 +85,12 @@ class Database(models.Model):
     def index(self):
         index, _ = Index.objects.update_or_create(
             defaults={
+                "last_synced_at": self.last_synced_at,
                 "external_name": self.database,
                 "external_id": self.safe_url,
                 "external_type": ExternalType.DATABASE.value,
                 "search": f"{self.database}",
+                "path": self.id.hex,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -163,6 +165,11 @@ class Database(models.Model):
             updated=updated_count,
             identical=identical_count,
             orphaned=new_orphans_count,
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_postgresql:datasource_detail", kwargs={"datasource_id": self.id}
         )
 
 
