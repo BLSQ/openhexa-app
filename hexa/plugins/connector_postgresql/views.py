@@ -45,7 +45,7 @@ def table_list(request, datasource_id):
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )
     table_grid = TableGrid(
-        datasource.table_set.all(), per_page=20, page=int(request.GET.get("page", "1"))
+        datasource.table_set.all(), page=int(request.GET.get("page", "1"))
     )
 
     breadcrumbs = [

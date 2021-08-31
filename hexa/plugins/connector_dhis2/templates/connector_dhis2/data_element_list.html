@@ -1,8 +1,15 @@
 {% extends "connector_dhis2/page.html" %}
-{% load i18n %}
+{% load embed i18n %}
 
 {% block page_title %}{{ instance.name }} {% translate "data element" %}s{% endblock %}
 
 {% block page_content %}
-    {% include "catalog/partials/paginated_list.html" with params=data_elements_list_params %}
+    {% embed "ui/section/section.html" %}
+        {% slot header %}
+            {% include "ui/section/section_heading_with_label.html" with title=section_title label=section_label %}
+        {% endslot %}
+        {% slot content %}
+            {{ data_element_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}

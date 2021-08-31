@@ -33,7 +33,7 @@ class DatagridMeta(type):
 
 
 class Datagrid(metaclass=DatagridMeta):
-    def __init__(self, queryset, *, paginate=True, per_page=10, page=1, more_url=None):
+    def __init__(self, queryset, *, paginate=True, per_page=20, page=1, more_url=None):
         self.paginator = Paginator(queryset, per_page)
         self.page = self.paginator.page(page)
         self.paginate = paginate

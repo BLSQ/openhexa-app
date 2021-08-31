@@ -1,8 +1,15 @@
 {% extends "connector_dhis2/page.html" %}
-{% load i18n %}
+{% load embed i18n %}
 
 {% block page_title %}{{ instance.name }} {% translate "indicators" %}s{% endblock %}
 
 {% block page_content %}
-    {% include "catalog/partials/paginated_list.html" with params=indicators_list_params %}
+    {% embed "ui/section/section.html" %}
+        {% slot header %}
+            {% include "ui/section/section_heading_with_label.html" with title=section_title label=section_label %}
+        {% endslot %}
+        {% slot content %}
+            {{ indicator_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}

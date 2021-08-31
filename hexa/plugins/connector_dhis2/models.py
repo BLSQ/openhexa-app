@@ -14,7 +14,7 @@ from hexa.catalog.models import (
     Index,
     IndexPermission,
 )
-from hexa.core.models import Base, Permission, RichContent
+from hexa.core.models import Base, Permission, RichContent, LocaleField
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 from ...catalog.sync import DatasourceSyncResult
@@ -52,7 +52,7 @@ class Credentials(Base):
             password=self.password,
         )
         try:
-            client._api.get_info()
+            client.fetch_info()
         except RequestException as e:
             if e.code == 401:
                 raise ValidationError(
@@ -82,12 +82,14 @@ class Instance(Datasource):
     )
     url = models.URLField(blank=True)
     indexes = GenericRelation("catalog.Index")
+    name = models.TextField()
+    locale = LocaleField(default="en")
 
     objects = InstanceQuerySet.as_manager()
 
     @property
     def display_name(self):
-        return self.url
+        return self.name if self.name != "" else self.url
 
     def sync(self, user):
         """Sync the datasource by querying the DHIS2 API"""
@@ -102,6 +104,9 @@ class Instance(Datasource):
 
         # Sync data elements
         with transaction.atomic():
+            info = client.fetch_info()
+            self.name = info["systemName"]
+
             for results_batch in client.fetch_data_elements():
                 results += sync_from_dhis2_results(
                     model_class=DataElement,
@@ -151,6 +156,7 @@ class Instance(Datasource):
             defaults={
                 "last_synced_at": self.last_synced_at,
                 "content_summary": self.content_summary,
+                "path": [self.id.hex],
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -266,16 +272,21 @@ class DataElement(Dhis2Entry):
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
                 "external_name": self.name,
-                "external_short_name": self.short_name,
                 "external_description": self.description,
+                "path": [self.instance.id.hex, self.id.hex],
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            parent=Index.objects.get(object_id=self.instance.id),
         )
 
         for permission in self.instance.instancepermission_set.all():
             IndexPermission.objects.get_or_create(index=index, team=permission.team)
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:data_element_detail",
+            kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
+        )
 
 
 class IndicatorType(Dhis2Entry):
@@ -306,16 +317,21 @@ class Indicator(Dhis2Entry):
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
                 "external_name": self.name,
-                "external_short_name": self.short_name,
                 "external_description": self.description,
+                "path": [self.instance.id.hex, self.id.hex],
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            parent=Index.objects.get(object_id=self.instance.id),
         )
 
         for permission in self.instance.instancepermission_set.all():
             IndexPermission.objects.update_or_create(index=index, team=permission.team)
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:indicator_detail",
+            kwargs={"instance_id": self.instance.id, "indicator_id": self.id},
+        )
 
 
 class ExtractStatus(models.TextChoices):
