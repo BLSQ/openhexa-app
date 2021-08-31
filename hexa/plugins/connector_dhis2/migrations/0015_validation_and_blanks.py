@@ -7,13 +7,15 @@ import hexa.plugins.connector_dhis2.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('connector_dhis2', '0014_metadata_rf_2'),
+        ("connector_dhis2", "0014_metadata_rf_2"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='credentials',
-            name='api_url',
-            field=models.URLField(validators=[hexa.plugins.connector_dhis2.models.validate_dhis2_base_url]),
+            model_name="credentials",
+            name="api_url",
+            field=models.URLField(
+                validators=[hexa.plugins.connector_dhis2.models.validate_dhis2_base_url]
+            ),
         ),
     ]

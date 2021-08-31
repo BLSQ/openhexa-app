@@ -12,9 +12,7 @@ from django.contrib.postgres.search import (
 )
 from django.db import models
 from django.db.models.functions import Greatest
-from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_ltree.fields import PathField
 from django_ltree.managers import TreeQuerySet, TreeManager
 
 from hexa.core.date_utils import date_format
@@ -27,6 +25,7 @@ from hexa.core.models import (
     LocaleField,
     PostgresTextSearchConfigField,
 )
+from hexa.core.models.path import PathField
 from hexa.core.models.postgres import locale_to_text_search_config
 
 
@@ -118,7 +117,10 @@ class Index(Base):
     object = GenericForeignKey("content_type", "object_id")
 
     # Hierarchy
-    path = PathField(null=True, blank=True, unique=True)  # TODO: not null? not blank?
+    path = PathField(
+        null=True,
+        blank=True,
+    )  # TODO: not null, not blank and unique
 
     # Hexa Metadata
     label = models.TextField(blank=True)

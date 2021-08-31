@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('tags', '0001_metadata_rf_4'),
-        ('catalog', '0011_metadata_rf_5'),
+        ("tags", "0001_metadata_rf_4"),
+        ("catalog", "0011_metadata_rf_5"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='index',
-            name='tags',
-            field=models.ManyToManyField(blank=True, to='tags.Tag'),
+            model_name="index",
+            name="tags",
+            field=models.ManyToManyField(blank=True, to="tags.Tag"),
         ),
     ]
