@@ -187,7 +187,7 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 COMMENTS_APP = "hexa.comments"
 
 # Tailwind
-TAILWIND_APP_NAME = "hexa.tailwindui"
+TAILWIND_APP_NAME = "hexa.ui"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
