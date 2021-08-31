@@ -9,7 +9,9 @@ from .datagrids import DatasourceGrid
 def index(request):
     breadcrumbs = [(_("Catalog"), "catalog:index")]
     datasource_indexes = Index.objects.filter_for_user(request.user).roots()
-    datasource_grid = DatasourceGrid(datasource_indexes, page=int(request.GET.get("page", "1")))
+    datasource_grid = DatasourceGrid(
+        datasource_indexes, page=int(request.GET.get("page", "1"))
+    )
 
     return render(
         request,

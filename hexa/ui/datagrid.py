@@ -115,7 +115,7 @@ class LeadingColumn(Column):
     """First column, with link, image and two rows of text"""
 
     def __init__(
-            self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
+        self, *, text, secondary_text, detail_url=None, image_src=None, **kwargs
     ):
         super().__init__(**kwargs)
         self.text = text
@@ -150,13 +150,19 @@ class TextColumn(Column):
         return "ui/datagrid/column_text.html"
 
     def data(self, row):
+        text_value = self.get_row_value(row, self.text)
         data = {
-            "text": self.get_row_value(row, self.text),
+            "text": text_value,
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
-            data.update(secondary_text=self.get_row_value(row, self.secondary_text))
-
+            secondary_text_value = self.get_row_value(row, self.secondary_text)
+            data.update(
+                secondary_text=secondary_text_value,
+                empty=text_value is None and secondary_text_value is None,
+            )
+        else:
+            data.update(empty=text_value is None)
         return data
 
 
@@ -164,7 +170,7 @@ class DateColumn(Column):
     """Date column, with one or two rows"""
 
     def __init__(
-            self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
+        self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
     ):
         super().__init__(**kwargs)
 
