@@ -306,6 +306,11 @@ class Bucket(Datasource):
     def display_name(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse(
+            "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
+        )
+
 
 class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
@@ -398,15 +403,24 @@ class Object(Entry):
     def type_display(self):
         if self.type == "directory":
             return _("Directory")
+        else:
+            if verbose_file_type := self.verbose_file_type:
+                return verbose_file_type
+            else:
+                return _("File")
 
+    @property
+    def verbose_file_type(self):
         file_type = {
             "xlsx": "Excel file",
             "md": "Markdown document",
             "ipynb": "Jupyter Notebook",
             "csv": "CSV file",
-        }.get(self.extension, "File")
-
-        return _(file_type)
+        }.get(self.extension)
+        if file_type:
+            return _(file_type)
+        else:
+            return None
 
     def update_metadata(self, object_data):
         self.orphan = False
@@ -432,4 +446,10 @@ class Object(Entry):
             type=object_data["type"],
             last_modified=object_data.get("LastModified"),
             etag=object_data.get("ETag"),
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_s3:object_detail",
+            kwargs={"bucket_id": self.bucket.id, "path": self.key},
         )

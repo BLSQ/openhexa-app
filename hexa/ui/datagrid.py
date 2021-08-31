@@ -179,6 +179,12 @@ class LeadingColumn(Column):
     def data(self, row):
         text_value = self.get_row_value(row, self.text)
         data = {"text": text_value, "single": self.secondary_text is None}
+        if (
+            self.detail_url is None
+            and hasattr(row, "get_absolute_url")
+            and callable(row.get_absolute_url)
+        ):
+            self.detail_url = "get_absolute_url"
         if self.detail_url is not None:
             data.update(detail_url=self.get_row_value(row, self.detail_url))
         if self.secondary_text is not None:
@@ -287,9 +293,11 @@ class CountryColumn(Column):
 
 
 class LinkColumn(Column):
-    def __init__(self, *, text, url, **kwargs):
+    def __init__(self, *, text, url=None, **kwargs):
         super().__init__(**kwargs, hide_label=True)
         self.text = text
+        if url is None:
+            url = "get_absolute_url"
         self.url = url
 
     @property

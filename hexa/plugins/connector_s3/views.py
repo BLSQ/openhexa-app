@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 from django.shortcuts import redirect
 
-from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
+from .datagrids import ObjectGrid
 
 from .models import Bucket, Credentials
 
@@ -23,24 +23,19 @@ def datasource_detail(request, datasource_id):
         (bucket.display_name, "connector_s3:datasource_detail", datasource_id),
     ]
 
+    datagrid = ObjectGrid(
+        bucket.object_set.filter(parent_key="/"),
+        per_page=20,
+        page=int(request.GET.get("page", "1")),
+    )
+
     return render(
         request,
         "connector_s3/datasource_detail.html",
         {
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
-            "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(parent_key="/"),
-                title=_("Objects"),
-                columns=[
-                    _("Name"),
-                    _("Size"),
-                    _("Type"),
-                    _("Last update"),
-                ],
-                item_name=_("object"),
-                item_template="connector_s3/components/object_list_item.html",
-            ),
+            "datagrid": datagrid,
         },
     )
 
