@@ -16,7 +16,7 @@ class S3ApiError(Exception):
 
 def generate_sts_buckets_credentials(
     *,
-    user: hexa.user_management.models.User,
+    user: typing.Optional[hexa.user_management.models.User],
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
@@ -50,10 +50,15 @@ def generate_sts_buckets_credentials(
             for bucket in buckets
         ],
     }
+    if user is not None:
+        session_name = f"sts-{principal_credentials.username}-{user.username}"
+    else:
+        session_name = f"sts-{principal_credentials.username}-system-check"
+
     response = client.assume_role(
         Policy=json.dumps(policy),
         RoleArn=principal_credentials.role_arn,
-        RoleSessionName=f"sts-{principal_credentials.username}-{user.username}",
+        RoleSessionName=session_name,
         DurationSeconds=duration,
     )
 
