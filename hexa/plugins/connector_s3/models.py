@@ -141,6 +141,9 @@ class Bucket(Datasource):
 
     def list_objects(self, fs, path):
         for object_data in fs.ls(path, detail=True):
+            # S3fs adds the bucket name in the Key, we remove it to be consistent with the S3 documentation
+            object_data["true_key"] = object_data["Key"].split("/", 1)[1]
+
             if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
                 # Detects the current directory. Ignore it as we already got it from the parent listing
                 continue
@@ -150,6 +153,7 @@ class Bucket(Datasource):
                 "/"
             ):
                 object_data["Key"] = object_data["Key"] + "/"
+                object_data["true_key"] = object_data["true_key"] + "/"
 
             # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
             if "ETag" in object_data and object_data["ETag"].startswith('"'):
@@ -184,7 +188,7 @@ class Bucket(Datasource):
 
                 db_obj = existing_directories_by_uid.get(s3_uid)
                 if db_obj:
-                    if db_obj.key != s3_obj["Key"]:  # Directory moved
+                    if db_obj.key != s3_obj["true_key"]:  # Directory moved
                         db_obj.update_metadata(s3_obj)
                         db_obj.save()
                         updated_count += 1
@@ -224,7 +228,7 @@ class Bucket(Datasource):
         for object_data in discovered_objects:
             if object_data["type"] != "file":
                 continue
-            key = object_data["Key"]
+            key = object_data["true_key"]
             if key.endswith("/.openhexa.json"):
                 continue
 
@@ -401,8 +405,8 @@ class Object(Entry):
     def update_metadata(self, object_data):
         self.orphan = False
 
-        self.key = object_data["Key"]
-        self.parent_key = self.compute_parent_key(object_data["Key"])
+        self.key = object_data["true_key"]
+        self.parent_key = self.compute_parent_key(object_data["true_key"])
         self.size = object_data["size"]
         self.etag = object_data["ETag"]
         self.storage_class = object_data["StorageClass"]
@@ -415,8 +419,8 @@ class Object(Entry):
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
-            key=object_data["Key"],
-            parent_key=cls.compute_parent_key(object_data["Key"]),
+            key=object_data["true_key"],
+            parent_key=cls.compute_parent_key(object_data["true_key"]),
             size=object_data["size"],
             storage_class=object_data["StorageClass"],
             type=object_data["type"],
