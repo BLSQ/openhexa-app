@@ -1,6 +1,7 @@
 import json
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -73,7 +74,7 @@ class Bucket(Datasource):
 
     objects = BucketQuerySet.as_manager()
 
-    def clean(self):
+    def get_boto_client(self):
         try:
             principal_s3_credentials = Credentials.objects.get()
         except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
@@ -87,14 +88,19 @@ class Bucket(Datasource):
             buckets=[self],
             duration=900,
         )
-        client = boto3.client(
+        return boto3.client(
             "s3",
+            principal_s3_credentials.default_region,
             aws_access_key_id=sts_credentials["AccessKeyId"],
             aws_secret_access_key=sts_credentials["SecretAccessKey"],
             aws_session_token=sts_credentials["SessionToken"],
+            config=Config(signature_version="s3v4"),
         )
+
+    def clean(self):
+
         try:
-            client.head_bucket(Bucket=self.name)
+            self.get_boto_client().head_bucket(Bucket=self.name)
         except ClientError as e:
             raise ValidationError(e)
 
