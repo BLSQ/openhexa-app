@@ -1,6 +1,9 @@
 from django.template import loader
+from django.utils import timezone
+from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
 
@@ -199,3 +202,66 @@ class TextProperty(Property):
 
     def data(self, item):
         return {"text": self.get_value(item, self.text)}
+
+
+class LocaleProperty(Property):
+    def __init__(self, *, locale, **kwargs):
+        super().__init__(**kwargs)
+        self.locale = locale
+
+    @property
+    def template(self):
+        return "ui/datacard/property_text.html"
+
+    def data(self, item):
+        locale_value = self.get_value(item, self.locale)
+
+        return {"text": Locale[locale_value].label}
+
+
+class URLProperty(Property):
+    def __init__(self, *, url, text=None, **kwargs):
+        super().__init__(**kwargs)
+        self.text = text
+        self.url = url
+
+    @property
+    def template(self):
+        return "ui/datacard/property_url.html"
+
+    def data(self, item):
+        url_value = self.get_value(item, self.url)
+        text_value = (
+            self.get_value(item, self.text) if self.text is not None else url_value
+        )
+
+        return {"text": text_value, "url": url_value}
+
+
+class DateProperty(Property):
+    def __init__(self, *, date=None, date_format="timesince", **kwargs):
+        super().__init__(**kwargs)
+
+        self.date = date
+        self.date_format = date_format
+
+    @property
+    def template(self):
+        return "ui/datacard/property_date.html"
+
+    def format_date(self, date):  # TODO: duplicated from datagrid -> move somewhere
+        if date is None:
+            return date
+
+        if self.date_format == "timesince":
+            if (timezone.now() - date).seconds < 60:
+                return _("Just now")
+
+            return f"{timesince(date)} {_('ago')}"
+        else:
+            return NotImplementedError('Only the "timesince" format is implemented')
+
+    def data(self, item):
+        return {
+            "date": self.format_date(self.get_value(item, self.date)),
+        }

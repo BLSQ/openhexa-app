@@ -1,13 +1,23 @@
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.plugins.connector_dhis2.models import Instance
-from hexa.ui.datacard import Datacard, Section, TextProperty
+from hexa.ui.datacard import (
+    Datacard,
+    Section,
+    TextProperty,
+    URLProperty,
+    LocaleProperty,
+    DateProperty,
+)
 
 
 class ExternalSection(Section):
     title = "External System Data"
+
     name = TextProperty(text="name")
+    locale = LocaleProperty(locale="locale")
+    url = URLProperty(url="url")
+    last_synced_at = DateProperty(date="last_synced_at")
 
 
 class OpenHexaMetaDataSection(Section):
