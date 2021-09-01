@@ -236,6 +236,10 @@ class Datasource(models.Model):
             "Datasource models should implement the sync() method"
         )
 
+    @property
+    def only_index(self):  # TODO: discuss, ugly but index() already exist
+        return self.indexes.get()
+
 
 class Entry(models.Model):
     class Meta:
@@ -254,3 +258,7 @@ class Entry(models.Model):
         raise NotImplementedError(
             "Datasource models should implement the index() method"
         )
+
+    @property
+    def only_index(self):  # TODO: discuss, ugly but index() already exist
+        return self.indexes.get()

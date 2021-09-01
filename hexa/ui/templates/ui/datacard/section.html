@@ -1,0 +1,14 @@
+<div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+    {% if title %}
+        <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
+            {{ title }}
+        </h3>
+    {% endif %}
+    <dl>
+        {% for property in property_data %}
+            <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                {% include property.template with data=property.data property=property.property only %}
+            </div>
+        {% endfor %}
+    </dl>
+</div>

@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.ui.utils import get_item_value
+
 
 class DatagridOptions:
     """Container for datagrid meta (config)"""
@@ -44,11 +46,11 @@ class Datagrid(metaclass=DatagridMeta):
 
         template = loader.get_template("ui/datagrid/datagrid.html")
         row_data = []
-        for row in self.page:
+        for item in self.page:
             single_row_data = []
             for column_name, column in self._meta.columns.items():
                 single_row_data.append(
-                    {"template": column.template, "data": column.data(row)}
+                    {"template": column.template, "data": column.data(item)}
                 )
 
             row_data.append(single_row_data)
@@ -126,30 +128,16 @@ class Column:
     def bound(self):
         return self.name is not None and self.grid is not None
 
-    def data(self, row):
+    def data(self, item):
         raise NotImplementedError(
             "Each Column class should implement the data() method"
         )
 
-    def get_row_value(self, row, accessor):
+    def get_value(self, item, accessor):
         if not self.bound:
-            raise ValueError("Cannot get row value for unbound column")
+            raise ValueError("Cannot get item value for unbound column")
 
-        if hasattr(self.grid, accessor) and callable(getattr(self.grid, accessor)):
-            return getattr(self.grid, accessor)(self.grid, row)
-
-        paths = accessor.split(".")
-        row_value = row
-        for path in paths:
-            if hasattr(row_value, path):
-                row_value = getattr(row_value, path)
-            else:
-                row_value = None
-                break
-        if row_value is not None:
-            return row_value
-
-        return None
+        return get_item_value(self.grid, item, accessor, Column)
 
 
 class LeadingColumn(Column):
@@ -176,19 +164,19 @@ class LeadingColumn(Column):
     def template(self):
         return "ui/datagrid/column_leading.html"
 
-    def data(self, row):
-        text_value = self.get_row_value(row, self.text)
+    def data(self, item):
+        text_value = self.get_value(item, self.text)
         data = {"text": text_value, "single": self.secondary_text is None}
         if (
             self.detail_url is None
-            and hasattr(row, "get_absolute_url")
-            and callable(row.get_absolute_url)
+            and hasattr(item, "get_absolute_url")
+            and callable(item.get_absolute_url)
         ):
             self.detail_url = "get_absolute_url"
         if self.detail_url is not None:
-            data.update(detail_url=self.get_row_value(row, self.detail_url))
+            data.update(detail_url=self.get_value(item, self.detail_url))
         if self.secondary_text is not None:
-            secondary_text_value = self.get_row_value(row, self.secondary_text)
+            secondary_text_value = self.get_value(item, self.secondary_text)
             data.update(
                 secondary_text=secondary_text_value,
                 empty=text_value is None and secondary_text_value is None,
@@ -196,9 +184,9 @@ class LeadingColumn(Column):
         else:
             data.update(empty=text_value is None)
         if self.image_src is not None:
-            data.update(image_src=self.get_row_value(row, self.image_src))
+            data.update(image_src=self.get_value(item, self.image_src))
         if self.icon is not None:
-            data.update(icon=self.get_row_value(row, self.icon))
+            data.update(icon=self.get_value(item, self.icon))
 
         data["image_alt"] = data.get("secondary_text", data["text"])
 
@@ -218,14 +206,14 @@ class TextColumn(Column):
     def template(self):
         return "ui/datagrid/column_text.html"
 
-    def data(self, row):
-        text_value = self.get_row_value(row, self.text)
+    def data(self, item):
+        text_value = self.get_value(item, self.text)
         data = {
             "text": text_value,
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
-            secondary_text_value = self.get_row_value(row, self.secondary_text)
+            secondary_text_value = self.get_value(item, self.secondary_text)
             data.update(
                 secondary_text=secondary_text_value,
                 empty=text_value is None and secondary_text_value is None,
@@ -263,14 +251,14 @@ class DateColumn(Column):
         else:
             return NotImplementedError('Only the "timesince" format is implemented')
 
-    def data(self, row):
+    def data(self, item):
         data = {
-            "date": self.format_date(self.get_row_value(row, self.date)),
+            "date": self.format_date(self.get_value(item, self.date)),
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
             data.update(
-                secondary_text=self.get_row_value(row, self.secondary_text),
+                secondary_text=self.get_value(item, self.secondary_text),
             )
 
         return data
@@ -288,8 +276,8 @@ class CountryColumn(Column):
     def template(self):
         return "ui/datagrid/column_countries.html"
 
-    def data(self, row):
-        return {"countries": self.get_row_value(row, self.countries)}
+    def data(self, item):
+        return {"countries": self.get_value(item, self.countries)}
 
 
 class LinkColumn(Column):
@@ -304,8 +292,8 @@ class LinkColumn(Column):
     def template(self):
         return "ui/datagrid/column_link.html"
 
-    def data(self, row):
-        return {"label": _(self.text), "url": self.get_row_value(row, self.url)}
+    def data(self, item):
+        return {"label": _(self.text), "url": self.get_value(item, self.url)}
 
 
 class TagsColumn(Column):
@@ -320,8 +308,8 @@ class TagsColumn(Column):
     def template(self):
         return "ui/datagrid/column_tags.html"
 
-    def data(self, row):
-        tags_value = self.get_row_value(row, self.tags)
+    def data(self, item):
+        tags_value = self.get_value(item, self.tags)
         data = {
             "tags": tags_value,
         }
