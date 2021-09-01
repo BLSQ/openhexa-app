@@ -1,6 +1,10 @@
 from django.apps import AppConfig, apps
 from importlib import import_module
 
+from typing import Dict, List
+
+from django.db.models.base import ModelBase
+
 
 class ConnectorAppConfig(AppConfig):
     @property
@@ -29,6 +33,19 @@ class ConnectorAppConfig(AppConfig):
             notebooks_credentials_functions.append(getattr(module, function_name))
 
         return notebooks_credentials_functions
+
+    @classmethod
+    def get_models_by_capability(cls, capability, filter_app=None):
+        models_by_app: Dict[AppConfig, List[ModelBase]] = {}
+        for app in apps.get_app_configs():
+            if filter_app and app.label != filter_app:
+                continue
+            if isinstance(app, ConnectorAppConfig):
+                models_by_app[app] = []
+                for model in app.get_models():
+                    if hasattr(model, capability):
+                        models_by_app[app].append(model)
+        return models_by_app
 
 
 def get_connector_app_configs():
