@@ -1,4 +1,4 @@
-def get_item_value(container, item, accessor, exclude):
+def get_item_value(item, accessor, *, container, exclude):
     if hasattr(container, accessor):
         attr = getattr(container, accessor)
         if callable(attr):

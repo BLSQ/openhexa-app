@@ -137,7 +137,7 @@ class Column:
         if not self.bound:
             raise ValueError("Cannot get item value for unbound column")
 
-        return get_item_value(self.grid, item, accessor, Column)
+        return get_item_value(item, accessor, container=self.grid, exclude=Column)
 
 
 class LeadingColumn(Column):

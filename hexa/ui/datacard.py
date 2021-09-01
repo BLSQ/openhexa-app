@@ -50,8 +50,9 @@ class DatacardMeta(BaseMeta):
 
 
 class Datacard(metaclass=DatacardMeta):
-    title = _("Missing title")
-    subtitle = _("Missing subtitle")
+    title = None
+    subtitle = None
+    image_src = None
 
     def __init__(self, model):
         self.model = model
@@ -82,8 +83,15 @@ class Datacard(metaclass=DatacardMeta):
         context = {
             "property_data": property_data,
             "section_data": section_data,
-            "title": get_item_value(self, self.model, self.title, PropertyLike),
-            "subtitle": get_item_value(self, self.model, self.subtitle, PropertyLike),
+            "title": get_item_value(
+                self.model, self.title, container=self, exclude=PropertyLike
+            ),
+            "subtitle": get_item_value(
+                self.model, self.subtitle, container=self, exclude=PropertyLike
+            ),
+            "image_src": get_item_value(
+                self.model, self.image_src, container=self, exclude=PropertyLike
+            ),
         }
 
         return template.render(context)
@@ -139,7 +147,7 @@ class PropertyLike:
         if not self.bound:
             raise ValueError("Cannot get item value for unbound property")
 
-        return get_item_value(self.card, item, accessor, PropertyLike)
+        return get_item_value(item, accessor, container=self.card, exclude=PropertyLike)
 
 
 class Property(PropertyLike):
