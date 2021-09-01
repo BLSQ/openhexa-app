@@ -274,7 +274,7 @@ class CountryColumn(Column):
 
     @property
     def template(self):
-        return "ui/datagrid/column_countries.html"
+        return "ui/datagrid/column_country.html"
 
     def data(self, item):
         return {"countries": self.get_value(item, self.countries)}
@@ -306,7 +306,7 @@ class TagsColumn(Column):
 
     @property
     def template(self):
-        return "ui/datagrid/column_tags.html"
+        return "ui/datagrid/column_tag.html"
 
     def data(self, item):
         tags_value = self.get_value(item, self.tags)

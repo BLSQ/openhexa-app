@@ -86,16 +86,14 @@ class IndexManager(TreeManager):
 
 
 class Index(Base):
-    class Meta:
-        verbose_name = "Catalog Index"
-        verbose_name_plural = "Catalog indexes"
-        ordering = ("external_name",)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.rank = None
 
     class Meta:
+        verbose_name = "Index"
+        verbose_name_plural = "Indexes"
+        ordering = ("external_name",)
         indexes = [
             GinIndex(
                 name="catalog_index_search_gin_idx",

@@ -1,0 +1,8 @@
+<span class="flex items-center">
+    <img class="mr-1" src="{{ country.flag }}" alt="{{ country.name }}">
+    {% if short|default:False %}
+        {{ country.alpha3|default:country.name }}
+    {% else %}
+        {{ country.name }}
+    {% endif %}
+</span>

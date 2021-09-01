@@ -241,7 +241,7 @@ class CountryProperty(Property):
         return {"countries": self.get_value(item, self.countries)}
 
 
-class TagsProperty(Property):
+class TagProperty(Property):
     def __init__(self, *, tags=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -252,7 +252,7 @@ class TagsProperty(Property):
 
     @property
     def template(self):
-        return "ui/datacard/property_tags.html"
+        return "ui/datacard/property_tag.html"
 
     def data(self, item):
         tags_value = self.get_value(item, self.tags)

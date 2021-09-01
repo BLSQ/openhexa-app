@@ -8,7 +8,7 @@ from hexa.ui.datacard import (
     URLProperty,
     LocaleProperty,
     DateProperty,
-    TagsProperty,
+    TagProperty,
     CountryProperty,
 )
 
@@ -25,10 +25,10 @@ class ExternalSection(Section):
 class OpenHexaMetaDataSection(Section):
     title = "OpenHexa Metadata"
 
-    # TODO: owner
+    owner = URLProperty(url="only_index.owner.url", text="only_index.owner.name")
     label = TextProperty(text="only_index.label")
-    tags = TagsProperty(tags="only_index.tags.all")
-    location = CountryProperty(countries="countries")
+    tags = TagProperty(tags="only_index.tags.all")
+    location = CountryProperty(countries="only_index.countries")
     description = TextProperty(text="only_index.description", markdown=True)
 
 

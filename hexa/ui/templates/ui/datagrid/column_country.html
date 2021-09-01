@@ -1,12 +1,10 @@
-{% extends "ui/datacard/property.html" %}
 {% load i18n %}
-
-{% block value %}
+<td class="px-6 py-4 whitespace-nowrap">
     <div class="text-sm text-gray-900 flex items-center align-center gap-3">
         {% for country in data.countries %}
-            {% include "ui/country.html" %}
+            {% include "ui/country.html" with short=True %}
         {% empty %}
             {% translate "Global" %}
         {% endfor %}
     </div>
-{% endblock %}
+</td>
