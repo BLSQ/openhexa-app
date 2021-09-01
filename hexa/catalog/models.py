@@ -152,7 +152,7 @@ class Index(Base):
 
     @property
     def display_name(self):
-        return self.external_name
+        return self.label or self.external_name
 
     @property
     def symbol(self):  # TODO: check
