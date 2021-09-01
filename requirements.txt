@@ -84,6 +84,8 @@ jmespath==0.10.0
     #   botocore
 logzero==1.7.0
     # via dhis2.py
+markdown==3.3.4
+    # via -r requirements.in
 markupsafe==2.0.1
     # via jinja2
 numpy==1.21.1

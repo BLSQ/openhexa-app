@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from .datagrids import DataElementGrid, IndicatorGrid
+from .datacards import InstanceCard
 from .models import Instance, Indicator, DataElement, Extract
 
 
@@ -14,6 +15,7 @@ def instance_detail(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
+    instance_card = InstanceCard(instance)
     data_element_grid = DataElementGrid(
         instance.dataelement_set.all(),
         per_page=5,
@@ -41,6 +43,7 @@ def instance_detail(request, instance_id):
         "connector_dhis2/instance_detail.html",
         {
             "instance": instance,
+            "instance_card": instance_card,
             "data_element_grid": data_element_grid,
             "indicator_grid": indicator_grid,
             "breadcrumbs": breadcrumbs,
