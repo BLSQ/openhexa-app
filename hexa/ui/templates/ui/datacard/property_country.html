@@ -1,0 +1,13 @@
+{% extends "ui/datacard/property.html" %}
+{% load i18n %}
+
+{% block value %}
+    <div class="text-sm text-gray-900 flex items-center align-center">
+        {% for country in data.countries %}
+            <img class="mr-2" src="{{ country.flag }}" alt="{{ country.name }}"/>
+            {{ country.alpha3|default:country.name }}
+        {% empty %}
+            {% translate "Global" %}
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -9,7 +9,7 @@ class IndexAdmin(admin.ModelAdmin):
         "app_label",
         "model",
     )
-    list_filter = ("content_type__app_label",)
+    list_filter = ("content_type",)
     search_fields = ("external_name",)
 
     def app_label(self, obj):

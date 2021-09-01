@@ -6,7 +6,7 @@
     {% endif %}
     <dl>
         {% for property in property_data %}
-            <div class="p2-4 sm:py-3 sm:grid sm:grid-cols-4 sm:gap-4 sm:px-6">
+            <div class="p2-4 sm:py-3 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
                 {% include property.template with data=property.data property=property.property only %}
             </div>
         {% endfor %}

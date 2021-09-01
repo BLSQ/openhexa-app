@@ -1,7 +1,9 @@
 from django.template import loader
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
+from markdown import markdown as to_markdown
 
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
@@ -192,16 +194,22 @@ class Section(PropertyLike, metaclass=SectionMeta):
 
 
 class TextProperty(Property):
-    def __init__(self, *, text, **kwargs):
+    def __init__(self, *, text, markdown=False, **kwargs):
         super().__init__(**kwargs)
         self.text = text
+        self.markdown = markdown
 
     @property
     def template(self):
         return "ui/datacard/property_text.html"
 
     def data(self, item):
-        return {"text": self.get_value(item, self.text)}
+        text_value = self.get_value(item, self.text)
+
+        return {
+            "text": mark_safe(to_markdown(text_value)) if self.markdown else text_value,
+            "markdown": self.markdown,
+        }
 
 
 class LocaleProperty(Property):
@@ -217,6 +225,41 @@ class LocaleProperty(Property):
         locale_value = self.get_value(item, self.locale)
 
         return {"text": Locale[locale_value].label}
+
+
+class CountryProperty(Property):
+    def __init__(self, *, countries=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.countries = countries
+
+    @property
+    def template(self):
+        return "ui/datacard/property_country.html"
+
+    def data(self, item):
+        return {"countries": self.get_value(item, self.countries)}
+
+
+class TagsProperty(Property):
+    def __init__(self, *, tags=None, **kwargs):
+        super().__init__(**kwargs)
+
+        if tags is None:  # TODO: Replace by name guessing
+            tags = "tags.all"
+
+        self.tags = tags
+
+    @property
+    def template(self):
+        return "ui/datacard/property_tags.html"
+
+    def data(self, item):
+        tags_value = self.get_value(item, self.tags)
+
+        return {
+            "tags": tags_value,
+        }
 
 
 class URLProperty(Property):

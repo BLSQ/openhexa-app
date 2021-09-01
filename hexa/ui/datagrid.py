@@ -300,7 +300,7 @@ class TagsColumn(Column):
     def __init__(self, *, tags=None, **kwargs):
         super().__init__(**kwargs)
 
-        if tags is None:
+        if tags is None:  # TODO: Replace by name guessing
             tags = "tags.all"
         self.tags = tags
 

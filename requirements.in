@@ -9,6 +9,7 @@ django-countries
 django-ltree
 django-tailwind
 gunicorn
+markdown
 pandas
 psycopg2-binary
 stringcase
