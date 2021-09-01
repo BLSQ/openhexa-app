@@ -164,7 +164,9 @@ class Database(models.Model):
             for new_table_name, new_table in new_tables.items():
                 if new_table_name not in {x.name for x in existing_tables}:
                     created_count += 1
-                    Table.objects.create(name=new_table, database=self, rows=data[2])
+                    Table.objects.create(
+                        name=new_table_name, database=self, rows=new_table[2]
+                    )
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
