@@ -216,7 +216,7 @@ class Datasource(models.Model):
             "Datasource models should implement the index() method"
         )
 
-    def sync(self, user=None):
+    def sync(self):
         raise NotImplementedError(
             "Datasource models should implement the sync() method"
         )

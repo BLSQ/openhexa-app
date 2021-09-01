@@ -53,7 +53,7 @@ def generate_sts_buckets_credentials(
     if user is not None:
         session_name = f"sts-{principal_credentials.username}-{user.username}"
     else:
-        session_name = f"sts-{principal_credentials.username}-system-check"
+        session_name = f"sts-{principal_credentials.username}-system"
 
     response = client.assume_role(
         Policy=json.dumps(policy),

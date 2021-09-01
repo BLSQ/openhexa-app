@@ -109,7 +109,7 @@ class Bucket(Datasource):
             "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
         )
 
-    def sync(self, user=None):  # TODO: move in api/sync module
+    def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
         try:
@@ -120,7 +120,7 @@ class Bucket(Datasource):
             )
 
         sts_credentials = generate_sts_buckets_credentials(
-            user=user,
+            user=None,
             principal_credentials=principal_s3_credentials,
             buckets=[self],
         )

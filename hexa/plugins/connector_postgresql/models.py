@@ -137,7 +137,7 @@ class Database(models.Model):
             else:
                 raise ValidationError(e)
 
-    def sync(self, user=None):
+    def sync(self):
         with psycopg2.connect(self.url) as conn:
             with conn.cursor() as cursor:
                 cursor.execute(
