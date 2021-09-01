@@ -47,17 +47,30 @@ class IndexQuerySet(TreeQuerySet):
         except StopIteration:
             content_type = None
 
-        sim = TrigramSimilarity("search", query)
+        similarity = TrigramSimilarity("search", query)
 
+        # Here, we do 2 things:
+        # First, we filter with __trigram_similar, this generates SQL like `WHERE search % 'the query'`
+        # where % is the similarity operator (https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-OP-TABLE)
+        # This operator checks that the similarity is greater than pg_trgm.similarity_threshold
+        # We use the operator and not the function as postgresl does not hit the index for the function (sadly)
+        # (note: the GIN and GIST indexes are defined directly on the Index model)
+        #
+        # Then, we annotate with TrigramSimilarity("search", query) and it generates this SQL:
+        # `SELECT similarity("search", 'the query') as rank` and this is used to display the rank in the search.
         results = (
             self.filter(search__trigram_similar=query)
-            .annotate(rank=sim)
+            .annotate(rank=similarity)
             .order_by("-rank")
         )
 
         if content_type is not None:
             results = results.filter(content_type=content_type)
 
+        # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
+        # We increase it here.
+        # Warning: the SET is done right now but the queryset execution is lazy so could be delayed a lot
+        # there is no guarantee that someone will not SET a different value in the meantime. (but probability is low)
         with connection.cursor() as cursor:
             cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
 
