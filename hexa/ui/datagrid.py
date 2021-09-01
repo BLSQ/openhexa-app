@@ -306,3 +306,23 @@ class LinkColumn(Column):
 
     def data(self, row):
         return {"label": _(self.text), "url": self.get_row_value(row, self.url)}
+
+
+class TagsColumn(Column):
+    def __init__(self, *, tags=None, **kwargs):
+        super().__init__(**kwargs)
+
+        if tags is None:
+            tags = "tags.all"
+        self.tags = tags
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_tags.html"
+
+    def data(self, row):
+        tags_value = self.get_row_value(row, self.tags)
+        data = {
+            "tags": tags_value,
+        }
+        return data
