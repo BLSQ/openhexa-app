@@ -289,6 +289,7 @@ class Bucket(Datasource):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
+                "content": self.content_summary,
                 "path": [self.pk.hex],
                 "external_id": self.name,
                 "external_name": self.name,

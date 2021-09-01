@@ -8,9 +8,11 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from psycopg2 import OperationalError
+from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import (
     Index,
@@ -82,6 +84,17 @@ class Database(models.Model):
         super().save(*args, **kwargs)
         self.index()
 
+    @property
+    def content_summary(self):
+        count = self.table_set.count()
+
+        return (
+            ""
+            if count == 0
+            else _("%(count)d table%(suffix)s")
+            % {"count": count, "suffix": pluralize(count)}
+        )
+
     def index(self):
         index, _ = Index.objects.update_or_create(
             defaults={
@@ -91,6 +104,7 @@ class Database(models.Model):
                 "external_type": ExternalType.DATABASE.value,
                 "search": f"{self.database}",
                 "path": [self.id.hex],
+                "content": self.content_summary,
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
