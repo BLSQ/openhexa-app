@@ -5,7 +5,7 @@
 
 {% block page_content %}
     {% include "connector_s3/partials/datasource_card.html" %}
-    {% embed "ui/section/section.html" with title=_("Tables") %}
+    {% embed "ui/section/section.html" with title=_("Objects") %}
         {% slot content %}
             {{ datagrid }}
         {% endslot %}

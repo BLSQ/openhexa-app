@@ -17,7 +17,9 @@
                          fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"/>
                     </svg>
-                    {% if breadcrumb.2 %}
+                    {% if breadcrumb.3 %}
+                        {% url breadcrumb.1 breadcrumb.2 breadcrumb.3 as bread_url %}
+                    {% elif breadcrumb.2 %}
                         {% url breadcrumb.1 breadcrumb.2 as bread_url %}
                     {% else %}
                         {% url breadcrumb.1 as bread_url %}

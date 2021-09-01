@@ -24,7 +24,7 @@ def datasource_detail(request, datasource_id):
     ]
 
     datagrid = ObjectGrid(
-        bucket.object_set.filter(parent_key="/"),
+        bucket.object_set.filter(parent_key="/", orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
     )
@@ -54,21 +54,29 @@ def object_detail(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    object = get_object_or_404(bucket.object_set.all(), key=path)
+    object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (bucket.name, "connector_s3:bucket_detail", bucket_id),
+        (bucket.name, "connector_s3:datasource_detail", bucket_id),
     ]
 
     acc = []
     for i, part in enumerate(object.key.split("/")):
-        acc.append(path)
-        if i == 0:
-            continue
+        acc.append(part)
+        path = "/".join(acc)
+        if i != len(object.key.split("/")) - 1:
+            path += "/"
         breadcrumbs.append(
-            (part, "connector_s3:object_detail", bucket_id, "/".join(acc)),
+            (part, "connector_s3:object_detail", bucket_id, path),
         )
+    print(acc)
+
+    datagrid = ObjectGrid(
+        bucket.object_set.filter(parent_key=path, orphan=False),
+        per_page=20,
+        page=int(request.GET.get("page", "1")),
+    )
 
     return render(
         request,
@@ -77,18 +85,7 @@ def object_detail(request, bucket_id, path):
             "datasource": bucket,
             "object": object,
             "breadcrumbs": breadcrumbs,
-            "object_list_params": build_summary_list_params(
-                bucket.object_set.filter(parent_key=object.key),
-                title=_("Objects"),
-                columns=[
-                    _("Name"),
-                    _("Size"),
-                    _("Type"),
-                    _("Last update"),
-                ],
-                item_name=_("object"),
-                item_template="connector_s3/components/object_list_item.html",
-            ),
+            "datagrid": datagrid,
         },
     )
 

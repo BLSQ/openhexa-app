@@ -382,6 +382,8 @@ class Object(Entry):
 
     @property
     def filename(self):
+        if self.key.endswith("/"):
+            return os.path.basename(self.key[:-1])
         return os.path.basename(self.key)
 
     @property
