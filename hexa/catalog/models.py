@@ -1,6 +1,5 @@
 import uuid
 
-from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -8,6 +7,7 @@ from django.contrib.postgres.search import (
     TrigramSimilarity,
 )
 from django.db import models, connection
+from django.templatetags.static import static
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeQuerySet, TreeManager
 
@@ -169,7 +169,7 @@ class Index(Base):
 
     @property
     def symbol(self):  # TODO: check
-        return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
+        return static(f"{self.app_label}/img/symbol.svg")
 
     def to_dict(self):
         return {  # TODO: adapt to new models

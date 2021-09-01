@@ -3,6 +3,7 @@ import uuid
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -129,7 +130,7 @@ class PipelinesIndex(Base):
 
     @property
     def symbol(self):
-        return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
+        return static(f"{self.app_label}/img/symbol.svg")
 
     def to_dict(self):
         return {

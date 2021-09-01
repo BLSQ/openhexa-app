@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.templatetags.static import static
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.ui.datacard import (
@@ -46,4 +46,4 @@ class InstanceCard(Datacard):
 
     @property
     def dhis2_image_src(self):
-        return f"{settings.STATIC_URL}connector_dhis2/img/symbol.svg"
+        return static("connector_dhis2/img/symbol.svg")
