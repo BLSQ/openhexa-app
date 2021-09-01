@@ -25,6 +25,7 @@ class ExternalSection(Section):
 class OpenHexaMetaDataSection(Section):
     title = "OpenHexa Metadata"
 
+    # TODO: owner
     label = TextProperty(text="only_index.label")
     tags = TagsProperty(tags="only_index.tags.all")
     location = CountryProperty(countries="countries")
