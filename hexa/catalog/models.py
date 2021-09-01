@@ -61,7 +61,7 @@ class IndexQuerySet(TreeQuerySet):
         with connection.cursor() as cursor:
             cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
 
-        return results
+        return results.select_related("content_type")
 
 
 class IndexManager(TreeManager):
