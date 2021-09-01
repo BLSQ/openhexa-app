@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n breadcrumb %}
 
 <nav class="flex px-2" aria-label="Breadcrumb">
     <ol class="flex items-center space-x-2">
@@ -17,15 +17,8 @@
                          fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                         <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"/>
                     </svg>
-                    {% if breadcrumb.3 %}
-                        {% url breadcrumb.1 breadcrumb.2 breadcrumb.3 as bread_url %}
-                    {% elif breadcrumb.2 %}
-                        {% url breadcrumb.1 breadcrumb.2 as bread_url %}
-                    {% else %}
-                        {% url breadcrumb.1 as bread_url %}
-                    {% endif %}
                     <a
-                            href="{{ bread_url }}"
+                            href="{{ breadcrumb|as_url }}"
                             {% if forloop.last %}aria-current="page" {% endif %}
                             class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
                     >
