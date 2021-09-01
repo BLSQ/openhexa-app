@@ -33,7 +33,7 @@ def quick_search(request):
 
 def search(request):
     query = request.GET.get("query", "")
-    results = Index.objects.filter_for_user(request.user).search(query, limit=100)
+    results = Index.objects.filter_for_user(request.user).search(query)[:100]
 
     return render(
         request,

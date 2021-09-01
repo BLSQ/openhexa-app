@@ -73,7 +73,7 @@ def resolve_datasources(_, info, page, per_page=None):
 @convert_kwargs_to_snake_case
 def resolve_search(_, info, page, query, per_page=None):
     request: HttpRequest = info.context["request"]
-    queryset = Index.objects.filter_for_user(request.user).search(query, limit=100)
+    queryset = Index.objects.filter_for_user(request.user).search(query)[:100]
 
     return result_page(queryset, page, per_page)
 

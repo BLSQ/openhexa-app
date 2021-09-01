@@ -3,15 +3,11 @@ import uuid
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.contrib.postgres.search import (
-    SearchVector,
-    SearchQuery,
-    SearchRank,
     TrigramSimilarity,
-    SearchVectorField,
 )
-from django.db import models
-from django.db.models.functions import Greatest
+from django.db import models, connection
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeQuerySet, TreeManager
 
@@ -38,7 +34,7 @@ class IndexQuerySet(TreeQuerySet):
             indexpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
-    def search(self, query, *, limit=10):
+    def search(self, query):
         tokens = query.split(" ")
 
         try:
@@ -51,44 +47,19 @@ class IndexQuerySet(TreeQuerySet):
         except StopIteration:
             content_type = None
 
-        # We want the text search to lookup all those fields
-        fields = [
-            "name",
-            "external_name",
-            "short_name",
-            "external_short_name",
-            "description",
-            "external_description",
-            "countries",
-        ]
-
-        # We use SearchVector to instruct the SearchQuery
-        # to look in all those fields
-        search_vector = SearchVector(*fields)
-        search_query = SearchQuery(query, config=models.F("text_search_config"))
-        search_rank = SearchRank(vector=search_vector, query=search_query)
-
-        # Unfortunately, using `SearchQuery` works nicely only when the user
-        # types a full word (or better, multiple words).
-        # But if you type only part of a word `SearchQuery` will not return a match
-        # This is particularly annoying for S3 objects as their "name" is
-        # considered as single word (slashes don't count as spaces)
-        # So we also match on trigrams for all fields and take the field
-        # that has the highest match and combine it with the match from the SearchVector
-        trigrams = [TrigramSimilarity(field, query) for field in fields]
-        max_trigram = Greatest(*trigrams)
+        sim = TrigramSimilarity("search", query)
 
         results = (
-            self.annotate(rank=search_rank + max_trigram)
-            .filter(rank__gt=0.11)
+            self.filter(search__trigram_similar=query)
+            .annotate(rank=sim)
             .order_by("-rank")
         )
 
         if content_type is not None:
             results = results.filter(content_type=content_type)
 
-        if limit is not None:
-            results = results[:limit]
+        with connection.cursor() as cursor:
+            cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
 
         return results
 
@@ -110,6 +81,20 @@ class Index(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.rank = None
+
+    class Meta:
+        indexes = [
+            GinIndex(
+                name="catalog_index_search_gin_idx",
+                fields=["search"],
+                opclasses=["gin_trgm_ops"],
+            ),
+            GistIndex(
+                name="catalog_index_search_gist_idx",
+                fields=["search"],
+                opclasses=["gist_trgm_ops"],
+            ),
+        ]
 
     # Content-type
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -145,7 +130,7 @@ class Index(Base):
 
     # Search fields / optimizations
     text_search_config = PostgresTextSearchConfigField()
-    search = SearchVectorField()  # TODO: blank?
+    search = models.TextField(blank=True)
 
     objects = IndexManager.from_queryset(IndexQuerySet)()
 
@@ -174,23 +159,23 @@ class Index(Base):
         return f"{settings.STATIC_URL}{self.app_label}/img/symbol.svg"
 
     def to_dict(self):
-        return {
+        return {  # TODO: adapt to new models
             "id": self.id,
-            "parent": self.parent.to_dict() if self.parent is not None else None,
+            # "parent": self.parent.to_dict() if self.parent is not None else None,
             "rank": self.rank,
             "app_label": self.app_label,
             "content_type_name": self.content_type_name,
             "display_name": self.display_name,
-            "summary": self.summary,
+            # "summary": self.summary,
             "symbol": self.symbol,
-            "name": self.name,
+            # "name": self.name,
             "external_name": self.external_name,
-            "short_name": self.short_name,
-            "external_short_name": self.external_short_name,
+            # "short_name": self.short_name,
+            # "external_short_name": self.external_short_name,
             "description": self.description,
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
-            "detail_url": self.detail_url,
+            # "detail_url": self.detail_url,
             "last_synced_at": date_format(self.last_synced_at)
             if self.last_synced_at is not None
             else None,
