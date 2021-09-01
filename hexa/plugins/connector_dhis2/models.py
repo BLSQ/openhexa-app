@@ -155,8 +155,9 @@ class Instance(Datasource):
         index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
-                "content_summary": self.content_summary,
+                "content": self.content_summary,
                 "path": [self.id.hex],
+                "search": f"{self.name}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -274,6 +275,7 @@ class DataElement(Dhis2Entry):
                 "external_name": self.name,
                 "external_description": self.description,
                 "path": [self.instance.id.hex, self.id.hex],
+                "search": f"{self.name} {self.description}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -319,6 +321,7 @@ class Indicator(Dhis2Entry):
                 "external_name": self.name,
                 "external_description": self.description,
                 "path": [self.instance.id.hex, self.id.hex],
+                "search": f"{self.name} {self.description}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
