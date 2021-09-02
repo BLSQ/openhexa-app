@@ -429,7 +429,7 @@ class Object(Entry):
         self.key = object_data["true_key"]
         self.parent_key = self.compute_parent_key(object_data["true_key"])
         self.size = object_data["size"]
-        self.etag = object_data["ETag"]
+        self.etag = object_data.get("ETag")
         self.storage_class = object_data["StorageClass"]
         self.type = object_data["type"]
         self.last_modified = object_data.get("LastModified")
