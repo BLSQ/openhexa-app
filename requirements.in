@@ -17,6 +17,7 @@ tblib
 whitenoise
 sentry-sdk
 django-debug-toolbar
+tqdm
 
 # connector_dhis2
 dhis2.py
