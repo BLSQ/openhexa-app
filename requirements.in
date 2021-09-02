@@ -24,6 +24,7 @@ dhis2.py
 
 # connector_s3
 s3fs
+moto[s3]
 
 # connector_airflow
 google-auth
