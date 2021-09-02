@@ -4,7 +4,6 @@
 
 {% block page_content %}
     {{ object_card }}
-    {% include "connector_s3/partials/object_card.html" %}
     {% if object.type == 'directory' %}
         {% embed "ui/section/section.html" with title=_("Objects") %}
             {% slot content %}

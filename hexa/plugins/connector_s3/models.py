@@ -145,7 +145,7 @@ class Bucket(Datasource):
             # S3fs adds the bucket name in the Key, we remove it to be consistent with the S3 documentation
             object_data["true_key"] = object_data["Key"].split("/", 1)[1]
 
-            if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
+            if object_data["Key"] == f"{path}" and object_data["type"] != "directory":
                 # Detects the current directory. Ignore it as we already got it from the parent listing
                 continue
 
