@@ -6,7 +6,6 @@
 {% block page_content %}
     {{ instance_card }}
     <hr class="my-8"/>
-    {% include "connector_dhis2/components/instance_card.html" %}
     {% embed "ui/section/section.html" with title=_("Data Elements") %}
         {% slot content %}
             {{ data_element_grid }}
