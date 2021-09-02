@@ -1,4 +1,4 @@
-from django.template import loader
+from django.template import loader, RequestContext
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
@@ -12,9 +12,15 @@ from hexa.ui.utils import get_item_value
 class DatacardOptions:
     """Container for datacard meta (config)"""
 
-    def __init__(self, *, sections, properties):
+    def __init__(
+        self, *, title, subtitle, sections, properties, image_src=None, actions=None
+    ):
         self.sections = sections
         self.properties = properties
+        self.title = title
+        self.subtitle = subtitle
+        self.image_src = image_src
+        self.actions = actions
 
 
 class SectionOptions:
@@ -49,6 +55,10 @@ class DatacardMeta(BaseMeta):
         new_class._meta = DatacardOptions(
             sections=mcs.find(attrs, new_class, Section),
             properties=mcs.find(attrs, new_class, Property),
+            title=attrs["title"],
+            subtitle=attrs["subtitle"],
+            image_src=attrs["image_src"],
+            actions=[action.bind(new_class) for action in attrs.get("actions", [])],
         )
 
         return new_class
@@ -59,13 +69,25 @@ class Datacard(metaclass=DatacardMeta):
     subtitle = None
     image_src = None
 
-    def __init__(self, model):
+    def __init__(self, model, *, request):
         self.model = model
+        self.request = request
 
     def __str__(self):
         """Render the datacard"""
 
         template = loader.get_template("ui/datacard/datacard.html")
+
+        action_data = []
+        for action_instance in self._meta.actions:
+            action_data.append(
+                {
+                    "template": action_instance.template,
+                    "data": action_instance.data(self.model),
+                    "action": action_instance,
+                }
+            )
+
         property_data = []
         for property_name, property_instance in self._meta.properties.items():
             property_data.append(
@@ -75,6 +97,7 @@ class Datacard(metaclass=DatacardMeta):
                     "property": property_instance,
                 }
             )
+
         section_data = []
         for section_name, section_instance in self._meta.sections.items():
             section_data.append(
@@ -88,18 +111,19 @@ class Datacard(metaclass=DatacardMeta):
         context = {
             "property_data": property_data,
             "section_data": section_data,
+            "action_data": action_data,
             "title": get_item_value(
-                self.model, self.title, container=self, exclude=PropertyLike
+                self.model, self._meta.title, container=self, exclude=PropertyLike
             ),
             "subtitle": get_item_value(
-                self.model, self.subtitle, container=self, exclude=PropertyLike
+                self.model, self._meta.subtitle, container=self, exclude=PropertyLike
             ),
             "image_src": get_item_value(
-                self.model, self.image_src, container=self, exclude=PropertyLike
+                self.model, self._meta.image_src, container=self, exclude=PropertyLike
             ),
         }
 
-        return template.render(context)
+        return template.render(context, request=self.request)
 
 
 class SectionMeta(BaseMeta):
@@ -144,12 +168,8 @@ class PropertyLike:
             "Each Property-like class should implement the data() method"
         )
 
-    @property
-    def bound(self):
-        return self.name is not None and self.card is not None
-
     def get_value(self, item, accessor):
-        if not self.bound:
+        if self.card is None:
             raise ValueError("Cannot get item value for unbound property")
 
         return get_item_value(item, accessor, container=self.card, exclude=PropertyLike)
@@ -307,4 +327,34 @@ class DateProperty(Property):
     def data(self, item):
         return {
             "date": self.format_date(self.get_value(item, self.date)),
+        }
+
+
+class Action:
+    def __init__(self, label, url, icon=None):
+        self.label = label
+        self.icon = icon
+        self.url = url
+        self.card = None
+
+    def bind(self, card: Datacard):
+        self.card = card
+
+        return self
+
+    def get_value(self, item, accessor):
+        if self.card is None:
+            raise ValueError("Cannot get item value for unbound action")
+
+        return get_item_value(item, accessor, container=self.card, exclude=Action)
+
+    @property
+    def template(self):
+        return "ui/datacard/action.html"
+
+    def data(self, item):
+        return {
+            "url": self.get_value(item, self.url),
+            "label": _(self.label),
+            "icon": self.icon,
         }

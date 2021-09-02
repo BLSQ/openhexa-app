@@ -7,7 +7,7 @@
             {% url "connector_dhis2:instance_sync" instance.pk as sync_url %}
             {% embed "core/components/card/heading_action.html" with url=sync_url label=_("Sync") color="primary" %}
                 {% slot icon %}
-                    {% include "core/components/icons/refresh.html" %}
+                    {% include "ui/icons/refresh.html" %}
                 {% endslot %}
             {% endembed %}
         {% endslot %}

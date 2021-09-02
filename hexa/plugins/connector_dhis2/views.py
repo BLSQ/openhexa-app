@@ -15,7 +15,7 @@ def instance_detail(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    instance_card = InstanceCard(instance)
+    instance_card = InstanceCard(instance, request=request)
     data_element_grid = DataElementGrid(
         instance.dataelement_set.all(),
         per_page=5,

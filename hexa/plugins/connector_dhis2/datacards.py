@@ -1,6 +1,8 @@
 from django.templatetags.static import static
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Datacard,
     Section,
@@ -10,6 +12,7 @@ from hexa.ui.datacard import (
     DateProperty,
     TagProperty,
     CountryProperty,
+    Action,
 )
 
 
@@ -36,6 +39,7 @@ class InstanceCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"
+    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = ExternalSection()
     metadata = OpenHexaMetaDataSection()
@@ -47,3 +51,8 @@ class InstanceCard(Datacard):
     @property
     def dhis2_image_src(self):
         return static("connector_dhis2/img/symbol.svg")
+
+    def get_sync_url(self, instance: Instance):
+        return reverse(
+            "connector_dhis2:instance_sync", kwargs={"instance_id": instance.id}
+        )
