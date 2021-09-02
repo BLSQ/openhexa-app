@@ -1,6 +1,7 @@
 import json
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -16,11 +17,10 @@ import os
 
 from hexa.catalog.models import (
     Base,
-    Content,
     Datasource,
-    CatalogIndex,
-    CatalogIndexPermission,
-    CatalogIndexType,
+    Entry,
+    Index,
+    IndexPermission,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
@@ -68,20 +68,13 @@ class BucketQuerySet(models.QuerySet):
 class Bucket(Datasource):
     class Meta:
         verbose_name = "S3 Bucket"
-        ordering = (
-            "name",
-            "s3_name",
-        )
+        ordering = ("name",)
 
-    s3_name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
 
     objects = BucketQuerySet.as_manager()
 
-    @property
-    def hexa_or_s3_name(self):
-        return self.name if self.name != "" else self.s3_name
-
-    def clean(self):
+    def get_boto_client(self):
         try:
             principal_s3_credentials = Credentials.objects.get()
         except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
@@ -95,18 +88,23 @@ class Bucket(Datasource):
             buckets=[self],
             duration=900,
         )
-        client = boto3.client(
+        return boto3.client(
             "s3",
+            principal_s3_credentials.default_region,
             aws_access_key_id=sts_credentials["AccessKeyId"],
             aws_secret_access_key=sts_credentials["SecretAccessKey"],
             aws_session_token=sts_credentials["SessionToken"],
+            config=Config(signature_version="s3v4"),
         )
+
+    def clean(self):
+
         try:
-            client.head_bucket(Bucket=self.s3_name)
+            self.get_boto_client().head_bucket(Bucket=self.name)
         except ClientError as e:
             raise ValidationError(e)
 
-    def sync(self, user):  # TODO: move in api/sync module
+    def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
         try:
@@ -117,7 +115,7 @@ class Bucket(Datasource):
             )
 
         sts_credentials = generate_sts_buckets_credentials(
-            user=user,
+            user=None,
             principal_credentials=principal_s3_credentials,
             buckets=[self],
         )
@@ -132,7 +130,7 @@ class Bucket(Datasource):
             Bucket.objects.select_for_update().get(pk=self.pk)
             # Sync data elements
             with transaction.atomic():
-                objects = list(self.list_objects(fs, f"{self.s3_name}"))
+                objects = list(self.list_objects(fs, f"{self.name}"))
                 result = self.sync_directories(fs, objects)
                 result += self.sync_objects(fs, objects)
 
@@ -144,7 +142,10 @@ class Bucket(Datasource):
 
     def list_objects(self, fs, path):
         for object_data in fs.ls(path, detail=True):
-            if object_data["Key"] == f"{path}/" and object_data["type"] != "directory":
+            # S3fs adds the bucket name in the Key, we remove it to be consistent with the S3 documentation
+            object_data["true_key"] = object_data["Key"].split("/", 1)[1]
+
+            if object_data["Key"] == f"{path}" and object_data["type"] != "directory":
                 # Detects the current directory. Ignore it as we already got it from the parent listing
                 continue
 
@@ -153,6 +154,7 @@ class Bucket(Datasource):
                 "/"
             ):
                 object_data["Key"] = object_data["Key"] + "/"
+                object_data["true_key"] = object_data["true_key"] + "/"
 
             # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
             if "ETag" in object_data and object_data["ETag"].startswith('"'):
@@ -170,7 +172,7 @@ class Bucket(Datasource):
         new_orphans_count = 0
 
         existing_directories_by_uid = {
-            str(x.id): x for x in self.object_set.filter(s3_type="directory")
+            str(x.id): x for x in self.object_set.filter(type="directory")
         }
 
         for s3_obj in s3_objects:
@@ -187,7 +189,7 @@ class Bucket(Datasource):
 
                 db_obj = existing_directories_by_uid.get(s3_uid)
                 if db_obj:
-                    if db_obj.s3_key != s3_obj["Key"]:  # Directory moved
+                    if db_obj.key != s3_obj["true_key"]:  # Directory moved
                         db_obj.update_metadata(s3_obj)
                         db_obj.save()
                         updated_count += 1
@@ -196,8 +198,8 @@ class Bucket(Datasource):
                     del existing_directories_by_uid[s3_uid]
                 else:  # Not in the DB yet
                     db_obj = Object.create_from_object_data(self, s3_obj)
-                    metadata_path = os.path.join(db_obj.s3_key, METADATA_FILENAME)
-                    with fs.open(metadata_path, mode="wb") as fd:
+                    metadata_path = os.path.join(db_obj.key, METADATA_FILENAME)
+                    with fs.open(f"{self.name}/{metadata_path}", mode="wb") as fd:
                         fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
                     created_count += 1
 
@@ -216,8 +218,8 @@ class Bucket(Datasource):
         )
 
     def sync_objects(self, fs, discovered_objects):
-        existing_objects = list(self.object_set.filter(s3_type="file"))
-        existing_by_key = {x.s3_key: x for x in existing_objects}
+        existing_objects = list(self.object_set.filter(type="file"))
+        existing_by_key = {x.key: x for x in existing_objects}
 
         created = {}
         updated_count = 0
@@ -227,13 +229,14 @@ class Bucket(Datasource):
         for object_data in discovered_objects:
             if object_data["type"] != "file":
                 continue
-            key = object_data["Key"]
+            key = object_data["true_key"]
             if key.endswith("/.openhexa.json"):
                 continue
 
             if key in existing_by_key:
-                if object_data.get("ETag") == existing_by_key[key].s3_etag:
+                if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
+                    existing_by_key[key].save()
                 else:
                     existing_by_key[key].update_metadata(object_data)
                     existing_by_key[key].save()
@@ -242,10 +245,10 @@ class Bucket(Datasource):
             else:
                 created[key] = Object.create_from_object_data(self, object_data)
 
-        orphans_by_etag = {x.s3_etag: x for x in existing_by_key.values()}
+        orphans_by_etag = {x.etag: x for x in existing_by_key.values()}
 
         for created_obj in created.values():
-            etag = created_obj.s3_etag
+            etag = created_obj.etag
             orphan_obj = orphans_by_etag.get(etag)
             if orphan_obj:
                 del orphans_by_etag[etag]
@@ -278,29 +281,31 @@ class Bucket(Datasource):
         )
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.last_synced_at,
-                "content_summary": self.content_summary,
-                "owner": self.owner,
-                "name": self.name,
-                "external_name": self.s3_name,
-                "countries": self.countries,
+                "content": self.content_summary,
+                "path": [self.pk.hex],
+                "external_id": self.name,
+                "external_name": self.name,
+                "external_type": "bucket",
+                "search": f"{self.name}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
-            detail_url=reverse("connector_s3:datasource_detail", args=(self.pk,)),
         )
 
         for permission in self.bucketpermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
     @property
     def display_name(self):
-        return self.hexa_or_s3_name
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
+        )
 
 
 class BucketPermission(Permission):
@@ -326,65 +331,66 @@ class ObjectQuerySet(models.QuerySet):
         )
 
 
-class Object(Content):
+class Object(Entry):
     class Meta:
         verbose_name = "S3 Object"
-        ordering = ["s3_key"]
+        ordering = ("key",)
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    s3_dirname = models.TextField()
-    s3_key = models.TextField()
-    s3_size = models.PositiveBigIntegerField()
-    s3_storage_class = models.CharField(max_length=200)  # TODO: choices
-    s3_type = models.CharField(max_length=200)  # TODO: choices
-    s3_last_modified = models.DateTimeField(null=True, blank=True)
-    s3_etag = models.CharField(max_length=200, null=True, blank=True)
-    orphan = models.BooleanField(default=False)
+    key = models.TextField()
+    parent_key = models.TextField()
+    size = models.PositiveBigIntegerField()
+    storage_class = models.CharField(max_length=200)  # TODO: choices
+    type = models.CharField(max_length=200)  # TODO: choices
+    last_modified = models.DateTimeField(null=True, blank=True)
+    etag = models.CharField(max_length=200, null=True, blank=True)
+    orphan = models.BooleanField(default=False)  # TODO: remove?
 
     objects = ObjectQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
-        if self.s3_dirname is None:
-            self.s3_dirname = self.compute_dirname(self.s3_key)
+        if self.parent_key is None:
+            self.parent_key = self.compute_parent_key(self.key)
         super().save(*args, **kwargs)
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.bucket.last_synced_at,
-                "content_summary": self.content_summary,
-                "owner": self.owner,
-                "name": self.name,
-                "external_name": self.s3_key,
-                "countries": self.countries,
+                "external_name": self.filename,
+                "path": [self.bucket.pk.hex, self.pk.hex],
+                "context": self.parent_key,
+                "external_id": self.key,
+                "external_type": self.type,
+                "external_subtype": self.extension,
+                "search": f"{self.filename} {self.key}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            detail_url=reverse(
-                "connector_s3:object_detail",
-                args=(
-                    self.bucket.pk,
-                    self.s3_key,
-                ),
-            ),
         )
 
         for permission in self.bucket.bucketpermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
     @property
     def display_name(self):
-        return self.name if self.name else self.s3_key
+        return self.filename
 
     @property
-    def s3_extension(self):
-        return os.path.splitext(self.s3_key)[1].lstrip(".")
+    def filename(self):
+        if self.key.endswith("/"):
+            return os.path.basename(self.key[:-1])
+        return os.path.basename(self.key)
+
+    @property
+    def extension(self):
+        return os.path.splitext(self.key)[1].lstrip(".")
+
+    def full_path(self):
+        return f"s3://{self.bucket.name}/{self.key}"
 
     @classmethod
-    def compute_dirname(cls, key):
+    def compute_parent_key(cls, key):
         if key.endswith("/"):  # This is a directory
             return os.path.dirname(os.path.dirname(key)) + "/"
         else:  # This is a file
@@ -392,44 +398,59 @@ class Object(Content):
 
     @property
     def file_size_display(self):
-        return filesizeformat(self.s3_size) if self.s3_size > 0 else "-"
+        return filesizeformat(self.size) if self.size > 0 else "-"
 
     @property
     def type_display(self):
-        if self.s3_type == "directory":
+        if self.type == "directory":
             return _("Directory")
+        else:
+            if verbose_file_type := self.verbose_file_type:
+                return verbose_file_type
+            else:
+                return _("File")
 
+    @property
+    def verbose_file_type(self):
         file_type = {
             "xlsx": "Excel file",
             "md": "Markdown document",
             "ipynb": "Jupyter Notebook",
             "csv": "CSV file",
-        }.get(self.s3_extension, "File")
-
-        return _(file_type)
+        }.get(self.extension)
+        if file_type:
+            return _(file_type)
+        else:
+            return None
 
     def update_metadata(self, object_data):
         self.orphan = False
 
-        self.s3_key = object_data["Key"]
-        self.s3_dirname = self.compute_dirname(object_data["Key"])
-        self.s3_size = object_data["size"]
-        self.s3_etag = object_data["ETag"]
-        self.s3_storage_class = object_data["StorageClass"]
-        self.s3_type = object_data["type"]
-        self.s3_last_modified = object_data.get("LastModified")
-        self.s3_etag = object_data.get("ETag")
+        self.key = object_data["true_key"]
+        self.parent_key = self.compute_parent_key(object_data["true_key"])
+        self.size = object_data["size"]
+        self.etag = object_data["ETag"]
+        self.storage_class = object_data["StorageClass"]
+        self.type = object_data["type"]
+        self.last_modified = object_data.get("LastModified")
+        self.etag = object_data.get("ETag")
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
-            s3_key=object_data["Key"],
-            s3_dirname=cls.compute_dirname(object_data["Key"]),
-            s3_size=object_data["size"],
-            s3_storage_class=object_data["StorageClass"],
-            s3_type=object_data["type"],
-            s3_last_modified=object_data.get("LastModified"),
-            s3_etag=object_data.get("ETag"),
+            key=object_data["true_key"],
+            parent_key=cls.compute_parent_key(object_data["true_key"]),
+            size=object_data["size"],
+            storage_class=object_data["StorageClass"],
+            type=object_data["type"],
+            last_modified=object_data.get("LastModified"),
+            etag=object_data.get("ETag"),
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_s3:object_detail",
+            kwargs={"bucket_id": self.bucket.id, "path": self.key},
         )

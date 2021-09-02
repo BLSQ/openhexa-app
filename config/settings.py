@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "django_countries",
+    "django_ltree",
     "ariadne.contrib.django",
     "tailwind",
     "hexa.user_management",
@@ -49,7 +50,8 @@ INSTALLED_APPS = [
     "hexa.notebooks",
     "hexa.pipelines",
     "hexa.comments",
-    "hexa.tailwindui",
+    "hexa.tags",
+    "hexa.ui",
     "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
     "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
@@ -185,7 +187,7 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 COMMENTS_APP = "hexa.comments"
 
 # Tailwind
-TAILWIND_APP_NAME = "hexa.tailwindui"
+TAILWIND_APP_NAME = "hexa.ui"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")

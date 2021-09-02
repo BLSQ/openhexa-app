@@ -1,7 +1,0 @@
-<div class="mt-1">
-    {% for tag in tags %}
-        {% include "partials/label.html" with text=tag.label color=tag.color dot=tag.dot %}
-    {% empty %}
-        -
-    {% endfor %}
-</div>

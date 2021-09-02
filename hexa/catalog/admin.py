@@ -1,19 +1,24 @@
 from django.contrib import admin
-from hexa.catalog.models import CatalogIndex, CatalogIndexPermission, Tag
+from hexa.catalog.models import Index, IndexPermission
 
 
-@admin.register(CatalogIndex)
-class CatalogIndexAdmin(admin.ModelAdmin):
-    list_display = ("name_or_external_name", "content_type")
-    list_filter = ("index_type",)
-    search_fields = ("name", "external_name", "short_name", "external_short_name")
+@admin.register(Index)
+class IndexAdmin(admin.ModelAdmin):
+    list_display = (
+        "external_name",
+        "app_label",
+        "model",
+    )
+    list_filter = ("content_type",)
+    search_fields = ("external_name",)
+
+    def app_label(self, obj):
+        return obj.content_type.app_label
+
+    def model(self, obj):
+        return obj.content_type.model
 
 
-@admin.register(CatalogIndexPermission)
-class CatalogIndexPermissionAdmin(admin.ModelAdmin):
-    list_display = ("catalog_index", "team")
-
-
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+@admin.register(IndexPermission)
+class IndexPermissionAdmin(admin.ModelAdmin):
+    list_display = ("index", "team")

@@ -1,0 +1,31 @@
+<td class="px-6 py-4 whitespace-nowrap">
+    {% if data.detail_url %}<a href="{{ data.detail_url }}">{% endif %}
+    <div class="flex items-center">
+        {% if data.image_src or data.icon %}
+            <div class="flex-shrink-0 h-10 w-10 flex items-center text-gray-400">
+                {% if data.image_src %}
+                    <img class="h-10 w-10 rounded-full"
+                         src="{{ data.image_src }}"
+                         alt="{{ data.image_alt }}">
+                {% elif data.icon %}
+                    {% include data.icon with w=6 h=6 %}
+                {% endif %}
+            </div>
+        {% endif %}
+        <div{% if data.image_src or data.icon %} class="ml-4"{% endif %}>
+            {% if data.single or data.empty %}
+                <span class="text-sm font-medium text-gray-900">
+                {{ data.text }}
+            </span>
+            {% else %}
+                <div class="text-sm font-medium text-gray-900">
+                    {{ data.text }}
+                </div>
+                <div class="text-sm text-gray-500">
+                    {{ data.secondary_text }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    {% if data.detail_url %}</a>{% endif %}
+</td>

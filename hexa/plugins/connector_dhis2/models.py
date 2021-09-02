@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from dhis2 import RequestException
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -8,13 +9,12 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import (
-    Content as BaseContent,
     Datasource,
-    CatalogIndex,
-    CatalogIndexPermission,
-    CatalogIndexType,
+    Entry,
+    Index,
+    IndexPermission,
 )
-from hexa.core.models import Base, Permission, RichContent
+from hexa.core.models import Base, Permission, RichContent, LocaleField
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 from ...catalog.sync import DatasourceSyncResult
@@ -52,7 +52,7 @@ class Credentials(Base):
             password=self.password,
         )
         try:
-            client._api.get_info()
+            client.fetch_info()
         except RequestException as e:
             if e.code == 401:
                 raise ValidationError(
@@ -75,15 +75,23 @@ class InstanceQuerySet(models.QuerySet):
 class Instance(Datasource):
     class Meta:
         verbose_name = "DHIS2 Instance"
-        ordering = ("name",)
+        ordering = ("url",)
 
     api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
+    url = models.URLField(blank=True)
+    indexes = GenericRelation("catalog.Index")
+    name = models.TextField()
+    locale = LocaleField(default="en")
 
     objects = InstanceQuerySet.as_manager()
 
-    def sync(self, user):
+    @property
+    def display_name(self):
+        return self.name if self.name != "" else self.url
+
+    def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
 
         client = Dhis2Client(
@@ -96,6 +104,9 @@ class Instance(Datasource):
 
         # Sync data elements
         with transaction.atomic():
+            info = client.fetch_info()
+            self.name = info["systemName"]
+
             for results_batch in client.fetch_data_elements():
                 results += sync_from_dhis2_results(
                     model_class=DataElement,
@@ -141,25 +152,24 @@ class Instance(Datasource):
         )
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
+                "external_name": self.name,
                 "last_synced_at": self.last_synced_at,
-                "owner": self.owner,
-                "name": self.name,
-                "short_name": self.short_name,
-                "description": self.description,
-                "countries": self.countries,
-                "content_summary": self.content_summary,
+                "content": self.content_summary,
+                "path": [self.id.hex],
+                "search": f"{self.name}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.DATASOURCE,
-            detail_url=reverse("connector_dhis2:instance_detail", args=(self.pk,)),
         )
         for permission in self.instancepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:instance_detail", kwargs={"instance_id": self.id}
+        )
 
 
 class InstancePermission(Permission):
@@ -175,40 +185,23 @@ class InstancePermission(Permission):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
 
 
-class Content(BaseContent):
+class Dhis2Entry(Entry):
     class Meta:
         abstract = True
-        ordering = ["name"]
 
     instance = models.ForeignKey("Instance", null=False, on_delete=models.CASCADE)
     dhis2_id = models.CharField(max_length=200)
-    dhis2_name = models.TextField()
-    dhis2_short_name = models.CharField(max_length=200, blank=True)
-    dhis2_description = models.TextField(blank=True)
-    dhis2_external_access = models.BooleanField()
-    dhis2_favorite = models.BooleanField()
-    dhis2_created = models.DateTimeField()
-    dhis2_last_updated = models.DateTimeField()
-
-    @property
-    def hexa_or_dhis2_short_name(self):
-        return self.short_name if self.short_name != "" else self.dhis2_short_name
-
-    @property
-    def hexa_or_dhis2_name(self):
-        return self.name if self.name != "" else self.dhis2_name
-
-    @property
-    def hexa_or_dhis2_description(self):
-        return self.description if self.description != "" else self.dhis2_description
+    name = models.TextField()
+    short_name = models.CharField(max_length=200, blank=True)
+    description = models.TextField(blank=True)
+    external_access = models.BooleanField()
+    favorite = models.BooleanField()
+    created = models.DateTimeField()
+    last_updated = models.DateTimeField()
 
     @property
     def display_name(self):
-        return (
-            self.hexa_or_dhis2_short_name
-            if self.hexa_or_dhis2_short_name != ""
-            else self.hexa_or_dhis2_name
-        )
+        return self.name
 
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
@@ -266,97 +259,83 @@ class AggregationType(models.TextChoices):
     VARIANCE = "VARIANCE", _("Variance")
 
 
-class DataElement(Content):
+class DataElement(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Data Element"
         ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_domain_type = models.CharField(choices=DomainType.choices, max_length=100)
-    dhis2_value_type = models.CharField(choices=ValueType.choices, max_length=100)
-    dhis2_aggregation_type = models.CharField(
-        choices=AggregationType.choices, max_length=100
-    )
+    code = models.CharField(max_length=100, blank=True)
+    domain_type = models.CharField(choices=DomainType.choices, max_length=100)
+    value_type = models.CharField(choices=ValueType.choices, max_length=100)
+    aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "owner": self.instance.owner,
-                "name": self.name,
-                "external_name": self.dhis2_name,
-                "short_name": self.short_name,
-                "external_short_name": self.dhis2_short_name,
-                "description": self.description,
-                "external_description": self.dhis2_description,
-                "countries": self.instance.countries,
+                "external_name": self.name,
+                "external_description": self.description,
+                "path": [self.instance.id.hex, self.id.hex],
+                "search": f"{self.name} {self.description}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            parent=CatalogIndex.objects.get(object_id=self.instance.id),
-            detail_url=reverse(
-                "connector_dhis2:data_element_detail",
-                args=(self.instance.pk, self.pk),
-            ),
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.get_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:data_element_detail",
+            kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
+        )
 
 
-class IndicatorType(Content):
+class IndicatorType(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator type"
         ordering = ("name",)
 
-    dhis2_number = models.BooleanField()
-    dhis2_factor = models.IntegerField()
+    number = models.BooleanField()
+    factor = models.IntegerField()
 
     def index(self):  # TODO: fishy
         pass
 
 
-class Indicator(Content):
+class Indicator(Dhis2Entry):
     class Meta:
         verbose_name = "DHIS2 Indicator"
         ordering = ("name",)
 
-    dhis2_code = models.CharField(max_length=100, blank=True)
-    dhis2_indicator_type = models.ForeignKey(
+    code = models.CharField(max_length=100, blank=True)
+    indicator_type = models.ForeignKey(
         "IndicatorType", null=True, on_delete=models.SET_NULL
     )
-    dhis2_annualized = models.BooleanField()
+    annualized = models.BooleanField()
 
     def index(self):
-        catalog_index, _ = CatalogIndex.objects.update_or_create(
+        index, _ = Index.objects.update_or_create(
             defaults={
                 "last_synced_at": self.instance.last_synced_at,
-                "owner": self.instance.owner,
-                "name": self.name,
-                "external_name": self.dhis2_name,
-                "short_name": self.short_name,
-                "external_short_name": self.dhis2_short_name,
-                "description": self.description,
-                "external_description": self.dhis2_description,
-                "countries": self.instance.countries,
+                "external_name": self.name,
+                "external_description": self.description,
+                "path": [self.instance.id.hex, self.id.hex],
+                "search": f"{self.name} {self.description}",
             },
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
-            index_type=CatalogIndexType.CONTENT,
-            parent=CatalogIndex.objects.get(object_id=self.instance.id),
-            detail_url=reverse(
-                "connector_dhis2:indicator_detail",
-                args=(self.instance.pk, self.pk),
-            ),
         )
 
         for permission in self.instance.instancepermission_set.all():
-            CatalogIndexPermission.objects.update_or_create(
-                catalog_index=catalog_index, team=permission.team
-            )
+            IndexPermission.objects.update_or_create(index=index, team=permission.team)
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:indicator_detail",
+            kwargs={"instance_id": self.instance.id, "indicator_id": self.id},
+        )
 
 
 class ExtractStatus(models.TextChoices):

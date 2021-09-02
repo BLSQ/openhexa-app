@@ -1,12 +1,49 @@
 {% load i18n %}
+{% load messages %}
+
+{% comment %}
+    To ensure tailwding purgecss does not remove dynamic elements we write them verbatim here
+    for each color defined in hexa/ui/templatetags/messages.py
+    bg-blue-50
+    text-blue-400
+    text-blue-800
+    text-blue-500
+    hover:bg-blue-100
+    focus:ring-offset-blue-50
+    focus:ring-blue-600
+
+    bg-green-50
+    text-green-400
+    text-green-800
+    text-green-500
+    hover:bg-green-100
+    focus:ring-offset-green-50
+    focus:ring-green-600
+
+    bg-orange-50
+    text-orange-400
+    text-orange-800
+    text-orange-500
+    hover:bg-orange-100
+    focus:ring-offset-orange-50
+    focus:ring-orange-600
+
+    bg-red-50
+    text-red-400
+    text-red-800
+    text-red-500
+    hover:bg-red-100
+    focus:ring-offset-red-50
+    focus:ring-red-600
+{% endcomment %}
 
 {% if messages %}
     {% for message in messages %}
-        <div class="rounded-md bg-{{ message.extra_tags }}-50 p-4 mb-4">
+        <div class="rounded-md bg-{{ message.level|level_to_color }}-50 p-4 mb-4">
             <div class="flex">
                 <div class="flex-shrink-0">
                     <!-- Heroicon name: check-circle -->
-                    <svg class="h-5 w-5 text-{{ message.extra_tags }}-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                    <svg class="h-5 w-5 text-{{ message.level|level_to_color }}-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                          fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd"
                               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -14,13 +51,13 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm font-medium text-{{ message.extra_tags }}-800">
+                    <p class="text-sm font-medium text-{{ message.level|level_to_color }}-800">
                         {{ message }}
                     </p>
                 </div>
                 <div class="ml-auto pl-3">
                     <div class="-mx-1.5 -my-1.5">
-                        <button class="inline-flex bg-{{ message.extra_tags }}-50 rounded-md p-1.5 text-{{ message.extra_tags }}-500 hover:bg-{{ message.extra_tags }}-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-{{ message.extra_tags }}-50 focus:ring-{{ message.extra_tags }}-600">
+                        <button class="inline-flex bg-{{ message.level|level_to_color }}-50 rounded-md p-1.5 text-{{ message.level|level_to_color }}-500 hover:bg-{{ message.level|level_to_color }}-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-{{ message.level|level_to_color }}-50 focus:ring-{{ message.level|level_to_color }}-600">
                             <span class="sr-only">{% translate "Dismiss" %}</span>
                             <!-- Heroicon name: x -->
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"

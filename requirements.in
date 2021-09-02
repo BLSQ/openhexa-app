@@ -6,8 +6,10 @@ cryptography
 Django
 django-cors-headers
 django-countries
+django-ltree
 django-tailwind
 gunicorn
+markdown
 pandas
 psycopg2-binary
 stringcase
@@ -15,12 +17,14 @@ tblib
 whitenoise
 sentry-sdk
 django-debug-toolbar
+tqdm
 
 # connector_dhis2
 dhis2.py
 
 # connector_s3
 s3fs
+moto[s3]
 
 # connector_airflow
 google-auth

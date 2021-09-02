@@ -32,7 +32,9 @@ def sync_from_dhis2_results(*, model_class, instance, results):
         # their FK
         dhis2_values = {}
         for dhis2_name, dhis2_value in result.get_values(instance.locale).items():
-            hexa_name = f"dhis2_{stringcase.snakecase(dhis2_name)}"
+            hexa_name = stringcase.snakecase(dhis2_name)
+            if dhis2_name == "id":
+                hexa_name = "dhis2_id"
 
             dhis2_values[hexa_name] = _match_reference(
                 model_class, hexa_name, dhis2_value

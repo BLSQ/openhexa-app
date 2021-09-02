@@ -1,0 +1,16 @@
+{% load embed %}
+
+<div
+        class="my-8"
+        {% slot extra_wrapper_attrs %}{% endslot %}
+        {% if id %}id="{{ id }}"{% endif %}
+>
+    {% slot header %}
+        {% include "ui/section/heading_simple.html" with title=title|default:_("Untitled section") %}
+    {% endslot %}
+    <div class="mt-4">
+        {% slot content %}
+            {% include "ui/misc/block_placeholder.html" %}
+        {% endslot %}
+    </div>
+</div>

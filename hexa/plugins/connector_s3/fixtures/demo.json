@@ -16,7 +16,6 @@
     "pk": "9a0771e0-d8b5-4950-b2b0-05426caa21be",
     "fields": {
       "owner": "a6dfd796-7d2a-4857-9638-e35d88243132",
-      "name": "",
       "short_name": "",
       "description": "",
       "countries": "",
@@ -27,7 +26,7 @@
       "locale": "en",
       "created_at": "2021-04-08T07:04:41.864Z",
       "updated_at": "2021-04-08T07:22:43.021Z",
-      "s3_name": "hexa-test-covid"
+      "name": "hexa-test-covid"
     }
   },
   {
@@ -35,7 +34,6 @@
     "pk": "a475f3bd-e65e-4e65-ad45-9cc0ded93242",
     "fields": {
       "owner": "a6dfd796-7d2a-4857-9638-e35d88243132",
-      "name": "",
       "short_name": "",
       "description": "",
       "countries": "",
@@ -46,7 +44,7 @@
       "locale": "en",
       "created_at": "2021-04-07T14:07:58.094Z",
       "updated_at": "2021-04-08T07:22:43.028Z",
-      "s3_name": "hexa-test-malaria"
+      "name": "hexa-test-malaria"
     }
   },
   {

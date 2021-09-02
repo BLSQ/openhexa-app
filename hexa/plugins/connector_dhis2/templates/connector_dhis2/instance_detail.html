@@ -1,9 +1,18 @@
 {% extends "connector_dhis2/page.html" %}
+{% load i18n embed %}
 
 {% block page_title %}{{ instance.name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_dhis2/components/instance_card.html" %}
-    {% include "catalog/partials/summary_list.html" with params=data_elements_list_params %}
-    {% include "catalog/partials/summary_list.html" with params=indicators_list_params %}
+    {{ instance_card }}
+    {% embed "ui/section/section.html" with title=_("Data Elements") %}
+        {% slot content %}
+            {{ data_element_grid }}
+        {% endslot %}
+    {% endembed %}
+    {% embed "ui/section/section.html" with title=_("Indicators") %}
+        {% slot content %}
+            {{ indicator_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}

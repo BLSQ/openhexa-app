@@ -16,4 +16,9 @@ urlpatterns = [
         views.object_detail,
         name="object_detail",
     ),
+    path(
+        "<str:bucket_id>/object_download/<path:path>",
+        views.object_download,
+        name="object_download",
+    ),
 ]

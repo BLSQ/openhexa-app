@@ -102,6 +102,9 @@ class Dhis2Client:
     def __init__(self, *, url, username, password):
         self._api = Api(url, username, password)
 
+    def fetch_info(self):
+        return self._api.get_info()
+
     def fetch_data_elements(self):
         for page in self._api.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100

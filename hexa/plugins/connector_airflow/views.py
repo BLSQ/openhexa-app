@@ -76,7 +76,7 @@ def dag_config_run(request, cluster_id, dag_id, dag_config_id):
         DAGConfig.objects.filter_for_user(request.user), pk=dag_config_id
     )
     run_result = dag_config.run()
-    messages.success(request, run_result, extra_tags="green")
+    messages.success(request, run_result)
 
     return redirect(f"{request.META.get('HTTP_REFERER')}#dag_config_runs")
 

@@ -38,13 +38,13 @@ def generate_sts_buckets_credentials(
         "Statement": [
             {
                 "Sid": stringcase.pascalcase(
-                    stringcase.snakecase(f"{bucket.s3_name}-all-actions")
+                    stringcase.snakecase(f"{bucket.name}-all-actions")
                 ),
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    f"arn:aws:s3:::{bucket.s3_name}",
-                    f"arn:aws:s3:::{bucket.s3_name}/*",
+                    f"arn:aws:s3:::{bucket.name}",
+                    f"arn:aws:s3:::{bucket.name}/*",
                 ],
             }
             for bucket in buckets
@@ -53,7 +53,7 @@ def generate_sts_buckets_credentials(
     if user is not None:
         session_name = f"sts-{principal_credentials.username}-{user.username}"
     else:
-        session_name = f"sts-{principal_credentials.username}-system-check"
+        session_name = f"sts-{principal_credentials.username}-system"
 
     response = client.assume_role(
         Policy=json.dumps(policy),

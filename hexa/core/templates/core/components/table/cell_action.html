@@ -2,7 +2,7 @@
     <form
             class="ml-2 flex justify-end"
             action="{{ url }}"
-            method="post"
+            method="{{ method }}"
     >
         {% csrf_token %}
         <button type="submit" class="flex items-center justify-end outline-none focus:outline-none">

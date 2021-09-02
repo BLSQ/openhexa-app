@@ -6,13 +6,31 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from hexa.catalog.lists import build_summary_list_params, build_paginated_list_params
+from .datagrids import DataElementGrid, IndicatorGrid
+from .datacards import InstanceCard, DataElementCard, IndicatorCard
 from .models import Instance, Indicator, DataElement, Extract
 
 
 def instance_detail(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+    instance_card = InstanceCard(instance, request=request)
+    data_element_grid = DataElementGrid(
+        instance.dataelement_set.all(),
+        per_page=5,
+        paginate=False,
+        more_url=reverse(
+            "connector_dhis2:data_element_list", kwargs={"instance_id": instance_id}
+        ),
+    )
+    indicator_grid = IndicatorGrid(
+        instance.indicator_set.all(),
+        per_page=5,
+        paginate=False,
+        more_url=reverse(
+            "connector_dhis2:indicator_list", kwargs={"instance_id": instance_id}
+        ),
     )
 
     breadcrumbs = [
@@ -25,40 +43,9 @@ def instance_detail(request, instance_id):
         "connector_dhis2/instance_detail.html",
         {
             "instance": instance,
-            "data_elements_list_params": build_summary_list_params(
-                instance.dataelement_set.all(),
-                title=_("Data elements"),
-                columns=[
-                    _("Name"),
-                    _("Code"),
-                    _("Values"),
-                    _("Tags"),
-                    _("Last update"),
-                ],
-                paginated_list_url=reverse(
-                    "connector_dhis2:data_element_list",
-                    kwargs={"instance_id": instance_id},
-                ),
-                item_name=_("data element"),
-                item_template="connector_dhis2/components/data_element_list_item.html",
-            ),
-            "indicators_list_params": build_summary_list_params(
-                instance.indicator_set.all(),
-                title=_("Indicators"),
-                columns=[
-                    _("Name"),
-                    _("Code"),
-                    _("Values"),
-                    _("Tags"),
-                    _("Last update"),
-                ],
-                paginated_list_url=reverse(
-                    "connector_dhis2:indicator_list",
-                    kwargs={"instance_id": instance_id},
-                ),
-                item_name=_("indicator"),
-                item_template="connector_dhis2/components/indicator_list_item.html",
-            ),
+            "instance_card": instance_card,
+            "data_element_grid": data_element_grid,
+            "indicator_grid": indicator_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -67,6 +54,9 @@ def instance_detail(request, instance_id):
 def data_element_list(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+    data_element_grid = DataElementGrid(
+        instance.dataelement_set.all(), page=int(request.GET.get("page", "1"))
     )
 
     breadcrumbs = [
@@ -80,20 +70,17 @@ def data_element_list(request, instance_id):
         "connector_dhis2/data_element_list.html",
         {
             "instance": instance,
-            "data_elements_list_params": build_paginated_list_params(
-                instance.dataelement_set.all(),
-                title=_("Data elements"),
-                page_number=int(request.GET.get("page", "1")),
-                columns=[
-                    _("Name"),
-                    _("Code"),
-                    _("Values"),
-                    _("Tags"),
-                    _("Last update"),
-                ],
-                item_name=_("data element"),
-                item_template="connector_dhis2/components/data_element_list_item.html",
+            "data_element_grid": data_element_grid,
+            "section_title": _(
+                "Data elements in instance %(instance)s"
+                % {"instance": instance.display_name}
             ),
+            "section_label": "%(start)s to %(end)s out of %(total)s"
+            % {
+                "start": data_element_grid.start_index,
+                "end": data_element_grid.end_index,
+                "total": data_element_grid.total_count,
+            },
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -103,6 +90,7 @@ def data_element_detail(request, instance_id, data_element_id):
     instance, data_element = _get_instance_and_data_element(
         request, instance_id, data_element_id
     )
+    data_element_card = DataElementCard(data_element, request=request)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -117,6 +105,7 @@ def data_element_detail(request, instance_id, data_element_id):
         {
             "instance": instance,
             "data_element": data_element,
+            "data_element_card": data_element_card,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -152,9 +141,7 @@ def data_element_extract(
     current_extract.data_elements.add(data_element)
     current_extract.save()
 
-    messages.success(
-        request, _("Added data element to current extract"), extra_tags="green"
-    )
+    messages.success(request, _("Added data element to current extract"))
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -162,6 +149,9 @@ def data_element_extract(
 def indicator_list(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+    indicator_grid = IndicatorGrid(
+        instance.indicator_set.all(), page=int(request.GET.get("page", "1"))
     )
 
     breadcrumbs = [
@@ -175,20 +165,17 @@ def indicator_list(request, instance_id):
         "connector_dhis2/indicator_list.html",
         {
             "instance": instance,
-            "indicators_list_params": build_paginated_list_params(
-                instance.indicator_set.all(),
-                title=_("Indicators"),
-                page_number=int(request.GET.get("page", "1")),
-                columns=[
-                    _("Name"),
-                    _("Code"),
-                    _("Values"),
-                    _("Tags"),
-                    _("Last update"),
-                ],
-                item_name=_("indicator"),
-                item_template="connector_dhis2/components/indicator_list_item.html",
+            "indicator_grid": indicator_grid,
+            "section_title": _(
+                "Indicators in instance %(instance)s"
+                % {"instance": instance.display_name}
             ),
+            "section_label": "%(start)s to %(end)s out of %(total)s"
+            % {
+                "start": indicator_grid.start_index,
+                "end": indicator_grid.end_index,
+                "total": indicator_grid.total_count,
+            },
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -198,6 +185,7 @@ def indicator_detail(request, instance_id, indicator_id):
     instance, indicator = _get_instance_and_indicator(
         request, instance_id, indicator_id
     )
+    indicator_card = IndicatorCard(indicator, request=request)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -212,6 +200,7 @@ def indicator_detail(request, instance_id, indicator_id):
         {
             "instance": instance,
             "indicator": indicator,
+            "indicator_card": indicator_card,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -247,9 +236,7 @@ def indicator_extract(
     current_extract.indicators.add(indicator)
     current_extract.save()
 
-    messages.success(
-        request, _("Added indicator to current extract"), extra_tags="green"
-    )
+    messages.success(request, _("Added indicator to current extract"))
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -258,8 +245,8 @@ def instance_sync(request, instance_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
-    sync_result = instance.sync(request.user)
-    messages.success(request, sync_result, extra_tags="green")
+    sync_result = instance.sync()
+    messages.success(request, sync_result)
 
     return redirect(request.META.get("HTTP_REFERER"))
 
@@ -290,7 +277,7 @@ def extract_delete(request, extract_id):
     )
     extract.delete()
 
-    messages.success(request, _("Delete current extract"), extra_tags="green")
+    messages.success(request, _("Delete current extract"))
 
     return redirect(reverse("catalog:index"))
 
