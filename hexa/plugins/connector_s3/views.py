@@ -1,22 +1,18 @@
-import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError
 from django.contrib import messages
-from django.core.exceptions import ValidationError
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
-from django.shortcuts import redirect
 
+from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 
-from .models import Bucket, Credentials
+from .models import Bucket
 
 
 def datasource_detail(request, datasource_id):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
+    bucket_card = BucketCard(bucket, request=request)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -35,6 +31,7 @@ def datasource_detail(request, datasource_id):
         {
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
+            "bucket_card": bucket_card,
             "datagrid": datagrid,
         },
     )
@@ -54,7 +51,8 @@ def object_detail(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
+    s3_object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
+    object_card = ObjectCard(model=s3_object, request=request)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -62,10 +60,10 @@ def object_detail(request, bucket_id, path):
     ]
 
     acc = []
-    for i, part in enumerate(object.key.split("/")):
+    for i, part in enumerate(s3_object.key.split("/")):
         acc.append(part)
         path = "/".join(acc)
-        if i != len(object.key.split("/")) - 1:
+        if i != len(s3_object.key.split("/")) - 1:
             path += "/"
         breadcrumbs.append(
             (part, "connector_s3:object_detail", bucket_id, path),
@@ -83,7 +81,8 @@ def object_detail(request, bucket_id, path):
         "connector_s3/object_detail.html",
         {
             "datasource": bucket,
-            "object": object,
+            "object": s3_object,
+            "object_card": object_card,
             "breadcrumbs": breadcrumbs,
             "datagrid": datagrid,
         },
@@ -94,11 +93,11 @@ def object_download(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    object = get_object_or_404(bucket.object_set.all(), key=path)
+    s3_object = get_object_or_404(bucket.object_set.all(), key=path)
 
     response = bucket.get_boto_client().generate_presigned_url(
         "get_object",
-        Params={"Bucket": object.bucket.name, "Key": object.key},
+        Params={"Bucket": s3_object.bucket.name, "Key": s3_object.key},
         ExpiresIn=60 * 10,
     )
 

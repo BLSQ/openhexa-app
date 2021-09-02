@@ -1,5 +1,3 @@
-from django.utils.translation import ugettext_lazy as _
-from hexa.plugins.connector_postgresql.models import Table
 from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datagrid import (
     Datagrid,

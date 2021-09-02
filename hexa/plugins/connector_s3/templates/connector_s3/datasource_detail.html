@@ -4,7 +4,7 @@
 
 
 {% block page_content %}
-    {% include "connector_s3/partials/datasource_card.html" %}
+    {{ bucket_card }}
     {% embed "ui/section/section.html" with title=_("Objects") %}
         {% slot content %}
             {{ datagrid }}

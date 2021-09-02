@@ -104,11 +104,6 @@ class Bucket(Datasource):
         except ClientError as e:
             raise ValidationError(e)
 
-    def get_absolute_url(self):
-        return reverse(
-            "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
-        )
-
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
@@ -204,7 +199,7 @@ class Bucket(Datasource):
                 else:  # Not in the DB yet
                     db_obj = Object.create_from_object_data(self, s3_obj)
                     metadata_path = os.path.join(db_obj.key, METADATA_FILENAME)
-                    with fs.open(metadata_path, mode="wb") as fd:
+                    with fs.open(f"{self.name}/{metadata_path}", mode="wb") as fd:
                         fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
                     created_count += 1
 
@@ -390,6 +385,9 @@ class Object(Entry):
     @property
     def extension(self):
         return os.path.splitext(self.key)[1].lstrip(".")
+
+    def full_path(self):
+        return f"s3://{self.bucket.name}/{self.key}"
 
     @classmethod
     def compute_parent_key(cls, key):

@@ -364,10 +364,11 @@ class DateProperty(Property):
 
 
 class Action:
-    def __init__(self, label, url, icon=None):
+    def __init__(self, label, url, icon=None, method="post"):
         self.label = label
         self.icon = icon
         self.url = url
+        self.method = method
         self.card = None
 
     def bind(self, card: Datacard):
@@ -390,4 +391,5 @@ class Action:
             "url": self.get_value(item, self.url),
             "label": _(self.label),
             "icon": self.icon,
+            "method": self.method,
         }
