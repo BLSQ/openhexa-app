@@ -12,7 +12,7 @@ register = template.Library()
 def highlight_code(code, lang):
     lexer = get_lexer_by_name(lang, stripall=True)
     formatter = HtmlFormatter()
-    return highlight(code, lexer, formatter)
+    return mark_safe(highlight(code, lexer, formatter))
 
 
 @register.simple_tag(takes_context=True, name="highlight-file")

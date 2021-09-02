@@ -233,6 +233,21 @@ class TextProperty(Property):
         }
 
 
+class CodeProperty(Property):
+    def __init__(self, *, code, language, **kwargs):
+        super().__init__(**kwargs)
+        self.code = code
+        self.language = language
+
+    @property
+    def template(self):
+        return "ui/datacard/property_code.html"
+
+    def data(self, item):
+
+        return {"code": self.get_value(item, self.code), "language": self.language}
+
+
 class BooleanProperty(Property):
     def __init__(self, *, value, **kwargs):
         super().__init__(**kwargs)

@@ -17,6 +17,8 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.models import (
     Index,
     IndexPermission,
+    Datasource,
+    Entry,
 )
 from hexa.catalog.sync import DatasourceSyncResult
 
@@ -39,10 +41,7 @@ class DatabaseQuerySet(models.QuerySet):
         )
 
 
-class Database(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    last_synced_at = models.DateTimeField(null=True, blank=True)
-
+class Database(Datasource):
     hostname = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
     password = EncryptedTextField(max_length=200)
@@ -210,9 +209,7 @@ class TableQuerySet(models.QuerySet):
         )
 
 
-class Table(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
+class Table(Entry):
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)

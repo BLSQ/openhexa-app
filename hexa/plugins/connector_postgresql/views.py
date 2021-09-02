@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from .datacards import DatabaseCard
 from .datagrids import TableGrid
 from .models import Database
 
@@ -11,6 +12,8 @@ def datasource_detail(request, datasource_id):
     datasource = get_object_or_404(
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )
+
+    database_card = DatabaseCard(datasource, request=request)
     table_grid = TableGrid(
         datasource.table_set.all(),
         per_page=5,
@@ -35,6 +38,7 @@ def datasource_detail(request, datasource_id):
         {
             "datasource": datasource,
             "breadcrumbs": breadcrumbs,
+            "database_card": database_card,
             "table_grid": table_grid,
         },
     )
