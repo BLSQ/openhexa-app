@@ -3,6 +3,6 @@
 {% block page_title %}{{ indicator.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_dhis2/components/indicator_card.html" %}
+    {{ indicator_card }}
     {% include "comments/components/page_section_comments.html" with object=indicator %}
 {% endblock %}
