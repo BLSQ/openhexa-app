@@ -245,8 +245,6 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
-        self.assertIsInstance(response.context["data_elements_list_params"], dict)
-        self.assertIsInstance(response.context["indicators_list_params"], dict)
 
     @test.tag("external")
     @skip("Deactivated for now - mocks needed")
@@ -318,7 +316,6 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
-        self.assertIsInstance(response.context["data_elements_list_params"], dict)
 
     def test_indicators_404(self):
         """As Bjorn is not a superuser, he can't access the indicators screen."""
@@ -344,4 +341,3 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
-        self.assertIsInstance(response.context["indicators_list_params"], dict)
