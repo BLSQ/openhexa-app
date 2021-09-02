@@ -8,9 +8,12 @@ from hexa.catalog.models import (
 
 def delete_callback(sender, instance, **kwargs):
     datasource = instance.database
-    index = Index.objects.get(
-        content_type=ContentType.objects.get_for_model(datasource),
-        object_id=datasource.id,
-    )
-    index_permission = IndexPermission.objects.first(index=index, team=instance.team)
-    index_permission.delete()
+    try:
+        index = Index.objects.get(
+            content_type=ContentType.objects.get_for_model(datasource),
+            object_id=datasource.id,
+        )
+        index_permission = IndexPermission.objects.get(index=index, team=instance.team)
+        index_permission.delete()
+    except (Index.DoesNotExist, IndexPermission.DoesNotExist):
+        pass
