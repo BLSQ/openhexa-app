@@ -24,13 +24,3 @@ class CatalogTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["datasource_indexes"], QuerySet)
-
-    def test_catalog_quick_search_200(self):
-        self.client.force_login(self.USER_JANE)
-
-        response = self.client.get(f"{reverse('catalog:quick_search')}?query=test")
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response, JsonResponse)
-        response_data = response.json()
-        self.assertIn("results", response_data)
-        self.assertEqual(0, len(response_data["results"]))

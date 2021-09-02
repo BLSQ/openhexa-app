@@ -5,8 +5,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.contrib.postgres.search import (
     TrigramSimilarity,
+    TrigramBase,
 )
 from django.db import models, connection
+from django.db.models import Field, Q
+from django.db.models.functions import Greatest
+from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeQuerySet, TreeManager
@@ -23,6 +27,19 @@ from hexa.core.models import (
 )
 from hexa.core.models.path import PathField
 from hexa.core.models.postgres import locale_to_text_search_config
+
+
+# Those "advanced" lookups and functions are not yet in Django (3.2)
+# We implement them here for now. Hopefully there will be redundant
+# in the next version
+@Field.register_lookup
+class TrigramWordSimilar(PostgresOperatorLookup):
+    lookup_name = "trigram_word_similar"
+    postgres_operator = "%%>"
+
+
+class TrigramWordSimilarity(TrigramBase):
+    function = "WORD_SIMILARITY"
 
 
 class IndexQuerySet(TreeQuerySet):
@@ -47,7 +64,11 @@ class IndexQuerySet(TreeQuerySet):
         except StopIteration:
             content_type = None
 
-        similarity = TrigramSimilarity("search", query)
+        # We mix similarity and word_similarity to achieve better results in long strings
+        # See https://dev.to/moritzrieger/build-a-fuzzy-search-with-postgresql-2029
+        similarity = Greatest(
+            TrigramSimilarity("search", query), TrigramWordSimilarity("search", query)
+        )
 
         # Here, we do 2 things:
         # First, we filter with __trigram_similar, this generates SQL like `WHERE search % 'the query'`
@@ -59,7 +80,9 @@ class IndexQuerySet(TreeQuerySet):
         # Then, we annotate with TrigramSimilarity("search", query) and it generates this SQL:
         # `SELECT similarity("search", 'the query') as rank` and this is used to display the rank in the search.
         results = (
-            self.filter(search__trigram_similar=query)
+            self.filter(
+                Q(search__trigram_similar=query) | Q(search__trigram_word_similar=query)
+            )
             .annotate(rank=similarity)
             .order_by("-rank")
         )
