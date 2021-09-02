@@ -4,7 +4,7 @@
         {% for country in data.countries %}
             {% include "ui/country.html" with short=True %}
         {% empty %}
-            {% translate "Global" %}
+            -
         {% endfor %}
     </div>
 </td>

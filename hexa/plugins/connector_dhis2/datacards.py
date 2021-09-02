@@ -13,16 +13,8 @@ from hexa.ui.datacard import (
     TagProperty,
     CountryProperty,
     Action,
+    BooleanProperty,
 )
-
-
-class ExternalSection(Section):
-    title = "External System Data"
-
-    name = TextProperty(text="name")
-    locale = LocaleProperty(locale="locale")
-    url = URLProperty(url="url")
-    last_synced_at = DateProperty(date="last_synced_at")
 
 
 class OpenHexaMetaDataSection(Section):
@@ -33,6 +25,19 @@ class OpenHexaMetaDataSection(Section):
     tags = TagProperty(tags="only_index.tags.all")
     location = CountryProperty(countries="only_index.countries")
     description = TextProperty(text="only_index.description", markdown=True)
+    last_synced_at = DateProperty(
+        label="Last synced at",
+        date="only_index.last_synced_at",
+        date_format="timesince",
+    )
+
+
+class InstanceSection(Section):
+    title = "DHIS2 Data"
+
+    name = TextProperty(text="name")
+    locale = LocaleProperty(locale="locale")
+    url = URLProperty(url="url")
 
 
 class InstanceCard(Datacard):
@@ -41,7 +46,7 @@ class InstanceCard(Datacard):
     image_src = "dhis2_image_src"
     actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
-    external = ExternalSection()
+    external = InstanceSection()
     metadata = OpenHexaMetaDataSection()
 
     @property
@@ -56,3 +61,36 @@ class InstanceCard(Datacard):
         return reverse(
             "connector_dhis2:instance_sync", kwargs={"instance_id": instance.id}
         )
+
+
+class DataElementSection(Section):
+    title = "DHIS2 Data"
+
+    name = TextProperty(text="name")
+    short_name = TextProperty(label="Short name", text="short_name")
+    description = TextProperty(label="Description", text="description")
+    dhis2_id = TextProperty(label="ID", text="dhis2_id")
+    code = TextProperty(label="Code", text="code")
+    domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
+    value_type = TextProperty(label="Value type", text="get_value_type_display")
+    favourite = BooleanProperty(label="Favourite", value="favourite")
+    external_access = BooleanProperty(label="External access", value="external_access")
+    created = DateProperty(label="Creation date", date="created")
+    last_updated = DateProperty(label="Last updated", date="last_updated")
+
+
+class DataElementCard(Datacard):
+    title = "display_name"
+    subtitle = "generic_description"
+    image_src = "dhis2_image_src"
+
+    external = DataElementSection()
+    metadata = OpenHexaMetaDataSection()
+
+    @property
+    def generic_description(self):
+        return _("DHIS2 Data Element")
+
+    @property
+    def dhis2_image_src(self):
+        return static("connector_dhis2/img/symbol.svg")

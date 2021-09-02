@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from .datagrids import DataElementGrid, IndicatorGrid
-from .datacards import InstanceCard
+from .datacards import InstanceCard, DataElementCard
 from .models import Instance, Indicator, DataElement, Extract
 
 
@@ -90,6 +90,7 @@ def data_element_detail(request, instance_id, data_element_id):
     instance, data_element = _get_instance_and_data_element(
         request, instance_id, data_element_id
     )
+    data_element_card = DataElementCard(data_element, request=request)
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -104,6 +105,7 @@ def data_element_detail(request, instance_id, data_element_id):
         {
             "instance": instance,
             "data_element": data_element,
+            "data_element_card": data_element_card,
             "breadcrumbs": breadcrumbs,
         },
     )

@@ -1,10 +1,11 @@
-from django.template import loader, RequestContext
+from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 from markdown import markdown as to_markdown
 
+from hexa.core.date_utils import date_format as do_date_format
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
@@ -232,6 +233,23 @@ class TextProperty(Property):
         }
 
 
+class BooleanProperty(Property):
+    def __init__(self, *, value, **kwargs):
+        super().__init__(**kwargs)
+        self.value = value
+
+    @property
+    def template(self):
+        return "ui/datacard/property_boolean.html"
+
+    def data(self, item):
+        value = self.get_value(item, self.value)
+
+        return {
+            "text": _("Yes") if value is True else _("No"),
+        }
+
+
 class LocaleProperty(Property):
     def __init__(self, *, locale, **kwargs):
         super().__init__(**kwargs)
@@ -302,7 +320,7 @@ class URLProperty(Property):
 
 
 class DateProperty(Property):
-    def __init__(self, *, date=None, date_format="timesince", **kwargs):
+    def __init__(self, *, date=None, date_format="M d, H:i:s (e)", **kwargs):
         super().__init__(**kwargs)
 
         self.date = date
@@ -322,7 +340,7 @@ class DateProperty(Property):
 
             return f"{timesince(date)} {_('ago')}"
         else:
-            return NotImplementedError('Only the "timesince" format is implemented')
+            return do_date_format(date, self.date_format)
 
     def data(self, item):
         return {

@@ -201,7 +201,7 @@ class Dhis2Entry(Entry):
 
     @property
     def display_name(self):
-        return self.short_name if self.short_name != "" else self.name
+        return self.name
 
     def update(self, **kwargs):
         for key in {"name", "short_name", "description"} & set(kwargs.keys()):
