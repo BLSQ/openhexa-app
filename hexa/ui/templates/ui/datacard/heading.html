@@ -21,10 +21,10 @@
                 </div>
             </div>
         </div>
-        {% if action_data|length > 0 %}
+        {% if actions|length > 0 %}
             <div class="ml-4 mt-4 flex-shrink-0 flex">
-                {% for action in action_data %}
-                    {% include action.template with data=action.data %}
+                {% for action in actions %}
+                    {% include action.template with label=action.label url=action.url icon=action.icon only %}
                 {% endfor %}
             </div>
         {% endif %}

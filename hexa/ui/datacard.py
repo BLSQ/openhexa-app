@@ -14,9 +14,7 @@ from hexa.ui.utils import get_item_value
 class DatacardOptions:
     """Container for datacard meta (config)"""
 
-    def __init__(
-        self, *, title, subtitle, sections, image_src=None, actions=None
-    ):
+    def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
         self.sections = sections
         self.title = title
         self.subtitle = subtitle
@@ -85,8 +83,7 @@ class Datacard(metaclass=DatacardMeta):
             action_data.append(
                 {
                     "template": action_instance.template,
-                    "data": action_instance.data(self.model),
-                    "action": action_instance,
+                    **action_instance.context(self.model),
                 }
             )
 
@@ -95,14 +92,13 @@ class Datacard(metaclass=DatacardMeta):
             section_data.append(
                 {
                     "template": section_instance.template,
-                    "section": section_instance,
-                    **section_instance.data(self.model),
+                    **section_instance.context(self.model),
                 }
             )
 
         context = {
-            "section_data": section_data,
-            "action_data": action_data,
+            "sections": section_data,
+            "actions": action_data,
             "title": get_item_value(
                 self.model, self._meta.title, container=self, exclude=PropertyLike
             ),
@@ -128,7 +124,7 @@ class SectionMeta(BaseMeta):
         properties = mcs.find(attrs, new_class, Property)
         new_class._meta = SectionOptions(
             properties=properties,
-            fields={k: v for k, v in properties.items() if v.editable}
+            fields={k: v for k, v in properties.items() if v.editable},
         )
 
         return new_class
@@ -202,7 +198,7 @@ class Section(PropertyLike, metaclass=SectionMeta):
 
         return form
 
-    def data(self, item):
+    def context(self, item):
         property_data = []
         for property_name, property_instance in self._meta.properties.items():
             property_data.append(
@@ -211,12 +207,12 @@ class Section(PropertyLike, metaclass=SectionMeta):
                     "input_template": property_instance.input_template,
                     "data": property_instance.data(item),
                     "label": property_instance.label,
-                    "editable": property_instance.editable
+                    "editable": property_instance.editable,
                 }
             )
         return {
             "title": _(self.title) if self.title is not None else None,
-            "property_data": property_data,
+            "properties": property_data,
         }
 
     @property
@@ -400,7 +396,7 @@ class Action:
     def template(self):
         return "ui/datacard/action.html"
 
-    def data(self, item):
+    def context(self, item):
         return {
             "url": self.get_value(item, self.url),
             "label": _(self.label),
