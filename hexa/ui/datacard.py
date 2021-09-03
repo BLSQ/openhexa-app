@@ -213,6 +213,7 @@ class Section(PropertyLike, metaclass=SectionMeta):
         return {
             "title": _(self.title) if self.title is not None else None,
             "properties": property_data,
+            "editable": any(p.editable for p in self._meta.properties.values())
         }
 
     @property

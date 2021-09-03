@@ -1,25 +1,32 @@
+{% load i18n %}
+
 <div class="border-t border-gray-200 px-4 py-5 sm:px-0" x-data="{ open: false }">
-    <div>
+    <div class="flex items-center mb-2">
         {% if title %}
             <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
                 {{ title }}
             </h3>
         {% endif %}
         {% if editable %}
-            OH
-            <button type="button"
-                    class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <!-- Heroicon name: solid/mail -->
-                <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                     fill="currentColor" aria-hidden="true">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                </svg>
-                Edit
-            </button>
+            <span
+                    class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer"
+                    @click="open=true"
+                    x-show="!open"
+            >
+                {% translate "Edit" %}
+                {% include "ui/icons/pencil.html" with w=4 h=4 ml=1 %}
+            </span>
+            <span
+                    class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer"
+                    @click="open=true"
+                    x-show="open"
+            >
+                {% translate "Save" %}
+                {% include "ui/icons/pencil.html" with w=4 h=4 ml=1 %}
+            </span>
         {% endif %}
     </div>
-    <dl>
+    <dl x-show="!open">
         {% for property in properties %}
             <div class="px-4 py-5 sm:py-3 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
                 {% include property.template with data=property.data label=property.label only %}
