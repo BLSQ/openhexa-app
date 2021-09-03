@@ -1,3 +1,4 @@
+from django.forms import Form
 from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -14,21 +15,22 @@ class DatacardOptions:
     """Container for datacard meta (config)"""
 
     def __init__(
-        self, *, title, subtitle, sections, properties, image_src=None, actions=None
+        self, *, title, subtitle, sections, image_src=None, actions=None
     ):
         self.sections = sections
-        self.properties = properties
         self.title = title
         self.subtitle = subtitle
         self.image_src = image_src
         self.actions = actions
+        # TODO: fields ?
 
 
 class SectionOptions:
     """Container for section meta (config)"""
 
-    def __init__(self, *, properties):
+    def __init__(self, *, properties, fields):
         self.properties = properties
+        self.fields = fields
 
 
 class BaseMeta(type):
@@ -55,7 +57,6 @@ class DatacardMeta(BaseMeta):
 
         new_class._meta = DatacardOptions(
             sections=mcs.find(attrs, new_class, Section),
-            properties=mcs.find(attrs, new_class, Property),
             title=attrs["title"],
             subtitle=attrs["subtitle"],
             image_src=attrs["image_src"],
@@ -89,16 +90,6 @@ class Datacard(metaclass=DatacardMeta):
                 }
             )
 
-        property_data = []
-        for property_name, property_instance in self._meta.properties.items():
-            property_data.append(
-                {
-                    "template": property_instance.template,
-                    "data": property_instance.data(self.model),
-                    "property": property_instance,
-                }
-            )
-
         section_data = []
         for section_name, section_instance in self._meta.sections.items():
             section_data.append(
@@ -110,7 +101,6 @@ class Datacard(metaclass=DatacardMeta):
             )
 
         context = {
-            "property_data": property_data,
             "section_data": section_data,
             "action_data": action_data,
             "title": get_item_value(
@@ -135,18 +125,21 @@ class SectionMeta(BaseMeta):
         if not parents:
             return new_class
 
+        properties = mcs.find(attrs, new_class, Property)
         new_class._meta = SectionOptions(
-            properties=mcs.find(attrs, new_class, Property)
+            properties=properties,
+            fields={k: v for k, v in properties.items() if v.editable}
         )
 
         return new_class
 
 
 class PropertyLike:
-    def __init__(self, *, label=None):
+    def __init__(self, *, label=None, editable=False):
         self._label = label
         self.name = None
         self.card = None
+        self.editable = editable
 
     def bind(self, name, card):
         self.name = name
@@ -185,6 +178,13 @@ class Property(PropertyLike):
             "Each Property class should implement the template() property"
         )
 
+    @property
+    def input_template(self):
+        return None
+        raise NotImplementedError(
+            "Each Property class should implement the input_template() property"
+        )
+
     def data(self, item):
         raise NotImplementedError(
             "Each Property class should implement the data() method"
@@ -194,14 +194,24 @@ class Property(PropertyLike):
 class Section(PropertyLike, metaclass=SectionMeta):
     title = None
 
+    def build_form(self):
+        form = Form()
+        for property_name, property_instance in self._meta.properties.items():
+            if property_instance.editable:
+                form.fields[property_name] = property_instance.build_field()
+
+        return form
+
     def data(self, item):
         property_data = []
         for property_name, property_instance in self._meta.properties.items():
             property_data.append(
                 {
                     "template": property_instance.template,
+                    "input_template": property_instance.input_template,
                     "data": property_instance.data(item),
-                    "property": property_instance,
+                    "label": property_instance.label,
+                    "editable": property_instance.editable
                 }
             )
         return {
@@ -223,6 +233,10 @@ class TextProperty(Property):
     @property
     def template(self):
         return "ui/datacard/property_text.html"
+
+    @property
+    def input_template(self):
+        return "ui/datacard/input_property_text.html"
 
     def data(self, item):
         text_value = self.get_value(item, self.text)

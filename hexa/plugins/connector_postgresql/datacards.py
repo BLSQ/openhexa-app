@@ -21,7 +21,7 @@ class OpenHexaMetaDataSection(Section):  # TODO: duplicated: move in catalog mod
     title = "OpenHexa Metadata"
 
     owner = URLProperty(url="only_index.owner.url", text="only_index.owner.name")
-    label = TextProperty(text="only_index.label")
+    label = TextProperty(text="only_index.label", editable=True)
     tags = TagProperty(tags="only_index.tags.all")
     location = CountryProperty(countries="only_index.countries")
     description = TextProperty(text="only_index.description", markdown=True)
