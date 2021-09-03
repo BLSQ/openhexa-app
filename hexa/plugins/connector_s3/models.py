@@ -27,8 +27,6 @@ from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
 
-METADATA_FILENAME = ".openhexa.json"
-
 
 class Credentials(Base):
     """We actually only need one set of credentials. These "principal" credentials will be then used to generate
@@ -124,6 +122,7 @@ class Bucket(Datasource):
             secret=sts_credentials["SecretAccessKey"],
             token=sts_credentials["SessionToken"],
         )
+        fs.invalidate_cache()
 
         # Lock the bucket
         with transaction.atomic():
@@ -157,7 +156,7 @@ class Bucket(Datasource):
                 object_data["true_key"] = object_data["true_key"] + "/"
 
             # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
-            if "ETag" in object_data and object_data["ETag"].startswith('"'):
+            if object_data.get("ETag", "").startswith('"'):
                 object_data["ETag"] = object_data["ETag"].replace('"', "")
 
             yield object_data
@@ -171,39 +170,22 @@ class Bucket(Datasource):
         identical_count = 0
         new_orphans_count = 0
 
-        existing_directories_by_uid = {
-            str(x.id): x for x in self.object_set.filter(type="directory")
+        existing_directories_by_key = {
+            str(x.key): x for x in self.object_set.filter(type="directory")
         }
 
         for s3_obj in s3_objects:
             if s3_obj["type"] == "directory":
-                metadata_path = os.path.join(s3_obj["Key"], METADATA_FILENAME)
-                s3_uid = None
-                if fs.exists(metadata_path):
-                    with fs.open(metadata_path, mode="rb") as fd:
-                        try:
-                            metadata = json.load(fd)
-                            s3_uid = metadata.get("uid")
-                        except json.decoder.JSONDecodeError:
-                            pass
-
-                db_obj = existing_directories_by_uid.get(s3_uid)
+                s3_key = s3_obj["true_key"]
+                db_obj = existing_directories_by_key.get(s3_key)
                 if db_obj:
-                    if db_obj.key != s3_obj["true_key"]:  # Directory moved
-                        db_obj.update_metadata(s3_obj)
-                        db_obj.save()
-                        updated_count += 1
-                    else:  # Not moved
-                        identical_count += 1
-                    del existing_directories_by_uid[s3_uid]
+                    identical_count += 1
+                    del existing_directories_by_key[s3_key]
                 else:  # Not in the DB yet
-                    db_obj = Object.create_from_object_data(self, s3_obj)
-                    metadata_path = os.path.join(db_obj.key, METADATA_FILENAME)
-                    with fs.open(f"{self.name}/{metadata_path}", mode="wb") as fd:
-                        fd.write(json.dumps({"uid": str(db_obj.id)}).encode())
+                    Object.create_from_object_data(self, s3_obj)
                     created_count += 1
 
-        for obj in existing_directories_by_uid.values():
+        for obj in existing_directories_by_key.values():
             if not obj.orphan:
                 new_orphans_count += 1
                 obj.orphan = True
@@ -372,6 +354,9 @@ class Object(Entry):
         for permission in self.bucket.bucketpermission_set.all():
             IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
+    def __repr__(self):
+        return f"<Object s3://{self.bucket.name}/{self.key}>"
+
     @property
     def display_name(self):
         return self.filename
@@ -429,7 +414,6 @@ class Object(Entry):
         self.key = object_data["true_key"]
         self.parent_key = self.compute_parent_key(object_data["true_key"])
         self.size = object_data["size"]
-        self.etag = object_data.get("ETag")
         self.storage_class = object_data["StorageClass"]
         self.type = object_data["type"]
         self.last_modified = object_data.get("LastModified")
