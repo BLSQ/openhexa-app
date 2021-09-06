@@ -20,14 +20,14 @@ from hexa.ui.datacard import (
 class OpenHexaMetaDataSection(Section):  # TODO: duplicated: move in catalog module
     title = "OpenHexa Metadata"
 
-    owner = URLProperty(url="only_index.owner.url", text="only_index.owner.name")
-    label = TextProperty(text="only_index.label")
-    tags = TagProperty(tags="only_index.tags.all")
-    location = CountryProperty(countries="only_index.countries")
-    description = TextProperty(text="only_index.description", markdown=True)
+    owner = URLProperty(url="index.owner.url", text="index.owner.name")
+    label = TextProperty(text="index.label")
+    tags = TagProperty(tags="index.tags.all")
+    location = CountryProperty(countries="index.countries")
+    description = TextProperty(text="index.description", markdown=True)
     last_synced_at = DateProperty(
         label="Last synced at",
-        date="only_index.last_synced_at",
+        date="index.last_synced_at",
         date_format="timesince",
     )
 
