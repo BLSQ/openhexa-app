@@ -290,7 +290,7 @@ class BucketPermission(Permission):
         unique_together = [("bucket", "team")]
 
     def index_object(self):
-        self.bucket.index()
+        self.bucket.build_index()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"

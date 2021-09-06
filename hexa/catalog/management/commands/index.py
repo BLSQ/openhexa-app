@@ -16,7 +16,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, filter_app, **options):
-        indexables = ConnectorAppConfig.get_models_by_capability("index", filter_app)
+        indexables = ConnectorAppConfig.get_models_by_capability(
+            "build_index", filter_app
+        )
 
         for app, models in indexables.items():
             print(f"- {app.verbose_name}")
@@ -26,4 +28,4 @@ class Command(BaseCommand):
                     pbar = tqdm.tqdm(instances)
                     pbar.set_description(f"   {model.__name__:15}")
                     for instance in pbar:
-                        instance.index()
+                        instance.build_index()

@@ -235,9 +235,9 @@ class WithIndex:
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.index()
+        self.build_index()
 
-    def index(self):
+    def build_index(self):
         index, _ = Index.objects.get_or_create(
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
@@ -291,7 +291,7 @@ class Entry(WithIndex, models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.index()
+        self.build_index()
 
     @property
     def only_index(self):  # TODO: discuss, ugly but index() already exist

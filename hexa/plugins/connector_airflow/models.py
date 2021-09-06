@@ -85,9 +85,9 @@ class Cluster(BaseEnvironment):  # TODO: use WithIndex mixinx
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.index()
+        self.build_index()
 
-    def index(self):
+    def build_index(self):
         pipeline_index, _ = PipelinesIndex.objects.update_or_create(
             defaults={
                 "owner": self.owner,
@@ -126,7 +126,7 @@ class ClusterPermission(Permission):
         unique_together = [("cluster", "team")]
 
     def index_object(self):
-        self.cluster.index()
+        self.cluster.build_index()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
