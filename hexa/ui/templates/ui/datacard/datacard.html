@@ -3,7 +3,7 @@
     {% include "ui/datacard/heading.html" %}
     {% if sections|length > 0 %}
         {% for section in sections %}
-            {% include section.template with title=section.title properties=section.properties editable=section.editable only %}
+            {{ section }}
         {% endfor %}
     {% endif %}
 </div>

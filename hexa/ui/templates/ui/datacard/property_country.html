@@ -3,7 +3,7 @@
 
 {% block value %}
     <div class="text-sm text-gray-900 flex items-center align-center gap-3">
-        {% for country in data.countries %}
+        {% for country in countries %}
             {% include "ui/country.html" %}
         {% empty %}
             -

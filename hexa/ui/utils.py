@@ -2,9 +2,9 @@ def get_item_value(item, accessor, *, container, exclude):
     if hasattr(container, accessor):
         attr = getattr(container, accessor)
         if callable(attr):
-            return attr(container, item)
+            return attr(item)
         elif isinstance(attr, property):
-            return attr.fget(container)
+            return attr.fget()
         elif not isinstance(attr, exclude):
             return attr
 

@@ -23,9 +23,7 @@
         <div x-show="!editing">
             <dl>
                 {% for property in properties %}
-                    {% if not property.hidden %}
-                        {% include property.template with data=property.data label=property.label only %}
-                    {% endif %}
+                    {{ property }}
                 {% endfor %}
             </dl>
         </div>
@@ -33,9 +31,9 @@
             <dl>
                 {% for property in properties %}
                     {% if property.editable %}
-                        {% include property.input_template with data=property.data label=property.label name=property.name only %}
+                        {{ property.as_field }}
                     {% else %}
-                        {% include property.template with data=property.data label=property.label only %}
+                        {{ property }}
                     {% endif %}
                 {% endfor %}
             </dl>

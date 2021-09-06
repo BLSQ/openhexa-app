@@ -2,10 +2,10 @@
 
 {% block value %}
     <div class="prose prose-sm">
-        {% if data.markdown %}
-            {{ data.text|default:"-" }}
+        {% if markdown %}
+            {{ text|default:"-" }}
         {% else %}
-            <p>{{ data.text|default:"-" }}</p>
+            <p>{{ text|default:"-" }}</p>
         {% endif %}
     </div>
 {% endblock %}

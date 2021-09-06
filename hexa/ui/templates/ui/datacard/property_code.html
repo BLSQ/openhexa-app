@@ -2,5 +2,5 @@
 {% load syntax %}
 
 {% block value %}
-    <div class="bg-gray-100 p-2 rounded-sm">{{ data.code|highlight:data.language }}</div>
+    <div class="bg-gray-100 p-2 rounded-sm">{{ code|highlight:language }}</div>
 {% endblock %}
