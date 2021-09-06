@@ -197,9 +197,11 @@ class Property:
         )
 
     def context(self, model):
-        raise NotImplementedError(
-            "Each Property class should implement the data() method"
-        )
+        return {"label": self.label}
+
+    @property
+    def label(self):
+        return _(self._label) if self._label is not None else _(self.name.capitalize())
 
     def bind(self, section: Section):
         self.section = section
@@ -245,6 +247,7 @@ class TextProperty(Property):
         text_value = self.get_value(model, self.text)
 
         return {
+            **super().context(model),
             "text": mark_safe(to_markdown(text_value)) if self.markdown else text_value,
             "markdown": self.markdown,
         }
@@ -261,7 +264,11 @@ class CodeProperty(Property):
         return "ui/datacard/property_code.html"
 
     def context(self, model):
-        return {"code": self.get_value(model, self.code), "language": self.language}
+        return {
+            **super().context(model),
+            "code": self.get_value(model, self.code),
+            "language": self.language,
+        }
 
 
 class BooleanProperty(Property):
@@ -277,6 +284,7 @@ class BooleanProperty(Property):
         value = self.get_value(model, self.value)
 
         return {
+            **super().context(model),
             "text": _("Yes") if value is True else _("No"),
         }
 
@@ -307,7 +315,10 @@ class CountryProperty(Property):
         return "ui/datacard/property_country.html"
 
     def context(self, model):
-        return {"countries": self.get_value(model, self.countries)}
+        return {
+            **super().context(model),
+            "countries": self.get_value(model, self.countries),
+        }
 
 
 class TagProperty(Property):
@@ -327,6 +338,7 @@ class TagProperty(Property):
         tags_value = self.get_value(model, self.tags)
 
         return {
+            **super().context(model),
             "tags": tags_value,
         }
 
@@ -347,7 +359,7 @@ class URLProperty(Property):
             self.get_value(model, self.text) if self.text is not None else url_value
         )
 
-        return {"text": text_value, "url": url_value}
+        return {**super().context(model), "text": text_value, "url": url_value}
 
 
 class HiddenProperty(Property):
@@ -364,7 +376,7 @@ class HiddenProperty(Property):
         return "ui/datacard/input_property_hidden.html"
 
     def context(self, model):
-        return {"value": self.get_value(model, self.value)}
+        return {**super().context(model), "value": self.get_value(model, self.value)}
 
 
 class DateProperty(Property):
@@ -392,6 +404,7 @@ class DateProperty(Property):
 
     def context(self, model):
         return {
+            **super().context(model),
             "date": self.format_date(self.get_value(model, self.date)),
         }
 
@@ -420,7 +433,6 @@ class Action:
         return "ui/datacard/action.html"
 
     def context(self, model):
-        foo = "bar"
         return {
             "url": self.get_value(model, self.url),
             "label": _(self.label),
