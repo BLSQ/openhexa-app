@@ -221,6 +221,13 @@ class IndexPermission(models.Model):
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
     index = models.ForeignKey("Index", on_delete=models.CASCADE)
 
+    # Link the the Datasource permission
+    permission_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True
+    )
+    permission_id = models.UUIDField(null=True)
+    permission = GenericForeignKey("permission_type", "permission_id")
+
 
 class WithIndex:
     def get_permission_set(self):
@@ -235,16 +242,16 @@ class WithIndex:
             content_type=ContentType.objects.get_for_model(self),
             object_id=self.id,
         )
-        self.update_index(index)
+        self.populate_index(index)
         index.save()
 
         for permission in self.get_permission_set():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+            IndexPermission.objects.update_or_create(
+                index=index, team=permission.team, defaults={"permission": permission}
+            )
 
-    def update_index(self, index):
-        raise NotImplementedError(
-            "Each indexable model should implement the make_index() method"
-        )
+    def populate_index(self, index):
+        raise NotImplementedError
 
 
 class Datasource(models.Model, WithIndex):

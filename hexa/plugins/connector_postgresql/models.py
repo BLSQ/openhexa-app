@@ -93,7 +93,7 @@ class Database(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.last_synced_at
         index.external_name = self.database
         index.external_id = self.safe_url
@@ -214,7 +214,7 @@ class Table(Entry):
 
     objects = TableQuerySet.as_manager()
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.database.last_synced_at
         index.external_name = self.name
         index.external_type = ExternalType.TABLE.value

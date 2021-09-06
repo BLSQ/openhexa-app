@@ -156,7 +156,7 @@ class Instance(Datasource):
             }
         )
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.external_name = self.name
         index.last_synced_at = self.last_synced_at
         index.content = self.content_summary
@@ -269,7 +269,7 @@ class DataElement(Dhis2Entry):
     value_type = models.CharField(choices=ValueType.choices, max_length=100)
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at
         index.external_name = self.name
         index.external_description = self.description
@@ -309,7 +309,7 @@ class Indicator(Dhis2Entry):
     )
     annualized = models.BooleanField()
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at
         index.external_name = self.name
         index.external_description = self.description

@@ -265,7 +265,7 @@ class Bucket(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.last_synced_at
         index.content = self.content_summary
         index.path = [self.pk.hex]
@@ -332,7 +332,7 @@ class Object(Entry):
             self.parent_key = self.compute_parent_key(self.key)
         super().save(*args, **kwargs)
 
-    def update_index(self, index):
+    def populate_index(self, index):
         index.last_synced_at = self.bucket.last_synced_at
         index.external_name = self.filename
         index.path = [self.bucket.pk.hex, self.pk.hex]

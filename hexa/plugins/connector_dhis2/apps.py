@@ -11,13 +11,3 @@ class Dhis2ConnectorConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "dhis2"
-
-    def ready(self):
-        from .signals import delete_callback
-        from .models import InstancePermission
-
-        post_delete.connect(
-            delete_callback,
-            sender=InstancePermission,
-            dispatch_uid="connector_dhis2_InstancePermission_delete",
-        )
