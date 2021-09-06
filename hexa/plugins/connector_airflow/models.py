@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
+from hexa.catalog.models import WithIndex
 from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (
@@ -66,7 +67,10 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(BaseEnvironment):
+class Cluster(WithIndex, BaseEnvironment):
+    def get_permission_set(self):
+        return self.clusterpermission_set.all()
+
     class Meta:
         ordering = (
             "name",
@@ -82,27 +86,12 @@ class Cluster(BaseEnvironment):
 
     objects = ClusterQuerySet.as_manager()
 
-    def update_index(self, index):
-        pipeline_index, _ = PipelinesIndex.objects.update_or_create(
-            defaults={
-                "owner": self.owner,
-                "name": self.name,
-                "external_name": self.airflow_name,
-                "countries": self.countries,
-                "content_summary": self.content_summary,
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT,
-            detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
-        )
-
-        for permission in self.clusterpermission_set.all():
-            PipelinesIndexPermission.objects.get_or_create(
-                pipeline_index=pipeline_index,
-                team=permission.team,
-                permission=permission,
-            )
+    def populate_index(self, index):
+        index.owner = self.owner
+        index.name = self.name
+        index.external_name = self.airflow_name
+        index.countries = self.countries
+        index.content_summary = self.content_summary
 
     @property
     def content_summary(self):
@@ -123,7 +112,7 @@ class ClusterPermission(Permission):
         unique_together = [("cluster", "team")]
 
     def index_object(self):
-        self.cluster.update_index(1 / 0)
+        self.cluster.index()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"

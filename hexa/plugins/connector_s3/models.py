@@ -99,7 +99,6 @@ class Bucket(Datasource):
         )
 
     def clean(self):
-
         try:
             self.get_boto_client().head_bucket(Bucket=self.name)
         except ClientError as e:

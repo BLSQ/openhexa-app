@@ -254,7 +254,7 @@ class WithIndex:
         raise NotImplementedError
 
 
-class Datasource(models.Model, WithIndex):
+class Datasource(WithIndex, models.Model):
     class Meta:
         abstract = True
 
@@ -280,7 +280,7 @@ class Datasource(models.Model, WithIndex):
         return self.indexes.get()
 
 
-class Entry(models.Model, WithIndex):
+class Entry(WithIndex, models.Model):
     class Meta:
         abstract = True
 
