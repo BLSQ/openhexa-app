@@ -2,34 +2,15 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.ui.datacard import (
     Datacard,
     Section,
     TextProperty,
-    URLProperty,
-    DateProperty,
-    TagProperty,
-    CountryProperty,
     Action,
-    BooleanProperty,
     CodeProperty,
 )
-
-
-class OpenHexaMetaDataSection(Section):  # TODO: duplicated: move in catalog module
-    title = "OpenHexa Metadata"
-
-    owner = URLProperty(url="only_index.owner.url", text="only_index.owner.name")
-    label = TextProperty(text="only_index.label", editable=True)
-    tags = TagProperty(tags="only_index.tags.all")
-    location = CountryProperty(countries="only_index.countries")
-    description = TextProperty(text="only_index.description", markdown=True)
-    last_synced_at = DateProperty(
-        label="Last synced at",
-        date="only_index.last_synced_at",
-        date_format="timesince",
-    )
 
 
 class DatabaseSection(Section):

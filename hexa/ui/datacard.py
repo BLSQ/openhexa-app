@@ -131,11 +131,10 @@ class SectionMeta(BaseMeta):
 
 
 class PropertyLike:
-    def __init__(self, *, label=None, editable=False):
+    def __init__(self, *, label=None):
         self._label = label
         self.name = None
         self.card = None
-        self.editable = editable
 
     def bind(self, name, card):
         self.name = name
@@ -167,6 +166,11 @@ class PropertyLike:
 
 class Property(PropertyLike):
     """Base property class (to be extended)"""
+
+    def __init__(self, *, editable=False, hidden=False, **kwargs):
+        super().__init__(**kwargs)
+        self.editable = editable
+        self.hidden = hidden
 
     @property
     def template(self):
@@ -201,19 +205,21 @@ class Section(PropertyLike, metaclass=SectionMeta):
     def context(self, item):
         property_data = []
         for property_name, property_instance in self._meta.properties.items():
-            property_data.append(
+            property_data.append(  # TODO: move in Property.context()
                 {
                     "template": property_instance.template,
                     "input_template": property_instance.input_template,
                     "data": property_instance.data(item),
                     "label": property_instance.label,
                     "editable": property_instance.editable,
+                    "hidden": property_instance.hidden,
+                    "name": property_instance.name,
                 }
             )
         return {
             "title": _(self.title) if self.title is not None else None,
             "properties": property_data,
-            "editable": any(p.editable for p in self._meta.properties.values())
+            "editable": any(p.editable for p in self._meta.properties.values()),
         }
 
     @property
@@ -343,6 +349,23 @@ class URLProperty(Property):
         )
 
         return {"text": text_value, "url": url_value}
+
+
+class HiddenProperty(Property):
+    def __init__(self, *, value, **kwargs):
+        super().__init__(editable=True, hidden=True, **kwargs)
+        self.value = value
+
+    @property
+    def template(self):
+        return None
+
+    @property
+    def input_template(self):
+        return "ui/datacard/input_property_hidden.html"
+
+    def data(self, item):
+        return {"value": self.get_value(item, self.value)}
 
 
 class DateProperty(Property):

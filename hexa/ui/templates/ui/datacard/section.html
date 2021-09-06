@@ -1,47 +1,56 @@
 {% load i18n %}
 
-<div class="border-t border-gray-200 px-4 py-5 sm:px-0" x-data="{ open: false }">
-    <div class="flex items-center mb-2">
-        {% if title %}
-            <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
-                {{ title }}
-            </h3>
-        {% endif %}
-        {% if editable %}
-            <span
-                    class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer"
-                    @click="open=true"
-                    x-show="!open"
-            >
+<div class="border-t border-gray-200 px-4 py-5 sm:px-0" x-data="CardSection()">
+    <form method="post" action="{% url "catalog:update_metadata" %}">
+        {% csrf_token %}
+        <div class="flex items-center mb-2">
+            {% if title %}
+                <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
+                    {{ title }}
+                </h3>
+            {% endif %}
+            {% if editable %}
+                <span
+                        class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer"
+                        @click="toggle()"
+                        x-show="!editing"
+                >
                 {% translate "Edit" %}
                 {% include "ui/icons/pencil.html" with w=4 h=4 ml=1 %}
             </span>
-            <span
-                    class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer"
-                    @click="open=true"
-                    x-show="open"
-            >
-                {% translate "Save" %}
-                {% include "ui/icons/pencil.html" with w=4 h=4 ml=1 %}
-            </span>
-        {% endif %}
-    </div>
-    <dl x-show="!open">
-        {% for property in properties %}
-            <div class="px-4 py-5 sm:py-3 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                {% include property.template with data=property.data label=property.label only %}
+            {% endif %}
+        </div>
+        <div x-show="!editing">
+            <dl>
+                {% for property in properties %}
+                    {% if not property.hidden %}
+                        {% include property.template with data=property.data label=property.label only %}
+                    {% endif %}
+                {% endfor %}
+            </dl>
+        </div>
+        <div x-show="editing">
+            <dl>
+                {% for property in properties %}
+                    {% if property.editable %}
+                        {% include property.input_template with data=property.data label=property.label name=property.name only %}
+                    {% else %}
+                        {% include property.template with data=property.data label=property.label only %}
+                    {% endif %}
+                {% endfor %}
+            </dl>
+            <div class="p-5">
+                <div class="flex justify-end">
+                    <button type="button"
+                            class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Save
+                    </button>
+                </div>
             </div>
-        {% endfor %}
-    </dl>
-    <dl x-show="open">
-        {% for property in properties %}
-            <div class="p2-4 sm:py-3 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-                {% if property.editable %}
-                    {% include property.input_template with data=property.data label=property.label only %}
-                {% else %}
-                    {% include property.template with data=property.data label=property.label only %}
-                {% endif %}
-            </div>
-        {% endfor %}
-    </dl>
+        </div>
+    </form>
 </div>

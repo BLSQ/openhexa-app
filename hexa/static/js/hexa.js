@@ -239,3 +239,31 @@ function Commentable(url, contentTypeKey, objectId) {
         },
     }
 }
+
+
+/**
+ * CardSection component
+ *
+ * @param url
+ * @param contentTypeKey
+ * @param objectId
+ * @returns {{cancel(*): void, submit(*): Promise<void>, startCommenting(*): void, text: string, commenting: boolean}}
+ * @constructor
+ */
+function CardSection(url, contentTypeKey, objectId) {
+
+    return {
+        editing: false,
+        toggle($event) {
+            this.editing = !this.editing
+        },
+        async submit($event) {
+            $event.preventDefault();
+            try {
+
+            } catch (e) {
+
+            }
+        },
+    }
+}

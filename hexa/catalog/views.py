@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from .models import Index
 from .datagrids import DatasourceGrid
@@ -39,6 +40,23 @@ def quick_search(request):
 def search(request):
     query = request.GET.get("query", "")
     results = Index.objects.filter_for_user(request.user).search(query)[:100]
+
+    return render(
+        request,
+        "catalog/search.html",
+        {
+            "query": query,
+            "results": results,
+            "breadcrumbs": [
+                (_("Catalog"), "catalog:index"),
+                (_("Search"),),
+            ],
+        },
+    )
+
+
+@require_http_methods(["POST"])
+def update_metadata(request):
 
     return render(
         request,
