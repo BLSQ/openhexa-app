@@ -31,7 +31,7 @@ def index(request):
 
 def quick_search(request):
     query = request.GET.get("query", "")
-    results = Index.objects.filter_for_user(request.user).search(query)
+    results = Index.objects.filter_for_user(request.user).search(query)[:10]
 
     return JsonResponse({"results": [result.to_dict() for result in results]})
 

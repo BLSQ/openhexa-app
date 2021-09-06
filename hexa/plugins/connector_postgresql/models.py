@@ -243,6 +243,12 @@ class Table(Entry):
         for permission in self.database.databasepermission_set.all():
             IndexPermission.objects.get_or_create(index=index, team=permission.team)
 
+    def get_absolute_url(self):
+        return reverse(
+            "connector_postgresql:datasource_detail",
+            kwargs={"datasource_id": self.database.id},
+        )
+
 
 class DatabasePermission(Permission):
     database = models.ForeignKey(

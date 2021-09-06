@@ -195,21 +195,18 @@ class Index(Base):
     def to_dict(self):
         return {  # TODO: adapt to new models
             "id": self.id,
-            # "parent": self.parent.to_dict() if self.parent is not None else None,
             "rank": self.rank,
             "app_label": self.app_label,
             "content_type_name": self.content_type_name,
             "display_name": self.display_name,
-            # "summary": self.summary,
+            "summary": self.content_type_name,
             "symbol": self.symbol,
-            # "name": self.name,
+            "name": self.label,
             "external_name": self.external_name,
-            # "short_name": self.short_name,
-            # "external_short_name": self.external_short_name,
             "description": self.description,
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
-            # "detail_url": self.detail_url,
+            "url": self.object.get_absolute_url(),
             "last_synced_at": date_format(self.last_synced_at)
             if self.last_synced_at is not None
             else None,
