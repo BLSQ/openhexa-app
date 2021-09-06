@@ -67,10 +67,7 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(WithIndex, BaseEnvironment):
-    def get_permission_set(self):
-        return self.clusterpermission_set.all()
-
+class Cluster(BaseEnvironment):  # TODO: use WithIndex mixin
     class Meta:
         ordering = (
             "name",
@@ -86,12 +83,25 @@ class Cluster(WithIndex, BaseEnvironment):
 
     objects = ClusterQuerySet.as_manager()
 
-    def populate_index(self, index):
-        index.owner = self.owner
-        index.name = self.name
-        index.external_name = self.airflow_name
-        index.countries = self.countries
-        index.content_summary = self.content_summary
+    def index(self):
+        pipeline_index, _ = PipelinesIndex.objects.update_or_create(
+            defaults={
+                "owner": self.owner,
+                "name": self.name,
+                "external_name": self.airflow_name,
+                "countries": self.countries,
+                "content_summary": self.content_summary,
+            },
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT,
+            detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
+        )
+
+        for permission in self.clusterpermission_set.all():
+            PipelinesIndexPermission.objects.get_or_create(
+                pipeline_index=pipeline_index, team=permission.team
+            )
 
     @property
     def content_summary(self):
