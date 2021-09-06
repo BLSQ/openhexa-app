@@ -1,4 +1,4 @@
-from django.forms import Form
+from django import forms
 from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -145,8 +145,8 @@ class Section(metaclass=SectionMeta):
 
         return self
 
-    def build_form(self):
-        form = Form()
+    def build_form(self):  # TODO: cached property?
+        form = forms.Form(self.model)
         for property_name, property_instance in self._meta.properties.items():
             if property_instance.editable:
                 form.fields[property_name] = property_instance.build_field()
@@ -196,8 +196,18 @@ class Property:
             "Each Property class should implement the template() property"
         )
 
-    def context(self, model):
-        return {"label": self.label}
+    @property
+    def input_template(self):
+        raise NotImplementedError(
+            "Each Property class should implement the template() property"
+        )
+
+    def context(self, model, is_edit=False):
+        context = {"label": self.label}
+        if is_edit:
+            context["field"] = self.section.build_form().fields[self.name]
+
+        return context
 
     @property
     def label(self):
@@ -228,6 +238,13 @@ class Property:
             self.context(self.section.model), request=self.section.request
         )
 
+    def as_field(self):
+        template = loader.get_template(self.input_template)
+
+        return template.render(
+            self.context(self.section.model, is_edit=True), request=self.section.request
+        )
+
 
 class TextProperty(Property):
     def __init__(self, *, text, markdown=False, **kwargs):
@@ -243,14 +260,17 @@ class TextProperty(Property):
     def input_template(self):
         return "ui/datacard/input_property_text.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         text_value = self.get_value(model, self.text)
 
         return {
-            **super().context(model),
+            **super().context(model, **kwargs),
             "text": mark_safe(to_markdown(text_value)) if self.markdown else text_value,
             "markdown": self.markdown,
         }
+
+    def build_field(self):
+        return forms.TextInput()
 
 
 class CodeProperty(Property):
@@ -263,9 +283,9 @@ class CodeProperty(Property):
     def template(self):
         return "ui/datacard/property_code.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         return {
-            **super().context(model),
+            **super().context(model, **kwargs),
             "code": self.get_value(model, self.code),
             "language": self.language,
         }
@@ -280,11 +300,11 @@ class BooleanProperty(Property):
     def template(self):
         return "ui/datacard/property_boolean.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         value = self.get_value(model, self.value)
 
         return {
-            **super().context(model),
+            **super().context(**kwargs),
             "text": _("Yes") if value is True else _("No"),
         }
 
@@ -298,10 +318,10 @@ class LocaleProperty(Property):
     def template(self):
         return "ui/datacard/property_text.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         locale_value = self.get_value(model, self.locale)
 
-        return {"text": Locale[locale_value].label}
+        return {**super().context(model, **kwargs), "text": Locale[locale_value].label}
 
 
 class CountryProperty(Property):
@@ -314,9 +334,9 @@ class CountryProperty(Property):
     def template(self):
         return "ui/datacard/property_country.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         return {
-            **super().context(model),
+            **super().context(model, **kwargs),
             "countries": self.get_value(model, self.countries),
         }
 
@@ -334,11 +354,11 @@ class TagProperty(Property):
     def template(self):
         return "ui/datacard/property_tag.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         tags_value = self.get_value(model, self.tags)
 
         return {
-            **super().context(model),
+            **super().context(model, **kwargs),
             "tags": tags_value,
         }
 
@@ -353,13 +373,17 @@ class URLProperty(Property):
     def template(self):
         return "ui/datacard/property_url.html"
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         url_value = self.get_value(model, self.url)
         text_value = (
             self.get_value(model, self.text) if self.text is not None else url_value
         )
 
-        return {**super().context(model), "text": text_value, "url": url_value}
+        return {
+            **super().context(model, **kwargs),
+            "text": text_value,
+            "url": url_value,
+        }
 
 
 class HiddenProperty(Property):
@@ -375,8 +399,14 @@ class HiddenProperty(Property):
     def input_template(self):
         return "ui/datacard/input_property_hidden.html"
 
-    def context(self, model):
-        return {**super().context(model), "value": self.get_value(model, self.value)}
+    def context(self, model, **kwargs):
+        return {
+            **super().context(model, **kwargs),
+            "value": self.get_value(model, self.value),
+        }
+
+    def build_field(self):
+        return forms.HiddenInput()
 
 
 class DateProperty(Property):
@@ -402,9 +432,9 @@ class DateProperty(Property):
         else:
             return do_date_format(date, self.date_format)
 
-    def context(self, model):
+    def context(self, model, **kwargs):
         return {
-            **super().context(model),
+            **super().context(model, **kwargs),
             "date": self.format_date(self.get_value(model, self.date)),
         }
 
