@@ -6,7 +6,7 @@ from hexa.catalog.models import (
 )
 
 
-def delete_callback(sender, instance, **kwargs):
+def delete_callback(sender, instance: "DatabasePermission", **kwargs):
     datasource = instance.database
     try:
         index = Index.objects.get(

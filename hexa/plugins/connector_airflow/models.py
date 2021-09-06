@@ -82,7 +82,7 @@ class Cluster(BaseEnvironment):
 
     objects = ClusterQuerySet.as_manager()
 
-    def index(self):
+    def update_index(self, index):
         pipeline_index, _ = PipelinesIndex.objects.update_or_create(
             defaults={
                 "owner": self.owner,
@@ -99,7 +99,9 @@ class Cluster(BaseEnvironment):
 
         for permission in self.clusterpermission_set.all():
             PipelinesIndexPermission.objects.get_or_create(
-                pipeline_index=pipeline_index, team=permission.team
+                pipeline_index=pipeline_index,
+                team=permission.team,
+                permission=permission,
             )
 
     @property
@@ -121,7 +123,7 @@ class ClusterPermission(Permission):
         unique_together = [("cluster", "team")]
 
     def index_object(self):
-        self.cluster.index()
+        self.cluster.update_index(1 / 0)
 
     def __str__(self):
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"

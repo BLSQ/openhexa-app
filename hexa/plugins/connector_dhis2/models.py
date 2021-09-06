@@ -1,3 +1,5 @@
+from abc import ABC
+
 from django.contrib.contenttypes.fields import GenericRelation
 from dhis2 import RequestException
 from django.contrib.contenttypes.models import ContentType
@@ -73,6 +75,9 @@ class InstanceQuerySet(models.QuerySet):
 
 
 class Instance(Datasource):
+    def get_permission_set(self):
+        return self.instancepermission_set.all()
+
     class Meta:
         verbose_name = "DHIS2 Instance"
         ordering = ("url",)
@@ -151,20 +156,12 @@ class Instance(Datasource):
             }
         )
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "external_name": self.name,
-                "last_synced_at": self.last_synced_at,
-                "content": self.content_summary,
-                "path": [self.id.hex],
-                "search": f"{self.name}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-        for permission in self.instancepermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def update_index(self, index):
+        index.external_name = self.name
+        index.last_synced_at = self.last_synced_at
+        index.content = self.content_summary
+        index.path = [self.id.hex]
+        index.search = f"{self.name}"
 
     def get_absolute_url(self):
         return reverse(
@@ -260,6 +257,9 @@ class AggregationType(models.TextChoices):
 
 
 class DataElement(Dhis2Entry):
+    def get_permission_set(self):
+        return self.instance.instancepermission_set.all()
+
     class Meta:
         verbose_name = "DHIS2 Data Element"
         ordering = ("name",)
@@ -269,21 +269,12 @@ class DataElement(Dhis2Entry):
     value_type = models.CharField(choices=ValueType.choices, max_length=100)
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.instance.last_synced_at,
-                "external_name": self.name,
-                "external_description": self.description,
-                "path": [self.instance.id.hex, self.id.hex],
-                "search": f"{self.name} {self.description}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.instance.instancepermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def update_index(self, index):
+        index.last_synced_at = self.instance.last_synced_at
+        index.external_name = self.name
+        index.external_description = self.description
+        index.path = [self.instance.id.hex, self.id.hex]
+        index.search = f"{self.name} {self.description}"
 
     def get_absolute_url(self):
         return reverse(
@@ -305,6 +296,9 @@ class IndicatorType(Dhis2Entry):
 
 
 class Indicator(Dhis2Entry):
+    def get_permission_set(self):
+        return self.instance.instancepermission_set.all()
+
     class Meta:
         verbose_name = "DHIS2 Indicator"
         ordering = ("name",)
@@ -315,21 +309,12 @@ class Indicator(Dhis2Entry):
     )
     annualized = models.BooleanField()
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.instance.last_synced_at,
-                "external_name": self.name,
-                "external_description": self.description,
-                "path": [self.instance.id.hex, self.id.hex],
-                "search": f"{self.name} {self.description}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.instance.instancepermission_set.all():
-            IndexPermission.objects.update_or_create(index=index, team=permission.team)
+    def update_index(self, index):
+        index.last_synced_at = self.instance.last_synced_at
+        index.external_name = self.name
+        index.external_description = self.description
+        index.path = [self.instance.id.hex, self.id.hex]
+        index.search = f"{self.name} {self.description}"
 
     def get_absolute_url(self):
         return reverse(

@@ -10,7 +10,6 @@ from django_countries.fields import CountryField
 from hexa.core.date_utils import date_format
 from hexa.core.models import (
     RichContent,
-    WithIndex,
     Permission,
     LocaleField,
     PostgresTextSearchConfigField,
@@ -19,7 +18,7 @@ from hexa.core.models import (
 from hexa.core.models.postgres import locale_to_text_search_config
 
 
-class Environment(RichContent, WithIndex):
+class Environment(RichContent):
     class Meta:
         abstract = True
 
