@@ -67,7 +67,7 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(BaseEnvironment):  # TODO: use WithIndex mixin
+class Cluster(BaseEnvironment):  # TODO: use WithIndex mixinx
     class Meta:
         ordering = (
             "name",
@@ -82,6 +82,10 @@ class Cluster(BaseEnvironment):  # TODO: use WithIndex mixin
     airflow_api_url = models.URLField()
 
     objects = ClusterQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
 
     def index(self):
         pipeline_index, _ = PipelinesIndex.objects.update_or_create(
