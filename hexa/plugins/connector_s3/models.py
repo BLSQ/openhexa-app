@@ -64,6 +64,9 @@ class BucketQuerySet(models.QuerySet):
 
 
 class Bucket(Datasource):
+    def get_permission_set(self):
+        return self.bucketpermission_set.all()
+
     class Meta:
         verbose_name = "S3 Bucket"
         ordering = ("name",)
@@ -96,7 +99,6 @@ class Bucket(Datasource):
         )
 
     def clean(self):
-
         try:
             self.get_boto_client().head_bucket(Bucket=self.name)
         except ClientError as e:
@@ -262,23 +264,14 @@ class Bucket(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.last_synced_at,
-                "content": self.content_summary,
-                "path": [self.pk.hex],
-                "external_id": self.name,
-                "external_name": self.name,
-                "external_type": "bucket",
-                "search": f"{self.name}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.bucketpermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def populate_index(self, index):
+        index.last_synced_at = self.last_synced_at
+        index.content = self.content_summary
+        index.path = [self.pk.hex]
+        index.external_id = self.name
+        index.external_name = self.name
+        index.external_type = "bucket"
+        index.search = f"{self.name}"
 
     @property
     def display_name(self):
@@ -314,6 +307,9 @@ class ObjectQuerySet(models.QuerySet):
 
 
 class Object(Entry):
+    def get_permission_set(self):
+        return self.bucket.bucketpermission_set.all()
+
     class Meta:
         verbose_name = "S3 Object"
         ordering = ("key",)
@@ -335,24 +331,15 @@ class Object(Entry):
             self.parent_key = self.compute_parent_key(self.key)
         super().save(*args, **kwargs)
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.bucket.last_synced_at,
-                "external_name": self.filename,
-                "path": [self.bucket.pk.hex, self.pk.hex],
-                "context": self.parent_key,
-                "external_id": self.key,
-                "external_type": self.type,
-                "external_subtype": self.extension,
-                "search": f"{self.filename} {self.key}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.bucket.bucketpermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def populate_index(self, index):
+        index.last_synced_at = self.bucket.last_synced_at
+        index.external_name = self.filename
+        index.path = [self.bucket.pk.hex, self.pk.hex]
+        index.context = self.parent_key
+        index.external_id = self.key
+        index.external_type = self.type
+        index.external_subtype = self.extension
+        index.search = f"{self.filename} {self.key}"
 
     def __repr__(self):
         return f"<Object s3://{self.bucket.name}/{self.key}>"

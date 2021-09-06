@@ -42,6 +42,9 @@ class DatabaseQuerySet(models.QuerySet):
 
 
 class Database(Datasource):
+    def get_permission_set(self):
+        return self.databasepermission_set.all()
+
     hostname = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
     password = EncryptedTextField(max_length=200)
@@ -79,10 +82,6 @@ class Database(Datasource):
             f"postgresql://{self.username}@{self.hostname}:{self.port}/{self.database}"
         )
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.index()
-
     @property
     def content_summary(self):
         count = self.table_set.count()
@@ -94,23 +93,14 @@ class Database(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.last_synced_at,
-                "external_name": self.database,
-                "external_id": self.safe_url,
-                "external_type": ExternalType.DATABASE.value,
-                "search": f"{self.database}",
-                "path": [self.id.hex],
-                "content": self.content_summary,
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.databasepermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def populate_index(self, index):
+        index.last_synced_at = self.last_synced_at
+        index.external_name = self.database
+        index.external_id = self.safe_url
+        index.external_type = ExternalType.DATABASE.value
+        index.search = f"{self.database}"
+        index.path = [self.id.hex]
+        index.content = self.content_summary
 
     @property
     def display_name(self):
@@ -210,6 +200,9 @@ class TableQuerySet(models.QuerySet):
 
 
 class Table(Entry):
+    def get_permission_set(self):
+        return self.database.databasepermission_set.all()
+
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)
@@ -221,27 +214,14 @@ class Table(Entry):
 
     objects = TableQuerySet.as_manager()
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.index()
-
-    def index(self):
-        index, _ = Index.objects.update_or_create(
-            defaults={
-                "last_synced_at": self.database.last_synced_at,
-                "external_name": self.name,
-                "external_type": ExternalType.TABLE.value,
-                "path": [self.database.id.hex, self.id.hex],
-                "external_id": f"{self.database.safe_url}/{self.name}",
-                "context": self.database.database,
-                "search": f"{self.name}",
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-
-        for permission in self.database.databasepermission_set.all():
-            IndexPermission.objects.get_or_create(index=index, team=permission.team)
+    def populate_index(self, index):
+        index.last_synced_at = self.database.last_synced_at
+        index.external_name = self.name
+        index.external_type = ExternalType.TABLE.value
+        index.path = [self.database.id.hex, self.id.hex]
+        index.external_id = f"{self.database.safe_url}/{self.name}"
+        index.context = self.database.database
+        index.search = f"{self.name}"
 
     def get_absolute_url(self):
         return reverse(

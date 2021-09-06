@@ -15,13 +15,3 @@ class S3ConnectorConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "s3"
-
-    def ready(self):
-        from .signals import delete_callback
-        from .models import BucketPermission
-
-        post_delete.connect(
-            delete_callback,
-            sender=BucketPermission,
-            dispatch_uid="connector_s3_BucketPermission_delete",
-        )

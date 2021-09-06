@@ -11,13 +11,3 @@ class ConnectorAirflowConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "airflow"
-
-    def ready(self):
-        from .signals import delete_callback
-        from .models import ClusterPermission
-
-        post_delete.connect(
-            delete_callback,
-            sender=ClusterPermission,
-            dispatch_uid="connector_airflow_ClusterPermission_delete",
-        )

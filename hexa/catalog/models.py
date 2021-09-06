@@ -1,3 +1,5 @@
+from abc import ABC
+
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
@@ -20,8 +22,6 @@ from hexa.core.models import (
     Base,
     Permission,
     RichContent,
-    WithIndex,
-    WithSync,
     LocaleField,
     PostgresTextSearchConfigField,
 )
@@ -221,8 +221,40 @@ class IndexPermission(models.Model):
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
     index = models.ForeignKey("Index", on_delete=models.CASCADE)
 
+    # Link the the Datasource permission
+    permission_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True
+    )
+    permission_id = models.UUIDField(null=True)
+    permission = GenericForeignKey("permission_type", "permission_id")
 
-class Datasource(models.Model):
+
+class WithIndex:
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
+
+    def index(self):
+        index, _ = Index.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(self),
+            object_id=self.id,
+        )
+        self.populate_index(index)
+        index.save()
+
+        for permission in self.get_permission_set():
+            IndexPermission.objects.update_or_create(
+                index=index, team=permission.team, defaults={"permission": permission}
+            )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+
+class Datasource(WithIndex, models.Model):
     class Meta:
         abstract = True
 
@@ -232,19 +264,10 @@ class Datasource(models.Model):
     last_synced_at = models.DateTimeField(null=True, blank=True)
     indexes = GenericRelation("catalog.Index")
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.index()
-
     @property
     def display_name(self):
         raise NotImplementedError(
             "Datasource models should implement the display_name() property"
-        )
-
-    def index(self):
-        raise NotImplementedError(
-            "Datasource models should implement the index() method"
         )
 
     def sync(self):
@@ -257,7 +280,7 @@ class Datasource(models.Model):
         return self.indexes.get()
 
 
-class Entry(models.Model):
+class Entry(WithIndex, models.Model):
     class Meta:
         abstract = True
 
@@ -269,11 +292,6 @@ class Entry(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.index()
-
-    def index(self):
-        raise NotImplementedError(
-            "Datasource models should implement the index() method"
-        )
 
     @property
     def only_index(self):  # TODO: discuss, ugly but index() already exist
