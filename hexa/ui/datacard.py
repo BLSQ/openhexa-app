@@ -1,3 +1,5 @@
+from functools import cached_property
+
 from django import forms
 from django.template import loader
 from django.utils import timezone
@@ -145,11 +147,20 @@ class Section(metaclass=SectionMeta):
 
         return self
 
-    def build_form(self):  # TODO: cached property?
-        form = forms.Form(self.model)
-        for property_name, property_instance in self._meta.properties.items():
-            if property_instance.editable:
-                form.fields[property_name] = property_instance.build_field()
+    @cached_property
+    def form(self):  # TODO: cached property?
+        form_fields = {}
+        form_data = {}
+        properties = self._meta.bind_properties(self)
+        for property_instance in [p for p in properties if p.editable]:
+            form_data[property_instance.name] = property_instance.get_field_value(
+                self.model
+            )
+            form_fields[property_instance.name] = property_instance.build_field()
+
+        form = forms.Form(form_data)
+        for field_name, field in form_fields.items():
+            form.fields[field_name] = field
 
         return form
 
@@ -205,7 +216,7 @@ class Property:
     def context(self, model, is_edit=False):
         context = {"label": self.label}
         if is_edit:
-            context["field"] = self.section.build_form().fields[self.name]
+            context["field"] = self.section.form[self.name]
 
         return context
 
@@ -269,8 +280,13 @@ class TextProperty(Property):
             "markdown": self.markdown,
         }
 
+    def get_field_value(self, model):
+        return self.get_value(model, self.text)
+
     def build_field(self):
-        return forms.TextInput()
+        return forms.CharField(
+            widget=forms.TextInput if not self.markdown else forms.Textarea
+        )
 
 
 class CodeProperty(Property):
@@ -405,8 +421,11 @@ class HiddenProperty(Property):
             "value": self.get_value(model, self.value),
         }
 
+    def get_field_value(self, model):
+        return self.get_value(model, self.value)
+
     def build_field(self):
-        return forms.HiddenInput()
+        return forms.CharField(widget=forms.HiddenInput)
 
 
 class DateProperty(Property):
