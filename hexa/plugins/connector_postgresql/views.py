@@ -2,10 +2,12 @@ from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 from .datacards import DatabaseCard
 from .datagrids import TableGrid
 from .models import Database
+from .queue import database_sync_queue
 
 
 def datasource_detail(request, datasource_id):
@@ -87,7 +89,12 @@ def datasource_sync(request, datasource_id):
     datasource = get_object_or_404(
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )
-    sync_result = datasource.sync()
-    messages.success(request, sync_result)
+
+    if settings.DATASOURCE_ASYNC_REFRESH:
+        database_sync_queue.enqueue('database_sync', {'database_id': datasource.id})
+        messages.success(request, sync_result)
+    else:
+        sync_result = datasource.sync()
+        messages.success(request, _("The datasource will soon be synced"))
 
     return redirect(request.META.get("HTTP_REFERER"))

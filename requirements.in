@@ -7,6 +7,7 @@ Django
 django-cors-headers
 django-countries
 django-ltree
+django-postgres-queue
 django-tailwind
 gunicorn
 markdown
