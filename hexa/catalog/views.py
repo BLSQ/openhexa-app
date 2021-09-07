@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from .models import Index
 from .datagrids import DatasourceGrid
