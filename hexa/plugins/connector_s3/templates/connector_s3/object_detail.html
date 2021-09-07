@@ -4,6 +4,7 @@
 
 {% block page_content %}
     {{ object_card }}
+    {% include "comments/components/page_section_comments.html" with object=object %}
     {% if object.type == 'directory' %}
         {% embed "ui/section/section.html" with title=_("Objects") %}
             {% slot content %}

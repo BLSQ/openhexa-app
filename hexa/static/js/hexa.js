@@ -190,13 +190,12 @@ function Editable(key, value, originalValue) {
  * Commentable component
  *
  * @param url
- * @param contentTypeKey
- * @param objectId
+ * @param indexId
  * @returns {{cancel(*): void, submit(*): Promise<void>, startCommenting(*): void, text: string, commenting: boolean}}
  * @constructor
  */
-function Commentable(url, contentTypeKey, objectId) {
-    console.log(`Creating Commentable (url: ${url}, contentTypeKey: ${contentTypeKey}, objectId: ${objectId})`);
+function Commentable(url, indexId) {
+    console.log(`Creating Commentable (url: ${url}, indexId: ${indexId})`);
 
     return {
         text: "",
@@ -214,8 +213,7 @@ function Commentable(url, contentTypeKey, objectId) {
             try {
                 let formData = new FormData();
                 formData.append("text", this.text);
-                formData.append("content_type_key", contentTypeKey);
-                formData.append("object_id", objectId);
+                formData.append("index", indexId);
 
                 const response = await fetch(url, {
                     method: 'POST',
