@@ -243,6 +243,16 @@ class WithIndex:
             object_id=self.id,
         )
         self.populate_index(index)
+
+        # Add to the search string the fields from the index (hexa metadata)
+        index.search += (
+            f" {index.label} {index.description} {index.context} {index.locale}"
+        )
+        tags = " ".join([x.name for x in index.tags.all()])
+        countries = " ".join([f"{x.code} {x.name}" for x in index.countries])
+        owner = index.owner.name if index.owner else ""
+        index.search += f" {owner} {tags} {countries}"
+
         index.save()
 
         for permission in self.get_permission_set():
