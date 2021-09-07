@@ -61,7 +61,7 @@ case "$command" in
     python manage.py migrate
     python manage.py createsuperuser --no-input || true
     python manage.py loaddata demo.json
-    python manage.py reindex_content
+    python manage.py index
   else
     echo "The \"fixtures\" command can only be executed in dev mode"
   fi
