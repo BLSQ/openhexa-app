@@ -85,6 +85,10 @@ class Datacard(metaclass=DatacardMeta):
         self.model = model
         self.request = request
 
+    def save(self):
+        section_name = self.request.POST["section_name"]
+        self._meta.sections[section_name].save()
+
     def __str__(self):
         """Render the datacard"""
 
@@ -139,30 +143,39 @@ class SectionMeta(BaseMeta):
 class Section(metaclass=SectionMeta):
     title = None
 
-    def __init__(self):
-        self.datacard = None
+    def __init__(self, value=None):
+        self.name = None
+        self.value = value
+        self.request = None
+        self.model = None
 
     def bind(self, datacard: Datacard):
-        self.datacard = datacard
+        self.model = datacard.model if self.value is None else get_item_value(datacard.model, self.value)
+        self.request = datacard.request
 
         return self
 
-    @cached_property
-    def form(self):  # TODO: cached property?
-        form_fields = {}
-        form_data = {}
-        properties = self._meta.bind_properties(self)
-        for property_instance in [p for p in properties if p.editable]:
-            form_data[property_instance.name] = property_instance.get_field_value(
-                self.model
-            )
-            form_fields[property_instance.name] = property_instance.build_field()
+    @property
+    def form(self):
+        properties = self._meta.bind_properties(self)  # TODO: bind at a better time
+        editable_properties = [p for p in properties if p.editable]
 
-        form = forms.Form(form_data)
-        for field_name, field in form_fields.items():
-            form.fields[field_name] = field
+        if len(editable_properties) == 0:
+            return None
 
-        return form
+        if not hasattr(self, "Meta"):
+            raise ValueError("Need a Meta for forms")
+
+        class SectionForm(forms.ModelForm):
+            class Meta:
+                model = self.Meta.model
+                fields = [p.name for p in editable_properties]
+
+        return SectionForm(instance=self.model, data=self.request.POST if self.request.method == "POST" else None)
+
+    def save(self):
+        if self.form.is_valid():
+            self.save()
 
     def __str__(self):
         """Render the section"""
@@ -171,9 +184,10 @@ class Section(metaclass=SectionMeta):
         properties = self._meta.bind_properties(self)
 
         context = {
+            "name": self.name,
             "title": _(self.title) if self.title is not None else None,
             "properties": properties,
-            "editable": any(p.editable for p in properties),
+            "editable": any(p.editable for p in properties)
         }
 
         return template.render(context, request=self.request)
@@ -181,14 +195,6 @@ class Section(metaclass=SectionMeta):
     @property
     def template(self):
         return "ui/datacard/section.html"
-
-    @property
-    def request(self):
-        return self.datacard.request
-
-    @property
-    def model(self):
-        return self.datacard.model
 
 
 class Property:

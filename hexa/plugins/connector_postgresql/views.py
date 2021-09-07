@@ -14,6 +14,9 @@ def datasource_detail(request, datasource_id):
     )
 
     database_card = DatabaseCard(datasource, request=request)
+    if request.method == "POST":
+        database_card.save()
+
     table_grid = TableGrid(
         datasource.table_set.all(),
         per_page=5,

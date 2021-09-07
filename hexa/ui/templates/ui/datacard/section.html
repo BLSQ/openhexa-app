@@ -1,8 +1,9 @@
 {% load i18n %}
 
 <div class="border-t border-gray-200 px-4 py-5 sm:px-0" x-data="CardSection()">
-    <form method="post" action="{% url "catalog:update_metadata" %}">
+    <form method="post" action="">
         {% csrf_token %}
+        <input type="hidden" name="section_name" value="{{ name }}">
         <div class="flex items-center mb-2">
             {% if title %}
                 <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
