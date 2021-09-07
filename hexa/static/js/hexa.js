@@ -251,19 +251,10 @@ function Commentable(url, contentTypeKey, objectId) {
  * @constructor
  */
 function CardSection(url, contentTypeKey, objectId) {
-
     return {
         editing: false,
         toggle($event) {
             this.editing = !this.editing
-        },
-        async submit($event) {
-            $event.preventDefault();
-            try {
-
-            } catch (e) {
-
-            }
         },
     }
 }
