@@ -314,9 +314,6 @@ class TextProperty(Property):
             "markdown": self.markdown,
         }
 
-    def get_field_value(self, model):
-        return self.get_value(model, self.text)
-
     def build_field(self):
         return forms.CharField(
             widget=forms.TextInput if not self.markdown else forms.Textarea
@@ -388,10 +385,10 @@ class LocaleProperty(Property):
 
 
 class CountryProperty(Property):
-    def __init__(self, *, countries=None, **kwargs):
+    def __init__(self, *, value=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.countries = countries
+        self.value = value
 
     @property
     def template(self):
@@ -399,8 +396,16 @@ class CountryProperty(Property):
 
     def context(self, model, section, **kwargs):
         return {
-            "countries": self.get_value(model, self.countries, container=section),
+            "countries": self.get_value(model, self.value, container=section),
         }
+
+    @property
+    def input_widget(self):
+        return forms.SelectMultiple(
+            attrs={
+                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48"
+            }
+        )
 
 
 class TagProperty(Property):
@@ -427,7 +432,7 @@ class TagProperty(Property):
     def input_widget(self):
         return forms.SelectMultiple(
             attrs={
-                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32"
             }
         )
 
