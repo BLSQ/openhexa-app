@@ -53,20 +53,3 @@ def search(request):
             ],
         },
     )
-
-
-@require_http_methods(["POST"])
-def update_metadata(request):
-
-    return render(
-        request,
-        "catalog/search.html",
-        {
-            "query": query,
-            "results": results,
-            "breadcrumbs": [
-                (_("Catalog"), "catalog:index"),
-                (_("Search"),),
-            ],
-        },
-    )
