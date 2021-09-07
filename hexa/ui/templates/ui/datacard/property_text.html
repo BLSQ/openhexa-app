@@ -1,11 +1,11 @@
 {% extends "ui/datacard/property.html" %}
 
 {% block value %}
-    <div class="prose prose-sm">
-        {% if data.markdown %}
-            {{ data.text|default:"-" }}
-        {% else %}
-            <p>{{ data.text|default:"-" }}</p>
-        {% endif %}
-    </div>
+    {% if markdown %}
+        <div class="prose prose-sm">
+            {{ text|default:"-" }}
+        </div>
+    {% else %}
+        <p>{{ text|default:"-" }}</p>
+    {% endif %}
 {% endblock %}

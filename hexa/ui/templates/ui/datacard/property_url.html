@@ -1,16 +1,16 @@
 {% extends "ui/datacard/property.html" %}
 
 {% block value %}
-    {% if data.url is None %}
+    {% if url is None %}
         -
     {% else %}
         <a
-                href="{{ data.url }}"
+                href="{{ url }}"
                 rel="noopener"
                 target="_blank"
-                class="text-blue-600 hover:text-blue-500 focus:outline-none flex items-center"
+                class="block text-blue-600 hover:text-blue-500 focus:outline-none flex items-center"
         >
-            {{ data.text }}
+            {{ text }}
             {% include "ui/icons/external_link.html" with w=4 h=4 ml=1 %}
         </a>
     {% endif %}

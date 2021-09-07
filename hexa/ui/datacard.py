@@ -1,3 +1,5 @@
+from django import forms
+from django.contrib import messages
 from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -10,39 +12,30 @@ from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
 
-class DatacardOptions:
-    """Container for datacard meta (config)"""
-
-    def __init__(
-        self, *, title, subtitle, sections, properties, image_src=None, actions=None
-    ):
-        self.sections = sections
-        self.properties = properties
-        self.title = title
-        self.subtitle = subtitle
-        self.image_src = image_src
-        self.actions = actions
-
-
-class SectionOptions:
-    """Container for section meta (config)"""
-
-    def __init__(self, *, properties):
-        self.properties = properties
-
-
 class BaseMeta(type):
     """Metaclass for properties registration"""
 
     @staticmethod
-    def find(attrs, new_class, of_type):
+    def find(attrs, of_type):
         elected = {}
-        for name, unbound in [
+        for name, instance in [
             (k, v) for k, v in attrs.items() if isinstance(v, of_type)
         ]:
-            elected[name] = unbound.bind(name, new_class)
+            instance.name = name
+            elected[name] = instance
 
         return elected
+
+
+class DatacardOptions:
+    """Container for datacard meta (config)"""
+
+    def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
+        self.sections = sections
+        self.title = title
+        self.subtitle = subtitle
+        self.image_src = image_src
+        self.actions = actions
 
 
 class DatacardMeta(BaseMeta):
@@ -54,12 +47,11 @@ class DatacardMeta(BaseMeta):
             return new_class
 
         new_class._meta = DatacardOptions(
-            sections=mcs.find(attrs, new_class, Section),
-            properties=mcs.find(attrs, new_class, Property),
+            sections=mcs.find(attrs, Section),
             title=attrs["title"],
             subtitle=attrs["subtitle"],
             image_src=attrs["image_src"],
-            actions=[action.bind(new_class) for action in attrs.get("actions", [])],
+            actions=attrs.get("actions", []),
         )
 
         return new_class
@@ -74,57 +66,51 @@ class Datacard(metaclass=DatacardMeta):
         self.model = model
         self.request = request
 
+        self._sections = {k: v.bind(self) for k, v in self._meta.sections.items()}
+        self._actions = [a.bind(self) for a in self._meta.actions]
+
+    def save(self):
+        section_name = self.request.POST["section_name"]
+        self._sections[section_name].save()
+
+        return True
+
     def __str__(self):
         """Render the datacard"""
 
         template = loader.get_template("ui/datacard/datacard.html")
 
-        action_data = []
-        for action_instance in self._meta.actions:
-            action_data.append(
-                {
-                    "template": action_instance.template,
-                    "data": action_instance.data(self.model),
-                    "action": action_instance,
-                }
-            )
-
-        property_data = []
-        for property_name, property_instance in self._meta.properties.items():
-            property_data.append(
-                {
-                    "template": property_instance.template,
-                    "data": property_instance.data(self.model),
-                    "property": property_instance,
-                }
-            )
-
-        section_data = []
-        for section_name, section_instance in self._meta.sections.items():
-            section_data.append(
-                {
-                    "template": section_instance.template,
-                    "section": section_instance,
-                    **section_instance.data(self.model),
-                }
-            )
-
         context = {
-            "property_data": property_data,
-            "section_data": section_data,
-            "action_data": action_data,
+            "sections": self._sections.values(),
+            "actions": self._actions,
             "title": get_item_value(
-                self.model, self._meta.title, container=self, exclude=PropertyLike
+                self.model,
+                self._meta.title,
+                container=self,
+                exclude=(Property, Section),
             ),
             "subtitle": get_item_value(
-                self.model, self._meta.subtitle, container=self, exclude=PropertyLike
+                self.model,
+                self._meta.subtitle,
+                container=self,
+                exclude=(Property, Section),
             ),
             "image_src": get_item_value(
-                self.model, self._meta.image_src, container=self, exclude=PropertyLike
+                self.model,
+                self._meta.image_src,
+                container=self,
+                exclude=(Property, Section),
             ),
         }
 
         return template.render(context, request=self.request)
+
+
+class SectionOptions:
+    """Container for section meta (config)"""
+
+    def __init__(self, *, properties):
+        self.properties = properties
 
 
 class SectionMeta(BaseMeta):
@@ -135,49 +121,103 @@ class SectionMeta(BaseMeta):
         if not parents:
             return new_class
 
+        properties = mcs.find(attrs, Property)
         new_class._meta = SectionOptions(
-            properties=mcs.find(attrs, new_class, Property)
+            properties=properties,
         )
 
         return new_class
 
 
-class PropertyLike:
-    def __init__(self, *, label=None):
-        self._label = label
+class Section(metaclass=SectionMeta):
+    title = None
+
+    def __init__(self, value=None):
         self.name = None
-        self.card = None
+        self.value = value
+        self.datacard = None
 
-    def bind(self, name, card):
-        self.name = name
-        self.card = card
-
-        return self
+    def bind(self, datacard: Datacard):
+        return BoundSection(self, datacard=datacard)
 
     @property
-    def label(self):
-        return _(self._label) if self._label is not None else _(self.name.capitalize())
+    def properties(self):
+        return self._meta.properties.values()
 
     @property
     def template(self):
-        raise NotImplementedError(
-            "Each Property-like class should implement the template() property"
+        return "ui/datacard/section.html"
+
+
+class BoundSection:
+    def __init__(self, unbound_section: Section, *, datacard: Datacard) -> None:
+        self.unbound_section = unbound_section
+        self.datacard = datacard
+        self.form = self.build_form()
+        self.properties = [p.bind(self) for p in self.unbound_section.properties]
+
+    def build_form(self):
+        editable_properties = [p for p in self.unbound_section.properties if p.editable]
+
+        if len(editable_properties) == 0:
+            return None
+
+        if not hasattr(self.unbound_section, "Meta"):
+            raise ValueError("Need a Meta for forms")
+
+        class SectionForm(forms.ModelForm):
+            class Meta:
+                model = self.unbound_section.Meta.model
+                fields = [p.name for p in editable_properties]
+                widgets = {
+                    p.name: p.input_widget
+                    for p in editable_properties
+                    if p.input_widget is not None
+                }
+
+        return SectionForm(
+            instance=self.model,
+            data=self.request.POST if self.request.method == "POST" else None,
         )
 
-    def data(self, item):
-        raise NotImplementedError(
-            "Each Property-like class should implement the data() method"
+    def save(self):
+        self.form.save()
+        messages.success(self.request, _("Save successful!"))
+
+    @property
+    def model(self):
+        return (
+            self.datacard.model
+            if self.unbound_section.value is None
+            else get_item_value(self.datacard.model, self.unbound_section.value)
         )
 
-    def get_value(self, item, accessor):
-        if self.card is None:
-            raise ValueError("Cannot get item value for unbound property")
+    @property
+    def request(self):
+        return self.datacard.request
 
-        return get_item_value(item, accessor, container=self.card, exclude=PropertyLike)
+    def __str__(self):
+        template = loader.get_template("ui/datacard/section.html")
+
+        context = {
+            "name": self.unbound_section.name,
+            "title": _(self.unbound_section.title)
+            if self.unbound_section.title is not None
+            else None,
+            "properties": self.properties,
+            "editable": any(p.editable for p in self.properties),
+        }
+
+        return template.render(context, request=self.datacard.request)
 
 
-class Property(PropertyLike):
+class Property:
     """Base property class (to be extended)"""
+
+    def __init__(self, *, label=None, editable=False):
+        self._label = label
+        self.name = None
+        self.editable = editable
 
     @property
     def template(self):
@@ -185,33 +225,79 @@ class Property(PropertyLike):
             "Each Property class should implement the template() property"
         )
 
-    def data(self, item):
+    @property
+    def input_template(self):
+        return "ui/datacard/input_property.html"
+
+    @property
+    def input_widget(self):
+        return None
+
+    def base_context(self, model, section, is_edit=False):
+        return {
+            "label": _(self._label)
+            if self._label is not None
+            else _(self.name.capitalize()),
+        }
+
+    def context(self, model, section, is_edit=False):
         raise NotImplementedError(
-            "Each Property class should implement the data() method"
+            "Each Property class should implement the context() method"
+        )
+
+    def bind(self, section: "Section"):
+        return BoundProperty(self, section=section)
+
+    @staticmethod
+    def get_value(model, accessor, container=None):
+        return get_item_value(
+            model, accessor, container=container, exclude=(Section, Property)
         )
 
 
-class Section(PropertyLike, metaclass=SectionMeta):
-    title = None
-
-    def data(self, item):
-        property_data = []
-        for property_name, property_instance in self._meta.properties.items():
-            property_data.append(
-                {
-                    "template": property_instance.template,
-                    "data": property_instance.data(item),
-                    "property": property_instance,
-                }
-            )
-        return {
-            "title": _(self.title) if self.title is not None else None,
-            "property_data": property_data,
-        }
+class BoundProperty:
+    def __init__(self, unbound_property, *, section) -> None:
+        self.unbound_property = unbound_property
+        self.section = section
 
     @property
-    def template(self):
-        return "ui/datacard/section.html"
+    def editable(self):
+        return self.unbound_property.editable
+
+    @property
+    def name(self):
+        return self.unbound_property.name
+
+    def __str__(self):
+        template = loader.get_template(self.unbound_property.template)
+
+        return template.render(
+            {
+                **self.unbound_property.base_context(
+                    self.section.model, self.section.unbound_section
+                ),
+                **self.unbound_property.context(
+                    self.section.model, self.section.unbound_section
+                ),
+            },
+            request=self.section.request,
+        )
+
+    def as_field(self):
+        template = loader.get_template(self.unbound_property.input_template)
+
+        return template.render(
+            {
+                "field": self.section.form[self.name],
+                **self.unbound_property.base_context(
+                    self.section.model, self.section.unbound_section, is_edit=True
+                ),
+                **self.unbound_property.context(
+                    self.section.model, self.section.unbound_section, is_edit=True
+                ),
+            },
+            request=self.section.request,
+        )
 
 
 class TextProperty(Property):
@@ -224,13 +310,33 @@ class TextProperty(Property):
     def template(self):
         return "ui/datacard/property_text.html"
 
-    def data(self, item):
-        text_value = self.get_value(item, self.text)
+    def context(self, model, section, **kwargs):
+        text_value = self.get_value(model, self.text, container=section)
 
         return {
             "text": mark_safe(to_markdown(text_value)) if self.markdown else text_value,
             "markdown": self.markdown,
         }
+
+    def build_field(self):
+        return forms.CharField(
+            widget=forms.TextInput if not self.markdown else forms.Textarea
+        )
+
+    @property
+    def input_widget(self):
+        if self.markdown:
+            return forms.Textarea(
+                attrs={
+                    "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                }
+            )
+
+        return forms.TextInput(
+            attrs={
+                "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            }
+        )
 
 
 class CodeProperty(Property):
@@ -243,9 +349,11 @@ class CodeProperty(Property):
     def template(self):
         return "ui/datacard/property_code.html"
 
-    def data(self, item):
-
-        return {"code": self.get_value(item, self.code), "language": self.language}
+    def context(self, model, section, **kwargs):
+        return {
+            "code": self.get_value(model, self.code, container=section),
+            "language": self.language,
+        }
 
 
 class BooleanProperty(Property):
@@ -257,8 +365,8 @@ class BooleanProperty(Property):
     def template(self):
         return "ui/datacard/property_boolean.html"
 
-    def data(self, item):
-        value = self.get_value(item, self.value)
+    def context(self, model, section, **kwargs):
+        value = self.get_value(model, self.value, container=section)
 
         return {
             "text": _("Yes") if value is True else _("No"),
@@ -274,24 +382,34 @@ class LocaleProperty(Property):
     def template(self):
         return "ui/datacard/property_text.html"
 
-    def data(self, item):
-        locale_value = self.get_value(item, self.locale)
+    def context(self, model, section, **kwargs):
+        locale_value = self.get_value(model, self.locale, container=section)
 
         return {"text": Locale[locale_value].label}
 
 
 class CountryProperty(Property):
-    def __init__(self, *, countries=None, **kwargs):
+    def __init__(self, *, value=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.countries = countries
+        self.value = value
 
     @property
     def template(self):
         return "ui/datacard/property_country.html"
 
-    def data(self, item):
-        return {"countries": self.get_value(item, self.countries)}
+    def context(self, model, section, **kwargs):
+        return {
+            "countries": self.get_value(model, self.value, container=section),
+        }
+
+    @property
+    def input_widget(self):
+        return forms.SelectMultiple(
+            attrs={
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48"
+            }
+        )
 
 
 class TagProperty(Property):
@@ -307,12 +425,20 @@ class TagProperty(Property):
     def template(self):
         return "ui/datacard/property_tag.html"
 
-    def data(self, item):
-        tags_value = self.get_value(item, self.tags)
+    def context(self, model, section, is_edit=False):
+        tags_value = self.get_value(model, self.tags, container=section)
 
         return {
             "tags": tags_value,
         }
+
+    @property
+    def input_widget(self):
+        return forms.SelectMultiple(
+            attrs={
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32"
+            }
+        )
 
 
 class URLProperty(Property):
@@ -325,13 +451,28 @@ class URLProperty(Property):
     def template(self):
         return "ui/datacard/property_url.html"
 
-    def data(self, item):
-        url_value = self.get_value(item, self.url)
+    def context(self, model, section, **kwargs):
+        url_value = self.get_value(model, self.url, container=section)
         text_value = (
-            self.get_value(item, self.text) if self.text is not None else url_value
+            self.get_value(model, self.text, container=section)
+            if self.text is not None
+            else url_value
         )
 
-        return {"text": text_value, "url": url_value}
+        return {
+            "text": text_value,
+            "url": url_value,
+        }
+
+
+class OwnerProperty(URLProperty):
+    @property
+    def input_widget(self):
+        return forms.Select(
+            attrs={
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            }
+        )
 
 
 class DateProperty(Property):
@@ -357,9 +498,11 @@ class DateProperty(Property):
         else:
             return do_date_format(date, self.date_format)
 
-    def data(self, item):
+    def context(self, model, section, **kwargs):
         return {
-            "date": self.format_date(self.get_value(item, self.date)),
+            "date": self.format_date(
+                self.get_value(model, self.date, container=section)
+            ),
         }
 
 
@@ -369,27 +512,29 @@ class Action:
         self.icon = icon
         self.url = url
         self.method = method
-        self.card = None
+        self.datacard = None
 
-    def bind(self, card: Datacard):
-        self.card = card
+    def bind(self, datacard: Datacard):
+        self.datacard = datacard
 
-        return self
+    def get_value(self, model, accessor):
+        if self.datacard is None:
+            raise ValueError("Cannot get model value for unbound action")
 
-    def get_value(self, item, accessor):
-        if self.card is None:
-            raise ValueError("Cannot get item value for unbound action")
-
-        return get_item_value(item, accessor, container=self.card, exclude=Action)
+        return get_item_value(model, accessor, container=self.datacard, exclude=Action)
 
     @property
     def template(self):
         return "ui/datacard/action.html"
 
-    def data(self, item):
-        return {
-            "url": self.get_value(item, self.url),
+    def __str__(self):
+        template = loader.get_template(self.template)
+
+        context = {
+            "url": self.get_value(self.datacard.model, self.url),
             "label": _(self.label),
             "icon": self.icon,
             "method": self.method,
         }
+
+        return template.render(context, request=self.datacard.request)

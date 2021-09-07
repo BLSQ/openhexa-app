@@ -1,12 +1,9 @@
 <!-- This example requires Tailwind CSS v2.0+ -->
 <div class="bg-white shadow overflow-hidden sm:rounded-lg my-8">
     {% include "ui/datacard/heading.html" %}
-    {% if property_data|length > 0 %}
-        {% include "ui/datacard/section.html" with property_data=property_data only %}
-    {% endif %}
-    {% if section_data|length > 0 %}
-        {% for section in section_data %}
-            {% include section.template with title=section.title property_data=section.property_data only %}
+    {% if sections|length > 0 %}
+        {% for section in sections %}
+            {{ section }}
         {% endfor %}
     {% endif %}
 </div>

@@ -16,6 +16,9 @@ def instance_detail(request, instance_id):
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     instance_card = InstanceCard(instance, request=request)
+    if request.method == "POST" and instance_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
     data_element_grid = DataElementGrid(
         instance.dataelement_set.all(),
         per_page=5,
@@ -91,6 +94,8 @@ def data_element_detail(request, instance_id, data_element_id):
         request, instance_id, data_element_id
     )
     data_element_card = DataElementCard(data_element, request=request)
+    if request.method == "POST" and data_element_card.save():
+        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -186,6 +191,8 @@ def indicator_detail(request, instance_id, indicator_id):
         request, instance_id, indicator_id
     )
     indicator_card = IndicatorCard(indicator, request=request)
+    if request.method == "POST" and indicator_card.save():
+        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),

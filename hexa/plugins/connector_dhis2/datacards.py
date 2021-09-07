@@ -2,6 +2,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Datacard,
@@ -15,21 +16,6 @@ from hexa.ui.datacard import (
     Action,
     BooleanProperty,
 )
-
-
-class OpenHexaMetaDataSection(Section):  # TODO: duplicated: move in catalog module
-    title = "OpenHexa Metadata"
-
-    owner = URLProperty(url="only_index.owner.url", text="only_index.owner.name")
-    label = TextProperty(text="only_index.label")
-    tags = TagProperty(tags="only_index.tags.all")
-    location = CountryProperty(countries="only_index.countries")
-    description = TextProperty(text="only_index.description", markdown=True)
-    last_synced_at = DateProperty(
-        label="Last synced at",
-        date="only_index.last_synced_at",
-        date_format="timesince",
-    )
 
 
 class InstanceSection(Section):
@@ -47,7 +33,7 @@ class InstanceCard(Datacard):
     actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = InstanceSection()
-    metadata = OpenHexaMetaDataSection()
+    metadata = OpenHexaMetaDataSection(value="only_index")
 
     @property
     def generic_description(self):
@@ -85,7 +71,7 @@ class DataElementCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = DataElementSection()
-    metadata = OpenHexaMetaDataSection()
+    metadata = OpenHexaMetaDataSection(value="only_index")
 
     @property
     def generic_description(self):
@@ -120,7 +106,7 @@ class IndicatorCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = IndicatorSection()
-    metadata = OpenHexaMetaDataSection()
+    metadata = OpenHexaMetaDataSection(value="only_index")
 
     @property
     def generic_description(self):

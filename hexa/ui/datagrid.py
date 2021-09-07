@@ -13,6 +13,9 @@ class DatagridOptions:
     def __init__(self, *, columns):
         self.columns = columns
 
+    def bind_columns(self, grid: "Datagrid"):
+        return {k: v.bind(grid) for k, v in self.columns.items()}.values()
+
 
 class DatagridMeta(type):
     """Metaclass for column registration"""
@@ -25,10 +28,11 @@ class DatagridMeta(type):
             return new_class
 
         columns = {}
-        for column_name, unbound_column in [
+        for column_name, column in [
             (k, v) for k, v in attrs.items() if isinstance(v, Column)
         ]:
-            columns[column_name] = unbound_column.bind(column_name, new_class)
+            column.name = column_name
+            columns[column_name] = column
         new_class._meta = DatagridOptions(columns=columns)
 
         return new_class
@@ -48,7 +52,7 @@ class Datagrid(metaclass=DatagridMeta):
         row_data = []
         for item in self.page:
             single_row_data = []
-            for column_name, column in self._meta.columns.items():
+            for column in self._meta.bind_columns(self):
                 single_row_data.append(
                     {"template": column.template, "data": column.data(item)}
                 )
@@ -108,8 +112,7 @@ class Column:
         self.name = None
         self.grid = None
 
-    def bind(self, name, grid):
-        self.name = name
+    def bind(self, grid):
         self.grid = grid
 
         return self

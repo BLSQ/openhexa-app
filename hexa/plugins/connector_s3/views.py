@@ -13,6 +13,8 @@ def datasource_detail(request, datasource_id):
         Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
     bucket_card = BucketCard(bucket, request=request)
+    if request.method == "POST" and bucket_card.save():
+        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
@@ -53,6 +55,8 @@ def object_detail(request, bucket_id, path):
     )
     s3_object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
     object_card = ObjectCard(model=s3_object, request=request)
+    if request.method == "POST" and object_card.save():
+        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),

@@ -14,6 +14,9 @@ def datasource_detail(request, datasource_id):
     )
 
     database_card = DatabaseCard(datasource, request=request)
+    if request.method == "POST" and database_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
     table_grid = TableGrid(
         datasource.table_set.all(),
         per_page=5,
