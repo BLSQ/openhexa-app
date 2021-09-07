@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from django import forms
 from django.template import loader
 from django.utils import timezone
@@ -11,35 +9,6 @@ from markdown import markdown as to_markdown
 from hexa.core.date_utils import date_format as do_date_format
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
-
-
-class DatacardOptions:
-    """Container for datacard meta (config)"""
-
-    def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
-        self.sections = sections
-        self.title = title
-        self.subtitle = subtitle
-        self.image_src = image_src
-        self.actions = actions
-        # TODO: fields ?
-
-    def bind_sections(self, datacard: "Datacard"):
-        return {k: v.bind(datacard) for k, v in self.sections.items()}.values()
-
-    def bind_actions(self, datacard: "Datacard"):
-        return [a.bind(datacard) for a in self.actions]
-
-
-class SectionOptions:
-    """Container for section meta (config)"""
-
-    def __init__(self, *, properties, fields):
-        self.properties = properties
-        self.fields = fields
-
-    def bind_properties(self, section: "Section"):
-        return {k: v.bind(section) for k, v in self.properties.items()}.values()
 
 
 class BaseMeta(type):
@@ -55,6 +24,23 @@ class BaseMeta(type):
             elected[name] = instance
 
         return elected
+
+
+class DatacardOptions:
+    """Container for datacard meta (config)"""
+
+    def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
+        self.sections = sections
+        self.title = title
+        self.subtitle = subtitle
+        self.image_src = image_src
+        self.actions = actions
+        self.bound = False
+
+    def bind_children(self, datacard: "Datacard"):
+        self.sections = {k: v.bind(datacard) for k, v in self.sections.items()}
+        self.actions = [a.bind(datacard) for a in self.actions]
+        self.bound = True
 
 
 class DatacardMeta(BaseMeta):
@@ -84,6 +70,7 @@ class Datacard(metaclass=DatacardMeta):
     def __init__(self, model, *, request):
         self.model = model
         self.request = request
+        self._meta.bind_children(self)
 
     def save(self):
         section_name = self.request.POST["section_name"]
@@ -94,12 +81,9 @@ class Datacard(metaclass=DatacardMeta):
 
         template = loader.get_template("ui/datacard/datacard.html")
 
-        actions = self._meta.bind_actions(self)
-        sections = self._meta.bind_sections(self)
-
         context = {
-            "sections": sections,
-            "actions": actions,
+            "sections": self._meta.sections.values(),
+            "actions": self._meta.actions,
             "title": get_item_value(
                 self.model,
                 self._meta.title,
@@ -121,6 +105,18 @@ class Datacard(metaclass=DatacardMeta):
         }
 
         return template.render(context, request=self.request)
+
+
+class SectionOptions:
+    """Container for section meta (config)"""
+
+    def __init__(self, *, properties, fields):
+        self.properties = properties
+        self.bound = False
+
+    def bind_children(self, section: "Section"):
+        self.properties = {k: v.bind(section) for k, v in self.properties.items()}
+        self.bound = True
 
 
 class SectionMeta(BaseMeta):
@@ -146,19 +142,15 @@ class Section(metaclass=SectionMeta):
     def __init__(self, value=None):
         self.name = None
         self.value = value
-        self.request = None
-        self.model = None
+        self.datacard = None
 
     def bind(self, datacard: Datacard):
-        self.model = datacard.model if self.value is None else get_item_value(datacard.model, self.value)
-        self.request = datacard.request
-
-        return self
+        self._meta.bind_children(self)
+        self.datacard = datacard
 
     @property
     def form(self):
-        properties = self._meta.bind_properties(self)  # TODO: bind at a better time
-        editable_properties = [p for p in properties if p.editable]
+        editable_properties = [p for p in self._meta.properties if p.editable]
 
         if len(editable_properties) == 0:
             return None
@@ -171,7 +163,10 @@ class Section(metaclass=SectionMeta):
                 model = self.Meta.model
                 fields = [p.name for p in editable_properties]
 
-        return SectionForm(instance=self.model, data=self.request.POST if self.request.method == "POST" else None)
+        return SectionForm(
+            instance=self.model,
+            data=self.request.POST if self.request.method == "POST" else None,
+        )
 
     def save(self):
         if self.form.is_valid():
@@ -181,16 +176,16 @@ class Section(metaclass=SectionMeta):
         """Render the section"""
 
         template = loader.get_template("ui/datacard/section.html")
-        properties = self._meta.bind_properties(self)
+        properties = self._meta.properties.values()
 
         context = {
             "name": self.name,
             "title": _(self.title) if self.title is not None else None,
             "properties": properties,
-            "editable": any(p.editable for p in properties)
+            "editable": any(p.editable for p in properties),
         }
 
-        return template.render(context, request=self.request)
+        return template.render(context, request=self.datacard.request)
 
     @property
     def template(self):
@@ -230,10 +225,8 @@ class Property:
     def label(self):
         return _(self._label) if self._label is not None else _(self.name.capitalize())
 
-    def bind(self, section: Section):
+    def bind(self, section: "Section"):
         self.section = section
-
-        return self
 
     def get_value(self, model, accessor):
         if self.section is None:
@@ -472,10 +465,8 @@ class Action:
         self.method = method
         self.datacard = None
 
-    def bind(self, card: Datacard):
-        self.datacard = card
-
-        return self
+    def bind(self, datacard: Datacard):
+        self.datacard = datacard
 
     def get_value(self, model, accessor):
         if self.datacard is None:
@@ -487,10 +478,14 @@ class Action:
     def template(self):
         return "ui/datacard/action.html"
 
-    def context(self, model):
-        return {
-            "url": self.get_value(model, self.url),
+    def __str__(self):
+        template = loader.get_template(self.template)
+
+        context = {
+            "url": self.get_value(self.datacard.model, self.url),
             "label": _(self.label),
             "icon": self.icon,
             "method": self.method,
         }
+
+        return template.render(context, request=self.datacard.request)
