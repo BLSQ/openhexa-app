@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
+from hexa.catalog.models import WithIndex
 from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (
@@ -66,7 +67,7 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(BaseEnvironment):
+class Cluster(BaseEnvironment):  # TODO: use WithIndex mixinx
     class Meta:
         ordering = (
             "name",
@@ -81,6 +82,10 @@ class Cluster(BaseEnvironment):
     airflow_api_url = models.URLField()
 
     objects = ClusterQuerySet.as_manager()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index()
 
     def index(self):
         pipeline_index, _ = PipelinesIndex.objects.update_or_create(

@@ -15,13 +15,3 @@ class PostgresqlConnectorConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "postgresql"
-
-    def ready(self):
-        from .signals import delete_callback
-        from .models import DatabasePermission
-
-        post_delete.connect(
-            delete_callback,
-            sender=DatabasePermission,
-            dispatch_uid="connector_postgresql_DatabasePermission_delete",
-        )

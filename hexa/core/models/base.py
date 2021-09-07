@@ -33,6 +33,11 @@ class Permission(Base):
         abstract = True
 
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+    index_permission = GenericRelation(
+        "catalog.IndexPermission",
+        content_type_field="permission_type_id",
+        object_id_field="permission_id",
+    )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
