@@ -73,6 +73,8 @@ class Datacard(metaclass=DatacardMeta):
         section_name = self.request.POST["section_name"]
         self._sections[section_name].save()
 
+        return True
+
     def __str__(self):
         """Render the datacard"""
 
@@ -381,7 +383,7 @@ class LocaleProperty(Property):
     def context(self, model, section, **kwargs):
         locale_value = self.get_value(model, self.locale, container=section)
 
-        return {**super().context(model, **kwargs), "text": Locale[locale_value].label}
+        return {"text": Locale[locale_value].label}
 
 
 class CountryProperty(Property):
