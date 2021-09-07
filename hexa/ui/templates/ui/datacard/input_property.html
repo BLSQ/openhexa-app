@@ -1,8 +1,8 @@
-<div class="p2-4 sm:py-3 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
-    <dt class="text-sm font-medium text-gray-500">
+<div class="px-4 py-3 sm:py-1 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6">
+    <dt class="text-sm font-medium text-gray-500 py-1.5 border border-transparent">
         <label>{% block label %}{{ label }}{% endblock %}</label>
     </dt>
     <dd class="text-sm text-gray-900 sm:mt-0 sm:col-span-4">
-        {% block input %}{% endblock %}
+        {% block input %}{{ field }}{% endblock %}
     </dd>
 </div>

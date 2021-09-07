@@ -7,7 +7,7 @@ class OpenHexaMetaDataSection(datacard.Section):
 
     owner = datacard.URLProperty(url="only_index.owner.url", text="owner.name")
     label = datacard.TextProperty(text="label", editable=True)
-    tags = datacard.TagProperty(tags="tags.all")
+    tags = datacard.TagProperty(tags="tags.all", editable=True)
     location = datacard.CountryProperty(countries="countries")
     description = datacard.TextProperty(text="description", markdown=True)
     last_synced_at = datacard.DateProperty(

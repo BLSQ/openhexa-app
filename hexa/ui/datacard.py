@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib import messages
 from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -166,6 +167,7 @@ class BoundSection:
             class Meta:
                 model = self.unbound_section.Meta.model
                 fields = [p.name for p in editable_properties]
+                widgets = {p.name: p.input_widget for p in editable_properties}
 
         return SectionForm(
             instance=self.model,
@@ -174,6 +176,7 @@ class BoundSection:
 
     def save(self):
         self.form.save()
+        messages.success(self.request, _("Save successful!"))
 
     @property
     def model(self):
@@ -218,8 +221,12 @@ class Property:
 
     @property
     def input_template(self):
+        return "ui/datacard/input_property.html"
+
+    @property
+    def input_widget(self):
         raise NotImplementedError(
-            "Each Property class should implement the template() property"
+            "Each Property class should implement the input_widget() property"
         )
 
     def base_context(self, model, section, is_edit=False):
@@ -299,10 +306,6 @@ class TextProperty(Property):
     def template(self):
         return "ui/datacard/property_text.html"
 
-    @property
-    def input_template(self):
-        return "ui/datacard/input_property_text.html"
-
     def context(self, model, section, **kwargs):
         text_value = self.get_value(model, self.text, container=section)
 
@@ -317,6 +320,21 @@ class TextProperty(Property):
     def build_field(self):
         return forms.CharField(
             widget=forms.TextInput if not self.markdown else forms.Textarea
+        )
+
+    @property
+    def input_widget(self):
+        if self.markdown:
+            return forms.Textarea(
+                attrs={
+                    "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                }
+            )
+
+        return forms.TextInput(
+            attrs={
+                "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+            }
         )
 
 
@@ -398,12 +416,20 @@ class TagProperty(Property):
     def template(self):
         return "ui/datacard/property_tag.html"
 
-    def context(self, model, section, **kwargs):
+    def context(self, model, section, is_edit=False):
         tags_value = self.get_value(model, self.tags, container=section)
 
         return {
             "tags": tags_value,
         }
+
+    @property
+    def input_widget(self):
+        return forms.SelectMultiple(
+            attrs={
+                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            }
+        )
 
 
 class URLProperty(Property):
