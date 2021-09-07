@@ -169,7 +169,11 @@ class BoundSection:
             class Meta:
                 model = self.unbound_section.Meta.model
                 fields = [p.name for p in editable_properties]
-                widgets = {p.name: p.input_widget for p in editable_properties}
+                widgets = {
+                    p.name: p.input_widget
+                    for p in editable_properties
+                    if p.input_widget is not None
+                }
 
         return SectionForm(
             instance=self.model,
@@ -227,9 +231,7 @@ class Property:
 
     @property
     def input_widget(self):
-        raise NotImplementedError(
-            "Each Property class should implement the input_widget() property"
-        )
+        return None
 
     def base_context(self, model, section, is_edit=False):
         return {
@@ -405,7 +407,7 @@ class CountryProperty(Property):
     def input_widget(self):
         return forms.SelectMultiple(
             attrs={
-                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48"
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48"
             }
         )
 
@@ -434,7 +436,7 @@ class TagProperty(Property):
     def input_widget(self):
         return forms.SelectMultiple(
             attrs={
-                "class": "mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32"
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32"
             }
         )
 
@@ -461,6 +463,16 @@ class URLProperty(Property):
             "text": text_value,
             "url": url_value,
         }
+
+
+class OwnerProperty(URLProperty):
+    @property
+    def input_widget(self):
+        return forms.Select(
+            attrs={
+                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            }
+        )
 
 
 class DateProperty(Property):
