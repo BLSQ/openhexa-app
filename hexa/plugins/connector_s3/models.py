@@ -277,6 +277,9 @@ class Bucket(Datasource):
     def display_name(self):
         return self.name
 
+    def __str__(self):
+        return self.display_name
+
     def get_absolute_url(self):
         return reverse(
             "connector_s3:datasource_detail", kwargs={"datasource_id": self.id}
