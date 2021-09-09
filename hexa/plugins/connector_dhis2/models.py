@@ -96,6 +96,9 @@ class Instance(Datasource):
     def display_name(self):
         return self.name if self.name != "" else self.url
 
+    def __str__(self):
+        return self.display_name
+
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
 

@@ -4,10 +4,7 @@ from hexa.ui import datacard
 
 class OpenHexaMetaDataSection(datacard.Section):
     title = "OpenHexa Metadata"
-
-    owner = datacard.OwnerProperty(
-        url="index.owner.url", text="owner.name", editable=True
-    )
+    owner = datacard.OwnerProperty(url="owner.url", text="owner.name", editable=True)
     label = datacard.TextProperty(text="label", editable=True)
     tags = datacard.TagProperty(tags="tags.all", editable=True)
     countries = datacard.CountryProperty(value="countries", editable=True)
