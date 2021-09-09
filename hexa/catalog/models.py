@@ -286,7 +286,7 @@ class Datasource(WithIndex, models.Model):
         )
 
     @property
-    def only_index(self):  # TODO: discuss, ugly but index() already exist
+    def index(self):
         return self.indexes.get()
 
 
@@ -304,5 +304,5 @@ class Entry(WithIndex, models.Model):
         self.build_index()
 
     @property
-    def only_index(self):  # TODO: discuss, ugly but index() already exist
+    def index(self):
         return self.indexes.get()

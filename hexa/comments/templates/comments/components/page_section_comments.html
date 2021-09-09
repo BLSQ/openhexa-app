@@ -2,7 +2,7 @@
 
 {% embed "core/components/section/page_section.html" %}
     {% slot extra_wrapper_attrs %}
-        x-data="Commentable('{% url "comments:post_comment" %}', '{{ object.only_index.id }}')"
+        x-data="Commentable('{% url "comments:post_comment" %}', '{{ object.index.id }}')"
     {% endslot %}
     {% slot header %}
         {% include "core/components/section/section_heading_simple.html" with title=_("Comments") %}
@@ -14,7 +14,7 @@
                     <ul class="-mb-8">
                         {% include "comments/components/form.html" %}
 
-                        {% for comment in object.only_index.comments.all %}
+                        {% for comment in object.index.comments.all %}
                             {% include "comments/components/comment.html" with last=forloop.last %}
                         {% endfor %}
                     </ul>

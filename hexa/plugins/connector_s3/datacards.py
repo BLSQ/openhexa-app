@@ -80,7 +80,7 @@ class BucketCard(Datacard):
     actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = BucketSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
     usage = UsageSection()
 
     @property
@@ -116,7 +116,7 @@ class ObjectCard(Datacard):
     ]
 
     external = ObjectSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):

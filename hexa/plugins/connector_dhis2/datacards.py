@@ -33,7 +33,7 @@ class InstanceCard(Datacard):
     actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = InstanceSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):
@@ -71,7 +71,7 @@ class DataElementCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = DataElementSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):
@@ -106,7 +106,7 @@ class IndicatorCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = IndicatorSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):
