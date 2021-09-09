@@ -26,4 +26,4 @@ class Command(BaseCommand):
                     pbar = tqdm.tqdm(instances)
                     pbar.set_description(f"   {model.__name__:15}")
                     for instance in pbar:
-                        instance.index()
+                        instance.build_index()

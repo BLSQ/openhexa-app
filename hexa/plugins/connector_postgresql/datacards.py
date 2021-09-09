@@ -73,7 +73,7 @@ class DatabaseCard(Datacard):
     actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = DatabaseSection()
-    metadata = OpenHexaMetaDataSection(value="only_index")
+    metadata = OpenHexaMetaDataSection(value="index")
     usage = UsageSection()
 
     @property

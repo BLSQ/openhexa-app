@@ -239,7 +239,7 @@ class DatabasePermission(Permission):
         unique_together = [("database", "team")]
 
     def index_object(self):
-        self.database.index()
+        self.database.build_index()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on database '{self.database}'"
