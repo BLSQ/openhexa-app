@@ -176,7 +176,7 @@ class InstancePermission(Permission):
         unique_together = [("instance", "team")]
 
     def index_object(self):
-        self.instance.index()
+        self.instance.build_index()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
@@ -291,7 +291,7 @@ class IndicatorType(Dhis2Entry):
     number = models.BooleanField()
     factor = models.IntegerField()
 
-    def index(self):  # TODO: fishy
+    def build_index(self):  # TODO: fishy
         pass
 
 

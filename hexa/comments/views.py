@@ -16,7 +16,7 @@ def comments(request):
     form = CommentForm(request.POST, instance=Comment(user=request.user))
     if form.is_valid():
         comment = form.save()
-        last = comment.index.comments.count() == 1
+        last = comment.build_index.comments.count() == 1
 
         return render(
             request,
