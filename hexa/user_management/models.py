@@ -68,6 +68,9 @@ class User(AbstractUser):
 
         return self.email[:2].upper()
 
+    def has_feature_flag(self, code: str) -> bool:
+        return self.featureflag_set.filter(feature__code=code).exists()
+
     def __str__(self):
         return self.display_name
 

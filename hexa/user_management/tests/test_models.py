@@ -1,6 +1,6 @@
 from django import test
 
-from hexa.user_management.models import User
+from hexa.user_management.models import User, Feature, FeatureFlag
 
 
 class ModelsTest(test.TestCase):
@@ -15,3 +15,13 @@ class ModelsTest(test.TestCase):
 
         user = User(email="plop@openhexa.org", first_name="John", last_name="Doe")
         self.assertEqual("JD", user.initials)
+
+    def test_has_feature_flag(self):
+        user = User.objects.create_user(
+            email="plop@openhexa.org", first_name="John", last_name="Doe", password="ablackcat"
+        )
+        feature = Feature.objects.create(code="feature_1")
+        FeatureFlag.objects.create(user=user, feature=feature)
+
+        self.assertTrue(user.has_feature_flag("feature_1"))
+        self.assertFalse(user.has_feature_flag("feature_2"))
