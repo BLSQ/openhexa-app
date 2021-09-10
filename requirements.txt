@@ -99,6 +99,8 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   moto
+mock==4.0.3
+    # via -r requirements.in
 more-itertools==8.8.0
     # via moto
 moto[s3]==2.2.6
