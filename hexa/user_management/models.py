@@ -103,3 +103,13 @@ class Membership(Base):
     @property
     def display_name(self):
         return f"{self.user.display_name} / {self.team.display_name}"
+
+
+class Feature(Base):
+    code = models.CharField(max_length=200)
+
+
+class FeatureFlag(Base):
+    feature = models.ForeignKey("Feature", on_delete=models.CharField)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    config = models.JSONField(null=True, blank=True)
