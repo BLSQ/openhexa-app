@@ -12,7 +12,7 @@ def database_sync(queue, job):
     try:
         # permission and db existing are checked by views -> but may change since, so assume failure is possible
         logger.info("start datasource sync, id: %s", job.args["database_id"])
-        database = Database.objects.get(job.args["database_id"])
+        database = Database.objects.get(id=job.args["database_id"])
         sync_result = database.sync()
         logger.info("end datasource sync id: %s, result: %s", job.args["database_id"], sync_result)
     except:
