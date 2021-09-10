@@ -14,7 +14,7 @@
                     <ul class="-mb-8">
                         {% include "comments/components/form.html" %}
 
-                        {% for comment in object.index.comments.all %}
+                        {% for comment in object.index.comment_set.all %}
                             {% include "comments/components/comment.html" with last=forloop.last %}
                         {% endfor %}
                     </ul>

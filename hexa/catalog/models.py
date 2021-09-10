@@ -153,7 +153,6 @@ class Index(Base):
     tags = models.ManyToManyField("tags.Tag", blank=True)
     locale = LocaleField(default="en")
     last_synced_at = models.DateTimeField(null=True, blank=True)
-    # TODO: add comments
 
     # External data
     external_id = models.TextField(blank=True)

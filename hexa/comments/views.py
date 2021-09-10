@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
 from django.forms import ModelForm
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -16,10 +15,12 @@ def comments(request):
     form = CommentForm(request.POST, instance=Comment(user=request.user))
     if form.is_valid():
         comment = form.save()
-        last = comment.build_index.comments.count() == 1
+        last = comment.index.comment_set.count() == 1
 
         return render(
             request,
             "comments/components/comment.html",
             {"comment": comment, "last": last},
         )
+
+    return HttpResponse(status=400, content=form.errors)

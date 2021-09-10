@@ -15,9 +15,7 @@ class Comment(Base):
         ordering = ["-created_at"]
 
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
-    index = models.ForeignKey(
-        "catalog.Index", on_delete=models.CASCADE, related_name="comments"
-    )
+    index = models.ForeignKey("catalog.Index", on_delete=models.CASCADE)
     text = models.TextField()
 
     objects = CommentQuerySet.as_manager()
