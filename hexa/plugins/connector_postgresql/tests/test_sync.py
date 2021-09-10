@@ -26,6 +26,7 @@ class AsyncRefreshTest(test.TestCase):
     def test_sync_refresh(self):
         self.client.force_login(self.SUPER_USER)
         synced = False
+
         def mock_sync(self):
             nonlocal synced
             synced = True
@@ -36,8 +37,11 @@ class AsyncRefreshTest(test.TestCase):
                 identical=12,
                 orphaned=13,
             )
+
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
-            url = reverse("connector_postgresql:datasource_sync", args=[self.DATABASE_1.id])
+            url = reverse(
+                "connector_postgresql:datasource_sync", args=[self.DATABASE_1.id]
+            )
             response = self.client.post(url, HTTP_REFERER="/", follow=True)
 
         self.assertEqual(response.status_code, 200)
@@ -47,6 +51,7 @@ class AsyncRefreshTest(test.TestCase):
     def test_async_refresh(self):
         self.client.force_login(self.SUPER_USER)
         synced = False
+
         def mock_sync(self):
             nonlocal synced
             synced = True
@@ -57,14 +62,18 @@ class AsyncRefreshTest(test.TestCase):
                 identical=12,
                 orphaned=13,
             )
+
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
-            url = reverse("connector_postgresql:datasource_sync", args=[self.DATABASE_1.id])
+            url = reverse(
+                "connector_postgresql:datasource_sync", args=[self.DATABASE_1.id]
+            )
             response = self.client.post(url, HTTP_REFERER="/", follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(synced)
 
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
-            while database_sync_queue.run_once(): pass
+            while database_sync_queue.run_once():
+                pass
 
         self.assertTrue(synced)
