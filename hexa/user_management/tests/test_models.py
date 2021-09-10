@@ -18,7 +18,10 @@ class ModelsTest(test.TestCase):
 
     def test_has_feature_flag(self):
         user = User.objects.create_user(
-            email="plop@openhexa.org", first_name="John", last_name="Doe", password="ablackcat"
+            email="plop@openhexa.org",
+            first_name="John",
+            last_name="Doe",
+            password="ablackcat",
         )
         feature = Feature.objects.create(code="feature_1")
         FeatureFlag.objects.create(user=user, feature=feature)
