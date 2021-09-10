@@ -91,10 +91,10 @@ def datasource_sync(request, datasource_id):
     )
 
     if settings.DATASOURCE_ASYNC_REFRESH:
-        database_sync_queue.enqueue('database_sync', {'database_id': datasource.id})
-        messages.success(request, sync_result)
+        database_sync_queue.enqueue('database_sync', {'database_id': str(datasource.id)})
+        messages.success(request, _("The datasource will soon be synced"))
     else:
         sync_result = datasource.sync()
-        messages.success(request, _("The datasource will soon be synced"))
+        messages.success(request, sync_result)
 
     return redirect(request.META.get("HTTP_REFERER"))
