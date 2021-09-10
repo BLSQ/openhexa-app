@@ -11,6 +11,7 @@ django-postgres-queue
 django-tailwind
 gunicorn
 markdown
+mock
 pandas
 psycopg2-binary
 stringcase
