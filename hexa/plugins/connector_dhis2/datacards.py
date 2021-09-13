@@ -115,3 +115,32 @@ class IndicatorCard(Datacard):
     @property
     def dhis2_image_src(self):
         return static("connector_dhis2/img/symbol.svg")
+
+
+class DatasetSection(Section):
+    title = "DHIS2 Dataset"
+
+    name = TextProperty(text="name")
+    short_name = TextProperty(label="Short name", text="short_name")
+    description = TextProperty(label="Description", text="description")
+    dhis2_id = TextProperty(label="ID", text="dhis2_id")
+    code = TextProperty(label="Code", text="code")
+    created = DateProperty(label="Creation date", date="created")
+    last_updated = DateProperty(label="Last updated", date="last_updated")
+
+
+class DatasetCard(Datacard):
+    title = "display_name"
+    subtitle = "generic_description"
+    image_src = "dhis2_image_src"
+
+    external = DatasetSection()
+    metadata = OpenHexaMetaDataSection(value="index")
+
+    @property
+    def generic_description(self):
+        return _("DHIS2 Dataset")
+
+    @property
+    def dhis2_image_src(self):
+        return static("connector_dhis2/img/symbol.svg")

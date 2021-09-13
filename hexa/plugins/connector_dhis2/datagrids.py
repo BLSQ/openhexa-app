@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from hexa.plugins.connector_dhis2.models import DataElement, DomainType, Indicator
 from hexa.ui.datagrid import (
     Datagrid,
@@ -38,4 +39,15 @@ class IndicatorGrid(Datagrid):
     code = TextColumn(text="code")
     tags = TextColumn(text="todo_tags")
     last_synced = DateColumn(date="instance.last_synced_at")
+    view = LinkColumn(text="View")
+
+
+class DatasetGrid(Datagrid):
+    lead = LeadingColumn(
+        label="Name",
+        text="name",
+    )
+    code = TextColumn(text="code")
+    tags = TextColumn(text="todo_tags")
+    last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
     view = LinkColumn(text="View")

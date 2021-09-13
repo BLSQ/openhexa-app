@@ -61,4 +61,14 @@ urlpatterns = [
         views.extract_delete,
         name="extract_delete",
     ),
+    path(
+        "<str:instance_id>/datasets/",
+        views.dataset_list,
+        name="dataset_list",
+    ),
+    path(
+        "<str:instance_id>/datasets/<str:dataset_id>",
+        views.dataset_detail,
+        name="dataset_detail",
+    ),
 ]
