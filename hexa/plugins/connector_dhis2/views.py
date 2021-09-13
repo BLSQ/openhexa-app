@@ -293,7 +293,7 @@ def _get_instance_and_data_element(request, instance_id, data_element_id):
     )
 
 
-def _get_instance_and_datset(request, instance_id, dataset_id):
+def _get_instance_and_dataset(request, instance_id, dataset_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -349,7 +349,7 @@ def dataset_list(request, instance_id):
 
 
 def dataset_detail(request, instance_id, dataset_id):
-    instance, dataset = _get_instance_and_datset(request, instance_id, dataset_id)
+    instance, dataset = _get_instance_and_dataset(request, instance_id, dataset_id)
     dataset_card = DatasetCard(dataset, request=request)
     if request.method == "POST" and dataset_card.save():
         return redirect(request.META["HTTP_REFERER"])
