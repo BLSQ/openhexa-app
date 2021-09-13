@@ -8,10 +8,6 @@ from hexa.ui.datacard import (
     Datacard,
     Section,
     TextProperty,
-    URLProperty,
-    DateProperty,
-    TagProperty,
-    CountryProperty,
     Action,
     CodeProperty,
 )
