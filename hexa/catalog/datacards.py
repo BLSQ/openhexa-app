@@ -6,7 +6,7 @@ class OpenHexaMetaDataSection(datacard.Section):
     title = "OpenHexa Metadata"
     owner = datacard.OwnerProperty(url="owner.url", text="owner.name", editable=True)
     label = datacard.TextProperty(text="label", editable=True)
-    tags = datacard.TagProperty(tags="tags.all", editable=True)
+    tags = datacard.TagProperty(value="tags.all", editable=True)
     countries = datacard.CountryProperty(value="countries", editable=True)
     description = datacard.TextProperty(
         text="description", markdown=True, editable=True

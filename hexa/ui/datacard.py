@@ -329,13 +329,13 @@ class TextProperty(Property):
         if self.markdown:
             return forms.Textarea(
                 attrs={
-                    "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    "class": "form-input shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 }
             )
 
         return forms.TextInput(
             attrs={
-                "class": "shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                "class": "form-input shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             }
         )
 
@@ -389,57 +389,42 @@ class LocaleProperty(Property):
         return {"text": Locale[locale_value].label}
 
 
-class CountryProperty(Property):
+class TagProperty(Property):
     def __init__(self, *, value=None, **kwargs):
         super().__init__(**kwargs)
-
         self.value = value
-
-    @property
-    def template(self):
-        return "ui/datacard/property_country.html"
-
-    def context(self, model, section, **kwargs):
-        return {
-            "countries": self.get_value(model, self.value, container=section),
-        }
-
-    @property
-    def input_widget(self):
-        return forms.SelectMultiple(
-            attrs={
-                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-48"
-            }
-        )
-
-
-class TagProperty(Property):
-    def __init__(self, *, tags=None, **kwargs):
-        super().__init__(**kwargs)
-
-        if tags is None:  # TODO: Replace by name guessing
-            tags = "tags.all"
-
-        self.tags = tags
 
     @property
     def template(self):
         return "ui/datacard/property_tag.html"
 
     def context(self, model, section, is_edit=False):
-        tags_value = self.get_value(model, self.tags, container=section)
-
         return {
-            "tags": tags_value,
+            "tags": [
+                {"label": t.name}
+                for t in self.get_value(model, self.value, container=section)
+            ],
         }
 
     @property
     def input_widget(self):
         return forms.SelectMultiple(
             attrs={
-                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md h-32"
+                # "class": "form-input block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md",
+                "x-data": "TomSelectable()",
+                "x-init": "init($el)",
             }
         )
+
+
+class CountryProperty(TagProperty):
+    def context(self, model, section, **kwargs):
+        return {
+            "tags": [
+                {"label": c.name, "image": c.flag}
+                for c in self.get_value(model, self.value, container=section)
+            ],
+        }
 
 
 class URLProperty(Property):
@@ -471,7 +456,7 @@ class OwnerProperty(URLProperty):
     def input_widget(self):
         return forms.Select(
             attrs={
-                "class": "block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                "class": "form-input block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             }
         )
 

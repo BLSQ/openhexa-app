@@ -1,3 +1,6 @@
-<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
-    {{ label }}
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300 h-6">
+    {% if image %}
+        <img class="mr-1" src="{{ image }}" alt="{{ label }}" title="{{ label }}">
+    {% endif %}
+    {{ short_label|default:label }}
 </span>

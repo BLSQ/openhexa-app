@@ -1,11 +1,9 @@
 {% extends "ui/datacard/property.html" %}
 
 {% block value %}
-    <div class="text-sm text-gray-900 flex items-center align-center">
+    <div class="text-sm text-gray-900 flex items-center align-center gap-1 flex-wrap">
         {% for tag in tags %}
-            <span class="inline-flex items-center px-2.5 py-0.5 mr-2 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
-            {{ tag }}
-        </span>
+            {% include "ui/tag.html" with label=tag.label image=tag.image only %}
         {% empty %}
             -
         {% endfor %}

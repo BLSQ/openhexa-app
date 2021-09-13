@@ -4,6 +4,7 @@ from hexa.ui.datagrid import (
     LeadingColumn,
     TextColumn,
     LinkColumn,
+    TagColumn,
 )
 
 
@@ -14,6 +15,7 @@ class ObjectGrid(Datagrid):
         icon="get_table_icon",
     )
     directory = TextColumn(text="parent_key")
+    tags = TagColumn(value="index.tags.all")
     size = TextColumn(text="file_size_display")
     type = TextColumn(text="type_display")
     link = LinkColumn(text="View")

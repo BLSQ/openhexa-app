@@ -4,6 +4,7 @@ from hexa.ui.datagrid import (
     Datagrid,
     LeadingColumn,
     TextColumn,
+    TagColumn,
 )
 
 
@@ -13,6 +14,7 @@ class TableGrid(Datagrid):
         text="name",
         icon="get_table_icon",
     )
+    tags = TagColumn(value="index.tags.all")
     content = TextColumn(text="get_content")
 
     def get_table_icon(self, _):

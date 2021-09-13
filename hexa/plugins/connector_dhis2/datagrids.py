@@ -6,6 +6,7 @@ from hexa.ui.datagrid import (
     TextColumn,
     LinkColumn,
     DateColumn,
+    TagColumn,
 )
 
 
@@ -17,7 +18,7 @@ class DataElementGrid(Datagrid):
         icon="get_icon",
     )
     code = TextColumn(text="code")
-    tags = TextColumn(text="todo_tags")
+    tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
@@ -38,7 +39,7 @@ class IndicatorGrid(Datagrid):
         icon="get_icon",
     )
     code = TextColumn(text="code")
-    tags = TextColumn(text="todo_tags")
+    tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
