@@ -1,7 +1,7 @@
 import stringcase
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-
+from django.apps import apps
 from hexa.catalog.sync import DatasourceSyncResult
 
 
@@ -67,13 +67,19 @@ def sync_from_dhis2_results(*, model_class, instance, results):
                 updated += 1
             else:
                 identical += 1
+            hexa_item = existing_hexa_item
         # If we don't have the DE locally, create it
         except ObjectDoesNotExist:
-            model_class.objects.create(
+            hexa_item = model_class.objects.create(
                 **dhis2_values,
                 instance=instance,
             )
             created += 1
+
+        for relation, items in result.get_relations().items():
+            model = apps.get_model("connector_dhis2", relation.model_name)
+            items = model.objects.filter(dhis2_id__in=items)
+            getattr(hexa_item, relation.model_field).set(items)
 
     return DatasourceSyncResult(
         datasource=instance,

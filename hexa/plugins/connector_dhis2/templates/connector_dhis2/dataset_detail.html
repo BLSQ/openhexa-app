@@ -1,0 +1,14 @@
+{% extends "connector_dhis2/page.html" %}
+{% load i18n embed %}
+
+{% block page_title %}{{ dataset.display_name }}{% endblock %}
+
+{% block page_content %}
+    {{ dataset_card }}
+    {% include "comments/components/page_section_comments.html" with object=dataset %}
+    {% embed "ui/section/section.html" with title=_("Data elements") %}
+        {% slot content %}
+            {{ data_elements_grid }}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

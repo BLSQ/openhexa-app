@@ -6,6 +6,7 @@ from .models import (
     IndicatorType,
     InstancePermission,
     Credentials,
+    DataSet,
 )
 
 
@@ -25,8 +26,8 @@ class InstanceAdmin(admin.ModelAdmin):
 @admin.register(DataElement)
 class DataElementAdmin(admin.ModelAdmin):
     list_display = (
-        "instance",
         "display_name",
+        "instance",
         "dhis2_id",
         "code",
         "domain_type",
@@ -54,8 +55,8 @@ class IndicatorTypeAdmin(admin.ModelAdmin):
 @admin.register(Indicator)
 class IndicatorAdmin(admin.ModelAdmin):
     list_display = (
-        "instance",
         "display_name",
+        "instance",
         "dhis2_id",
         "indicator_type",
     )
@@ -67,6 +68,15 @@ class IndicatorAdmin(admin.ModelAdmin):
         "short_name",
         "code",
     ]
+
+
+@admin.register(DataSet)
+class DataSetAdmin(admin.ModelAdmin):
+    list_display = (
+        "display_name",
+        "instance",
+        "dhis2_id",
+    )
 
 
 @admin.register(InstancePermission)

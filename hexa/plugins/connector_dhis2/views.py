@@ -6,9 +6,9 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from .datagrids import DataElementGrid, IndicatorGrid
-from .datacards import InstanceCard, DataElementCard, IndicatorCard
-from .models import Instance, Indicator, DataElement, Extract
+from .datagrids import DataElementGrid, IndicatorGrid, DatasetGrid
+from .datacards import InstanceCard, DataElementCard, IndicatorCard, DatasetCard
+from .models import Instance, Indicator, DataElement, Extract, DataSet
 
 
 def instance_detail(request, instance_id):
@@ -36,6 +36,15 @@ def instance_detail(request, instance_id):
         ),
     )
 
+    dataset_grid = DatasetGrid(
+        instance.dataset_set.all(),
+        per_page=5,
+        paginate=False,
+        more_url=reverse(
+            "connector_dhis2:dataset_list", kwargs={"instance_id": instance_id}
+        ),
+    )
+
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
         (instance.display_name, "connector_dhis2:instance_detail", instance_id),
@@ -49,6 +58,7 @@ def instance_detail(request, instance_id):
             "instance_card": instance_card,
             "data_element_grid": data_element_grid,
             "indicator_grid": indicator_grid,
+            "dataset_grid": dataset_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -97,6 +107,10 @@ def data_element_detail(request, instance_id, data_element_id):
     if request.method == "POST" and data_element_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
+    dataset_grid = DatasetGrid(
+        data_element.dataset_set.all(), page=int(request.GET.get("page", "1"))
+    )
+
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
         (instance.display_name, "connector_dhis2:instance_detail", instance_id),
@@ -111,26 +125,8 @@ def data_element_detail(request, instance_id, data_element_id):
             "instance": instance,
             "data_element": data_element,
             "data_element_card": data_element_card,
+            "dataset_grid": dataset_grid,
             "breadcrumbs": breadcrumbs,
-        },
-    )
-
-
-@require_http_methods(["POST"])
-def data_element_update(request, instance_id, data_element_id):
-    instance, data_element = _get_instance_and_data_element(
-        request, instance_id, data_element_id
-    )
-
-    update_data = json.loads(request.body)
-    data_element.update(**update_data)
-
-    return render(
-        request,
-        "connector_dhis2/components/data_element_card.html",
-        {
-            "instance": instance,
-            "data_element": data_element,
         },
     )
 
@@ -209,25 +205,6 @@ def indicator_detail(request, instance_id, indicator_id):
             "indicator": indicator,
             "indicator_card": indicator_card,
             "breadcrumbs": breadcrumbs,
-        },
-    )
-
-
-@require_http_methods(["POST"])
-def indicator_update(request, instance_id, indicator_id):
-    instance, indicator = _get_instance_and_indicator(
-        request, instance_id, indicator_id
-    )
-
-    update_data = json.loads(request.body)
-    indicator.update(**update_data)
-
-    return render(
-        request,
-        "connector_dhis2/components/indicator_card.html",
-        {
-            "instance": instance,
-            "indicator": indicator,
         },
     )
 
@@ -316,6 +293,16 @@ def _get_instance_and_data_element(request, instance_id, data_element_id):
     )
 
 
+def _get_instance_and_dataset(request, instance_id, dataset_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+
+    return instance, get_object_or_404(
+        DataSet.objects.filter(instance=instance), pk=dataset_id
+    )
+
+
 def _get_instance_and_indicator(request, instance_id, indicator_id):
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
@@ -323,4 +310,69 @@ def _get_instance_and_indicator(request, instance_id, indicator_id):
 
     return instance, get_object_or_404(
         Indicator.objects.filter(instance=instance), pk=indicator_id
+    )
+
+
+def dataset_list(request, instance_id):
+    instance = get_object_or_404(
+        Instance.objects.filter_for_user(request.user), pk=instance_id
+    )
+    dataset_grid = DatasetGrid(
+        instance.dataset_set.all(), page=int(request.GET.get("page", "1"))
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Sets"),),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/dataset_list.html",
+        {
+            "instance": instance,
+            "dataset_grid": dataset_grid,
+            "section_title": _(
+                "Data sets in instance %(instance)s"
+                % {"instance": instance.display_name}
+            ),
+            "section_label": "%(start)s to %(end)s out of %(total)s"
+            % {
+                "start": dataset_grid.start_index,
+                "end": dataset_grid.end_index,
+                "total": dataset_grid.total_count,
+            },
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def dataset_detail(request, instance_id, dataset_id):
+    instance, dataset = _get_instance_and_dataset(request, instance_id, dataset_id)
+    dataset_card = DatasetCard(dataset, request=request)
+    if request.method == "POST" and dataset_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    data_elements_grid = DataElementGrid(
+        dataset.data_elements.all(), page=int(request.GET.get("page", "1"))
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Sets"), "connector_dhis2:dataset_list", instance_id),
+        (dataset.display_name,),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/dataset_detail.html",
+        {
+            "instance": instance,
+            "dataset": dataset,
+            "dataset_card": dataset_card,
+            "data_elements_grid": data_elements_grid,
+            "breadcrumbs": breadcrumbs,
+        },
     )

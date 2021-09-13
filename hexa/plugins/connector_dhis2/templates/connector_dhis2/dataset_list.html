@@ -1,0 +1,15 @@
+{% extends "connector_dhis2/page.html" %}
+{% load embed i18n %}
+
+{% block page_title %}{{ instance.name }} {% translate "datasets" %}s{% endblock %}
+
+{% block page_content %}
+    {% embed "ui/section/section.html" %}
+        {% slot header %}
+            {% include "ui/section/section_heading_with_label.html" with title=section_title label=section_label %}
+        {% endslot %}
+        {% slot content %}
+            {{ dataset_grid }}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

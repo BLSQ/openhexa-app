@@ -138,6 +138,14 @@ class Instance(Datasource):
                     results=results_batch,
                 )
 
+            # Sync datasets
+            for results_batch in client.fetch_datasets():
+                results += sync_from_dhis2_results(
+                    model_class=DataSet,
+                    instance=self,
+                    results=results_batch,
+                )
+
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
@@ -331,6 +339,32 @@ class ExtractStatus(models.TextChoices):
     REQUESTED = "REQUESTED", _("Requested")
     SUCCESS = "SUCCESS", _("Success")
     FAILED = "FAILED", _("Failed")
+
+
+class DataSet(Dhis2Entry):
+
+    code = models.CharField(max_length=100, blank=True)
+    data_elements = models.ManyToManyField(DataElement, blank=True)
+
+    class Meta:
+        verbose_name = "DHIS2 Data Set"
+        ordering = ("name",)
+
+    def get_permission_set(self):
+        return self.instance.instancepermission_set.all()
+
+    def populate_index(self, index):
+        index.last_synced_at = self.instance.last_synced_at
+        index.external_name = self.name
+        index.external_description = self.description
+        index.path = [self.instance.id.hex, self.id.hex]
+        index.search = f"{self.name} {self.description}"
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:dataset_detail",
+            kwargs={"instance_id": self.instance.id, "dataset_id": self.id},
+        )
 
 
 class ExtractQuerySet(models.QuerySet):

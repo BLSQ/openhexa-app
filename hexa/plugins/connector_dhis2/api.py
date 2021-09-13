@@ -1,7 +1,17 @@
 import datetime
+from dataclasses import dataclass
 
 from dhis2 import Api
 from django.utils import timezone, dateparse
+from typing import List, Dict
+
+
+@dataclass(frozen=True)
+class Dhis2Relation:
+    dhis2_field_name: str
+    dhis2_target_name: str
+    model_name: str
+    model_field: str
 
 
 class Dhis2Result:
@@ -19,12 +29,25 @@ class Dhis2Result:
         "lastUpdated": (datetime.datetime, None),
     }
 
+    # Mapping dhis2 field name -> (openhexa model, target field, dhis field name of model)
+    RELATIONS: List[Dhis2Relation] = []
+
     def __init__(self, data):
         self._data = data
 
     @property
     def fields(self):
         return {**Dhis2Result.FIELD_SPECS, **self.FIELD_SPECS}
+
+    def get_relations(self) -> Dict[Dhis2Relation, List]:
+        relations = {}
+        for relation in self.RELATIONS:
+            links = [
+                x[relation.dhis2_target_name]["id"]
+                for x in self._data.get(relation.dhis2_field_name)
+            ]
+            relations[relation] = links
+        return relations
 
     def get_values(self, locale=None):
         return {
@@ -83,6 +106,21 @@ class DataElementResult(Dhis2Result):
     }
 
 
+class DataSetResult(Dhis2Result):
+    FIELD_SPECS = {
+        "code": (str, ""),
+    }
+
+    RELATIONS = [
+        Dhis2Relation(
+            dhis2_field_name="dataSetElements",
+            dhis2_target_name="dataElement",
+            model_name="DataElement",
+            model_field="data_elements",
+        ),
+    ]
+
+
 class IndicatorTypeResult(Dhis2Result):
     FIELD_SPECS = {
         "number": (bool, None),
@@ -110,6 +148,12 @@ class Dhis2Client:
             "dataElements", params={"fields": ":all"}, page_size=100
         ):
             yield [DataElementResult(data) for data in page["dataElements"]]
+
+    def fetch_datasets(self):
+        for page in self._api.get_paged(
+            "dataSets", params={"fields": ":all"}, page_size=100
+        ):
+            yield [DataSetResult(data) for data in page["dataSets"]]
 
     def fetch_indicator_types(self):
         for page in self._api.get_paged(

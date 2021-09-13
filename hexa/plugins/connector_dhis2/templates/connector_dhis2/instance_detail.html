@@ -16,4 +16,9 @@
             {{ indicator_grid }}
         {% endslot %}
     {% endembed %}
+    {% embed "ui/section/section.html" with title=_("Data sets") %}
+        {% slot content %}
+            {{ dataset_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}
