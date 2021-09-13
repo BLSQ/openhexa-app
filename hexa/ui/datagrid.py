@@ -303,7 +303,7 @@ class TagColumn(Column):
         return {
             "tags": tags_data,
             "slice": f":{self.max_items}",
-            "left_out": max(0, len(tags_data) - self.max_items)
+            "left_out": max(0, len(tags_data) - self.max_items),
         }
 
 
