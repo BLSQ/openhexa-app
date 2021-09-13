@@ -76,10 +76,10 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             )
             created += 1
 
-        for (model_name, target_field), relations in result.get_relations().items():
-            model = apps.get_model("connector_dhis2", model_name)
-            items = model.objects.filter(dhis2_id__in=relations)
-            getattr(hexa_item, target_field).set(items)
+        for relation, items in result.get_relations().items():
+            model = apps.get_model("connector_dhis2", relation.model_name)
+            items = model.objects.filter(dhis2_id__in=items)
+            getattr(hexa_item, relation.model_field).set(items)
 
     return DatasourceSyncResult(
         datasource=instance,

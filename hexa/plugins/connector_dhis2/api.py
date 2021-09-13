@@ -1,7 +1,17 @@
 import datetime
+from dataclasses import dataclass
 
 from dhis2 import Api
 from django.utils import timezone, dateparse
+from typing import List, Dict
+
+
+@dataclass(frozen=True)
+class Dhis2Relation:
+    dhis2_field_name: str
+    dhis2_target_name: str
+    model_name: str
+    model_field: str
 
 
 class Dhis2Result:
@@ -20,7 +30,7 @@ class Dhis2Result:
     }
 
     # Mapping dhis2 field name -> (openhexa model, target field, dhis field name of model)
-    RELATIONS = {}
+    RELATIONS: List[Dhis2Relation] = []
 
     def __init__(self, data):
         self._data = data
@@ -29,15 +39,14 @@ class Dhis2Result:
     def fields(self):
         return {**Dhis2Result.FIELD_SPECS, **self.FIELD_SPECS}
 
-    def get_relations(self):
+    def get_relations(self) -> Dict[Dhis2Relation, List]:
         relations = {}
-        for field_name, (
-            model_name,
-            target_field,
-            relation_field_name,
-        ) in self.RELATIONS.items():
-            links = [x[relation_field_name]["id"] for x in self._data.get(field_name)]
-            relations[(model_name, target_field)] = links
+        for relation in self.RELATIONS:
+            links = [
+                x[relation.dhis2_target_name]["id"]
+                for x in self._data.get(relation.dhis2_field_name)
+            ]
+            relations[relation] = links
         return relations
 
     def get_values(self, locale=None):
@@ -102,7 +111,14 @@ class DataSetResult(Dhis2Result):
         "code": (str, ""),
     }
 
-    RELATIONS = {"dataSetElements": ("DataElement", "data_elements", "dataElement")}
+    RELATIONS = [
+        Dhis2Relation(
+            dhis2_field_name="dataSetElements",
+            dhis2_target_name="dataElement",
+            model_name="DataElement",
+            model_field="data_elements",
+        ),
+    ]
 
 
 class IndicatorTypeResult(Dhis2Result):
