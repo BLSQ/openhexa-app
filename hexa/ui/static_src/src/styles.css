@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.ts-wrapper .ts-control {
+    @apply border-gray-300 rounded-md gap-1 p-1
+}
+.ts-wrapper.focus .ts-control {
+    @apply ring-1 ring-blue-500 border-blue-500
+}
+.ts-wrapper .ts-control > input {
+    @apply border border-transparent py-0.5 h-6
+}
+
+.ts-wrapper.multi .ts-control .item {
+    @apply rounded-full px-2.5 py-0.5 border border-gray-300 mr-0 mb-0 text-xs font-medium bg-gray-100 text-gray-800
+}
+
+.ts-wrapper.plugin-remove_button .item .remove {
+    @apply border-none text-lg leading-none py-1 rounded-r-lg
+}
+
+.ts-dropdown {
+    @apply rounded-md border border-solid border-t border-gray-300
+}
+
+.ts-dropdown [data-selectable].option {
+    @apply px-1 py-2
+}
+
+.ts-dropdown [data-selectable].option:first-child {
+    @apply rounded-t-md
+}
+
+.ts-dropdown [data-selectable].option:last-child {
+    @apply rounded-b-md
+}
+
+.ts-dropdown .create:hover, .ts-dropdown .option:hover, .ts-dropdown .active {
+    @apply bg-blue-100 text-blue-900
+}

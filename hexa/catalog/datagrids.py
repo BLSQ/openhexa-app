@@ -4,9 +4,8 @@ from hexa.ui.datagrid import (
     LeadingColumn,
     TextColumn,
     LinkColumn,
-    DateColumn,
     CountryColumn,
-    TagsColumn,
+    TagColumn,
 )
 
 
@@ -23,9 +22,8 @@ class DatasourceGrid(Datagrid):
         secondary_text="owner.get_organization_type_display",
     )
     content = TextColumn(text="content")
-    tags = TagsColumn()
-    location = CountryColumn(countries="countries")
-    last_sync = DateColumn(date="last_synced_at", label="Last sync")
+    tags = TagColumn(value="tags.all")
+    location = CountryColumn(value="countries")
     view = LinkColumn(text="View", url="get_datasource_url")
 
     def get_datasource_url(self, index: Index):

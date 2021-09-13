@@ -2,10 +2,13 @@
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
 {% else %}
     <td class="px-6 py-4 whitespace-nowrap">
-        <div class="flex items-center gap-3">
-            {% for tag in data.tags %}
-                {% include "ui/tag.html" with label=tag %}
+        <div class="flex items-center gap-1">
+            {% for tag in data.tags|slice:data.slice %}
+                {% include "ui/tag.html" with short_label=tag.short_label label=tag.label image=tag.image only %}
             {% endfor %}
+            {% if data.left_out > 0 %}
+                <span class="text-xs text-gray-800">(+{{ data.left_out }})</span>
+            {% endif %}
         </div>
     </td>
 {% endif %}

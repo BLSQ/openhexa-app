@@ -267,22 +267,6 @@ class DateColumn(Column):
         return data
 
 
-class CountryColumn(Column):
-    """Country column"""
-
-    def __init__(self, *, countries=None, **kwargs):
-        super().__init__(**kwargs)
-
-        self.countries = countries
-
-    @property
-    def template(self):
-        return "ui/datagrid/column_country.html"
-
-    def data(self, item):
-        return {"countries": self.get_value(item, self.countries)}
-
-
 class LinkColumn(Column):
     def __init__(self, *, text, url=None, **kwargs):
         super().__init__(**kwargs, hide_label=True)
@@ -299,21 +283,33 @@ class LinkColumn(Column):
         return {"label": _(self.text), "url": self.get_value(item, self.url)}
 
 
-class TagsColumn(Column):
-    def __init__(self, *, tags=None, **kwargs):
+class TagColumn(Column):
+    def __init__(self, *, value=None, max_items=2, **kwargs):
         super().__init__(**kwargs)
 
-        if tags is None:  # TODO: Replace by name guessing
-            tags = "tags.all"
-        self.tags = tags
+        self.value = value
+        self.max_items = max_items
 
     @property
     def template(self):
         return "ui/datagrid/column_tag.html"
 
+    def tags_data(self, item):
+        return [{"label": t.name} for t in self.get_value(item, self.value)]
+
     def data(self, item):
-        tags_value = self.get_value(item, self.tags)
-        data = {
-            "tags": tags_value,
+        tags_data = self.tags_data(item)
+
+        return {
+            "tags": tags_data,
+            "slice": f":{self.max_items}",
+            "left_out": max(0, len(tags_data) - self.max_items)
         }
-        return data
+
+
+class CountryColumn(TagColumn):
+    def tags_data(self, item):
+        return [
+            {"label": c.name, "short_label": c.code, "image": c.flag}
+            for c in self.get_value(item, self.value)
+        ]

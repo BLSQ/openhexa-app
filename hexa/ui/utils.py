@@ -1,3 +1,6 @@
+from django.db.models import Manager
+
+
 def get_item_value(item, accessor, *, container=None, exclude=None):
     container_class = type(container)
     if container is not None and hasattr(container, accessor):
@@ -17,6 +20,8 @@ def get_item_value(item, accessor, *, container=None, exclude=None):
         else:
             item_value = None
             break
+    if callable(item_value):
+        item_value = item_value()
     if item_value is not None:
         return item_value
 
