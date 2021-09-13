@@ -17,11 +17,6 @@ urlpatterns = [
         name="data_element_detail",
     ),
     path(
-        "<str:instance_id>/data-elements/<str:data_element_id>/update",
-        views.data_element_update,
-        name="data_element_update",
-    ),
-    path(
         "<str:instance_id>/data-elements/<str:data_element_id>/extract",
         views.data_element_extract,
         name="data_element_extract",
@@ -35,11 +30,6 @@ urlpatterns = [
         "<str:instance_id>/indicators/<str:indicator_id>",
         views.indicator_detail,
         name="indicator_detail",
-    ),
-    path(
-        "<str:instance_id>/indicators/<str:indicator_id>/update",
-        views.indicator_update,
-        name="indicator_update",
     ),
     path(
         "<str:instance_id>/indicators/<str:indicator_id>/extract",

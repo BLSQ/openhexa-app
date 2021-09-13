@@ -131,25 +131,6 @@ def data_element_detail(request, instance_id, data_element_id):
     )
 
 
-@require_http_methods(["POST"])
-def data_element_update(request, instance_id, data_element_id):
-    instance, data_element = _get_instance_and_data_element(
-        request, instance_id, data_element_id
-    )
-
-    update_data = json.loads(request.body)
-    data_element.update(**update_data)
-
-    return render(
-        request,
-        "connector_dhis2/components/data_element_card.html",
-        {
-            "instance": instance,
-            "data_element": data_element,
-        },
-    )
-
-
 def data_element_extract(
     request, instance_id, data_element_id
 ):  # TODO: should be post + DRY indicators
@@ -224,25 +205,6 @@ def indicator_detail(request, instance_id, indicator_id):
             "indicator": indicator,
             "indicator_card": indicator_card,
             "breadcrumbs": breadcrumbs,
-        },
-    )
-
-
-@require_http_methods(["POST"])
-def indicator_update(request, instance_id, indicator_id):
-    instance, indicator = _get_instance_and_indicator(
-        request, instance_id, indicator_id
-    )
-
-    update_data = json.loads(request.body)
-    indicator.update(**update_data)
-
-    return render(
-        request,
-        "connector_dhis2/components/indicator_card.html",
-        {
-            "instance": instance,
-            "indicator": indicator,
         },
     )
 
