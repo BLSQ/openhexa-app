@@ -26,6 +26,9 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
         credentials.update_env(
             {
+                f"HEXA_FEATURE_FLAG_S3FS": "true"
+                if credentials.user.has_feature_flag("s3fs")
+                else "false",
                 f"AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
                 f"AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
                 f"AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],

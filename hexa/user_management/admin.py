@@ -6,7 +6,7 @@ from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.crypto import get_random_string
 
-from .models import User, Organization, Team, Membership
+from .models import User, Organization, Team, Membership, FeatureFlag, Feature
 from hexa.core.admin import country_list
 
 # We won't be using the Django group feature
@@ -131,3 +131,20 @@ class TeamAdmin(admin.ModelAdmin):
     inlines = [
         MembershipInline,
     ]
+
+
+class FeatureFlagInline(admin.TabularInline):
+    model = FeatureFlag
+
+
+@admin.register(Feature)
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ("code",)
+    inlines = [
+        FeatureFlagInline,
+    ]
+
+
+@admin.register(FeatureFlag)
+class FeatureFlagAdmin(admin.ModelAdmin):
+    list_display = ("feature", "user")
