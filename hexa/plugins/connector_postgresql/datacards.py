@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.plugins.connector_postgresql.models import Database
+from hexa.plugins.connector_postgresql.models import Database, Table
 from hexa.ui.datacard import (
     Datacard,
     Section,
@@ -78,7 +78,7 @@ class DatabaseCard(Datacard):
 
     @property
     def generic_description(self):
-        return _("DHIS2 Instance")
+        return _("PostgreSQL Database")
 
     @property
     def postgres_image_src(self):
@@ -89,3 +89,30 @@ class DatabaseCard(Datacard):
             "connector_postgresql:datasource_sync",
             kwargs={"datasource_id": database.id},
         )
+
+
+class TableSection(Section):
+    title = "PostgreSQL Data"
+
+    name = TextProperty(text="name")
+    rows = TextProperty(text="get_rows", label=_("Row count"))
+
+    def get_rows(self, table: Table):
+        return f"{table.rows}"
+
+
+class TableCard(Datacard):
+    title = "name"
+    subtitle = "generic_description"
+    image_src = "postgres_image_src"
+
+    external = TableSection()
+    metadata = OpenHexaMetaDataSection(value="index")
+
+    @property
+    def generic_description(self):
+        return _("PostgreSQL Table")
+
+    @property
+    def postgres_image_src(self):
+        return static("connector_postgresql/img/symbol.svg")

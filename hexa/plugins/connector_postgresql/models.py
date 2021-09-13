@@ -206,7 +206,6 @@ class Table(Entry):
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)
-    indexes = GenericRelation("catalog.Index")
 
     class Meta:
         verbose_name = "PostgreSQL table"
@@ -225,8 +224,8 @@ class Table(Entry):
 
     def get_absolute_url(self):
         return reverse(
-            "connector_postgresql:datasource_detail",
-            kwargs={"datasource_id": self.database.id},
+            "connector_postgresql:table_detail",
+            kwargs={"datasource_id": self.database.id, "table_id": self.id},
         )
 
 

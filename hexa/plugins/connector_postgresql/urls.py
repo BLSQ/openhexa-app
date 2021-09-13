@@ -12,6 +12,11 @@ urlpatterns = [
         name="table_list",
     ),
     path(
+        "<str:datasource_id>/tables/<str:table_id>",
+        views.table_detail,
+        name="table_detail",
+    ),
+    path(
         "<str:datasource_id>/sync",
         views.datasource_sync,
         name="datasource_sync",
