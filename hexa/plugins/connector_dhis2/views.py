@@ -356,7 +356,7 @@ def dataset_list(request, instance_id):
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     dataset_grid = DatasetGrid(
-        instance.dataelement_set.all(), page=int(request.GET.get("page", "1"))
+        instance.dataset_set.all(), page=int(request.GET.get("page", "1"))
     )
 
     breadcrumbs = [

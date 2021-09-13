@@ -19,12 +19,26 @@ class Dhis2Result:
         "lastUpdated": (datetime.datetime, None),
     }
 
+    # Mapping dhis2 field name -> (openhexa model, target field, dhis field name of model)
+    RELATIONS = {}
+
     def __init__(self, data):
         self._data = data
 
     @property
     def fields(self):
         return {**Dhis2Result.FIELD_SPECS, **self.FIELD_SPECS}
+
+    def get_relations(self):
+        relations = {}
+        for field_name, (
+            model_name,
+            target_field,
+            relation_field_name,
+        ) in self.RELATIONS.items():
+            links = [x[relation_field_name]["id"] for x in self._data.get(field_name)]
+            relations[(model_name, target_field)] = links
+        return relations
 
     def get_values(self, locale=None):
         return {
@@ -83,6 +97,14 @@ class DataElementResult(Dhis2Result):
     }
 
 
+class DataSetResult(Dhis2Result):
+    FIELD_SPECS = {
+        "code": (str, ""),
+    }
+
+    RELATIONS = {"dataSetElements": ("DataElement", "data_elements", "dataElement")}
+
+
 class IndicatorTypeResult(Dhis2Result):
     FIELD_SPECS = {
         "number": (bool, None),
@@ -110,6 +132,12 @@ class Dhis2Client:
             "dataElements", params={"fields": ":all"}, page_size=100
         ):
             yield [DataElementResult(data) for data in page["dataElements"]]
+
+    def fetch_datasets(self):
+        for page in self._api.get_paged(
+            "dataSets", params={"fields": ":all"}, page_size=100
+        ):
+            yield [DataSetResult(data) for data in page["dataSets"]]
 
     def fetch_indicator_types(self):
         for page in self._api.get_paged(

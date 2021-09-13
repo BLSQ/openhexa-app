@@ -138,6 +138,14 @@ class Instance(Datasource):
                     results=results_batch,
                 )
 
+            # Sync datasets
+            for results_batch in client.fetch_datasets():
+                results += sync_from_dhis2_results(
+                    model_class=DataSet,
+                    instance=self,
+                    results=results_batch,
+                )
+
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
