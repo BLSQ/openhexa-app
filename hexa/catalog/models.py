@@ -1,5 +1,3 @@
-from abc import ABC
-
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
@@ -42,15 +40,7 @@ class TrigramWordSimilarity(TrigramBase):
     function = "WORD_SIMILARITY"
 
 
-class IndexQuerySet(TreeQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
-
+class BaseIndexQuerySet(TreeQuerySet):
     def search(self, query):
         tokens = query.split(" ")
 
@@ -100,7 +90,17 @@ class IndexQuerySet(TreeQuerySet):
         return results.select_related("content_type")
 
 
-class IndexManager(TreeManager):
+class IndexQuerySet(BaseIndexQuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            indexpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
+
+class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
     own queryset."""
 
@@ -108,27 +108,17 @@ class IndexManager(TreeManager):
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
 
 
-class Index(Base):
+class IndexManager(BaseIndexManager):
+    pass
+
+
+class BaseIndex(Base):
+    class Meta:
+        abstract = True
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.rank = None
-
-    class Meta:
-        verbose_name = "Index"
-        verbose_name_plural = "Indexes"
-        ordering = ("external_name",)
-        indexes = [
-            GinIndex(
-                name="catalog_index_search_gin_idx",
-                fields=["search"],
-                opclasses=["gin_trgm_ops"],
-            ),
-            GistIndex(
-                name="catalog_index_search_gist_idx",
-                fields=["search"],
-                opclasses=["gist_trgm_ops"],
-            ),
-        ]
 
     # Content-type
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -164,8 +154,6 @@ class Index(Base):
     # Search fields / optimizations
     text_search_config = PostgresTextSearchConfigField()
     search = models.TextField(blank=True)
-
-    objects = IndexManager.from_queryset(IndexQuerySet)()
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
@@ -212,13 +200,36 @@ class Index(Base):
         }
 
 
-class IndexPermission(models.Model):
+class Index(BaseIndex):
+    objects = IndexManager.from_queryset(IndexQuerySet)()
+
+    class Meta:
+        verbose_name = "Catalog index"
+        verbose_name_plural = "Catalog indexes"
+        ordering = ("external_name",)
+        indexes = [
+            GinIndex(
+                name="catalog_index_search_gin_idx",
+                fields=["search"],
+                opclasses=["gin_trgm_ops"],
+            ),
+            GistIndex(
+                name="catalog_index_search_gist_idx",
+                fields=["search"],
+                opclasses=["gist_trgm_ops"],
+            ),
+        ]
+
+
+class BaseIndexPermission(models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
-    index = models.ForeignKey("Index", on_delete=models.CASCADE)
 
     # Link the the Datasource permission
     permission_type = models.ForeignKey(
@@ -228,7 +239,20 @@ class IndexPermission(models.Model):
     permission = GenericForeignKey("permission_type", "permission_id")
 
 
-class WithIndex:
+class IndexPermission(BaseIndexPermission):
+    index = models.ForeignKey("Index", on_delete=models.CASCADE)
+
+
+class IndexableMixin:
+    indexes = GenericRelation("catalog.Index")
+
+    def get_permission_model(self):
+        raise NotImplementedError
+
+    @property
+    def index(self):
+        return self.indexes.get()
+
     def get_permission_set(self):
         raise NotImplementedError
 
@@ -255,7 +279,7 @@ class WithIndex:
         index.save()
 
         for permission in self.get_permission_set():
-            IndexPermission.objects.update_or_create(
+            self.get_permission_model().objects.update_or_create(
                 index=index, team=permission.team, defaults={"permission": permission}
             )
 
@@ -263,7 +287,7 @@ class WithIndex:
         raise NotImplementedError
 
 
-class Datasource(WithIndex, models.Model):
+class Datasource(IndexableMixin, models.Model):
     class Meta:
         abstract = True
 
@@ -271,7 +295,9 @@ class Datasource(WithIndex, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
-    indexes = GenericRelation("catalog.Index")
+
+    def get_permission_model(self):
+        return IndexPermission
 
     @property
     def display_name(self):
@@ -284,24 +310,18 @@ class Datasource(WithIndex, models.Model):
             "Datasource models should implement the sync() method"
         )
 
-    @property
-    def index(self):
-        return self.indexes.get()
 
-
-class Entry(WithIndex, models.Model):
+class Entry(IndexableMixin, models.Model):
     class Meta:
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    indexes = GenericRelation("catalog.Index")
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.build_index()
 
-    @property
-    def index(self):
-        return self.indexes.get()
+    def get_permission_model(self):
+        return IndexPermission

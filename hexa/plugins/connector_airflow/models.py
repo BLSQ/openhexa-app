@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from hexa.catalog.models import WithIndex
+from hexa.catalog.models import IndexableMixin
 from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (
@@ -67,7 +67,7 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(BaseEnvironment):  # TODO: use WithIndex mixinx
+class Cluster(BaseEnvironment):  # TODO: use IndexableMixin mixinx
     class Meta:
         ordering = (
             "name",

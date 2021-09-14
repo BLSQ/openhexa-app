@@ -54,6 +54,6 @@ class Migration(migrations.Migration):
                 "verbose_name": "DHIS2 Data Set",
                 "ordering": ("name",),
             },
-            bases=(hexa.catalog.models.WithIndex, models.Model),
+            bases=(hexa.catalog.models.IndexableMixin, models.Model),
         ),
     ]
