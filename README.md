@@ -278,7 +278,7 @@ refresh with the settings ```DATASOURCE_ASYNC_REFRESH```.If you have slow dataso
 to decrease the latency of the web server. In that case, a queue will be used to dispatch the refresh request to a
 background worker. This worker is called ```sync_datasources_worker```, callable like this:
 ```bash
-./manage.py sync_datasources_worker
+python manage.py sync_datasources_worker
 ```
 
 Building the Docker image
