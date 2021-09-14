@@ -266,7 +266,7 @@ class WithIndex:
 class DatasourceQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         raise NotImplementedError(
-            "Datasource QuerySet should implement the filter_for_user() property"
+            "Datasource QuerySet should implement the filter_for_user() method"
         )
 
 
