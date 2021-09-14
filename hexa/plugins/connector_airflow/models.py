@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from hexa.catalog.models import IndexableMixin
+from hexa.core.models.indexes import BaseIndexableMixin
 from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (

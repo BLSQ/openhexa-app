@@ -5,6 +5,8 @@ import django.db.models.deletion
 import hexa.catalog.models
 import uuid
 
+import hexa.core.models.indexes
+
 
 class Migration(migrations.Migration):
 
