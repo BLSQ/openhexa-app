@@ -4,6 +4,11 @@
 {% block page_title %}{{ cluster.name }}{% endblock %}
 
 {% block page_content %}
-    {% include "connector_airflow/components/cluster_card.html" %}
-    {% include "connector_airflow/components/dag_list.html" %}
+    {{ cluster_card }}
+    {% include "comments/components/page_section_comments.html" with object=cluster %}
+    {% embed "ui/section/section.html" with title=_("DAGs") %}
+        {% slot content %}
+            {{ dag_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}

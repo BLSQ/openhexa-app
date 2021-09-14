@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.plugins.connector_airflow.datacards import ClusterCard
+from hexa.plugins.connector_airflow.datagrids import DagGrid
 from hexa.plugins.connector_airflow.models import (
     Cluster,
     DAG,
@@ -17,6 +19,12 @@ def cluster_detail(request, cluster_id):
         pk=cluster_id,
     )
 
+    cluster_card = ClusterCard(cluster, request=request)
+    if request.method == "POST" and cluster_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    dag_grid = DagGrid(cluster.dag_set.all(), page=int(request.GET.get("page", "1")))
+
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (
@@ -31,6 +39,8 @@ def cluster_detail(request, cluster_id):
         "connector_airflow/cluster_detail.html",
         {
             "cluster": cluster,
+            "cluster_card": cluster_card,
+            "dag_grid": dag_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
