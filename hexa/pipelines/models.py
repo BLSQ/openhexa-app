@@ -1,7 +1,8 @@
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +16,41 @@ from hexa.core.models import (
     PostgresTextSearchConfigField,
     Base,
 )
+from hexa.core.models.indexes import BaseIndex, BaseIndexPermission, BaseIndexableMixin
 from hexa.core.models.postgres import locale_to_text_search_config
+
+
+class Index(BaseIndex):
+    class Meta:
+        verbose_name = "Pipeline index"
+        verbose_name_plural = "Pipeline indexes"
+        ordering = ("external_name",)
+        indexes = [
+            GinIndex(
+                name="pipeline_index_search_gin_idx",
+                fields=["search"],
+                opclasses=["gin_trgm_ops"],
+            ),
+            GistIndex(
+                name="pipeline_index_search_gist_idx",
+                fields=["search"],
+                opclasses=["gist_trgm_ops"],
+            ),
+        ]
+
+
+class IndexPermission(BaseIndexPermission):
+    index = models.ForeignKey("Index", on_delete=models.CASCADE)
+
+
+class IndexableMixin(BaseIndexableMixin):
+    indexes = GenericRelation("pipelines.Index")
+
+    def get_permission_model(self):
+        return IndexPermission
+
+    def get_index_model(self):
+        return Index
 
 
 class Environment(RichContent):

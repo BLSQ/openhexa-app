@@ -11,31 +11,13 @@ from hexa.core.models import (
     RichContent,
 )
 from hexa.core.models.indexes import (
-    BaseIndexQuerySet,
-    BaseIndexManager,
     BaseIndex,
     BaseIndexPermission,
     BaseIndexableMixin,
 )
 
 
-class IndexQuerySet(BaseIndexQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
-
-
-class IndexManager(BaseIndexManager):
-    pass
-
-
 class Index(BaseIndex):
-    objects = IndexManager.from_queryset(IndexQuerySet)()
-
     class Meta:
         verbose_name = "Catalog index"
         verbose_name_plural = "Catalog indexes"

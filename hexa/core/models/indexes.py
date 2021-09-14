@@ -40,6 +40,14 @@ class TrigramWordSimilarity(TrigramBase):
 
 
 class BaseIndexQuerySet(TreeQuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            indexpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
     def search(self, query):
         tokens = query.split(" ")
 
@@ -93,11 +101,21 @@ class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
     own queryset."""
 
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            indexpermission__team__in=[t.pk for t in user.team_set.all()]
+        )
+
     def get_queryset(self):  # TODO: PR in django-ltree?
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
 
 
 class BaseIndex(Base):
+    objects = BaseIndexManager.from_queryset(BaseIndexQuerySet)()
+
     class Meta:
         abstract = True
 
@@ -106,7 +124,9 @@ class BaseIndex(Base):
         self.rank = None
 
     # Content-type
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, related_name="+"
+    )
     object_id = models.UUIDField()
     object = GenericForeignKey("content_type", "object_id")
 
@@ -120,12 +140,16 @@ class BaseIndex(Base):
     label = models.TextField(blank=True)
     description = models.TextField(blank=True)
     owner = models.ForeignKey(
-        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
+        "user_management.Organization",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
     )
     content = models.TextField(blank=True)
     context = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
-    tags = models.ManyToManyField("tags.Tag", blank=True)
+    tags = models.ManyToManyField("tags.Tag", blank=True, related_name="+")
     locale = LocaleField(default="en")
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
@@ -193,11 +217,13 @@ class BaseIndexPermission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
+    team = models.ForeignKey(
+        "user_management.Team", on_delete=models.CASCADE, related_name="+"
+    )
 
     # Link the the Datasource permission
     permission_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, null=True
+        ContentType, on_delete=models.CASCADE, null=True, related_name="+"
     )
     permission_id = models.UUIDField(null=True)
     permission = GenericForeignKey("permission_type", "permission_id")
