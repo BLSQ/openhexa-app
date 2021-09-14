@@ -7,11 +7,6 @@ app_name = "connector_s3"
 urlpatterns = [
     path("<str:datasource_id>", views.datasource_detail, name="datasource_detail"),
     path(
-        "<str:datasource_id>/sync",
-        views.datasource_sync,
-        name="datasource_sync",
-    ),
-    path(
         "<str:bucket_id>/object/<path:path>",
         views.object_detail,
         name="object_detail",
