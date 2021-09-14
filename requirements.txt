@@ -12,11 +12,11 @@ asgiref==3.4.1
     # via django
 binaryornot==0.4.4
     # via cookiecutter
-boto3==1.18.27
+boto3==1.18.40
     # via
     #   -r requirements.in
     #   moto
-botocore==1.21.27
+botocore==1.21.40
     # via
     #   boto3
     #   moto
@@ -44,20 +44,20 @@ cookiecutter==1.7.3
     # via django-tailwind
 coverage==5.5
     # via -r requirements.in
-cryptography==3.4.7
+cryptography==3.4.8
     # via
     #   -r requirements.in
     #   moto
-dhis2.py==2.1.2
+dhis2.py==2.3.0
     # via -r requirements.in
-django==3.2.6
+django==3.2.7
     # via
     #   -r requirements.in
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-ltree
     #   django-tailwind
-django-cors-headers==3.7.0
+django-cors-headers==3.8.0
     # via -r requirements.in
 django-countries==7.2.1
     # via -r requirements.in
@@ -67,11 +67,11 @@ django-ltree==0.5.3
     # via -r requirements.in
 django-tailwind==2.2.0
     # via -r requirements.in
-fsspec==2021.7.0
+fsspec==2021.8.1
     # via s3fs
-google-auth==1.34.0
+google-auth==2.0.2
     # via -r requirements.in
-graphql-core==3.1.5
+graphql-core==3.1.6
     # via ariadne
 gunicorn==20.1.0
     # via -r requirements.in
@@ -96,13 +96,13 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   moto
-more-itertools==8.8.0
+more-itertools==8.9.0
     # via moto
 moto[s3]==2.2.6
     # via -r requirements.in
-numpy==1.21.1
+numpy==1.21.2
     # via pandas
-pandas==1.3.1
+pandas==1.3.3
     # via -r requirements.in
 pep517==0.11.0
     # via pip-tools
@@ -120,7 +120,7 @@ pyasn1-modules==0.2.8
     # via google-auth
 pycparser==2.20
     # via cffi
-pygments==2.9.0
+pygments==2.10.0
     # via dhis2.py
 python-dateutil==2.8.2
     # via
@@ -143,7 +143,7 @@ requests==2.26.0
     #   dhis2.py
     #   moto
     #   responses
-responses==0.13.4
+responses==0.14.0
     # via moto
 rsa==4.7.2
     # via google-auth
@@ -157,10 +157,9 @@ six==1.16.0
     # via
     #   cookiecutter
     #   django-ltree
-    #   google-auth
     #   python-dateutil
     #   responses
-sqlparse==0.4.1
+sqlparse==0.4.2
     # via
     #   django
     #   django-debug-toolbar
@@ -176,7 +175,7 @@ tomli==1.2.1
     # via pep517
 tqdm==4.62.2
     # via -r requirements.in
-typing-extensions==3.10.0.0
+typing-extensions==3.10.0.2
     # via ariadne
 urllib3==1.26.6
     # via
