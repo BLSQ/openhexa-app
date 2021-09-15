@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
     "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
     "hexa.plugins.connector_postgresql.apps.PostgresqlConnectorConfig",
+    "dpq",
 ]
 
 MIDDLEWARE = [
@@ -229,6 +230,9 @@ if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
+DATASOURCE_ASYNC_REFRESH = os.environ.get("DATASOURCE_ASYNC_REFRESH") == "true"
 
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")

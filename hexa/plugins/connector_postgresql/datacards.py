@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -86,8 +87,13 @@ class DatabaseCard(Datacard):
 
     def get_sync_url(self, database: Database):
         return reverse(
-            "connector_postgresql:datasource_sync",
-            kwargs={"datasource_id": database.id},
+            "catalog:datasource_sync",
+            kwargs={
+                "datasource_id": database.id,
+                "datasource_contenttype": ContentType.objects.get_for_model(
+                    Database
+                ).id,
+            },
         )
 
 

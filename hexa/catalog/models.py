@@ -263,9 +263,18 @@ class WithIndex:
         raise NotImplementedError
 
 
+class DatasourceQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        raise NotImplementedError(
+            "Datasource QuerySet should implement the filter_for_user() method"
+        )
+
+
 class Datasource(WithIndex, models.Model):
     class Meta:
         abstract = True
+
+    objects = DatasourceQuerySet.as_manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

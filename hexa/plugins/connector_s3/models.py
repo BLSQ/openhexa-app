@@ -18,6 +18,7 @@ import os
 from hexa.catalog.models import (
     Base,
     Datasource,
+    DatasourceQuerySet,
     Entry,
     Index,
     IndexPermission,
@@ -53,7 +54,7 @@ class Credentials(Base):
         return self.role_arn != ""
 
 
-class BucketQuerySet(models.QuerySet):
+class BucketQuerySet(DatasourceQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

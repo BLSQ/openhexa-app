@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -89,8 +90,11 @@ class BucketCard(Datacard):
 
     def get_sync_url(self, bucket: Bucket):
         return reverse(
-            "connector_s3:datasource_sync",
-            kwargs={"datasource_id": bucket.id},
+            "catalog:datasource_sync",
+            kwargs={
+                "datasource_id": bucket.id,
+                "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+            },
         )
 
 

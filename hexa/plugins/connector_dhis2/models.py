@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import (
     Datasource,
+    DatasourceQuerySet,
     Entry,
     Index,
     IndexPermission,
@@ -64,7 +65,7 @@ class Credentials(Base):
                 raise ValidationError("DHIS2 URL is invalid")
 
 
-class InstanceQuerySet(models.QuerySet):
+class InstanceQuerySet(DatasourceQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

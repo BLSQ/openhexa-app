@@ -225,16 +225,6 @@ def indicator_extract(
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def instance_sync(request, instance_id):
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
-    )
-    sync_result = instance.sync()
-    messages.success(request, sync_result)
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
 def extract_detail(request, extract_id):
     extract = get_object_or_404(
         Extract.objects.filter_for_user(request.user), id=extract_id

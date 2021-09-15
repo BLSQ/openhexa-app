@@ -37,11 +37,6 @@ urlpatterns = [
         name="indicator_extract",
     ),
     path(
-        "<str:instance_id>/sync",
-        views.instance_sync,
-        name="instance_sync",
-    ),
-    path(
         "extract/<str:extract_id>",
         views.extract_detail,
         name="extract_detail",

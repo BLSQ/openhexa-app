@@ -7,9 +7,11 @@ Django
 django-cors-headers
 django-countries
 django-ltree
+django-postgres-queue
 django-tailwind
 gunicorn
 markdown
+mock
 pandas
 psycopg2-binary
 stringcase
