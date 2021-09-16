@@ -25,7 +25,7 @@ class EnvironmentGrid(Datagrid):
     )
     content = TextColumn(text="content")
     tags = TagColumn(value="tags.all")
-    view = LinkColumn(text="View", url="get_datasource_url")
+    view = LinkColumn(text="View", url="get_url")
 
     def get_url(self, index: Index):
         return index.object.get_absolute_url()
@@ -35,13 +35,12 @@ class RunGrid(Datagrid):
     lead = LeadingColumn(
         label="Pipeline",
         text="dag.airflow_id",
-        secondary_text="dag.cluster.name",
         icon="get_icon",
     )
     execution_date = DateColumn(date="execution_date", label="Execution date")
     state = TextColumn(text="state")
 
-    view = LinkColumn(text="View", url="get_datasource_url")
+    view = LinkColumn(text="View")
 
     def get_icon(self, _):
         return "ui/icons/play.html"

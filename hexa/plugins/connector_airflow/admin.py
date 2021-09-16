@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.admin import display
+from django.utils.html import format_html
+
 from .models import (
     Cluster,
     Credentials,
@@ -18,10 +21,22 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("service_account_email",)
 
 
+class PermissionInline(admin.StackedInline):
+    extra = 1
+    model = ClusterPermission
+
+
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
+    list_display = ("name", "get_web_url")
 
-    search_fields = ("name",)
+    inlines = [
+        PermissionInline,
+    ]
+
+    @display(ordering="web_url", description="Url")
+    def get_web_url(self, obj):
+        return format_html("<a href='{url}'>{url}</a>", url=obj.web_url)
 
 
 @admin.register(ClusterPermission)
@@ -31,14 +46,22 @@ class ClusterPermissionAdmin(admin.ModelAdmin):
 
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("dag_id", "cluster")
 
 
 @admin.register(DAGConfig)
 class DAGConfigAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("name", "dag", "get_cluster")
+
+    @display(ordering="dag__cluster", description="Cluster")
+    def get_cluster(self, obj):
+        return obj.dag.cluster
 
 
 @admin.register(DAGRun)
-class DAGConfigRunAdmin(admin.ModelAdmin):
-    pass
+class DAGRunAdmin(admin.ModelAdmin):
+    list_display = ("run_id", "state", "execution_date", "dag", "get_cluster")
+
+    @display(ordering="dag__cluster", description="Cluster")
+    def get_cluster(self, obj):
+        return obj.dag.cluster

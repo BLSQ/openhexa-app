@@ -1,5 +1,5 @@
+from django.template.defaultfilters import pluralize
 from django.utils.translation import gettext_lazy as _
-from hexa.plugins.connector_dhis2.models import DataElement, DomainType, Indicator
 from hexa.ui.datagrid import (
     Datagrid,
     LeadingColumn,
@@ -7,20 +7,45 @@ from hexa.ui.datagrid import (
     LinkColumn,
     DateColumn,
     TagColumn,
+    CountryColumn,
 )
 
 
 class DagGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
-        text="name",
-        secondary_text="get_value_type_display",
+        text="dag_id",
+        secondary_text="description",
         icon="get_icon",
     )
-    code = TextColumn(text="code")
-    # tags = TagColumn(value="index.tags.all")
-    last_synced = DateColumn(date="instance.last_synced_at")
+    location = CountryColumn(value="index.countries")
+    tags = TagColumn(value="index.tags.all")
+    last_run = DateColumn(date="last_run.execution_date", label=_("Last run"))
+    last_state = TextColumn(text="last_run.state", label=_("Last state"))
     view = LinkColumn(text="View")
 
     def get_icon(self, _):
         return "ui/icons/terminal.html"
+
+
+class DagConfigGrid(Datagrid):
+    lead = LeadingColumn(
+        label="Name",
+        text="name",
+        icon="get_icon",
+    )
+
+    content = TextColumn(text="get_content")
+
+    def get_icon(self, _):
+        return "ui/icons/cog.html"
+
+    def get_content(self, config):
+        count = len(config.config_data)
+
+        return (
+            ""
+            if count == 0
+            else _("%(count)d configuration key%(suffix)s")
+            % {"count": count, "suffix": pluralize(count)}
+        )

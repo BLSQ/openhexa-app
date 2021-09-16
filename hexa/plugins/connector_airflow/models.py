@@ -86,6 +86,9 @@ class Cluster(Environment):
 
     objects = ClusterQuerySet.as_manager()
 
+    def __str__(self):
+        return self.name
+
     def get_permission_set(self):
         return self.clusterpermission_set.all()
 
@@ -141,12 +144,16 @@ class DAGQuerySet(models.QuerySet):
 class DAG(Pipeline):
     class Meta:
         verbose_name = "DAG"
-        ordering = ["airflow_id"]
+        ordering = ["dag_id"]
 
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
-    airflow_id = models.CharField(max_length=200, blank=False)
+    dag_id = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
 
     objects = DAGQuerySet.as_manager()
+
+    def __str__(self):
+        return self.dag_id
 
     def get_permission_set(self):
         return self.cluster.clusterpermission_set.all()
@@ -155,13 +162,13 @@ class DAG(Pipeline):
         # index.external_name = self.name  # TODO
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
-        index.external_id = f"{self.airflow_id}"
+        index.external_id = f"{self.dag_id}"
         index.content = self.content_summary
         # index.search = f"{self.name}"
 
     def get_absolute_url(self):
         return reverse(
-            "connector_postgresql:table_detail",  # TODO
+            "connector_airflow:dag_detail",  # TODO
             args=(self.cluster.id, self.id),
         )
 
@@ -180,6 +187,10 @@ class DAG(Pipeline):
             % {"count": count, "suffix": pluralize(count)}
         )
 
+    @property
+    def last_run(self):
+        return self.dagrun_set.first()
+
 
 class DAGConfigQuerySet(models.QuerySet):
     def filter_for_user(self, user):
@@ -197,6 +208,7 @@ class DAGConfig(Base):
     class Meta:
         verbose_name = "DAG config"
 
+    name = models.CharField(max_length=200)
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     config_data = models.JSONField(default=dict)
 
@@ -204,7 +216,7 @@ class DAGConfig(Base):
 
     @property
     def content_summary(self):
-        count = self.dagconfigrun_set.count()
+        count = self.DAGRun_set.count()
 
         return (
             ""
@@ -256,17 +268,17 @@ class DAGConfig(Base):
             airflow_run_id=response_data["run_id"],
             airflow_execution_date=response_data["execution_date"],
             airflow_message=response_data["message"],
-            airflow_state=DAGConfigRunState.RUNNING,
+            airflow_state=DAGRunState.RUNNING,
         )
 
         self.last_run_at = timezone.now()
         self.save()
 
-        return DAGConfigRunResult(self)
+        return DAGRunResult(self)
 
 
 @dataclass
-class DAGConfigRunResult:
+class DAGRunResult:
     dag_config: DAGConfig
     # TODO: document and move in api module
 
@@ -276,7 +288,7 @@ class DAGConfigRunResult:
         }
 
 
-class DAGConfigRunQuerySet(models.QuerySet):
+class DAGRunQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -286,9 +298,6 @@ class DAGConfigRunQuerySet(models.QuerySet):
                 t.pk for t in user.team_set.all()
             ]
         )
-
-    def filter_by_dag(self, dag):
-        return self.filter(dag_config__dag=dag)
 
     def get_last_for_dag_and_config(self, *, dag=None, dag_config=None):
         qs = self.all()
@@ -300,7 +309,7 @@ class DAGConfigRunQuerySet(models.QuerySet):
         return qs.order_by("-airflow_execution_date").first()
 
 
-class DAGConfigRunState(models.TextChoices):
+class DAGRunState(models.TextChoices):
     SUCCESS = "success", _("Success")
     RUNNING = "running", _("Running")
     FAILED = "failed", _("Failed")
@@ -308,25 +317,31 @@ class DAGConfigRunState(models.TextChoices):
 
 class DAGRun(Base, WithStatus):
     STATUS_MAPPINGS = {
-        DAGConfigRunState.SUCCESS: WithStatus.SUCCESS,
-        DAGConfigRunState.RUNNING: WithStatus.PENDING,
-        DAGConfigRunState.FAILED: WithStatus.ERROR,
+        DAGRunState.SUCCESS: WithStatus.SUCCESS,
+        DAGRunState.RUNNING: WithStatus.PENDING,
+        DAGRunState.FAILED: WithStatus.ERROR,
     }
 
     class Meta:
         ordering = ("-last_refreshed_at",)
 
-    dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE, null=True)
+    dag_config = models.ForeignKey(
+        "DAGConfig", on_delete=models.CASCADE, null=True, blank=True
+    )
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
     run_id = models.CharField(max_length=200, blank=False)
     message = models.TextField()
     execution_date = models.DateTimeField()
-    state = models.CharField(
-        max_length=200, blank=False, choices=DAGConfigRunState.choices
-    )
+    state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
 
-    objects = DAGConfigRunQuerySet.as_manager()
+    objects = DAGRunQuerySet.as_manager()
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_airflow:dag_run_detail",
+            args=(self.dag.cluster.id, self.dag.id, self.id),
+        )
 
     def refresh(self):
         # TODO: move in api module

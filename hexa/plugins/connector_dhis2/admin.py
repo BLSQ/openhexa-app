@@ -16,11 +16,20 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("api_url",)
 
 
+class PermissionInline(admin.StackedInline):
+    extra = 1
+    model = InstancePermission
+
+
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
     list_display = ("url", "last_synced_at")
     list_filter = ("url",)
     search_fields = ("url",)
+
+    inlines = [
+        PermissionInline,
+    ]
 
 
 @admin.register(DataElement)
