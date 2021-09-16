@@ -120,7 +120,7 @@ class ObjectCard(Datacard):
 
     @property
     def generic_description(self):
-        return _("DHIS2 Instance")
+        return _("S3 Bucket")
 
     @property
     def s3_image_src(self):
