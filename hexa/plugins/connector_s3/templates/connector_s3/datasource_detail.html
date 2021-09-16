@@ -5,7 +5,7 @@
 
 {% block page_content %}
     {{ bucket_card }}
-    {% include "connector_s3/components/upload.html" %}
+    {% include "connector_s3/components/upload.html" with bucket=datasource %}
     {% include "comments/components/page_section_comments.html" with object=datasource %}
     {% embed "ui/section/section.html" with title=_("Objects") %}
         {% slot content %}

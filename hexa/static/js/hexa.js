@@ -301,5 +301,37 @@ function TomSelectable(multiple = true) {
 }
 
 function S3Upload(getUploadUrl) {
-    return {}
+    return {
+        async onChange(e) {
+            const uploadedFile = this.$refs.input.files[0];
+            console.log(uploadedFile);
+            const fileName = uploadedFile.name;
+            const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${fileName}`, {
+                method: this.$refs.form.method,
+                headers: {
+                    'Content-Type': 'text/plain',
+                    "X-CSRFToken": document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('csrftoken='))
+                        .split('=')[1]
+                },
+            });
+            if (signedUrlResponse.status !== 201) {
+                console.error("Error when generating presigned URL");
+                return;
+            }
+            const preSignedUrl = await signedUrlResponse.text();
+
+            const uploadResponse = await fetch(preSignedUrl, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": uploadedFile.type,
+                },
+                body: uploadedFile
+            });
+            console.log(uploadResponse);
+            const body = await uploadResponse.text();
+            console.log(body)
+        }
+    }
 }

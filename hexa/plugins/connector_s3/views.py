@@ -1,3 +1,4 @@
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
@@ -103,9 +104,9 @@ def object_upload(request, bucket_id):
     object_key = request.GET["object_key"]
 
     response = bucket.get_boto_client().generate_presigned_url(
-        "get_object",
+        "put_object",
         Params={"Bucket": bucket.name, "Key": object_key},
         ExpiresIn=60 * 10,
     )
 
-    return "ok"
+    return HttpResponse(response, status=201)
