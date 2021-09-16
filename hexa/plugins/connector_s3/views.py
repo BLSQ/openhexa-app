@@ -1,4 +1,3 @@
-from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
@@ -62,7 +61,6 @@ def object_detail(request, bucket_id, path):
         breadcrumbs.append(
             (part, "connector_s3:object_detail", bucket_id, path),
         )
-    print(acc)
 
     datagrid = ObjectGrid(
         bucket.object_set.filter(parent_key=path, orphan=False),
