@@ -248,3 +248,6 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
     }
+
+# Custom test runner
+TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
