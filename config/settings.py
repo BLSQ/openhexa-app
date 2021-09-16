@@ -188,7 +188,7 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 
 # Whitenoise
 # http://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Comments
 COMMENTS_APP = "hexa.comments"
