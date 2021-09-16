@@ -5,7 +5,7 @@ from .models import (
     ClusterPermission,
     DAG,
     DAGConfig,
-    DAGConfigRun,
+    DAGRun,
 )
 
 
@@ -20,10 +20,7 @@ class CredentialsAdmin(admin.ModelAdmin):
 
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "airflow_web_url",
-    )
+
     search_fields = ("name",)
 
 
@@ -34,27 +31,14 @@ class ClusterPermissionAdmin(admin.ModelAdmin):
 
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
-    list_display = (
-        "cluster",
-        "airflow_id",
-    )
-    search_fields = ("airflow_id",)
+    pass
 
 
 @admin.register(DAGConfig)
 class DAGConfigAdmin(admin.ModelAdmin):
-    list_display = (
-        "dag",
-        "name",
-    )
-    search_fields = ("name",)
+    pass
 
 
-@admin.register(DAGConfigRun)
+@admin.register(DAGRun)
 class DAGConfigRunAdmin(admin.ModelAdmin):
-    list_display = (
-        "airflow_run_id",
-        "airflow_state",
-        "airflow_execution_date",
-    )
-    search_fields = ("run_id",)
+    pass

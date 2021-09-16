@@ -243,6 +243,12 @@ class BaseIndexableMixin:
     def get_permission_set(self):
         raise NotImplementedError
 
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.build_index()
@@ -269,6 +275,3 @@ class BaseIndexableMixin:
             self.get_permission_model().objects.update_or_create(
                 index=index, team=permission.team, defaults={"permission": permission}
             )
-
-    def populate_index(self, index):
-        raise NotImplementedError

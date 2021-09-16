@@ -1,5 +1,6 @@
 import json
 import uuid
+from dataclasses import dataclass
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -7,19 +8,23 @@ from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from enum import Enum
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from hexa.core.models.indexes import BaseIndexableMixin
 from hexa.core.models import Base, WithStatus, Permission, RichContent
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import (
-    Environment as BaseEnvironment,
-    PipelinesIndex,
-    PipelinesIndexPermission,
+    Environment,
+    Index,
+    IndexPermission,
     Pipeline,
-    PipelinesIndexType,
 )
+
+
+class ExternalType(Enum):
+    CLUSTER = "cluster"
+    DAG = "dag"
 
 
 class Credentials(Base):
@@ -67,45 +72,36 @@ class ClusterQuerySet(models.QuerySet):
         )
 
 
-class Cluster(BaseEnvironment):  # TODO: use IndexableMixin mixinx
+class Cluster(Environment):
     class Meta:
-        ordering = (
-            "name",
-            "airflow_name",
-        )
+        ordering = ("name",)
+        verbose_name = "Airflow Cluster"
 
     api_credentials = models.ForeignKey(
         "Credentials", null=True, on_delete=models.SET_NULL
     )
-    airflow_name = models.CharField(max_length=200)
-    airflow_web_url = models.URLField(blank=False)
-    airflow_api_url = models.URLField()
+    name = models.CharField(max_length=200)
+    web_url = models.URLField(blank=False)
+    api_url = models.URLField()
 
     objects = ClusterQuerySet.as_manager()
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.index()
+    def get_permission_set(self):
+        return self.clusterpermission_set.all()
 
-    def index(self):
-        pipeline_index, _ = PipelinesIndex.objects.update_or_create(
-            defaults={
-                "owner": self.owner,
-                "name": self.name,
-                "external_name": self.airflow_name,
-                "countries": self.countries,
-                "content_summary": self.content_summary,
-            },
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT,
-            detail_url=reverse("connector_airflow:cluster_detail", args=(self.pk,)),
+    def populate_index(self, index):  # TODO
+        index.external_name = self.name
+        index.external_type = ExternalType.CLUSTER.value
+        index.path = [self.id.hex]
+        index.external_id = f"{self.api_url}"
+        index.content = self.content_summary
+        index.search = f"{self.name}"
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_airflow:cluster_detail",
+            args=(self.id,),
         )
-
-        for permission in self.clusterpermission_set.all():
-            PipelinesIndexPermission.objects.get_or_create(
-                pipeline_index=pipeline_index, team=permission.team
-            )
 
     @property
     def content_summary(self):
@@ -152,9 +148,26 @@ class DAG(Pipeline):
 
     objects = DAGQuerySet.as_manager()
 
+    def get_permission_set(self):
+        return self.cluster.clusterpermission_set.all()
+
+    def populate_index(self, index):
+        # index.external_name = self.name  # TODO
+        index.external_type = ExternalType.DAG.value
+        index.path = [self.cluster.id.hex, self.id.hex]
+        index.external_id = f"{self.airflow_id}"
+        index.content = self.content_summary
+        # index.search = f"{self.name}"
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_postgresql:table_detail",  # TODO
+            args=(self.cluster.id, self.id),
+        )
+
     @property
     def last_run(self):
-        return DAGConfigRun.objects.get_last_for_dag_and_config(dag=self)
+        return DAGRun.objects.get_last_for_dag_and_config(dag=self)
 
     @property
     def content_summary(self):
@@ -180,7 +193,7 @@ class DAGConfigQuerySet(models.QuerySet):
         )
 
 
-class DAGConfig(RichContent):
+class DAGConfig(Base):
     class Meta:
         verbose_name = "DAG config"
 
@@ -202,7 +215,7 @@ class DAGConfig(RichContent):
 
     @property
     def last_run(self):
-        return DAGConfigRun.objects.get_last_for_dag_and_config(dag_config=self)
+        return DAGRun.objects.get_last_for_dag_and_config(dag_config=self)
 
     def run(self):
         # TODO: move in API module
@@ -219,7 +232,7 @@ class DAGConfig(RichContent):
         )
         session = AuthorizedSession(id_token_credentials)
         dag_config_run_id = str(uuid.uuid4())
-        api_url = self.dag.cluster.airflow_api_url
+        api_url = self.dag.cluster.api_url
         response = session.post(
             f"{api_url.rstrip('/')}/dags/{self.dag.airflow_id}/dag_runs",
             data=json.dumps(
@@ -236,7 +249,7 @@ class DAGConfig(RichContent):
         # TODO: handle non-200
         response_data = response.json()
 
-        DAGConfigRun.objects.create(
+        DAGRun.objects.create(
             id=dag_config_run_id,
             dag_config=self,
             last_refreshed_at=timezone.now(),
@@ -252,11 +265,10 @@ class DAGConfig(RichContent):
         return DAGConfigRunResult(self)
 
 
+@dataclass
 class DAGConfigRunResult:
+    dag_config: DAGConfig
     # TODO: document and move in api module
-
-    def __init__(self, dag_config):
-        self.dag_config = dag_config
 
     def __str__(self):
         return _('The DAG config "%(name)s" has been run') % {
@@ -294,7 +306,7 @@ class DAGConfigRunState(models.TextChoices):
     FAILED = "failed", _("Failed")
 
 
-class DAGConfigRun(Base, WithStatus):
+class DAGRun(Base, WithStatus):
     STATUS_MAPPINGS = {
         DAGConfigRunState.SUCCESS: WithStatus.SUCCESS,
         DAGConfigRunState.RUNNING: WithStatus.PENDING,
@@ -304,12 +316,13 @@ class DAGConfigRun(Base, WithStatus):
     class Meta:
         ordering = ("-last_refreshed_at",)
 
-    dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE)
+    dag_config = models.ForeignKey("DAGConfig", on_delete=models.CASCADE, null=True)
+    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
-    airflow_run_id = models.CharField(max_length=200, blank=False)
-    airflow_message = models.TextField()
-    airflow_execution_date = models.DateTimeField()
-    airflow_state = models.CharField(
+    run_id = models.CharField(max_length=200, blank=False)
+    message = models.TextField()
+    execution_date = models.DateTimeField()
+    state = models.CharField(
         max_length=200, blank=False, choices=DAGConfigRunState.choices
     )
 
@@ -328,8 +341,8 @@ class DAGConfigRun(Base, WithStatus):
             )
         )
         session = AuthorizedSession(id_token_credentials)
-        api_url = self.dag_config.dag.cluster.airflow_api_url
-        execution_date = self.airflow_execution_date.isoformat()
+        api_url = self.dag_config.dag.cluster.api_url
+        execution_date = self.execution_date.isoformat()
         response = session.get(
             f"{api_url.rstrip('/')}/dags/{self.dag_config.dag.airflow_id}/dag_runs/{execution_date}",
             headers={

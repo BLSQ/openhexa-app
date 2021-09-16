@@ -21,28 +21,22 @@ from hexa.ui.datacard import (
 class ClusterSection(Section):
     title = "Airflow Data"
 
-    name = TextProperty(text="airflow_name")
-    url = URLProperty(url="airflow_web_url")
+    name = TextProperty(text="name")
+    url = URLProperty(url="web_url")
 
 
 class ClusterCard(Datacard):
-    title = "display_name"
+    title = "name"
     subtitle = "generic_description"
-    image_src = "dhis2_image_src"
-    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
+    image_src = "_image_src"
 
     external = ClusterSection()
-    # metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):
         return _("Airflow Cluster")
 
     @property
-    def dhis2_image_src(self):
+    def _image_src(self):
         return static("connector_airflow/img/symbol.svg")
-
-    def get_sync_url(self, instance: Instance):
-        return reverse(
-            "connector_dhis2:instance_sync", kwargs={"instance_id": instance.id}
-        )

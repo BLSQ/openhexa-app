@@ -200,9 +200,6 @@ class TableQuerySet(models.QuerySet):
 
 
 class Table(Entry):
-    def get_permission_set(self):
-        return self.database.databasepermission_set.all()
-
     database = models.ForeignKey("Database", on_delete=models.CASCADE)
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)
@@ -212,6 +209,9 @@ class Table(Entry):
         ordering = ["name"]
 
     objects = TableQuerySet.as_manager()
+
+    def get_permission_set(self):
+        return self.database.databasepermission_set.all()
 
     def populate_index(self, index):
         index.last_synced_at = self.database.last_synced_at

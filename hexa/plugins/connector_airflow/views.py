@@ -8,7 +8,7 @@ from hexa.plugins.connector_airflow.models import (
     Cluster,
     DAG,
     DAGConfig,
-    DAGConfigRun,
+    DAGRun,
     DAGConfigRunState,
 )
 
@@ -28,7 +28,7 @@ def cluster_detail(request, cluster_id):
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (
-            cluster.display_name,
+            cluster.name,
             "connector_airflow:cluster_detail",
             cluster_id,
         ),
@@ -52,9 +52,7 @@ def dag_detail(request, cluster_id, dag_id):
     )
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
-    dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter_by_dag(
-        dag
-    )
+    dag_config_runs = DAGRun.objects.filter_for_user(request.user).filter_by_dag(dag)
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
@@ -110,7 +108,7 @@ def dag_config_run_list(request, cluster_id, dag_id):
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_configs = DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
-    dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user).filter(
+    dag_config_runs = DAGRun.objects.filter_for_user(request.user).filter(
         dag_config__dag=dag
     )
 

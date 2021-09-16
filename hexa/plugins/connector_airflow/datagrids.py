@@ -22,6 +22,5 @@ class DagGrid(Datagrid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
-    def get_icon(self, data_element: DataElement):
-
-        return "ui/icons/exclamation.html"
+    def get_icon(self, _):
+        return "ui/icons/terminal.html"

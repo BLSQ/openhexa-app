@@ -23,6 +23,10 @@ from django.conf import settings
 from .schema import schema
 from hexa.plugins.app import get_connector_app_configs
 
+admin.site.site_header = "OpenHexa Admin"
+admin.site.site_title = "OpenHexa Admin"
+admin.site.index_title = "Welcome to OpenHexa"
+
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),

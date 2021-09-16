@@ -41,8 +41,6 @@ class IndexPermission(BaseIndexPermission):
 
 
 class IndexableMixin(BaseIndexableMixin):
-    indexes = GenericRelation("catalog.Index")
-
     def get_permission_model(self):
         return IndexPermission
 
@@ -55,6 +53,8 @@ class Datasource(IndexableMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+
+    indexes = GenericRelation("catalog.Index")
 
     class Meta:
         abstract = True
@@ -75,6 +75,8 @@ class Entry(IndexableMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    indexes = GenericRelation("catalog.Index")
 
     class Meta:
         abstract = True

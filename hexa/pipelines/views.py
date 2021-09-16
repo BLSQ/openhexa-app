@@ -1,31 +1,32 @@
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.pipelines.models import PipelinesIndexType, PipelinesIndex
-from hexa.plugins.connector_airflow.models import DAGConfigRun, DAGConfigRunState
+from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
+from hexa.pipelines.models import Index
+from hexa.plugins.connector_airflow.models import DAGRun, DAGConfigRunState
 
 
 def index(request):
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
     ]
-    environment_indexes = PipelinesIndex.objects.filter_for_user(request.user).filter(
-        index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT.value
-    )
+    environments = Index.objects.filter_for_user(request.user).roots()
+    environment_grid = EnvironmentGrid(environments)
 
-    # TODO: replace by indexed runs
-    dag_config_runs = DAGConfigRun.objects.filter_for_user(request.user)
+    dag_config_runs = DAGRun.objects.filter_for_user(request.user)
 
     # TODO: actual refresh should be done using a CRON
-    for run in dag_config_runs.filter(airflow_state=DAGConfigRunState.RUNNING):
+    for run in dag_config_runs.filter(state=DAGConfigRunState.RUNNING):
         run.refresh()
+
+    run_grid = RunGrid(dag_config_runs)
 
     return render(
         request,
         "pipelines/index.html",
         {
-            "environment_indexes": environment_indexes,
-            "dag_config_runs": dag_config_runs,
+            "environment_grid": environment_grid,
+            "run_grid": run_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
