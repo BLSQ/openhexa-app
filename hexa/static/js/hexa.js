@@ -299,3 +299,7 @@ function TomSelectable(multiple = true) {
         }
     }
 }
+
+function S3Upload(getUploadUrl) {
+    return {}
+}
