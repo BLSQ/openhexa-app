@@ -1,9 +1,13 @@
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
+from django.http import JsonResponse, Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Index
 from .datagrids import DatasourceGrid
+from .queue import datasource_sync_queue
 
 
 def index(request):
@@ -52,3 +56,26 @@ def search(request):
             ],
         },
     )
+
+
+def datasource_sync(request, datasource_contenttype, datasource_id):
+    try:
+        datasource_type = ContentType.objects.get_for_id(id=datasource_contenttype)
+    except ContentType.DoesNotExist:
+        raise Http404("No Datasource matches the given query.")
+    datasource = get_object_or_404(
+        datasource_type.model_class().objects.filter_for_user(request.user),
+        pk=datasource_id,
+    )
+
+    if settings.DATASOURCE_ASYNC_REFRESH:
+        datasource_sync_queue.enqueue(
+            "datasource_sync",
+            {"contenttype_id": datasource_contenttype, "object_id": str(datasource.id)},
+        )
+        messages.success(request, _("The datasource will soon be synced"))
+    else:
+        sync_result = datasource.sync()
+        messages.success(request, sync_result)
+
+    return redirect(request.META.get("HTTP_REFERER"))

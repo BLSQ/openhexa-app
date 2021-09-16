@@ -32,6 +32,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 INSTALLED_APPS = [
+    # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development
+    "whitenoise.runserver_nostatic",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -56,6 +58,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
     "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
     "hexa.plugins.connector_postgresql.apps.PostgresqlConnectorConfig",
+    "dpq",
 ]
 
 MIDDLEWARE = [
@@ -183,6 +186,10 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 
+# Whitenoise
+# http://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 # Comments
 COMMENTS_APP = "hexa.comments"
 
@@ -230,6 +237,9 @@ if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+# Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
+DATASOURCE_ASYNC_REFRESH = os.environ.get("DATASOURCE_ASYNC_REFRESH") == "true"
+
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
@@ -238,3 +248,6 @@ if DEBUG:
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
     }
+
+# Custom test runner
+TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"

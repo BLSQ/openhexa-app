@@ -1,4 +1,3 @@
-from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
@@ -39,16 +38,6 @@ def datasource_detail(request, datasource_id):
     )
 
 
-def datasource_sync(request, datasource_id):
-    datasource = get_object_or_404(
-        Bucket.objects.filter_for_user(request.user), pk=datasource_id
-    )
-    sync_result = datasource.sync()
-    messages.success(request, sync_result)
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
 def object_detail(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
@@ -72,7 +61,6 @@ def object_detail(request, bucket_id, path):
         breadcrumbs.append(
             (part, "connector_s3:object_detail", bucket_id, path),
         )
-    print(acc)
 
     datagrid = ObjectGrid(
         bucket.object_set.filter(parent_key=path, orphan=False),

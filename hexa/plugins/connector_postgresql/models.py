@@ -18,6 +18,7 @@ from hexa.catalog.models import (
     Index,
     IndexPermission,
     Datasource,
+    DatasourceQuerySet,
     Entry,
 )
 from hexa.catalog.sync import DatasourceSyncResult
@@ -31,7 +32,7 @@ class ExternalType(Enum):
     TABLE = "table"
 
 
-class DatabaseQuerySet(models.QuerySet):
+class DatabaseQuerySet(DatasourceQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

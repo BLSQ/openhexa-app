@@ -273,6 +273,14 @@ If you need to run a command in a pod, you can use the following:
 kubectl exec -it deploy/app-deployment -n hexa-app -- bash
 ```
 
+By default, the datasource refresh (synchronization) is done in the web server. You can activate an asynchronous
+refresh with the settings ```DATASOURCE_ASYNC_REFRESH```.If you have slow datasources, it could be used
+to decrease the latency of the web server. In that case, a queue will be used to dispatch the refresh request to a
+background worker. This worker is called ```sync_datasources_worker```, callable like this:
+```bash
+python manage.py sync_datasources_worker
+```
+
 Building the Docker image
 -------------------------
 
