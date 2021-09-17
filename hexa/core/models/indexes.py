@@ -1,6 +1,5 @@
 import uuid
-
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
 from django.db import connection, models
@@ -10,11 +9,13 @@ from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeQuerySet, TreeManager
+from typing import Dict, Any
 
 from hexa.core.date_utils import date_format
 from hexa.core.models import Base, LocaleField, PostgresTextSearchConfigField
 from hexa.core.models.path import PathField
 from hexa.core.models.postgres import locale_to_text_search_config
+from hexa.user_management.models import User
 
 
 @Field.register_lookup
@@ -40,7 +41,7 @@ class TrigramWordSimilarity(TrigramBase):
 
 
 class BaseIndexQuerySet(TreeQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -48,7 +49,7 @@ class BaseIndexQuerySet(TreeQuerySet):
             indexpermission__team__in=[t.pk for t in user.team_set.all()]
         )
 
-    def search(self, query):
+    def search(self, query: str):
         tokens = query.split(" ")
 
         try:
@@ -101,7 +102,7 @@ class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
     own queryset."""
 
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -121,7 +122,6 @@ class BaseIndex(Base):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.rank = None
 
     # Content-type
     content_type = models.ForeignKey(
@@ -164,34 +164,32 @@ class BaseIndex(Base):
     text_search_config = PostgresTextSearchConfigField()
     search = models.TextField(blank=True)
 
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        """Override save() to handle Postgres text search config."""
+    def save(self, *args, **kwargs):
+        """Override to handle Postgres text search config."""
 
         self.text_search_config = locale_to_text_search_config(self.locale)
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(*args, **kwargs)
 
     @property
-    def app_label(self):  # TODO: check
+    def app_label(self) -> str:  # TODO: check
         return self.content_type.app_label
 
     @property
-    def content_type_name(self):  # TODO: check
+    def content_type_name(self) -> str:  # TODO: check
         return self.content_type.name
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         return self.label or self.external_name
 
     @property
-    def symbol(self):  # TODO: check
+    def symbol(self) -> str:  # TODO: check
         return static(f"{self.app_label}/img/symbol.svg")
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {  # TODO: adapt to new models
             "id": self.id,
-            "rank": self.rank,
+            "rank": getattr(self, "rank"),
             "app_label": self.app_label,
             "content_type_name": self.content_type_name,
             "display_name": self.display_name,
