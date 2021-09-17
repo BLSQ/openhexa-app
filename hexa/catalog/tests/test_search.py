@@ -5,12 +5,12 @@ from django.utils import timezone
 
 from hexa.core.models import BaseIndexQuerySet
 from hexa.plugins.connector_dhis2.models import (
-    Instance,
-    InstancePermission,
     DataElement,
     Indicator,
+    Instance,
+    InstancePermission,
 )
-from hexa.user_management.models import User, Team
+from hexa.user_management.models import Team, User
 
 
 class SearchTest(test.TestCase):

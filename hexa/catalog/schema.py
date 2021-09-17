@@ -1,4 +1,4 @@
-from ariadne import convert_kwargs_to_snake_case, ObjectType, QueryType, MutationType
+from ariadne import MutationType, ObjectType, QueryType, convert_kwargs_to_snake_case
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.templatetags.static import static

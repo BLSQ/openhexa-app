@@ -1,9 +1,7 @@
 from django.core.validators import RegexValidator
 from django.forms import TextInput
-from django_ltree.fields import (
-    PathField as BasePathField,
-    PathFormField as BasePathFormField,
-)
+from django_ltree.fields import PathField as BasePathField
+from django_ltree.fields import PathFormField as BasePathFormField
 
 # we need to replace the django-ltree validator, as it does not accept numbers for the first label char
 # (the PostgreSQL extension seems to allow it)

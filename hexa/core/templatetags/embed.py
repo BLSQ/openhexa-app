@@ -1,4 +1,5 @@
 import string
+
 from django import template as django_template
 from django.template.base import Node, TextNode, token_kwargs
 from django.template.exceptions import TemplateSyntaxError

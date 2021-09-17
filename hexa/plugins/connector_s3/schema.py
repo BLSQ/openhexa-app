@@ -1,11 +1,11 @@
-from ariadne import convert_kwargs_to_snake_case, QueryType, ObjectType, MutationType
+from ariadne import MutationType, ObjectType, QueryType, convert_kwargs_to_snake_case
 from django.http import HttpRequest
 from django.template.defaultfilters import filesizeformat
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as trans
 
-from hexa.core.resolvers import resolve_tags
 from hexa.core.graphql import result_page
+from hexa.core.resolvers import resolve_tags
 from hexa.plugins.connector_s3.models import Bucket, Object
 
 s3_type_defs = """

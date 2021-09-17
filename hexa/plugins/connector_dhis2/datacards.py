@@ -6,16 +6,16 @@ from django.utils.translation import ugettext_lazy as _
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
-    Datacard,
-    Section,
-    TextProperty,
-    URLProperty,
-    LocaleProperty,
-    DateProperty,
-    TagProperty,
-    CountryProperty,
     Action,
     BooleanProperty,
+    CountryProperty,
+    Datacard,
+    DateProperty,
+    LocaleProperty,
+    Section,
+    TagProperty,
+    TextProperty,
+    URLProperty,
 )
 
 

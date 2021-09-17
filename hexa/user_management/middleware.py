@@ -1,6 +1,7 @@
+from functools import cache
+
 from django.shortcuts import redirect
 from django.urls import reverse
-from functools import cache
 
 
 def login_required_middleware(get_response):

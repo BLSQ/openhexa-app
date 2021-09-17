@@ -1,11 +1,5 @@
 from hexa.plugins.connector_s3.models import Object
-from hexa.ui.datagrid import (
-    Datagrid,
-    LeadingColumn,
-    TextColumn,
-    LinkColumn,
-    TagColumn,
-)
+from hexa.ui.datagrid import Datagrid, LeadingColumn, LinkColumn, TagColumn, TextColumn
 
 
 class ObjectGrid(Datagrid):

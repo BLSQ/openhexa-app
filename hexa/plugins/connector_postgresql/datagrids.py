@@ -1,11 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
+
 from hexa.plugins.connector_postgresql.models import Table
-from hexa.ui.datagrid import (
-    Datagrid,
-    LeadingColumn,
-    TextColumn,
-    TagColumn,
-)
+from hexa.ui.datagrid import Datagrid, LeadingColumn, TagColumn, TextColumn
 
 
 class TableGrid(Datagrid):

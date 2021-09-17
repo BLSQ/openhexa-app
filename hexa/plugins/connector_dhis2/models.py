@@ -1,7 +1,7 @@
 from abc import ABC
 
-from django.contrib.contenttypes.fields import GenericRelation
 from dhis2 import RequestException
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -17,12 +17,14 @@ from hexa.catalog.models import (
     Index,
     IndexPermission,
 )
-from hexa.core.models import Base, Permission, RichContent, LocaleField
-from .api import Dhis2Client
-from .sync import sync_from_dhis2_results
+from hexa.core.models import Base, Permission, RichContent
+from hexa.core.models.locale import LocaleField
+
 from ...catalog.sync import DatasourceSyncResult
 from ...core.date_utils import date_format
 from ...core.models.cryptography import EncryptedTextField
+from .api import Dhis2Client
+from .sync import sync_from_dhis2_results
 
 
 def validate_dhis2_base_url(value):

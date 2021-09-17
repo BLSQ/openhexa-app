@@ -1,10 +1,6 @@
 from django.contrib import admin
-from .models import (
-    Bucket,
-    Credentials,
-    Object,
-    BucketPermission,
-)
+
+from .models import Bucket, BucketPermission, Credentials, Object
 
 
 @admin.register(Credentials)

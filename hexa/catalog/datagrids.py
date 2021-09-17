@@ -1,11 +1,11 @@
 from hexa.catalog.models import Index
 from hexa.ui.datagrid import (
+    CountryColumn,
     Datagrid,
     LeadingColumn,
-    TextColumn,
     LinkColumn,
-    CountryColumn,
     TagColumn,
+    TextColumn,
 )
 
 

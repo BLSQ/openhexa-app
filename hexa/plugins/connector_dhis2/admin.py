@@ -1,12 +1,13 @@
 from django.contrib import admin
+
 from .models import (
-    Instance,
+    Credentials,
     DataElement,
+    DataSet,
     Indicator,
     IndicatorType,
+    Instance,
     InstancePermission,
-    Credentials,
-    DataSet,
 )
 
 

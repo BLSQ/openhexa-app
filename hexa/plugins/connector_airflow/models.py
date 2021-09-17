@@ -1,8 +1,8 @@
+import json
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 
-import json
-import uuid
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.defaultfilters import pluralize
@@ -12,14 +12,9 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from hexa.core.models import Base, WithStatus, Permission, RichContent
+from hexa.core.models import Base, Permission, RichContent, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import (
-    Environment,
-    Index,
-    IndexPermission,
-    Pipeline,
-)
+from hexa.pipelines.models import Environment, Index, IndexPermission, Pipeline
 from hexa.user_management.models import User
 
 

@@ -3,13 +3,13 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.plugins.connector_airflow.models import DAGConfig
 from hexa.ui.datagrid import (
-    Datagrid,
-    LeadingColumn,
-    TextColumn,
-    LinkColumn,
-    DateColumn,
-    TagColumn,
     CountryColumn,
+    Datagrid,
+    DateColumn,
+    LeadingColumn,
+    LinkColumn,
+    TagColumn,
+    TextColumn,
 )
 
 

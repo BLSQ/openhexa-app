@@ -1,17 +1,13 @@
 import uuid
+
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DagCard, DagRunCard
-from hexa.plugins.connector_airflow.datagrids import DagGrid, DagConfigGrid
-from hexa.plugins.connector_airflow.models import (
-    Cluster,
-    DAG,
-    DAGConfig,
-    DAGRun,
-)
+from hexa.plugins.connector_airflow.datagrids import DagConfigGrid, DagGrid
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGConfig, DAGRun
 
 
 def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:

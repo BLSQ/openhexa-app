@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import boto3
 import json
 import typing
 
+import boto3
 import stringcase
 
-import hexa.user_management.models
 import hexa.plugins.connector_s3.models
+import hexa.user_management.models
 
 
 class S3ApiError(Exception):

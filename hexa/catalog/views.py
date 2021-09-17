@@ -1,12 +1,12 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
-from django.http import JsonResponse, Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
-from .models import Index
 from .datagrids import DatasourceGrid
+from .models import Index
 from .queue import datasource_sync_queue
 
 

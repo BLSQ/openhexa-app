@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import Cluster, ClusterPermission
-from hexa.user_management.models import Team, User, Membership
+from hexa.user_management.models import Membership, Team, User
 
 
 class ModelsTest(test.TestCase):

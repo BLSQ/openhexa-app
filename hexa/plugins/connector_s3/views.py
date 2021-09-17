@@ -1,9 +1,8 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
-
 from .models import Bucket
 
 

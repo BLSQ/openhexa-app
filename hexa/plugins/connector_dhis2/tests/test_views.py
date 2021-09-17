@@ -1,11 +1,13 @@
+from unittest import skip
+
 from django import test
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
-from unittest import skip
 
-from hexa.user_management.models import User, Team
-from ..models import Instance, DataElement, Indicator, InstancePermission
+from hexa.user_management.models import Team, User
+
+from ..models import DataElement, Indicator, Instance, InstancePermission
 
 
 class ConnectorDhis2Test(test.TestCase):

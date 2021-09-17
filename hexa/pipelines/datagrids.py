@@ -1,11 +1,11 @@
 from hexa.pipelines.models import Index
 from hexa.ui.datagrid import (
     Datagrid,
-    LeadingColumn,
-    TextColumn,
-    LinkColumn,
     DateColumn,
+    LeadingColumn,
+    LinkColumn,
     TagColumn,
+    TextColumn,
 )
 
 

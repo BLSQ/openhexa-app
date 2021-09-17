@@ -1,11 +1,10 @@
-from django import test
-from django import forms
+from django import forms, test
 
 from hexa.core.graphql import (
-    GraphQLForm,
-    GraphQLChoiceField,
-    GraphQLMultipleChoiceField,
     EmptyValue,
+    GraphQLChoiceField,
+    GraphQLForm,
+    GraphQLMultipleChoiceField,
 )
 
 

@@ -1,13 +1,14 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group
-from django import forms
-from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
+from django.contrib.auth.models import Group
 from django.utils.crypto import get_random_string
 
-from .models import User, Organization, Team, Membership, FeatureFlag, Feature
 from hexa.core.admin import country_list
+
+from .models import Feature, FeatureFlag, Membership, Organization, Team, User
 
 # We won't be using the Django group feature
 admin.site.unregister(Group)

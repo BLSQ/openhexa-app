@@ -1,8 +1,8 @@
-from typing import List, Dict
+from typing import Dict, List
 
 import tqdm as tqdm
+from django.apps import AppConfig, apps
 from django.core.management.base import BaseCommand, CommandError
-from django.apps import apps, AppConfig
 from django.db import transaction
 from django.db.models.base import ModelBase
 

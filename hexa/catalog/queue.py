@@ -1,8 +1,7 @@
 from logging import getLogger
 
-from dpq.queue import AtLeastOnceQueue
 from django.contrib.contenttypes.models import ContentType
-
+from dpq.queue import AtLeastOnceQueue
 
 logger = getLogger(__name__)
 

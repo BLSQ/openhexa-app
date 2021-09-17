@@ -1,4 +1,6 @@
 import uuid
+from typing import Any, Dict
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
@@ -8,13 +10,16 @@ from django.db.models.functions import Greatest
 from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
 from django_countries.fields import CountryField
-from django_ltree.managers import TreeQuerySet, TreeManager
-from typing import Dict, Any
+from django_ltree.managers import TreeManager, TreeQuerySet
 
 from hexa.core.date_utils import date_format
-from hexa.core.models import Base, LocaleField, PostgresTextSearchConfigField
+from hexa.core.models.base import Base
+from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
-from hexa.core.models.postgres import locale_to_text_search_config
+from hexa.core.models.postgres import (
+    PostgresTextSearchConfigField,
+    locale_to_text_search_config,
+)
 
 
 @Field.register_lookup

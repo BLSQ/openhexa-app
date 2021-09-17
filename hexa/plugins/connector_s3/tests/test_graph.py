@@ -1,12 +1,8 @@
 from unittest import skip
 
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_s3.models import (
-    Bucket,
-    BucketPermission,
-    Object,
-)
-from hexa.user_management.models import User, Team, Membership, Organization
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
+from hexa.user_management.models import Membership, Organization, Team, User
 
 
 class S3GraphTest(GraphQLTestCase):

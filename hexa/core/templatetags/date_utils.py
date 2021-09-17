@@ -1,7 +1,8 @@
 from django import template
 from django.utils import timezone
 
-from hexa.core.date_utils import date_format as core_date_format, DEFAULT_DATE_FORMAT
+from hexa.core.date_utils import DEFAULT_DATE_FORMAT
+from hexa.core.date_utils import date_format as core_date_format
 
 register = template.Library()
 

@@ -1,3 +1,5 @@
+from typing import List
+
 from django import forms
 from django.contrib import messages
 from django.template import loader
@@ -6,7 +8,6 @@ from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 from markdown import markdown as to_markdown
-from typing import List
 
 from hexa.core.date_utils import date_format as do_date_format
 from hexa.core.models.locale import Locale

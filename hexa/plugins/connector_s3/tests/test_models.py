@@ -1,14 +1,11 @@
-from django import test
-from django.urls import reverse
 from unittest import skip
 
+from django import test
+from django.urls import reverse
+
 from hexa.catalog.models import Index
-from hexa.plugins.connector_s3.models import (
-    Credentials,
-    Bucket,
-    BucketPermission,
-)
-from hexa.user_management.models import User, Team, Membership
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
+from hexa.user_management.models import Membership, Team, User
 
 
 class ConnectorS3Test(test.TestCase):

@@ -2,13 +2,7 @@ from django.templatetags.static import static
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.ui.datacard import (
-    Datacard,
-    Section,
-    TextProperty,
-    URLProperty,
-    DateProperty,
-)
+from hexa.ui.datacard import Datacard, DateProperty, Section, TextProperty, URLProperty
 
 
 class ClusterSection(Section):

@@ -2,14 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.html import format_html
 
-from .models import (
-    Cluster,
-    Credentials,
-    ClusterPermission,
-    DAG,
-    DAGConfig,
-    DAGRun,
-)
+from .models import DAG, Cluster, ClusterPermission, Credentials, DAGConfig, DAGRun
 
 
 @admin.register(Credentials)

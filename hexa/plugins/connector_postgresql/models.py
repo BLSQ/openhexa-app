@@ -4,25 +4,23 @@ from enum import Enum
 
 import psycopg2
 from django.contrib.contenttypes.fields import GenericRelation
-
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
-from psycopg2 import OperationalError
 from django.utils.translation import gettext_lazy as _
+from psycopg2 import OperationalError
 
 from hexa.catalog.models import (
-    Index,
-    IndexPermission,
     Datasource,
     DatasourceQuerySet,
     Entry,
+    Index,
+    IndexPermission,
 )
 from hexa.catalog.sync import DatasourceSyncResult
-
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
 

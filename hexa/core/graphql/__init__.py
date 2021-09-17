@@ -1,14 +1,15 @@
 from django.conf import settings
 from django.core.paginator import Paginator
+
 from .forms import (
-    GraphQLForm,
-    GraphQLChoiceField,
-    GraphQLMultipleChoiceField,
     EmptyValue,
+    GraphQLChoiceField,
+    GraphQLForm,
+    GraphQLMultipleChoiceField,
 )
 from .models import (
-    GraphQLModelForm,
     GraphQLModelChoiceField,
+    GraphQLModelForm,
     GraphQLModelMultipleChoiceField,
 )
 
