@@ -1,5 +1,7 @@
 from django.template.defaultfilters import pluralize
 from django.utils.translation import gettext_lazy as _
+
+from hexa.plugins.connector_airflow.models import DAGConfig
 from hexa.ui.datagrid import (
     Datagrid,
     LeadingColumn,
@@ -24,7 +26,7 @@ class DagGrid(Datagrid):
     last_state = TextColumn(text="last_run.state", label=_("Last state"))
     view = LinkColumn(text="View")
 
-    def get_icon(self, _):
+    def get_icon(self, _) -> str:
         return "ui/icons/terminal.html"
 
 
@@ -37,10 +39,10 @@ class DagConfigGrid(Datagrid):
 
     content = TextColumn(text="get_content")
 
-    def get_icon(self, _):
+    def get_icon(self, _) -> str:
         return "ui/icons/cog.html"
 
-    def get_content(self, config):
+    def get_content(self, config: DAGConfig) -> str:
         count = len(config.config_data)
 
         return (

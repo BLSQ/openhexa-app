@@ -1,14 +1,14 @@
+from dataclasses import dataclass
+from enum import Enum
+
 import json
 import uuid
-from dataclasses import dataclass
-
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from enum import Enum
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
@@ -20,6 +20,7 @@ from hexa.pipelines.models import (
     IndexPermission,
     Pipeline,
 )
+from hexa.user_management.models import User
 
 
 class ExternalType(Enum):
@@ -58,12 +59,12 @@ class Credentials(Base):
     )
 
     @property
-    def display_name(self):
+    def display_name(self) -> str:
         return self.service_account_email
 
 
 class ClusterQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -86,13 +87,13 @@ class Cluster(Environment):
 
     objects = ClusterQuerySet.as_manager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
     def get_permission_set(self):
         return self.clusterpermission_set.all()
 
-    def populate_index(self, index):  # TODO
+    def populate_index(self, index: Index) -> None:  # TODO
         index.external_name = self.name
         index.external_type = ExternalType.CLUSTER.value
         index.path = [self.id.hex]
@@ -100,14 +101,14 @@ class Cluster(Environment):
         index.content = self.content_summary
         index.search = f"{self.name}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "connector_airflow:cluster_detail",
             args=(self.id,),
         )
 
     @property
-    def content_summary(self):
+    def content_summary(self) -> str:
         count = self.dag_set.count()
 
         return (
@@ -124,15 +125,15 @@ class ClusterPermission(Permission):
     class Meta:
         unique_together = [("cluster", "team")]
 
-    def index_object(self):
-        self.cluster.index()
+    def index_object(self) -> None:
+        self.cluster.build_index()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
 
 
 class DAGQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -152,13 +153,13 @@ class DAG(Pipeline):
 
     objects = DAGQuerySet.as_manager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.dag_id
 
     def get_permission_set(self):
         return self.cluster.clusterpermission_set.all()
 
-    def populate_index(self, index):
+    def populate_index(self, index: Index):
         # index.external_name = self.name  # TODO
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
@@ -166,18 +167,14 @@ class DAG(Pipeline):
         index.content = self.content_summary
         # index.search = f"{self.name}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "connector_airflow:dag_detail",  # TODO
             args=(self.cluster.id, self.id),
         )
 
     @property
-    def last_run(self):
-        return DAGRun.objects.get_last_for_dag_and_config(dag=self)
-
-    @property
-    def content_summary(self):
+    def content_summary(self) -> str:
         count = self.dagconfig_set.count()
 
         return (
@@ -188,12 +185,12 @@ class DAG(Pipeline):
         )
 
     @property
-    def last_run(self):
+    def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
 
 class DAGConfigQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -215,8 +212,8 @@ class DAGConfig(Base):
     objects = DAGConfigQuerySet.as_manager()
 
     @property
-    def content_summary(self):
-        count = self.DAGRun_set.count()
+    def content_summary(self) -> str:
+        count = self.dagrun_set.count()
 
         return (
             ""
@@ -226,10 +223,10 @@ class DAGConfig(Base):
         )
 
     @property
-    def last_run(self):
+    def last_run(self) -> "DAGRun":
         return DAGRun.objects.get_last_for_dag_and_config(dag_config=self)
 
-    def run(self):
+    def run(self) -> "DAGRunResult":
         # TODO: move in API module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
@@ -246,7 +243,7 @@ class DAGConfig(Base):
         dag_config_run_id = str(uuid.uuid4())
         api_url = self.dag.cluster.api_url
         response = session.post(
-            f"{api_url.rstrip('/')}/dags/{self.dag.airflow_id}/dag_runs",
+            f"{api_url.rstrip('/')}/dags/{self.dag.dag_id}/dag_runs",
             data=json.dumps(
                 {
                     "conf": self.config_data,
@@ -282,14 +279,14 @@ class DAGRunResult:
     dag_config: DAGConfig
     # TODO: document and move in api module
 
-    def __str__(self):
+    def __str__(self) -> str:
         return _('The DAG config "%(name)s" has been run') % {
             "name": self.dag_config.display_name
         }
 
 
 class DAGRunQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
 
@@ -299,7 +296,9 @@ class DAGRunQuerySet(models.QuerySet):
             ]
         )
 
-    def get_last_for_dag_and_config(self, *, dag=None, dag_config=None):
+    def get_last_for_dag_and_config(
+        self, *, dag: DAG = None, dag_config: DAGConfig = None
+    ):
         qs = self.all()
         if dag is not None:
             qs = qs.filter(dag_config__dag=dag)
@@ -337,13 +336,13 @@ class DAGRun(Base, WithStatus):
 
     objects = DAGRunQuerySet.as_manager()
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "connector_airflow:dag_run_detail",
             args=(self.dag.cluster.id, self.dag.id, self.id),
         )
 
-    def refresh(self):
+    def refresh(self) -> None:
         # TODO: move in api module
         # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
         # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
@@ -359,7 +358,7 @@ class DAGRun(Base, WithStatus):
         api_url = self.dag_config.dag.cluster.api_url
         execution_date = self.execution_date.isoformat()
         response = session.get(
-            f"{api_url.rstrip('/')}/dags/{self.dag_config.dag.airflow_id}/dag_runs/{execution_date}",
+            f"{api_url.rstrip('/')}/dags/{self.dag_config.dag.dag_id}/dag_runs/{execution_date}",
             headers={
                 "Content-Type": "application/json",
                 "Cache-Control": "no-cache",

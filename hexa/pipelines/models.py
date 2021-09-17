@@ -1,9 +1,9 @@
 import uuid
-
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+
 from hexa.core.models import (
     RichContent,
     Permission,

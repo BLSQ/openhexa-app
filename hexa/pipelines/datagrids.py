@@ -1,5 +1,3 @@
-from django.utils.translation import gettext_lazy as _
-
 from hexa.pipelines.models import Index
 from hexa.ui.datagrid import (
     Datagrid,

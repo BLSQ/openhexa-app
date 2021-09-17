@@ -230,7 +230,7 @@ class BaseIndexPermission(models.Model):
 
 
 class BaseIndexableMixin:
-    def get_permission_model(self):
+    def get_permission_model(self) -> BaseIndexPermission:
         raise NotImplementedError
 
     def get_index_model(self):

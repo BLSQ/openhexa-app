@@ -1,20 +1,13 @@
 from django.templatetags.static import static
-from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Datacard,
     Section,
     TextProperty,
     URLProperty,
-    LocaleProperty,
     DateProperty,
-    TagProperty,
-    CountryProperty,
-    Action,
-    BooleanProperty,
 )
 
 
@@ -34,11 +27,11 @@ class ClusterCard(Datacard):
     metadata = OpenHexaMetaDataSection(value="index")
 
     @property
-    def generic_description(self):
+    def generic_description(self) -> str:
         return _("Airflow Cluster")
 
     @property
-    def _image_src(self):
+    def _image_src(self) -> str:
         return static("connector_airflow/img/symbol.svg")
 
 
@@ -58,11 +51,11 @@ class DagCard(Datacard):
     metadata = OpenHexaMetaDataSection(value="index")
 
     @property
-    def generic_description(self):
+    def generic_description(self) -> str:
         return _("Airflow DAG")
 
     @property
-    def _image_src(self):
+    def _image_src(self) -> str:
         return static("connector_airflow/img/symbol.svg")
 
 
@@ -84,9 +77,9 @@ class DagRunCard(Datacard):
     external = DagRunSection()
 
     @property
-    def generic_description(self):
+    def generic_description(self) -> str:
         return _("Airflow DAG run")
 
     @property
-    def _image_src(self):
+    def _image_src(self) -> str:
         return static("connector_airflow/img/symbol.svg")

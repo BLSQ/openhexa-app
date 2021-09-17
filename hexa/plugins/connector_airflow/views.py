@@ -1,4 +1,5 @@
-from django.contrib import messages
+import uuid
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.translation import ugettext_lazy as _
 
@@ -10,11 +11,10 @@ from hexa.plugins.connector_airflow.models import (
     DAG,
     DAGConfig,
     DAGRun,
-    DAGRunState,
 )
 
 
-def cluster_detail(request, cluster_id):
+def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user),
         pk=cluster_id,
@@ -47,7 +47,9 @@ def cluster_detail(request, cluster_id):
     )
 
 
-def dag_detail(request, cluster_id, dag_id):
+def dag_detail(
+    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
+) -> HttpResponse:
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user), pk=cluster_id
     )
@@ -84,7 +86,12 @@ def dag_detail(request, cluster_id, dag_id):
     )
 
 
-def dag_run_detail(request, cluster_id, dag_id, dag_run_id):
+def dag_run_detail(
+    request: HttpRequest,
+    cluster_id: uuid.UUID,
+    dag_id: uuid.UUID,
+    dag_run_id: uuid.UUID,
+) -> HttpResponse:
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user), pk=cluster_id
     )

@@ -5,7 +5,6 @@ from django.utils import timezone
 from unittest import skip
 
 from hexa.user_management.models import User, Team
-from hexa.catalog.models import IndexQuerySet
 from ..models import Instance, DataElement, Indicator, InstancePermission
 
 

@@ -1,3 +1,4 @@
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
@@ -6,7 +7,7 @@ from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
 
 
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
     ]
