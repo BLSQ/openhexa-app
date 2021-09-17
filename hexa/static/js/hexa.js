@@ -301,7 +301,7 @@ function TomSelectable(multiple = true) {
 }
 
 // TODO: should be placed in s3 app
-function S3Upload(getUploadUrl, syncUrl) {
+function S3Upload(getUploadUrl, syncUrl, prefix="") {
     return {
         refreshedHtml: null,
         uploading: false,
@@ -314,7 +314,7 @@ function S3Upload(getUploadUrl, syncUrl) {
             const fileName = uploadedFile.name;
 
             // Get presigned upload URL
-            const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${fileName}`, {
+            const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
                 method: this.$refs.form.method,
                 headers: {
                     'Content-Type': 'text/plain',

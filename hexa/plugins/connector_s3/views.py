@@ -84,12 +84,22 @@ def object_detail(request, bucket_id, path):
         page=int(request.GET.get("page", "1")),
     )
 
+    # TODO: duplicated with above block
+    sync_url = reverse(
+        "catalog:datasource_sync",
+        kwargs={
+            "datasource_id": bucket.id,
+            "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+        },
+    )
+
     return render(
         request,
         "connector_s3/object_detail.html",
         {
             "datasource": bucket,
             "object": s3_object,
+            "sync_url": sync_url,
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
             "datagrid": datagrid,
