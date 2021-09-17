@@ -9,7 +9,7 @@ from hexa.core.models import (
     Permission,
     Base,
 )
-from hexa.core.models.indexes import BaseIndex, BaseIndexPermission, BaseIndexableMixin
+from hexa.core.models import BaseIndex, BaseIndexPermission, BaseIndexableMixin
 
 
 class Index(BaseIndex):

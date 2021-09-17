@@ -15,7 +15,6 @@ from hexa.core.date_utils import date_format
 from hexa.core.models import Base, LocaleField, PostgresTextSearchConfigField
 from hexa.core.models.path import PathField
 from hexa.core.models.postgres import locale_to_text_search_config
-from hexa.user_management.models import User
 
 
 @Field.register_lookup
@@ -41,7 +40,7 @@ class TrigramWordSimilarity(TrigramBase):
 
 
 class BaseIndexQuerySet(TreeQuerySet):
-    def filter_for_user(self, user: User):
+    def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 
@@ -102,7 +101,7 @@ class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
     own queryset."""
 
-    def filter_for_user(self, user: User):
+    def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 

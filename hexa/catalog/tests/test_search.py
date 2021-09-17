@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.core.models.indexes import BaseIndexQuerySet
+from hexa.core.models import BaseIndexQuerySet
 from hexa.plugins.connector_dhis2.models import (
     Instance,
     InstancePermission,

@@ -10,7 +10,7 @@ from hexa.core.models import (
     Permission,
     RichContent,
 )
-from hexa.core.models.indexes import (
+from hexa.core.models import (
     BaseIndex,
     BaseIndexPermission,
     BaseIndexableMixin,

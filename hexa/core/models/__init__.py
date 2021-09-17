@@ -3,6 +3,11 @@ from .behaviors import WithStatus
 from .choices import DynamicTextChoices
 from .locale import LocaleField
 from .postgres import PostgresTextSearchConfigField
+from .indexes import (
+    BaseIndex,
+    BaseIndexPermission,
+    BaseIndexableMixin,
+)
 
 __all__ = [
     "Base",
@@ -12,4 +17,7 @@ __all__ = [
     "PostgresTextSearchConfigField",
     "RichContent",
     "WithStatus",
+    "BaseIndex",
+    "BaseIndexPermission",
+    "BaseIndexableMixin",
 ]
