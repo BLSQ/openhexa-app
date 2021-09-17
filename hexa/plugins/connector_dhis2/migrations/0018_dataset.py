@@ -5,6 +5,8 @@ import django.db.models.deletion
 import hexa.catalog.models
 import uuid
 
+import hexa.core.models
+
 
 class Migration(migrations.Migration):
 
@@ -54,6 +56,6 @@ class Migration(migrations.Migration):
                 "verbose_name": "DHIS2 Data Set",
                 "ordering": ("name",),
             },
-            bases=(hexa.catalog.models.WithIndex, models.Model),
+            bases=(hexa.catalog.models.IndexableMixin, models.Model),
         ),
     ]

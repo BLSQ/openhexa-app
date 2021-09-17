@@ -41,6 +41,7 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "first_name",
         "last_name",
+        "last_login",
         "is_staff",
         "is_superuser",
     )
@@ -127,10 +128,15 @@ class MembershipInline(admin.TabularInline):
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "members_count")
     inlines = [
         MembershipInline,
     ]
+
+    def members_count(self, obj):
+        return obj.members.count()
+
+    members_count.short_description = "Members Count"
 
 
 class FeatureFlagInline(admin.TabularInline):
