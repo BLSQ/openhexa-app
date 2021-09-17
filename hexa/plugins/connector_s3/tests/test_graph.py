@@ -122,7 +122,7 @@ class S3GraphTest(GraphQLTestCase):
             {"id": str(self.BUCKET.id)},
         )
 
-        self.assertEquals(
+        self.assertEqual(
             r["data"]["s3Bucket"]["objects"]["items"][0],
             {
                 "owner": {"name": "Bluesquare"},
@@ -202,7 +202,7 @@ class S3GraphTest(GraphQLTestCase):
             {"bucketS3Name": str(self.BUCKET.name), "page": 1},
         )
 
-        self.assertEquals(
+        self.assertEqual(
             r,
             {
                 "data": {

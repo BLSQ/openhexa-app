@@ -9,7 +9,7 @@ register = django_template.Library()
 
 def is_valid_embedded_node(node):
     if isinstance(node, TextNode):
-        return node.s.translate(({ord(c): None for c in string.whitespace})) == ""
+        return node.s.translate({ord(c): None for c in string.whitespace}) == ""
     elif isinstance(node, SlotNode):
         return True
 
@@ -138,7 +138,7 @@ def do_embed(parser, token):
             value = True
         else:
             raise TemplateSyntaxError(
-                "Unknown argument for %r tag: %r." % (bits[0], option)
+                f"Unknown argument for {bits[0]!r} tag: {option!r}."
             )
         options[option] = value
     isolated_context = options.get("only", False)

@@ -1,7 +1,7 @@
 from django import test
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from mock import patch
+from unittest.mock import patch
 
 from hexa.plugins.connector_postgresql.models import (
     Database,

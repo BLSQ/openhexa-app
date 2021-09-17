@@ -23,7 +23,7 @@ class ModelsTest(test.TestCase):
             "john123",
             field.from_db_value(
                 Fernet(settings.ENCRYPTION_KEY)
-                .encrypt("john123".encode("utf-8"))
+                .encrypt(b"john123")
                 .decode("utf-8"),
                 expression=None,
                 connection=connection,

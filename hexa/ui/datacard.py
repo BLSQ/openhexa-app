@@ -36,7 +36,7 @@ class DatacardOptions:
         self.title = title
         self.subtitle = subtitle
         self.image_src = image_src
-        self.actions: List[Action] = actions
+        self.actions: list[Action] = actions
 
 
 class DatacardMeta(BaseMeta):

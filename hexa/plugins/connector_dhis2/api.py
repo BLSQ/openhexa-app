@@ -30,7 +30,7 @@ class Dhis2Result:
     }
 
     # Mapping dhis2 field name -> (openhexa model, target field, dhis field name of model)
-    RELATIONS: List[Dhis2Relation] = []
+    RELATIONS: list[Dhis2Relation] = []
 
     def __init__(self, data):
         self._data = data
@@ -39,7 +39,7 @@ class Dhis2Result:
     def fields(self):
         return {**Dhis2Result.FIELD_SPECS, **self.FIELD_SPECS}
 
-    def get_relations(self) -> Dict[Dhis2Relation, List]:
+    def get_relations(self) -> dict[Dhis2Relation, list]:
         relations = {}
         for relation in self.RELATIONS:
             links = [

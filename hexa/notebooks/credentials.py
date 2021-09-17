@@ -11,8 +11,8 @@ class NotebooksCredentials:
 
     def __init__(self, user):
         self.user = user
-        self.env: Dict[str, str] = {}
-        self.files: Dict[str, bytes] = {}
+        self.env: dict[str, str] = {}
+        self.files: dict[str, bytes] = {}
 
     @property
     def authenticated(self):

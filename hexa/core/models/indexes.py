@@ -185,7 +185,7 @@ class BaseIndex(Base):
     def symbol(self) -> str:  # TODO: check
         return static(f"{self.app_label}/img/symbol.svg")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {  # TODO: adapt to new models
             "id": self.id,
             "rank": getattr(self, "rank"),

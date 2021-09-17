@@ -36,7 +36,7 @@ class ConnectorAppConfig(AppConfig):
 
     @classmethod
     def get_models_by_capability(cls, capability, filter_app=None):
-        models_by_app: Dict[AppConfig, List[ModelBase]] = {}
+        models_by_app: dict[AppConfig, list[ModelBase]] = {}
         for app in apps.get_app_configs():
             if filter_app and app.label != filter_app:
                 continue
