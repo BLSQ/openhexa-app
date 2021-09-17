@@ -1,14 +1,14 @@
 import json
 
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from .datagrids import DataElementGrid, IndicatorGrid, DatasetGrid
-from .datacards import InstanceCard, DataElementCard, IndicatorCard, DatasetCard
-from .models import Instance, Indicator, DataElement, Extract, DataSet
+from .datacards import DataElementCard, DatasetCard, IndicatorCard, InstanceCard
+from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid
+from .models import DataElement, DataSet, Extract, Indicator, Instance
 
 
 def instance_detail(request, instance_id):

@@ -22,9 +22,7 @@ class ModelsTest(test.TestCase):
         self.assertEqual(
             "john123",
             field.from_db_value(
-                Fernet(settings.ENCRYPTION_KEY)
-                .encrypt("john123".encode("utf-8"))
-                .decode("utf-8"),
+                Fernet(settings.ENCRYPTION_KEY).encrypt(b"john123").decode("utf-8"),
                 expression=None,
                 connection=connection,
             ),

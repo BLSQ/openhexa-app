@@ -1,15 +1,23 @@
-from .base import Base, RichContent, Permission
+from .base import Base, Permission, RichContent
 from .behaviors import WithStatus
 from .choices import DynamicTextChoices
-from .locale import LocaleField
+from .indexes import (
+    BaseIndex,
+    BaseIndexableMixin,
+    BaseIndexPermission,
+    BaseIndexQuerySet,
+)
 from .postgres import PostgresTextSearchConfigField
 
 __all__ = [
     "Base",
     "DynamicTextChoices",
-    "LocaleField",
     "Permission",
     "PostgresTextSearchConfigField",
     "RichContent",
     "WithStatus",
+    "BaseIndex",
+    "BaseIndexPermission",
+    "BaseIndexableMixin",
+    "BaseIndexQuerySet",
 ]

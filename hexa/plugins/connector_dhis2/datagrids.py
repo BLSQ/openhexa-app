@@ -1,12 +1,13 @@
 from django.utils.translation import gettext_lazy as _
+
 from hexa.plugins.connector_dhis2.models import DataElement, DomainType, Indicator
 from hexa.ui.datagrid import (
     Datagrid,
-    LeadingColumn,
-    TextColumn,
-    LinkColumn,
     DateColumn,
+    LeadingColumn,
+    LinkColumn,
     TagColumn,
+    TextColumn,
 )
 
 

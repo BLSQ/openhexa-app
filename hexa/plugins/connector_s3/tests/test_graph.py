@@ -1,12 +1,8 @@
 from unittest import skip
 
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_s3.models import (
-    Bucket,
-    BucketPermission,
-    Object,
-)
-from hexa.user_management.models import User, Team, Membership, Organization
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
+from hexa.user_management.models import Membership, Organization, Team, User
 
 
 class S3GraphTest(GraphQLTestCase):
@@ -122,7 +118,7 @@ class S3GraphTest(GraphQLTestCase):
             {"id": str(self.BUCKET.id)},
         )
 
-        self.assertEquals(
+        self.assertEqual(
             r["data"]["s3Bucket"]["objects"]["items"][0],
             {
                 "owner": {"name": "Bluesquare"},
@@ -202,7 +198,7 @@ class S3GraphTest(GraphQLTestCase):
             {"bucketS3Name": str(self.BUCKET.name), "page": 1},
         )
 
-        self.assertEquals(
+        self.assertEqual(
             r,
             {
                 "data": {

@@ -1,4 +1,5 @@
 import json
+import os
 
 import boto3
 from botocore.config import Config
@@ -6,14 +7,11 @@ from botocore.exceptions import ClientError
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.template.defaultfilters import pluralize
+from django.template.defaultfilters import filesizeformat, pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.template.defaultfilters import filesizeformat
-
 from s3fs import S3FileSystem
-import os
 
 from hexa.catalog.models import (
     Base,

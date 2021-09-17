@@ -1,6 +1,6 @@
 from django import test
 
-from hexa.user_management.models import User, Feature, FeatureFlag
+from hexa.user_management.models import Feature, FeatureFlag, User
 
 
 class ModelsTest(test.TestCase):

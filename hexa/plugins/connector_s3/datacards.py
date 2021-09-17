@@ -5,13 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_s3.models import Bucket, Object
-from hexa.ui.datacard import (
-    Datacard,
-    Section,
-    TextProperty,
-    Action,
-    CodeProperty,
-)
+from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProperty
 
 
 class BucketSection(Section):

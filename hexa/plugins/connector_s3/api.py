@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import boto3
 import json
 import typing
 
+import boto3
 import stringcase
 
-import hexa.user_management.models
 import hexa.plugins.connector_s3.models
+import hexa.user_management.models
 
 
 class S3ApiError(Exception):
@@ -35,11 +35,11 @@ def generate_presigned_upload_url(
 
 def generate_sts_buckets_credentials(
     *,
-    user: typing.Optional[hexa.user_management.models.User],
+    user: hexa.user_management.models.User | None,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
-) -> typing.Dict[str, str]:
+) -> dict[str, str]:
     """Generate temporary credentials for the provided buckets using the provided principal credentials"""
 
     if principal_credentials.role_arn == "":

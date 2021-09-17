@@ -1,16 +1,15 @@
 import dataclasses
+from unittest.mock import MagicMock, Mock
 
-from django import test, db
+from django import db, test
 from django.utils.translation import ugettext_lazy as _
-from unittest.mock import Mock, MagicMock
-
 
 from hexa.ui.datagrid import (
     Datagrid,
-    LeadingColumn,
-    TextColumn,
-    LinkColumn,
     DatagridOptions,
+    LeadingColumn,
+    LinkColumn,
+    TextColumn,
 )
 
 

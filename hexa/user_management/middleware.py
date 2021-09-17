@@ -1,6 +1,7 @@
+from functools import cache
+
 from django.shortcuts import redirect
 from django.urls import reverse
-from functools import cache
 
 
 def login_required_middleware(get_response):
@@ -28,7 +29,7 @@ def login_required_middleware(get_response):
 
         requires_auth = request.path not in anonymous_urls() and not matches_prefix
         if not request.user.is_authenticated and requires_auth:
-            return redirect("%s?next=%s" % (reverse("core:index"), request.path))
+            return redirect("{}?next={}".format(reverse("core:index"), request.path))
 
         return get_response(request)
 

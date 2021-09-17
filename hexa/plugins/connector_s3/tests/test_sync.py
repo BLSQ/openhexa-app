@@ -1,15 +1,11 @@
 from unittest.mock import MagicMock, patch
 
 import boto3
+from django import test
 from moto import mock_s3
 
-from django import test
-
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.plugins.connector_s3.models import (
-    Credentials,
-    Bucket,
-)
+from hexa.plugins.connector_s3.models import Bucket, Credentials
 
 
 class SyncTest(test.TestCase):

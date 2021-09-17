@@ -1,6 +1,7 @@
-from django.test import SimpleTestCase
-from django.template import Context, Template, Engine
 import pathlib
+
+from django.template import Context, Engine, Template
+from django.test import SimpleTestCase
 
 from hexa.core.string import remove_whitespace
 

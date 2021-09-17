@@ -1,13 +1,11 @@
+from unittest.mock import patch
+
 from django import test
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from mock import patch
 
-from hexa.plugins.connector_postgresql.models import (
-    Database,
-    DatasourceSyncResult,
-)
 from hexa.catalog.queue import datasource_sync_queue
+from hexa.plugins.connector_postgresql.models import Database, DatasourceSyncResult
 from hexa.user_management.models import User
 
 

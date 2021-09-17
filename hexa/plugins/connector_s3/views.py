@@ -1,12 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
-
 from .models import Bucket
 
 

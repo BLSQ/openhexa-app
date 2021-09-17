@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate, login
+from django.db import connection
 from django.http import HttpResponse, HttpResponseServerError
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.db import connection
 
 from hexa.catalog.models import Index
 from hexa.plugins.connector_s3.models import Object

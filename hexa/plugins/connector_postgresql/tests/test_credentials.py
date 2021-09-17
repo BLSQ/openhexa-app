@@ -1,11 +1,8 @@
 from django import test
 from django.urls import reverse
 
-from hexa.plugins.connector_postgresql.models import (
-    Database,
-    DatabasePermission,
-)
-from hexa.user_management.models import User, Team, Membership
+from hexa.plugins.connector_postgresql.models import Database, DatabasePermission
+from hexa.user_management.models import Membership, Team, User
 
 
 class CredentialsTest(test.TestCase):

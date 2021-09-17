@@ -1,9 +1,9 @@
 from django import test
 from django.core.exceptions import ObjectDoesNotExist
 
-from hexa.pipelines.models import PipelinesIndexType, PipelinesIndex
+from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import Cluster, ClusterPermission
-from hexa.user_management.models import Team, User, Membership
+from hexa.user_management.models import Membership, Team, User
 
 
 class ModelsTest(test.TestCase):
@@ -54,19 +54,14 @@ class ModelsTest(test.TestCase):
         cluster.save()
 
         # Expected index for super users
-        pipeline_index = PipelinesIndex.objects.filter_for_user(self.USER_SUPER).get(
-            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT.value,
+        pipeline_index = Index.objects.filter_for_user(self.USER_SUPER).get(
             object_id=cluster.id,
         )
-        self.assertEqual(
-            PipelinesIndexType.PIPELINES_ENVIRONMENT, pipeline_index.index_type
-        )
-        self.assertEqual("test_cluster", pipeline_index.name)
+        self.assertEqual("test_cluster", pipeline_index.external_name)
 
         # No permission, no index
         with self.assertRaises(ObjectDoesNotExist):
-            PipelinesIndex.objects.filter_for_user(self.USER_REGULAR).get(
-                index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT.value,
+            Index.objects.filter_for_user(self.USER_REGULAR).get(
                 object_id=cluster.id,
             )
 
@@ -74,11 +69,7 @@ class ModelsTest(test.TestCase):
         """When creating a cluster permission, the cluster should be re-indexed"""
 
         ClusterPermission.objects.create(cluster=self.CLUSTER, team=self.TEAM)
-        pipeline_index = PipelinesIndex.objects.filter_for_user(self.USER_REGULAR).get(
-            index_type=PipelinesIndexType.PIPELINES_ENVIRONMENT.value,
+        pipeline_index = Index.objects.filter_for_user(self.USER_REGULAR).get(
             object_id=self.CLUSTER.id,
         )
-        self.assertEqual(
-            PipelinesIndexType.PIPELINES_ENVIRONMENT, pipeline_index.index_type
-        )
-        self.assertEqual("test_cluster", pipeline_index.name)
+        self.assertEqual("test_cluster", pipeline_index.external_name)

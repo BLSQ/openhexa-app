@@ -24,7 +24,7 @@
                         {# Content #}
                         {% include "core/components/table/cell.html" with label=config.content_summary %}
                         {# Last run at #}
-                        {% include "core/components/table/cell.html" with label=config.last_run.airflow_execution_date|date_format|default:_("Never") %}
+                        {% include "core/components/table/cell.html" with label=config.last_run.execution_date|date_format|default:_("Never") %}
                         {# Last run state #}
                         {% include "core/components/table/cell_badge.html" with label=config.last_run.get_airflow_state_display|default:"None" color=config.last_run|status_color %}
                         {# Actions #}

@@ -1,10 +1,6 @@
 from django.contrib import admin
-from .models import (
-    Bucket,
-    Credentials,
-    Object,
-    BucketPermission,
-)
+
+from .models import Bucket, BucketPermission, Credentials, Object
 
 
 @admin.register(Credentials)
@@ -13,11 +9,20 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("username",)
 
 
+class PermissionInline(admin.StackedInline):
+    extra = 1
+    model = BucketPermission
+
+
 @admin.register(Bucket)
 class BucketAdmin(admin.ModelAdmin):
     list_display = ("name", "last_synced_at")
     list_filter = ("name",)
     search_fields = ("name",)
+
+    inlines = [
+        PermissionInline,
+    ]
 
 
 @admin.register(Object)

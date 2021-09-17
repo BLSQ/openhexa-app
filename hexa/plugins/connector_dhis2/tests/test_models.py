@@ -2,7 +2,8 @@ from django import test
 from django.utils import timezone
 
 from hexa.catalog.models import Index
-from ..models import Instance, DataElement
+
+from ..models import DataElement, Instance
 
 
 class ConnectorDhis2Test(test.TestCase):

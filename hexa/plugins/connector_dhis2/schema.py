@@ -1,10 +1,10 @@
-from ariadne import QueryType, ObjectType, MutationType
+from ariadne import MutationType, ObjectType, QueryType
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
-from hexa.plugins.connector_dhis2.models import Instance
 from hexa.core.resolvers import resolve_tags
+from hexa.plugins.connector_dhis2.models import Instance
 
 dhis2_type_defs = """
     extend type Query {

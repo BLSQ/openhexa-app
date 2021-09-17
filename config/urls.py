@@ -18,10 +18,14 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
-from django.conf import settings
+
+from hexa.plugins.app import get_connector_app_configs
 
 from .schema import schema
-from hexa.plugins.app import get_connector_app_configs
+
+admin.site.site_header = "OpenHexa Admin"
+admin.site.site_title = "OpenHexa Admin"
+admin.site.index_title = "Welcome to OpenHexa"
 
 # Core URLs
 urlpatterns = [

@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from hexa.catalog.models import Index, IndexPermission
 
 

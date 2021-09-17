@@ -36,4 +36,4 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     else:
         credentials.files[
             "~/.pgpass"
-        ] = "# This file is empty on purpose as you don't have access to a postgresql database".encode()
+        ] = b"# This file is empty on purpose as you don't have access to a postgresql database"

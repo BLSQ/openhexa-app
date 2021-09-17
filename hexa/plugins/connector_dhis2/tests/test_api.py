@@ -1,12 +1,13 @@
-from django import test
 from unittest import skip
 
+from django import test
+
 from ..api import (
-    Dhis2Client,
     DataElementResult,
-    IndicatorTypeResult,
-    IndicatorResult,
+    Dhis2Client,
     Dhis2Result,
+    IndicatorResult,
+    IndicatorTypeResult,
 )
 
 
