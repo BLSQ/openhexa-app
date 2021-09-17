@@ -7,6 +7,7 @@ from .indexes import (
     BaseIndex,
     BaseIndexPermission,
     BaseIndexableMixin,
+    BaseIndexQuerySet,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "BaseIndex",
     "BaseIndexPermission",
     "BaseIndexableMixin",
+    "BaseIndexQuerySet",
 ]
