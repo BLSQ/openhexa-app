@@ -1,5 +1,5 @@
 <svg
-        class="h-{{ h|default:5 }} w-{{ w|default:5 }} ml-{{ ml|default:0 }} mr-{{ mr|default:0 }}"
+        class="h-{{ h|default:5 }} w-{{ w|default:5 }} ml-{{ ml|default:0 }} mr-{{ mr|default:0 }}{% if spin == 'true' %} animate-spin{% endif %}"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

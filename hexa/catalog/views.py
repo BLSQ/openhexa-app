@@ -58,6 +58,7 @@ def search(request):
     )
 
 
+# TODO: post-only?
 def datasource_sync(request, datasource_contenttype, datasource_id):
     try:
         datasource_type = ContentType.objects.get_for_id(id=datasource_contenttype)

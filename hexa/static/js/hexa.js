@@ -300,12 +300,20 @@ function TomSelectable(multiple = true) {
     }
 }
 
-function S3Upload(getUploadUrl) {
+// TODO: should be placed in s3 app
+function S3Upload(getUploadUrl, syncUrl) {
     return {
-        async onChange(e) {
+        refreshedHtml: null,
+        uploading: false,
+        init($el) {
+            this.refreshedHtml = $el.innerHTML;
+        },
+        async onChange() {
+            this.uploading = true;
             const uploadedFile = this.$refs.input.files[0];
-            console.log(uploadedFile);
             const fileName = uploadedFile.name;
+
+            // Get presigned upload URL
             const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${fileName}`, {
                 method: this.$refs.form.method,
                 headers: {
@@ -317,11 +325,12 @@ function S3Upload(getUploadUrl) {
                 },
             });
             if (signedUrlResponse.status !== 201) {
-                console.error("Error when generating presigned URL");
+                console.error(`Error when generating presigned URL (code: ${signedUrlResponse.status})`);
                 return;
             }
             const preSignedUrl = await signedUrlResponse.text();
 
+            // Upload file
             const uploadResponse = await fetch(preSignedUrl, {
                 method: "PUT",
                 headers: {
@@ -329,9 +338,24 @@ function S3Upload(getUploadUrl) {
                 },
                 body: uploadedFile
             });
-            console.log(uploadResponse);
-            const body = await uploadResponse.text();
-            console.log(body)
+            if (uploadResponse.status !== 200) {
+                console.error(`Error when uploading file to S3 (code: ${uploadResponse.status})`);
+                return;
+            }
+
+            // Sync & refresh section
+            const refreshedResponse = await fetch(syncUrl, {
+                method: "GET",
+            });
+            if (refreshedResponse.status !== 200) {
+                console.error(`Error when refreshing after sync (code: ${refreshedResponse.status})`);
+                return;
+            }
+            const frag = document.createElement("div");
+            frag.innerHTML = await refreshedResponse.text();
+            const swap = frag.querySelector("[x-swap=objects_section]");
+            this.refreshedHtml = swap.innerHTML;
+            this.uploading = false;
         }
     }
 }

@@ -1,5 +1,7 @@
+from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from .datacards import BucketCard, ObjectCard
@@ -27,11 +29,24 @@ def datasource_detail(request, datasource_id):
         page=int(request.GET.get("page", "1")),
     )
 
+    # TODO: discuss
+    # Shouldn't we place that on datasource / entry models? Or at least a helper function
+    # alternative: sync by index_id? weird but practical
+    # alternative2: upload as template tag
+    sync_url = reverse(
+        "catalog:datasource_sync",
+        kwargs={
+            "datasource_id": bucket.id,
+            "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+        },
+    )
+
     return render(
         request,
         "connector_s3/datasource_detail.html",
         {
             "datasource": bucket,
+            "sync_url": sync_url,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
             "datagrid": datagrid,
