@@ -84,7 +84,7 @@ class DatabaseCard(Datacard):
             "catalog:datasource_sync",
             kwargs={
                 "datasource_id": database.id,
-                "datasource_contenttype": ContentType.objects.get_for_model(
+                "datasource_contenttype_id": ContentType.objects.get_for_model(
                     Database
                 ).id,
             },

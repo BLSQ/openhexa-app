@@ -87,7 +87,9 @@ class BucketCard(Datacard):
             "catalog:datasource_sync",
             kwargs={
                 "datasource_id": bucket.id,
-                "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+                "datasource_contenttype_id": ContentType.objects.get_for_model(
+                    Bucket
+                ).id,
             },
         )
 

@@ -1,4 +1,7 @@
+import uuid
+
 from django.contrib import messages
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -8,7 +11,7 @@ from .datagrids import TableGrid
 from .models import Database
 
 
-def datasource_detail(request, datasource_id):
+def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     datasource = get_object_or_404(
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )
@@ -47,7 +50,7 @@ def datasource_detail(request, datasource_id):
     )
 
 
-def table_list(request, datasource_id):
+def table_list(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     datasource = get_object_or_404(
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )
@@ -86,7 +89,9 @@ def table_list(request, datasource_id):
     )
 
 
-def table_detail(request, datasource_id, table_id):
+def table_detail(
+    request: HttpRequest, datasource_id: uuid.UUID, table_id: uuid.UUID
+) -> HttpResponse:
     datasource = get_object_or_404(
         Database.objects.filter_for_user(request.user), pk=datasource_id
     )

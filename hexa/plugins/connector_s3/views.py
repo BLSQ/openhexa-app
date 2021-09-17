@@ -1,12 +1,15 @@
+import uuid
+
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
-from .models import Bucket
+from .models import Bucket, Object
 
 
-def datasource_detail(request, datasource_id):
+def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
@@ -37,7 +40,9 @@ def datasource_detail(request, datasource_id):
     )
 
 
-def object_detail(request, bucket_id, path):
+def object_detail(
+    request: HttpRequest, bucket_id: uuid.UUID, path: str
+) -> HttpResponse:
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
@@ -80,7 +85,9 @@ def object_detail(request, bucket_id, path):
     )
 
 
-def object_download(request, bucket_id, path):
+def object_download(
+    request: HttpRequest, bucket_id: uuid.UUID, path: str
+) -> HttpResponse:
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
