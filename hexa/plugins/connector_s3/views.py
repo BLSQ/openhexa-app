@@ -106,6 +106,7 @@ def object_detail(request, bucket_id, path):
     )
 
 
+# TODO: (for both functions): in api.py
 def object_download(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id

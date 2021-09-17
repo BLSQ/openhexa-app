@@ -14,25 +14,6 @@ class S3ApiError(Exception):
     pass
 
 
-def generate_presigned_upload_url(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
-):
-    if principal_credentials.role_arn == "":
-        raise S3ApiError(
-            f'Credentials "{principal_credentials.display_name}" have not role ARN'
-        )
-
-    client = boto3.client(
-        "sts",
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
-    )
-
-    return client.generate_presigned_post(bucket.name, "plop.txt", ExpiresIn=3600)
-
-
 def generate_sts_buckets_credentials(
     *,
     user: hexa.user_management.models.User | None,
