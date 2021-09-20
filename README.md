@@ -30,7 +30,7 @@ This repository contains the code for the **App component**, which serves as the
 stack.
 
 The code related to the Notebooks component can be found in the
-[`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the Data Pipelines component 
+[`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the Data Pipelines component
 code resides in the [`openhexa-pipelines`](https://github.com/blsq/openhexa-pipelines) repository.
 
 App component overview
@@ -46,15 +46,15 @@ The **App component** is the main point of entry to the OpenHexa platform. It pr
 - An advanced search engine
 - A dashboard
 
-Additionally, it acts as a frontend for the **Notebooks** component (which is embedded in the app component as an 
+Additionally, it acts as a frontend for the **Notebooks** component (which is embedded in the app component as an
 iframe) and for the **Data pipelines** component.
 
-OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets, 
+OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets,
 DHIS2 instances, PostgreSQL databases...
 
 **Data stores** in OpenHexa can be categorized under three different categories:
 
-1. **Primary Data Sources**: those data sources are external to the platform. They are **read-only**: OpenHexa will 
+1. **Primary Data Sources**: those data sources are external to the platform. They are **read-only**: OpenHexa will
    never alter the data residing in primary data sources. Users can schedule data extracts in **data lakes**
    or **data warehouses** to work on the extracted data.
 1. **Data Lakes**: those data stores are buckets of flat files of various formats (CSV, GPKG, Jupyter
@@ -114,8 +114,7 @@ docker-compose run app coverage
 
 ### Code style
 
-Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort),
-[`pyupgrade`](https://github.com/asottile/pyupgrade) and [`autoflake`](https://github.com/myint/autoflake).
+Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) and [`autoflake`](https://github.com/myint/autoflake).
 We currently target the Python 3.9 syntax.
 
 We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is
