@@ -1,6 +1,9 @@
 import json
+import uuid
+from typing import Tuple
 
 from django.contrib import messages
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -11,7 +14,7 @@ from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid
 from .models import DataElement, DataSet, Extract, Indicator, Instance
 
 
-def instance_detail(request, instance_id):
+def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -64,7 +67,7 @@ def instance_detail(request, instance_id):
     )
 
 
-def data_element_list(request, instance_id):
+def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -99,7 +102,9 @@ def data_element_list(request, instance_id):
     )
 
 
-def data_element_detail(request, instance_id, data_element_id):
+def data_element_detail(
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> HttpResponse:
     instance, data_element = _get_instance_and_data_element(
         request, instance_id, data_element_id
     )
@@ -132,8 +137,8 @@ def data_element_detail(request, instance_id, data_element_id):
 
 
 def data_element_extract(
-    request, instance_id, data_element_id
-):  # TODO: should be post + DRY indicators
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> HttpResponse:  # TODO: should be post + DRY indicators
     instance, data_element = _get_instance_and_data_element(
         request, instance_id, data_element_id
     )
@@ -147,7 +152,7 @@ def data_element_extract(
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def indicator_list(request, instance_id):
+def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -182,7 +187,9 @@ def indicator_list(request, instance_id):
     )
 
 
-def indicator_detail(request, instance_id, indicator_id):
+def indicator_detail(
+    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
+) -> HttpResponse:
     instance, indicator = _get_instance_and_indicator(
         request, instance_id, indicator_id
     )
@@ -210,8 +217,8 @@ def indicator_detail(request, instance_id, indicator_id):
 
 
 def indicator_extract(
-    request, instance_id, indicator_id
-):  # TODO: should be post + DRY data elements
+    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
+) -> HttpResponse:  # TODO: should be post + DRY data elements
     instance, indicator = _get_instance_and_indicator(
         request, instance_id, indicator_id
     )
@@ -225,7 +232,7 @@ def indicator_extract(
     return redirect(request.META.get("HTTP_REFERER"))
 
 
-def extract_detail(request, extract_id):
+def extract_detail(request: HttpRequest, extract_id: uuid.UUID) -> HttpResponse:
     extract = get_object_or_404(
         Extract.objects.filter_for_user(request.user), id=extract_id
     )
@@ -245,7 +252,7 @@ def extract_detail(request, extract_id):
     )
 
 
-def extract_delete(request, extract_id):
+def extract_delete(request: HttpRequest, extract_id: uuid.UUID) -> HttpResponse:
     extract = get_object_or_404(
         Extract.objects.filter_for_user(request.user), id=extract_id
     )
@@ -256,7 +263,7 @@ def extract_delete(request, extract_id):
     return redirect(reverse("catalog:index"))
 
 
-def _get_current_extract(request):
+def _get_current_extract(request: HttpRequest) -> Extract:
     current_extract = None
     if request.session.get("connector_dhis2_current_extract") is not None:
         try:
@@ -273,7 +280,9 @@ def _get_current_extract(request):
     return current_extract
 
 
-def _get_instance_and_data_element(request, instance_id, data_element_id):
+def _get_instance_and_data_element(
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> tuple[Instance, DataElement]:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -283,7 +292,9 @@ def _get_instance_and_data_element(request, instance_id, data_element_id):
     )
 
 
-def _get_instance_and_dataset(request, instance_id, dataset_id):
+def _get_instance_and_dataset(
+    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
+) -> tuple[Instance, DataSet]:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -293,7 +304,9 @@ def _get_instance_and_dataset(request, instance_id, dataset_id):
     )
 
 
-def _get_instance_and_indicator(request, instance_id, indicator_id):
+def _get_instance_and_indicator(
+    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
+) -> tuple[Instance, Indicator]:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -303,7 +316,7 @@ def _get_instance_and_indicator(request, instance_id, indicator_id):
     )
 
 
-def dataset_list(request, instance_id):
+def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
@@ -338,7 +351,9 @@ def dataset_list(request, instance_id):
     )
 
 
-def dataset_detail(request, instance_id, dataset_id):
+def dataset_detail(
+    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
+) -> HttpResponse:
     instance, dataset = _get_instance_and_dataset(request, instance_id, dataset_id)
     dataset_card = DatasetCard(dataset, request=request)
     if request.method == "POST" and dataset_card.save():
