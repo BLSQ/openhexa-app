@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -38,7 +39,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         "catalog:datasource_sync",
         kwargs={
             "datasource_id": bucket.id,
-            "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+            "datasource_contenttype_id": ContentType.objects.get_for_model(Bucket).id,
         },
     )
 

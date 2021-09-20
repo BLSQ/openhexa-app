@@ -77,7 +77,7 @@ def _build_s3_client(
     *,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     bucket: hexa.plugins.connector_s3.models.Bucket,
-    user: hexa.user_management.models.User | None = None,
+    user: typing.Optional[hexa.user_management.models.User] = None,
 ):
     sts_credentials = generate_sts_buckets_credentials(
         user=user,
