@@ -121,5 +121,7 @@ We use a [pre-commit](https://pre-commit.com/) hook to lint the code before comm
 installed, and run `pre-commit install` the first time you check out the code. Linting will again be checked
 when submitting a pull request.
 
+You can run the lint tools manually using `pre-commit run --all`.
+
 OpenHexa uses [TailwindUI](https://tailwindui.com/), [TailwindCSS](https://tailwindcss.com/)
 and [Heroicons](https://heroicons.com/) for the user interface.

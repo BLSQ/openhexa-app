@@ -1,6 +1,5 @@
 import os
 
-from botocore.exceptions import ClientError
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import filesizeformat, pluralize
@@ -13,7 +12,11 @@ from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials, head_bucket
+from hexa.plugins.connector_s3.api import (
+    S3ApiError,
+    generate_sts_buckets_credentials,
+    head_bucket,
+)
 
 
 class Credentials(Base):
@@ -74,8 +77,8 @@ class Bucket(Datasource):
 
     def clean(self):
         try:
-            head_bucket(self.principal_credentials, self)
-        except ClientError as e:
+            head_bucket(principal_credentials=self.principal_credentials, bucket=self)
+        except S3ApiError as e:
             raise ValidationError(e)
 
     def sync(self):  # TODO: move in api/sync module
@@ -146,9 +149,12 @@ class Bucket(Datasource):
         for s3_obj in s3_objects:
             if s3_obj["type"] == "directory":
                 s3_key = s3_obj["true_key"]
-                db_obj = existing_directories_by_key.get(s3_key)
-                if db_obj:
+                existing = existing_directories_by_key.get(s3_key)
+                if existing:
                     identical_count += 1
+                    if existing.orphan:
+                        existing.orphan = False
+                        existing.save()
                     del existing_directories_by_key[s3_key]
                 else:  # Not in the DB yet
                     Object.create_from_object_data(self, s3_obj)
@@ -185,13 +191,22 @@ class Bucket(Datasource):
                 continue
 
             if key in existing_by_key:
+                existing = existing_by_key[key]
+                if existing.orphan:
+                    existing.orphan = False
+                    dirty = True
+                else:
+                    dirty = False
                 if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
                     existing_by_key[key].save()
                 else:
                     existing_by_key[key].update_metadata(object_data)
-                    existing_by_key[key].save()
+                    dirty = True
                     updated_count += 1
+
+                if dirty:
+                    existing.save()
                 del existing_by_key[key]
             else:
                 created[key] = Object.create_from_object_data(self, object_data)
