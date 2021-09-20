@@ -101,3 +101,26 @@ class AsyncRefreshTest(test.TestCase):
         )
         response = self.client.post(url, HTTP_REFERER="/", follow=True)
         assert response.status_code == 404
+
+    @test.override_settings(DATASOURCE_ASYNC_REFRESH=True)
+    def test_synchronous_refresh(self):
+        self.client.force_login(self.SUPER_USER)
+        synced = False
+
+        def mock_sync(datasource):
+            nonlocal synced
+            synced = True
+            return DatasourceSyncResult(datasource=datasource)
+
+        with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
+            url = reverse(
+                "catalog:datasource_sync",
+                args=[
+                    ContentType.objects.get_for_model(Database).id,
+                    self.DATABASE_1.id,
+                ],
+            )
+            response = self.client.post(f"{url}?synchronous", follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(synced)
