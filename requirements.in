@@ -1,7 +1,6 @@
 ariadne
 boto3
 colorhash
-coverage
 cryptography
 Django
 django-cors-headers
@@ -33,3 +32,6 @@ google-auth
 
 # meta
 pip-tools
+
+# development
+coverage[toml]
