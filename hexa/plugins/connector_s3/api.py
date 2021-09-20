@@ -16,7 +16,7 @@ class S3ApiError(Exception):
 
 def generate_sts_buckets_credentials(
     *,
-    user: hexa.user_management.models.User | None,
+    user: typing.Optional[hexa.user_management.models.User],
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
