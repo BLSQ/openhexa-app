@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
 from hexa.comments.models import Comment
@@ -11,7 +11,7 @@ class CommentForm(ModelForm):
         fields = ["text", "index"]
 
 
-def comments(request):
+def comments(request: HttpRequest) -> HttpResponse:
     form = CommentForm(request.POST, instance=Comment(user=request.user))
     if form.is_valid():
         comment = form.save()

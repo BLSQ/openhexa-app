@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login
 from django.db import connection
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpRequest, HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -9,7 +9,7 @@ from hexa.catalog.models import Index
 from hexa.plugins.connector_s3.models import Object
 
 
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         return redirect(reverse("core:dashboard"))
 
@@ -32,7 +32,7 @@ def index(request):
     return render(request, "core/index.html", {"errors": errors, "next_url": next_url})
 
 
-def dashboard(request):
+def dashboard(request: HttpRequest) -> HttpResponse:
     breadcrumbs = [(_("Dashboard"), "core:dashboard")]
     accessible_datasources = Index.objects.filter_for_user(request.user).roots()
 
@@ -54,7 +54,7 @@ def dashboard(request):
     )
 
 
-def ready(request):
+def ready(request: HttpRequest) -> HttpResponse:
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1;")
