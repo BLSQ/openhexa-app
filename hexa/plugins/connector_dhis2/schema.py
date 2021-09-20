@@ -56,7 +56,7 @@ instance = ObjectType("Dhis2Instance")
 @instance.field("icon")
 def resolve_icon(obj: Instance, info):
     request: HttpRequest = info.context["request"]
-    return request.build_absolute_uri(static(f"connector_dhis2/img/symbol.svg"))
+    return request.build_absolute_uri(static("connector_dhis2/img/symbol.svg"))
 
 
 instance.set_field("tags", resolve_tags)

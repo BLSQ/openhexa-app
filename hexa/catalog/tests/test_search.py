@@ -156,7 +156,7 @@ class SearchTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(0, len(response.json()["results"]))
 
-    def test_catalog_quick_search_200(self):
+    def test_catalog_quick_search_200_kristen(self):
         """As a superuser, Kristen can search for content."""
 
         self.client.force_login(self.USER_KRISTEN)

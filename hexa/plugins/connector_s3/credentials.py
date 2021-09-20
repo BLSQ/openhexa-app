@@ -26,18 +26,18 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
         credentials.update_env(
             {
-                f"HEXA_FEATURE_FLAG_S3FS": "true"
+                "HEXA_FEATURE_FLAG_S3FS": "true"
                 if credentials.user.has_feature_flag("s3fs")
                 else "false",
-                f"AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
-                f"AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
-                f"AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
-                f"AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+                "AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
+                "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
+                "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
+                "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
             }
         )
         if principal_s3_credentials.default_region != "":
             credentials.update_env(
                 {
-                    f"AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                    "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
                 }
             )
