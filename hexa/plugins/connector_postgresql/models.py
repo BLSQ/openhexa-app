@@ -1,10 +1,6 @@
-import json
-import uuid
 from enum import Enum
 
 import psycopg2
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -13,13 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError
 
-from hexa.catalog.models import (
-    Datasource,
-    DatasourceQuerySet,
-    Entry,
-    Index,
-    IndexPermission,
-)
+from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField

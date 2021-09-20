@@ -1,18 +1,10 @@
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
 
-from hexa.core.models import (
-    Base,
-    BaseIndex,
-    BaseIndexableMixin,
-    BaseIndexPermission,
-    Permission,
-    RichContent,
-)
+from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 
 
 class Index(BaseIndex):

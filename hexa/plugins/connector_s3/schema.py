@@ -169,7 +169,7 @@ bucket.set_alias("s3Name", "name")
 @bucket.field("icon")
 def resolve_icon(obj: Bucket, info):
     request: HttpRequest = info.context["request"]
-    return request.build_absolute_uri(static(f"connector_s3/img/symbol.svg"))
+    return request.build_absolute_uri(static("connector_s3/img/symbol.svg"))
 
 
 @bucket.field("contentType")

@@ -3,7 +3,6 @@ import uuid
 from dataclasses import dataclass
 from enum import Enum
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -12,9 +11,9 @@ from django.utils.translation import gettext_lazy as _
 from google.auth.transport.requests import AuthorizedSession
 from google.oauth2 import service_account
 
-from hexa.core.models import Base, Permission, RichContent, WithStatus
+from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import Environment, Index, IndexPermission, Pipeline
+from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.user_management.models import User
 
 

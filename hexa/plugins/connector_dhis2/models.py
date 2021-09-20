@@ -1,8 +1,5 @@
-from abc import ABC
-
 from dhis2 import RequestException
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -10,14 +7,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import (
-    Datasource,
-    DatasourceQuerySet,
-    Entry,
-    Index,
-    IndexPermission,
-)
-from hexa.core.models import Base, Permission, RichContent
+from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
+from hexa.core.models import Base, Permission
 from hexa.core.models.locale import LocaleField
 
 from ...catalog.sync import DatasourceSyncResult

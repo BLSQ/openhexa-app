@@ -1,6 +1,5 @@
 from django import test
 from django.db.models import QuerySet
-from django.http import JsonResponse
 from django.urls import reverse
 
 from hexa.user_management.models import User

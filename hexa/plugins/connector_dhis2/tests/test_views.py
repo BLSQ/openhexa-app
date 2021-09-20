@@ -1,7 +1,6 @@
 from unittest import skip
 
 from django import test
-from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 

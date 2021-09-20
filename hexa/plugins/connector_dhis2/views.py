@@ -1,13 +1,10 @@
-import json
 import uuid
-from typing import Tuple
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from .datacards import DataElementCard, DatasetCard, IndicatorCard, InstanceCard
 from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid

@@ -1,7 +1,6 @@
 import stringcase
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 
 from hexa.catalog.sync import DatasourceSyncResult
 

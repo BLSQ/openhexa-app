@@ -1,10 +1,6 @@
-import json
 import os
 
-import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import filesizeformat, pluralize
@@ -13,16 +9,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
-from hexa.catalog.models import (
-    Base,
-    Datasource,
-    DatasourceQuerySet,
-    Entry,
-    Index,
-    IndexPermission,
-)
+from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Permission
+from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials, head_bucket
 

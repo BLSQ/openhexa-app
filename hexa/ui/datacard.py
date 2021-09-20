@@ -1,5 +1,3 @@
-from typing import List
-
 from django import forms
 from django.contrib import messages
 from django.template import loader

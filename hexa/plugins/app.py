@@ -1,5 +1,4 @@
 from importlib import import_module
-from typing import Dict, List
 
 from django.apps import AppConfig, apps
 from django.db.models.base import ModelBase
