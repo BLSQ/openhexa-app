@@ -6,7 +6,7 @@ from hexa.plugins.connector_s3.api import generate_download_url, generate_upload
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
 
 
-class SyncTest(test.TestCase):
+class ApiTest(test.TestCase):
     bucket_name = "test-bucket"
 
     def setUp(self):
