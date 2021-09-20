@@ -8,13 +8,13 @@
     {% if object.type == 'directory' %}
         {% embed "ui/section/section.html" with title=_("Objects") %}
             {% slot extra_wrapper_attrs %}
-                x-data="S3Upload('{% url "connector_s3:object_upload" datasource.id %}', '{{ sync_url }}', '{{ object.key }}')"
+                x-data="S3Upload('{% url "connector_s3:object_upload" datasource.id %}', '{{ sync_url }}?synchronous', '{{ object.key }}')"
                 x-init="init($el)"
                 x-swap="objects_section"
                 x-html="refreshedHtml"
             {% endslot %}
             {% slot actions %}
-                {% include "connector_s3/components/upload.html" with bucket=datasource sync_url=sync_url %}
+                {% include "connector_s3/components/upload.html" with bucket=datasource %}
             {% endslot %}
             {% slot content %}
                 {{ datagrid }}
