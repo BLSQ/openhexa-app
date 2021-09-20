@@ -6,6 +6,7 @@ import typing
 import boto3
 import stringcase
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 import hexa.plugins.connector_s3.models
 import hexa.user_management.models
@@ -104,7 +105,10 @@ def head_bucket(
         principal_credentials=principal_credentials, bucket=bucket
     )
 
-    return s3_client.head_bucket(bucket.name)
+    try:
+        return s3_client.head_bucket(Bucket=bucket.name)
+    except ClientError as e:
+        raise S3ApiError(e)
 
 
 def generate_download_url(
