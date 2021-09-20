@@ -5,6 +5,7 @@ import typing
 
 import boto3
 import stringcase
+from botocore.config import Config
 
 import hexa.plugins.connector_s3.models
 import hexa.user_management.models
@@ -16,7 +17,7 @@ class S3ApiError(Exception):
 
 def generate_sts_buckets_credentials(
     *,
-    user: hexa.user_management.models.User | None,
+    user: hexa.user_management.models.User | None = None,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
@@ -70,3 +71,71 @@ def generate_sts_buckets_credentials(
         )
 
     return response["Credentials"]
+
+
+def _build_s3_client(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+    user: hexa.user_management.models.User | None = None,
+):
+    sts_credentials = generate_sts_buckets_credentials(
+        user=user,
+        principal_credentials=principal_credentials,
+        buckets=[bucket],
+        duration=900,
+    )
+    return boto3.client(
+        "s3",
+        principal_credentials.default_region,
+        aws_access_key_id=sts_credentials["AccessKeyId"],
+        aws_secret_access_key=sts_credentials["SecretAccessKey"],
+        aws_session_token=sts_credentials["SessionToken"],
+        config=Config(signature_version="s3v4"),
+    )
+
+
+def head_bucket(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+):
+    s3_client = _build_s3_client(
+        principal_credentials=principal_credentials, bucket=bucket
+    )
+
+    return s3_client.head_bucket(bucket.name)
+
+
+def generate_download_url(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+    target_object: hexa.plugins.connector_s3.models.Object,
+):
+    s3_client = _build_s3_client(
+        principal_credentials=principal_credentials, bucket=bucket
+    )
+
+    return s3_client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": bucket.name, "Key": target_object.key},
+        ExpiresIn=60 * 10,
+    )
+
+
+def generate_upload_url(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+    target_key: str,
+):
+    s3_client = _build_s3_client(
+        principal_credentials=principal_credentials, bucket=bucket
+    )
+
+    return s3_client.generate_presigned_url(
+        "put_object",
+        Params={"Bucket": bucket.name, "Key": target_key},
+        ExpiresIn=60 * 60,
+    )

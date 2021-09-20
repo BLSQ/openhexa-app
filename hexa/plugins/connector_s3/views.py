@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket
@@ -106,32 +107,29 @@ def object_detail(request, bucket_id, path):
     )
 
 
-# TODO: (for both functions): in api.py
 def object_download(request, bucket_id, path):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    s3_object = get_object_or_404(bucket.object_set.all(), key=path)
+    target_object = get_object_or_404(bucket.object_set.all(), key=path)
 
-    response = bucket.get_boto_client().generate_presigned_url(
-        "get_object",
-        Params={"Bucket": s3_object.bucket.name, "Key": s3_object.key},
-        ExpiresIn=60 * 10,
+    download_url = generate_download_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_object=target_object,
     )
 
-    return redirect(response)
+    return redirect(download_url)
 
 
 def object_upload(request, bucket_id):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    object_key = request.GET["object_key"]
-
-    response = bucket.get_boto_client().generate_presigned_url(
-        "put_object",
-        Params={"Bucket": bucket.name, "Key": object_key},
-        ExpiresIn=60 * 10,
+    upload_url = generate_upload_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_key=request.GET["object_key"],
     )
 
-    return HttpResponse(response, status=201)
+    return HttpResponse(upload_url, status=201)

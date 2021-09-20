@@ -24,7 +24,7 @@ from hexa.catalog.models import (
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials
+from hexa.plugins.connector_s3.api import generate_sts_buckets_credentials, head_bucket
 
 
 class Credentials(Base):
@@ -74,48 +74,27 @@ class Bucket(Datasource):
 
     objects = BucketQuerySet.as_manager()
 
-    def get_boto_client(self):
+    @property
+    def principal_credentials(self):
         try:
-            principal_s3_credentials = Credentials.objects.get()
+            return Credentials.objects.get()
         except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
             raise ValidationError(
-                "Ensure the S3 connector plugin first has a single credentials entry"
+                "The S3 connector plugin should be configured with a single Credentials entry"
             )
-
-        sts_credentials = generate_sts_buckets_credentials(
-            user=None,
-            principal_credentials=principal_s3_credentials,
-            buckets=[self],
-            duration=900,
-        )
-        return boto3.client(
-            "s3",
-            principal_s3_credentials.default_region,
-            aws_access_key_id=sts_credentials["AccessKeyId"],
-            aws_secret_access_key=sts_credentials["SecretAccessKey"],
-            aws_session_token=sts_credentials["SessionToken"],
-            config=Config(signature_version="s3v4"),
-        )
 
     def clean(self):
         try:
-            self.get_boto_client().head_bucket(Bucket=self.name)
+            head_bucket(self.principal_credentials, self)
         except ClientError as e:
             raise ValidationError(e)
 
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
-        try:
-            principal_s3_credentials = Credentials.objects.get()
-        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
-            raise ValueError(
-                "Your s3 connector plugin should have a single credentials entry"
-            )
-
         sts_credentials = generate_sts_buckets_credentials(
             user=None,
-            principal_credentials=principal_s3_credentials,
+            principal_credentials=self.principal_credentials,
             buckets=[self],
         )
         fs = S3FileSystem(
