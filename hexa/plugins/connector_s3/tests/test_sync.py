@@ -1,77 +1,53 @@
-from unittest.mock import MagicMock, patch
-
 import boto3
 from django import test
-from moto import mock_s3
+from moto import mock_s3, mock_sts
 
+from hexa.catalog.sync import DatasourceSyncResult
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 
 
 class SyncTest(test.TestCase):
-
-    bucket_name = "test-bucket"
-
-    def setUp(self):
-        #
-        self.s3_mock = mock_s3()
-        self.s3_mock.start()
-
-        self.generate_sts_buckets_credentials = MagicMock()
-        self.generate_sts_buckets_credentials.return_value = {
-            "AccessKeyId": "testing",
-            "SecretAccessKey": "testing",
-            "SessionToken": "testing",
-        }
-
-        self.patcher = patch(
-            "hexa.plugins.connector_s3.models.generate_sts_buckets_credentials",
-            self.generate_sts_buckets_credentials,
+    @classmethod
+    def setUpTestData(cls):
+        cls.credentials = Credentials.objects.create(
+            username="test-username",
+            role_arn="test-arn-arn-arn-arn",
+            default_region="eu-central-1",
         )
-        self.patcher.start()
+        cls.bucket = Bucket.objects.create(name="test-bucket")
 
-        self.client = boto3.client("s3")
-        self.s3_bucket = self.client.create_bucket(Bucket=self.bucket_name)
-
-        self.CREDENTIALS = Credentials.objects.create(
-            username="test-username", role_arn="test-arn-arn-arn-arn"
-        )
-        self.bucket = Bucket.objects.create(name=self.bucket_name)
-
-    def tearDown(self):
-        self.patcher.stop()
-        self.s3_mock.stop()
-
-    def put_object(self, /, key, bucket=bucket_name, content=None):
-        if content is None:
-            content = f"{key} - fake content"
-        return self.client.put_object(Bucket=bucket, Body=content, Key=key)
-
-    def delete_object(self, /, key, bucket=bucket_name):
-        return self.client.delete_object(Bucket=bucket, Key=key)
-
+    @mock_s3
+    @mock_sts
     def test_empty_sync(self):
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
         self.assertEqual(self.bucket.object_set.count(), 0)
 
         self.bucket.sync()
 
-        self.assertEqual(self.generate_sts_buckets_credentials.call_count, 1)
         self.assertQuerysetEqual(self.bucket.object_set.all(), [])
 
+    @mock_s3
+    @mock_sts
     def test_base_sync(self):
-        # Setup
-        self.put_object(key="base.csv")
-        self.put_object(key="dir1/without_extension")
-        self.put_object(key="dir1/dir2/subdir.csv")
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(Bucket="test-bucket", Key="base.csv", Body="test")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="a_dir/without_extension", Body="test"
+        )
+        s3_client.put_object(
+            Bucket="test-bucket", Key="a_dir/a_subdir/stuff.csv", Body="test"
+        )
 
-        # Test
         self.bucket.sync()
 
         expected = [
+            ("a_dir/", "directory"),
+            ("a_dir/a_subdir/", "directory"),
+            ("a_dir/a_subdir/stuff.csv", "file"),
+            ("a_dir/without_extension", "file"),
             ("base.csv", "file"),
-            ("dir1/", "directory"),
-            ("dir1/dir2/", "directory"),
-            ("dir1/dir2/subdir.csv", "file"),
-            ("dir1/without_extension", "file"),
         ]
         self.assertQuerysetEqual(
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.type)
@@ -84,21 +60,35 @@ class SyncTest(test.TestCase):
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.type)
         )
 
+    @mock_s3
+    @mock_sts
     def test_metadata(self):
-        # Setup
-        self.put_object(key="base.csv")
-        self.put_object(key="dir1/without_extension")
-        self.put_object(key="dir1/dir2/subdir.csv")
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(Bucket="test-bucket", Key="metadata.csv", Body="test")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="another_dir/without_extension", Body="test"
+        )
+        s3_client.put_object(
+            Bucket="test-bucket",
+            Key="another_dir/another_subdir/a_file.csv",
+            Body="test",
+        )
 
         # Test
         self.bucket.sync()
 
         expected = [
-            ("base.csv", "file", "/", 23),
-            ("dir1/", "directory", "/", 0),
-            ("dir1/dir2/", "directory", "dir1/", 0),
-            ("dir1/dir2/subdir.csv", "file", "dir1/dir2/", 35),
-            ("dir1/without_extension", "file", "dir1/", 37),
+            ("another_dir/", "directory", "/", 0),
+            ("another_dir/another_subdir/", "directory", "another_dir/", 0),
+            (
+                "another_dir/another_subdir/a_file.csv",
+                "file",
+                "another_dir/another_subdir/",
+                4,
+            ),
+            ("another_dir/without_extension", "file", "another_dir/", 4),
+            ("metadata.csv", "file", "/", 4),
         ]
         self.assertQuerysetEqual(
             self.bucket.object_set.all(),
@@ -106,59 +96,101 @@ class SyncTest(test.TestCase):
             lambda x: (x.key, x.type, x.parent_key, x.size),
         )
 
+    @mock_s3
+    @mock_sts
     def test_sync_remove_add_edit(self):
-        # Setup
-        base_original = self.put_object(key="base.csv")
-        self.put_object(key="dir1/without_extension")
-        self.put_object(key="dir1/dir2/subdir.csv")
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+        delete_me = s3_client.put_object(
+            Bucket="test-bucket", Key="delete_me.csv", Body="delete_me_content"
+        )
+        keep_me = s3_client.put_object(
+            Bucket="test-bucket", Key="a_dir/keep_me.csv", Body="keep_me_content"
+        )
+        leave_me = s3_client.put_object(
+            Bucket="test-bucket", Key="other_dir/leave_me.csv", Body="leave_me_content"
+        )
 
         # Sync a first time
         result = self.bucket.sync()
-        assert result.created == 5
+        self.assertEqual(
+            DatasourceSyncResult(datasource=self.bucket, created=5), result
+        )
 
         self.assertEqual(self.bucket.object_set.all().count(), 5)
         self.assertEqual(
-            base_original["ETag"],
-            f'"{self.bucket.object_set.get(key="base.csv").etag}"',
+            delete_me["ETag"],
+            f'"{self.bucket.object_set.get(key="delete_me.csv").etag}"',
+        )
+        self.assertEqual(
+            keep_me["ETag"],
+            f'"{self.bucket.object_set.get(key="a_dir/keep_me.csv").etag}"',
+        )
+        self.assertEqual(
+            leave_me["ETag"],
+            f'"{self.bucket.object_set.get(key="other_dir/leave_me.csv").etag}"',
         )
 
         # Remove a file
-        self.delete_object(key="dir1/dir2/subdir.csv")
+        s3_client.delete_object(Bucket="test-bucket", Key="delete_me.csv")
         # Add a new file
-        new = self.put_object(key="dir1/dir2/new.csv")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="added.csv", Body="added_content"
+        )
         # Update another one
-        base2 = self.put_object(key="base.csv", content="another-content")
+        keep_me_updated = s3_client.put_object(
+            Bucket="test-bucket", Key="a_dir/keep_me.csv", Body="keep_me_content_new"
+        )
 
         # Sync again
         result = self.bucket.sync()
         self.assertEqual(
-            {
-                "created": 1,
-                "updated": 1,
-                "identical": 3,
-                "orphaned": 1,
-            },
-            {
-                "created": result.created,
-                "updated": result.updated,
-                "identical": result.identical,
-                "orphaned": result.orphaned,
-            },
+            DatasourceSyncResult(
+                datasource=self.bucket, created=1, updated=1, identical=3, orphaned=1
+            ),
+            result,
         )
 
         # The ETag should be updated
         self.assertEqual(
-            base2["ETag"], f'"{self.bucket.object_set.get(key="base.csv").etag}"'
+            keep_me_updated["ETag"],
+            f'"{self.bucket.object_set.get(key="a_dir/keep_me.csv").etag}"',
         )
 
         expected = [
-            ("base.csv", False),
-            ("dir1/", False),
-            ("dir1/dir2/", False),
-            ("dir1/dir2/new.csv", False),  # new file
-            ("dir1/dir2/subdir.csv", True),  # was deleted -> orphan
-            ("dir1/without_extension", False),
+            ("added.csv", False),
+            ("a_dir/", False),
+            ("a_dir/keep_me.csv", False),
+            ("delete_me.csv", True),
+            ("other_dir/", False),  # new file
+            ("other_dir/leave_me.csv", False),  # new file
         ]
         self.assertQuerysetEqual(
             self.bucket.object_set.all(), expected, lambda x: (x.key, x.orphan)
         )
+
+    @mock_s3
+    @mock_sts
+    def test_re_uploaded_orphan(self):
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        # Create orphan
+        s3_client.put_object(Bucket="test-bucket", Key="dir/orphan.csv", Body="orphan")
+        self.bucket.sync()
+        s3_client.delete_object(Bucket="test-bucket", Key="dir/orphan.csv")
+        self.bucket.sync()
+
+        orphan_file = self.bucket.object_set.get(key="dir/orphan.csv")
+        orphan_dir = self.bucket.object_set.get(key="dir/")
+        self.assertTrue(orphan_file.orphan)
+        self.assertTrue(orphan_dir.orphan)
+
+        # Re-upload orphan
+        s3_client.put_object(Bucket="test-bucket", Key="dir/orphan.csv", Body="orphan")
+        self.bucket.sync()
+
+        orphan_file = self.bucket.object_set.get(key="dir/orphan.csv")
+        orphan_dir = self.bucket.object_set.get(key="dir/")
+        self.assertFalse(orphan_file.orphan)
+        self.assertFalse(orphan_dir.orphan)

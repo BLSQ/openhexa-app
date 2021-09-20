@@ -146,9 +146,12 @@ class Bucket(Datasource):
         for s3_obj in s3_objects:
             if s3_obj["type"] == "directory":
                 s3_key = s3_obj["true_key"]
-                db_obj = existing_directories_by_key.get(s3_key)
-                if db_obj:
+                existing = existing_directories_by_key.get(s3_key)
+                if existing:
                     identical_count += 1
+                    if existing.orphan:
+                        existing.orphan = False
+                        existing.save()
                     del existing_directories_by_key[s3_key]
                 else:  # Not in the DB yet
                     Object.create_from_object_data(self, s3_obj)
@@ -185,13 +188,22 @@ class Bucket(Datasource):
                 continue
 
             if key in existing_by_key:
+                existing = existing_by_key[key]
+                if existing.orphan:
+                    existing.orphan = False
+                    dirty = True
+                else:
+                    dirty = False
                 if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
                     existing_by_key[key].save()
                 else:
                     existing_by_key[key].update_metadata(object_data)
-                    existing_by_key[key].save()
+                    dirty = True
                     updated_count += 1
+
+                if dirty:
+                    existing.save()
                 del existing_by_key[key]
             else:
                 created[key] = Object.create_from_object_data(self, object_data)
