@@ -2,8 +2,10 @@ import uuid
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket, Object
@@ -28,11 +30,24 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         page=int(request.GET.get("page", "1")),
     )
 
+    # TODO: discuss
+    # Shouldn't we place that on datasource / entry models? Or at least a helper function
+    # alternative: sync by index_id? weird but practical
+    # alternative2: upload as template tag
+    sync_url = reverse(
+        "catalog:datasource_sync",
+        kwargs={
+            "datasource_id": bucket.id,
+            "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+        },
+    )
+
     return render(
         request,
         "connector_s3/datasource_detail.html",
         {
             "datasource": bucket,
+            "sync_url": sync_url,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
             "datagrid": datagrid,
@@ -72,12 +87,22 @@ def object_detail(
         page=int(request.GET.get("page", "1")),
     )
 
+    # TODO: duplicated with above block
+    sync_url = reverse(
+        "catalog:datasource_sync",
+        kwargs={
+            "datasource_id": bucket.id,
+            "datasource_contenttype": ContentType.objects.get_for_model(Bucket).id,
+        },
+    )
+
     return render(
         request,
         "connector_s3/object_detail.html",
         {
             "datasource": bucket,
             "object": s3_object,
+            "sync_url": sync_url,
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
             "datagrid": datagrid,
@@ -91,12 +116,25 @@ def object_download(
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
-    s3_object = get_object_or_404(bucket.object_set.all(), key=path)
+    target_object = get_object_or_404(bucket.object_set.all(), key=path)
 
-    response = bucket.get_boto_client().generate_presigned_url(
-        "get_object",
-        Params={"Bucket": s3_object.bucket.name, "Key": s3_object.key},
-        ExpiresIn=60 * 10,
+    download_url = generate_download_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_object=target_object,
     )
 
-    return redirect(response)
+    return redirect(download_url)
+
+
+def object_upload(request, bucket_id):
+    bucket = get_object_or_404(
+        Bucket.objects.filter_for_user(request.user), pk=bucket_id
+    )
+    upload_url = generate_upload_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_key=request.GET["object_key"],
+    )
+
+    return HttpResponse(upload_url, status=201)

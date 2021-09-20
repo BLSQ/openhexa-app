@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<div
+        class="flex justify-end items-center"
+>
+    <form action="#" method="POST" x-ref="form">
+        <label
+                for="file-upload"
+                class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+        >
+            {% trans "Upload a file" %}
+            <span x-show="!uploading">{% include "ui/icons/upload.html" with ml=2 %}</span>
+            <span x-show="uploading">{% include "ui/icons/refresh.html" with ml=2 spin="true" %}</span>
+            <input x-ref="input" id="file-upload" name="file-upload" type="file" class="sr-only" @change="onChange">
+        </label>
+    </form>
+</div>

@@ -1,0 +1,14 @@
+{% load embed %}
+<div class="sm:flex sm:items-center sm:justify-between mb-4">
+    <div class="-ml-2 -mt-2 flex flex-wrap items-baseline">
+        <h3 class="ml-2 mt-2 text-lg leading-6 font-medium text-gray-900">
+            {{ title }}
+        </h3>
+        {% if label %}
+            <p class="ml-2 mt-1 text-sm text-gray-500 truncate">{{ label }}</p>
+        {% endif %}
+    </div>
+    <div class="mt-3 flex sm:mt-0 sm:ml-4">
+        {% slot actions %}{% endslot %}
+    </div>
+</div>

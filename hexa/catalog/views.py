@@ -60,6 +60,7 @@ def search(request: HttpRequest) -> HttpResponse:
     )
 
 
+# TODO: post-only?
 def datasource_sync(
     request: HttpRequest, datasource_contenttype_id: int, datasource_id: uuid.UUID
 ):
