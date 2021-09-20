@@ -1,6 +1,3 @@
-from django.db.models import Manager
-
-
 def get_item_value(item, accessor, *, container=None, exclude=None):
     container_class = type(container)
     if container is not None and hasattr(container, accessor):

@@ -4,7 +4,6 @@ import boto3
 from django import test
 from moto import mock_s3
 
-from hexa.catalog.sync import DatasourceSyncResult
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 
 

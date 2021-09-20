@@ -2,11 +2,7 @@ from unittest.mock import Mock
 
 from django import forms, test
 
-from hexa.core.graphql import (
-    GraphQLModelChoiceField,
-    GraphQLModelForm,
-    GraphQLModelMultipleChoiceField,
-)
+from hexa.core.graphql import GraphQLModelChoiceField, GraphQLModelForm
 from hexa.user_management.models import Organization
 
 

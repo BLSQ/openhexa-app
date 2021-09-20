@@ -8,12 +8,10 @@ from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Action,
     BooleanProperty,
-    CountryProperty,
     Datacard,
     DateProperty,
     LocaleProperty,
     Section,
-    TagProperty,
     TextProperty,
     URLProperty,
 )

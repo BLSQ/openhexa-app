@@ -1,6 +1,5 @@
 import datetime
 from dataclasses import dataclass
-from typing import Dict, List
 
 from dhis2 import Api
 from django.utils import dateparse, timezone

@@ -1,5 +1,3 @@
-from django.db.models.signals import post_delete
-
 from hexa.plugins.app import ConnectorAppConfig
 
 

@@ -1,7 +1,7 @@
 import dataclasses
 from unittest.mock import MagicMock, Mock
 
-from django import db, test
+from django import test
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.ui.datagrid import (

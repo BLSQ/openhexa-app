@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
-from .models import Bucket, Object
+from .models import Bucket
 
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:

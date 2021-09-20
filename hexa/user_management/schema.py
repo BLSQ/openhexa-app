@@ -1,4 +1,4 @@
-from ariadne import MutationType, ObjectType, QueryType, UnionType
+from ariadne import MutationType, ObjectType, QueryType
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django_countries import countries
