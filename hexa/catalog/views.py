@@ -73,7 +73,7 @@ def datasource_sync(
         pk=datasource_id,
     )
 
-    if settings.DATASOURCE_ASYNC_REFRESH:
+    if settings.DATASOURCE_ASYNC_REFRESH and "synchronous" not in request.GET:
         datasource_sync_queue.enqueue(
             "datasource_sync",
             {
@@ -86,4 +86,4 @@ def datasource_sync(
         sync_result = datasource.sync()
         messages.success(request, sync_result)
 
-    return redirect(request.META.get("HTTP_REFERER"))
+    return redirect(request.META.get("HTTP_REFERER", datasource.get_absolute_url()))
