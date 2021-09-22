@@ -33,11 +33,14 @@ from sqlalchemy import create_engine
 
 engine = create_engine(os.environ["{{ datasource.env_name }}_URL"])
 
-# create sample dataframe
+# Create sample dataframe
 df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
 
 # Write data
 df.to_sql("database_tutorial", con=engine, if_exists="replace")
+
+# Read data
+pd.read_sql("SELECT * FROM database_tutorial", con=engine)
             """.replace(
             "{{ datasource.env_name }}", item.env_name
         )
