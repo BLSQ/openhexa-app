@@ -1,4 +1,6 @@
 import os
+from collections import defaultdict
+from typing import Dict, List
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -178,61 +180,85 @@ class Bucket(Datasource):
         existing_objects = list(self.object_set.filter(type="file"))
         existing_by_key = {x.key: x for x in existing_objects}
 
-        created = {}
+        existing_by_etag: Dict[str, List[Object]] = defaultdict(lambda: [])
+        for obj in existing_by_key.values():
+            existing_by_etag[obj.etag].append(obj)
+
+        appeared_on_s3 = []
+        touched = set()
+
         updated_count = 0
         identical_count = 0
-        merged_count = 0
+        created_count = 0
+        orphaned_count = 0
 
         for object_data in discovered_objects:
             if object_data["type"] != "file":
                 continue
+
             key = object_data["true_key"]
             if key.endswith("/.openhexa.json"):
                 continue
 
+            # If we know this file
             if key in existing_by_key:
                 existing = existing_by_key[key]
+                # If it was an orphan: it re-appeared at the same place on S3
                 if existing.orphan:
                     existing.orphan = False
-                    dirty = True
-                else:
-                    dirty = False
+                # If it has the same key and same ETag: nothing changed
                 if object_data.get("ETag") == existing_by_key[key].etag:
                     identical_count += 1
-                    existing_by_key[key].save()
+                # If it has the same key bot not the same ETag: the file was updated on S3
                 else:
                     existing_by_key[key].update_metadata(object_data)
-                    dirty = True
                     updated_count += 1
 
-                if dirty:
-                    existing.save()
-                del existing_by_key[key]
+                touched.add(key)
+                existing.save()
+
+            # Else we never heard of this key before
             else:
-                created[key] = Object.create_from_object_data(self, object_data)
+                # keep it for later
+                appeared_on_s3.append(object_data)
 
-        orphans_by_etag = {x.etag: x for x in existing_by_key.values()}
+        # Now that we updated all files we already had in OpenHexa, we can try to match "new" files on S3 with
+        # files in OH that are orphans
+        for object_data in appeared_on_s3:
+            # Do we have something in the DB that has the same ETag ?
+            same_etags = existing_by_etag[object_data.get("ETag")]
+            match = False
+            if same_etags:
+                for obj in same_etags:
+                    # Find the first object in the DB that we did not touch
+                    if obj.key not in touched:
+                        # We found an orphan that matches our S3 file
+                        match = True
+                        updated_count += 1
+                        obj.update_metadata(object_data)
+                        touched.add(obj.key)
+                        obj.save()
 
-        for created_obj in created.values():
-            etag = created_obj.etag
-            orphan_obj = orphans_by_etag.get(etag)
-            if orphan_obj:
-                del orphans_by_etag[etag]
-                orphan_obj.delete()
-                merged_count += 1
+            # We found no match, we create a new record in the DB
+            if not match:
+                Object.create_from_object_data(self, object_data)
+                created_count += 1
 
-        new_orphans_count = len([x for x in orphans_by_etag.values() if not x.orphan])
-
-        for obj in orphans_by_etag.values():
-            obj.orphan = True
-            obj.save()
+        # Now we iterate on all objects we had in the DB and if we did not encounter
+        # them above, then they must be orphans
+        for obj in existing_objects:
+            if obj.key not in touched:
+                if not obj.orphan:
+                    obj.orphan = True
+                    orphaned_count += 1
+                    obj.save()
 
         return DatasourceSyncResult(
             datasource=self,
-            created=len(created) - merged_count,
-            updated=updated_count + merged_count,
+            created=created_count,
+            updated=updated_count,
             identical=identical_count,
-            orphaned=new_orphans_count,
+            orphaned=orphaned_count,
         )
 
     @property
@@ -390,6 +416,7 @@ class Object(Entry):
         self.type = object_data["type"]
         self.last_modified = object_data.get("LastModified")
         self.etag = object_data.get("ETag")
+        self.orphan = False
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
