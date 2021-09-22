@@ -194,3 +194,76 @@ class SyncTest(test.TestCase):
         orphan_dir = self.bucket.object_set.get(key="dir/")
         self.assertFalse(orphan_file.orphan)
         self.assertFalse(orphan_dir.orphan)
+
+    @mock_s3
+    @mock_sts
+    def test_double_etag(self):
+        """
+        Upload 2x the same file with different names
+        Sync
+        Delete one on s3
+        Resync
+        One should have disappeared from OH
+        """
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        s3_client.put_object(Bucket="test-bucket", Key="original.csv", Body="content")
+        s3_client.put_object(Bucket="test-bucket", Key="dupe.csv", Body="content")
+        s3_client.put_object(Bucket="test-bucket", Key="third.csv", Body="content")
+
+        self.bucket.sync()
+        self.assertEqual(self.bucket.object_set.exclude(type="directory").count(), 3)
+
+        s3_client.delete_object(Bucket="test-bucket", Key="dupe.csv")
+        s3_client.delete_object(Bucket="test-bucket", Key="third.csv")
+
+        self.bucket.sync()
+        self.assertEqual(self.bucket.object_set.exclude(type="directory").count(), 3)
+
+        dupe = self.bucket.object_set.get(key="dupe.csv")
+        self.assertTrue(dupe.orphan)
+
+        third = self.bucket.object_set.get(key="third.csv")
+        self.assertTrue(third.orphan)
+
+        original = self.bucket.object_set.get(key="original.csv")
+        self.assertFalse(original.orphan)
+
+    @mock_s3
+    @mock_sts
+    def test_new_file_matches_old_one(self):
+        """
+        Add a file
+        sync
+        remove it
+        sync
+        add it elsewhere
+        sync
+        -> metadata should be transferred, we should have no orphans
+        """
+        s3_client = boto3.client("s3")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        s3_client.put_object(Bucket="test-bucket", Key="original.csv", Body="content")
+
+        self.bucket.sync()
+        self.assertEqual(self.bucket.object_set.count(), 1)
+        original = self.bucket.object_set.get(key="original.csv")
+        self.assertFalse(original.orphan)
+
+        s3_client.delete_object(Bucket="test-bucket", Key="original.csv")
+        self.bucket.sync()
+        after_delete = self.bucket.object_set.get(key="original.csv")
+        self.assertTrue(after_delete.orphan)
+        self.assertEqual(after_delete.pk, original.pk)
+
+        s3_client.put_object(
+            Bucket="test-bucket", Key="new-location.csv", Body="content"
+        )
+        self.bucket.sync()
+
+        self.assertEqual(self.bucket.object_set.count(), 1)
+        re_added = self.bucket.object_set.get(key="new-location.csv")
+        self.assertEqual(re_added.pk, original.pk)
+        self.assertEqual(self.bucket.object_set.filter(orphan=True).count(), 0)
