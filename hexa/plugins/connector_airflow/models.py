@@ -1,16 +1,16 @@
-import json
-import uuid
 from dataclasses import dataclass
 from enum import Enum
+from urllib.parse import urljoin
 
-from django.db import models
+import requests
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from google.auth.transport.requests import AuthorizedSession
-from google.oauth2 import service_account
 
+from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
@@ -20,41 +20,6 @@ from hexa.user_management.models import User
 class ExternalType(Enum):
     CLUSTER = "cluster"
     DAG = "dag"
-
-
-class Credentials(Base):
-    """This class is a temporary way to store GCP Airflow credentials. This approach is not safe for production,
-    as credentials are not encrypted.
-    TODO: Store credentials in a secure storage engine like Vault.
-    TODO: Handle different kind of credentials (not just OIDC)
-    """
-
-    OIDC_TARGET_AUDIENCE_DOC_URL = (
-        "https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf"
-        "#get_the_client_id_of_the_iam_proxy"
-    )
-    OIDC_TARGET_AUDIENCE_HELP_TEXT = (
-        f'Corresponds to the <a href="{OIDC_TARGET_AUDIENCE_DOC_URL}" target="_blank">'
-        f"client_id of the IAM Proxy</a>"
-    )
-
-    class Meta:
-        verbose_name_plural = "Credentials"
-        ordering = ("service_account_email",)
-
-    service_account_email = EncryptedTextField()
-    service_account_key_data = EncryptedTextField(
-        help_text="The content of the JSON key in GCP"
-    )
-    oidc_target_audience = models.CharField(
-        max_length=200,
-        blank=False,
-        help_text=OIDC_TARGET_AUDIENCE_HELP_TEXT,
-    )
-
-    @property
-    def display_name(self) -> str:
-        return self.service_account_email
 
 
 class ClusterQuerySet(models.QuerySet):
@@ -72,14 +37,17 @@ class Cluster(Environment):
         ordering = ("name",)
         verbose_name = "Airflow Cluster"
 
-    api_credentials = models.ForeignKey(
-        "Credentials", null=True, on_delete=models.SET_NULL
-    )
     name = models.CharField(max_length=200)
-    web_url = models.URLField(blank=False)
-    api_url = models.URLField()
+    url = models.URLField(blank=False)
+
+    username = EncryptedTextField()
+    password = EncryptedTextField()
 
     objects = ClusterQuerySet.as_manager()
+
+    @property
+    def api_url(self):
+        return urljoin(self.url, "api/v1/")
 
     def __str__(self) -> str:
         return self.name
@@ -111,6 +79,77 @@ class Cluster(Environment):
             else _("%(dag_count)d DAG%(suffix)s")
             % {"dag_count": count, "suffix": pluralize(count)}
         )
+
+    def sync(self):
+        created_count = 0
+        updated_count = 0
+        identical_count = 0
+        with transaction.atomic():
+            session = self.get_api_session()
+            url = urljoin(self.api_url, "dags")
+            response = session.get(url)
+            # TODO: handle non-200
+            response_data = response.json()
+
+            # Delete dags not in Airflow
+            airflow_ids = [x["dag_id"] for x in response_data["dags"]]
+            orphans = DAG.objects.filter(cluster=self).exclude(dag_id__in=airflow_ids)
+            new_orphans_count = orphans.count()
+            orphans.delete()
+
+            # Update or create the others
+            for dag_info in response_data["dags"]:
+                dag, created = DAG.objects.get_or_create(
+                    cluster=self, dag_id=dag_info["dag_id"]
+                )
+                dag.description = dag_info["description"]
+                dag.save()
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+
+                url = urljoin(
+                    self.api_url, f"dags/{dag.dag_id}/dagRuns?order_by=-end_date"
+                )
+                response = session.get(url)
+                for run_info in response.json()["dag_runs"]:
+                    run, _ = DAGRun.objects.get_or_create(
+                        dag=dag,
+                        run_id=run_info["dag_run_id"],
+                        defaults={"execution_date": run_info["execution_date"]},
+                    )
+                    run.last_refreshed_at = timezone.now()
+                    run.state = run_info["state"]
+                    run.save()
+
+            # Flag the datasource as synced
+            self.last_synced_at = timezone.now()
+            self.save()
+
+        return DatasourceSyncResult(
+            datasource=self,
+            created=created_count,
+            updated=updated_count,
+            identical=identical_count,
+            orphaned=new_orphans_count,
+        )
+
+    def get_api_session(self):
+        session = requests.Session()
+        session.auth = (self.username, self.password)
+        return session
+
+    def clean(self):
+        session = self.get_api_session()
+        try:
+            response = session.get(urljoin(self.url, "api/v1/dags"))
+            if not response.ok:
+                raise ValidationError(
+                    f"Error connecting to Airflow: error {response.status_code}"
+                )
+        except Exception as e:
+            raise ValidationError(f"Error connecting to Airflow: {e}")
 
 
 class ClusterPermission(Permission):
@@ -182,6 +221,23 @@ class DAG(Pipeline):
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
+    def run(self):
+        session = self.cluster.get_api_session()
+
+        url = urljoin(self.cluster.api_url, f"dags/{self.dag_id}/dagRuns")
+        response = session.post(
+            url, json={"execution_date": timezone.now().isoformat()}
+        )
+        # TODO: handle non-200
+        response_data = response.json()
+
+        return DAGRun.objects.create(
+            dag=self,
+            run_id=response_data["dag_run_id"],
+            execution_date=response_data["execution_date"],
+            state=DAGRunState.RUNNING,
+        )
+
 
 class DAGConfigQuerySet(models.QuerySet):
     def filter_for_user(self, user: User):
@@ -219,53 +275,6 @@ class DAGConfig(Base):
     @property
     def last_run(self) -> "DAGRun":
         return DAGRun.objects.get_last_for_dag_and_config(dag_config=self)
-
-    def run(self) -> "DAGRunResult":
-        # TODO: move in API module
-        # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
-        # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
-        # as well as https://cloud.google.com/composer/docs/samples/composer-get-environment-client-id
-        api_credentials = self.dag.cluster.api_credentials
-        service_account_key_data = json.loads(api_credentials.service_account_key_data)
-        id_token_credentials = (
-            service_account.IDTokenCredentials.from_service_account_info(
-                service_account_key_data,
-                target_audience=api_credentials.oidc_target_audience,
-            )
-        )
-        session = AuthorizedSession(id_token_credentials)
-        dag_config_run_id = str(uuid.uuid4())
-        api_url = self.dag.cluster.api_url
-        response = session.post(
-            f"{api_url.rstrip('/')}/dags/{self.dag.dag_id}/dag_runs",
-            data=json.dumps(
-                {
-                    "conf": self.config_data,
-                    "run_id": dag_config_run_id,
-                }
-            ),
-            headers={
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-            },
-        )
-        # TODO: handle non-200
-        response_data = response.json()
-
-        DAGRun.objects.create(
-            id=dag_config_run_id,
-            dag_config=self,
-            last_refreshed_at=timezone.now(),
-            airflow_run_id=response_data["run_id"],
-            airflow_execution_date=response_data["execution_date"],
-            airflow_message=response_data["message"],
-            airflow_state=DAGRunState.RUNNING,
-        )
-
-        self.last_run_at = timezone.now()
-        self.save()
-
-        return DAGRunResult(self)
 
 
 @dataclass
@@ -316,7 +325,7 @@ class DAGRun(Base, WithStatus):
     }
 
     class Meta:
-        ordering = ("-last_refreshed_at",)
+        ordering = ("-execution_date",)
 
     dag_config = models.ForeignKey(
         "DAGConfig", on_delete=models.CASCADE, null=True, blank=True
@@ -337,32 +346,18 @@ class DAGRun(Base, WithStatus):
         )
 
     def refresh(self) -> None:
-        # TODO: move in api module
-        # See https://cloud.google.com/composer/docs/how-to/using/triggering-with-gcf
-        # and https://google-auth.readthedocs.io/en/latest/user-guide.html#identity-tokens
-        api_credentials = self.dag_config.dag.cluster.api_credentials
-        service_account_key_data = json.loads(api_credentials.service_account_key_data)
-        id_token_credentials = (
-            service_account.IDTokenCredentials.from_service_account_info(
-                service_account_key_data,
-                target_audience=api_credentials.oidc_target_audience,
-            )
+        session = self.dag.cluster.get_api_session()
+        url = urljoin(
+            self.dag.cluster.api_url,
+            f"dags/{self.dag.dag_id}/dagRuns/{self.run_id}",
         )
-        session = AuthorizedSession(id_token_credentials)
-        api_url = self.dag_config.dag.cluster.api_url
-        execution_date = self.execution_date.isoformat()
-        response = session.get(
-            f"{api_url.rstrip('/')}/dags/{self.dag_config.dag.dag_id}/dag_runs/{execution_date}",
-            headers={
-                "Content-Type": "application/json",
-                "Cache-Control": "no-cache",
-            },
-        )
+
+        response = session.get(url)
         # TODO: handle non-200
         response_data = response.json()
 
         self.last_refreshed_at = timezone.now()
-        self.airflow_state = response_data["state"]
+        self.state = response_data["state"]
         self.save()
 
     @property

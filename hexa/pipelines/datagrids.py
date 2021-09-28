@@ -32,7 +32,7 @@ class EnvironmentGrid(Datagrid):
 class RunGrid(Datagrid):
     lead = LeadingColumn(
         label="Pipeline",
-        text="dag.airflow_id",
+        text="dag.dag_id",
         icon="get_icon",
     )
     execution_date = DateColumn(date="execution_date", label="Execution date")

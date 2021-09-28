@@ -60,14 +60,10 @@ class Datasource(IndexableMixin, models.Model):
 
     @property
     def display_name(self):
-        raise NotImplementedError(
-            "Datasource models should implement the display_name() property"
-        )
+        raise NotImplementedError
 
     def sync(self):
-        raise NotImplementedError(
-            "Datasource models should implement the sync() method"
-        )
+        raise NotImplementedError
 
 
 class Entry(IndexableMixin, models.Model):
