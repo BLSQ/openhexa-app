@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Dict, List, Tuple
 
 import psycopg2
 from django.core.exceptions import ValidationError
@@ -7,7 +8,7 @@ from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from psycopg2 import OperationalError
+from psycopg2 import OperationalError, sql
 
 from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
 from hexa.catalog.sync import DatasourceSyncResult
@@ -116,19 +117,6 @@ class Database(Datasource):
                 raise ValidationError(e)
 
     def sync(self):
-        with psycopg2.connect(self.url) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    """
-                    SELECT table_name, table_type, pg_class.reltuples
-                    FROM information_schema.tables
-                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
-                    WHERE table_schema = 'public'
-                    ORDER BY table_name;
-                """
-                )
-                response = cursor.fetchall()
-
         created_count = 0
         updated_count = 0
         identical_count = 0
@@ -137,8 +125,34 @@ class Database(Datasource):
         # Ignore tables from postgis as there is no value in showing them in the catalog
         IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
+        with psycopg2.connect(self.url) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    """
+                    SELECT table_name, table_type, pg_class.reltuples as row_count
+                    FROM information_schema.tables
+                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                    WHERE table_schema = 'public'
+                    ORDER BY table_name;
+                """
+                )
+                response: List[Tuple[str, str, int]] = cursor.fetchall()
+
+                new_tables: Dict[str, Dict] = {
+                    x[0]: x for x in response if x[0] not in IGNORE_TABLES
+                }
+
+                for name, data in new_tables.items():
+                    if data["row_count"] < 10_000:
+                        cursor.execute(
+                            sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
+                                sql.Identifier(data["table_name"])
+                            ),
+                        )
+                        response = cursor.fetchone()
+                        new_tables[name]["row_count"] = response["row_count"]
+
         with transaction.atomic():
-            new_tables = {x[0]: x for x in response if x[0] not in IGNORE_TABLES}
             existing_tables = Table.objects.filter(database=self)
             for table in existing_tables:
                 if table.name not in new_tables.keys():
@@ -146,10 +160,10 @@ class Database(Datasource):
                     table.delete()
                 else:
                     data = new_tables[table.name]
-                    if table.rows == data[2]:
+                    if table.rows == data["row_count"]:
                         identical_count += 1
                     else:
-                        table.rows = data[2]
+                        table.rows = data["row_count"]
                         updated_count += 1
                     table.save()
 
@@ -157,7 +171,7 @@ class Database(Datasource):
                 if new_table_name not in {x.name for x in existing_tables}:
                     created_count += 1
                     Table.objects.create(
-                        name=new_table_name, database=self, rows=new_table[2]
+                        name=new_table_name, database=self, rows=data["row_count"]
                     )
 
             # Flag the datasource as synced
