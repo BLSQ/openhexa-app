@@ -2,16 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.html import format_html
 
-from .models import DAG, Cluster, ClusterPermission, Credentials, DAGConfig, DAGRun
-
-
-@admin.register(Credentials)
-class CredentialsAdmin(admin.ModelAdmin):
-    list_display = (
-        "service_account_email",
-        "oidc_target_audience",
-    )
-    search_fields = ("service_account_email",)
+from .models import DAG, Cluster, ClusterPermission, DAGConfig, DAGRun
 
 
 class PermissionInline(admin.StackedInline):
@@ -21,15 +12,15 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
-    list_display = ("name", "get_web_url")
+    list_display = ("name", "get_url")
 
     inlines = [
         PermissionInline,
     ]
 
-    @display(ordering="web_url", description="Url")
-    def get_web_url(self, obj):
-        return format_html("<a href='{url}'>{url}</a>", url=obj.web_url)
+    @display(ordering="url", description="Url")
+    def get_url(self, obj):
+        return format_html("<a href='{url}'>{url}</a>", url=obj.url)
 
 
 @admin.register(ClusterPermission)

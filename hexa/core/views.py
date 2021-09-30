@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.models import Index
+from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 
 
@@ -48,6 +49,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             "counts": {
                 "datasources": accessible_datasources.count(),
                 "notebooks": accessible_notebooks.count(),
+                "pipelines": DAG.objects.filter_for_user(request.user).count(),
             },
             "breadcrumbs": breadcrumbs,
         },

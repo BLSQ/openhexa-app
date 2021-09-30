@@ -1,29 +1,11 @@
 [
   {
-    "model": "connector_airflow.credentials",
-    "pk": "c23963cf-b3c6-48eb-9377-ba08d34618ae",
-    "fields": {
-      "created_at": "2021-05-03T06:56:43.158Z",
-      "updated_at": "2021-05-03T06:56:43.158Z",
-      "oidc_target_audience": "client_id.apps.googleusercontent.com"
-    }
-  },
-  {
     "model": "connector_airflow.cluster",
     "pk": "2655c266-af7e-423d-a3e6-ed0336b020d6",
     "fields": {
       "created_at": "2021-05-03T06:57:23.109Z",
       "updated_at": "2021-05-03T06:57:23.109Z",
-      "owner": "a6dfd796-7d2a-4857-9638-e35d88243132",
-      "name": "Bluesquare test cluster",
-      "short_name": "",
-      "description": "",
-      "countries": "",
-      "locale": "en",
-      "api_credentials": "c23963cf-b3c6-48eb-9377-ba08d34618ae",
-      "airflow_name": "test",
-      "airflow_web_url": "https://something.appspot.com/",
-      "airflow_api_url": "https://something.appspot.com/api/experimental"
+      "name": "Bluesquare test cluster"
     }
   },
   {
@@ -42,14 +24,8 @@
     "fields": {
       "created_at": "2021-05-03T06:57:46.115Z",
       "updated_at": "2021-05-03T06:57:46.115Z",
-      "owner": "a6dfd796-7d2a-4857-9638-e35d88243132",
-      "name": "Test DAG",
-      "short_name": "",
-      "description": "",
-      "countries": "",
-      "locale": "en",
       "cluster": "2655c266-af7e-423d-a3e6-ed0336b020d6",
-      "airflow_id": "test_dag"
+      "dag_id": "test_dag"
     }
   },
   {
@@ -58,12 +34,7 @@
     "fields": {
       "created_at": "2021-05-03T06:58:13.029Z",
       "updated_at": "2021-05-03T06:58:13.029Z",
-      "owner": "a6dfd796-7d2a-4857-9638-e35d88243132",
       "name": "Test config",
-      "short_name": "",
-      "description": "",
-      "countries": "",
-      "locale": "en",
       "dag": "6345efe4-da09-434d-825b-5776f63c7f38",
       "config_data": {
         "foo": "bar"

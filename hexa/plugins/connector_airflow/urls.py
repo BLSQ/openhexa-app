@@ -16,6 +16,16 @@ urlpatterns = [
         name="dag_detail",
     ),
     path(
+        "<uuid:cluster_id>/<uuid:dag_id>/run",
+        views.new_dag_run,
+        name="new_dag_run",
+    ),
+    path(
+        "<uuid:cluster_id>/sync",
+        views.sync,
+        name="sync",
+    ),
+    path(
         "<uuid:cluster_id>/<uuid:dag_id>/runs/<uuid:dag_run_id>",
         views.dag_run_detail,
         name="dag_run_detail",

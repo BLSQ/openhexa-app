@@ -1,8 +1,17 @@
 from django.templatetags.static import static
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.ui.datacard import Datacard, DateProperty, Section, TextProperty, URLProperty
+from hexa.plugins.connector_airflow.models import Cluster
+from hexa.ui.datacard import (
+    Action,
+    Datacard,
+    DateProperty,
+    Section,
+    TextProperty,
+    URLProperty,
+)
 
 
 class ClusterSection(Section):
@@ -19,6 +28,16 @@ class ClusterCard(Datacard):
 
     external = ClusterSection()
     metadata = OpenHexaMetaDataSection(value="index")
+
+    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
+
+    def get_sync_url(self, cluster: Cluster):
+        return reverse(
+            "connector_airflow:sync",
+            kwargs={
+                "cluster_id": cluster.id,
+            },
+        )
 
     @property
     def generic_description(self) -> str:
@@ -44,6 +63,17 @@ class DagCard(Datacard):
     external = DagSection()
     metadata = OpenHexaMetaDataSection(value="index")
 
+    actions = [Action(label="Run", url="get_run_url", icon="play")]
+
+    def get_run_url(self, dag):
+        return reverse(
+            "connector_airflow:new_dag_run",
+            kwargs={
+                "cluster_id": dag.cluster.id,
+                "dag_id": dag.id,
+            },
+        )
+
     @property
     def generic_description(self) -> str:
         return _("Airflow DAG")
@@ -64,7 +94,7 @@ class DagRunSection(Section):
 
 
 class DagRunCard(Datacard):
-    title = "dag_id"
+    title = "run_id"
     subtitle = "generic_description"
     image_src = "_image_src"
 
