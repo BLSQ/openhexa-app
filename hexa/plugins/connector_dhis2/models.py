@@ -84,7 +84,7 @@ class Instance(Datasource):
     )
     url = models.URLField(blank=True)
     indexes = GenericRelation("catalog.Index")
-    name = models.TextField()
+    name = models.TextField(blank=True)
     locale = LocaleField(default="en")
 
     objects = InstanceQuerySet.as_manager()
