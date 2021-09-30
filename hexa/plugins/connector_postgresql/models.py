@@ -8,8 +8,7 @@ from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from psycopg2 import OperationalError
-from psycopg2._psycopg import AsIs
+from psycopg2 import OperationalError, sql
 
 from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
 from hexa.catalog.sync import DatasourceSyncResult
@@ -146,8 +145,9 @@ class Database(Datasource):
                 for name, data in new_tables.items():
                     if data["row_count"] < 10_000:
                         cursor.execute(
-                            "SELECT COUNT(*) as row_count FROM %s;",
-                            (AsIs(data["table_name"] + ";"),),
+                            sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
+                                sql.Identifier(data["table_name"])
+                            ),
                         )
                         response = cursor.fetchone()
                         new_tables[name]["row_count"] = response["row_count"]
