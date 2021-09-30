@@ -1,4 +1,4 @@
-from dhis2 import RequestException
+from dhis2 import ClientException, RequestException
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -42,11 +42,14 @@ class Credentials(Base):
         return self.api_url
 
     def clean(self):
-        client = Dhis2Client(
-            url=self.api_url,
-            username=self.username,
-            password=self.password,
-        )
+        try:
+            client = Dhis2Client(
+                url=self.api_url,
+                username=self.username,
+                password=self.password,
+            )
+        except ClientException as e:
+            raise ValidationError(f"DHIS2 URL is invalid: {e}")
         try:
             client.fetch_info()
         except RequestException as e:
