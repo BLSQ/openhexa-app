@@ -3,18 +3,18 @@ import uuid
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
+
+# from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DagCard, DagRunCard
 from hexa.plugins.connector_airflow.datagrids import DagConfigGrid, DagGrid
-from hexa.plugins.connector_airflow.models import (
+from hexa.plugins.connector_airflow.models import (  # DAGRunState,
     DAG,
     Cluster,
     DAGConfig,
     DAGRun,
-    DAGRunState,
 )
 
 
@@ -117,8 +117,8 @@ def dag_run_detail(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
     )
 
-    if dag_run.state == DAGRunState.RUNNING and dag_run.execution_date < timezone.now():
-        dag_run.refresh()
+    # if dag_run.state == DAGRunState.RUNNING and dag_run.execution_date < timezone.now():
+    #     dag_run.refresh()
 
     dag_run_card = DagRunCard(dag_run, request=request)
     if request.method == "POST" and dag_run_card.save():

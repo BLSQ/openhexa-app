@@ -325,7 +325,7 @@ class DAGRun(Base, WithStatus):
     }
 
     class Meta:
-        ordering = ("-execution_date",)
+        ordering = ("-execution_date", "-execution_date")
 
     dag_config = models.ForeignKey(
         "DAGConfig", on_delete=models.CASCADE, null=True, blank=True
@@ -363,6 +363,6 @@ class DAGRun(Base, WithStatus):
     @property
     def status(self):
         try:
-            return self.STATUS_MAPPINGS[self.airflow_state]
+            return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return WithStatus.UNKNOWN

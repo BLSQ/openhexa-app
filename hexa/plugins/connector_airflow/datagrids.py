@@ -8,6 +8,7 @@ from hexa.ui.datagrid import (
     DateColumn,
     LeadingColumn,
     LinkColumn,
+    StatusColumn,
     TagColumn,
     TextColumn,
 )
@@ -24,6 +25,7 @@ class DagGrid(Datagrid):
     tags = TagColumn(value="index.tags.all")
     last_run = DateColumn(date="last_run.execution_date", label=_("Last run"))
     last_state = TextColumn(text="last_run.state", label=_("Last state"))
+    last_state_2 = StatusColumn(value="last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")
 
     def get_icon(self, _) -> str:

@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.core.models import WithStatus
 from hexa.ui.utils import get_item_value
 
 
@@ -304,6 +305,39 @@ class TagColumn(Column):
             "tags": tags_data,
             "slice": f":{self.max_items}",
             "left_out": max(0, len(tags_data) - self.max_items),
+        }
+
+
+class StatusColumn(Column):
+    def __init__(self, *, value=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.value = value
+
+    COLOR_MAPPINGS = {
+        WithStatus.SUCCESS: "green",
+        WithStatus.ERROR: "red",
+        WithStatus.PENDING: "yellow",
+        WithStatus.UNKNOWN: "grey",
+    }
+
+    LABEL_MAPPINGS = {
+        WithStatus.SUCCESS: _("Success"),
+        WithStatus.ERROR: _("Error"),
+        WithStatus.PENDING: _("Pending"),
+        WithStatus.UNKNOWN: _("Unknown"),
+    }
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_state.html"
+
+    def data(self, item):
+        status = self.get_value(item, self.value)
+
+        return {
+            "color": self.COLOR_MAPPINGS.get(status),
+            "label": self.LABEL_MAPPINGS.get(status),
         }
 
 

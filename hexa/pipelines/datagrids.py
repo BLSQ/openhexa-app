@@ -4,6 +4,7 @@ from hexa.ui.datagrid import (
     DateColumn,
     LeadingColumn,
     LinkColumn,
+    StatusColumn,
     TagColumn,
     TextColumn,
 )
@@ -36,7 +37,7 @@ class RunGrid(Datagrid):
         icon="get_icon",
     )
     execution_date = DateColumn(date="execution_date", label="Execution date")
-    state = TextColumn(text="state")
+    state = StatusColumn(value="status")
 
     view = LinkColumn(text="View")
 
