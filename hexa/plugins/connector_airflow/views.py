@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import RunGrid
-from hexa.plugins.connector_airflow.datacards import ClusterCard, DagCard, DagRunCard
-from hexa.plugins.connector_airflow.datagrids import DagConfigGrid, DagGrid
+from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
+from hexa.plugins.connector_airflow.datagrids import DAGConfigGrid, DAGGrid
 from hexa.plugins.connector_airflow.models import (  # DAGRunState,
     DAG,
     Cluster,
@@ -26,7 +26,7 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     if request.method == "POST" and cluster_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    dag_grid = DagGrid(
+    dag_grid = DAGGrid(
         cluster.dag_set.all(), page=int(request.GET.get("page", "1")), request=request
     )
 
@@ -57,11 +57,11 @@ def dag_detail(
         Cluster.objects.filter_for_user(request.user), pk=cluster_id
     )
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-    dag_card = DagCard(dag, request=request)
+    dag_card = DAGCard(dag, request=request)
     if request.method == "POST" and dag_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    config_grid = DagConfigGrid(
+    config_grid = DAGConfigGrid(
         DAGConfig.objects.filter_for_user(request.user).filter(dag=dag), request=request
     )
     run_grid = RunGrid(
@@ -86,7 +86,6 @@ def dag_detail(
         "connector_airflow/dag_detail.html",
         {
             "breadcrumbs": breadcrumbs,
-            "dag": dag,
             "dag_card": dag_card,
             "config_grid": config_grid,
             "run_grid": run_grid,
@@ -120,7 +119,7 @@ def dag_run_detail(
     # if dag_run.state == DAGRunState.RUNNING and dag_run.execution_date < timezone.now():
     #     dag_run.refresh()
 
-    dag_run_card = DagRunCard(dag_run, request=request)
+    dag_run_card = DAGRunCard(dag_run, request=request)
     if request.method == "POST" and dag_run_card.save():
         return redirect(request.META["HTTP_REFERER"])
 

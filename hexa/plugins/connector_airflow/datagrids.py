@@ -14,7 +14,7 @@ from hexa.ui.datagrid import (
 )
 
 
-class DagGrid(Datagrid):
+class DAGGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="dag_id",
@@ -32,7 +32,7 @@ class DagGrid(Datagrid):
         return "ui/icons/terminal.html"
 
 
-class DagConfigGrid(Datagrid):
+class DAGConfigGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="name",

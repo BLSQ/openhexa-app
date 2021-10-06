@@ -254,6 +254,7 @@ class DAGConfigQuerySet(models.QuerySet):
 class DAGConfig(Base):
     class Meta:
         verbose_name = "DAG config"
+        ordering = ["name"]
 
     name = models.CharField(max_length=200)
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)

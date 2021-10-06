@@ -48,19 +48,19 @@ class ClusterCard(Datacard):
         return static("connector_airflow/img/symbol.svg")
 
 
-class DagSection(Section):
+class DAGSection(Section):
     title = "Airflow Data"
 
     dag_id = TextProperty(text="dag_id", label="Identifier")
     description = TextProperty(text="description")
 
 
-class DagCard(Datacard):
+class DAGCard(Datacard):
     title = "dag_id"
     subtitle = "generic_description"
     image_src = "_image_src"
 
-    external = DagSection()
+    external = DAGSection()
     metadata = OpenHexaMetaDataSection(value="index")
 
     actions = [Action(label="Run", url="get_run_url", icon="play")]
@@ -83,7 +83,7 @@ class DagCard(Datacard):
         return static("connector_airflow/img/symbol.svg")
 
 
-class DagRunSection(Section):
+class DAGRunSection(Section):
     title = "Airflow Data"
 
     run_id = TextProperty(text="run_id", label="Identifier")
@@ -93,12 +93,12 @@ class DagRunSection(Section):
     dag_config = TextProperty(text="dag_config", label="Configuration")
 
 
-class DagRunCard(Datacard):
+class DAGRunCard(Datacard):
     title = "run_id"
     subtitle = "generic_description"
     image_src = "_image_src"
 
-    external = DagRunSection()
+    external = DAGRunSection()
 
     @property
     def generic_description(self) -> str:
