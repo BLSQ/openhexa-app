@@ -491,36 +491,41 @@ class DateProperty(Property):
         }
 
 
-class Action:  # TODO: bound actions
+class Action:
     def __init__(self, label, url, icon=None, method="post"):
         self.label = label
         self.icon = icon
         self.url = url
         self.method = method
-        self.datacard = None
 
     def bind(self, datacard: Datacard):
-        self.datacard = datacard
-        return self
+        return BoundAction(self, datacard=datacard)
 
-    def get_value(self, model, accessor):
-        if self.datacard is None:
-            raise ValueError("Cannot get model value for unbound action")
-
-        return get_item_value(model, accessor, container=self.datacard, exclude=Action)
+    def get_value(self, model, accessor, container=None):
+        return get_item_value(model, accessor, container=container, exclude=Action)
 
     @property
     def template(self):
         return "ui/datacard/action.html"
 
-    def __str__(self):
-        template = loader.get_template(self.template)
-
-        context = {
-            "url": self.get_value(self.datacard.model, self.url),
+    def context(self, model, card: Datacard):
+        return {
+            "url": self.get_value(model, self.url, container=card),
             "label": _(self.label),
             "icon": self.icon,
             "method": self.method,
         }
 
-        return template.render(context, request=self.datacard.request)
+
+class BoundAction:
+    def __init__(self, unbound_action: Action, *, datacard: Datacard):
+        self.unbound_action = unbound_action
+        self.datacard = datacard
+
+    def __str__(self):
+        template = loader.get_template(self.unbound_action.template)
+
+        return template.render(
+            self.unbound_action.context(self.datacard.model, self.datacard),
+            request=self.datacard.request,
+        )
