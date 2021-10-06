@@ -21,7 +21,7 @@ def index(request: HttpRequest) -> HttpResponse:
         .prefetch_related("tags")
     )
     datasource_grid = DatasourceGrid(
-        datasource_indexes, page=int(request.GET.get("page", "1"))
+        datasource_indexes, page=int(request.GET.get("page", "1")), request=request
     )
 
     return render(

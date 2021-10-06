@@ -491,7 +491,7 @@ class DateProperty(Property):
         }
 
 
-class Action:
+class Action:  # TODO: bound actions
     def __init__(self, label, url, icon=None, method="post"):
         self.label = label
         self.icon = icon

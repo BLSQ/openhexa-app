@@ -29,6 +29,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         bucket.object_set.filter(parent_key="/", orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     # TODO: discuss
@@ -86,6 +87,7 @@ def object_detail(
         bucket.object_set.filter(parent_key=path, orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     # TODO: duplicated with above block

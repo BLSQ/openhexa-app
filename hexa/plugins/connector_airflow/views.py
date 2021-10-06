@@ -28,7 +28,9 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     if request.method == "POST" and cluster_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    dag_grid = DagGrid(cluster.dag_set.all(), page=int(request.GET.get("page", "1")))
+    dag_grid = DagGrid(
+        cluster.dag_set.all(), page=int(request.GET.get("page", "1")), request=request
+    )
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
@@ -63,12 +65,13 @@ def dag_detail(
         return redirect(request.META["HTTP_REFERER"])
 
     config_grid = DagConfigGrid(
-        DAGConfig.objects.filter_for_user(request.user).filter(dag=dag)
+        DAGConfig.objects.filter_for_user(request.user).filter(dag=dag), request=request
     )
     run_grid = RunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
-        .order_by("-execution_date")
+        .order_by("-execution_date"),
+        request=request,
     )
 
     breadcrumbs = [
