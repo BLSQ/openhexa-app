@@ -3,8 +3,6 @@ import uuid
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
-# from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import RunGrid
@@ -45,7 +43,6 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
         request,
         "connector_airflow/cluster_detail.html",
         {
-            "cluster": cluster,
             "cluster_card": cluster_card,
             "dag_grid": dag_grid,
             "breadcrumbs": breadcrumbs,

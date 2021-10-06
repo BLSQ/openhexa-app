@@ -114,6 +114,9 @@ class Datagrid(metaclass=DatagridMeta):
     def end_index(self):
         return self.page.end_index()
 
+    def __len__(self):
+        return self.paginator.count
+
 
 class Column:
     """Base column class (to be extended)"""
