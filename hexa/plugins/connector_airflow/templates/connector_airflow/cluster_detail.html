@@ -5,7 +5,6 @@
 
 {% block page_content %}
     {{ cluster_card }}
-    {% include "comments/components/page_section_comments.html" with object=cluster %}
     {% embed "ui/section/section.html" with title=_("DAGs") %}
         {% slot content %}
             {{ dag_grid }}
