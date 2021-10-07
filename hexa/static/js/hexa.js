@@ -76,11 +76,12 @@ function QuickSearch(advancedSearchUrl) {
 /**
  * Auto Refresh component
  * @param url
+ * @param method
  * @param delay (in seconds)
  * @returns {{init(*): void, submit(): Promise<void>, interval: null, refreshedHtml: null}}
  * @constructor
  */
-function AutoRefresh(url, delay) {
+function AutoRefresh(url, method, delay) {
     return {
         interval: null,
         refreshedHtml: null,
@@ -91,7 +92,7 @@ function AutoRefresh(url, delay) {
         async submit() {
             try {
                 const response = await fetch(url, {
-                    method: 'GET',
+                    method,
                     headers: {
                         "Accepts": "text/html",
                         "X-CSRFToken": document.cookie
@@ -100,7 +101,10 @@ function AutoRefresh(url, delay) {
                             .split('=')[1]
                     },
                 });
-                this.refreshedHtml = await response.text();
+                const responseText = await response.text();
+                const responseElement = document.createElement("div");
+                responseElement.innerHTML = responseText;
+                this.refreshedHtml = responseElement.querySelector(`[x-refresh-id="${url}"]`).innerHTML;
             } catch (e) {
                 console.error(`Error while submitting form: ${e}`);
             } finally {

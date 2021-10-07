@@ -127,7 +127,7 @@ class Cluster(Environment):
             self.last_synced_at = timezone.now()
             self.save()
 
-        return DatasourceSyncResult(
+        return DatasourceSyncResult(  # TODO: EnvironmentSyncResult?
             datasource=self,
             created=created_count,
             updated=updated_count,

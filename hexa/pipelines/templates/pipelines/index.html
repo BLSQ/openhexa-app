@@ -5,10 +5,10 @@
 
 {% block page_content %}
     {{ environment_grid }}
-    {% embed "ui/section/section.html" with title=_("Last pipeline runs") %}
+    {% url "pipelines:index_refresh" as refresh_url %}
+    {% embed "ui/section/section_autorefresh.html" with title=_("Last pipeline runs") url=refresh_url method="POST" delay=2 id="plop" %}
         {% slot content %}
             {{ run_grid }}
         {% endslot %}
     {% endembed %}
-
 {% endblock %}

@@ -1,12 +1,13 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
 from hexa.pipelines.models import Index
 
 # from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
-from hexa.plugins.connector_airflow.models import DAGRun
+from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -17,11 +18,6 @@ def index(request: HttpRequest) -> HttpResponse:
     environment_grid = EnvironmentGrid(environments, request=request)
 
     dag_runs = DAGRun.objects.filter_for_user(request.user)
-
-    # TODO: actual refresh should be done using a CRON
-    # for run in dag_runs.filter(state=DAGRunState.RUNNING):
-    #     run.refresh()
-
     run_grid = RunGrid(dag_runs[:5], request=request)
 
     return render(
@@ -33,3 +29,12 @@ def index(request: HttpRequest) -> HttpResponse:
             "breadcrumbs": breadcrumbs,
         },
     )
+
+
+@require_http_methods(["POST"])
+def index_refresh(request: HttpRequest) -> HttpResponse:
+    dag_runs = DAGRun.objects.filter_for_user(request.user)
+    for run in dag_runs.filter(state=DAGRunState.RUNNING):
+        run.refresh()
+
+    return index(request)
