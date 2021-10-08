@@ -82,6 +82,8 @@ function QuickSearch(advancedSearchUrl) {
  * @constructor
  */
 function AutoRefresh(url, method, delay) {
+    console.log("Autorefresh", url);
+
     return {
         interval: null,
         refreshedHtml: null,
@@ -359,7 +361,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
             frag.innerHTML = await refreshedResponse.text();
             const swap = frag.querySelector("[x-swap=objects_section]");
             this.refreshedHtml = swap.innerHTML;
-            this.uploading = false;
+            this.uploading = false;r
         }
     }
 }

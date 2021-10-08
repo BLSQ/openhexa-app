@@ -1,11 +1,8 @@
 {% load contenttypes embed i18n static %}
 
-{% embed "core/components/section/page_section.html" %}
+{% embed "ui/section/section.html" with title=_("Comments") %}
     {% slot extra_wrapper_attrs %}
         x-data="Commentable('{% url "comments:post_comment" %}', '{{ object.index.id }}')"
-    {% endslot %}
-    {% slot header %}
-        {% include "core/components/section/section_heading_simple.html" with title=_("Comments") %}
     {% endslot %}
     {% slot content %}
         <div class="bg-white overflow-hidden shadow sm:rounded-lg">
