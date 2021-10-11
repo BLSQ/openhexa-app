@@ -10,7 +10,7 @@
             {{ config_grid }}
         {% endslot %}
     {% endembed %}
-    {% url "connector_airflow:dag_run_list_refresh" dag.cluster.id dag.id as refresh_url %}
+    {% url "connector_airflow:dag_detail_refresh" dag.cluster.id dag.id as refresh_url %}
     {% embed "ui/section/section_autorefresh.html" with title=_("Runs") url=refresh_url %}
         {% slot content %}
             {{ run_grid }}

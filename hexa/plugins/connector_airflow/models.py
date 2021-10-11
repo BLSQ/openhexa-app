@@ -338,7 +338,7 @@ class DAGRun(Base, WithStatus):
     }
 
     class Meta:
-        ordering = ("-execution_date", "-execution_date")
+        ordering = ("-execution_date",)
 
     dag_config = models.ForeignKey(
         "DAGConfig", on_delete=models.CASCADE, null=True, blank=True

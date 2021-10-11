@@ -4,8 +4,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
 from hexa.pipelines.models import Index
-
-# from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
 from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
 
 

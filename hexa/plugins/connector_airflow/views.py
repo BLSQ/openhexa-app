@@ -52,6 +52,17 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     )
 
 
+def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
+    cluster = get_object_or_404(
+        Cluster.objects.filter_for_user(request.user),
+        pk=cluster_id,
+    )
+    for dag in [dag for dag in cluster.dag_set.filter() if dag.last_run is not None]:
+        dag.last_run.refresh()
+
+    return cluster_detail(request, cluster_id=cluster_id)
+
+
 def dag_detail(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
@@ -119,9 +130,6 @@ def dag_run_detail(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
     )
 
-    # if dag_run.state == DAGRunState.RUNNING and dag_run.execution_date < timezone.now():
-    #     dag_run.refresh()
-
     dag_run_card = DAGRunCard(dag_run, request=request)
     if request.method == "POST" and dag_run_card.save():
         return redirect(request.META["HTTP_REFERER"])
@@ -148,7 +156,7 @@ def dag_run_detail(
     )
 
 
-def dag_run_list_refresh(
+def dag_detail_refresh(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)

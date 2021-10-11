@@ -107,8 +107,6 @@ function AutoRefresh(url, delay) {
                 this.refreshedHtml = responseElement.querySelector(`[x-refresh-id="${url}"]`).innerHTML;
             } catch (e) {
                 console.error(`Error while submitting form: ${e}`);
-            } finally {
-                clearInterval(this.interval);
             }
         },
     }
