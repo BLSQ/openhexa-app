@@ -10,10 +10,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
+from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.user_management.models import User
 
 
@@ -83,7 +83,7 @@ class Cluster(Environment):
     def sync(self):
         created_count = 0
         updated_count = 0
-        identical_count = 0
+        identical_count = 0  # TODO: handle identical?
         with transaction.atomic():
             session = self.get_api_session()
             url = urljoin(self.api_url, "dags")
@@ -92,9 +92,9 @@ class Cluster(Environment):
             response_data = response.json()
 
             # Delete dags not in Airflow
-            airflow_ids = [x["dag_id"] for x in response_data["dags"]]
-            orphans = DAG.objects.filter(cluster=self).exclude(dag_id__in=airflow_ids)
-            new_orphans_count = orphans.count()
+            dag_ids = [x["dag_id"] for x in response_data["dags"]]
+            orphans = DAG.objects.filter(cluster=self).exclude(dag_id__in=dag_ids)
+            dag_orphans_count = orphans.count()
             orphans.delete()
 
             # Update or create the others
@@ -113,8 +113,16 @@ class Cluster(Environment):
                     self.api_url, f"dags/{dag.dag_id}/dagRuns?order_by=-end_date"
                 )
                 response = session.get(url)
-                for run_info in response.json()["dag_runs"]:
-                    run, _ = DAGRun.objects.get_or_create(
+                response_data = response.json()
+
+                # Delete runs not in Airflow
+                run_ids = [x["dag_run_id"] for x in response_data["dag_runs"]]
+                orphans = DAGRun.objects.filter(dag=dag).exclude(run_id__in=run_ids)
+                run_orphans_count = orphans.count()
+                orphans.delete()
+
+                for run_info in response_data["dag_runs"]:
+                    run, created = DAGRun.objects.get_or_create(
                         dag=dag,
                         run_id=run_info["dag_run_id"],
                         defaults={"execution_date": run_info["execution_date"]},
@@ -122,17 +130,21 @@ class Cluster(Environment):
                     run.last_refreshed_at = timezone.now()
                     run.state = run_info["state"]
                     run.save()
+                    if created:
+                        created_count += 1
+                    else:
+                        updated_count += 1
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
             self.save()
 
-        return DatasourceSyncResult(  # TODO: EnvironmentSyncResult?
-            datasource=self,
+        return EnvironmentSyncResult(
+            environment=self,
             created=created_count,
             updated=updated_count,
             identical=identical_count,
-            orphaned=new_orphans_count,
+            orphaned=dag_orphans_count + run_orphans_count,
         )
 
     def get_api_session(self):
