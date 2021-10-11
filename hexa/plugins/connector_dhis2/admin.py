@@ -13,8 +13,8 @@ from .models import (
 
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("api_url",)
-    search_fields = ("api_url",)
+    list_display = ("api_url", "username")
+    search_fields = ("api_url", "username")
 
 
 class PermissionInline(admin.StackedInline):
@@ -24,9 +24,9 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("url", "last_synced_at")
+    list_display = ("url", "display_name", "last_synced_at")
     list_filter = ("url",)
-    search_fields = ("url",)
+    search_fields = ("url", "display_name")
 
     inlines = [
         PermissionInline,
@@ -56,10 +56,18 @@ class DataElementAdmin(admin.ModelAdmin):
 @admin.register(IndicatorType)
 class IndicatorTypeAdmin(admin.ModelAdmin):
     list_display = (
+        "display_name",
         "dhis2_id",
         "number",
         "factor",
     )
+    search_fields = [
+        "dhis2_id",
+        "name",
+        "short_name",
+        "short_name",
+        "code",
+    ]
 
 
 @admin.register(Indicator)

@@ -114,7 +114,7 @@ class CustomUserAdmin(UserAdmin):
                 email_template_name="user_management/account_creation_email.html",
             )
 
-    search_fields = ("email",)
+    search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
 
 
