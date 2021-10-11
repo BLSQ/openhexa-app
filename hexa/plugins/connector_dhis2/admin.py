@@ -69,6 +69,7 @@ class IndicatorTypeAdmin(admin.ModelAdmin):
         "code",
     ]
 
+
 @admin.register(Indicator)
 class IndicatorAdmin(admin.ModelAdmin):
     list_display = (
