@@ -29,14 +29,15 @@ class BucketAdmin(admin.ModelAdmin):
 class ObjectAdmin(admin.ModelAdmin):
     list_display = (
         "display_name",
+        "bucket",
         "key",
         "type",
         "size",
         "orphan",
         "etag",
     )
-    list_filter = ("type",)
-    search_fields = ("key",)
+    list_filter = ("type", "bucket")
+    search_fields = ("key", "bucket")
 
 
 @admin.register(BucketPermission)
