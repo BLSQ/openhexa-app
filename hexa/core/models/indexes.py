@@ -119,6 +119,8 @@ class BaseIndexManager(TreeManager):
 
 
 class BaseIndex(Base):
+    """Indexes are entries in the catalog used for search and as anchors for metadata."""
+
     objects = BaseIndexManager.from_queryset(BaseIndexQuerySet)()
 
     class Meta:

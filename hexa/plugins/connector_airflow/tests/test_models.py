@@ -1,8 +1,24 @@
+from urllib.parse import urljoin
+
+import responses
 from django import test
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 from hexa.pipelines.models import Index
-from hexa.plugins.connector_airflow.models import Cluster, ClusterPermission
+from hexa.pipelines.sync import EnvironmentSyncResult
+from hexa.plugins.connector_airflow.models import (
+    DAG,
+    Cluster,
+    ClusterPermission,
+    DAGRun,
+    DAGRunState,
+)
+from hexa.plugins.connector_airflow.tests.responses import (
+    dag_runs_hello_world,
+    dag_runs_same_old,
+    dags,
+)
 from hexa.user_management.models import Membership, Team, User
 
 
@@ -73,3 +89,67 @@ class ModelsTest(test.TestCase):
             object_id=self.CLUSTER.id,
         )
         self.assertEqual("test_cluster", pipeline_index.external_name)
+
+    @responses.activate
+    def test_cluster_sync(self):
+        cluster = Cluster.objects.create(
+            name="test_cluster",
+            url="https://airflow-test.openhexa.org",
+            username="yolo",
+            password="yolo",
+        )
+        same_old = DAG.objects.create(cluster=cluster, dag_id="same_old")
+        bye_bye = DAG.objects.create(cluster=cluster, dag_id="bye_bye")
+        DAGRun.objects.create(
+            dag=same_old,
+            run_id="scheduled__2021-10-08T16:43:00+00:00",
+            state=DAGRunState.SUCCESS,
+            execution_date=timezone.now(),
+        )
+        DAGRun.objects.create(  # Will be orphaned if all goes well
+            dag=same_old,
+            run_id="scheduled__2021-10-08T16:32:00+00:00",
+            state=DAGRunState.SUCCESS,
+            execution_date=timezone.now(),
+        )
+        DAGRun.objects.create(
+            dag=bye_bye,
+            run_id="scheduled__2021-10-08T16:40:00+00:00",
+            state=DAGRunState.SUCCESS,
+            execution_date=timezone.now(),
+        )
+
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags"),
+            json=dags,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
+            json=dag_runs_hello_world,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
+            json=dag_runs_same_old,
+            status=200,
+        )
+
+        result = cluster.sync()
+
+        self.assertIsInstance(result, EnvironmentSyncResult)
+        self.assertEqual(
+            result.orphaned, 2
+        )  # The "byebye" DAG should have been orphaned, and one "extra" run for same_old as well
+        self.assertEqual(result.created, 3)  # "hello world" DAG + 2 new runs
+        self.assertEqual(result.updated, 2)  # "same_old" DAG and its remaining run
+        self.assertEqual(2, cluster.dag_set.count())
+        self.assertEqual(0, cluster.dag_set.filter(dag_id="bye_bye").count())
+        self.assertEqual(3, DAGRun.objects.filter(dag__cluster=cluster).count())
+        self.assertEqual(1, DAGRun.objects.filter(dag=same_old).count())
+        self.assertEqual(
+            0, DAGRun.objects.filter(dag__cluster=cluster, dag=bye_bye).count()
+        )

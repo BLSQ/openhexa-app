@@ -8,12 +8,13 @@ from hexa.ui.datagrid import (
     DateColumn,
     LeadingColumn,
     LinkColumn,
+    StatusColumn,
     TagColumn,
     TextColumn,
 )
 
 
-class DagGrid(Datagrid):
+class DAGGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="dag_id",
@@ -23,14 +24,14 @@ class DagGrid(Datagrid):
     location = CountryColumn(value="index.countries")
     tags = TagColumn(value="index.tags.all")
     last_run = DateColumn(date="last_run.execution_date", label=_("Last run"))
-    last_state = TextColumn(text="last_run.state", label=_("Last state"))
+    last_state = StatusColumn(value="last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")
 
     def get_icon(self, _) -> str:
         return "ui/icons/terminal.html"
 
 
-class DagConfigGrid(Datagrid):
+class DAGConfigGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="name",

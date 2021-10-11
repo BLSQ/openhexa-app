@@ -26,6 +26,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
         more_url=reverse(
             "connector_dhis2:data_element_list", kwargs={"instance_id": instance_id}
         ),
+        request=request,
     )
     indicator_grid = IndicatorGrid(
         instance.indicator_set.all(),
@@ -34,6 +35,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
         more_url=reverse(
             "connector_dhis2:indicator_list", kwargs={"instance_id": instance_id}
         ),
+        request=request,
     )
 
     dataset_grid = DatasetGrid(
@@ -43,6 +45,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
         more_url=reverse(
             "connector_dhis2:dataset_list", kwargs={"instance_id": instance_id}
         ),
+        request=request,
     )
 
     breadcrumbs = [
@@ -69,7 +72,9 @@ def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespo
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     data_element_grid = DataElementGrid(
-        instance.dataelement_set.all(), page=int(request.GET.get("page", "1"))
+        instance.dataelement_set.all(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -110,7 +115,9 @@ def data_element_detail(
         return redirect(request.META["HTTP_REFERER"])
 
     dataset_grid = DatasetGrid(
-        data_element.dataset_set.all(), page=int(request.GET.get("page", "1"))
+        data_element.dataset_set.all(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -154,7 +161,9 @@ def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     indicator_grid = IndicatorGrid(
-        instance.indicator_set.all(), page=int(request.GET.get("page", "1"))
+        instance.indicator_set.all(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -318,7 +327,9 @@ def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
         Instance.objects.filter_for_user(request.user), pk=instance_id
     )
     dataset_grid = DatasetGrid(
-        instance.dataset_set.all(), page=int(request.GET.get("page", "1"))
+        instance.dataset_set.all(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -357,7 +368,9 @@ def dataset_detail(
         return redirect(request.META["HTTP_REFERER"])
 
     data_elements_grid = DataElementGrid(
-        dataset.data_elements.all(), page=int(request.GET.get("page", "1"))
+        dataset.data_elements.all(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [

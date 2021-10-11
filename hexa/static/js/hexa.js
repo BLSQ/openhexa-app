@@ -76,6 +76,7 @@ function QuickSearch(advancedSearchUrl) {
 /**
  * Auto Refresh component
  * @param url
+ * @param method
  * @param delay (in seconds)
  * @returns {{init(*): void, submit(): Promise<void>, interval: null, refreshedHtml: null}}
  * @constructor
@@ -91,7 +92,7 @@ function AutoRefresh(url, delay) {
         async submit() {
             try {
                 const response = await fetch(url, {
-                    method: 'GET',
+                    method: "GET",
                     headers: {
                         "Accepts": "text/html",
                         "X-CSRFToken": document.cookie
@@ -100,11 +101,12 @@ function AutoRefresh(url, delay) {
                             .split('=')[1]
                     },
                 });
-                this.refreshedHtml = await response.text();
+                const responseText = await response.text();
+                const responseElement = document.createElement("div");
+                responseElement.innerHTML = responseText;
+                this.refreshedHtml = responseElement.querySelector(`[x-refresh-id="${url}"]`).innerHTML;
             } catch (e) {
                 console.error(`Error while submitting form: ${e}`);
-            } finally {
-                clearInterval(this.interval);
             }
         },
     }
@@ -355,7 +357,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
             frag.innerHTML = await refreshedResponse.text();
             const swap = frag.querySelector("[x-swap=objects_section]");
             this.refreshedHtml = swap.innerHTML;
-            this.uploading = false;
+            this.uploading = false;r
         }
     }
 }

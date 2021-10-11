@@ -1,0 +1,7 @@
+{% if not label %}
+    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+{% else %}
+    <td class="px-6 py-4 whitespace-nowrap">
+        {% include "ui/tag.html" with label=label color=color only %}
+    </td>
+{% endif %}

@@ -1,20 +1,24 @@
+import typing
+
 from django.core.paginator import Paginator
+from django.db import models
+from django.http import HttpRequest
 from django.template import loader
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.core.models import WithStatus
 from hexa.ui.utils import get_item_value
+
+DjangoModel = typing.TypeVar("DjangoModel", bound=models.Model)
 
 
 class DatagridOptions:
     """Container for datagrid meta (config)"""
 
-    def __init__(self, *, columns):
+    def __init__(self, *, columns: typing.Sequence["Column"]):
         self.columns = columns
-
-    def bind_columns(self, grid: "Datagrid"):
-        return {k: v.bind(grid) for k, v in self.columns.items()}.values()
 
 
 class DatagridMeta(type):
@@ -27,41 +31,49 @@ class DatagridMeta(type):
         if not parents:
             return new_class
 
-        columns = {}
+        columns = []
         for column_name, column in [
             (k, v) for k, v in attrs.items() if isinstance(v, Column)
         ]:
             column.name = column_name
-            columns[column_name] = column
+            columns.append(column)
         new_class._meta = DatagridOptions(columns=columns)
 
         return new_class
 
 
 class Datagrid(metaclass=DatagridMeta):
-    def __init__(self, queryset, *, paginate=True, per_page=20, page=1, more_url=None):
+    def __init__(
+        self,
+        queryset,
+        *,
+        paginate: bool = True,
+        per_page: int = 20,
+        page: int = 1,
+        more_url: str = None,
+        request: HttpRequest,
+    ):
         self.paginator = Paginator(queryset, per_page)
         self.page = self.paginator.page(page)
         self.paginate = paginate
         self.more_url = more_url
+        self.request = request
 
     def __str__(self):
         """Render the datagrid"""
 
         template = loader.get_template("ui/datagrid/datagrid.html")
-        row_data = []
+        rows = []
         for item in self.page:
-            single_row_data = []
-            for column in self._meta.bind_columns(self):
-                single_row_data.append(
-                    {"template": column.template, "data": column.data(item)}
-                )
+            bound_columns = []
+            for column in self._meta.columns:
+                bound_columns.append(column.bind(grid=self, model=item))
 
-            row_data.append(single_row_data)
+            rows.append(bound_columns)
 
         context = {
-            "rows": row_data,
-            "columns": self._meta.columns.values(),
+            "rows": rows,
+            "columns": self._meta.columns,
             "pagination": {
                 "display": self.paginate,
                 "item_label": _("Item") if self.paginator.count == 1 else _("items"),
@@ -102,6 +114,9 @@ class Datagrid(metaclass=DatagridMeta):
     def end_index(self):
         return self.page.end_index()
 
+    def __len__(self):
+        return self.paginator.count
+
 
 class Column:
     """Base column class (to be extended)"""
@@ -110,12 +125,9 @@ class Column:
         self._label = label
         self.hide_label = hide_label
         self.name = None
-        self.grid = None
 
-    def bind(self, grid):
-        self.grid = grid
-
-        return self
+    def bind(self, grid: Datagrid, model: DjangoModel):
+        return BoundColumn(self, grid=grid, model=model)
 
     @property
     def label(self):
@@ -127,20 +139,36 @@ class Column:
             "Each Column class should implement the template() property"
         )
 
-    @property
-    def bound(self):
-        return self.name is not None and self.grid is not None
-
-    def data(self, item):
+    def context(self, model: DjangoModel, grid: Datagrid):
         raise NotImplementedError(
-            "Each Column class should implement the data() method"
+            "Each Column class should implement the context() method"
         )
 
-    def get_value(self, item, accessor):
-        if not self.bound:
-            raise ValueError("Cannot get item value for unbound column")
+    def get_value(self, model, accessor, container=None):
+        return get_item_value(model, accessor, container=container, exclude=Column)
 
-        return get_item_value(item, accessor, container=self.grid, exclude=Column)
+
+class BoundColumn:
+    def __init__(
+        self, unbound_column: Column, *, grid: Datagrid, model: DjangoModel
+    ) -> None:
+        self.unbound_column = unbound_column
+        self.grid = grid
+        self.model = model
+
+    @property
+    def name(self):
+        return self.unbound_column.name
+
+    def __str__(self):
+        template = loader.get_template(self.unbound_column.template)
+
+        return template.render(
+            {
+                **self.unbound_column.context(self.model, self.grid),
+            },
+            request=self.grid.request,
+        )
 
 
 class LeadingColumn(Column):
@@ -167,19 +195,23 @@ class LeadingColumn(Column):
     def template(self):
         return "ui/datagrid/column_leading.html"
 
-    def data(self, item):
-        text_value = self.get_value(item, self.text)
+    def context(self, model: DjangoModel, grid: Datagrid):
+        text_value = self.get_value(model, self.text, container=grid)
         data = {"text": text_value, "single": self.secondary_text is None}
         if (
             self.detail_url is None
-            and hasattr(item, "get_absolute_url")
-            and callable(item.get_absolute_url)
+            and hasattr(model, "get_absolute_url")
+            and callable(model.get_absolute_url)
         ):
             self.detail_url = "get_absolute_url"
         if self.detail_url is not None:
-            data.update(detail_url=self.get_value(item, self.detail_url))
+            data.update(
+                detail_url=self.get_value(model, self.detail_url, container=grid)
+            )
         if self.secondary_text is not None:
-            secondary_text_value = self.get_value(item, self.secondary_text)
+            secondary_text_value = self.get_value(
+                model, self.secondary_text, container=grid
+            )
             data.update(
                 secondary_text=secondary_text_value,
                 empty=text_value is None and secondary_text_value is None,
@@ -187,9 +219,9 @@ class LeadingColumn(Column):
         else:
             data.update(empty=text_value is None)
         if self.image_src is not None:
-            data.update(image_src=self.get_value(item, self.image_src))
+            data.update(image_src=self.get_value(model, self.image_src, container=grid))
         if self.icon is not None:
-            data.update(icon=self.get_value(item, self.icon))
+            data.update(icon=self.get_value(model, self.icon, container=grid))
 
         data["image_alt"] = data.get("secondary_text", data["text"])
 
@@ -209,14 +241,16 @@ class TextColumn(Column):
     def template(self):
         return "ui/datagrid/column_text.html"
 
-    def data(self, item):
-        text_value = self.get_value(item, self.text)
+    def context(self, model: DjangoModel, grid: Datagrid):
+        text_value = self.get_value(model, self.text, container=grid)
         data = {
             "text": text_value,
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
-            secondary_text_value = self.get_value(item, self.secondary_text)
+            secondary_text_value = self.get_value(
+                model, self.secondary_text, container=grid
+            )
             data.update(
                 secondary_text=secondary_text_value,
                 empty=text_value is None and secondary_text_value is None,
@@ -254,14 +288,16 @@ class DateColumn(Column):
         else:
             return NotImplementedError('Only the "timesince" format is implemented')
 
-    def data(self, item):
+    def context(self, model: DjangoModel, grid: Datagrid):
         data = {
-            "date": self.format_date(self.get_value(item, self.date)),
+            "date": self.format_date(self.get_value(model, self.date, container=grid)),
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
             data.update(
-                secondary_text=self.get_value(item, self.secondary_text),
+                secondary_text=self.get_value(
+                    model, self.secondary_text, container=grid
+                ),
             )
 
         return data
@@ -279,8 +315,11 @@ class LinkColumn(Column):
     def template(self):
         return "ui/datagrid/column_link.html"
 
-    def data(self, item):
-        return {"label": _(self.text), "url": self.get_value(item, self.url)}
+    def context(self, model: DjangoModel, grid: Datagrid):
+        return {
+            "label": _(self.text),
+            "url": self.get_value(model, self.url, container=grid),
+        }
 
 
 class TagColumn(Column):
@@ -294,11 +333,14 @@ class TagColumn(Column):
     def template(self):
         return "ui/datagrid/column_tag.html"
 
-    def tags_data(self, item):
-        return [{"label": t.name} for t in self.get_value(item, self.value)]
+    def tags_data(self, model: DjangoModel, grid: Datagrid):
+        return [
+            {"label": t.name}
+            for t in self.get_value(model, self.value, container=Datagrid)
+        ]
 
-    def data(self, item):
-        tags_data = self.tags_data(item)
+    def context(self, model: DjangoModel, grid: Datagrid):
+        tags_data = self.tags_data(model, grid)
 
         return {
             "tags": tags_data,
@@ -308,8 +350,41 @@ class TagColumn(Column):
 
 
 class CountryColumn(TagColumn):
-    def tags_data(self, item):
+    def tags_data(self, model: DjangoModel, grid: Datagrid):
         return [
             {"label": c.name, "short_label": c.code, "image": c.flag}
-            for c in self.get_value(item, self.value)
+            for c in self.get_value(model, self.value, container=Datagrid)
         ]
+
+
+class StatusColumn(Column):
+    def __init__(self, *, value=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.value = value
+
+    COLOR_MAPPINGS = {
+        WithStatus.SUCCESS: "green",
+        WithStatus.ERROR: "red",
+        WithStatus.PENDING: "yellow",
+        WithStatus.UNKNOWN: "grey",
+    }
+
+    LABEL_MAPPINGS = {
+        WithStatus.SUCCESS: _("Success"),
+        WithStatus.ERROR: _("Error"),
+        WithStatus.PENDING: _("Pending"),
+        WithStatus.UNKNOWN: _("Unknown"),
+    }
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_state.html"
+
+    def context(self, model: DjangoModel, grid: Datagrid):
+        status = self.get_value(model, self.value, container=Datagrid)
+
+        return {
+            "color": self.COLOR_MAPPINGS.get(status),
+            "label": self.LABEL_MAPPINGS.get(status),
+        }

@@ -91,6 +91,10 @@ and fill the database with some initial data.
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
+Python requirements are handled with [pip-tools](https://github.com/jazzband/pip-tools), you will need to install it. 
+When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You 
+can then rebuild the Docker image.
+
 ### Running the tests
 
 Running the tests is as simple as:

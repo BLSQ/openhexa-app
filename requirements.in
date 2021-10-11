@@ -13,6 +13,7 @@ markdown
 mock
 pandas
 psycopg2-binary
+responses
 stringcase
 tblib
 whitenoise

@@ -1,17 +1,17 @@
 {% extends "layouts/page.html" %}
 {% load embed %}
 
-{% block page_title %}{{ dag }}{% endblock %}
+{% block page_title %}{{ dag.dag_id }}{% endblock %}
 
 {% block page_content %}
     {{ dag_card }}
-    {% include "comments/components/page_section_comments.html" with object=dag %}
     {% embed "ui/section/section.html" with title=_("Available configurations") %}
         {% slot content %}
             {{ config_grid }}
         {% endslot %}
     {% endembed %}
-    {% embed "ui/section/section.html" with title=_("Past runs") %}
+    {% url "connector_airflow:dag_detail_refresh" dag.cluster.id dag.id as refresh_url %}
+    {% embed "ui/section/section_autorefresh.html" with title=_("Runs") url=refresh_url %}
         {% slot content %}
             {{ run_grid }}
         {% endslot %}

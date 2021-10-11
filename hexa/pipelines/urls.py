@@ -6,4 +6,5 @@ app_name = "pipelines"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("refresh", views.index_refresh, name="index_refresh"),
 ]

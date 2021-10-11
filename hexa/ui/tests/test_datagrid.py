@@ -2,6 +2,7 @@ import dataclasses
 from unittest.mock import MagicMock, Mock
 
 from django import test
+from django.http import HttpRequest
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.ui.datagrid import (
@@ -62,5 +63,7 @@ class DatagridTest(test.TestCase):
             ]
         )
 
-        datagrid = self.build_simple_datagrid_class()(queryset=qs, page=1)
+        datagrid = self.build_simple_datagrid_class()(
+            queryset=qs, page=1, request=HttpRequest()
+        )
         self.assertGreater(len(str(datagrid)), 0)
