@@ -1,8 +1,12 @@
+from logging import getLogger
+
 import tqdm as tqdm
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from hexa.plugins.app import ConnectorAppConfig
+
+logger = getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -22,4 +26,7 @@ class Command(BaseCommand):
                     pbar = tqdm.tqdm(instances)
                     pbar.set_description(f"   {model.__name__:15}")
                     for instance in pbar:
-                        instance.sync()
+                        try:
+                            instance.sync()
+                        except Exception:
+                            logger.exception("sync")
