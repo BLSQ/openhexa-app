@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
@@ -45,6 +44,7 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
         request,
         "connector_airflow/cluster_detail.html",
         {
+            "cluster": cluster,
             "cluster_card": cluster_card,
             "dag_grid": dag_grid,
             "breadcrumbs": breadcrumbs,
@@ -87,6 +87,7 @@ def dag_detail(
         request,
         "connector_airflow/dag_detail.html",
         {
+            "dag": dag,
             "breadcrumbs": breadcrumbs,
             "dag_card": dag_card,
             "config_grid": config_grid,
@@ -147,7 +148,6 @@ def dag_run_detail(
     )
 
 
-@require_http_methods(["POST"])
 def dag_run_list_refresh(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
@@ -156,7 +156,6 @@ def dag_run_list_refresh(
     for run in dag.dagrun_set.filter(state=DAGRunState.RUNNING):
         run.refresh()
 
-    # TODO: should have its own template
     return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
 
 

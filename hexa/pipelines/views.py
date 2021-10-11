@@ -1,7 +1,6 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
 from hexa.pipelines.models import Index
@@ -31,7 +30,6 @@ def index(request: HttpRequest) -> HttpResponse:
     )
 
 
-@require_http_methods(["POST"])
 def index_refresh(request: HttpRequest) -> HttpResponse:
     dag_runs = DAGRun.objects.filter_for_user(request.user)
     for run in dag_runs.filter(state=DAGRunState.RUNNING):

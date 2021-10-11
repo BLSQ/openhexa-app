@@ -1,7 +1,7 @@
 {% extends "layouts/page.html" %}
 {% load embed %}
 
-{% block page_title %}{{ dag }}{% endblock %}
+{% block page_title %}{{ dag.dag_id }}{% endblock %}
 
 {% block page_content %}
     {{ dag_card }}
@@ -10,9 +10,8 @@
             {{ config_grid }}
         {% endslot %}
     {% endembed %}
-    {% url "connector_airflow:dag_run_list_refresh" as refresh_url %}
-    RefreshURL: {{ refresh_url }}
-    {% embed "ui/section/section_autorefresh.html" with title=_("Runs") url=refresh_url method="POST"  %}
+    {% url "connector_airflow:dag_run_list_refresh" dag.cluster.id dag.id as refresh_url %}
+    {% embed "ui/section/section_autorefresh.html" with title=_("Runs") url=refresh_url %}
         {% slot content %}
             {{ run_grid }}
         {% endslot %}

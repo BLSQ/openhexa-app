@@ -81,9 +81,7 @@ function QuickSearch(advancedSearchUrl) {
  * @returns {{init(*): void, submit(): Promise<void>, interval: null, refreshedHtml: null}}
  * @constructor
  */
-function AutoRefresh(url, method, delay) {
-    console.log("Autorefresh", url);
-
+function AutoRefresh(url, delay) {
     return {
         interval: null,
         refreshedHtml: null,
@@ -94,7 +92,7 @@ function AutoRefresh(url, method, delay) {
         async submit() {
             try {
                 const response = await fetch(url, {
-                    method,
+                    method: "GET",
                     headers: {
                         "Accepts": "text/html",
                         "X-CSRFToken": document.cookie

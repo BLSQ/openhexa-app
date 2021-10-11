@@ -6,7 +6,7 @@
 {% block page_content %}
     {{ environment_grid }}
     {% url "pipelines:index_refresh" as refresh_url %}
-    {% embed "ui/section/section_autorefresh.html" with title=_("Last pipeline runs") url=refresh_url method="POST" %}
+    {% embed "ui/section/section_autorefresh.html" with title=_("Last pipeline runs") url=refresh_url %}
         {% slot content %}
             {{ run_grid }}
         {% endslot %}
