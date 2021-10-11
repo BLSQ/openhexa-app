@@ -346,7 +346,6 @@ class DAGRun(Base, WithStatus):
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
     run_id = models.CharField(max_length=200, blank=False)
-    message = models.TextField()
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
 
