@@ -6,7 +6,6 @@ from django.db import transaction
 
 from hexa.plugins.app import ConnectorAppConfig
 
-
 logger = getLogger(__name__)
 
 
