@@ -208,35 +208,34 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     # if sentry -> we are in production, use fluentd handlers
     # inject sentry into logger config afterward.
-    logging.config.dictConfig({
-        'version': 1,
-        'disable_existing_loggers': True,
-        'formatters': {},
-        'handlers': {
-            'fluentd': {
-                'level': 'INFO',
-                'class': 'settings.logging.GCPHandler'
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": True,
+            "formatters": {},
+            "handlers": {
+                "fluentd": {"level": "INFO", "class": "settings.logging.GCPHandler"},
             },
-        },
-        'loggers': {
-            'django': {
-                'level': 'INFO',
-                'propagate': True,
+            "loggers": {
+                "django": {
+                    "level": "INFO",
+                    "propagate": True,
+                },
+                "gunicorn": {
+                    "level": "INFO",
+                    "propagate": True,
+                },
             },
-            'gunicorn': {
-                'level': 'INFO',
-                'propagate': True,
+            "root": {
+                "handlers": ["fluentd"],
+                "level": "DEBUG",
             },
-        },
-        'root': {
-            'handlers': ['fluentd'],
-            'level': 'DEBUG',
-        },
-    })
+        }
+    )
 
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.logging import ignore_logger, LoggingIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
 
     # Ignore "Invalid HTTP_HOST header" errors
     # as crawlers/bots hit the production hundreds of times per day
@@ -244,10 +243,7 @@ if SENTRY_DSN:
     ignore_logger("django.security.DisallowedHost")
 
     # inject sentry into logging config. set level to ERROR, we don't really want the rest?
-    sentry_logging = LoggingIntegration(
-        level=logging.ERROR,
-        event_level=logging.ERROR
-    )
+    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
