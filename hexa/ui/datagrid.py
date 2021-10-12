@@ -366,20 +366,22 @@ class StatusColumn(Column):
     COLOR_MAPPINGS = {
         WithStatus.SUCCESS: "green",
         WithStatus.ERROR: "red",
-        WithStatus.PENDING: "yellow",
-        WithStatus.UNKNOWN: "grey",
+        WithStatus.RUNNING: "yellow",
+        WithStatus.PENDING: "gray",
+        WithStatus.UNKNOWN: "gray",
     }
 
     LABEL_MAPPINGS = {
         WithStatus.SUCCESS: _("Success"),
         WithStatus.ERROR: _("Error"),
+        WithStatus.RUNNING: _("Running"),
         WithStatus.PENDING: _("Pending"),
         WithStatus.UNKNOWN: _("Unknown"),
     }
 
     @property
     def template(self):
-        return "ui/datagrid/column_state.html"
+        return "ui/datagrid/column_status.html"
 
     def context(self, model: DjangoModel, grid: Datagrid):
         status = self.get_value(model, self.value, container=Datagrid)

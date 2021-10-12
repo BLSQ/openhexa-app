@@ -247,7 +247,7 @@ class DAG(Pipeline):
             dag=self,
             run_id=response_data["dag_run_id"],
             execution_date=response_data["execution_date"],
-            state=DAGRunState.RUNNING,
+            state=DAGRunState.QUEUED,
         )
 
 
@@ -328,13 +328,15 @@ class DAGRunState(models.TextChoices):
     SUCCESS = "success", _("Success")
     RUNNING = "running", _("Running")
     FAILED = "failed", _("Failed")
+    QUEUED = "queued", _("Queued")
 
 
 class DAGRun(Base, WithStatus):
     STATUS_MAPPINGS = {
         DAGRunState.SUCCESS: WithStatus.SUCCESS,
-        DAGRunState.RUNNING: WithStatus.PENDING,
+        DAGRunState.RUNNING: WithStatus.RUNNING,
         DAGRunState.FAILED: WithStatus.ERROR,
+        DAGRunState.QUEUED: WithStatus.PENDING,
     }
 
     class Meta:

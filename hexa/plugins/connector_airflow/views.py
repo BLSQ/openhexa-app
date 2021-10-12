@@ -150,6 +150,7 @@ def dag_run_detail(
         "connector_airflow/dag_run_detail.html",
         {
             "cluster": cluster,
+            "dag": dag,
             "dag_run_card": dag_run_card,
             "breadcrumbs": breadcrumbs,
         },

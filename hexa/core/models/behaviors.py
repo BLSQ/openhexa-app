@@ -1,6 +1,7 @@
 class WithStatus:
     SUCCESS = "SUCCESS"
     PENDING = "PENDING"
+    RUNNING = "RUNNING"
     ERROR = "ERROR"
     UNKNOWN = "UNKNOWN"
 
