@@ -5,10 +5,10 @@ cryptography
 Django
 django-cors-headers
 django-countries
+django-debug-toolbar
 django-ltree
 django-postgres-queue
 django-tailwind
-gunicorn
 markdown
 mock
 pandas
@@ -18,8 +18,11 @@ stringcase
 tblib
 whitenoise
 sentry-sdk
-django-debug-toolbar
 tqdm
+
+# production
+google-cloud-logging
+gunicorn
 
 # connector_dhis2
 dhis2.py
