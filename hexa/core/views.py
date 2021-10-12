@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from django.contrib.auth import authenticate, login
 from django.db import connection
 from django.http import HttpRequest, HttpResponse, HttpResponseServerError
@@ -8,6 +10,8 @@ from django.utils.translation import ugettext_lazy as _
 from hexa.catalog.models import Index
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
+
+logger = getLogger(__name__)
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -68,5 +72,42 @@ def ready(request: HttpRequest) -> HttpResponse:
                 )
     except Exception as e:
         return HttpResponseServerError(f"Error: can not connect to the database ({e})")
+
+    return HttpResponse("ok")
+
+
+def test_logger(request: HttpRequest) -> HttpResponse:
+    """
+    Generate a log to test logging setup.
+
+    Use a GET parameter to specify level, default to INFO if absent. Value can be INFO, WARNING, ERROR,
+    EXCEPTION, UNCATCHED_EXCEPTION.
+    Use a GET parameter to specify message, default to "Test logger"
+
+    Example: test_logger?level=INFO&message=Test1
+
+    :param request: HttpRequest request
+    :return: HttpResponse web response
+    """
+
+    message = request.GET.get("message", "Test logger")
+    level = request.GET.get("level", "INFO")
+    if level not in ("INFO", "WARNING", "ERROR", "EXCEPTION", "UNCATCHED_EXCEPTION"):
+        level = "INFO"
+
+    if level == "INFO":
+        logger.info(message)
+    elif level == "WARNING":
+        logger.warning(message)
+    elif level == "ERROR":
+        logger.error(message)
+    elif level == "EXCEPTION":
+        try:
+            raise Exception(message)
+        except Exception:
+            logger.exception("test_logger")
+    else:
+        assert level == "UNCATCHED_EXCEPTION", "should never happen"
+        raise Exception(message)
 
     return HttpResponse("ok")

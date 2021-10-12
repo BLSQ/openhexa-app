@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import logging.config
 import os
 from pathlib import Path
 
@@ -205,18 +206,48 @@ GRAPHQL_MAX_PAGE_SIZE = 10_000
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 
 if SENTRY_DSN:
+    # if sentry -> we are in production, use fluentd handlers
+    # inject sentry into logger config afterward.
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": True,
+            "formatters": {},
+            "handlers": {
+                "fluentd": {"level": "INFO", "class": "settings.logging.GCPHandler"},
+            },
+            "loggers": {
+                "django": {
+                    "level": "INFO",
+                    "propagate": True,
+                },
+                "gunicorn": {
+                    "level": "INFO",
+                    "propagate": True,
+                },
+            },
+            "root": {
+                "handlers": ["fluentd"],
+                "level": "DEBUG",
+            },
+        }
+    )
+
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.logging import ignore_logger
+    from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
 
     # Ignore "Invalid HTTP_HOST header" errors
     # as crawlers/bots hit the production hundreds of times per day
     # with the IP instead of the host
     ignore_logger("django.security.DisallowedHost")
 
+    # inject sentry into logging config. set level to ERROR, we don't really want the rest?
+    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration()],
+        integrations=[DjangoIntegration(), sentry_logging],
         traces_sample_rate=int(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1")),
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
