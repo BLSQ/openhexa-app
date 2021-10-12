@@ -214,7 +214,7 @@ if SENTRY_DSN:
             "disable_existing_loggers": True,
             "formatters": {},
             "handlers": {
-                "fluentd": {"level": "INFO", "class": "settings.logging.GCPHandler"},
+                "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
             },
             "loggers": {
                 "django": {
