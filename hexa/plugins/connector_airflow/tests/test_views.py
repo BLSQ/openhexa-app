@@ -2,6 +2,7 @@ from urllib.parse import urljoin
 
 import responses
 from django import test
+from django.contrib.messages import ERROR
 from django.urls import reverse
 from django.utils import timezone
 
@@ -10,6 +11,9 @@ from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun, DAGRunSt
 from hexa.plugins.connector_airflow.tests.responses import (
     dag_run_hello_world_1,
     dag_run_same_old_1,
+    dag_runs_hello_world,
+    dag_runs_same_old,
+    dags,
 )
 from hexa.user_management.models import User
 
@@ -199,7 +203,7 @@ class ViewsTest(test.TestCase):
 
     def test_dag_run_detail_200(self):
         cluster = Cluster.objects.create(
-            name="Test cluster", url="http://one-cluster-url.com"
+            name="Test cluster", url="https://one-cluster-url.com"
         )
         dag = DAG.objects.create(cluster=cluster, dag_id="Test DAG")
         dag_run = DAGRun.objects.create(dag=dag, execution_date=timezone.now())
@@ -216,3 +220,75 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["dag_run_card"], DAGRunCard)
+
+    @responses.activate
+    def test_sync_301(self):
+        cluster = Cluster.objects.create(
+            name="Test cluster", url="https://one-cluster-url.com"
+        )
+        DAG.objects.create(cluster=cluster, dag_id="hello_world")
+
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags"),
+            json=dags,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
+            json=dag_runs_hello_world,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
+            json=dag_runs_same_old,
+            status=200,
+        )
+
+        self.client.force_login(self.USER_TAYLOR)
+        response = self.client.post(
+            reverse(
+                "connector_airflow:sync",
+                kwargs={
+                    "cluster_id": cluster.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, f"/airflow/{cluster.id}")
+
+    @responses.activate
+    def test_sync_301_even_if_airflow_fails(self):
+        cluster = Cluster.objects.create(
+            name="Bad Test cluster", url="https://bad-cluster-url.com"
+        )
+        DAG.objects.create(cluster=cluster, dag_id="same_old")
+
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags"),
+            json={},
+            status=500,
+        )
+
+        self.client.force_login(self.USER_TAYLOR)
+        with self.assertLogs(
+            "hexa.plugins.connector_airflow.views", level="ERROR"
+        ) as cm:
+            response = self.client.post(
+                reverse(
+                    "connector_airflow:sync",
+                    kwargs={
+                        "cluster_id": cluster.id,
+                    },
+                ),
+                follow=True,
+            )
+            self.assertRedirects(response, f"/airflow/{cluster.id}")
+            self.assertEqual(response.status_code, 200)
+            message = list(response.context["messages"])[0]
+            self.assertEqual(ERROR, message.level)
+            self.assertEqual("The cluster could not be synced", message.message)
+        self.assertIn("Sync failed for Cluster", cm.output[0])

@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
@@ -175,12 +176,17 @@ def dag_detail_refresh(
     return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
 
 
+@require_http_methods(["POST"])
 def sync(request: HttpRequest, cluster_id: uuid.UUID):
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user), pk=cluster_id
     )
 
-    sync_result = cluster.sync()
-    messages.success(request, sync_result)
+    try:
+        sync_result = cluster.sync()
+        messages.success(request, sync_result)
+    except AirflowAPIError:
+        messages.error(request, _("The cluster could not be synced"))
+        logger.exception(f"Sync failed for Cluster {cluster.id}")
 
     return redirect(request.META.get("HTTP_REFERER", cluster.get_absolute_url()))
