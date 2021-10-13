@@ -57,8 +57,11 @@ def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpR
         Cluster.objects.filter_for_user(request.user),
         pk=cluster_id,
     )
-    for dag in [dag for dag in cluster.dag_set.filter() if dag.last_run is not None]:
-        dag.last_run.refresh()
+
+    for dag in cluster.dag_set.all():
+        last_run = dag.dagrun_set.filter_for_refresh().first()
+        if last_run is not None:
+            last_run.refresh()
 
     return cluster_detail(request, cluster_id=cluster_id)
 

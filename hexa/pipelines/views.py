@@ -1,10 +1,14 @@
+from logging import getLogger
+
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
 from hexa.pipelines.models import Index
-from hexa.plugins.connector_airflow.models import DAGRun, DAGRunState
+from hexa.plugins.connector_airflow.models import AirflowAPIError, DAGRun
+
+logger = getLogger(__name__)
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -30,7 +34,10 @@ def index(request: HttpRequest) -> HttpResponse:
 
 def index_refresh(request: HttpRequest) -> HttpResponse:
     dag_runs = DAGRun.objects.filter_for_user(request.user)
-    for run in dag_runs.filter(state=DAGRunState.RUNNING):
-        run.refresh()
+    for run in dag_runs.filter_for_refresh():
+        try:
+            run.refresh()
+        except AirflowAPIError:
+            logger.exception(f"Refresh failed for DAGRun {run.id}")
 
     return index(request)

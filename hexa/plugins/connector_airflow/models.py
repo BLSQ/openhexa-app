@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import urljoin
 
-import requests
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -14,6 +13,7 @@ from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
+from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management.models import User
 
 
@@ -85,20 +85,17 @@ class Cluster(Environment):
         updated_count = 0
         identical_count = 0  # TODO: handle identical?
         with transaction.atomic():
-            session = self.get_api_session()
-            url = urljoin(self.api_url, "dags")
-            response = session.get(url)
-            # TODO: handle non-200
-            response_data = response.json()
+            client = self.get_api_client()
+            dags_data = client.list_dags()
 
             # Delete dags not in Airflow
-            dag_ids = [x["dag_id"] for x in response_data["dags"]]
+            dag_ids = [x["dag_id"] for x in dags_data["dags"]]
             orphans = DAG.objects.filter(cluster=self).exclude(dag_id__in=dag_ids)
             dag_orphans_count = orphans.count()
             orphans.delete()
 
             # Update or create the others
-            for dag_info in response_data["dags"]:
+            for dag_info in dags_data["dags"]:
                 dag, created = DAG.objects.get_or_create(
                     cluster=self, dag_id=dag_info["dag_id"]
                 )
@@ -109,19 +106,15 @@ class Cluster(Environment):
                 else:
                     updated_count += 1
 
-                url = urljoin(
-                    self.api_url, f"dags/{dag.dag_id}/dagRuns?order_by=-end_date"
-                )
-                response = session.get(url)
-                response_data = response.json()
+                dag_runs_data = client.list_dag_runs(dag.dag_id)
 
                 # Delete runs not in Airflow
-                run_ids = [x["dag_run_id"] for x in response_data["dag_runs"]]
+                run_ids = [x["dag_run_id"] for x in dag_runs_data["dag_runs"]]
                 orphans = DAGRun.objects.filter(dag=dag).exclude(run_id__in=run_ids)
                 run_orphans_count = orphans.count()
                 orphans.delete()
 
-                for run_info in response_data["dag_runs"]:
+                for run_info in dag_runs_data["dag_runs"]:
                     run, created = DAGRun.objects.get_or_create(
                         dag=dag,
                         run_id=run_info["dag_run_id"],
@@ -147,20 +140,16 @@ class Cluster(Environment):
             orphaned=dag_orphans_count + run_orphans_count,
         )
 
-    def get_api_session(self):
-        session = requests.Session()
-        session.auth = (self.username, self.password)
-        return session
+    def get_api_client(self):
+        return AirflowAPIClient(
+            url=self.url, username=self.username, password=self.password
+        )
 
     def clean(self):
-        session = self.get_api_session()
+        client = self.get_api_client()
         try:
-            response = session.get(urljoin(self.url, "api/v1/dags"))
-            if not response.ok:
-                raise ValidationError(
-                    f"Error connecting to Airflow: error {response.status_code}"
-                )
-        except Exception as e:
+            client.list_dags()
+        except AirflowAPIError as e:
             raise ValidationError(f"Error connecting to Airflow: {e}")
 
 
@@ -234,19 +223,13 @@ class DAG(Pipeline):
         return self.dagrun_set.first()
 
     def run(self):
-        session = self.cluster.get_api_session()
-
-        url = urljoin(self.cluster.api_url, f"dags/{self.dag_id}/dagRuns")
-        response = session.post(
-            url, json={"execution_date": timezone.now().isoformat()}
-        )
-        # TODO: handle non-200
-        response_data = response.json()
+        client = self.cluster.get_api_client()
+        dag_run_data = client.trigger_dag_run(self.dag_id)
 
         return DAGRun.objects.create(
             dag=self,
-            run_id=response_data["dag_run_id"],
-            execution_date=response_data["execution_date"],
+            run_id=dag_run_data["dag_run_id"],
+            execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
         )
 
@@ -293,6 +276,7 @@ class DAGConfig(Base):
 @dataclass
 class DAGRunResult:
     dag_config: DAGConfig
+
     # TODO: document and move in api module
 
     def __str__(self) -> str:
@@ -311,6 +295,9 @@ class DAGRunQuerySet(models.QuerySet):
                 t.pk for t in user.team_set.all()
             ]
         )
+
+    def filter_for_refresh(self):
+        return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
 
     def get_last_for_dag_and_config(
         self, *, dag: DAG = None, dag_config: DAGConfig = None
@@ -360,18 +347,11 @@ class DAGRun(Base, WithStatus):
         )
 
     def refresh(self) -> None:
-        session = self.dag.cluster.get_api_session()
-        url = urljoin(
-            self.dag.cluster.api_url,
-            f"dags/{self.dag.dag_id}/dagRuns/{self.run_id}",
-        )
-
-        response = session.get(url)
-        # TODO: handle non-200
-        response_data = response.json()
+        client = self.dag.cluster.get_api_client()
+        run_data = client.get_dag_run(self.dag.dag_id, self.run_id)
 
         self.last_refreshed_at = timezone.now()
-        self.state = response_data["state"]
+        self.state = run_data["state"]
         self.save()
 
     @property
