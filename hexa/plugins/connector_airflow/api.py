@@ -11,7 +11,7 @@ class AirflowAPIError(Exception):
 
 class AirflowAPIClient:
     def __init__(self, *, url: str, username: str, password: str):
-        self._url = urljoin(url, "api/v1/")
+        self._url = url
         self._session = requests.Session()
         self._session.auth = (username, password)
 

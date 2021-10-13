@@ -142,7 +142,7 @@ class Cluster(Environment):
 
     def get_api_client(self):
         return AirflowAPIClient(
-            url=self.url, username=self.username, password=self.password
+            url=self.api_url, username=self.username, password=self.password
         )
 
     def clean(self):
