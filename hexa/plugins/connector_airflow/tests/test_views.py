@@ -98,13 +98,17 @@ class ViewsTest(test.TestCase):
         )
 
         self.client.force_login(self.USER_TAYLOR)
-        response = self.client.get(
-            reverse(
-                "connector_airflow:cluster_detail_refresh",
-                kwargs={"cluster_id": cluster.id},
-            ),
-        )
-        self.assertEqual(response.status_code, 200)
+        with self.assertLogs(
+            "hexa.plugins.connector_airflow.views", level="ERROR"
+        ) as cm:
+            response = self.client.get(
+                reverse(
+                    "connector_airflow:cluster_detail_refresh",
+                    kwargs={"cluster_id": cluster.id},
+                ),
+            )
+            self.assertEqual(response.status_code, 200)
+        self.assertIn("Refresh failed for DAGRun", cm.output[0])
 
     def test_dag_detail_200(self):
         cluster = Cluster.objects.create(
@@ -177,17 +181,21 @@ class ViewsTest(test.TestCase):
         )
 
         self.client.force_login(self.USER_JIM)
-        response = self.client.get(
-            reverse(
-                "connector_airflow:dag_detail_refresh",
-                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
-            ),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            DAGRunState.QUEUED, DAGRun.objects.get(run_id="same_old_run_1").state
-        )
-        self.assertEqual(1, len(responses.calls))
+        with self.assertLogs(
+            "hexa.plugins.connector_airflow.views", level="ERROR"
+        ) as cm:
+            response = self.client.get(
+                reverse(
+                    "connector_airflow:dag_detail_refresh",
+                    kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+                ),
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                DAGRunState.QUEUED, DAGRun.objects.get(run_id="same_old_run_1").state
+            )
+            self.assertEqual(1, len(responses.calls))
+        self.assertIn("Refresh failed for DAGRun", cm.output[0])
 
     def test_dag_run_detail_200(self):
         cluster = Cluster.objects.create(

@@ -109,10 +109,12 @@ class ViewsTest(test.TestCase):
         )
 
         self.client.force_login(self.USER_JANE)
-        response = self.client.get(
-            reverse(
-                "pipelines:index_refresh",
-            ),
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(1, len(responses.calls))
+        with self.assertLogs("hexa.pipelines.views", level="ERROR") as cm:
+            response = self.client.get(
+                reverse(
+                    "pipelines:index_refresh",
+                ),
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(1, len(responses.calls))
+        self.assertIn("Refresh failed for DAGRun", cm.output[0])
