@@ -250,7 +250,7 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
-else:
+elif os.environ.get("DEBUG_LOGGING", "false") == "true":
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,

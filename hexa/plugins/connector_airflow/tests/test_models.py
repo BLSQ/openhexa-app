@@ -141,6 +141,7 @@ class ModelsTest(test.TestCase):
         result = cluster.sync()
 
         self.assertIsInstance(result, EnvironmentSyncResult)
+        self.assertEqual(3, len(responses.calls))
         self.assertEqual(
             result.orphaned, 2
         )  # The "byebye" DAG should have been orphaned, and one "extra" run for same_old as well

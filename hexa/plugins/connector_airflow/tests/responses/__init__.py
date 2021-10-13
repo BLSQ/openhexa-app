@@ -64,18 +64,20 @@ dag_runs_hello_world = {
     ],
     "total_entries": 2,
 }
+
+dag_run_same_old_1 = {
+    "conf": {},
+    "dag_id": "same_old",
+    "dag_run_id": "same_old_run_1",
+    "end_date": "2021-10-08T16:42:16.189200+00:00",
+    "execution_date": "2021-10-08T16:41:00+00:00",
+    "external_trigger": False,
+    "start_date": "2021-10-08T16:42:00.830209+00:00",
+    "state": "success",
+}
 dag_runs_same_old = {
     "dag_runs": [
-        {
-            "conf": {},
-            "dag_id": "same_old",
-            "dag_run_id": "same_old_run_1",
-            "end_date": "2021-10-08T16:42:16.189200+00:00",
-            "execution_date": "2021-10-08T16:41:00+00:00",
-            "external_trigger": False,
-            "start_date": "2021-10-08T16:42:00.830209+00:00",
-            "state": "success",
-        },
+        dag_run_same_old_1,
     ],
     "total_entries": 1,
 }

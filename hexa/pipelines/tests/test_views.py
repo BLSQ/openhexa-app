@@ -48,7 +48,7 @@ class ViewsTest(test.TestCase):
     @responses.activate
     def test_index_refresh_200(self):
         cluster = Cluster.objects.create(
-            name="Test cluster ", url="http://one-cluster-url.com"
+            name="Test cluster", url="https://one-cluster-url.com"
         )
         dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
         DAGRun.objects.create(
@@ -84,13 +84,14 @@ class ViewsTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(2, len(responses.calls))
         self.assertEqual(1, len(response.context["environment_grid"]))
         self.assertEqual(2, len(response.context["run_grid"]))
 
     @responses.activate
     def test_index_refresh_200_even_if_airflow_fails(self):
         cluster = Cluster.objects.create(
-            name="Test cluster ", url="https://one-cluster-url.com"
+            name="Test cluster", url="https://one-cluster-url.com"
         )
         dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
         DAGRun.objects.create(
@@ -114,3 +115,4 @@ class ViewsTest(test.TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(1, len(responses.calls))

@@ -1,4 +1,5 @@
 import uuid
+from logging import getLogger
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
@@ -6,15 +7,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.pipelines.datagrids import RunGrid
+from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.datagrids import DAGConfigGrid, DAGGrid
-from hexa.plugins.connector_airflow.models import (  # DAGRunState,
-    DAG,
-    Cluster,
-    DAGConfig,
-    DAGRun,
-    DAGRunState,
-)
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGConfig, DAGRun
+
+logger = getLogger(__name__)
 
 
 def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
@@ -61,7 +59,10 @@ def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpR
     for dag in cluster.dag_set.all():
         last_run = dag.dagrun_set.filter_for_refresh().first()
         if last_run is not None:
-            last_run.refresh()
+            try:
+                last_run.refresh()
+            except AirflowAPIError:
+                logger.exception(f"Refresh failed for DAGRun {last_run.id}")
 
     return cluster_detail(request, cluster_id=cluster_id)
 
@@ -165,8 +166,11 @@ def dag_detail_refresh(
 ) -> HttpResponse:
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-    for run in dag.dagrun_set.filter(state=DAGRunState.RUNNING):
-        run.refresh()
+    for run in dag.dagrun_set.filter_for_refresh():
+        try:
+            run.refresh()
+        except AirflowAPIError:
+            logger.exception(f"Refresh failed for DAGRun {run.id}")
 
     return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
 
