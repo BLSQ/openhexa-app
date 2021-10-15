@@ -1,7 +1,7 @@
 {% extends "layouts/page.html" %}
 {% load embed %}
 
-{% block page_title %}{{ dag }}{% endblock %}
+{% block page_title %}{{ dag.dag_id }}{% endblock %}
 
 {% block page_content %}
     {{ dag_run_card }}

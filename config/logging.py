@@ -4,7 +4,7 @@ import traceback
 from logging import Handler
 
 # Specific logging module for GCP, use json to serialize output -> work better for GKE
-# Can be used for futher customization
+# Can be used for further customization
 
 
 class GCPHandler(Handler):

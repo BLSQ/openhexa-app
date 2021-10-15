@@ -9,6 +9,7 @@ from hexa.ui.datacard import (
     Datacard,
     DateProperty,
     Section,
+    StatusProperty,
     TextProperty,
     URLProperty,
 )
@@ -87,9 +88,8 @@ class DAGRunSection(Section):
     title = "Airflow Data"
 
     run_id = TextProperty(text="run_id", label="Identifier")
-    message = TextProperty(text="message")
-    execution_date = DateProperty(date="execution_date")
-    state = TextProperty(text="state")
+    execution_date = DateProperty(date="execution_date", label="Execution Date")
+    state = StatusProperty(value="status", label="State")
     dag_config = TextProperty(text="dag_config", label="Configuration")
 
 

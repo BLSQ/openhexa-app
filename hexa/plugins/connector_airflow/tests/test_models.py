@@ -102,19 +102,19 @@ class ModelsTest(test.TestCase):
         bye_bye = DAG.objects.create(cluster=cluster, dag_id="bye_bye")
         DAGRun.objects.create(
             dag=same_old,
-            run_id="scheduled__2021-10-08T16:43:00+00:00",
+            run_id="same_old_run_1",
             state=DAGRunState.SUCCESS,
             execution_date=timezone.now(),
         )
         DAGRun.objects.create(  # Will be orphaned if all goes well
             dag=same_old,
-            run_id="scheduled__2021-10-08T16:32:00+00:00",
+            run_id="same_old_run_2",
             state=DAGRunState.SUCCESS,
             execution_date=timezone.now(),
         )
         DAGRun.objects.create(
             dag=bye_bye,
-            run_id="scheduled__2021-10-08T16:40:00+00:00",
+            run_id="bye_bye_run_1",
             state=DAGRunState.SUCCESS,
             execution_date=timezone.now(),
         )
@@ -141,6 +141,7 @@ class ModelsTest(test.TestCase):
         result = cluster.sync()
 
         self.assertIsInstance(result, EnvironmentSyncResult)
+        self.assertEqual(3, len(responses.calls))
         self.assertEqual(
             result.orphaned, 2
         )  # The "byebye" DAG should have been orphaned, and one "extra" run for same_old as well

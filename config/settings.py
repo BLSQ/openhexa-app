@@ -208,30 +208,28 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     # if sentry -> we are in production, use fluentd handlers
     # inject sentry into logger config afterward.
-    logging.config.dictConfig(
-        {
-            "version": 1,
-            "disable_existing_loggers": True,
-            "formatters": {},
-            "handlers": {
-                "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "formatters": {},
+        "handlers": {
+            "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
+        },
+        "loggers": {
+            "django": {
+                "level": "INFO",
+                "propagate": True,
             },
-            "loggers": {
-                "django": {
-                    "level": "INFO",
-                    "propagate": True,
-                },
-                "gunicorn": {
-                    "level": "INFO",
-                    "propagate": True,
-                },
+            "gunicorn": {
+                "level": "INFO",
+                "propagate": True,
             },
-            "root": {
-                "handlers": ["fluentd"],
-                "level": "DEBUG",
-            },
-        }
-    )
+        },
+        "root": {
+            "handlers": ["fluentd"],
+            "level": "DEBUG",
+        },
+    }
 
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
@@ -252,6 +250,20 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
+elif os.environ.get("DEBUG_LOGGING", "false") == "true":
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+            },
+        },
+        "root": {
+            "handlers": ["console"],
+            "level": "WARNING",
+        },
+    }
 
 # Email settings
 EMAIL_HOST = os.environ.get("EMAIL_HOST")

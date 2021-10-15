@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from markdown import markdown as to_markdown
 
 from hexa.core.date_utils import date_format as do_date_format
+from hexa.core.models import WithStatus
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
@@ -235,7 +236,7 @@ class Property:
 
     def base_context(self, model, section, is_edit=False):
         return {
-            "label": _(self._label)
+            "property_label": _(self._label)
             if self._label is not None
             else _(self.name.capitalize()),
         }
@@ -488,6 +489,41 @@ class DateProperty(Property):
             "date": self.format_date(
                 self.get_value(model, self.date, container=section)
             ),
+        }
+
+
+class StatusProperty(Property):
+    COLOR_MAPPINGS = {
+        WithStatus.SUCCESS: "green",
+        WithStatus.ERROR: "red",
+        WithStatus.RUNNING: "yellow",
+        WithStatus.PENDING: "gray",
+        WithStatus.UNKNOWN: "gray",
+    }
+
+    LABEL_MAPPINGS = {
+        WithStatus.SUCCESS: _("Success"),
+        WithStatus.ERROR: _("Error"),
+        WithStatus.RUNNING: _("Running"),
+        WithStatus.PENDING: _("Pending"),
+        WithStatus.UNKNOWN: _("Unknown"),
+    }
+
+    def __init__(self, *, value=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.value = value
+
+    @property
+    def template(self):
+        return "ui/datacard/property_status.html"
+
+    def context(self, model, section, **kwargs):
+        status = self.get_value(model, self.value, container=section)
+
+        return {
+            "color": self.COLOR_MAPPINGS.get(status),
+            "label": self.LABEL_MAPPINGS.get(status),
         }
 
 
