@@ -51,7 +51,7 @@ class BaseIndexQuerySet(TreeQuerySet):
 
         return self.filter(
             indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
     def search(self, query: str):
         tokens = query.split(" ")
@@ -112,7 +112,7 @@ class BaseIndexManager(TreeManager):
 
         return self.filter(
             indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
     def get_queryset(self):  # TODO: PR in django-ltree?
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
