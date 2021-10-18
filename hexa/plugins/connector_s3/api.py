@@ -4,7 +4,6 @@ import json
 import typing
 
 import boto3
-import stringcase
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
@@ -14,6 +13,28 @@ import hexa.user_management.models
 
 class S3ApiError(Exception):
     pass
+
+
+def generate_s3_policy(bucket_names: typing.Sequence[str]) -> typing.Dict:
+    policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                # TODO: check the impact of dropping SIDs
+                # "Sid": stringcase.pascalcase(
+                #     stringcase.snakecase(f"{bucket_name}-all-actions")
+                # ),
+                "Effect": "Allow",
+                "Action": "s3:*",
+                "Resource": [
+                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in bucket_names],
+                    *[f"arn:aws:s3:::{bucket_name}/*" for bucket_name in bucket_names],
+                ],
+            }
+        ],
+    }
+
+    return policy
 
 
 def generate_sts_buckets_credentials(
@@ -35,25 +56,11 @@ def generate_sts_buckets_credentials(
         aws_access_key_id=principal_credentials.access_key_id,
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
-    policy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": stringcase.pascalcase(
-                    stringcase.snakecase(f"{bucket.name}-all-actions")
-                ),
-                "Effect": "Allow",
-                "Action": "s3:*",
-                "Resource": [
-                    f"arn:aws:s3:::{bucket.name}",
-                    f"arn:aws:s3:::{bucket.name}/*",
-                ],
-            }
-            for bucket in buckets
-        ],
-    }
+
+    policy = generate_s3_policy([bucket.name for bucket in buckets])
+
     if user is not None:
-        session_name = f"sts-{principal_credentials.username}-{user.username}"
+        session_name = f"sts-{principal_credentials.username}-{user.email}"
     else:
         session_name = f"sts-{principal_credentials.username}-system"
 
