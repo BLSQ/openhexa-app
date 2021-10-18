@@ -77,6 +77,7 @@ def generate_sts_team_s3_credentials(
         2. If we don't, create the role
         3. Ensure that the app IAM user can assume the team role
         4. Generates a fresh S3 policy for the team role and sets it on the role (replacing the existing one)
+        5. Assume the team role
     """
 
     if principal_credentials.user_arn == "":
