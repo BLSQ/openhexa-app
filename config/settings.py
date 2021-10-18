@@ -216,6 +216,10 @@ if SENTRY_DSN:
             "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
         },
         "loggers": {
+            "django.security.DisallowedHost": {
+                "level": "EXCEPTION",
+                "propagate": True,
+            },
             "django": {
                 "level": "INFO",
                 "propagate": True,
@@ -224,10 +228,11 @@ if SENTRY_DSN:
                 "level": "INFO",
                 "propagate": True,
             },
-        },
-        "root": {
-            "handlers": ["fluentd"],
-            "level": "DEBUG",
+            "": {
+                "handlers": ["fluentd"],
+                "level": "DEBUG",
+                "propagate": False,
+            },
         },
     }
 
@@ -259,9 +264,11 @@ elif os.environ.get("DEBUG_LOGGING", "false") == "true":
                 "class": "logging.StreamHandler",
             },
         },
-        "root": {
-            "handlers": ["console"],
-            "level": "WARNING",
+        "loggers": {
+            "": {
+                "handlers": ["console"],
+                "level": "WARNING",
+            },
         },
     }
 
