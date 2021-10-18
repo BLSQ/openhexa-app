@@ -1,7 +1,6 @@
 from hexa.notebooks.credentials import NotebooksCredentials, NotebooksCredentialsError
 from hexa.plugins.connector_s3.api import generate_sts_team_s3_credentials
 from hexa.plugins.connector_s3.models import Bucket, Credentials
-from hexa.user_management.models import User
 
 
 def notebooks_credentials(credentials: NotebooksCredentials):
@@ -18,14 +17,8 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "Your s3 connector plugin should have a single credentials entry"
             )
 
-        try:
-            team = credentials.user.team_set.get()
-        except User.MultipleObjectsReturned:  # TODO: handle multiple teams
-            raise ValueError("Cannot handle more than 1 team")
-
         sts_credentials = generate_sts_team_s3_credentials(
             user=credentials.user,
-            team=team,
             principal_credentials=principal_s3_credentials,
             buckets=buckets,
             duration=60 * 60 * 12,

@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 from django.utils.text import slugify
 
 import hexa.plugins.connector_s3.models
+from hexa.user_management.models import Team
 
 
 class S3ApiError(Exception):
@@ -64,7 +65,6 @@ def generate_sts_app_s3_credentials(
 def generate_sts_team_s3_credentials(
     *,
     user: hexa.user_management.models.User,
-    team: hexa.user_management.models.Team,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
@@ -91,19 +91,16 @@ def generate_sts_team_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
-    # Get or create the team role
-    team_role_name = f"{principal_credentials.username}-{slugify(team.name)}"
+    # Check teams
     try:
-        role_data = iam_client.get_role(RoleName=team_role_name)
-    except iam_client.exceptions.NoSuchEntityException:
-        role_data = iam_client.create_role(
-            RoleName=team_role_name, MaxSessionDuration=12 * 60 * 60
-        )
+        team = user.team_set.get()
+    except Team.DoesNotExist:  # TODO: handle multiple teams
+        raise S3ApiError("Users should be linked to one team and one team only")
 
-    # Make sure that the IAM app user can assume the team role
-    iam_client.update_assume_role_policy(
-        RoleName=team_role_name,
-        PolicyDocument=json.dumps(
+    # Get or create the team role with the proper assume role policy
+    team_role_name = f"{principal_credentials.username}-{slugify(team.name)}"
+    assume_role_policy_doc = json.dumps(
+        json.dumps(
             {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -115,6 +112,19 @@ def generate_sts_team_s3_credentials(
                 ],
             }
         ),
+    )
+    try:
+        role_data = iam_client.get_role(RoleName=team_role_name)
+    except iam_client.exceptions.NoSuchEntityException:
+        role_data = iam_client.create_role(
+            RoleName=team_role_name,
+            MaxSessionDuration=12 * 60 * 60,
+            AssumeRolePolicyDocument=assume_role_policy_doc,
+        )
+
+    # Just to be safe - update and make sure that the IAM app user can assume the team role
+    iam_client.update_assume_role_policy(
+        RoleName=team_role_name, PolicyDocument=assume_role_policy_doc
     )
 
     policy_doc = json.dumps(generate_s3_policy([b.name for b in buckets]))
