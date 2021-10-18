@@ -116,11 +116,17 @@ def generate_sts_team_s3_credentials(
         ),
     )
 
+    policy_doc = json.dumps(generate_s3_policy([b.name for b in buckets]))
+    if len(policy_doc) > 10240:
+        raise S3ApiError(
+            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
+        )
+
     # Build a fresh version of the s3 policy and set it as an inline policy on the role (forced update)
     iam_client.put_role_policy(
         RoleName=role_data["Role"]["RoleName"],
         PolicyName="s3-access",
-        PolicyDocument=json.dumps(generate_s3_policy([b.name for b in buckets])),
+        PolicyDocument=policy_doc,
     )
 
     # We can then assume the team role
@@ -151,7 +157,7 @@ def generate_s3_policy(bucket_names: typing.Sequence[str]) -> typing.Dict:
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Sid": "s3-all-actions",
+                "Sid": "S3AllActions",
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
