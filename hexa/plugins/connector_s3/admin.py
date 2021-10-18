@@ -5,7 +5,7 @@ from .models import Bucket, BucketPermission, Credentials, Object
 
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("username", "use_sts_credentials")
+    list_display = ("username", "app_role_arn")
     search_fields = ("username",)
 
 

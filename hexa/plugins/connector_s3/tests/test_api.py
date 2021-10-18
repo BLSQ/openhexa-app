@@ -7,11 +7,10 @@ from moto import mock_s3, mock_sts
 from hexa.plugins.connector_s3.api import (
     generate_download_url,
     generate_s3_policy,
-    generate_sts_buckets_credentials,
+    generate_sts_app_s3_credentials,
     generate_upload_url,
 )
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
-from hexa.user_management.models import User
 
 
 class ApiTest(test.TestCase):
@@ -20,8 +19,9 @@ class ApiTest(test.TestCase):
     def setUp(self):
         self.credentials = Credentials.objects.create(
             username="test-username",
-            role_arn="test-arn-arn-arn-arn",
             default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
         )
         self.bucket = Bucket.objects.create(name=self.bucket_name)
 
@@ -60,22 +60,17 @@ class ApiTest(test.TestCase):
         )
 
     @mock_sts
-    def test_generate_sts_buckets_credentials(self):
-        user = User.objects.create_user(
-            "jane@bluesquarehub.com",
-            "janerocks2",
-            is_superuser=True,
-        )
+    def test_generate_sts_app_s3_credentials(self):
         principal_credentials = Credentials.objects.create(
             username="hexa-app-test",
             access_key_id="foo",
             secret_access_key="bar",
             default_region="eu-central-1",
-            role_arn="arn:aws:iam::123456789012:role/hexa-app-text",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
         )
-        buckets = [Bucket(name=f"hexa-test-bucket-name-{i}") for i in range(2)]
-        credentials = generate_sts_buckets_credentials(
-            user=user, principal_credentials=principal_credentials, buckets=buckets
+        credentials = generate_sts_app_s3_credentials(
+            principal_credentials=principal_credentials
         )
         self.assertIsInstance(credentials, dict)
 

@@ -16,7 +16,7 @@ from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
-    generate_sts_buckets_credentials,
+    generate_sts_app_s3_credentials,
     head_bucket,
 )
 
@@ -35,15 +35,12 @@ class Credentials(Base):
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
     default_region = models.CharField(max_length=200, default="")
-    role_arn = models.CharField(max_length=200)
+    user_arn = models.CharField(max_length=200)
+    app_role_arn = models.CharField(max_length=200)
 
     @property
     def display_name(self):
         return self.username
-
-    @property
-    def use_sts_credentials(self) -> bool:
-        return self.role_arn != ""
 
 
 class BucketQuerySet(DatasourceQuerySet):
@@ -86,10 +83,9 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
-        sts_credentials = generate_sts_buckets_credentials(
-            user=None,
+        sts_credentials = generate_sts_app_s3_credentials(
             principal_credentials=self.principal_credentials,
-            buckets=[self],
+            bucket=self,
         )
         fs = S3FileSystem(
             key=sts_credentials["AccessKeyId"],
