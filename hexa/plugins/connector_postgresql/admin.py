@@ -19,7 +19,9 @@ class DatabaseAdmin(admin.ModelAdmin):
 
 @admin.register(Table)
 class TableAdmin(admin.ModelAdmin):
-    list_display = ("name", "database")
+    list_display = ("name", "database", "rows")
+    search_fields = ("name", "database")
+    list_filter = ("database",)
 
 
 @admin.register(DatabasePermission)

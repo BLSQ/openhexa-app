@@ -68,7 +68,7 @@ class InstanceQuerySet(DatasourceQuerySet):
 
         return self.filter(
             instancepermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
 
 class Instance(Datasource):
