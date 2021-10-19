@@ -11,6 +11,7 @@ from hexa.plugins.connector_airflow.models import (
     DAG,
     Cluster,
     ClusterPermission,
+    DAGConfig,
     DAGRun,
     DAGRunState,
 )
@@ -153,4 +154,136 @@ class ModelsTest(test.TestCase):
         self.assertEqual(1, DAGRun.objects.filter(dag=same_old).count())
         self.assertEqual(
             0, DAGRun.objects.filter(dag__cluster=cluster, dag=bye_bye).count()
+        )
+
+
+class PermissionTest(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.CLUSTER1 = Cluster.objects.create(name="test_cluster1")
+        cls.CLUSTER2 = Cluster.objects.create(name="test_cluster2")
+        cls.TEAM1 = Team.objects.create(name="Test Team1")
+        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        ClusterPermission.objects.create(cluster=cls.CLUSTER1, team=cls.TEAM1)
+        ClusterPermission.objects.create(cluster=cls.CLUSTER1, team=cls.TEAM2)
+        cls.USER_REGULAR = User.objects.create_user(
+            "jim@bluesquarehub.com",
+            "regular",
+        )
+        Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
+        cls.USER_SUPER = User.objects.create_user(
+            "mary@bluesquarehub.com",
+            "super",
+            is_superuser=True,
+        )
+
+        for cluster in [cls.CLUSTER1, cls.CLUSTER2]:
+            for i in range(2):
+                dag = DAG.objects.create(
+                    dag_id=f"dag-{cluster.name}-{i}", cluster=cluster
+                )
+                DAGConfig.objects.create(dag=dag, name=f"dag-config-{cluster.name}-{i}")
+                DAGRun.objects.create(
+                    dag=dag,
+                    run_id=f"dag-run-{cluster.name}-{i}",
+                    execution_date="2021-01-01T00:00:00Z",
+                    state="success",
+                )
+
+    def test_cluster_dedup(self):
+        """
+        - user super see 2 clusters (all of them)
+        - user regular see only test cluster 1, one time
+        """
+        self.assertEqual(
+            list(
+                Cluster.objects.filter_for_user(self.USER_REGULAR)
+                .order_by("name")
+                .values("name")
+            ),
+            [{"name": "test_cluster1"}],
+        )
+        self.assertEqual(
+            list(
+                Cluster.objects.filter_for_user(self.USER_SUPER)
+                .order_by("name")
+                .values("name")
+            ),
+            [{"name": "test_cluster1"}, {"name": "test_cluster2"}],
+        )
+
+    def test_dag_dedup(self):
+        """
+        regular user can see 2 dags, 2 dag configs, 2 dag runs
+        super user can see 4 dags, 4 dag configs, 4 dag runs
+        """
+        self.assertEqual(
+            list(
+                DAG.objects.filter_for_user(self.USER_REGULAR)
+                .order_by("dag_id")
+                .values("dag_id")
+            ),
+            [{"dag_id": "dag-test_cluster1-0"}, {"dag_id": "dag-test_cluster1-1"}],
+        )
+        self.assertEqual(
+            list(
+                DAG.objects.filter_for_user(self.USER_SUPER)
+                .order_by("dag_id")
+                .values("dag_id")
+            ),
+            [
+                {"dag_id": "dag-test_cluster1-0"},
+                {"dag_id": "dag-test_cluster1-1"},
+                {"dag_id": "dag-test_cluster2-0"},
+                {"dag_id": "dag-test_cluster2-1"},
+            ],
+        )
+        self.assertEqual(
+            list(
+                DAGConfig.objects.filter_for_user(self.USER_REGULAR)
+                .order_by("name")
+                .values("name")
+            ),
+            [
+                {"name": "dag-config-test_cluster1-0"},
+                {"name": "dag-config-test_cluster1-1"},
+            ],
+        )
+        self.assertEqual(
+            list(
+                DAGConfig.objects.filter_for_user(self.USER_SUPER)
+                .order_by("name")
+                .values("name")
+            ),
+            [
+                {"name": "dag-config-test_cluster1-0"},
+                {"name": "dag-config-test_cluster1-1"},
+                {"name": "dag-config-test_cluster2-0"},
+                {"name": "dag-config-test_cluster2-1"},
+            ],
+        )
+        self.assertEqual(
+            list(
+                DAGRun.objects.filter_for_user(self.USER_REGULAR)
+                .order_by("run_id")
+                .values("run_id")
+            ),
+            [
+                {"run_id": "dag-run-test_cluster1-0"},
+                {"run_id": "dag-run-test_cluster1-1"},
+            ],
+        )
+        self.assertEqual(
+            list(
+                DAGRun.objects.filter_for_user(self.USER_SUPER)
+                .order_by("run_id")
+                .values("run_id")
+            ),
+            [
+                {"run_id": "dag-run-test_cluster1-0"},
+                {"run_id": "dag-run-test_cluster1-1"},
+                {"run_id": "dag-run-test_cluster2-0"},
+                {"run_id": "dag-run-test_cluster2-1"},
+            ],
         )
