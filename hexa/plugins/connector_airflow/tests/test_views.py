@@ -6,7 +6,7 @@ from django.contrib.messages import ERROR
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
+from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun, DAGRunState
 from hexa.plugins.connector_airflow.tests.responses import (
     dag_run_hello_world_1,
@@ -201,14 +201,30 @@ class ViewsTest(test.TestCase):
             self.assertEqual(1, len(responses.calls))
         self.assertIn("Refresh failed for DAGRun", cm.output[0])
 
-    def test_dag_run_detail_200(self):
+    @responses.activate
+    def test_dag_run_create_302(self):
         cluster = Cluster.objects.create(
-            name="Test cluster", url="https://one-cluster-url.com"
+            name="Cool Test cluster", url="https://cool-cluster-url.com"
         )
-        dag = DAG.objects.create(cluster=cluster, dag_id="Test DAG")
-        dag_run = DAGRun.objects.create(dag=dag, execution_date=timezone.now())
-        self.client.force_login(self.USER_TAYLOR)
-        response = self.client.get(
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        self.client.force_login(self.USER_JIM)
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
+            json=dag_run_hello_world_1,
+            status=200,
+        )
+
+        response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+
+        dag_run = DAGRun.objects.get()
+        self.assertRedirects(
+            response,
             reverse(
                 "connector_airflow:dag_run_detail",
                 kwargs={
@@ -217,12 +233,86 @@ class ViewsTest(test.TestCase):
                     "dag_run_id": dag_run.id,
                 },
             ),
+            status_code=302,
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["dag_run_card"], DAGRunCard)
 
     @responses.activate
-    def test_sync_301(self):
+    def test_dag_run_detail_refresh_200(self):
+        cluster = Cluster.objects.create(
+            name="Great test cluster", url="https://great-cluster-url.com"
+        )
+        dag = DAG.objects.create(cluster=cluster, dag_id="same_old")
+        dag_run = DAGRun.objects.create(
+            dag=dag,
+            run_id="same_old_run_1",
+            execution_date=timezone.now(),
+            state=DAGRunState.QUEUED,
+        )
+
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/same_old/dagRuns/same_old_run_1"),
+            json=dag_run_same_old_1,
+            status=200,
+        )
+
+        self.client.force_login(self.USER_JIM)
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_detail_refresh",
+                kwargs={
+                    "cluster_id": cluster.id,
+                    "dag_id": dag.id,
+                    "dag_run_id": dag_run.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(1, len(responses.calls))
+
+    @responses.activate
+    def test_dag_run_detail_refresh_200_even_if_airflow_fails(self):
+        cluster = Cluster.objects.create(
+            name="Terrible Test cluster", url="https://terrible-cluster-url.com"
+        )
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        dag_run = DAGRun.objects.create(
+            dag=dag,
+            run_id="hello_world_run_1",
+            execution_date=timezone.now(),
+            state=DAGRunState.QUEUED,
+        )
+
+        responses.add(
+            responses.GET,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns/hello_world_run_1"),
+            json=dag_run_hello_world_1,
+            status=404,
+        )
+
+        self.client.force_login(self.USER_TAYLOR)
+        with self.assertLogs(
+            "hexa.plugins.connector_airflow.views", level="ERROR"
+        ) as cm:
+            response = self.client.get(
+                reverse(
+                    "connector_airflow:dag_run_detail_refresh",
+                    kwargs={
+                        "cluster_id": cluster.id,
+                        "dag_id": dag.id,
+                        "dag_run_id": dag_run.id,
+                    },
+                ),
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(
+                DAGRunState.QUEUED, DAGRun.objects.get(run_id="hello_world_run_1").state
+            )
+            self.assertEqual(1, len(responses.calls))
+        self.assertIn("Refresh failed for DAGRun", cm.output[0])
+
+    @responses.activate
+    def test_sync_302(self):
         cluster = Cluster.objects.create(
             name="Test cluster", url="https://one-cluster-url.com"
         )
@@ -236,14 +326,14 @@ class ViewsTest(test.TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
-            json=dag_runs_hello_world,
+            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
+            json=dag_runs_same_old,
             status=200,
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
-            json=dag_runs_same_old,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
+            json=dag_runs_hello_world,
             status=200,
         )
 
@@ -256,11 +346,16 @@ class ViewsTest(test.TestCase):
                 },
             ),
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, f"/airflow/{cluster.id}")
+        self.assertRedirects(
+            response,
+            reverse(
+                "connector_airflow:cluster_detail", kwargs={"cluster_id": cluster.id}
+            ),
+            status_code=302,
+        )
 
     @responses.activate
-    def test_sync_301_even_if_airflow_fails(self):
+    def test_sync_302_even_if_airflow_fails(self):
         cluster = Cluster.objects.create(
             name="Bad Test cluster", url="https://bad-cluster-url.com"
         )
@@ -286,7 +381,14 @@ class ViewsTest(test.TestCase):
                 ),
                 follow=True,
             )
-            self.assertRedirects(response, f"/airflow/{cluster.id}")
+            self.assertRedirects(
+                response,
+                reverse(
+                    "connector_airflow:cluster_detail",
+                    kwargs={"cluster_id": cluster.id},
+                ),
+                status_code=302,
+            )
             self.assertEqual(response.status_code, 200)
             message = list(response.context["messages"])[0]
             self.assertEqual(ERROR, message.level)

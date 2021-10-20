@@ -27,17 +27,22 @@ urlpatterns = [
     ),
     path(
         "<uuid:cluster_id>/<uuid:dag_id>/run",
-        views.new_dag_run,
-        name="new_dag_run",
-    ),
-    path(
-        "<uuid:cluster_id>/sync",
-        views.sync,
-        name="sync",
+        views.dag_run_create,
+        name="dag_run_create",
     ),
     path(
         "<uuid:cluster_id>/<uuid:dag_id>/runs/<uuid:dag_run_id>",
         views.dag_run_detail,
         name="dag_run_detail",
+    ),
+    path(
+        "<uuid:cluster_id>/<uuid:dag_id>/runs/<uuid:dag_run_id>/refresh",
+        views.dag_run_detail_refresh,
+        name="dag_run_detail_refresh",
+    ),
+    path(
+        "<uuid:cluster_id>/sync",
+        views.sync,
+        name="sync",
     ),
 ]
