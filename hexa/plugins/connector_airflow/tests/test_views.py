@@ -1,3 +1,4 @@
+from datetime import timedelta
 from urllib.parse import urljoin
 
 import responses
@@ -6,7 +7,7 @@ from django.contrib.messages import ERROR
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard
+from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun, DAGRunState
 from hexa.plugins.connector_airflow.tests.responses import (
     dag_run_hello_world_1,
@@ -55,7 +56,7 @@ class ViewsTest(test.TestCase):
             name="Test cluster", url="https://one-cluster-url.com"
         )
         dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
-        DAGRun.objects.create(
+        dag_run = DAGRun.objects.create(
             dag=dag,
             run_id="hello_world_run_1",
             execution_date=timezone.now(),
@@ -78,8 +79,9 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(1, len(responses.calls))
+        dag_run.refresh_from_db()
+        self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
         self.assertIsInstance(response.context["cluster_card"], ClusterCard)
-        self.assertEqual(1, len(response.context["dag_grid"]))
 
     @responses.activate
     def test_cluster_detail_refresh_200_even_if_airflow_fails(self):
@@ -140,7 +142,7 @@ class ViewsTest(test.TestCase):
             name="Ok test cluster", url="https://ok-cluster-url.com"
         )
         dag = DAG.objects.create(cluster=cluster, dag_id="same_old")
-        DAGRun.objects.create(
+        dag_run = DAGRun.objects.create(
             dag=dag,
             run_id="same_old_run_1",
             execution_date=timezone.now(),
@@ -163,6 +165,9 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(1, len(responses.calls))
+        dag_run.refresh_from_db()
+        self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
+        self.assertIsInstance(response.context["dag_card"], DAGCard)
 
     @responses.activate
     def test_dag_detail_refresh_200_even_if_airflow_fails(self):
@@ -245,7 +250,7 @@ class ViewsTest(test.TestCase):
         dag_run = DAGRun.objects.create(
             dag=dag,
             run_id="same_old_run_1",
-            execution_date=timezone.now(),
+            execution_date=timezone.now() - timedelta(days=1),
             state=DAGRunState.QUEUED,
         )
 
@@ -256,7 +261,7 @@ class ViewsTest(test.TestCase):
             status=200,
         )
 
-        self.client.force_login(self.USER_JIM)
+        self.client.force_login(self.USER_TAYLOR)
         response = self.client.get(
             reverse(
                 "connector_airflow:dag_run_detail_refresh",
@@ -269,6 +274,9 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(1, len(responses.calls))
+        dag_run.refresh_from_db()
+        self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
+        self.assertIsInstance(response.context["dag_run_card"], DAGRunCard)
 
     @responses.activate
     def test_dag_run_detail_refresh_200_even_if_airflow_fails(self):
