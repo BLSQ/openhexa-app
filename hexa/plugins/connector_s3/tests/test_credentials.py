@@ -1,4 +1,5 @@
 import hashlib
+from unittest.mock import patch
 
 import boto3
 from django import test
@@ -41,7 +42,8 @@ class CredentialsTest(test.TestCase):
 
     @mock_iam
     @mock_sts
-    def test_credentials(self):
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_credentials(self, _):
         """John is a regular user, should have access to 2 buckets"""
 
         credentials = NotebooksCredentials(self.USER_JOHN)
@@ -78,7 +80,8 @@ class CredentialsTest(test.TestCase):
 
     @mock_iam
     @mock_sts
-    def test_credentials_superuser(self):
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_credentials_superuser(self, _):
         """Jane is a superuser, should have access to 3 buckets"""
 
         credentials = NotebooksCredentials(self.USER_JANE)

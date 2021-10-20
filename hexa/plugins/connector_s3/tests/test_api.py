@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import boto3
 from django import test
@@ -96,7 +97,8 @@ class ApiTest(test.TestCase):
 
     @mock_iam
     @mock_sts
-    def test_generate_sts_app_team_credentials(self):
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_generate_sts_app_team_credentials(self, _):
         bucket = Bucket.objects.create(name="hexa-test-bucket")
         principal_credentials = Credentials.objects.create(
             username="hexa-app-test",
