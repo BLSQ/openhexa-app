@@ -1,5 +1,7 @@
+import hashlib
+
 from hexa.notebooks.credentials import NotebooksCredentials, NotebooksCredentialsError
-from hexa.plugins.connector_s3.api import generate_sts_team_s3_credentials
+from hexa.plugins.connector_s3.api import generate_sts_user_s3_credentials
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 
 
@@ -17,10 +19,22 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "Your s3 connector plugin should have a single credentials entry"
             )
 
-        sts_credentials = generate_sts_team_s3_credentials(
-            user=credentials.user,
+        session_identifier = credentials.user.email
+        if credentials.user.is_superuser:
+            role_identifier = "superuser"
+        else:
+            team_ids = ",".join(
+                [str(t.id) for t in credentials.user.team_set.order_by("id")]
+            )
+            role_identifier = hashlib.blake2s(
+                team_ids.encode("utf-8"), digest_size=16
+            ).hexdigest()
+
+        sts_credentials = generate_sts_user_s3_credentials(
             principal_credentials=principal_s3_credentials,
             buckets=buckets,
+            role_identifier=role_identifier,
+            session_identifier=session_identifier,
             duration=60 * 60 * 12,
         )
 

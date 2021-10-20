@@ -5,15 +5,13 @@ from django import test
 from moto import mock_iam, mock_s3, mock_sts
 
 from hexa.plugins.connector_s3.api import (
-    S3ApiError,
     generate_download_url,
     generate_s3_policy,
     generate_sts_app_s3_credentials,
-    generate_sts_team_s3_credentials,
+    generate_sts_user_s3_credentials,
     generate_upload_url,
 )
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
-from hexa.user_management.models import Team, User
 
 
 class ApiTest(test.TestCase):
@@ -99,14 +97,6 @@ class ApiTest(test.TestCase):
     @mock_iam
     @mock_sts
     def test_generate_sts_app_team_credentials(self):
-        user = User.objects.create_user(
-            first_name="Taylor",
-            last_name="Smith",
-            email="tsmith@openhexa.org",
-            password="notapassword",
-        )
-        team = Team.objects.create(name="Test team")
-        user.team_set.add(team)
         bucket = Bucket.objects.create(name="hexa-test-bucket")
         principal_credentials = Credentials.objects.create(
             username="hexa-app-test",
@@ -116,36 +106,16 @@ class ApiTest(test.TestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        credentials = generate_sts_team_s3_credentials(
-            user=user, principal_credentials=principal_credentials, buckets=[bucket]
+        credentials = generate_sts_user_s3_credentials(
+            session_identifier="test",
+            role_identifier="test",
+            principal_credentials=principal_credentials,
+            buckets=[bucket],
         )
         self.assertIsInstance(credentials, dict)
         for key in ["AccessKeyId", "SecretAccessKey", "SessionToken"]:
             self.assertIsInstance(credentials[key], str)
             self.assertGreater(len(credentials[key]), 0)
-
-    @mock_iam
-    @mock_sts
-    def test_generate_sts_app_team_credentials_no_team(self):
-        user = User.objects.create_user(
-            first_name="Taylor",
-            last_name="Smith",
-            email="tsmith@openhexa.org",
-            password="notapassword",
-        )
-        bucket = Bucket.objects.create(name="hexa-test-bucket")
-        principal_credentials = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-        )
-        with self.assertRaises(S3ApiError):
-            generate_sts_team_s3_credentials(
-                user=user, principal_credentials=principal_credentials, buckets=[bucket]
-            )
 
     def test_generate_s3_policy(self):
         """STS policies are limited to 2048 characters.
