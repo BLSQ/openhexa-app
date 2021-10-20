@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import typing
+from time import sleep
 
 import boto3
 from botocore.config import Config
@@ -93,18 +94,16 @@ def generate_sts_user_s3_credentials(
     # Get or create the team role with the proper assume role policy
     role_name = f"{principal_credentials.username}-s3-{role_identifier}"
     assume_role_policy_doc = json.dumps(
-        json.dumps(
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Action": "sts:AssumeRole",
-                        "Effect": "Allow",
-                        "Principal": {"AWS": principal_credentials.user_arn},
-                    },
-                ],
-            }
-        ),
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "sts:AssumeRole",
+                    "Effect": "Allow",
+                    "Principal": {"AWS": principal_credentials.user_arn},
+                },
+            ],
+        }
     )
     try:
         role_data = iam_client.get_role(RoleName=role_name)
@@ -114,11 +113,8 @@ def generate_sts_user_s3_credentials(
             MaxSessionDuration=12 * 60 * 60,
             AssumeRolePolicyDocument=assume_role_policy_doc,
         )
-
-    # Just to be safe - update and make sure that the IAM app user can assume the team role
-    iam_client.update_assume_role_policy(
-        RoleName=role_name, PolicyDocument=assume_role_policy_doc
-    )
+        # Very unfortunate, but the assume role policy effect is not immediate
+        sleep(10)
 
     policy_doc = json.dumps(generate_s3_policy([b.name for b in buckets]))
     if len(policy_doc) > 10240:
