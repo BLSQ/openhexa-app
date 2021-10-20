@@ -29,7 +29,7 @@ class ClusterQuerySet(models.QuerySet):
 
         return self.filter(
             clusterpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
 
 class Cluster(Environment):
@@ -171,9 +171,7 @@ class DAGQuerySet(models.QuerySet):
         if user.is_active and user.is_superuser:
             return self
 
-        return self.filter(
-            cluster__clusterpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        return self.filter(cluster__in=Cluster.objects.filter_for_user(user))
 
 
 class DAG(Pipeline):
@@ -239,11 +237,7 @@ class DAGConfigQuerySet(models.QuerySet):
         if user.is_active and user.is_superuser:
             return self
 
-        return self.filter(
-            dag__cluster__clusterpermission__team__in=[
-                t.pk for t in user.team_set.all()
-            ]
-        )
+        return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
 
 class DAGConfig(Base):
@@ -290,11 +284,7 @@ class DAGRunQuerySet(models.QuerySet):
         if user.is_active and user.is_superuser:
             return self
 
-        return self.filter(
-            dag_config__dag__cluster__clusterpermission__team__in=[
-                t.pk for t in user.team_set.all()
-            ]
-        )
+        return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])

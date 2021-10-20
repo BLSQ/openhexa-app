@@ -28,7 +28,7 @@ class DatabaseQuerySet(DatasourceQuerySet):
 
         return self.filter(
             databasepermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
 
 class Database(Datasource):
@@ -197,9 +197,7 @@ class TableQuerySet(models.QuerySet):
         if user.is_active and user.is_superuser:
             return self
 
-        return self.filter(
-            database__databasepermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        return self.filter(database__in=Database.objects.filter_for_user(user))
 
 
 class Table(Entry):

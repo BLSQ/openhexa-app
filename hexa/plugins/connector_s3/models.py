@@ -50,7 +50,7 @@ class BucketQuerySet(DatasourceQuerySet):
 
         return self.filter(
             bucketpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        ).distinct()
 
 
 class Bucket(Datasource):
@@ -308,9 +308,7 @@ class ObjectQuerySet(models.QuerySet):
         if user.is_active and user.is_superuser:
             return self
 
-        return self.filter(
-            bucket__bucketpermission__team__in=[t.pk for t in user.team_set.all()]
-        )
+        return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 
 class Object(Entry):
