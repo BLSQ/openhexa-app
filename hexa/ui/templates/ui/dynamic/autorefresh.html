@@ -1,10 +1,10 @@
 {% load embed %}
 
-{% embed "ui/section/section.html" %}
-    {% slot extra_wrapper_attrs %}
+<div
         x-data="AutoRefresh('{{ url }}', {{ delay|default:10 }})"
         x-init="init($el)"
         x-html="refreshedHtml"
         x-refresh-id="{{ url }}"
-    {% endslot %}
-{% endembed %}
+>
+    {% slot content %}{% endslot %}
+</div>

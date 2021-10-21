@@ -112,9 +112,24 @@ def dag_detail(
     )
 
 
-def new_dag_run(
+def dag_detail_refresh(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
+    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
+    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    for run in dag.dagrun_set.filter_for_refresh():
+        try:
+            run.refresh()
+        except AirflowAPIError:
+            logger.exception(f"Refresh failed for DAGRun {run.id}")
+
+    return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
+
+
+def dag_run_create(
+    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
+) -> HttpResponse:
+    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_run = dag.run()
 
@@ -154,26 +169,33 @@ def dag_run_detail(
         request,
         "connector_airflow/dag_run_detail.html",
         {
-            "cluster": cluster,
-            "dag": dag,
+            "dag_run": dag_run,
             "dag_run_card": dag_run_card,
             "breadcrumbs": breadcrumbs,
         },
     )
 
 
-def dag_detail_refresh(
-    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
+def dag_run_detail_refresh(
+    request: HttpRequest,
+    cluster_id: uuid.UUID,
+    dag_id: uuid.UUID,
+    dag_run_id: uuid.UUID,
 ) -> HttpResponse:
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-    for run in dag.dagrun_set.filter_for_refresh():
-        try:
-            run.refresh()
-        except AirflowAPIError:
-            logger.exception(f"Refresh failed for DAGRun {run.id}")
+    get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag_run = get_object_or_404(
+        DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
+    )
 
-    return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
+    try:
+        dag_run.refresh()
+    except AirflowAPIError:
+        logger.exception(f"Refresh failed for DAGRun {dag_run.id}")
+
+    return dag_run_detail(
+        request, cluster_id=cluster_id, dag_id=dag_id, dag_run_id=dag_run_id
+    )
 
 
 @require_http_methods(["POST"])

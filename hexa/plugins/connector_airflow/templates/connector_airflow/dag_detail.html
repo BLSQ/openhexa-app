@@ -11,9 +11,13 @@
         {% endslot %}
     {% endembed %}
     {% url "connector_airflow:dag_detail_refresh" dag.cluster.id dag.id as refresh_url %}
-    {% embed "ui/section/section_autorefresh.html" with title=_("Runs") url=refresh_url %}
+    {% embed "ui/dynamic/autorefresh.html" with url=refresh_url %}
         {% slot content %}
-            {{ run_grid }}
+            {% embed "ui/section/section.html" with title=_("Runs") %}
+                {% slot content %}
+                    {{ run_grid }}
+                {% endslot %}
+            {% endembed %}
         {% endslot %}
     {% endembed %}
 {% endblock %}

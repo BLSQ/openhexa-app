@@ -6,9 +6,13 @@
 {% block page_content %}
     {{ cluster_card }}
     {% url "connector_airflow:cluster_detail_refresh" cluster.id as refresh_url %}
-    {% embed "ui/section/section_autorefresh.html" with title=_("DAGs") url=refresh_url %}
+    {% embed "ui/dynamic/autorefresh.html" with url=refresh_url %}
         {% slot content %}
-            {{ dag_grid }}
+            {% embed "ui/section/section.html" with title=_("DAGs") %}
+                {% slot content %}
+                    {{ dag_grid }}
+                {% endslot %}
+            {% endembed %}
         {% endslot %}
     {% endembed %}
 {% endblock %}

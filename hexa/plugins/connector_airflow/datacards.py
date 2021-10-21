@@ -68,7 +68,7 @@ class DAGCard(Datacard):
 
     def get_run_url(self, dag):
         return reverse(
-            "connector_airflow:new_dag_run",
+            "connector_airflow:dag_run_create",
             kwargs={
                 "cluster_id": dag.cluster.id,
                 "dag_id": dag.id,
