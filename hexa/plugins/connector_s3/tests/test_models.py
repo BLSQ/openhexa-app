@@ -31,7 +31,8 @@ class ConnectorS3Test(test.TestCase):
             access_key_id="FOO",
             secret_access_key="BAR",
             default_region="us-west-2",
-            role_arn="this-is-not-really-a-role-arn",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
         )
         cls.bucket = Bucket.objects.create(name="test-bucket")
         BucketPermission.objects.create(team=cls.team, bucket=cls.bucket)

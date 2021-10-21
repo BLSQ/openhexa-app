@@ -11,8 +11,9 @@ class SyncTest(test.TestCase):
     def setUpTestData(cls):
         cls.credentials = Credentials.objects.create(
             username="test-username",
-            role_arn="test-arn-arn-arn-arn",
             default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
         )
         cls.bucket = Bucket.objects.create(name="test-bucket")
 

@@ -10,7 +10,6 @@ django-ltree
 django-postgres-queue
 django-tailwind
 markdown
-mock
 pandas
 psycopg2-binary
 responses
