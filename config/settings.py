@@ -217,7 +217,7 @@ if SENTRY_DSN:
         },
         "loggers": {
             "django.security.DisallowedHost": {
-                "level": "EXCEPTION",
+                "level": "CRITICAL",
                 "propagate": True,
             },
             "django": {
