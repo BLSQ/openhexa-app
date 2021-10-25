@@ -26,7 +26,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
     ]
 
     datagrid = ObjectGrid(
-        bucket.object_set.filter(parent_key="/", orphan=False),
+        bucket.object_set.filter(parent_key="/", orphan=False).select_related("bucket"),
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
@@ -46,7 +46,9 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
 
     return render(
         request,
-        "connector_s3/datasource_detail.html",
+        "connector_s3/bucket_detail.html"
+        if "tabbed" not in request.GET
+        else "connector_s3/bucket_detail_tabbed.html",
         {
             "datasource": bucket,
             "sync_url": sync_url,
