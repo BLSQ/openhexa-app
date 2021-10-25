@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "ariadne.contrib.django",
     "tailwind",
     "hexa.user_management",
+    "hexa.user_usage",
     "hexa.core",
     "hexa.catalog",
     "hexa.notebooks",
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middleware.login_required_middleware",
+    "hexa.user_usage.middlewares.save_web_hits",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -289,6 +291,9 @@ else:
 
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 DATASOURCE_ASYNC_REFRESH = os.environ.get("DATASOURCE_ASYNC_REFRESH") == "true"
+
+# Activate an analytics middleware to save every call done on the app
+SAVE_WEB_HITS = os.environ.get("SAVE_WEB_HITS") == "true"
 
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")
