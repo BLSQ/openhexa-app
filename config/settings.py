@@ -72,7 +72,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "hexa.user_management.middleware.login_required_middleware",
+    "hexa.user_management.middlewares.login_required_middleware",
+    "hexa.user_management.middlewares.accepted_tos_required_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
