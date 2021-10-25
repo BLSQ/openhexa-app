@@ -6,30 +6,30 @@ from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from pytz import UTC
 
-from .models import HttpMethod, WebHit
+from .models import HttpMethod, Request
 
 
-def save_web_hits(
+def track_request_event(
     get_response: Callable[[HttpRequest], HttpResponse]
 ) -> Callable[[HttpRequest], HttpResponse]:
     def middleware(request: HttpRequest) -> HttpResponse:
-        call_time = datetime.utcnow().replace(tzinfo=UTC)
+        request_time = datetime.utcnow().replace(tzinfo=UTC)
         response = get_response(request)
-        reply_time = datetime.utcnow().replace(tzinfo=UTC)
+        response_time = datetime.utcnow().replace(tzinfo=UTC)
 
         if (
-            settings.SAVE_WEB_HITS
+            settings.SAVE_REQUESTS
             and request.user.is_authenticated
             and request.method in ("GET", "POST")
         ):
-            WebHit.objects.create(
+            Request.objects.create(
                 user_id=request.user.id,
-                call_time=call_time,
-                call_status=response.status_code,
-                call_name=request.META.get("PATH_INFO", ""),
+                request_time=request_time,
+                response_status=response.status_code,
+                url=request.META.get("PATH_INFO", ""),
                 method=HttpMethod.POST if request.method == "POST" else HttpMethod.GET,
-                reply_size=len(response.content),
-                reply_time=reply_time,
+                response_content_length=len(response.content),
+                response_time=response_time,
                 user_agent=request.META.get("HTTP_USER_AGENT", "").replace(";", ","),
                 user_lang=request.META.get("HTTP_ACCEPT_LANGUAGE", "").replace(
                     ";", ","
