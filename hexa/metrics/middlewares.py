@@ -1,10 +1,9 @@
-from datetime import datetime
 from typing import Callable
 
 from django.conf import settings
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from pytz import UTC
+from django.utils import timezone
 
 from .models import HttpMethod, Request
 
@@ -13,9 +12,9 @@ def track_request_event(
     get_response: Callable[[HttpRequest], HttpResponse]
 ) -> Callable[[HttpRequest], HttpResponse]:
     def middleware(request: HttpRequest) -> HttpResponse:
-        request_time = datetime.utcnow().replace(tzinfo=UTC)
+        request_time = timezone.now()
         response = get_response(request)
-        response_time = datetime.utcnow().replace(tzinfo=UTC)
+        response_time = timezone.now()
 
         if (
             settings.SAVE_REQUESTS
