@@ -1,6 +1,7 @@
 from functools import cache
 from typing import Callable
 
+from django.conf import settings
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
@@ -63,6 +64,7 @@ def accepted_tos_required_middleware(
             request.user.is_authenticated
             and is_protected_routes(request.path)
             and not request.user.accepted_tos
+            and settings.USER_MUST_ACCEPT_TOS
         ):
             return render(request, "user_management/terms_of_service.html")
         else:

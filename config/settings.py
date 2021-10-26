@@ -204,6 +204,10 @@ NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
 
+# Activate the accept terms of service feature: each user need to manualy accept
+# them once if they want to continue using the product, existing user and new one
+USER_MUST_ACCEPT_TOS = os.environ.get("USER_MUST_ACCEPT_TOS") == "true"
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 
 if SENTRY_DSN:

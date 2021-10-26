@@ -49,6 +49,7 @@ class AceptTosTest(test.TestCase):
             "regular",
         )
 
+    @test.override_settings(USER_MUST_ACCEPT_TOS=True)
     def test_tos(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
 
