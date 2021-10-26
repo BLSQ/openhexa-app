@@ -25,8 +25,6 @@ def is_protected_routes(url: str) -> bool:
     """
     Is the URL should be behind login screen? Must the user accept the TOS to get this page?
     """
-    global ANONYMOUS_URLS, ANONYMOUS_PREFIXES
-
     matches_prefix = False
     for prefix in ANONYMOUS_PREFIXES:
         if url.startswith(prefix):
@@ -59,7 +57,6 @@ def accepted_tos_required_middleware(
     """
 
     def middleware(request: HttpRequest) -> HttpResponse:
-        # FIXME exclude logout, is_ready,
         if (
             request.user.is_authenticated
             and is_protected_routes(request.path)
