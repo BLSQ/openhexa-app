@@ -73,7 +73,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "hexa.user_management.middleware.login_required_middleware",
+    "hexa.user_management.middlewares.login_required_middleware",
+    "hexa.user_management.middlewares.accepted_tos_required_middleware",
     "hexa.metrics.middlewares.track_request_event",
 ]
 
@@ -204,6 +205,10 @@ NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
+
+# Activate the accept terms of service feature: each user need to manualy accept
+# them once if they want to continue using the product, existing user and new one
+USER_MUST_ACCEPT_TOS = os.environ.get("USER_MUST_ACCEPT_TOS") == "true"
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 
