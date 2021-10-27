@@ -241,6 +241,32 @@ class ViewsTest(test.TestCase):
             status_code=302,
         )
 
+    def test_dag_run_detail_200(self):
+        cluster = Cluster.objects.create(
+            name="Perfectly fine test cluster", url="https://fine-cluster-url.com"
+        )
+        dag = DAG.objects.create(cluster=cluster, dag_id="same_old")
+        dag_run = DAGRun.objects.create(
+            dag=dag,
+            run_id="same_old_run_1",
+            execution_date=timezone.now() - timedelta(days=1),
+            state=DAGRunState.SUCCESS,
+        )
+
+        self.client.force_login(self.USER_TAYLOR)
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_detail",
+                kwargs={
+                    "cluster_id": cluster.id,
+                    "dag_id": dag.id,
+                    "dag_run_id": dag_run.id,
+                },
+            ),
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIsInstance(response.context["dag_run_card"], DAGRunCard)
+
     @responses.activate
     def test_dag_run_detail_refresh_200(self):
         cluster = Cluster.objects.create(

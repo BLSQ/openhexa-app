@@ -14,7 +14,8 @@ from .models import Bucket
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     bucket = get_object_or_404(
-        Bucket.objects.filter_for_user(request.user), pk=datasource_id
+        Bucket.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=datasource_id,
     )
     bucket_card = BucketCard(bucket, request=request)
     if request.method == "POST" and bucket_card.save():
@@ -26,7 +27,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
     ]
 
     datagrid = ObjectGrid(
-        bucket.object_set.filter(parent_key="/", orphan=False),
+        bucket.object_set.prefetch_indexes().filter(parent_key="/", orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
@@ -61,9 +62,11 @@ def object_detail(
     request: HttpRequest, bucket_id: uuid.UUID, path: str
 ) -> HttpResponse:
     bucket = get_object_or_404(
-        Bucket.objects.filter_for_user(request.user), pk=bucket_id
+        Bucket.objects.prefetch_indexes().filter_for_user(request.user), pk=bucket_id
     )
-    s3_object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
+    s3_object = get_object_or_404(
+        bucket.object_set.prefetch_indexes().filter(orphan=False), key=path
+    )
     object_card = ObjectCard(model=s3_object, request=request)
     if request.method == "POST" and object_card.save():
         return redirect(request.META["HTTP_REFERER"])
@@ -84,7 +87,7 @@ def object_detail(
         )
 
     datagrid = ObjectGrid(
-        bucket.object_set.filter(parent_key=path, orphan=False),
+        bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
