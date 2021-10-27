@@ -233,11 +233,6 @@ class BaseIndexPermission(models.Model):
     permission = GenericForeignKey("permission_type", "permission_id")
 
 
-class WithIndexesManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().prefetch_related("indexes", "indexes__tags")
-
-
 class BaseIndexableMixin:
     def get_permission_model(self) -> BaseIndexPermission:
         raise NotImplementedError
