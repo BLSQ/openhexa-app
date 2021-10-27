@@ -1,0 +1,5 @@
+{% load embed %}
+
+<div x-show="current==='{{ id }}'">
+    {% slot content %}{% endslot %}
+</div>

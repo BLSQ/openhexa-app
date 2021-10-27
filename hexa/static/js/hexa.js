@@ -303,7 +303,7 @@ function TomSelectable(multiple = true) {
 }
 
 // TODO: should be placed in s3 app
-function S3Upload(getUploadUrl, syncUrl, prefix="") {
+function S3Upload(getUploadUrl, syncUrl, prefix = "") {
     return {
         refreshedHtml: null,
         uploading: false,
@@ -357,7 +357,16 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
             frag.innerHTML = await refreshedResponse.text();
             const swap = frag.querySelector("[x-swap=objects_section]");
             this.refreshedHtml = swap.innerHTML;
-            this.uploading = false;r
+            this.uploading = false;
+        }
+    }
+}
+
+function Tabs(defaultTabId) {
+    return {
+        current: defaultTabId,
+        switchTab(tabId) {
+            this.current = tabId;
         }
     }
 }

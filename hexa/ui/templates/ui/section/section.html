@@ -6,7 +6,7 @@
         {% if id %}id="{{ id }}"{% endif %}
 >
     {% slot header %}
-        {% include "ui/section/heading.html" with title=title|default:_("Untitled section") %}
+        {% include "ui/section/heading.html" with title=title %}
     {% endslot %}
     <div class="mt-4">
         {% slot content %}
