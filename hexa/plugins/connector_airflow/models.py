@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import Environment, Index, Pipeline
+from hexa.pipelines.models import Environment, Index, Pipeline, PipelinesQuerySet
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management.models import User
@@ -22,7 +22,7 @@ class ExternalType(Enum):
     DAG = "dag"
 
 
-class ClusterQuerySet(models.QuerySet):
+class ClusterQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
@@ -166,7 +166,7 @@ class ClusterPermission(Permission):
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
 
 
-class DAGQuerySet(models.QuerySet):
+class DAGQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
@@ -227,7 +227,7 @@ class DAG(Pipeline):
             used_config=config,
         )
 
-
+      
 @dataclass
 class DAGRunResult:
     # TODO: document and move in api module
@@ -238,7 +238,7 @@ class DAGRunResult:
         }
 
 
-class DAGRunQuerySet(models.QuerySet):
+class DAGRunQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self

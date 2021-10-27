@@ -6,7 +6,9 @@ from django.utils import timezone
 
 from hexa.user_management.models import Team, User
 
-from ..models import DataElement, Indicator, Instance, InstancePermission
+from ..datacards import DataElementCard, DatasetCard, IndicatorCard
+from ..datagrids import DataElementGrid, DatasetGrid, IndicatorGrid
+from ..models import DataElement, DataSet, Indicator, Instance, InstancePermission
 
 
 class ConnectorDhis2Test(test.TestCase):
@@ -75,6 +77,16 @@ class ConnectorDhis2Test(test.TestCase):
             external_access=False,
             favorite=False,
             annualized=False,
+        )
+        cls.DATASET_1 = DataSet.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="oNzq8duNBx7",
+            name="Malaria",
+            code="malaria",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
         )
 
     def test_catalog_index_empty_200(self):
@@ -165,7 +177,7 @@ class ConnectorDhis2Test(test.TestCase):
             0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
         )
 
-    def test_data_elements_404(self):
+    def test_data_element_list_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""
 
         self.client.force_login(self.USER_BJORN)
@@ -177,7 +189,7 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_data_elements_200(self):
+    def test_data_element_list_200(self):
         """As a superuser, Kristen can see the data elements screen."""
 
         self.client.force_login(self.USER_KRISTEN)
@@ -189,8 +201,25 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
+        self.assertIsInstance(response.context["data_element_grid"], DataElementGrid)
+        self.assertEqual(3, len(response.context["data_element_grid"]))
 
-    def test_indicators_404(self):
+    def test_data_element_detail_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:data_element_detail",
+                kwargs={
+                    "instance_id": self.DHIS2_INSTANCE_PLAY.id,
+                    "data_element_id": self.DATA_ELEMENT_1.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["data_element"], DataElement)
+        self.assertIsInstance(response.context["data_element_card"], DataElementCard)
+
+    def test_indicator_list_404(self):
         """As Bjorn is not a superuser, he can't access the indicators screen."""
 
         self.client.force_login(self.USER_BJORN)
@@ -202,8 +231,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_indicators_200(self):
-        """As a superuser, Kristen can see the data elements screen."""
+    def test_indicator_list_200(self):
+        """As a superuser, Kristen can see the indicators screen."""
 
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
@@ -214,3 +243,48 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
+        self.assertIsInstance(response.context["indicator_grid"], IndicatorGrid)
+        self.assertEqual(2, len(response.context["indicator_grid"]))
+
+    def test_indicator_detail_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:indicator_detail",
+                kwargs={
+                    "instance_id": self.DHIS2_INSTANCE_PLAY.id,
+                    "indicator_id": self.DATA_INDICATOR_1.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["indicator"], Indicator)
+        self.assertIsInstance(response.context["indicator_card"], IndicatorCard)
+
+    def test_dataset_list_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:dataset_list",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["instance"], Instance)
+        self.assertIsInstance(response.context["dataset_grid"], DatasetGrid)
+        self.assertEqual(1, len(response.context["dataset_grid"]))
+
+    def test_dataset_detail_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:dataset_detail",
+                kwargs={
+                    "instance_id": self.DHIS2_INSTANCE_PLAY.id,
+                    "dataset_id": self.DATASET_1.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["dataset"], DataSet)
+        self.assertIsInstance(response.context["dataset_card"], DatasetCard)

@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError, sql
 
-from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
+from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
@@ -21,7 +21,7 @@ class ExternalType(Enum):
     TABLE = "table"
 
 
-class DatabaseQuerySet(DatasourceQuerySet):
+class DatabaseQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -192,7 +192,7 @@ class Database(Datasource):
         )
 
 
-class TableQuerySet(models.QuerySet):
+class TableQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

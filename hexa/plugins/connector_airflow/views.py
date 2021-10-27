@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 
 def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user),
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user),
         pk=cluster_id,
     )
 
@@ -29,7 +29,9 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
         return redirect(request.META["HTTP_REFERER"])
 
     dag_grid = DAGGrid(
-        cluster.dag_set.all(), page=int(request.GET.get("page", "1")), request=request
+        cluster.dag_set.prefetch_indexes(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -74,9 +76,11 @@ def dag_detail(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user), pk=cluster_id
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag = get_object_or_404(
+        DAG.objects.prefetch_related().filter_for_user(request.user), pk=dag_id
+    )
     dag_card = DAGCard(dag, request=request)
     if request.method == "POST" and dag_card.save():
         return redirect(request.META["HTTP_REFERER"])
@@ -203,9 +207,11 @@ def dag_run_detail(
     dag_run_id: uuid.UUID,
 ) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user), pk=cluster_id
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag = get_object_or_404(
+        DAG.objects.prefetch_indexes().filter_for_user(request.user), pk=dag_id
+    )
     dag_run = get_object_or_404(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
     )
