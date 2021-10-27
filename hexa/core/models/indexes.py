@@ -233,6 +233,11 @@ class BaseIndexPermission(models.Model):
     permission = GenericForeignKey("permission_type", "permission_id")
 
 
+class WithIndexesManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("indexes", "indexes__tags")
+
+
 class BaseIndexableMixin:
     def get_permission_model(self) -> BaseIndexPermission:
         raise NotImplementedError
@@ -242,7 +247,12 @@ class BaseIndexableMixin:
 
     @property
     def index(self):
-        return self.indexes.get()
+        # We can't use self.indexes.get(), as it would prevent fetch_related() to work properly
+        indexes = self.indexes.all()
+        if len(indexes) != 1:
+            raise ValueError(f"{self} has more than 1 index")
+
+        return indexes[0]
 
     def get_permission_set(self):
         raise NotImplementedError

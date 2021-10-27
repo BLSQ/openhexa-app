@@ -13,7 +13,8 @@ from .models import DataElement, DataSet, Extract, Indicator, Instance
 
 def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     instance_card = InstanceCard(instance, request=request)
     if request.method == "POST" and instance_card.save():
@@ -69,7 +70,8 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
 
 def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     data_element_grid = DataElementGrid(
         instance.dataelement_set.all(),
@@ -158,7 +160,8 @@ def data_element_extract(
 
 def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     indicator_grid = IndicatorGrid(
         instance.indicator_set.all(),
@@ -290,11 +293,13 @@ def _get_instance_and_data_element(
     request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
 ) -> tuple[Instance, DataElement]:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
 
     return instance, get_object_or_404(
-        DataElement.objects.filter(instance=instance), pk=data_element_id
+        DataElement.objects.prefetch_indexes().filter(instance=instance),
+        pk=data_element_id,
     )
 
 
@@ -302,11 +307,12 @@ def _get_instance_and_dataset(
     request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
 ) -> tuple[Instance, DataSet]:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
 
     return instance, get_object_or_404(
-        DataSet.objects.filter(instance=instance), pk=dataset_id
+        DataSet.objects.prefetch_indexes().filter(instance=instance), pk=dataset_id
     )
 
 
@@ -314,17 +320,19 @@ def _get_instance_and_indicator(
     request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
 ) -> tuple[Instance, Indicator]:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
 
     return instance, get_object_or_404(
-        Indicator.objects.filter(instance=instance), pk=indicator_id
+        Indicator.objects.prefetch_indexes().filter(instance=instance), pk=indicator_id
     )
 
 
 def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     dataset_grid = DatasetGrid(
         instance.dataset_set.all(),

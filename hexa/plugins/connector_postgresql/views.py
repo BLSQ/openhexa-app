@@ -12,7 +12,8 @@ from .models import Database
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     datasource = get_object_or_404(
-        Database.objects.filter_for_user(request.user), pk=datasource_id
+        Database.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=datasource_id,
     )
 
     database_card = DatabaseCard(datasource, request=request)
@@ -20,7 +21,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         return redirect(request.META["HTTP_REFERER"])
 
     table_grid = TableGrid(
-        datasource.table_set.all(),
+        datasource.table_set.prefetch_indexes().all(),
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -52,7 +53,8 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
 
 def table_list(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     datasource = get_object_or_404(
-        Database.objects.filter_for_user(request.user), pk=datasource_id
+        Database.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=datasource_id,
     )
     table_grid = TableGrid(
         datasource.table_set.all(),
@@ -95,7 +97,8 @@ def table_detail(
     request: HttpRequest, datasource_id: uuid.UUID, table_id: uuid.UUID
 ) -> HttpResponse:
     datasource = get_object_or_404(
-        Database.objects.filter_for_user(request.user), pk=datasource_id
+        Database.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=datasource_id,
     )
     table = get_object_or_404(datasource.table_set, pk=table_id)
     table_card = TableCard(table, request=request)

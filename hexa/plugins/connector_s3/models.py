@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
-from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
+from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
@@ -43,7 +43,7 @@ class Credentials(Base):
         return self.username
 
 
-class BucketQuerySet(DatasourceQuerySet):
+class BucketQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -303,7 +303,7 @@ class BucketPermission(Permission):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
 
 
-class ObjectQuerySet(models.QuerySet):
+class ObjectQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

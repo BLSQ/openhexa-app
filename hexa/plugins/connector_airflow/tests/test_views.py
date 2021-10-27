@@ -241,6 +241,9 @@ class ViewsTest(test.TestCase):
             status_code=302,
         )
 
+    def test_dag_run_detail_200(self):
+        self.fail()
+
     @responses.activate
     def test_dag_run_detail_refresh_200(self):
         cluster = Cluster.objects.create(
