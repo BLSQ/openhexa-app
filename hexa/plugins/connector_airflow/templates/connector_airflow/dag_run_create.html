@@ -1,0 +1,28 @@
+{% extends "layouts/page.html" %}
+{% load embed i18n %}
+
+{% block page_title %}{{ dag.dag_id }}{% endblock %}
+
+{% block page_content %}
+    {% blocktranslate asvar title with dag_id=dag.dag_id %}Specify configuration for DAG {{ dag_id }}{% endblocktranslate %}
+    {% embed "ui/section/section.html" with title=title %}
+        {% slot content %}
+            <!-- TEST-KEY: SET_DAG_CONFIG -->
+            <form method="post" action="{% url "connector_airflow:dag_run_create" cluster_id=dag.cluster_id dag_id=dag.id %}">
+                {% csrf_token %}
+                {% if error %}
+                    <p class="mt-4 mb-2 text-sm text-red-600">{{ error }}</p>
+                    <textarea name="dag_config" rows="10" class="w-full form-textarea resize-none shadow-sm block w-full focus:ring-red-500 focus:border-red-500 sm:text-sm border-red-300 rounded-md">{{ run_config }}</textarea>
+                {% else %}
+                    <textarea name="dag_config" rows="10" class="w-full form-textarea resize-none shadow-sm block w-full focus:ring-blue-500 focus:border-blue-500 sm:text-sm border-gray-300 rounded-md">{{ run_config }}</textarea>
+                {% endif %}
+                <input  type="submit" value="Run with configuration" class="group relative my-4 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"/>
+            </form>
+
+            {% if form_config != dag.sample_config %}
+                <p class="my-4 text-sm text-gray-900">Pipeline sample configuration:</p>
+                <pre class="text-sm text-gray-900">{{ dag.sample_config }}</pre>
+            {% endif %}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

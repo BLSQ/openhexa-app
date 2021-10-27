@@ -429,7 +429,48 @@ class ViewsTest(test.TestCase):
         self.assertIn("Sync failed for Cluster", cm.output[0])
 
     @responses.activate
-    def test_dag_run_with_config(self):
+    def test_dag_run_create_200(self):
+        cluster = Cluster.objects.create(
+            name="Yet another cluster", url="https://yet-another-cluster-url.com"
+        )
+
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        self.client.force_login(self.USER_TAYLOR)
+
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIsNone(response.context["run_config"])
+
+    @responses.activate
+    def test_dag_run_create_200_with_sample_config(self):
+        cluster = Cluster.objects.create(
+            name="Yet another cluster", url="https://yet-another-cluster-url.com"
+        )
+
+        dag = DAG.objects.create(
+            cluster=cluster, dag_id="hello_world", sample_config={"foo": "bar"}
+        )
+        self.client.force_login(self.USER_TAYLOR)
+
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+        self.assertEqual(
+            200,
+            response.status_code,
+        )
+        self.assertEqual({"foo": "bar"}, response.context["run_config"])
+
+    @responses.activate
+    def test_dag_run_create_post_200(self):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
@@ -452,12 +493,12 @@ class ViewsTest(test.TestCase):
                 "dag_config": '{"value": 2}',
             },
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(302, response.status_code)
         self.assertEqual(1, len(responses.calls))
         self.assertEqual(1, DAGRun.objects.count())
 
     @responses.activate
-    def test_dag_run_with_invalid_config(self):
+    def test_dag_run_create_post_invalid_config_200(self):
         cluster = Cluster.objects.create(
             name="Unhappy cluster", url="https://unhappy-cluster-url.com"
         )
@@ -468,7 +509,9 @@ class ViewsTest(test.TestCase):
             status=200,
         )
 
-        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        dag = DAG.objects.create(
+            cluster=cluster, dag_id="hello_world", sample_config={"bar": "baz"}
+        )
         self.client.force_login(self.USER_TAYLOR)
 
         response = self.client.post(
@@ -480,33 +523,34 @@ class ViewsTest(test.TestCase):
                 "dag_config": "NOTJSON",
             },
         )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, len(responses.calls))
         self.assertEqual(0, DAGRun.objects.count())
+        self.assertEqual({"bar": "baz"}, response.context["run_config"])
 
+    @responses.activate
+    def test_dag_run_create_post_no_config_200(self):
+        cluster = Cluster.objects.create(
+            name="Super simple cluster", url="https://super-simple-cluster-url.com"
+        )
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
+            json=dag_run_hello_world_1,
+            status=200,
+        )
 
-def test_dag_run_without_config(self):
-    cluster = Cluster.objects.create(
-        name="Super simple cluster", url="https://super-simple-cluster-url.com"
-    )
-    responses.add(
-        responses.POST,
-        urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
-        json=dag_run_hello_world_1,
-        status=200,
-    )
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        self.assertEqual(dag.sample_config, None)
 
-    dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
-    self.assertEqual(dag.sample_config, None)
+        self.client.force_login(self.USER_TAYLOR)
 
-    self.client.force_login(self.USER_TAYLOR)
-
-    response = self.client.post(
-        reverse(
-            "connector_airflow:dag_run_create",
-            kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
-        ),
-    )
-    self.assertEqual(response.status_code, 3021)
-    self.assertEqual(1, len(responses.calls))
-    self.assertEqual(1, DAGRun.objects.count())
+        response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+        self.assertEqual(302, response.status_code)
+        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(1, DAGRun.objects.count())

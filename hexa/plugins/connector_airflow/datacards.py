@@ -64,7 +64,7 @@ class DAGCard(Datacard):
     external = DAGSection()
     metadata = OpenHexaMetaDataSection(value="index")
 
-    actions = [Action(label="Run", url="get_run_url", icon="play")]
+    actions = [Action(label="Run", url="get_run_url", icon="play", method="GET")]
 
     def get_run_url(self, dag):
         return reverse(
@@ -90,7 +90,6 @@ class DAGRunSection(Section):
     run_id = TextProperty(text="run_id", label="Identifier")
     execution_date = DateProperty(date="execution_date", label="Execution Date")
     state = StatusProperty(value="status", label="State")
-    dag_config = TextProperty(text="dag_config", label="Configuration")
 
 
 class DAGRunCard(Datacard):
