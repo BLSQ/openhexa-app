@@ -1,6 +1,6 @@
 <!-- This example requires Tailwind CSS v2.0+ -->
 <div class="bg-white shadow overflow-hidden sm:rounded-lg my-8">
-    {% include "ui/datacard/heading.html" %}
+    {% if title %}{% include "ui/datacard/heading.html" %}{% endif %}
     {% if sections|length > 0 %}
         {% for section in sections %}
             {{ section }}

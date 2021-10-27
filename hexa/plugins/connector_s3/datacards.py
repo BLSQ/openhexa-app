@@ -94,6 +94,10 @@ class BucketCard(Datacard):
         )
 
 
+class LightBucketCard(Datacard):
+    metadata = OpenHexaMetaDataSection(value="index")
+
+
 class ObjectSection(Section):
     title = "S3 Data"
 

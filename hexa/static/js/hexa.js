@@ -363,6 +363,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
 }
 
 function Tabs(defaultTabId) {
+    console.log("Tabbable")
     return {
         current: defaultTabId,
         switchTab(tabId) {

@@ -1,5 +1,10 @@
 {% load embed %}
 
 <div x-show="current==='{{ id }}'">
-    {% slot content %}{% endslot %}
+    <div {% slot extra_wrapper_attrs %}{% endslot %}>
+        <div class="h-16 flex items-center justify-end">
+            {% slot actions %}{% endslot %}
+        </div>
+        {% slot content %}{% endslot %}
+    </div>
 </div>

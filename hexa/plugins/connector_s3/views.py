@@ -7,16 +7,22 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from .api import generate_download_url, generate_upload_url
-from .datacards import BucketCard, ObjectCard
+from .datacards import BucketCard, LightBucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket
 
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
+    tabbed = "tabbed" in request.GET
+
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=datasource_id
     )
-    bucket_card = BucketCard(bucket, request=request)
+    bucket_card = (
+        BucketCard(bucket, request=request)
+        if not tabbed
+        else LightBucketCard(bucket, request=request)
+    )
     if request.method == "POST" and bucket_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
@@ -47,7 +53,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
     return render(
         request,
         "connector_s3/bucket_detail.html"
-        if "tabbed" not in request.GET
+        if not tabbed
         else "connector_s3/bucket_detail_tabbed.html",
         {
             "datasource": bucket,
