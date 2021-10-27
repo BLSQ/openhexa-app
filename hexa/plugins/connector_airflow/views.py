@@ -155,6 +155,7 @@ def dag_run_create(
 
     def parse_existing_config() -> [bool, Union[str, Dict[str, Any]]]:
         if "dag_config" in request.POST and request.POST["dag_config"] == "":
+            # validity: blank config is ok (DAG with optionnal config)
             return True, None
         try:
             # validity: data provided + valid json.
