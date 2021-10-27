@@ -419,7 +419,7 @@ class ViewsTest(test.TestCase):
 
         self.client.force_login(self.USER_TAYLOR)
 
-        # without a config, run dag will hit the airflow api + create a dagrun
+        # without a sample config, run dag will hit the airflow api + create a dagrun
         drc1 = DAGRun.objects.count()
         response = self.client.post(
             reverse(
@@ -450,7 +450,7 @@ class ViewsTest(test.TestCase):
         self.assertEqual(drc2, drc3)
         self.assertEqual(b"TEST-KEY: SET_DAG_CONFIG" in response.content, True)
 
-        # with a sample config but request without config, run dag hit the
+        # with a sample config and request with config, run dag hit the
         # airflow API and create a DagRun object
         response = self.client.post(
             reverse(
