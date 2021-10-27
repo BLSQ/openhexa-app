@@ -1,11 +1,14 @@
+import json
+
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.plugins.connector_airflow.models import Cluster
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 from hexa.ui.datacard import (
     Action,
+    CodeProperty,
     Datacard,
     DateProperty,
     Section,
@@ -66,7 +69,8 @@ class DAGCard(Datacard):
 
     actions = [Action(label="Run", url="get_run_url", icon="play", method="GET")]
 
-    def get_run_url(self, dag):
+    @staticmethod
+    def get_run_url(dag: DAG):
         return reverse(
             "connector_airflow:dag_run_create",
             kwargs={
@@ -90,6 +94,11 @@ class DAGRunSection(Section):
     run_id = TextProperty(text="run_id", label="Identifier")
     execution_date = DateProperty(date="execution_date", label="Execution Date")
     state = StatusProperty(value="status", label="State")
+    config = CodeProperty(code="get_conf_as_string", label="Config", language="json")
+
+    @staticmethod
+    def get_conf_as_string(run: DAGRun):
+        return json.dumps(run.conf)
 
 
 class DAGRunCard(Datacard):
