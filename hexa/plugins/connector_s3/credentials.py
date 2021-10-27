@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import json
 
 from hexa.notebooks.credentials import NotebooksCredentials, NotebooksCredentialsError
 from hexa.plugins.connector_s3.api import generate_sts_user_s3_credentials
@@ -38,20 +40,38 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             duration=60 * 60 * 12,
         )
 
-        credentials.update_env(
-            {
-                "HEXA_FEATURE_FLAG_S3FS": "true"
-                if credentials.user.has_feature_flag("s3fs")
-                else "false",
-                "AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
-                "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
-                "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
-                "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+        if credentials.user.has_feature_flag("s3fs"):
+            # use fuse -> _PRIVATE_FUSE_CONFIG used to provide configuration (tokens, buckets)
+            fuse_config = {
+                "access_key_id": sts_credentials["AccessKeyId"],
+                "secret_access_key": sts_credentials["SecretAccessKey"],
+                "session_token": sts_credentials["SessionToken"],
+                "aws_default_region": principal_s3_credentials.default_region,
+                "buckets": [{"name": b.name, "region": b.region} for b in buckets],
             }
-        )
-        if principal_s3_credentials.default_region != "":
             credentials.update_env(
                 {
-                    "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                    "_PRIVATE_FUSE_CONFIG": base64.b64encode(
+                        json.dumps(fuse_config).encode()
+                    ).decode(),
+                    "HEXA_FEATURE_FLAG_S3FS": "true",
                 }
             )
+
+        else:
+            # legacy system
+            credentials.update_env(
+                {
+                    "HEXA_FEATURE_FLAG_S3FS": "false",
+                    "AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
+                    "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
+                    "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
+                    "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+                }
+            )
+            if principal_s3_credentials.default_region != "":
+                credentials.update_env(
+                    {
+                        "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                    }
+                )
