@@ -27,18 +27,5 @@
       "cluster": "2655c266-af7e-423d-a3e6-ed0336b020d6",
       "dag_id": "test_dag"
     }
-  },
-  {
-    "model": "connector_airflow.dagconfig",
-    "pk": "3026709d-944c-4cec-8cae-f132d13f0694",
-    "fields": {
-      "created_at": "2021-05-03T06:58:13.029Z",
-      "updated_at": "2021-05-03T06:58:13.029Z",
-      "name": "Test config",
-      "dag": "6345efe4-da09-434d-825b-5776f63c7f38",
-      "config_data": {
-        "foo": "bar"
-      }
-    }
   }
 ]

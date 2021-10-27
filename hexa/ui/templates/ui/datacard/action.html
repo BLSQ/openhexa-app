@@ -1,4 +1,4 @@
-<form method="post" action="{{ url }}">
+<form method="{{ method }}" action="{{ url }}">
     {% csrf_token %}
     <button
             type="submit"
