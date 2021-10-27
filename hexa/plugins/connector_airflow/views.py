@@ -133,7 +133,6 @@ def dag_run_create(
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
 
-    run_config = None
     error = None
     if (
         request.method == "POST"
@@ -142,8 +141,10 @@ def dag_run_create(
             try:
                 run_config = json.loads(request.POST["dag_config"])
             except (KeyError, ValueError, TypeError):
-                run_config = dag.sample_config
+                run_config = request.POST["dag_config"]
                 error = _("Invalid config provided. Please use valid JSON.")
+        else:
+            run_config = {}
         if error is None:
             dag_run = dag.run(config=run_config)
             return redirect(dag_run.get_absolute_url())
@@ -167,7 +168,10 @@ def dag_run_create(
         {
             "dag": dag,
             "error": error,
-            "run_config": run_config,
+            "run_config": json.dumps(run_config, indent=4)
+            if error is None
+            else run_config,
+            "sample_config": json.dumps(dag.sample_config, indent=4),
             "breadcrumbs": breadcrumbs,
         },
     )

@@ -24,14 +24,14 @@ class AirflowAPIClient:
         return response.json()
 
     def trigger_dag_run(
-        self, dag_id: str, conf: typing.Optional[typing.Dict[str, typing.Any]]
+        self, dag_id: str, conf: typing.Dict[str, typing.Any]
     ) -> typing.Dict:
         url = urljoin(self._url, f"dags/{dag_id}/dagRuns")
         response = self._session.post(
             url,
             json={
                 "execution_date": timezone.now().isoformat(),
-                "conf": {} if conf is None else conf,
+                "conf": conf,
             },
             allow_redirects=False,
         )
