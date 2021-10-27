@@ -207,14 +207,8 @@ class DAG(Pipeline):
 
     @property
     def content_summary(self) -> str:
-        count = self.dagconfig_set.count()
-
-        return (
-            ""
-            if count == 0
-            else _("%(count)d DAG configuration%(suffix)s")
-            % {"count": count, "suffix": pluralize(count)}
-        )
+        # FIXME what is this?
+        return ""
 
     @property
     def last_run(self) -> "DAGRun":
@@ -232,45 +226,8 @@ class DAG(Pipeline):
         )
 
 
-class DAGConfigQuerySet(models.QuerySet):
-    def filter_for_user(self, user: User):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(dag__in=DAG.objects.filter_for_user(user))
-
-
-class DAGConfig(Base):
-    class Meta:
-        verbose_name = "DAG config"
-        ordering = ["name"]
-
-    name = models.CharField(max_length=200)
-    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
-    config_data = models.JSONField(default=dict)
-
-    objects = DAGConfigQuerySet.as_manager()
-
-    @property
-    def content_summary(self) -> str:
-        count = self.dagrun_set.count()
-
-        return (
-            ""
-            if count == 0
-            else _("%(count)d DAG configuration%(suffix)s")
-            % {"count": count, "suffix": pluralize(count)}
-        )
-
-    @property
-    def last_run(self) -> "DAGRun":
-        return DAGRun.objects.get_last_for_dag_and_config(dag_config=self)
-
-
 @dataclass
 class DAGRunResult:
-    dag_config: DAGConfig
-
     # TODO: document and move in api module
 
     def __str__(self) -> str:
@@ -289,9 +246,7 @@ class DAGRunQuerySet(models.QuerySet):
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
 
-    def get_last_for_dag_and_config(
-        self, *, dag: DAG = None, dag_config: DAGConfig = None
-    ):
+    def get_last_for_dag_and_config(self, *, dag: DAG = None, dag_config=None):
         qs = self.all()
         if dag is not None:
             qs = qs.filter(dag_config__dag=dag)
@@ -319,9 +274,6 @@ class DAGRun(Base, WithStatus):
     class Meta:
         ordering = ("-execution_date",)
 
-    dag_config = models.ForeignKey(
-        "DAGConfig", on_delete=models.CASCADE, null=True, blank=True
-    )
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
     run_id = models.CharField(max_length=200, blank=False)

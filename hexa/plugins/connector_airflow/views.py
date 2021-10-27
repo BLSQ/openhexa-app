@@ -10,8 +10,8 @@ from django.views.decorators.http import require_http_methods
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
-from hexa.plugins.connector_airflow.datagrids import DAGConfigGrid, DAGGrid
-from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGConfig, DAGRun
+from hexa.plugins.connector_airflow.datagrids import DAGGrid
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 
 logger = getLogger(__name__)
 
@@ -79,9 +79,6 @@ def dag_detail(
     if request.method == "POST" and dag_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    config_grid = DAGConfigGrid(
-        DAGConfig.objects.filter_for_user(request.user).filter(dag=dag), request=request
-    )
     run_grid = RunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
@@ -106,7 +103,6 @@ def dag_detail(
             "dag": dag,
             "breadcrumbs": breadcrumbs,
             "dag_card": dag_card,
-            "config_grid": config_grid,
             "run_grid": run_grid,
         },
     )

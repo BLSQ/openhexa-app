@@ -133,7 +133,6 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["dag_card"], DAGCard)
-        self.assertEqual(0, len(response.context["config_grid"]))
         self.assertEqual(2, len(response.context["run_grid"]))
 
     @responses.activate
