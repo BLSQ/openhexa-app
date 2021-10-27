@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import urljoin
 
@@ -197,7 +196,6 @@ class DAG(Pipeline):
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
         index.external_id = f"{self.dag_id}"
-        index.content = self.content_summary
         # index.search = f"{self.name}"
 
     def get_absolute_url(self) -> str:
@@ -205,11 +203,6 @@ class DAG(Pipeline):
             "connector_airflow:dag_detail",  # TODO
             args=(self.cluster.id, self.id),
         )
-
-    @property
-    def content_summary(self) -> str:
-        # FIXME what is this?
-        return ""
 
     @property
     def last_run(self) -> "DAGRun":
@@ -224,18 +217,8 @@ class DAG(Pipeline):
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
-            used_config=config,
+            conf=config,
         )
-
-      
-@dataclass
-class DAGRunResult:
-    # TODO: document and move in api module
-
-    def __str__(self) -> str:
-        return _('The DAG config "%(name)s" has been run') % {
-            "name": self.dag_config.display_name
-        }
 
 
 class DAGRunQuerySet(PipelinesQuerySet):
@@ -247,15 +230,6 @@ class DAGRunQuerySet(PipelinesQuerySet):
 
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
-
-    def get_last_for_dag_and_config(self, *, dag: DAG = None, dag_config=None):
-        qs = self.all()
-        if dag is not None:
-            qs = qs.filter(dag_config__dag=dag)
-        if dag_config is not None:
-            qs = qs.filter(dag_config=dag_config)
-
-        return qs.order_by("-airflow_execution_date").first()
 
 
 class DAGRunState(models.TextChoices):
@@ -281,7 +255,7 @@ class DAGRun(Base, WithStatus):
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
-    used_config = models.JSONField(null=True, blank=True)
+    conf = models.JSONField(null=True, blank=True)
 
     objects = DAGRunQuerySet.as_manager()
 
