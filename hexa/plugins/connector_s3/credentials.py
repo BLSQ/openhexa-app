@@ -40,6 +40,22 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             duration=60 * 60 * 12,
         )
 
+        credentials.update_env(
+            {
+                "HEXA_FEATURE_FLAG_S3FS": "false",
+                "AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
+                "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
+                "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
+                "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+            }
+        )
+        if principal_s3_credentials.default_region != "":
+            credentials.update_env(
+                {
+                    "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                }
+            )
+
         if credentials.user.has_feature_flag("s3fs"):
             # use fuse -> _PRIVATE_FUSE_CONFIG used to provide configuration (tokens, buckets)
             fuse_config = {
@@ -57,21 +73,3 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                     "HEXA_FEATURE_FLAG_S3FS": "true",
                 }
             )
-
-        else:
-            # legacy system
-            credentials.update_env(
-                {
-                    "HEXA_FEATURE_FLAG_S3FS": "false",
-                    "AWS_S3_BUCKET_NAMES": ",".join(b.name for b in buckets),
-                    "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
-                    "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
-                    "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
-                }
-            )
-            if principal_s3_credentials.default_region != "":
-                credentials.update_env(
-                    {
-                        "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
-                    }
-                )
