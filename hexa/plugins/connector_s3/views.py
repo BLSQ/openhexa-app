@@ -64,7 +64,9 @@ def object_detail(
     bucket = get_object_or_404(
         Bucket.objects.prefetch_indexes().filter_for_user(request.user), pk=bucket_id
     )
-    s3_object = get_object_or_404(bucket.object_set.filter(orphan=False), key=path)
+    s3_object = get_object_or_404(
+        bucket.object_set.prefetch_indexes().filter(orphan=False), key=path
+    )
     object_card = ObjectCard(model=s3_object, request=request)
     if request.method == "POST" and object_card.save():
         return redirect(request.META["HTTP_REFERER"])
@@ -85,7 +87,7 @@ def object_detail(
         )
 
     datagrid = ObjectGrid(
-        bucket.object_set.filter(parent_key=path, orphan=False),
+        bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,

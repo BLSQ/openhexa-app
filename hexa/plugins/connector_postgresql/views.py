@@ -57,7 +57,7 @@ def table_list(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
         pk=datasource_id,
     )
     table_grid = TableGrid(
-        datasource.table_set.all(),
+        datasource.table_set.prefetch_indexes(),
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -100,7 +100,7 @@ def table_detail(
         Database.objects.prefetch_indexes().filter_for_user(request.user),
         pk=datasource_id,
     )
-    table = get_object_or_404(datasource.table_set, pk=table_id)
+    table = get_object_or_404(datasource.table_set.prefetch_indexes(), pk=table_id)
     table_card = TableCard(table, request=request)
     if request.method == "POST" and table_card.save():
         return redirect(request.META["HTTP_REFERER"])

@@ -165,7 +165,7 @@ class ConnectorDhis2Test(test.TestCase):
             0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
         )
 
-    def test_data_elements_404(self):
+    def test_data_element_list_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""
 
         self.client.force_login(self.USER_BJORN)
@@ -177,7 +177,7 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_data_elements_200(self):
+    def test_data_element_list_200(self):
         """As a superuser, Kristen can see the data elements screen."""
 
         self.client.force_login(self.USER_KRISTEN)
@@ -190,7 +190,10 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
 
-    def test_indicators_404(self):
+    def test_data_element_detail_200(self):
+        self.fail()
+
+    def test_indicator_list_404(self):
         """As Bjorn is not a superuser, he can't access the indicators screen."""
 
         self.client.force_login(self.USER_BJORN)
@@ -202,8 +205,8 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_indicators_200(self):
-        """As a superuser, Kristen can see the data elements screen."""
+    def test_indicator_list_200(self):
+        """As a superuser, Kristen can see the indicators screen."""
 
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
@@ -214,3 +217,12 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
+
+    def test_indicator_detail_200(self):
+        self.fail()
+
+    def test_dataset_list_200(self):
+        self.fail()
+
+    def test_dataset_detail_200(self):
+        self.fail()
