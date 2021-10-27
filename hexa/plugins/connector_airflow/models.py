@@ -182,6 +182,7 @@ class DAG(Pipeline):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    sample_config = models.JSONField(null=True, blank=True)
 
     objects = DAGQuerySet.as_manager()
 
@@ -214,15 +215,16 @@ class DAG(Pipeline):
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
-    def run(self):
+    def run(self, config=None):
         client = self.cluster.get_api_client()
-        dag_run_data = client.trigger_dag_run(self.dag_id)
+        dag_run_data = client.trigger_dag_run(self.dag_id, conf=config)
 
         return DAGRun.objects.create(
             dag=self,
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
+            used_config=config,
         )
 
 
@@ -279,6 +281,7 @@ class DAGRun(Base, WithStatus):
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
+    used_config = models.JSONField(null=True, blank=True)
 
     objects = DAGRunQuerySet.as_manager()
 

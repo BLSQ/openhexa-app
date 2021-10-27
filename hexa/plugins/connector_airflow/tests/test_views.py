@@ -401,3 +401,67 @@ class ViewsTest(test.TestCase):
             self.assertEqual(ERROR, message.level)
             self.assertEqual("The cluster could not be synced", message.message)
         self.assertIn("Sync failed for Cluster", cm.output[0])
+
+    @responses.activate
+    def test_cluster_run_with_config(self):
+        cluster = Cluster.objects.create(
+            name="Test cluster", url="https://one-cluster-url.com"
+        )
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
+            json=dag_run_hello_world_1,
+            status=200,
+        )
+
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        self.assertEqual(dag.sample_config, None)
+
+        self.client.force_login(self.USER_TAYLOR)
+
+        # without a config, run dag will hit the airflow api + create a dagrun
+        drc1 = DAGRun.objects.count()
+        response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+        drc2 = DAGRun.objects.count()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(drc1 + 1, drc2)
+
+        # set a DAG sample config
+        dag.sample_config = {"value": 1}
+        dag.save()
+
+        # with a sample config but request without config, run dag will render
+        # a new page with config set. no airflow API hit, no DagRun objects
+        response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+        )
+        drc3 = DAGRun.objects.count()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(drc2, drc3)
+        self.assertEqual(b"TEST-KEY: SET_DAG_CONFIG" in response.content, True)
+
+        # with a sample config but request without config, run dag hit the
+        # airflow API and create a DagRun object
+        response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            ),
+            data={
+                "dag_config": '{"value": 2}',
+            },
+        )
+        drc4 = DAGRun.objects.count()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(2, len(responses.calls))
+        self.assertEqual(drc3 + 1, drc4)

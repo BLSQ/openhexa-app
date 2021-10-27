@@ -1,5 +1,7 @@
+import json
 import uuid
 from logging import getLogger
+from typing import Any, Dict, Union
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
@@ -122,14 +124,73 @@ def dag_detail_refresh(
     return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
 
 
+@require_http_methods(["POST"])
 def dag_run_create(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
+    def render_form_config(
+        form_config: str, ref_config: str, error: str = None
+    ) -> HttpResponse:
+        breadcrumbs = [
+            (_("Data Pipelines"), "pipelines:index"),
+            (
+                dag.cluster.name,
+                "connector_airflow:cluster_detail",
+                dag.cluster_id,
+            ),
+            (dag, "connector_airflow:dag_detail", cluster_id, dag_id),
+            (_("Run with config"),),
+        ]
+        return render(
+            request,
+            "connector_airflow/dag_run_with_config.html",
+            {
+                "dag": dag,
+                "error": error,
+                "form_config": form_config,
+                "ref_config": ref_config,
+                "breadcrumbs": breadcrumbs,
+            },
+        )
+
+    def parse_existing_config() -> [bool, Union[str, Dict[str, Any]]]:
+        try:
+            # validity: data provided + valid json.
+            return True, json.loads(request.POST["dag_config"])
+        except (KeyError, ValueError, TypeError):
+            return False, request.POST["dag_config"]
+
+    def config_provided() -> bool:
+        return "dag_config" in request.POST
+
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-    dag_run = dag.run()
+    reference_config = json.dumps(dag.sample_config, indent=4)
 
-    return redirect(dag_run.get_absolute_url())
+    if config_provided():
+        # argument provided, let's parse it
+        valid, form_config = parse_existing_config()
+        if valid:
+            # run with config
+            dag_run = dag.run(form_config)
+            return redirect(dag_run.get_absolute_url())
+        else:
+            # show error for invalid config + provide reference config
+            return render_form_config(
+                form_config,
+                reference_config,
+                _("Invalid config provided. Please use valid JSON."),
+            )
+    else:
+        # no config provided -> do we really need it?
+        if dag.sample_config is None:
+            # RUN asap if pipeline dont use config
+            dag_run = dag.run()
+            return redirect(dag_run.get_absolute_url())
+
+        else:
+            # ask the config to use
+            return render_form_config(reference_config, reference_config)
 
 
 def dag_run_detail(
