@@ -29,7 +29,10 @@ class AirflowAPIClient:
         url = urljoin(self._url, f"dags/{dag_id}/dagRuns")
         response = self._session.post(
             url,
-            json={"execution_date": timezone.now().isoformat(), "conf": conf},
+            json={
+                "execution_date": timezone.now().isoformat(),
+                "conf": {} if conf is None else conf,
+            },
             allow_redirects=False,
         )
         if response.status_code != 200:
