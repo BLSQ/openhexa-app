@@ -63,7 +63,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "secret_access_key": sts_credentials["SecretAccessKey"],
                 "session_token": sts_credentials["SessionToken"],
                 "aws_default_region": principal_s3_credentials.default_region,
-                "buckets": [{"name": b.name, "region": b.region} for b in buckets],
+                "buckets": [{"name": b.name, "region": str(b.region)} for b in buckets],
             }
             credentials.update_env(
                 {

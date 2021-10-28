@@ -19,7 +19,7 @@ from hexa.plugins.connector_s3.api import (
     generate_sts_app_s3_credentials,
     head_bucket,
 )
-from hexa.plugins.connector_s3.region import AWS_REGIONS, AWSRegion
+from hexa.plugins.connector_s3.region import AWSRegion
 
 
 class Credentials(Base):
@@ -36,7 +36,7 @@ class Credentials(Base):
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
     default_region = models.CharField(
-        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWS_REGIONS.items()
+        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
     )
     user_arn = models.CharField(max_length=200)
     app_role_arn = models.CharField(max_length=200)
@@ -66,7 +66,7 @@ class Bucket(Datasource):
 
     name = models.CharField(max_length=200)
     region = models.CharField(
-        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWS_REGIONS.items()
+        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
     )
 
     objects = BucketQuerySet.as_manager()
