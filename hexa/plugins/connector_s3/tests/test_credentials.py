@@ -8,7 +8,7 @@ from moto import mock_iam, mock_sts
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.plugins.connector_s3.credentials import notebooks_credentials
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Feature, FeatureFlag, Team, User
 
 
 class CredentialsTest(test.TestCase):
@@ -39,6 +39,7 @@ class CredentialsTest(test.TestCase):
         Bucket.objects.create(name="hexa-test-bucket-3")
         BucketPermission.objects.create(bucket=b1, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(bucket=b2, team=cls.TEAM_HEXA)
+        cls.S3FS = Feature.objects.create(code="s3fs")
 
     @mock_iam
     @mock_sts
@@ -103,3 +104,15 @@ class CredentialsTest(test.TestCase):
         role_policies_data = iam_client.list_role_policies(RoleName=expected_role_name)
         self.assertEqual(1, len(role_policies_data["PolicyNames"]))
         self.assertEqual("s3-access", role_policies_data["PolicyNames"][0])
+
+    @mock_iam
+    @mock_sts
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_credentials_s3fs(self, _):
+        """John is a regular user, should have access to 2 buckets"""
+
+        FeatureFlag.objects.create(feature=self.S3FS, user=self.USER_JOHN)
+        credentials = NotebooksCredentials(self.USER_JOHN)
+        notebooks_credentials(credentials)
+        self.assertEqual(credentials.env["HEXA_FEATURE_FLAG_S3FS"], "true")
+        self.assertEqual("_PRIVATE_FUSE_CONFIG" in credentials.env, True)
