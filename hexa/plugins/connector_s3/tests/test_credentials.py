@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import json
 from unittest.mock import patch
 
 import boto3
@@ -116,3 +118,17 @@ class CredentialsTest(test.TestCase):
         notebooks_credentials(credentials)
         self.assertEqual(credentials.env["HEXA_FEATURE_FLAG_S3FS"], "true")
         self.assertEqual("_PRIVATE_FUSE_CONFIG" in credentials.env, True)
+
+        fuse_config = json.loads(
+            base64.b64decode(credentials.env["_PRIVATE_FUSE_CONFIG"])
+        )
+        self.assertEqual("eu-central-1", fuse_config["aws_default_region"])
+        self.assertIsInstance(fuse_config["access_key_id"], str)
+        self.assertGreater(len(fuse_config["access_key_id"]), 0)
+        self.assertIsInstance(fuse_config["secret_access_key"], str)
+        self.assertGreater(len(fuse_config["secret_access_key"]), 0)
+        self.assertIsInstance(fuse_config["session_token"], str)
+        self.assertGreater(len(fuse_config["session_token"]), 0)
+        for bucket_config in fuse_config["buckets"]:
+            self.assertEqual("hexa-test-bucket-", bucket_config["name"][:17])
+            self.assertEqual("eu-central-1", bucket_config["region"])
