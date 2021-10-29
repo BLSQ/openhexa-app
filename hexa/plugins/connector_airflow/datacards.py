@@ -98,7 +98,7 @@ class DAGRunSection(Section):
 
     @staticmethod
     def get_conf_as_string(run: DAGRun):
-        return json.dumps(run.conf)
+        return json.dumps(run.conf, indent=4)
 
 
 class DAGRunCard(Datacard):
