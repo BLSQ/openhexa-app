@@ -112,7 +112,7 @@ class ApiTest(test.TestCase):
             session_identifier="test",
             role_identifier="test",
             principal_credentials=principal_credentials,
-            buckets=[bucket],
+            rw_buckets=[bucket],
         )
         self.assertIsInstance(credentials, dict)
         for key in ["AccessKeyId", "SecretAccessKey", "SessionToken"]:

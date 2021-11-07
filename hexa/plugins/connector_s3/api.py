@@ -64,9 +64,10 @@ def generate_sts_app_s3_credentials(
 def generate_sts_user_s3_credentials(
     *,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     role_identifier: str,
     session_identifier: str,
+    ro_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket] = list,
+    rw_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket] = list,
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary S3 credentials for a specific team and for specific buckets.
@@ -116,7 +117,9 @@ def generate_sts_user_s3_credentials(
         # Very unfortunate, but the assume role policy effect is not immediate
         sleep(10)
 
-    policy_doc = json.dumps(generate_s3_policy([b.name for b in buckets]))
+    policy_doc = json.dumps(
+        generate_s3_policy([b.name for b in rw_buckets], [b.name for b in ro_buckets])
+    )
     if len(policy_doc) > 10240:
         raise S3ApiError(
             f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
@@ -152,23 +155,48 @@ def generate_sts_user_s3_credentials(
     return response["Credentials"]
 
 
-def generate_s3_policy(bucket_names: typing.Sequence[str]) -> typing.Dict:
-    policy = {
-        "Version": "2012-10-17",
-        "Statement": [
+def generate_s3_policy(
+    rw_bucket_names: typing.Sequence[str] = list,
+    ro_bucket_names: typing.Optional[typing.Sequence[str]] = list,
+) -> typing.Dict:
+    statements = []
+
+    if ro_bucket_names:
+        statements.append(
+            {
+                "Sid": "S3ROActions",
+                "Effect": "Allow",
+                "Action": ["s3:ListBucket", "s3:GetObject*"],
+                "Resource": [
+                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in ro_bucket_names],
+                    *[
+                        f"arn:aws:s3:::{bucket_name}/*"
+                        for bucket_name in ro_bucket_names
+                    ],
+                ],
+            }
+        )
+
+    if rw_bucket_names:
+        statements.append(
             {
                 "Sid": "S3AllActions",
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in bucket_names],
-                    *[f"arn:aws:s3:::{bucket_name}/*" for bucket_name in bucket_names],
+                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in rw_bucket_names],
+                    *[
+                        f"arn:aws:s3:::{bucket_name}/*"
+                        for bucket_name in rw_bucket_names
+                    ],
                 ],
             }
-        ],
-    }
+        )
 
-    return policy
+    return {
+        "Version": "2012-10-17",
+        "Statement": statements,
+    }
 
 
 def _build_app_s3_client(

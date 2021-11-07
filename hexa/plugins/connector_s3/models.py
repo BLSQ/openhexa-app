@@ -46,13 +46,25 @@ class Credentials(Base):
         return self.username
 
 
+class BucketPermissionMode(models.IntegerChoices):
+    READ_ONLY = 1, "Read Only"
+    READ_WRITE = 2, "Read Write"
+
+
 class BucketQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user, mode: BucketPermissionMode = None):
         if user.is_active and user.is_superuser:
             return self
 
+        if mode is None:
+            # return all buckets
+            modes = [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
+        else:
+            modes = [mode]
+
         return self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()]
+            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
+            bucketpermission__mode__in=modes,
         ).distinct()
 
 
@@ -298,6 +310,9 @@ class Bucket(Datasource):
 
 class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    mode = models.IntegerField(
+        choices=BucketPermissionMode.choices, default=BucketPermissionMode.READ_WRITE
+    )
 
     class Meta:
         unique_together = [("bucket", "team")]
