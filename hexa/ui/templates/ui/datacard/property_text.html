@@ -2,10 +2,10 @@
 
 {% block value %}
     {% if markdown %}
-        <div class="prose prose-sm">
+        <div class="prose prose-sm" {% if not translate %}translate="no"{% endif %}>
             {{ text|default:"-" }}
         </div>
     {% else %}
-        <p>{{ text|default:"-" }}</p>
+        <p {% if not translate %}translate="no"{% endif %}>{{ text|default:"-" }}</p>
     {% endif %}
 {% endblock %}

@@ -11,7 +11,7 @@ from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProper
 class BucketSection(Section):
     title = "S3 Data"
 
-    name = TextProperty(text="name")
+    name = TextProperty(text="name", translate=False)
     content = TextProperty(text="content_summary")
 
 
@@ -97,10 +97,12 @@ class BucketCard(Datacard):
 class ObjectSection(Section):
     title = "S3 Data"
 
-    name = TextProperty(text="filename")
-    path = TextProperty(text="full_path")
-    file_type = TextProperty(label="File type", text="type_display")
-    file_size = TextProperty(label="File size", text="file_size_display")
+    name = TextProperty(text="filename", translate=False)
+    path = TextProperty(text="full_path", translate=False)
+    file_type = TextProperty(label="File type", text="type_display", translate=False)
+    file_size = TextProperty(
+        label="File size", text="file_size_display", translate=False
+    )
 
 
 class ObjectCard(Datacard):

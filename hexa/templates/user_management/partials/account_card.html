@@ -33,7 +33,7 @@
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "First name" %}
             </dt>
-            <dd class="mt-1 text-sm text-gray-900">
+            <dd class="mt-1 text-sm text-gray-900" translate="no">
                 {{ user.first_name|default:"-" }}
             </dd>
         </div>
@@ -41,7 +41,7 @@
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "Last name" %}
             </dt>
-            <dd class="mt-1 text-sm text-gray-900">
+            <dd class="mt-1 text-sm text-gray-900" translate="no">
                 {{ user.last_name|default:"-" }}
             </dd>
         </div>
@@ -49,7 +49,7 @@
             <dt class="text-sm font-medium text-gray-500">
                 {% translate "Email" %}
             </dt>
-            <dd class="mt-1 text-sm text-gray-900">
+            <dd class="mt-1 text-sm text-gray-900" translate="no">
                 {{ user.email }}
             </dd>
         </div>

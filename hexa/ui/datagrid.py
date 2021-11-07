@@ -231,11 +231,12 @@ class LeadingColumn(Column):
 class TextColumn(Column):
     """Simple text column, with one or two rows"""
 
-    def __init__(self, *, text=None, secondary_text=None, **kwargs):
+    def __init__(self, *, text=None, secondary_text=None, translate=True, **kwargs):
         super().__init__(**kwargs)
 
         self.text = text
         self.secondary_text = secondary_text
+        self.translate = translate
 
     @property
     def template(self):
@@ -246,6 +247,7 @@ class TextColumn(Column):
         data = {
             "text": text_value,
             "single": self.secondary_text is None,
+            "translate": self.translate,
         }
         if self.secondary_text is not None:
             secondary_text_value = self.get_value(
