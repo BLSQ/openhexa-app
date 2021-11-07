@@ -30,7 +30,7 @@ class ApiTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_generate_download_url(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(Bucket="test-bucket", Key="test.csv", Body="test")
 
@@ -50,7 +50,7 @@ class ApiTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_generate_upload_url(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         self.assertIsInstance(
             generate_upload_url(
