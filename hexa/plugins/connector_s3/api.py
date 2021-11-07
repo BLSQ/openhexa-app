@@ -66,8 +66,8 @@ def generate_sts_user_s3_credentials(
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     role_identifier: str,
     session_identifier: str,
-    ro_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket] = list,
-    rw_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket] = list,
+    ro_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
+    rw_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary S3 credentials for a specific team and for specific buckets.
@@ -156,8 +156,8 @@ def generate_sts_user_s3_credentials(
 
 
 def generate_s3_policy(
-    rw_bucket_names: typing.Sequence[str] = list,
-    ro_bucket_names: typing.Optional[typing.Sequence[str]] = list,
+    rw_bucket_names: typing.Sequence[str] = None,
+    ro_bucket_names: typing.Optional[typing.Sequence[str]] = None,
 ) -> typing.Dict:
     statements = []
 
