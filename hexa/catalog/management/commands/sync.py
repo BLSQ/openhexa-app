@@ -27,6 +27,7 @@ class Command(BaseCommand):
                     pbar.set_description(f"   {model.__name__:15}")
                     for instance in pbar:
                         try:
-                            instance.sync()
+                            if instance.auto_sync:
+                                instance.sync()
                         except Exception:
                             logger.exception("sync")
