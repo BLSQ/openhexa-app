@@ -11,7 +11,7 @@ class ConnectorDhis2Test(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            url="https://play.dhis2.org",
+            url="https://play.dhis2.org.invalid",
         )
 
     def test_delete_data_element(self):
@@ -34,8 +34,8 @@ class ConnectorDhis2Test(test.TestCase):
 class PermissionTest(test.TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.DHIS2A = Instance.objects.create(url="https://play1.dhis2.org")
-        cls.DHIS2B = Instance.objects.create(url="https://play2.dhis2.org")
+        cls.DHIS2A = Instance.objects.create(url="https://play1.dhis2.org.invalid")
+        cls.DHIS2B = Instance.objects.create(url="https://play2.dhis2.org.invalid")
         cls.TEAM1 = Team.objects.create(name="Test Team1")
         cls.TEAM2 = Team.objects.create(name="Test Team2")
         InstancePermission.objects.create(instance=cls.DHIS2A, team=cls.TEAM1)
@@ -63,7 +63,7 @@ class PermissionTest(test.TestCase):
                 .order_by("url")
                 .values("url")
             ),
-            [{"url": "https://play1.dhis2.org"}],
+            [{"url": "https://play1.dhis2.org.invalid"}],
         )
         self.assertEqual(
             list(
@@ -71,5 +71,8 @@ class PermissionTest(test.TestCase):
                 .order_by("url")
                 .values("url")
             ),
-            [{"url": "https://play1.dhis2.org"}, {"url": "https://play2.dhis2.org"}],
+            [
+                {"url": "https://play1.dhis2.org.invalid"},
+                {"url": "https://play2.dhis2.org.invalid"},
+            ],
         )

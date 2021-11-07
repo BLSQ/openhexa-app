@@ -1,5 +1,3 @@
-from unittest import skip
-
 from django import test
 from django.urls import reverse
 from django.utils import timezone
@@ -18,14 +16,16 @@ class ConnectorDhis2Test(test.TestCase):
         cls.USER_BJORN = User.objects.create_user(
             "bjorn@bluesquarehub.com",
             "bjornbjorn",
+            accepted_tos=True,
         )
         cls.USER_KRISTEN = User.objects.create_user(
             "kristen@bluesquarehub.com",
             "kristen2000",
             is_superuser=True,
+            accepted_tos=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
-            url="https://play.dhis2.org",
+            url="https://play.dhis2.org.invalid",
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
@@ -94,6 +94,7 @@ class ConnectorDhis2Test(test.TestCase):
         self.client.force_login(self.USER_BJORN)
 
         response = self.client.get(reverse("catalog:index"))
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(0, response.context["datasource_indexes"].count())
 
@@ -130,52 +131,6 @@ class ConnectorDhis2Test(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["instance"], Instance)
-
-    @test.tag("external")
-    @skip("Deactivated for now - mocks needed")
-    def test_instance_sync_404(self):
-        """Bjorn is not a superuser, he can't sync datasources."""
-
-        self.client.force_login(self.USER_BJORN)
-        http_referer = (
-            f"https://localhost/catalog/datasource/{self.DHIS2_INSTANCE_PLAY.pk}"
-        )
-        response = self.client.get(
-            reverse(
-                "connector_dhis2:instance_sync",
-                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
-            ),
-            HTTP_REFERER=http_referer,
-        )
-
-        self.assertEqual(response.status_code, 404)
-
-    @test.tag("external")
-    @skip("Deactivated for now - mocks needed")
-    def test_instance_sync_302(self):
-        """As a superuser, Kristen can sync every datasource."""
-
-        self.client.force_login(self.USER_KRISTEN)
-        http_referer = (
-            f"https://localhost/catalog/datasource/{self.DHIS2_INSTANCE_PLAY.pk}"
-        )
-        response = self.client.get(
-            reverse(
-                "connector_dhis2:instance_sync",
-                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
-            ),
-            HTTP_REFERER=http_referer,
-        )
-
-        # Check that the response is temporary redirection to referer
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(http_referer, response.url)
-
-        # Test that all data elements have a value type and an aggregation type
-        self.assertEqual(0, len(DataElement.objects.filter(dhis2_value_type=None)))
-        self.assertEqual(
-            0, len(DataElement.objects.filter(dhis2_aggregation_type=None))
-        )
 
     def test_data_element_list_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""

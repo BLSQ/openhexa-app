@@ -136,12 +136,14 @@ class IndicatorResult(Dhis2Result):
 
 
 class Dhis2Client:
+    # TODO: is this indirection really necessary? why not merge with models and simplify things?
     def __init__(self, *, url, username, password):
         self._api = Api(url, username, password)
 
     def fetch_info(self):
         return self._api.get_info()
 
+    # TODO: should we really yield page by page or element by element, and lazy load page when needed?
     def fetch_data_elements(self):
         for page in self._api.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100
