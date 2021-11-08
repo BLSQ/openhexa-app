@@ -66,8 +66,8 @@ def generate_sts_user_s3_credentials(
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     role_identifier: str,
     session_identifier: str,
-    ro_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
-    rw_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
+    read_only_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
+    read_write_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary S3 credentials for a specific team and for specific buckets.
@@ -118,7 +118,9 @@ def generate_sts_user_s3_credentials(
         sleep(10)
 
     policy_doc = json.dumps(
-        generate_s3_policy([b.name for b in rw_buckets], [b.name for b in ro_buckets])
+        generate_s3_policy(
+            [b.name for b in read_write_buckets], [b.name for b in read_only_buckets]
+        )
     )
     if len(policy_doc) > 10240:
         raise S3ApiError(
@@ -156,38 +158,44 @@ def generate_sts_user_s3_credentials(
 
 
 def generate_s3_policy(
-    rw_bucket_names: typing.Sequence[str] = None,
-    ro_bucket_names: typing.Optional[typing.Sequence[str]] = None,
+    read_write_bucket_names: typing.Sequence[str] = None,
+    read_only_bucket_names: typing.Optional[typing.Sequence[str]] = None,
 ) -> typing.Dict:
     statements = []
 
-    if ro_bucket_names:
+    if read_only_bucket_names:
         statements.append(
             {
                 "Sid": "S3ROActions",
                 "Effect": "Allow",
                 "Action": ["s3:ListBucket", "s3:GetObject*"],
                 "Resource": [
-                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in ro_bucket_names],
+                    *[
+                        f"arn:aws:s3:::{bucket_name}"
+                        for bucket_name in read_only_bucket_names
+                    ],
                     *[
                         f"arn:aws:s3:::{bucket_name}/*"
-                        for bucket_name in ro_bucket_names
+                        for bucket_name in read_only_bucket_names
                     ],
                 ],
             }
         )
 
-    if rw_bucket_names:
+    if read_write_bucket_names:
         statements.append(
             {
                 "Sid": "S3AllActions",
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    *[f"arn:aws:s3:::{bucket_name}" for bucket_name in rw_bucket_names],
+                    *[
+                        f"arn:aws:s3:::{bucket_name}"
+                        for bucket_name in read_write_bucket_names
+                    ],
                     *[
                         f"arn:aws:s3:::{bucket_name}/*"
-                        for bucket_name in rw_bucket_names
+                        for bucket_name in read_write_bucket_names
                     ],
                 ],
             }

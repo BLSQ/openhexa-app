@@ -39,8 +39,8 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
         sts_credentials = generate_sts_user_s3_credentials(
             principal_credentials=principal_s3_credentials,
-            ro_buckets=ro_buckets,
-            rw_buckets=rw_buckets,
+            read_only_buckets=ro_buckets,
+            read_write_buckets=rw_buckets,
             role_identifier=role_identifier,
             session_identifier=session_identifier,
             duration=60 * 60 * 12,
