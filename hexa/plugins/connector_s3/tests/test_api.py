@@ -130,3 +130,17 @@ class ApiTest(test.TestCase):
         policy = generate_s3_policy(bucket_names)
         self.assertIsInstance(policy, dict)
         self.assertLess(len(json.dumps(policy)), 2048)
+
+    def test_generate_s3_policy_rw_ro(self):
+        policy = generate_s3_policy(
+            read_write_bucket_names=["rw_bucket1", "rw_bucket2"],
+            read_only_bucket_names=["ro_bucket1"],
+        )
+        self.assertEqual(len(policy["Statement"]), 2)
+        for statement in policy["Statement"]:
+            # invariant: can't have the name of rw_bucket and ro_bucket in the same statement
+            str_statement = json.dumps(statement)
+            self.assertTrue(
+                ("rw_bucket" in str_statement and "ro_bucket" not in str_statement)
+                or ("ro_bucket" in str_statement and "rw_bucket" not in str_statement)
+            )
