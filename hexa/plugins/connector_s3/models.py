@@ -52,7 +52,7 @@ class BucketPermissionMode(models.IntegerChoices):
 
 
 class BucketQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user, mode: BucketPermissionMode = None):
+    def filter_by_mode(self, user, mode: BucketPermissionMode = None):
         if user.is_active and user.is_superuser:
             # if SU -> all buckets are RW; so if mode is provided and mode == RO -> no buckets available
             if mode == BucketPermissionMode.READ_ONLY:
@@ -69,6 +69,14 @@ class BucketQuerySet(CatalogQuerySet):
         return self.filter(
             bucketpermission__team__in=[t.pk for t in user.team_set.all()],
             bucketpermission__mode__in=modes,
+        ).distinct()
+
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
         ).distinct()
 
 
