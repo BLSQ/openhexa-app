@@ -21,7 +21,7 @@ from hexa.ui.datacard import (
 class ClusterSection(Section):
     title = "Airflow Data"
 
-    name = TextProperty(text="name")
+    name = TextProperty(text="name", translate=False)
     url = URLProperty(url="web_url")
 
 
@@ -55,7 +55,7 @@ class ClusterCard(Datacard):
 class DAGSection(Section):
     title = "Airflow Data"
 
-    dag_id = TextProperty(text="dag_id", label="Identifier")
+    dag_id = TextProperty(text="dag_id", label="Identifier", translate=False)
     description = TextProperty(text="description")
 
 
@@ -91,7 +91,7 @@ class DAGCard(Datacard):
 class DAGRunSection(Section):
     title = "Airflow Data"
 
-    run_id = TextProperty(text="run_id", label="Identifier")
+    run_id = TextProperty(text="run_id", label="Identifier", translate=False)
     execution_date = DateProperty(date="execution_date", label="Execution Date")
     state = StatusProperty(value="status", label="State")
     config = CodeProperty(code="get_conf_as_string", label="Config", language="json")

@@ -302,10 +302,11 @@ class BoundProperty:
 
 
 class TextProperty(Property):
-    def __init__(self, *, text, markdown=False, **kwargs):
+    def __init__(self, *, text, translate=True, markdown=False, **kwargs):
         super().__init__(**kwargs)
         self.text = text
         self.markdown = markdown
+        self.translate = translate
 
     @property
     def template(self):
@@ -317,6 +318,7 @@ class TextProperty(Property):
         return {
             "text": mark_safe(to_markdown(text_value)) if self.markdown else text_value,
             "markdown": self.markdown,
+            "translate": self.translate,
         }
 
     def build_field(self):

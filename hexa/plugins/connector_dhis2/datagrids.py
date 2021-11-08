@@ -18,7 +18,7 @@ class DataElementGrid(Datagrid):
         secondary_text="get_value_type_display",
         icon="get_icon",
     )
-    code = TextColumn(text="code")
+    code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
@@ -39,7 +39,7 @@ class IndicatorGrid(Datagrid):
         secondary_text="indicator_type.name",
         icon="get_icon",
     )
-    code = TextColumn(text="code")
+    code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
@@ -54,8 +54,8 @@ class DatasetGrid(Datagrid):
         text="name",
         icon="get_icon",
     )
-    code = TextColumn(text="code")
-    tags = TextColumn(text="todo_tags")
+    code = TextColumn(text="code", translate=False)
+    tags = TextColumn(text="todo_tags", translate=False)
     last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
     view = LinkColumn(text="View")
 

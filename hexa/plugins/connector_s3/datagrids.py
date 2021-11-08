@@ -8,9 +8,9 @@ class ObjectGrid(Datagrid):
         text="filename",
         icon="get_table_icon",
     )
-    directory = TextColumn(text="parent_key")
+    directory = TextColumn(text="parent_key", translate=False)
     tags = TagColumn(value="index.tags.all")
-    size = TextColumn(text="file_size_display")
+    size = TextColumn(text="file_size_display", translate=False)
     type = TextColumn(text="type_display")
     link = LinkColumn(text="View")
 

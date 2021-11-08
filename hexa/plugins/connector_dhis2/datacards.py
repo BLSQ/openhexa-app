@@ -20,7 +20,7 @@ from hexa.ui.datacard import (
 class InstanceSection(Section):
     title = "DHIS2 Data"
 
-    name = TextProperty(text="name")
+    name = TextProperty(text="name", translate=False)
     locale = LocaleProperty(locale="locale")
     url = URLProperty(url="url")
 
@@ -60,8 +60,8 @@ class DataElementSection(Section):
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id")
-    code = TextProperty(label="Code", text="code")
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
+    code = TextProperty(label="Code", text="code", translate=False)
     domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
     value_type = TextProperty(label="Value type", text="get_value_type_display")
     favourite = BooleanProperty(label="Favourite", value="favourite")
@@ -93,8 +93,8 @@ class IndicatorSection(Section):
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id")
-    code = TextProperty(label="Code", text="code")
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
+    code = TextProperty(label="Code", text="code", translate=False)
     indicator_type = TextProperty(
         label="Indicator type", text="indicator_type.display_name"
     )
@@ -128,8 +128,8 @@ class DatasetSection(Section):
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id")
-    code = TextProperty(label="Code", text="code")
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
+    code = TextProperty(label="Code", text="code", translate=False)
     created = DateProperty(label="Creation date", date="created")
     last_updated = DateProperty(label="Last updated", date="last_updated")
 
