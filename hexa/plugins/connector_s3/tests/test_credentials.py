@@ -132,3 +132,4 @@ class CredentialsTest(test.TestCase):
         for bucket_config in fuse_config["buckets"]:
             self.assertEqual("hexa-test-bucket-", bucket_config["name"][:17])
             self.assertEqual("eu-central-1", bucket_config["region"])
+            self.assertEqual("RW", bucket_config["mode"])

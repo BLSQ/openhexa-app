@@ -20,7 +20,7 @@ class SyncTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_empty_sync(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         self.assertEqual(self.bucket.object_set.count(), 0)
 
@@ -31,7 +31,7 @@ class SyncTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_base_sync(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(Bucket="test-bucket", Key="base.csv", Body="test")
         s3_client.put_object(
@@ -64,7 +64,7 @@ class SyncTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_metadata(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(Bucket="test-bucket", Key="metadata.csv", Body="test")
         s3_client.put_object(
@@ -100,7 +100,7 @@ class SyncTest(test.TestCase):
     @mock_s3
     @mock_sts
     def test_sync_remove_add_edit(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         delete_me = s3_client.put_object(
             Bucket="test-bucket", Key="delete_me.csv", Body="delete_me_content"
@@ -159,21 +159,21 @@ class SyncTest(test.TestCase):
         )
 
         expected = [
-            ("added.csv", False),
             ("a_dir/", False),
             ("a_dir/keep_me.csv", False),
+            ("added.csv", False),
             ("delete_me.csv", True),
             ("other_dir/", False),  # new file
             ("other_dir/leave_me.csv", False),  # new file
         ]
-        self.assertQuerysetEqual(
-            self.bucket.object_set.all(), expected, lambda x: (x.key, x.orphan)
-        )
+        result = [(x.key, x.orphan) for x in self.bucket.object_set.all()]
+        result = sorted(result)
+        self.assertEqual(result, expected)
 
     @mock_s3
     @mock_sts
     def test_re_uploaded_orphan(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
 
         # Create orphan
@@ -206,7 +206,7 @@ class SyncTest(test.TestCase):
         Resync
         One should have disappeared from OH
         """
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
 
         s3_client.put_object(Bucket="test-bucket", Key="original.csv", Body="content")
@@ -243,7 +243,7 @@ class SyncTest(test.TestCase):
         sync
         -> metadata should be transferred, we should have no orphans
         """
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
 
         s3_client.put_object(Bucket="test-bucket", Key="original.csv", Body="content")
