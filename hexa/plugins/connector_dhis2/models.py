@@ -24,10 +24,6 @@ def validate_dhis2_base_url(value):
 
 
 class Credentials(Base):
-    """This class is a temporary way to store S3 credentials. This approach is not safe for production,
-    as credentials are not encrypted.
-    """
-
     class Meta:
         verbose_name = "DHIS2 API Credentials"
         verbose_name_plural = "DHIS2 API Credentials"
