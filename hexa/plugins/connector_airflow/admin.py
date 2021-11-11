@@ -12,7 +12,7 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
-    list_display = ("name", "get_url")
+    list_display = ("name", "get_url", "last_synced_at", "auto_sync")
 
     inlines = [
         PermissionInline,

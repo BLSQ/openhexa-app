@@ -4,8 +4,8 @@ from django import test
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
-from hexa.catalog.queue import datasource_sync_queue
-from hexa.plugins.connector_postgresql.models import Database, DatasourceSyncResult
+from hexa.pipelines.queue import environment_sync_queue
+from hexa.plugins.connector_airflow.models import Cluster, EnvironmentSyncResult
 from hexa.user_management.models import User
 
 
@@ -17,9 +17,7 @@ class AsyncRefreshTest(test.TestCase):
             "jim2021__",
             is_superuser=True,
         )
-        cls.DATABASE_1 = Database.objects.create(
-            hostname="localhost", username="db1", password="db1", database="db1"
-        )
+        cls.CLUSTER_1 = Cluster.objects.create(name="test cluster", url="localhost")
 
     @test.override_settings(EXTERNAL_ASYNC_REFRESH=False)
     def test_sync_refresh(self):
@@ -29,20 +27,20 @@ class AsyncRefreshTest(test.TestCase):
         def mock_sync(self):
             nonlocal synced
             synced = True
-            return DatasourceSyncResult(
-                datasource=self,
+            return EnvironmentSyncResult(
+                environment=self,
                 created=10,
                 updated=11,
                 identical=12,
                 orphaned=13,
             )
 
-        with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
+        with patch("hexa.plugins.connector_airflow.models.Cluster.sync", mock_sync):
             url = reverse(
-                "catalog:datasource_sync",
+                "pipelines:environment_sync",
                 args=[
-                    ContentType.objects.get_for_model(Database).id,
-                    self.DATABASE_1.id,
+                    ContentType.objects.get_for_model(Cluster).id,
+                    self.CLUSTER_1.id,
                 ],
             )
             response = self.client.post(url, HTTP_REFERER="/", follow=True)
@@ -58,20 +56,20 @@ class AsyncRefreshTest(test.TestCase):
         def mock_sync(self):
             nonlocal synced
             synced = True
-            return DatasourceSyncResult(
-                datasource=self,
+            return EnvironmentSyncResult(
+                environment=self,
                 created=10,
                 updated=11,
                 identical=12,
                 orphaned=13,
             )
 
-        with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
+        with patch("hexa.plugins.connector_airflow.models.Cluster.sync", mock_sync):
             url = reverse(
-                "catalog:datasource_sync",
+                "pipelines:environment_sync",
                 args=[
-                    ContentType.objects.get_for_model(Database).id,
-                    self.DATABASE_1.id,
+                    ContentType.objects.get_for_model(Cluster).id,
+                    self.CLUSTER_1.id,
                 ],
             )
             response = self.client.post(url, HTTP_REFERER="/", follow=True)
@@ -79,8 +77,8 @@ class AsyncRefreshTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(synced)
 
-        with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
-            while datasource_sync_queue.run_once():
+        with patch("hexa.plugins.connector_airflow.models.Cluster.sync", mock_sync):
+            while environment_sync_queue.run_once():
                 pass
 
         self.assertTrue(synced)
@@ -88,14 +86,14 @@ class AsyncRefreshTest(test.TestCase):
     @test.override_settings(EXTERNAL_ASYNC_REFRESH=True)
     def test_sync_errors(self):
         self.client.force_login(self.SUPER_USER)
-        url = reverse("catalog:datasource_sync", args=[55555, self.DATABASE_1.id])
+        url = reverse("pipelines:environment_sync", args=[55555, self.CLUSTER_1.id])
         response = self.client.post(url, HTTP_REFERER="/", follow=True)
         assert response.status_code == 404
 
         url = reverse(
-            "catalog:datasource_sync",
+            "pipelines:environment_sync",
             args=[
-                ContentType.objects.get_for_model(Database).id,
+                ContentType.objects.get_for_model(Cluster).id,
                 "766c1165-2335-4108-885d-4b038839f264",
             ],
         )
@@ -107,17 +105,17 @@ class AsyncRefreshTest(test.TestCase):
         self.client.force_login(self.SUPER_USER)
         synced = False
 
-        def mock_sync(datasource):
+        def mock_sync(environment):
             nonlocal synced
             synced = True
-            return DatasourceSyncResult(datasource=datasource)
+            return EnvironmentSyncResult(environment=environment)
 
-        with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
+        with patch("hexa.plugins.connector_airflow.models.Cluster.sync", mock_sync):
             url = reverse(
-                "catalog:datasource_sync",
+                "pipelines:environment_sync",
                 args=[
-                    ContentType.objects.get_for_model(Database).id,
-                    self.DATABASE_1.id,
+                    ContentType.objects.get_for_model(Cluster).id,
+                    self.CLUSTER_1.id,
                 ],
             )
             response = self.client.post(f"{url}?synchronous", follow=True)

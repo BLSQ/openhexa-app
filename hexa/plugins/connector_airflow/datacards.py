@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -37,9 +38,12 @@ class ClusterCard(Datacard):
 
     def get_sync_url(self, cluster: Cluster):
         return reverse(
-            "connector_airflow:sync",
+            "pipelines:environment_sync",
             kwargs={
-                "cluster_id": cluster.id,
+                "environment_id": cluster.id,
+                "environment_contenttype_id": ContentType.objects.get_for_model(
+                    Cluster
+                ).id,
             },
         )
 
