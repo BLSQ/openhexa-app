@@ -24,7 +24,7 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("url", "display_name", "last_synced_at")
+    list_display = ("url", "display_name", "last_synced_at", "auto_sync")
     list_filter = ("url",)
     search_fields = ("url", "display_name")
 

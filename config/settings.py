@@ -295,7 +295,7 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
-DATASOURCE_ASYNC_REFRESH = os.environ.get("DATASOURCE_ASYNC_REFRESH") == "true"
+EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 
 # Activate an analytics middleware to save every call done on the app
 SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"

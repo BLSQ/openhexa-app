@@ -40,9 +40,4 @@ urlpatterns = [
         views.dag_run_detail_refresh,
         name="dag_run_detail_refresh",
     ),
-    path(
-        "<uuid:cluster_id>/sync",
-        views.sync,
-        name="sync",
-    ),
 ]

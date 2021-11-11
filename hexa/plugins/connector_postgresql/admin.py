@@ -10,7 +10,14 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Database)
 class DatabaseAdmin(admin.ModelAdmin):
-    list_display = ("database", "hostname", "port", "username")
+    list_display = (
+        "database",
+        "hostname",
+        "port",
+        "username",
+        "last_synced_at",
+        "auto_sync",
+    )
 
     inlines = [
         PermissionInline,

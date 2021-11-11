@@ -56,6 +56,7 @@ class Environment(IndexableMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    auto_sync = models.BooleanField(default=True)
 
     indexes = GenericRelation("pipelines.Index")
 
@@ -63,6 +64,9 @@ class Environment(IndexableMixin, models.Model):
 
     class Meta:
         abstract = True
+
+    def sync(self):
+        raise NotImplementedError
 
 
 class Pipeline(IndexableMixin, models.Model):

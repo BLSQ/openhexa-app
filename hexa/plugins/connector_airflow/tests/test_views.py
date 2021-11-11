@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 import responses
 from django import test
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.messages import ERROR
 from django.urls import reverse
 from django.utils import timezone
@@ -339,9 +340,12 @@ class ViewsTest(test.TestCase):
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.post(
             reverse(
-                "connector_airflow:sync",
+                "pipelines:environment_sync",
                 kwargs={
-                    "cluster_id": cluster.id,
+                    "environment_id": cluster.id,
+                    "environment_contenttype_id": ContentType.objects.get_for_model(
+                        Cluster
+                    ).id,
                 },
             ),
         )
@@ -368,14 +372,15 @@ class ViewsTest(test.TestCase):
         )
 
         self.client.force_login(self.USER_TAYLOR)
-        with self.assertLogs(
-            "hexa.plugins.connector_airflow.views", level="ERROR"
-        ) as cm:
+        with self.assertLogs("hexa", level="ERROR") as cm:
             response = self.client.post(
                 reverse(
-                    "connector_airflow:sync",
+                    "pipelines:environment_sync",
                     kwargs={
-                        "cluster_id": cluster.id,
+                        "environment_id": cluster.id,
+                        "environment_contenttype_id": ContentType.objects.get_for_model(
+                            Cluster
+                        ).id,
                     },
                 ),
                 follow=True,
@@ -391,8 +396,8 @@ class ViewsTest(test.TestCase):
             self.assertEqual(response.status_code, 200)
             message = list(response.context["messages"])[0]
             self.assertEqual(ERROR, message.level)
-            self.assertEqual("The cluster could not be synced", message.message)
-        self.assertIn("Sync failed for Cluster", cm.output[0])
+            self.assertEqual("The environment could not be synced", message.message)
+        self.assertIn("Sync failed for environment", cm.output[0])
 
     @responses.activate
     def test_dag_run_create_200(self):
