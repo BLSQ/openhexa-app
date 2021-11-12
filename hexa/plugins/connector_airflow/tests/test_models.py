@@ -11,7 +11,6 @@ from hexa.plugins.connector_airflow.models import (
     DAG,
     Cluster,
     ClusterPermission,
-    DAGConfig,
     DAGRun,
     DAGRunState,
 )
@@ -183,7 +182,6 @@ class PermissionTest(test.TestCase):
                 dag = DAG.objects.create(
                     dag_id=f"dag-{cluster.name}-{i}", cluster=cluster
                 )
-                DAGConfig.objects.create(dag=dag, name=f"dag-config-{cluster.name}-{i}")
                 DAGRun.objects.create(
                     dag=dag,
                     run_id=f"dag-run-{cluster.name}-{i}",
@@ -237,30 +235,6 @@ class PermissionTest(test.TestCase):
                 {"dag_id": "dag-test_cluster1-1"},
                 {"dag_id": "dag-test_cluster2-0"},
                 {"dag_id": "dag-test_cluster2-1"},
-            ],
-        )
-        self.assertEqual(
-            list(
-                DAGConfig.objects.filter_for_user(self.USER_REGULAR)
-                .order_by("name")
-                .values("name")
-            ),
-            [
-                {"name": "dag-config-test_cluster1-0"},
-                {"name": "dag-config-test_cluster1-1"},
-            ],
-        )
-        self.assertEqual(
-            list(
-                DAGConfig.objects.filter_for_user(self.USER_SUPER)
-                .order_by("name")
-                .values("name")
-            ),
-            [
-                {"name": "dag-config-test_cluster1-0"},
-                {"name": "dag-config-test_cluster1-1"},
-                {"name": "dag-config-test_cluster2-0"},
-                {"name": "dag-config-test_cluster2-1"},
             ],
         )
         self.assertEqual(

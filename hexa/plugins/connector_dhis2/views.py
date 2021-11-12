@@ -13,14 +13,15 @@ from .models import DataElement, DataSet, Extract, Indicator, Instance
 
 def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     instance_card = InstanceCard(instance, request=request)
     if request.method == "POST" and instance_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
     data_element_grid = DataElementGrid(
-        instance.dataelement_set.all(),
+        instance.dataelement_set.prefetch_indexes(),
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -29,7 +30,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
         request=request,
     )
     indicator_grid = IndicatorGrid(
-        instance.indicator_set.all(),
+        instance.indicator_set.prefetch_indexes().select_related("indicator_type"),
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -39,7 +40,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
     )
 
     dataset_grid = DatasetGrid(
-        instance.dataset_set.all(),
+        instance.dataset_set.prefetch_indexes(),
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -69,10 +70,11 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
 
 def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     data_element_grid = DataElementGrid(
-        instance.dataelement_set.all(),
+        instance.dataelement_set.prefetch_indexes(),
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -115,7 +117,7 @@ def data_element_detail(
         return redirect(request.META["HTTP_REFERER"])
 
     dataset_grid = DatasetGrid(
-        data_element.dataset_set.all(),
+        data_element.dataset_set.prefetch_indexes(),
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -140,28 +142,13 @@ def data_element_detail(
     )
 
 
-def data_element_extract(
-    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
-) -> HttpResponse:  # TODO: should be post + DRY indicators
-    instance, data_element = _get_instance_and_data_element(
-        request, instance_id, data_element_id
-    )
-
-    current_extract = _get_current_extract(request)
-    current_extract.data_elements.add(data_element)
-    current_extract.save()
-
-    messages.success(request, _("Added data element to current extract"))
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
 def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
     indicator_grid = IndicatorGrid(
-        instance.indicator_set.all(),
+        instance.indicator_set.prefetch_indexes().select_related("indicator_type"),
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -220,6 +207,134 @@ def indicator_detail(
             "breadcrumbs": breadcrumbs,
         },
     )
+
+
+def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+    dataset_grid = DatasetGrid(
+        instance.dataset_set.prefetch_indexes(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Sets"),),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/dataset_list.html",
+        {
+            "instance": instance,
+            "dataset_grid": dataset_grid,
+            "section_title": _(
+                "Data sets in instance %(instance)s"
+                % {"instance": instance.display_name}
+            ),
+            "section_label": "%(start)s to %(end)s out of %(total)s"
+            % {
+                "start": dataset_grid.start_index,
+                "end": dataset_grid.end_index,
+                "total": dataset_grid.total_count,
+            },
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def dataset_detail(
+    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
+) -> HttpResponse:
+    instance, dataset = _get_instance_and_dataset(request, instance_id, dataset_id)
+    dataset_card = DatasetCard(dataset, request=request)
+    if request.method == "POST" and dataset_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    data_elements_grid = DataElementGrid(
+        dataset.data_elements.prefetch_indexes().select_related("instance"),
+        page=int(request.GET.get("page", "1")),
+        request=request,
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Sets"), "connector_dhis2:dataset_list", instance_id),
+        (dataset.display_name,),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/dataset_detail.html",
+        {
+            "instance": instance,
+            "dataset": dataset,
+            "dataset_card": dataset_card,
+            "data_elements_grid": data_elements_grid,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def _get_instance_and_data_element(
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> tuple[Instance, DataElement]:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return instance, get_object_or_404(
+        DataElement.objects.prefetch_indexes().filter(instance=instance),
+        pk=data_element_id,
+    )
+
+
+def _get_instance_and_dataset(
+    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
+) -> tuple[Instance, DataSet]:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return instance, get_object_or_404(
+        DataSet.objects.prefetch_indexes().filter(instance=instance), pk=dataset_id
+    )
+
+
+def _get_instance_and_indicator(
+    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
+) -> tuple[Instance, Indicator]:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return instance, get_object_or_404(
+        Indicator.objects.prefetch_indexes().filter(instance=instance), pk=indicator_id
+    )
+
+
+def data_element_extract(
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> HttpResponse:  # TODO: should be post + DRY indicators
+    instance, data_element = _get_instance_and_data_element(
+        request, instance_id, data_element_id
+    )
+
+    current_extract = _get_current_extract(request)
+    current_extract.data_elements.add(data_element)
+    current_extract.save()
+
+    messages.success(request, _("Added data element to current extract"))
+
+    return redirect(request.META.get("HTTP_REFERER"))
 
 
 def indicator_extract(
@@ -284,110 +399,3 @@ def _get_current_extract(request: HttpRequest) -> Extract:
         request.session["connector_dhis2_current_extract"] = str(current_extract.id)
 
     return current_extract
-
-
-def _get_instance_and_data_element(
-    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
-) -> tuple[Instance, DataElement]:
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
-    )
-
-    return instance, get_object_or_404(
-        DataElement.objects.filter(instance=instance), pk=data_element_id
-    )
-
-
-def _get_instance_and_dataset(
-    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
-) -> tuple[Instance, DataSet]:
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
-    )
-
-    return instance, get_object_or_404(
-        DataSet.objects.filter(instance=instance), pk=dataset_id
-    )
-
-
-def _get_instance_and_indicator(
-    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
-) -> tuple[Instance, Indicator]:
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
-    )
-
-    return instance, get_object_or_404(
-        Indicator.objects.filter(instance=instance), pk=indicator_id
-    )
-
-
-def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
-    instance = get_object_or_404(
-        Instance.objects.filter_for_user(request.user), pk=instance_id
-    )
-    dataset_grid = DatasetGrid(
-        instance.dataset_set.all(),
-        page=int(request.GET.get("page", "1")),
-        request=request,
-    )
-
-    breadcrumbs = [
-        (_("Catalog"), "catalog:index"),
-        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
-        (_("Data Sets"),),
-    ]
-
-    return render(
-        request,
-        "connector_dhis2/dataset_list.html",
-        {
-            "instance": instance,
-            "dataset_grid": dataset_grid,
-            "section_title": _(
-                "Data sets in instance %(instance)s"
-                % {"instance": instance.display_name}
-            ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": dataset_grid.start_index,
-                "end": dataset_grid.end_index,
-                "total": dataset_grid.total_count,
-            },
-            "breadcrumbs": breadcrumbs,
-        },
-    )
-
-
-def dataset_detail(
-    request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
-) -> HttpResponse:
-    instance, dataset = _get_instance_and_dataset(request, instance_id, dataset_id)
-    dataset_card = DatasetCard(dataset, request=request)
-    if request.method == "POST" and dataset_card.save():
-        return redirect(request.META["HTTP_REFERER"])
-
-    data_elements_grid = DataElementGrid(
-        dataset.data_elements.all(),
-        page=int(request.GET.get("page", "1")),
-        request=request,
-    )
-
-    breadcrumbs = [
-        (_("Catalog"), "catalog:index"),
-        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
-        (_("Data Sets"), "connector_dhis2:dataset_list", instance_id),
-        (dataset.display_name,),
-    ]
-
-    return render(
-        request,
-        "connector_dhis2/dataset_detail.html",
-        {
-            "instance": instance,
-            "dataset": dataset,
-            "dataset_card": dataset_card,
-            "data_elements_grid": data_elements_grid,
-            "breadcrumbs": breadcrumbs,
-        },
-    )

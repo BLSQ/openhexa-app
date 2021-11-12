@@ -20,6 +20,7 @@ class DatasourceGrid(Datagrid):
     owner = TextColumn(
         text="owner.display_name",
         secondary_text="owner.get_organization_type_display",
+        translate=False,
     )
     content = TextColumn(text="content")
     tags = TagColumn(value="tags.all")

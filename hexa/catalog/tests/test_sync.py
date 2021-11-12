@@ -21,7 +21,7 @@ class AsyncRefreshTest(test.TestCase):
             hostname="localhost", username="db1", password="db1", database="db1"
         )
 
-    @test.override_settings(DATASOURCE_ASYNC_REFRESH=False)
+    @test.override_settings(EXTERNAL_ASYNC_REFRESH=False)
     def test_sync_refresh(self):
         self.client.force_login(self.SUPER_USER)
         synced = False
@@ -50,7 +50,7 @@ class AsyncRefreshTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(synced)
 
-    @test.override_settings(DATASOURCE_ASYNC_REFRESH=True)
+    @test.override_settings(EXTERNAL_ASYNC_REFRESH=True)
     def test_async_refresh(self):
         self.client.force_login(self.SUPER_USER)
         synced = False
@@ -85,7 +85,7 @@ class AsyncRefreshTest(test.TestCase):
 
         self.assertTrue(synced)
 
-    @test.override_settings(DATASOURCE_ASYNC_REFRESH=True)
+    @test.override_settings(EXTERNAL_ASYNC_REFRESH=True)
     def test_sync_errors(self):
         self.client.force_login(self.SUPER_USER)
         url = reverse("catalog:datasource_sync", args=[55555, self.DATABASE_1.id])
@@ -102,7 +102,7 @@ class AsyncRefreshTest(test.TestCase):
         response = self.client.post(url, HTTP_REFERER="/", follow=True)
         assert response.status_code == 404
 
-    @test.override_settings(DATASOURCE_ASYNC_REFRESH=True)
+    @test.override_settings(EXTERNAL_ASYNC_REFRESH=True)
     def test_synchronous_refresh(self):
         self.client.force_login(self.SUPER_USER)
         synced = False

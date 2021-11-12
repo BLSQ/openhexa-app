@@ -38,22 +38,29 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class DatasourceQuerySet(models.QuerySet):
+class CatalogQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         raise NotImplementedError(
-            "Datasource QuerySet should implement the filter_for_user() method"
+            "Catalog querysets should implement the filter_for_user() method"
         )
+
+    def prefetch_indexes(self):
+        if not hasattr(self.model, "indexes"):
+            raise ValueError(f"Model {self.model} has no indexes")
+
+        return self.prefetch_related("indexes", "indexes__tags")
 
 
 class Datasource(IndexableMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    auto_sync = models.BooleanField(default=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = DatasourceQuerySet.as_manager()
+    objects = CatalogQuerySet.as_manager()
 
     class Meta:
         abstract = True
@@ -72,6 +79,8 @@ class Entry(IndexableMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     indexes = GenericRelation("catalog.Index")
+
+    objects = CatalogQuerySet.as_manager()
 
     class Meta:
         abstract = True

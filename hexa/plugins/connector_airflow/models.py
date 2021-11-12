@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import urljoin
 
@@ -11,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import Environment, Index, Pipeline
+from hexa.pipelines.models import Environment, Index, Pipeline, PipelinesQuerySet
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management.models import User
@@ -22,7 +21,7 @@ class ExternalType(Enum):
     DAG = "dag"
 
 
-class ClusterQuerySet(models.QuerySet):
+class ClusterQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
@@ -166,7 +165,7 @@ class ClusterPermission(Permission):
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
 
 
-class DAGQuerySet(models.QuerySet):
+class DAGQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
@@ -182,6 +181,7 @@ class DAG(Pipeline):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    sample_config = models.JSONField(default=dict)
 
     objects = DAGQuerySet.as_manager()
 
@@ -196,7 +196,6 @@ class DAG(Pipeline):
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
         index.external_id = f"{self.dag_id}"
-        index.content = self.content_summary
         # index.search = f"{self.name}"
 
     def get_absolute_url(self) -> str:
@@ -206,80 +205,23 @@ class DAG(Pipeline):
         )
 
     @property
-    def content_summary(self) -> str:
-        count = self.dagconfig_set.count()
-
-        return (
-            ""
-            if count == 0
-            else _("%(count)d DAG configuration%(suffix)s")
-            % {"count": count, "suffix": pluralize(count)}
-        )
-
-    @property
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
-    def run(self):
+    def run(self, config=None):
         client = self.cluster.get_api_client()
-        dag_run_data = client.trigger_dag_run(self.dag_id)
+        dag_run_data = client.trigger_dag_run(self.dag_id, conf=config)
 
         return DAGRun.objects.create(
             dag=self,
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
+            conf=config,
         )
 
 
-class DAGConfigQuerySet(models.QuerySet):
-    def filter_for_user(self, user: User):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(dag__in=DAG.objects.filter_for_user(user))
-
-
-class DAGConfig(Base):
-    class Meta:
-        verbose_name = "DAG config"
-        ordering = ["name"]
-
-    name = models.CharField(max_length=200)
-    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
-    config_data = models.JSONField(default=dict)
-
-    objects = DAGConfigQuerySet.as_manager()
-
-    @property
-    def content_summary(self) -> str:
-        count = self.dagrun_set.count()
-
-        return (
-            ""
-            if count == 0
-            else _("%(count)d DAG configuration%(suffix)s")
-            % {"count": count, "suffix": pluralize(count)}
-        )
-
-    @property
-    def last_run(self) -> "DAGRun":
-        return DAGRun.objects.get_last_for_dag_and_config(dag_config=self)
-
-
-@dataclass
-class DAGRunResult:
-    dag_config: DAGConfig
-
-    # TODO: document and move in api module
-
-    def __str__(self) -> str:
-        return _('The DAG config "%(name)s" has been run') % {
-            "name": self.dag_config.display_name
-        }
-
-
-class DAGRunQuerySet(models.QuerySet):
+class DAGRunQuerySet(PipelinesQuerySet):
     def filter_for_user(self, user: User):
         if user.is_active and user.is_superuser:
             return self
@@ -288,17 +230,6 @@ class DAGRunQuerySet(models.QuerySet):
 
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
-
-    def get_last_for_dag_and_config(
-        self, *, dag: DAG = None, dag_config: DAGConfig = None
-    ):
-        qs = self.all()
-        if dag is not None:
-            qs = qs.filter(dag_config__dag=dag)
-        if dag_config is not None:
-            qs = qs.filter(dag_config=dag_config)
-
-        return qs.order_by("-airflow_execution_date").first()
 
 
 class DAGRunState(models.TextChoices):
@@ -319,14 +250,12 @@ class DAGRun(Base, WithStatus):
     class Meta:
         ordering = ("-execution_date",)
 
-    dag_config = models.ForeignKey(
-        "DAGConfig", on_delete=models.CASCADE, null=True, blank=True
-    )
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
+    conf = models.JSONField(default=dict)
 
     objects = DAGRunQuerySet.as_manager()
 

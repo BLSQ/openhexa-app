@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from s3fs import S3FileSystem
 
-from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
+from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
@@ -19,6 +19,7 @@ from hexa.plugins.connector_s3.api import (
     generate_sts_app_s3_credentials,
     head_bucket,
 )
+from hexa.plugins.connector_s3.region import AWSRegion
 
 
 class Credentials(Base):
@@ -34,7 +35,9 @@ class Credentials(Base):
     username = models.CharField(max_length=200)
     access_key_id = EncryptedTextField()
     secret_access_key = EncryptedTextField()
-    default_region = models.CharField(max_length=200, default="")
+    default_region = models.CharField(
+        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
+    )
     user_arn = models.CharField(max_length=200)
     app_role_arn = models.CharField(max_length=200)
 
@@ -43,13 +46,37 @@ class Credentials(Base):
         return self.username
 
 
-class BucketQuerySet(DatasourceQuerySet):
+class BucketPermissionMode(models.IntegerChoices):
+    READ_ONLY = 1, "Read Only"
+    READ_WRITE = 2, "Read Write"
+
+
+class BucketQuerySet(CatalogQuerySet):
+    def filter_by_mode(self, user, mode: BucketPermissionMode = None):
+        if user.is_active and user.is_superuser:
+            # if SU -> all buckets are RW; so if mode is provided and mode == RO -> no buckets available
+            if mode == BucketPermissionMode.READ_ONLY:
+                return self.none()
+            else:
+                return self
+
+        if mode is None:
+            # return all buckets
+            modes = [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
+        else:
+            modes = [mode]
+
+        return self.filter(
+            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
+            bucketpermission__mode__in=modes,
+        ).distinct()
+
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
 
         return self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()]
+            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
         ).distinct()
 
 
@@ -62,6 +89,9 @@ class Bucket(Datasource):
         ordering = ("name",)
 
     name = models.CharField(max_length=200)
+    region = models.CharField(
+        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
+    )
 
     objects = BucketQuerySet.as_manager()
 
@@ -292,6 +322,9 @@ class Bucket(Datasource):
 
 class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    mode = models.IntegerField(
+        choices=BucketPermissionMode.choices, default=BucketPermissionMode.READ_WRITE
+    )
 
     class Meta:
         unique_together = [("bucket", "team")]
@@ -303,7 +336,7 @@ class BucketPermission(Permission):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
 
 
-class ObjectQuerySet(models.QuerySet):
+class ObjectQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

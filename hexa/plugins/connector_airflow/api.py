@@ -23,11 +23,16 @@ class AirflowAPIClient:
 
         return response.json()
 
-    def trigger_dag_run(self, dag_id: str) -> typing.Dict:
+    def trigger_dag_run(
+        self, dag_id: str, conf: typing.Dict[str, typing.Any]
+    ) -> typing.Dict:
         url = urljoin(self._url, f"dags/{dag_id}/dagRuns")
         response = self._session.post(
             url,
-            json={"execution_date": timezone.now().isoformat()},
+            json={
+                "execution_date": timezone.now().isoformat(),
+                "conf": conf,
+            },
             allow_redirects=False,
         )
         if response.status_code != 200:

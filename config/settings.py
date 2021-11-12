@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "ariadne.contrib.django",
     "tailwind",
     "hexa.user_management",
+    "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
     "hexa.notebooks",
@@ -72,7 +73,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "hexa.user_management.middleware.login_required_middleware",
+    "hexa.user_management.middlewares.login_required_middleware",
+    "hexa.user_management.middlewares.accepted_tos_required_middleware",
+    "hexa.metrics.middlewares.track_request_event",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -203,6 +206,10 @@ NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
 
+# Activate the accept terms of service feature: each user need to manualy accept
+# them once if they want to continue using the product, existing user and new one
+USER_MUST_ACCEPT_TOS = os.environ.get("USER_MUST_ACCEPT_TOS") == "true"
+
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 
 if SENTRY_DSN:
@@ -288,7 +295,10 @@ else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
-DATASOURCE_ASYNC_REFRESH = os.environ.get("DATASOURCE_ASYNC_REFRESH") == "true"
+EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
+
+# Activate an analytics middleware to save every call done on the app
+SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"
 
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")

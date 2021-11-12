@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.html import format_html
 
-from .models import DAG, Cluster, ClusterPermission, DAGConfig, DAGRun
+from .models import DAG, Cluster, ClusterPermission, DAGRun
 
 
 class PermissionInline(admin.StackedInline):
@@ -12,7 +12,7 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
-    list_display = ("name", "get_url")
+    list_display = ("name", "get_url", "last_synced_at", "auto_sync")
 
     inlines = [
         PermissionInline,
@@ -31,15 +31,6 @@ class ClusterPermissionAdmin(admin.ModelAdmin):
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
     list_display = ("dag_id", "cluster")
-
-
-@admin.register(DAGConfig)
-class DAGConfigAdmin(admin.ModelAdmin):
-    list_display = ("name", "dag", "get_cluster")
-
-    @display(ordering="dag__cluster", description="Cluster")
-    def get_cluster(self, obj):
-        return obj.dag.cluster
 
 
 @admin.register(DAGRun)

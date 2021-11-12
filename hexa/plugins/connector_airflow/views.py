@@ -1,24 +1,23 @@
+import json
 import uuid
 from logging import getLogger
 
-from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_http_methods
 
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
-from hexa.plugins.connector_airflow.datagrids import DAGConfigGrid, DAGGrid
-from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGConfig, DAGRun
+from hexa.plugins.connector_airflow.datagrids import DAGGrid
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 
 logger = getLogger(__name__)
 
 
 def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user),
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user),
         pk=cluster_id,
     )
 
@@ -27,7 +26,9 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
         return redirect(request.META["HTTP_REFERER"])
 
     dag_grid = DAGGrid(
-        cluster.dag_set.all(), page=int(request.GET.get("page", "1")), request=request
+        cluster.dag_set.prefetch_indexes(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
     )
 
     breadcrumbs = [
@@ -72,16 +73,15 @@ def dag_detail(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user), pk=cluster_id
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag = get_object_or_404(
+        DAG.objects.prefetch_related().filter_for_user(request.user), pk=dag_id
+    )
     dag_card = DAGCard(dag, request=request)
     if request.method == "POST" and dag_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    config_grid = DAGConfigGrid(
-        DAGConfig.objects.filter_for_user(request.user).filter(dag=dag), request=request
-    )
     run_grid = RunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
@@ -106,7 +106,6 @@ def dag_detail(
             "dag": dag,
             "breadcrumbs": breadcrumbs,
             "dag_card": dag_card,
-            "config_grid": config_grid,
             "run_grid": run_grid,
         },
     )
@@ -131,9 +130,49 @@ def dag_run_create(
 ) -> HttpResponse:
     get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
-    dag_run = dag.run()
 
-    return redirect(dag_run.get_absolute_url())
+    error = None
+    if (
+        request.method == "POST"
+    ):  # POST: attempt to parse and validate run config (if any)
+        if "dag_config" in request.POST and len(request.POST["dag_config"]) > 0:
+            try:
+                run_config = json.loads(request.POST["dag_config"])
+            except (KeyError, ValueError, TypeError):
+                run_config = request.POST["dag_config"]
+                error = _("Invalid config provided. Please use valid JSON.")
+        else:
+            run_config = {}
+        if error is None:
+            dag_run = dag.run(config=run_config)
+            return redirect(dag_run.get_absolute_url())
+    else:  # GET: use sample config to pre-fill the form
+        run_config = dag.sample_config
+
+    breadcrumbs = [
+        (_("Data Pipelines"), "pipelines:index"),
+        (
+            dag.cluster.name,
+            "connector_airflow:cluster_detail",
+            dag.cluster_id,
+        ),
+        (dag, "connector_airflow:dag_detail", cluster_id, dag_id),
+        (_("Run with config"),),
+    ]
+
+    return render(
+        request,
+        "connector_airflow/dag_run_create.html",
+        {
+            "dag": dag,
+            "error": error,
+            "run_config": json.dumps(run_config, indent=4)
+            if error is None
+            else run_config,
+            "sample_config": json.dumps(dag.sample_config, indent=4),
+            "breadcrumbs": breadcrumbs,
+        },
+    )
 
 
 def dag_run_detail(
@@ -143,9 +182,11 @@ def dag_run_detail(
     dag_run_id: uuid.UUID,
 ) -> HttpResponse:
     cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user), pk=cluster_id
+        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
     )
-    dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
+    dag = get_object_or_404(
+        DAG.objects.prefetch_indexes().filter_for_user(request.user), pk=dag_id
+    )
     dag_run = get_object_or_404(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
     )
@@ -196,19 +237,3 @@ def dag_run_detail_refresh(
     return dag_run_detail(
         request, cluster_id=cluster_id, dag_id=dag_id, dag_run_id=dag_run_id
     )
-
-
-@require_http_methods(["POST"])
-def sync(request: HttpRequest, cluster_id: uuid.UUID):
-    cluster = get_object_or_404(
-        Cluster.objects.filter_for_user(request.user), pk=cluster_id
-    )
-
-    try:
-        sync_result = cluster.sync()
-        messages.success(request, sync_result)
-    except AirflowAPIError:
-        messages.error(request, _("The cluster could not be synced"))
-        logger.exception(f"Sync failed for Cluster {cluster.id}")
-
-    return redirect(request.META.get("HTTP_REFERER", cluster.get_absolute_url()))

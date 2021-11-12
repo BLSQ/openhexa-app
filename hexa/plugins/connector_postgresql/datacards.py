@@ -11,10 +11,10 @@ from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProper
 class DatabaseSection(Section):
     title = "PostgreSQL Data"
 
-    hostname = TextProperty(text="hostname")
-    database = TextProperty(text="database")
-    username = TextProperty(text="username")
-    url = TextProperty(text="url")
+    hostname = TextProperty(text="hostname", translate=False)
+    database = TextProperty(text="database", translate=False)
+    username = TextProperty(text="username", translate=False)
+    url = TextProperty(text="url", translate=False)
 
 
 class UsageSection(Section):
@@ -97,8 +97,8 @@ class DatabaseCard(Datacard):
 class TableSection(Section):
     title = "PostgreSQL Data"
 
-    name = TextProperty(text="name")
-    rows = TextProperty(text="get_rows", label=_("Row count"))
+    name = TextProperty(text="name", translate=False)
+    rows = TextProperty(text="get_rows", label=_("Row count"), translate=False)
 
     def get_rows(self, table: Table):
         return f"{table.rows}"

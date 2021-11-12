@@ -68,7 +68,7 @@ class ConnectorS3Test(test.TestCase):
     @mock_s3
     @mock_sts
     def test_bucket_clean_ok(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="some-bucket")
         bucket = Bucket.objects.create(name="some-bucket")
 
@@ -77,7 +77,7 @@ class ConnectorS3Test(test.TestCase):
     @mock_s3
     @mock_sts
     def test_bucket_clean_ko(self):
-        s3_client = boto3.client("s3")
+        s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="some-bucket")
         bucket = Bucket.objects.create(name="huh-wrong-bucket-name")
 

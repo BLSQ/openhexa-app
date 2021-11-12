@@ -38,16 +38,35 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
+class PipelinesQuerySet(models.QuerySet):
+    def filter_for_user(self, user):
+        raise NotImplementedError(
+            "Pipelines querysets should implement the filter_for_user() method"
+        )
+
+    def prefetch_indexes(self):
+        if not hasattr(self.model, "indexes"):
+            raise ValueError(f"Model {self.model} has no indexes")
+
+        return self.prefetch_related("indexes", "indexes__tags")
+
+
 class Environment(IndexableMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    auto_sync = models.BooleanField(default=True)
 
     indexes = GenericRelation("pipelines.Index")
 
+    objects = PipelinesQuerySet.as_manager()
+
     class Meta:
         abstract = True
+
+    def sync(self):
+        raise NotImplementedError
 
 
 class Pipeline(IndexableMixin, models.Model):
@@ -56,6 +75,8 @@ class Pipeline(IndexableMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     indexes = GenericRelation("pipelines.Index")
+
+    objects = PipelinesQuerySet.as_manager()
 
     class Meta:
         abstract = True

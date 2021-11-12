@@ -16,7 +16,7 @@ class PermissionInline(admin.StackedInline):
 
 @admin.register(Bucket)
 class BucketAdmin(admin.ModelAdmin):
-    list_display = ("name", "last_synced_at")
+    list_display = ("name", "last_synced_at", "auto_sync")
     list_filter = ("name",)
     search_fields = ("name",)
 

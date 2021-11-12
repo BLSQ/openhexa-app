@@ -242,7 +242,12 @@ class BaseIndexableMixin:
 
     @property
     def index(self):
-        return self.indexes.get()
+        # We can't use self.indexes.get(), as it would prevent fetch_related() to work properly
+        indexes = self.indexes.all()
+        if len(indexes) != 1:
+            raise ValueError(f"{self} has more than 1 index")
+
+        return indexes[0]
 
     def get_permission_set(self):
         raise NotImplementedError

@@ -8,7 +8,8 @@
       "username": "hexa-app-test",
       "access_key_id": "",
       "secret_access_key": "",
-      "role_arn": ""
+      "user_arn": "",
+      "app_role_arn": ""
     }
   },
   {

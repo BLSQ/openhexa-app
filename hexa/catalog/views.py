@@ -6,9 +6,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from .datagrids import DatasourceGrid
-from .models import Index
+from .models import Datasource, Index
 from .queue import datasource_sync_queue
 
 
@@ -60,7 +61,7 @@ def search(request: HttpRequest) -> HttpResponse:
     )
 
 
-# TODO: post-only?
+@require_http_methods(["POST"])
 def datasource_sync(
     request: HttpRequest, datasource_contenttype_id: int, datasource_id: uuid.UUID
 ):
@@ -68,12 +69,14 @@ def datasource_sync(
         datasource_type = ContentType.objects.get_for_id(id=datasource_contenttype_id)
     except ContentType.DoesNotExist:
         raise Http404("No Datasource matches the given query.")
+    if not issubclass(datasource_type.model_class(), Datasource):
+        raise Http404("No Datasource matches the given query.")
     datasource = get_object_or_404(
         datasource_type.model_class().objects.filter_for_user(request.user),
         pk=datasource_id,
     )
 
-    if settings.DATASOURCE_ASYNC_REFRESH and "synchronous" not in request.GET:
+    if settings.EXTERNAL_ASYNC_REFRESH and "synchronous" not in request.GET:
         datasource_sync_queue.enqueue(
             "datasource_sync",
             {

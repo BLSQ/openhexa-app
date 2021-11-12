@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import Datasource, DatasourceQuerySet, Entry
+from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.core.models import Base, Permission
 from hexa.core.models.locale import LocaleField
 
@@ -24,10 +24,6 @@ def validate_dhis2_base_url(value):
 
 
 class Credentials(Base):
-    """This class is a temporary way to store S3 credentials. This approach is not safe for production,
-    as credentials are not encrypted.
-    """
-
     class Meta:
         verbose_name = "DHIS2 API Credentials"
         verbose_name_plural = "DHIS2 API Credentials"
@@ -61,7 +57,7 @@ class Credentials(Base):
                 raise ValidationError("DHIS2 URL is invalid")
 
 
-class InstanceQuerySet(DatasourceQuerySet):
+class InstanceQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -190,6 +186,16 @@ class InstancePermission(Permission):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
 
 
+class EntryQuerySet(CatalogQuerySet):
+    def filter_for_user(self, user):
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            instance__in=Instance.objects.filter_for_user(user)
+        ).distinct()
+
+
 class Dhis2Entry(Entry):
     class Meta:
         abstract = True
@@ -203,6 +209,8 @@ class Dhis2Entry(Entry):
     favorite = models.BooleanField()
     created = models.DateTimeField()
     last_updated = models.DateTimeField()
+
+    objects = EntryQuerySet.as_manager()
 
     @property
     def display_name(self):
@@ -339,7 +347,6 @@ class ExtractStatus(models.TextChoices):
 
 
 class DataSet(Dhis2Entry):
-
     code = models.CharField(max_length=100, blank=True)
     data_elements = models.ManyToManyField(DataElement, blank=True)
 
@@ -364,7 +371,7 @@ class DataSet(Dhis2Entry):
         )
 
 
-class ExtractQuerySet(models.QuerySet):
+class ExtractQuerySet(CatalogQuerySet):
     def filter_for_user(self, user):
         return self.filter(user=user)
 
