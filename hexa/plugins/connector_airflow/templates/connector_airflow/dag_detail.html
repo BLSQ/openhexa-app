@@ -5,11 +5,6 @@
 
 {% block page_content %}
     {{ dag_card }}
-    {% embed "ui/section/section.html" with title=_("Available configurations") %}
-        {% slot content %}
-            {{ config_grid }}
-        {% endslot %}
-    {% endembed %}
     {% url "connector_airflow:dag_detail_refresh" dag.cluster.id dag.id as refresh_url %}
     {% embed "ui/dynamic/autorefresh.html" with url=refresh_url %}
         {% slot content %}
