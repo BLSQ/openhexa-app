@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import typing
+
 from django import forms
 from django.contrib import messages
 from django.template import loader
@@ -6,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 import hexa.ui.datacard.actions
 from hexa.ui.datacard.base import BaseMeta
 from hexa.ui.datacard.properties import Property
-from hexa.ui.utils import get_item_value
+from hexa.ui.utils import StaticText, get_item_value
 
 from .base import DatacardComponent
 
@@ -14,12 +18,20 @@ from .base import DatacardComponent
 class LegacyDatacardOptions:
     """Container for datacard meta (config)"""
 
-    def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
+    def __init__(
+        self,
+        *,
+        title: typing.Union[StaticText, str],
+        subtitle: typing.Union[StaticText, str],
+        sections: typing.Sequence[Section],
+        image_src: str = None,
+        actions: list[hexa.ui.datacard.actions.Action] = None
+    ):
         self.sections = sections
         self.title = title
         self.subtitle = subtitle
         self.image_src = image_src
-        self.actions: list[hexa.ui.datacard.actions.Action] = actions
+        self.actions = actions
 
 
 class LegacyDatacardMeta(BaseMeta):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from django.core.paginator import Paginator
@@ -17,8 +19,14 @@ DjangoModel = typing.TypeVar("DjangoModel", bound=models.Model)
 class DatagridOptions:
     """Container for datagrid meta (config)"""
 
-    def __init__(self, *, columns: typing.Sequence["Column"]):
+    def __init__(
+        self,
+        *,
+        columns: typing.Sequence[Column],
+        actions: typing.Sequence[Action] = None,
+    ):
         self.columns = columns
+        self.actions: list[Action] = actions
 
 
 class DatagridMeta(type):
@@ -72,6 +80,7 @@ class Datagrid(metaclass=DatagridMeta):
             rows.append(bound_columns)
 
         context = {
+            "title": get_item_value(None, "title", container=self, exclude=Column),
             "rows": rows,
             "columns": self._meta.columns,
             "pagination": {
@@ -392,3 +401,45 @@ class StatusColumn(Column):
             "color": self.COLOR_MAPPINGS.get(status),
             "label": self.LABEL_MAPPINGS.get(status),
         }
+
+
+class Action:
+    def __init__(self, label, url, icon=None, method="post"):
+        self.label = label
+        self.icon = icon
+        self.url = url
+        self.method = method
+
+    def bind(self, datagrid: Datagrid):
+        return BoundAction(self, datagrid=datagrid)
+
+    def get_value(self, model, accessor, container=None):
+        return get_item_value(
+            model, accessor, container=container, exclude=(Datagrid, Column)
+        )
+
+    @property
+    def template(self):
+        return "ui/datagrid/action.html"
+
+    def context(self, grid: Datagrid):
+        return {
+            "url": self.get_value(None, self.url, container=grid),
+            "label": _(self.label),
+            "icon": self.icon,
+            "method": self.method,
+        }
+
+
+class BoundAction:
+    def __init__(self, unbound_action: Action, *, datagrid: Datagrid):
+        self.unbound_action = unbound_action
+        self.datagrid = datagrid
+
+    def __str__(self):
+        template = loader.get_template(self.unbound_action.template)
+
+        return template.render(
+            self.unbound_action.context(self.datagrid),
+            request=self.datagrid.request,
+        )

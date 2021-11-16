@@ -1,8 +1,10 @@
 from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datagrid import Datagrid, LeadingColumn, LinkColumn, TagColumn, TextColumn
+from hexa.ui.utils import StaticText
 
 
 class ObjectGrid(Datagrid):
+    title = StaticText("Objects")
     lead = LeadingColumn(
         label="Name",
         text="filename",
