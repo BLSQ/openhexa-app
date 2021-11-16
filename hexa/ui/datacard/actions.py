@@ -10,7 +10,7 @@ from .base import DatacardComponent
 
 
 class Action(DatacardComponent):
-    def __init__(self, label, url, icon=None, method="post"):
+    def __init__(self, *, label, url, icon=None, method="post"):
         self.label = label
         self.icon = icon
         self.url = url

@@ -26,7 +26,7 @@ class DatagridOptions:
         actions: typing.Sequence[Action] = None,
     ):
         self.columns = columns
-        self.actions: list[Action] = actions
+        self.actions = actions
 
 
 class DatagridMeta(type):
@@ -45,7 +45,14 @@ class DatagridMeta(type):
         ]:
             column.name = column_name
             columns.append(column)
-        new_class._meta = DatagridOptions(columns=columns)
+
+        actions = []
+        for action_name, action in [
+            (k, v) for k, v in attrs.items() if isinstance(v, Action)
+        ]:
+            action.name = action_name
+            actions.append(action)
+        new_class._meta = DatagridOptions(columns=columns, actions=actions)
 
         return new_class
 
@@ -81,6 +88,7 @@ class Datagrid(metaclass=DatagridMeta):
 
         context = {
             "title": get_item_value(None, "title", container=self, exclude=Column),
+            "actions": [action.bind(self) for action in self._meta.actions],
             "rows": rows,
             "columns": self._meta.columns,
             "pagination": {
@@ -404,7 +412,7 @@ class StatusColumn(Column):
 
 
 class Action:
-    def __init__(self, label, url, icon=None, method="post"):
+    def __init__(self, *, label, url, icon=None, method="post"):
         self.label = label
         self.icon = icon
         self.url = url

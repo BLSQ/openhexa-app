@@ -9,6 +9,13 @@
                                 {{ title }}
                             </h2>
                         </div>
+                        {% if actions|length > 0 %}
+                            <div class="ml-4 mt-4 flex-shrink-0 flex">
+                                {% for action in actions %}
+                                    {{ action }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
                 <table class="min-w-full divide-y divide-gray-200">

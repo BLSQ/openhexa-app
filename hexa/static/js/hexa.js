@@ -317,7 +317,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
 
             // Get presigned upload URL
             const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
-                method: this.$refs.form.method,
+                method: "POST",
                 headers: {
                     'Content-Type': 'text/plain',
                     "X-CSRFToken": document.cookie

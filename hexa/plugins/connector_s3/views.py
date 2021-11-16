@@ -13,8 +13,6 @@ from .models import Bucket
 
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
-    tabbed = "tabbed" in request.GET
-
     bucket = get_object_or_404(
         Bucket.objects.prefetch_indexes().filter_for_user(request.user),
         pk=datasource_id,
@@ -32,31 +30,17 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         bucket.object_set.prefetch_indexes()
         .filter(parent_key="/", orphan=False)
         .select_related("bucket"),
+        bucket=bucket,
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
 
-    # TODO: discuss
-    # Shouldn't we place that on datasource / entry models? Or at least a helper function
-    # alternative: sync by index_id? weird but practical
-    # alternative2: upload as template tag
-    sync_url = reverse(
-        "catalog:datasource_sync",
-        kwargs={
-            "datasource_id": bucket.id,
-            "datasource_contenttype_id": ContentType.objects.get_for_model(Bucket).id,
-        },
-    )
-
     return render(
         request,
-        "connector_s3/bucket_detail.html"
-        if not tabbed
-        else "connector_s3/bucket_detail_tabbed.html",
+        "connector_s3/bucket_detail.html",
         {
             "datasource": bucket,
-            "sync_url": sync_url,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
             "datagrid": datagrid,
@@ -94,6 +78,7 @@ def object_detail(
 
     datagrid = ObjectGrid(
         bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
+        bucket=bucket,
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,

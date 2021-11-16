@@ -10,7 +10,10 @@ def get_item_value(item, accessor, *, container=None, exclude=None):
     if container is not None and hasattr(container, accessor):
         attr = getattr(container_class, accessor)
         if callable(attr):
-            return getattr(container, accessor)(item)
+            if item is None:
+                return getattr(container, accessor)()
+            else:
+                return getattr(container, accessor)(item)
         elif isinstance(attr, property):
             return getattr(container, accessor)
         elif exclude is None or not isinstance(attr, exclude):
