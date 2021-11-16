@@ -1,0 +1,49 @@
+{% load embed static %}
+
+<div class="md:flex md:items-center md:justify-between">
+    <div class="flex-1 min-w-0 mb-2">
+        <div class="flex">
+            <img src="{% static "connector_s3/img/symbol.svg" %}" alt="S3 Bucket" class="w-8 mr-2"/>
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                {{ datasource.name }}
+            </h2>
+        </div>
+        <div class="mt-4 ml-1.5 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
+            {% if datasource.content_summary %}
+                {% include "catalog/components/data_header_tag.html" with label=datasource.content_summary icon="briefcase" only %}
+            {% endif %}
+            {% if datasource.index.countries|length > 0 %}
+                {% embed "catalog/components/data_header_tag.html" with icon="location_marker" %}
+                    {% slot label %}
+                        {% for country in datasource.index.countries %}
+                            {{ country.alpha3 }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% endslot %}
+                {% endembed %}
+            {% endif %}
+            {% if datasource.index.tags.all|length > 0 %}
+                {% include "catalog/components/data_header_tag.html" with label=datasource.index.tags.all|join:", " icon="tag" only %}
+            {% endif %}
+            <div class="flex items-center text-sm text-gray-500">
+                {% if datasource.last_synced_at is None %}
+                    {% include "catalog/components/data_header_tag.html" with label=_("Never synced") icon="calendar" only %}
+                {% else %}
+                    {% embed "catalog/components/data_header_tag.html" with icon="calendar" %}
+                        {% slot label %}
+                            {% block translate %}
+                                Last synced on {{ datasource.last_synced_at }}
+                            {% endblock %}
+                        {% endslot %}
+                    {% endembed %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="mt-4 flex-shrink-0 flex md:mt-0 md:ml-4">
+        <button type="button"
+                class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            {% include "ui/icons/refresh.html" with mr=2 %}
+            Sync
+        </button>
+    </div>
+</div>

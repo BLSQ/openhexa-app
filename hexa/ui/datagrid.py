@@ -376,7 +376,7 @@ class TagColumn(Column):
 class CountryColumn(TagColumn):
     def tags_data(self, model: DjangoModel, grid: Datagrid):
         return [
-            {"label": c.name, "short_label": c.code, "image": c.flag}
+            {"label": c.name, "short_label": c.alpha3, "image": c.flag}
             for c in self.get_value(model, self.value, container=Datagrid)
         ]
 
