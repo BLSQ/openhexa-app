@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
+    "hexa.dashboards",
     "hexa.notebooks",
     "hexa.pipelines",
     "hexa.comments",
