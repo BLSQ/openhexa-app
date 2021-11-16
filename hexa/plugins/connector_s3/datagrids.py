@@ -14,15 +14,8 @@ from hexa.ui.utils import StaticText
 
 
 class UploadAction(Action):
-    def __init__(self, *, sync_url: str, **kwargs):
-        self.sync_url = sync_url
-        super().__init__(**kwargs)
-
-    def context(self, grid: Datagrid):
-        return {
-            **super().context(grid),
-            "sync_url": self.get_value(None, self.sync_url, container=grid),
-        }
+    def __init__(self):
+        super().__init__(label="Upload", icon="upload", url="None")
 
     @property
     def template(self):
@@ -43,12 +36,11 @@ class ObjectGrid(Datagrid):
     type = TextColumn(text="type_display")
     link = LinkColumn(text="View")
 
-    upload = UploadAction(
-        label="Upload", icon="upload", url="get_upload_url", sync_url="get_sync_url"
-    )
+    upload = UploadAction()
 
-    def __init__(self, queryset, *, bucket: Bucket, **kwargs):
+    def __init__(self, queryset, *, bucket: Bucket, prefix: str, **kwargs):
         self.bucket = bucket
+        self.prefix = prefix
         super().__init__(queryset, **kwargs)
 
     def get_table_icon(self, obj: Object):
@@ -57,19 +49,25 @@ class ObjectGrid(Datagrid):
         else:
             return "ui/icons/document_text.html"
 
-    def get_upload_url(self):
-        return reverse("connector_s3:object_upload", args=[self.bucket.id])
+    @property
+    def template(self):
+        return "connector_s3/components/object_grid.html"
 
-    def get_sync_url(self):
-        # TODO: discuss
-        # Shouldn't we place that on datasource / entry models? Or at least a helper function
-        # alternative: sync by index_id? weird but practical
-        return reverse(
-            "catalog:datasource_sync",
-            kwargs={
-                "datasource_id": self.bucket.id,
-                "datasource_contenttype_id": ContentType.objects.get_for_model(
-                    Bucket
-                ).id,
-            },
-        )
+    def context(self):
+        return {
+            **super().context(),
+            # TODO: discuss
+            # Shouldn't we place that on datasource / entry models? Or at least a helper function
+            # alternative: sync by index_id? weird but practical
+            "sync_url": reverse(
+                "catalog:datasource_sync",
+                kwargs={
+                    "datasource_id": self.bucket.id,
+                    "datasource_contenttype_id": ContentType.objects.get_for_model(
+                        Bucket
+                    ).id,
+                },
+            ),
+            "upload_url": reverse("connector_s3:object_upload", args=[self.bucket.id]),
+            "prefix": self.prefix,
+        }

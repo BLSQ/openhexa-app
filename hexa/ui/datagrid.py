@@ -77,7 +77,15 @@ class Datagrid(metaclass=DatagridMeta):
     def __str__(self):
         """Render the datagrid"""
 
-        template = loader.get_template("ui/datagrid/datagrid.html")
+        template = loader.get_template(self.template)
+
+        return template.render(self.context())
+
+    @property
+    def template(self):
+        return "ui/datagrid/datagrid.html"
+
+    def context(self):
         rows = []
         for item in self.page:
             bound_columns = []
@@ -85,8 +93,7 @@ class Datagrid(metaclass=DatagridMeta):
                 bound_columns.append(column.bind(grid=self, model=item))
 
             rows.append(bound_columns)
-
-        context = {
+        return {
             "title": get_item_value(None, "title", container=self, exclude=Column),
             "actions": [action.bind(self) for action in self._meta.actions],
             "rows": rows,
@@ -112,8 +119,6 @@ class Datagrid(metaclass=DatagridMeta):
             },
             "more_url": self.more_url,
         }
-
-        return template.render(context)
 
     @property
     def total_count(self):

@@ -315,15 +315,17 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
             const uploadedFile = this.$refs.input.files[0];
             const fileName = uploadedFile.name;
 
+            const csrfToken = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('csrftoken='))
+                        .split('=')[1];
+
             // Get presigned upload URL
             const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'text/plain',
-                    "X-CSRFToken": document.cookie
-                        .split('; ')
-                        .find(row => row.startsWith('csrftoken='))
-                        .split('=')[1]
+                    "X-CSRFToken": csrfToken
                 },
             });
             if (signedUrlResponse.status !== 201) {
@@ -347,7 +349,10 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
 
             // Sync & refresh section
             const refreshedResponse = await fetch(syncUrl, {
-                method: "GET",
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
             });
             if (refreshedResponse.status !== 200) {
                 console.error(`Error when refreshing after sync (code: ${refreshedResponse.status})`);
@@ -355,7 +360,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
             }
             const frag = document.createElement("div");
             frag.innerHTML = await refreshedResponse.text();
-            const swap = frag.querySelector("[x-swap=objects_section]");
+            const swap = frag.querySelector("[x-swap=objects_grid]");
             this.refreshedHtml = swap.innerHTML;
             this.uploading = false;
         }
