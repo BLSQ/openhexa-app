@@ -19,11 +19,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         Bucket.objects.prefetch_indexes().filter_for_user(request.user),
         pk=datasource_id,
     )
-    bucket_card = (
-        BucketCard(bucket, request=request)
-        if not tabbed
-        else BucketCard(bucket, request=request)
-    )
+    bucket_card = BucketCard(bucket, request=request)
     if request.method == "POST" and bucket_card.save():
         return redirect(request.META["HTTP_REFERER"])
 

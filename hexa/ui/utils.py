@@ -1,5 +1,12 @@
+from django.utils.translation import ugettext_lazy as _
+
+
 def get_item_value(item, accessor, *, container=None, exclude=None):
     container_class = type(container)
+
+    if isinstance(accessor, StaticText):
+        return accessor
+
     if container is not None and hasattr(container, accessor):
         attr = getattr(container_class, accessor)
         if callable(attr):
@@ -23,3 +30,11 @@ def get_item_value(item, accessor, *, container=None, exclude=None):
         return item_value
 
     return None
+
+
+class StaticText:
+    def __init__(self, text):
+        self.text = _(text)
+
+    def __str__(self):
+        return str(self.text)

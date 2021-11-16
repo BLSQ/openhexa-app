@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_s3.models import Bucket, Object
 from hexa.ui.datacard import Action, CodeProperty, LegacyDatacard, Section, TextProperty
+from hexa.ui.utils import StaticText
 
 
 class BucketSection(Section):
@@ -65,14 +66,10 @@ s3write_using(
 
 
 class BucketCard(LegacyDatacard):
-    title = "display_name"
-    subtitle = "generic_description"
-    image_src = "s3_image_src"
-    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
+    title = StaticText("Bucket details")
 
     external = BucketSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    usage = UsageSection()
 
     @property
     def generic_description(self):
