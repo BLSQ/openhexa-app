@@ -36,8 +36,15 @@ def get_item_value(item, accessor, *, container=None, exclude=None):
 
 
 class StaticText:
+    """Wrapper around ugettext_lazy that allows us to mark text as static in data sources - data grids.
+    (The datacard / datagrid won't consider it as an accessor and will use it as is).
+    """
+
     def __init__(self, text):
         self.text = _(text)
 
     def __str__(self):
         return str(self.text)
+
+    def replace(self, a, b):
+        return self.text.replace(a, b)

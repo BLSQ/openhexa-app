@@ -2,10 +2,8 @@
 {% load embed static %}
 {% block page_title %}{{ datasource.display_name }}{% endblock %}
 
-{% block breadcrumbs %}{% endblock %}
-
 {% block page_content %}
-    {% embed "catalog/components/data_header.html" %}{% endembed %}
+    {% embed "catalog/components/data_header.html" with content=datasource %}{% endembed %}
     {% embed "ui/tabs/tabs.html" with default_tab="content" %}
         {% slot navigation %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
@@ -15,7 +13,7 @@
             {# Content tab #}
             {% embed "ui/tabs/tab.html" with id="content" %}
                 {% slot content %}
-                    {{ datagrid }}
+                    {{ object_grid }}
                 {% endslot %}
             {% endembed %}
             {# Metadata tab #}

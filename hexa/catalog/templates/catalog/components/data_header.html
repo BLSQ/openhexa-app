@@ -5,33 +5,33 @@
         <div class="flex">
             <img src="{% static "connector_s3/img/symbol.svg" %}" alt="S3 Bucket" class="w-8 mr-2"/>
             <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                {{ datasource.name }}
+                {{ content.display_name }}
             </h2>
         </div>
         <div class="mt-4 ml-1.5 flex flex-col sm:flex-row sm:flex-wrap sm:space-x-6">
-            {% if datasource.content_summary %}
-                {% include "catalog/components/data_header_tag.html" with label=datasource.content_summary icon="briefcase" only %}
+            {% if content.content_summary %}
+                {% include "catalog/components/data_header_tag.html" with label=content.content_summary icon="briefcase" only %}
             {% endif %}
-            {% if datasource.index.countries|length > 0 %}
+            {% if content.index.countries|length > 0 %}
                 {% embed "catalog/components/data_header_tag.html" with icon="location_marker" %}
                     {% slot label %}
-                        {% for country in datasource.index.countries %}
+                        {% for country in content.index.countries %}
                             {{ country.alpha3 }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     {% endslot %}
                 {% endembed %}
             {% endif %}
-            {% if datasource.index.tags.all|length > 0 %}
-                {% include "catalog/components/data_header_tag.html" with label=datasource.index.tags.all|join:", " icon="tag" only %}
+            {% if content.index.tags.all|length > 0 %}
+                {% include "catalog/components/data_header_tag.html" with label=content.index.tags.all|join:", " icon="tag" only %}
             {% endif %}
             <div class="flex items-center text-sm text-gray-500">
-                {% if datasource.last_synced_at is None %}
+                {% if content.index.last_synced_at_fallback_to_parent is None %}
                     {% include "catalog/components/data_header_tag.html" with label=_("Never synced") icon="calendar" only %}
                 {% else %}
                     {% embed "catalog/components/data_header_tag.html" with icon="calendar" %}
                         {% slot label %}
                             {% block translate %}
-                                Last synced on {{ datasource.last_synced_at }}
+                                Last synced on {{ content.index.last_synced_at_fallback_to_parent }}
                             {% endblock %}
                         {% endslot %}
                     {% endembed %}

@@ -26,7 +26,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         (bucket.display_name, "connector_s3:datasource_detail", datasource_id),
     ]
 
-    datagrid = ObjectGrid(
+    object_grid = ObjectGrid(
         bucket.object_set.prefetch_indexes()
         .filter(parent_key="/", orphan=False)
         .select_related("bucket"),
@@ -44,7 +44,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
-            "datagrid": datagrid,
+            "object_grid": object_grid,
         },
     )
 
@@ -76,15 +76,17 @@ def object_detail(
         breadcrumbs.append(
             (part, "connector_s3:object_detail", bucket_id, path),
         )
-
-    datagrid = ObjectGrid(
-        bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
-        bucket=bucket,
-        prefix=s3_object.key,
-        per_page=20,
-        page=int(request.GET.get("page", "1")),
-        request=request,
-    )
+    if s3_object.type == "directory":
+        object_grid = ObjectGrid(
+            bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
+            bucket=bucket,
+            prefix=s3_object.key,
+            per_page=20,
+            page=int(request.GET.get("page", "1")),
+            request=request,
+        )
+    else:
+        object_grid = None
 
     # TODO: duplicated with above block
     sync_url = reverse(
@@ -104,7 +106,7 @@ def object_detail(
             "sync_url": sync_url,
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
-            "datagrid": datagrid,
+            "object_grid": object_grid,
         },
     )
 

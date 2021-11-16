@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_s3.models import Bucket, Object
-from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProperty
+from hexa.ui.datacard import CodeProperty, Datacard, Section, TextProperty
 from hexa.ui.utils import StaticText
 
 
@@ -92,7 +92,7 @@ class BucketCard(Datacard):
 
 
 class ObjectSection(Section):
-    title = "S3 Data"
+    title = StaticText("S3 Data")
 
     name = TextProperty(text="filename", translate=False)
     path = TextProperty(text="full_path", translate=False)
@@ -103,12 +103,7 @@ class ObjectSection(Section):
 
 
 class ObjectCard(Datacard):
-    title = "display_name"
-    subtitle = "generic_description"
-    image_src = "s3_image_src"
-    actions = [
-        Action(label="Download", url="get_download_url", icon="download", method="get")
-    ]
+    title = StaticText("Bucket details")
 
     external = ObjectSection()
     metadata = OpenHexaMetaDataSection(value="index")
