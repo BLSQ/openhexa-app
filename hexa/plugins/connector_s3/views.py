@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from .api import generate_download_url, generate_upload_url
-from .datacards import BucketCard, LightBucketCard, ObjectCard
+from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket
 
@@ -22,7 +22,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
     bucket_card = (
         BucketCard(bucket, request=request)
         if not tabbed
-        else LightBucketCard(bucket, request=request)
+        else BucketCard(bucket, request=request)
     )
     if request.method == "POST" and bucket_card.save():
         return redirect(request.META["HTTP_REFERER"])

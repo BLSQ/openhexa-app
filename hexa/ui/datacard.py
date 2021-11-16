@@ -28,7 +28,7 @@ class BaseMeta(type):
         return elected
 
 
-class DatacardOptions:
+class LegacyDatacardOptions:
     """Container for datacard meta (config)"""
 
     def __init__(self, *, title, subtitle, sections, image_src=None, actions=None):
@@ -39,15 +39,15 @@ class DatacardOptions:
         self.actions: list[Action] = actions
 
 
-class DatacardMeta(BaseMeta):
+class LegacyDatacardMeta(BaseMeta):
     def __new__(mcs, name, bases, attrs):
         new_class = super().__new__(mcs, name, bases, attrs)
 
-        parents = [b for b in bases if isinstance(b, DatacardMeta)]
+        parents = [b for b in bases if isinstance(b, LegacyDatacardMeta)]
         if not parents:
             return new_class
 
-        new_class._meta = DatacardOptions(
+        new_class._meta = LegacyDatacardOptions(
             sections=mcs.find(attrs, Section),
             title=attrs.get("title"),
             subtitle=attrs.get("subtitle"),
@@ -58,7 +58,7 @@ class DatacardMeta(BaseMeta):
         return new_class
 
 
-class Datacard(metaclass=DatacardMeta):
+class LegacyDatacard(metaclass=LegacyDatacardMeta):
     title = None
     subtitle = None
     image_src = None
@@ -144,7 +144,7 @@ class Section(metaclass=SectionMeta):
         self.value = value
         self.datacard = None
 
-    def bind(self, datacard: Datacard):
+    def bind(self, datacard: LegacyDatacard):
         return BoundSection(self, datacard=datacard)
 
     @property
@@ -157,7 +157,7 @@ class Section(metaclass=SectionMeta):
 
 
 class BoundSection:
-    def __init__(self, unbound_section: Section, *, datacard: Datacard) -> None:
+    def __init__(self, unbound_section: Section, *, datacard: LegacyDatacard) -> None:
         self.unbound_section = unbound_section
         self.datacard = datacard
         self.form = self.build_form()
@@ -542,7 +542,7 @@ class Action:
         self.url = url
         self.method = method
 
-    def bind(self, datacard: Datacard):
+    def bind(self, datacard: LegacyDatacard):
         return BoundAction(self, datacard=datacard)
 
     def get_value(self, model, accessor, container=None):
@@ -552,7 +552,7 @@ class Action:
     def template(self):
         return "ui/datacard/action.html"
 
-    def context(self, model, card: Datacard):
+    def context(self, model, card: LegacyDatacard):
         return {
             "url": self.get_value(model, self.url, container=card),
             "label": _(self.label),
@@ -562,7 +562,7 @@ class Action:
 
 
 class BoundAction:
-    def __init__(self, unbound_action: Action, *, datacard: Datacard):
+    def __init__(self, unbound_action: Action, *, datacard: LegacyDatacard):
         self.unbound_action = unbound_action
         self.datacard = datacard
 

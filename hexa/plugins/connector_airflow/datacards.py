@@ -10,8 +10,8 @@ from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 from hexa.ui.datacard import (
     Action,
     CodeProperty,
-    Datacard,
     DateProperty,
+    LegacyDatacard,
     Section,
     StatusProperty,
     TextProperty,
@@ -26,7 +26,7 @@ class ClusterSection(Section):
     url = URLProperty(url="web_url")
 
 
-class ClusterCard(Datacard):
+class ClusterCard(LegacyDatacard):
     title = "name"
     subtitle = "generic_description"
     image_src = "_image_src"
@@ -63,7 +63,7 @@ class DAGSection(Section):
     description = TextProperty(text="description")
 
 
-class DAGCard(Datacard):
+class DAGCard(LegacyDatacard):
     title = "dag_id"
     subtitle = "generic_description"
     image_src = "_image_src"
@@ -105,7 +105,7 @@ class DAGRunSection(Section):
         return json.dumps(run.conf, indent=4)
 
 
-class DAGRunCard(Datacard):
+class DAGRunCard(LegacyDatacard):
     title = "run_id"
     subtitle = "generic_description"
     image_src = "_image_src"

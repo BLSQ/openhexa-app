@@ -1,7 +1,13 @@
 from django import test
 from django.http import HttpRequest
 
-from hexa.ui.datacard import Datacard, DatacardOptions, Property, Section, TextProperty
+from hexa.ui.datacard import (
+    LegacyDatacard,
+    LegacyDatacardOptions,
+    Property,
+    Section,
+    TextProperty,
+)
 from hexa.user_management.models import User
 
 
@@ -10,7 +16,7 @@ class MainSection(Section):
     last_name = TextProperty(text="last_name")
 
 
-class UserDatacard(Datacard):
+class UserDatacard(LegacyDatacard):
     title = "email"
     subtitle = "mmh"
     image_src = "bop"
@@ -19,7 +25,7 @@ class UserDatacard(Datacard):
 
 class DatacardTest(test.TestCase):
     def test_property_registration(self):
-        self.assertIsInstance(UserDatacard._meta, DatacardOptions)
+        self.assertIsInstance(UserDatacard._meta, LegacyDatacardOptions)
         self.assertEqual(1, len(UserDatacard._meta.sections))
         section = UserDatacard._meta.sections["main"]
         self.assertIsInstance(section, Section)
