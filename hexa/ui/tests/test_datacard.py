@@ -1,13 +1,9 @@
 from django import test
 from django.http import HttpRequest
 
-from hexa.ui.datacard import (
-    LegacyDatacard,
-    LegacyDatacardOptions,
-    Property,
-    Section,
-    TextProperty,
-)
+from hexa.ui.datacard import LegacyDatacard, Section, TextProperty
+from hexa.ui.datacard.legacy import LegacyDatacardOptions
+from hexa.ui.datacard.properties import Property
 from hexa.user_management.models import User
 
 
