@@ -8,8 +8,8 @@ from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Action,
     BooleanProperty,
+    Datacard,
     DateProperty,
-    LegacyDatacard,
     LocaleProperty,
     Section,
     TextProperty,
@@ -25,7 +25,7 @@ class InstanceSection(Section):
     url = URLProperty(url="url")
 
 
-class InstanceCard(LegacyDatacard):
+class InstanceCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"
@@ -70,7 +70,7 @@ class DataElementSection(Section):
     last_updated = DateProperty(label="Last updated", date="last_updated")
 
 
-class DataElementCard(LegacyDatacard):
+class DataElementCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"
@@ -105,7 +105,7 @@ class IndicatorSection(Section):
     last_updated = DateProperty(label="Last updated", date="last_updated")
 
 
-class IndicatorCard(LegacyDatacard):
+class IndicatorCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"
@@ -134,7 +134,7 @@ class DatasetSection(Section):
     last_updated = DateProperty(label="Last updated", date="last_updated")
 
 
-class DatasetCard(LegacyDatacard):
+class DatasetCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"

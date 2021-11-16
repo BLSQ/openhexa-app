@@ -1,5 +1,5 @@
 from .actions import Action
-from .legacy import LegacyDatacard, Section
+from .legacy import Datacard, Section
 from .properties import (
     BooleanProperty,
     CodeProperty,
@@ -15,7 +15,7 @@ from .properties import (
 
 __all__ = [
     "Action",
-    "LegacyDatacard",
+    "Datacard",
     "Section",
     "BooleanProperty",
     "CodeProperty",

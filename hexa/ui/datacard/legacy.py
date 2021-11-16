@@ -15,7 +15,7 @@ from hexa.ui.utils import StaticText, get_item_value
 from .base import DatacardComponent
 
 
-class LegacyDatacardOptions:
+class DatacardOptions:
     """Container for datacard meta (config)"""
 
     def __init__(
@@ -34,15 +34,15 @@ class LegacyDatacardOptions:
         self.actions = actions
 
 
-class LegacyDatacardMeta(BaseMeta):
+class DatacardMeta(BaseMeta):
     def __new__(mcs, name, bases, attrs):
         new_class = super().__new__(mcs, name, bases, attrs)
 
-        parents = [b for b in bases if isinstance(b, LegacyDatacardMeta)]
+        parents = [b for b in bases if isinstance(b, DatacardMeta)]
         if not parents:
             return new_class
 
-        new_class._meta = LegacyDatacardOptions(
+        new_class._meta = DatacardOptions(
             sections=mcs.find(attrs, Section),
             title=attrs.get("title"),
             subtitle=attrs.get("subtitle"),
@@ -53,7 +53,7 @@ class LegacyDatacardMeta(BaseMeta):
         return new_class
 
 
-class LegacyDatacard(metaclass=LegacyDatacardMeta):
+class Datacard(metaclass=DatacardMeta):
     title = None
     subtitle = None
     image_src = None
@@ -139,7 +139,7 @@ class Section(DatacardComponent, metaclass=SectionMeta):
         self.value = value
         self.datacard = None
 
-    def bind(self, datacard: LegacyDatacard):
+    def bind(self, datacard: Datacard):
         return BoundSection(self, datacard=datacard)
 
     @property
@@ -152,7 +152,7 @@ class Section(DatacardComponent, metaclass=SectionMeta):
 
 
 class BoundSection:
-    def __init__(self, unbound_section: Section, *, datacard: LegacyDatacard) -> None:
+    def __init__(self, unbound_section: Section, *, datacard: Datacard) -> None:
         self.unbound_section = unbound_section
         self.datacard = datacard
         self.form = self.build_form()

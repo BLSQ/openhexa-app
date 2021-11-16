@@ -16,7 +16,7 @@ class Action(DatacardComponent):
         self.url = url
         self.method = method
 
-    def bind(self, datacard: hexa.ui.datacard.legacy.LegacyDatacard):
+    def bind(self, datacard: hexa.ui.datacard.legacy.Datacard):
         return BoundAction(self, datacard=datacard)
 
     def get_value(self, model, accessor, container=None):
@@ -28,7 +28,7 @@ class Action(DatacardComponent):
     def template(self):
         return "ui/datacard/action.html"
 
-    def context(self, model, card: hexa.ui.datacard.legacy.LegacyDatacard):
+    def context(self, model, card: hexa.ui.datacard.legacy.Datacard):
         return {
             "url": self.get_value(model, self.url, container=card),
             "label": _(self.label),
@@ -39,10 +39,7 @@ class Action(DatacardComponent):
 
 class BoundAction:
     def __init__(
-        self,
-        unbound_action: Action,
-        *,
-        datacard: hexa.ui.datacard.legacy.LegacyDatacard
+        self, unbound_action: Action, *, datacard: hexa.ui.datacard.legacy.Datacard
     ):
         self.unbound_action = unbound_action
         self.datacard = datacard
