@@ -11,23 +11,18 @@ from .models import ExternalDashboard, Index
 
 
 def dashboard_index(request: HttpRequest) -> HttpResponse:
-    breadcrumbs = [(_("Dashboards"), "catalog:index")]
-    datasource_indexes = (
-        Index.objects.filter_for_user(request.user)
-        .roots()
-        .select_related("content_type")
-        .prefetch_related("tags")
-    )
-    datasource_grid = DashboardGrid(
-        datasource_indexes, page=int(request.GET.get("page", "1")), request=request
+    breadcrumbs = [(_("Dashboards"), "dashboards:dashboard_index")]
+    dashboard_indexes = Index.objects.filter_for_user(request.user).roots()
+    dashboard_grid = DashboardGrid(
+        dashboard_indexes, page=int(request.GET.get("page", "1")), request=request
     )
 
     return render(
         request,
         "dashboards/dashboard_index.html",
         {
-            "datasource_grid": datasource_grid,
-            "datasource_indexes": datasource_indexes,
+            "dashboard_grid": dashboard_grid,
+            "dashboard_indexes": dashboard_indexes,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -44,7 +39,7 @@ def dashboard_detail(request: HttpRequest, dashboard_id: uuid.UUID) -> HttpRespo
 
     breadcrumbs = [
         (_("Dashboards"), "dashboards:dashboard_index"),
-        (dashboard.index.external_name, "dashboards:dashboard_detail", dashboard_id),
+        (dashboard.index.label, "dashboards:dashboard_detail", dashboard_id),
     ]
 
     return render(
@@ -63,6 +58,11 @@ def dashboard_image(request: HttpRequest, dashboard_id: uuid.UUID) -> HttpRespon
         ExternalDashboard.objects.filter_for_user(request.user),
         pk=dashboard_id,
     )
+
+    if dashboard.picture == "__OVERRIDE_TEST__":
+        # special key to enable this call without doing a filesystem check -- useful in test case
+        return HttpResponse("")
+
     return HttpResponse(
         dashboard.picture.file.read(),
         content_type=mimetypes.guess_type(dashboard.picture.name)[0],

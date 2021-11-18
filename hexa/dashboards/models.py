@@ -45,7 +45,12 @@ class IndexableMixin(BaseIndexableMixin):
 
 class DashboardsQuerySet(models.QuerySet):
     def filter_for_user(self, user):
-        return self
+        if user.is_active and user.is_superuser:
+            return self
+
+        return self.filter(
+            externaldashboardpermission__team__in=[t.pk for t in user.team_set.all()]
+        ).distinct()
 
     def prefetch_indexes(self):
         return self.prefetch_related("indexes", "indexes__tags")
