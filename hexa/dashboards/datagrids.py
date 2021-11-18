@@ -1,3 +1,5 @@
+import urllib.parse
+
 from django.urls import reverse
 
 from hexa.ui.datagrid import Datagrid, LeadingColumn, LinkColumn
@@ -21,7 +23,10 @@ class DashboardGrid(Datagrid):
         )
 
     def get_dashboard_url(self, index: Index):
-        return index.object.url
+        return reverse(
+            "metrics:save_redirect",
+            kwargs={"url": urllib.parse.quote(index.object.url, safe="")},
+        )
 
     def info_dashboard_url(self, index: Index):
         return reverse(
