@@ -317,7 +317,8 @@ if os.environ.get("STORAGE", "local") == "google-cloud":
     GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
     GS_CREDENTIALS = "/secrets/cloudsql/credentials.json"
     GS_FILE_OVERWRITE = False
-
+else:
+    MEDIA_ROOT = BASE_DIR / "static" / "uploads"
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
