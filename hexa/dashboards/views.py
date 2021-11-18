@@ -1,3 +1,4 @@
+import mimetypes
 import uuid
 
 from django.http import HttpRequest, HttpResponse
@@ -62,4 +63,7 @@ def dashboard_image(request: HttpRequest, dashboard_id: uuid.UUID) -> HttpRespon
         ExternalDashboard.objects.filter_for_user(request.user),
         pk=dashboard_id,
     )
-    return HttpResponse(dashboard.picture.file.read(), content_type="image/png")
+    return HttpResponse(
+        dashboard.picture.file.read(),
+        content_type=mimetypes.guess_type(dashboard.picture.name)[0],
+    )

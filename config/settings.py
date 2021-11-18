@@ -310,5 +310,14 @@ if DEBUG:
         "SHOW_TOOLBAR_CALLBACK": lambda request: request.user.is_staff,
     }
 
+if os.environ.get("STORAGE", "local") == "google-cloud":
+    # activate google cloud storage, used for dashboard screenshot, ...
+    # user generated content
+    DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
+    GS_CREDENTIALS = "/secrets/cloudsql/credentials.json"
+    GS_FILE_OVERWRITE = False
+
+
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"

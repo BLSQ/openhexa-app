@@ -56,7 +56,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     url = models.URLField()
-    picture = models.FileField()
+    picture = models.FileField(upload_to="external_dashboard")
 
     indexes = GenericRelation("dashboards.Index")
 
