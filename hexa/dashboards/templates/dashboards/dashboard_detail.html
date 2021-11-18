@@ -1,0 +1,9 @@
+{% extends "layouts/page.html" %}
+{% load i18n %}
+
+{% block page_title %}YYY{% endblock %}
+
+{% block page_content %}
+    {{ dashboard_card }}
+    {% include "comments/components/page_section_comments.html" with object=dashboard %}
+{% endblock %}
