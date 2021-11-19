@@ -17,6 +17,7 @@ class DataElementGrid(Datagrid):
         text="name",
         secondary_text="get_value_type_display",
         icon="get_icon",
+        translate=False,
     )
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
@@ -38,6 +39,7 @@ class IndicatorGrid(Datagrid):
         text="name",
         secondary_text="indicator_type.name",
         icon="get_icon",
+        translate=False,
     )
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
@@ -53,6 +55,7 @@ class DatasetGrid(Datagrid):
         label="Name",
         text="name",
         icon="get_icon",
+        translate=False,
     )
     code = TextColumn(text="code", translate=False)
     tags = TextColumn(text="todo_tags", translate=False)

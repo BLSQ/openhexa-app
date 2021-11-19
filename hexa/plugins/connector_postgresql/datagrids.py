@@ -9,6 +9,7 @@ class TableGrid(Datagrid):
         label="Name",
         text="name",
         icon="get_table_icon",
+        translate=False,
     )
     tags = TagColumn(value="index.tags.all")
     content = TextColumn(text="get_content")

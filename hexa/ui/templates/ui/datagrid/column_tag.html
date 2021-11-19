@@ -7,7 +7,7 @@
                 {% include "ui/tag.html" with short_label=tag.short_label label=tag.label image=tag.image only %}
             {% endfor %}
             {% if left_out > 0 %}
-                <span class="text-xs text-gray-800">(+{{ left_out }})</span>
+                <span class="text-xs text-gray-800" translate="no">(+{{ left_out }})</span>
             {% endif %}
         </div>
     </td>
