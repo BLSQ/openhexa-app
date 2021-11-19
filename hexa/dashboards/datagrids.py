@@ -23,9 +23,10 @@ class DashboardGrid(Datagrid):
         )
 
     def get_dashboard_url(self, index: Index):
-        return reverse(
-            "metrics:save_redirect",
-            kwargs={"url": urllib.parse.quote(index.object.url, safe="")},
+        return (
+            reverse("metrics:save_redirect")
+            + "?to="
+            + urllib.parse.quote(index.object.url, safe="")
         )
 
     def info_dashboard_url(self, index: Index):

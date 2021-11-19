@@ -32,18 +32,13 @@ class WebRequestsTest(test.TestCase):
     def test_save_redirect(self):
         self.client.force_login(self.USER_FOO)
         reqc1 = Request.objects.count()
-        response = self.client.get(
-            reverse(
-                "metrics:save_redirect",
-                kwargs={
-                    "url": urllib.parse.quote(
-                        "https://some.site.invalid/page/", safe=""
-                    )
-                },
-            ),
+        url = (
+            reverse("metrics:save_redirect")
+            + "?to="
+            + urllib.parse.quote("https://some.site.invalid/page/", safe="")
         )
+        response = self.client.get(url)
         reqc2 = Request.objects.count()
-        print("IN TEST", reqc1, reqc2)
         self.assertEqual(reqc1 + 1, reqc2)
         self.assertEqual(response.status_code, 302)
         url = Request.objects.order_by("-id").last().url

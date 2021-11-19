@@ -8,13 +8,18 @@ from django.utils import timezone
 from .models import HttpMethod, Request
 
 
-def save_redirect(request: HttpRequest, url: str) -> HttpResponse:
+def save_redirect(request: HttpRequest) -> HttpResponse:
+    if request.GET.get("to") is None:
+        return redirect("/")
+    else:
+        url = urllib.parse.unquote(request.GET["to"])
+
     if settings.SAVE_REQUESTS:
         Request.objects.create(
             user_id=request.user.id,
             request_time=timezone.now(),
             response_status=0,
-            url=urllib.parse.unquote(url),
+            url=url,
             method=HttpMethod.GET,
             response_content_length=0,
             response_time=timezone.now(),
