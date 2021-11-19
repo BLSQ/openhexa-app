@@ -166,7 +166,7 @@ def generate_s3_policy(
     if read_only_bucket_names:
         statements.append(
             {
-                "Sid": "S3ROActions",
+                "Sid": "S3RO",
                 "Effect": "Allow",
                 "Action": ["s3:ListBucket", "s3:GetObject*"],
                 "Resource": [
@@ -181,7 +181,17 @@ def generate_s3_policy(
                 ],
             }
         )
-
+        statements.append(
+            {
+                "Sid": "S3RWK",
+                "Effect": "Allow",
+                "Action": "s3:*",
+                "Resource": [
+                    f"arn:aws:s3:::{bucket_name}/.s3keep"
+                    for bucket_name in read_only_bucket_names
+                ],
+            }
+        )
     if read_write_bucket_names:
         statements.append(
             {
