@@ -8,6 +8,7 @@ django-countries
 django-debug-toolbar
 django-ltree
 django-postgres-queue
+django-storages[google]
 django-tailwind
 markdown
 pandas
