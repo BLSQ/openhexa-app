@@ -315,7 +315,6 @@ if os.environ.get("STORAGE", "local") == "google-cloud":
     # user generated content
     DEFAULT_FILE_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     GS_BUCKET_NAME = os.environ.get("STORAGE_BUCKET")
-    GS_CREDENTIALS = "/secrets/gcp/credentials.json"
     GS_FILE_OVERWRITE = False
 else:
     MEDIA_ROOT = BASE_DIR / "static" / "uploads"
