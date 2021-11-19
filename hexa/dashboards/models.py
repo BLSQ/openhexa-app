@@ -10,6 +10,7 @@ from hexa.core.models import (
     BaseIndexPermission,
     Permission,
 )
+from hexa.core.models.cryptography import EncryptedTextField
 
 
 class Index(BaseIndex):
@@ -62,6 +63,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     url = models.URLField()
     picture = models.FileField(upload_to="external_dashboard")
+    credentials = EncryptedTextField(null=True, blank=True)
 
     indexes = GenericRelation("dashboards.Index")
 
