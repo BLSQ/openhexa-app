@@ -120,6 +120,32 @@ class ApiTest(test.TestCase):
             self.assertIsInstance(credentials[key], str)
             self.assertGreater(len(credentials[key]), 0)
 
+    @mock_iam
+    @mock_sts
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_generate_sts_app_team_credentials_long_ident(self, _):
+        bucket = Bucket.objects.create(name="hexa-test-bucket")
+        principal_credentials = Credentials.objects.create(
+            username="hexa-app-test",
+            access_key_id="foo",
+            secret_access_key="bar",
+            default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
+        )
+        # activate hash mode for session name with a very long session identifier
+        credentials = generate_sts_user_s3_credentials(
+            session_identifier="very-long-long-session-ident-username@very-long-domain-name.another-domain.tld",
+            role_identifier="test",
+            principal_credentials=principal_credentials,
+            read_write_buckets=[bucket],
+            read_only_buckets=[],
+        )
+        self.assertIsInstance(credentials, dict)
+        for key in ["AccessKeyId", "SecretAccessKey", "SessionToken"]:
+            self.assertIsInstance(credentials[key], str)
+            self.assertGreater(len(credentials[key]), 0)
+
     def test_generate_s3_policy(self):
         """STS policies are limited to 2048 characters.
         Let's check that we can at least handle 20 buckets with medium-length names

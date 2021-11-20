@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import typing
+from logging import getLogger
 from time import sleep
 
 import boto3
@@ -9,6 +12,8 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 import hexa.plugins.connector_s3.models
+
+logger = getLogger(__name__)
 
 
 class S3ApiError(Exception):
@@ -92,7 +97,7 @@ def generate_sts_user_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
-    # Get or create the team role with the proper assume role policy
+    # Get or create the team role with the proper assume role policy. role_name max length 64 chars.
     role_name = f"{principal_credentials.username}-s3-{role_identifier}"
     assume_role_policy_doc = json.dumps(
         {
@@ -141,9 +146,22 @@ def generate_sts_user_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
+    role_session_name = f"sts-{principal_credentials.username}-{session_identifier}"
+
+    if len(role_session_name) >= 63:
+        # role_session_name should be < 64chars. since we have user input -> hash it if too long
+        role_session_name_h = hashlib.blake2s(role_session_name.encode()).digest()
+        role_session_name_h = base64.b64encode(role_session_name_h, b"+-").decode()
+        role_session_name_h = "sts-hash-" + role_session_name_h
+    # used for debugging: if we want to reverse, just look at the logs
+    logger.info(
+        "hexa_hash reverse '%s' is '%s'", role_session_name, role_session_name_h
+    )
+    role_session_name = role_session_name_h
+
     response = sts_client.assume_role(
         RoleArn=role_data["Role"]["Arn"],
-        RoleSessionName=f"sts-{principal_credentials.username}-{session_identifier}",
+        RoleSessionName=role_session_name,
         DurationSeconds=duration,
     )
 
