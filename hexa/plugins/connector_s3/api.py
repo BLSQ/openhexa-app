@@ -153,11 +153,11 @@ def generate_sts_user_s3_credentials(
         role_session_name_h = hashlib.blake2s(role_session_name.encode()).digest()
         role_session_name_h = base64.b64encode(role_session_name_h, b"+-").decode()
         role_session_name_h = "sts-hash-" + role_session_name_h
-    # used for debugging: if we want to reverse, just look at the logs
-    logger.info(
-        "hexa_hash reverse '%s' is '%s'", role_session_name, role_session_name_h
-    )
-    role_session_name = role_session_name_h
+        # used for debugging: if we want to reverse, just look at the logs
+        logger.info(
+            "hexa_hash reverse '%s' is '%s'", role_session_name, role_session_name_h
+        )
+        role_session_name = role_session_name_h
 
     response = sts_client.assume_role(
         RoleArn=role_data["Role"]["Arn"],
