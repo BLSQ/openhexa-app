@@ -3,6 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from hexa.dashboards.models import ExternalDashboard, Index
 from hexa.ui.datacard import (
+    CountryProperty,
     Datacard,
     OwnerProperty,
     Section,
@@ -26,6 +27,7 @@ class DashboardMetaDataSection(Section):
     description = TextProperty(text="description", markdown=True, editable=True)
     owner = OwnerProperty(url="owner.url", text="owner.name", editable=True)
     tags = TagProperty(value="tags.all", editable=True)
+    countries = CountryProperty(value="countries", editable=True)
 
     class Meta:
         model = Index
