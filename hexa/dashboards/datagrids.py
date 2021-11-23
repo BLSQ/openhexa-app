@@ -2,19 +2,26 @@ import urllib.parse
 
 from django.urls import reverse
 
-from hexa.ui.datagrid import CountryColumn, Datagrid, LeadingColumn, LinkColumn
+from hexa.ui.datagrid import (
+    CountryColumn,
+    Datagrid,
+    LeadingColumn,
+    LinkColumn,
+    TagColumn,
+)
 
 from .models import Index
 
 
 class DashboardGrid(Datagrid):
     lead = LeadingColumn(
-        label="All dashboards",
-        text="label",
+        label="Name",
+        text="display_name",
         secondary_text="content",
         image_src="screenshot",
         detail_url="get_dashboard_url",
     )
+    tags = TagColumn(value="tags.all")
     location = CountryColumn(value="countries")
     info = LinkColumn(text="Info", url="info_dashboard_url")
 

@@ -70,6 +70,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
     objects = DashboardsQuerySet.as_manager()
 
     def populate_index(self, index):
+        index.external_name = "Untitled Dashboard"  # TODO: Name field?
         index.content = self.url
         index.path = [self.id.hex]
         index.search = f"{self.url}"

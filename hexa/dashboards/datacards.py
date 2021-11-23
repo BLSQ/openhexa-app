@@ -15,7 +15,7 @@ from hexa.ui.datacard import (
 
 class DashboardSection(Section):
     title = "Information"
-    url = URLProperty(url="url", editable=True)
+    url = URLProperty(url="url", editable=False)
 
     class Meta:
         model = ExternalDashboard
@@ -34,7 +34,7 @@ class DashboardMetaDataSection(Section):
 
 
 class DashboardCard(Datacard):
-    title = "generic_title"
+    title = "index.display_name"
     subtitle = "generic_description"
     image_src = "screenshot"
     actions = []
@@ -43,13 +43,10 @@ class DashboardCard(Datacard):
     metadata = DashboardMetaDataSection(value="index")
 
     @property
-    def generic_title(self):
-        return _("External Dashboard")
-
-    @property
     def generic_description(self):
-        return _("Link to interesting dashboard, external of OpenHexa")
+        return _("External dashboard")
 
-    @property
-    def screenshot(self):
-        return reverse("dashboards:dashboard_image", kwargs={"dashboard_id": self.id})
+    def screenshot(self, dashboard: ExternalDashboard):
+        return reverse(
+            "dashboards:dashboard_image", kwargs={"dashboard_id": dashboard.id}
+        )
