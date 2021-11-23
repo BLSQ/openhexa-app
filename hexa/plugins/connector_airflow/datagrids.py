@@ -17,6 +17,7 @@ class DAGGrid(Datagrid):
         text="dag_id",
         secondary_text="description",
         icon="get_icon",
+        translate=False,
     )
     location = CountryColumn(value="index.countries")
     tags = TagColumn(value="index.tags.all")

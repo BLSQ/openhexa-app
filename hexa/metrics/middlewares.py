@@ -20,6 +20,8 @@ def track_request_event(
             settings.SAVE_REQUESTS
             and request.user.is_authenticated
             and request.method in ("GET", "POST")
+            and not request.META.get("PATH_INFO", "").startswith("/admin")
+            and not request.META.get("PATH_INFO", "").startswith("/metrics")
         ):
             Request.objects.create(
                 user_id=request.user.id,

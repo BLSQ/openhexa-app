@@ -1,0 +1,10 @@
+{% extends "layouts/page.html" %}
+{% load i18n %}
+
+{% block page_title %}{% translate "Dashboards" %}{% endblock %}
+
+{% block page_content %}
+    <div class="my-12">
+        {{ dashboard_grid }}
+    </div>
+{% endblock %}

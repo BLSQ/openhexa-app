@@ -14,14 +14,14 @@
         {% endif %}
         <div{% if image_src or icon %} class="ml-4"{% endif %}>
             {% if single or empty %}
-                <span class="text-sm font-medium text-gray-900">
-                {{ text|truncatechars:80 }}
-            </span>
+                <span class="text-sm font-medium text-gray-900" {% if not translate %}translate="no"{% endif %}>
+                  {{ text|truncatechars:80 }}
+                </span>
             {% else %}
-                <div class="text-sm font-medium text-gray-900">
+                <div class="text-sm font-medium text-gray-900" {% if not translate %}translate="no"{% endif %}>
                     {{ text|truncatechars:80 }}
                 </div>
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-gray-500" {% if not translate %}translate="no"{% endif %}>
                     {{ secondary_text|truncatechars:80 }}
                 </div>
             {% endif %}

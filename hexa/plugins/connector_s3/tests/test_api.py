@@ -136,7 +136,7 @@ class ApiTest(test.TestCase):
             read_write_bucket_names=["rw_bucket1", "rw_bucket2"],
             read_only_bucket_names=["ro_bucket1"],
         )
-        self.assertEqual(len(policy["Statement"]), 2)
+        self.assertEqual(len(policy["Statement"]), 3)
         for statement in policy["Statement"]:
             # invariant: can't have the name of rw_bucket and ro_bucket in the same statement
             str_statement = json.dumps(statement)

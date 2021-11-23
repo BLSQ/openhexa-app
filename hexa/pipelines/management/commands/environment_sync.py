@@ -1,6 +1,5 @@
 from logging import getLogger
 
-import tqdm as tqdm
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -20,19 +19,20 @@ class Command(BaseCommand):
         syncables = ConnectorAppConfig.get_models_by_capability("sync", filter_app)
 
         for app, models in syncables.items():
-            print(f"- {app.verbose_name}")
             for model in models:
                 if not issubclass(model, Environment):
                     # ignore sync-able non environment
                     continue
 
-                with transaction.atomic():
-                    instances = model.objects.all()
-                    pbar = tqdm.tqdm(instances)
-                    pbar.set_description(f"   {model.__name__:15}")
-                    for instance in pbar:
-                        try:
-                            if instance.auto_sync:
-                                instance.sync()
-                        except Exception:
-                            logger.exception("sync")
+                for instance in model.objects.all():
+                    if not instance.auto_sync:
+                        logger.info(
+                            "sync environment %s:%s skipped", model, instance.id
+                        )
+                        continue
+                    try:
+                        logger.info("sync environment %s:%s", model, instance.id)
+                        with transaction.atomic():
+                            instance.sync()
+                    except Exception:
+                        logger.exception("sync error")

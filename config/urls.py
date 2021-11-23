@@ -33,8 +33,10 @@ urlpatterns = [
     path("", include("hexa.core.urls", namespace="core")),
     path("user/", include("hexa.user_management.urls", namespace="user")),
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
+    path("dashboards/", include("hexa.dashboards.urls", namespace="dashboards")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
+    path("metrics/", include("hexa.metrics.urls", namespace="metrics")),
     path("comments/", include("hexa.comments.urls")),
     path("auth/", include("django.contrib.auth.urls")),
     path(

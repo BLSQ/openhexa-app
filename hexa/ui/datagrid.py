@@ -204,6 +204,7 @@ class LeadingColumn(Column):
         detail_url=None,
         image_src=None,
         icon=None,
+        translate=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -212,6 +213,7 @@ class LeadingColumn(Column):
         self.detail_url = detail_url
         self.image_src = image_src
         self.icon = icon
+        self.translate = translate
 
     @property
     def template(self):
@@ -219,7 +221,11 @@ class LeadingColumn(Column):
 
     def context(self, model: DjangoModel, grid: Datagrid):
         text_value = self.get_value(model, self.text, container=grid)
-        data = {"text": text_value, "single": self.secondary_text is None}
+        data = {
+            "text": text_value,
+            "single": self.secondary_text is None,
+            "translate": self.translate,
+        }
         if (
             self.detail_url is None
             and hasattr(model, "get_absolute_url")
