@@ -7,11 +7,13 @@ from ..api import (
     Dhis2Result,
     IndicatorResult,
     IndicatorTypeResult,
+    OrganisationUnitResult,
 )
 from .mock_data import (
     mock_data_elements_response,
     mock_indicator_types_response,
     mock_indicators_response,
+    mock_orgunits_response,
 )
 
 
@@ -57,6 +59,23 @@ class Dhis2Test(test.TestCase):
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], IndicatorTypeResult)
+
+    @test.tag("external")
+    @responses.activate
+    def test_fetch_org_unit(self):
+        responses.add(
+            responses.GET,
+            "https://play.dhis2.org.invalid/demo/api/organisationUnits.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
+            json=mock_orgunits_response,
+            status=200,
+        )
+        results = []
+        for result_batch in self.dhis2_client.fetch_organisation_units():
+            results.extend(result_batch)
+
+        self.assertIsInstance(results, list)
+        self.assertGreater(len(results), 0)
+        self.assertIsInstance(results[0], OrganisationUnitResult)
 
     @test.tag("external")
     @responses.activate

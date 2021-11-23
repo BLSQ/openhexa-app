@@ -127,6 +127,21 @@ class IndicatorTypeResult(Dhis2Result):
     }
 
 
+class OrganisationUnitResult(Dhis2Result):
+    FIELD_SPECS = {
+        "code": (str, ""),
+        "path": (str, "/"),
+    }
+    RELATIONS = [
+        Dhis2Relation(
+            dhis2_field_name="dataSets",
+            dhis2_target_name="dataSet",
+            model_name="DataSet",
+            model_field="data_sets",
+        ),
+    ]
+
+
 class IndicatorResult(Dhis2Result):
     FIELD_SPECS = {
         "code": (str, ""),
@@ -165,3 +180,9 @@ class Dhis2Client:
             "indicators", params={"fields": ":all"}, page_size=100
         ):
             yield [IndicatorResult(data) for data in page["indicators"]]
+
+    def fetch_organisation_units(self):
+        for page in self._api.get_paged(
+            "organisationUnits", params={"fields": ":all"}, page_size=100
+        ):
+            yield [OrganisationUnitResult(data) for data in page["organisationUnits"]]
