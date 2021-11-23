@@ -39,7 +39,7 @@ def dashboard_detail(request: HttpRequest, dashboard_id: uuid.UUID) -> HttpRespo
 
     breadcrumbs = [
         (_("Dashboards"), "dashboards:dashboard_index"),
-        (dashboard.index.label, "dashboards:dashboard_detail", dashboard_id),
+        (dashboard.index.display_name, "dashboards:dashboard_detail", dashboard_id),
     ]
 
     return render(
