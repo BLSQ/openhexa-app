@@ -17,7 +17,7 @@ class Index(BaseIndex):
     class Meta:
         verbose_name = "Dashboard index"
         verbose_name_plural = "Dashboard indexes"
-        ordering = ("external_name",)
+        ordering = ("label",)
         indexes = [
             GinIndex(
                 name="dashboard_index_search_gin_idx",
