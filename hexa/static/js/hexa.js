@@ -65,8 +65,6 @@ function QuickSearch(advancedSearchUrl) {
             }
         },
         waitForInput() {
-            console.log(`Waiting for input`);
-
             this.mode = MODE_WAITING_FOR_INPUT;
             this.results = [];
         },
@@ -119,8 +117,6 @@ function AutoRefresh(url, delay) {
  * @constructor
  */
 function Updatable(url) {
-    console.log(`Creating Updatable (url: ${url})`);
-
     return {
         editing: [],
         updates: {},
@@ -197,8 +193,6 @@ function Editable(key, value, originalValue) {
  * @constructor
  */
 function Commentable(url, indexId) {
-    console.log(`Creating Commentable (url: ${url}, indexId: ${indexId})`);
-
     return {
         text: "",
         commenting: false,
@@ -368,7 +362,6 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
 }
 
 function Tabs(defaultTabId) {
-    console.log("Tabbable")
     return {
         current: defaultTabId,
         switchTab(tabId) {

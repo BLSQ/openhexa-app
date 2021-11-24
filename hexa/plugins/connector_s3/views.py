@@ -31,7 +31,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         .filter(parent_key="/", orphan=False)
         .select_related("bucket"),
         bucket=bucket,
-        prefix="/",
+        prefix="",
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
