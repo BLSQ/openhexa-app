@@ -6,7 +6,7 @@ def global_variables(request):
             {"title": "Notebooks", "app": "notebooks", "index_url": "notebooks:index"},
             {"title": "Pipelines", "app": "pipelines", "index_url": "pipelines:index"},
             {
-                "title": "Dashboards",
+                "title": "Visualizations",
                 "app": "dashboards",
                 "index_url": "dashboards:dashboard_index",
             },
