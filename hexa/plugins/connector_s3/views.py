@@ -107,6 +107,13 @@ def object_detail(
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
             "object_grid": object_grid,
+            "default_tab": "content" if s3_object.type == "directory" else "details",
+            "download_url": reverse(
+                "connector_s3:object_download",
+                kwargs={"bucket_id": bucket_id, "path": path},
+            )
+            if s3_object.type == "file"
+            else None,
         },
     )
 

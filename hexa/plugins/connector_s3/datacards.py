@@ -106,7 +106,6 @@ class ObjectCard(Datacard):
     title = StaticText("Bucket details")
 
     external = ObjectSection()
-    metadata = OpenHexaMetaDataSection(value="index")
 
     @property
     def generic_description(self):

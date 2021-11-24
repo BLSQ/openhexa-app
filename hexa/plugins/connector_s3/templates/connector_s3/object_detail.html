@@ -3,10 +3,18 @@
 {% block page_title %}{{ object.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% embed "catalog/components/data_header.html" with content=object %}{% endembed %}
-    {% embed "ui/tabs/tabs.html" with default_tab="content" %}
+    {% embed "catalog/components/data_header.html" with content=object %}
+        {% slot actions %}
+            {% if download_url %}
+                {% include "catalog/components/data_header_action.html" with url=download_url label=_("Download") icon="download" %}
+            {% endif %}
+        {% endslot %}
+    {% endembed %}
+    {% embed "ui/tabs/tabs.html" with default_tab=default_tab %}
         {% slot navigation %}
-            {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
+            {% if object.type == 'directory' %}
+                {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
+            {% endif %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Details") id="details" %}
         {% endslot %}
         {% slot tabs %}
