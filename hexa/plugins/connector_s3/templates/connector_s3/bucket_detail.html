@@ -12,6 +12,8 @@
         {% slot navigation %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Details") id="details" %}
+            {% include "ui/tabs/tab_nav_item.html" with label=_("Comments") id="comments" %}
+            {% include "ui/tabs/tab_nav_item.html" with label=_("Usage") id="usage" %}
         {% endslot %}
         {% slot tabs %}
             {# Content tab #}
@@ -24,7 +26,18 @@
             {% embed "ui/tabs/tab.html" with id="details" %}
                 {% slot content %}
                     {{ bucket_card }}
+                {% endslot %}
+            {% endembed %}
+            {# Comments tab #}
+            {% embed "ui/tabs/tab.html" with id="comments" %}
+                {% slot content %}
                     {% include "comments/components/page_section_comments.html" with object=datasource %}
+                {% endslot %}
+            {% endembed %}
+            {# Usage tab #}
+            {% embed "ui/tabs/tab.html" with id="usage" %}
+                {% slot content %}
+                    {% include "connector_s3/components/usage.html" with object=datasource %}
                 {% endslot %}
             {% endembed %}
         {% endslot %}
