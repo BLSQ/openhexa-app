@@ -20,12 +20,12 @@ class Index(BaseIndex):
         ordering = ("external_name",)
         indexes = [
             GinIndex(
-                name="dashboard_index_search_gin_idx",
+                name="ext_dashboard_index_gin_idx",
                 fields=["search"],
                 opclasses=["gin_trgm_ops"],
             ),
             GistIndex(
-                name="dashboard_index_search_gist_idx",
+                name="ext_dashboard_index_gist_idx",
                 fields=["search"],
                 opclasses=["gist_trgm_ops"],
             ),
@@ -65,7 +65,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
     picture = models.FileField(upload_to="external_dashboard")
     credentials = EncryptedTextField(null=True, blank=True)
 
-    indexes = GenericRelation("dashboards.Index")
+    indexes = GenericRelation("visualizations.Index")
 
     objects = DashboardsQuerySet.as_manager()
 

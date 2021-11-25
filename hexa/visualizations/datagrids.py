@@ -27,7 +27,7 @@ class DashboardGrid(Datagrid):
 
     def screenshot(self, index: Index):
         return reverse(
-            "dashboards:dashboard_image", kwargs={"dashboard_id": index.object.id}
+            "visualizations:dashboard_image", kwargs={"dashboard_id": index.object.id}
         )
 
     def get_dashboard_url(self, index: Index):
@@ -39,5 +39,5 @@ class DashboardGrid(Datagrid):
 
     def info_dashboard_url(self, index: Index):
         return reverse(
-            "dashboards:dashboard_detail", kwargs={"dashboard_id": index.object.id}
+            "visualizations:dashboard_detail", kwargs={"dashboard_id": index.object.id}
         )
