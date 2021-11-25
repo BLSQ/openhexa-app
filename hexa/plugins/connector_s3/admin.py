@@ -42,4 +42,4 @@ class ObjectAdmin(admin.ModelAdmin):
 
 @admin.register(BucketPermission)
 class BucketPermissionAdmin(admin.ModelAdmin):
-    list_display = ("bucket", "team")
+    list_display = ("bucket", "team", "mode")
