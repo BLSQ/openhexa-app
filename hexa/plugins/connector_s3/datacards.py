@@ -103,7 +103,7 @@ class ObjectSection(Section):
 
 
 class ObjectCard(Datacard):
-    title = StaticText("Bucket details")
+    title = StaticText("Object details")
 
     external = ObjectSection()
 

@@ -12,7 +12,10 @@
         {% slot navigation %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Details") id="details" %}
-            {% include "ui/tabs/tab_nav_item.html" with label=_("Comments") id="comments" %}
+            {% blocktranslate asvar comment_label with count=datasource.index.comment_set.count %}
+                Comments ({{ count }})
+            {% endblocktranslate %}
+            {% include "ui/tabs/tab_nav_item.html" with label=comment_label id="comments" %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Usage") id="usage" %}
         {% endslot %}
         {% slot tabs %}
