@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -88,22 +87,12 @@ def object_detail(
     else:
         object_grid = None
 
-    # TODO: duplicated with above block
-    sync_url = reverse(
-        "catalog:datasource_sync",
-        kwargs={
-            "datasource_id": bucket.id,
-            "datasource_contenttype_id": ContentType.objects.get_for_model(Bucket).id,
-        },
-    )
-
     return render(
         request,
         "connector_s3/object_detail.html",
         {
             "datasource": bucket,
             "object": s3_object,
-            "sync_url": sync_url,
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
             "object_grid": object_grid,

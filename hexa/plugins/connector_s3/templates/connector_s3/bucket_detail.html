@@ -3,7 +3,8 @@
 {% block page_title %}{{ datasource.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% embed "catalog/components/data_header.html" with content=datasource %}
+    {% static "connector_s3/img/symbol.svg" as symbol %}
+    {% embed "catalog/components/data_header.html" with content=datasource symbol=symbol symbol_alt=_("S3 Bucket") %}
         {% slot actions %}
             {% include "catalog/components/data_header_action.html" with url=datasource.sync_url label=_("Sync") icon="refresh" %}
         {% endslot %}

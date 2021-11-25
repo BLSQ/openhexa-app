@@ -1,9 +1,10 @@
 {% extends "layouts/page.html" %}
-{% load embed %}
+{% load embed static %}
 {% block page_title %}{{ object.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% embed "catalog/components/data_header.html" with content=object %}
+    {% static "connector_s3/img/symbol.svg" as symbol %}
+    {% embed "catalog/components/data_header.html" with content=object symbol=symbol symbol_alt=_("S3 Object") %}
         {% slot actions %}
             {% if download_url %}
                 {% include "catalog/components/data_header_action.html" with url=download_url label=_("Download") icon="download" %}

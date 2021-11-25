@@ -1,5 +1,5 @@
 from .actions import Action
-from .legacy import Datacard, Section
+from .datacard import Datacard, Section
 from .properties import (
     BooleanProperty,
     CodeProperty,

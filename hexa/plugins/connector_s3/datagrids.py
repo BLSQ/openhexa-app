@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from hexa.plugins.connector_s3.models import Bucket, Object
@@ -57,18 +56,7 @@ class ObjectGrid(Datagrid):
     def context(self):
         return {
             **super().context(),
-            # TODO: discuss
-            # Shouldn't we place that on datasource / entry models? Or at least a helper function
-            # alternative: sync by index_id? weird but practical
-            "sync_url": reverse(
-                "catalog:datasource_sync",
-                kwargs={
-                    "datasource_id": self.bucket.id,
-                    "datasource_contenttype_id": ContentType.objects.get_for_model(
-                        Bucket
-                    ).id,
-                },
-            ),
+            "sync_url": self.bucket.sync_url(),
             "upload_url": reverse("connector_s3:object_upload", args=[self.bucket.id]),
             "prefix": self.prefix,
         }
