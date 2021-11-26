@@ -44,7 +44,7 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class DashboardsQuerySet(models.QuerySet):
+class ExternalDashboardsQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -67,7 +67,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
 
     indexes = GenericRelation("visualizations.Index")
 
-    objects = DashboardsQuerySet.as_manager()
+    objects = ExternalDashboardsQuerySet.as_manager()
 
     def populate_index(self, index):
         index.external_name = "Untitled Dashboard"  # TODO: Name field?
@@ -95,4 +95,4 @@ class ExternalDashboardPermission(Permission):
         self.external_dashboard.build_index()
 
     def __str__(self):
-        return f"Permission for team '{self.team}' on dashboard '{self.dashboard}'"
+        return f"Permission for team '{self.team}' on dashboard '{self.external_dashboard}'"

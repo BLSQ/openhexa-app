@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class DashboardsConfig(AppConfig):
+class VisualizationsConfig(AppConfig):
     name = "hexa.visualizations"
     label = "visualizations"
