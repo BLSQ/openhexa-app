@@ -23,6 +23,7 @@ class DataElementGrid(Datagrid):
         icon="get_icon",
         translate=False,
     )
+    dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
@@ -45,6 +46,7 @@ class OrganisationUnitGrid(Datagrid):
         icon="get_icon",
         translate=False,
     )
+    dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
@@ -62,6 +64,7 @@ class IndicatorGrid(Datagrid):
         icon="get_icon",
         translate=False,
     )
+    dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
     last_synced = DateColumn(date="instance.last_synced_at")
@@ -78,6 +81,7 @@ class DatasetGrid(Datagrid):
         icon="get_icon",
         translate=False,
     )
+    dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
     tags = TextColumn(text="todo_tags", translate=False)
     last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
