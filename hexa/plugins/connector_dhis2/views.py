@@ -6,9 +6,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from .datacards import DataElementCard, DatasetCard, IndicatorCard, InstanceCard
-from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid
-from .models import DataElement, DataSet, Extract, Indicator, Instance
+from .datacards import (
+    DataElementCard,
+    DatasetCard,
+    IndicatorCard,
+    InstanceCard,
+    OrganisationUnitCard,
+)
+from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid, OrganisationUnitGrid
+from .models import DataElement, DataSet, Extract, Indicator, Instance, OrganisationUnit
 
 
 def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
@@ -38,7 +44,16 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
         ),
         request=request,
     )
-
+    organisation_unit_grid = OrganisationUnitGrid(
+        instance.organisationunit_set.filter(path__depth__in=(0, 1)).prefetch_indexes(),
+        per_page=5,
+        paginate=False,
+        more_url=reverse(
+            "connector_dhis2:organisation_unit_list",
+            kwargs={"instance_id": instance_id},
+        ),
+        request=request,
+    )
     dataset_grid = DatasetGrid(
         instance.dataset_set.prefetch_indexes(),
         per_page=5,
@@ -62,6 +77,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
             "instance_card": instance_card,
             "data_element_grid": data_element_grid,
             "indicator_grid": indicator_grid,
+            "organisation_unit_grid": organisation_unit_grid,
             "dataset_grid": dataset_grid,
             "breadcrumbs": breadcrumbs,
         },
@@ -106,6 +122,48 @@ def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespo
     )
 
 
+def organisation_unit_list(
+    request: HttpRequest, instance_id: uuid.UUID
+) -> HttpResponse:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+    organisation_unit_grid = OrganisationUnitGrid(
+        instance.organisationunit_set.order_by(
+            "path__depth", "name"
+        ).prefetch_indexes(),
+        page=int(request.GET.get("page", "1")),
+        request=request,
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Organisation Units"),),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/organisation_unit_list.html",
+        {
+            "instance": instance,
+            "organisation_unit_grid": organisation_unit_grid,
+            "section_title": _(
+                "Organisation Units in instance %(instance)s"
+                % {"instance": instance.display_name}
+            ),
+            "section_label": "%(start)s to %(end)s out of %(total)s"
+            % {
+                "start": organisation_unit_grid.start_index,
+                "end": organisation_unit_grid.end_index,
+                "total": organisation_unit_grid.total_count,
+            },
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
 def data_element_detail(
     request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
 ) -> HttpResponse:
@@ -137,6 +195,68 @@ def data_element_detail(
             "data_element": data_element,
             "data_element_card": data_element_card,
             "dataset_grid": dataset_grid,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
+
+
+def organisation_unit_detail(
+    request: HttpRequest, instance_id: uuid.UUID, organisation_unit_id: uuid.UUID
+) -> HttpResponse:
+    instance, organisation_unit = _get_instance_and_organisation_unit(
+        request, instance_id, organisation_unit_id
+    )
+    organisation_unit_card = OrganisationUnitCard(organisation_unit, request=request)
+    if request.method == "POST" and organisation_unit_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    dataset_grid = DatasetGrid(
+        organisation_unit.datasets.prefetch_indexes(),
+        page=int(request.GET.get("ds_page", "1")),
+        page_parameter_name="ds_page",
+        request=request,
+    )
+
+    sub_organisation_unit_grid = OrganisationUnitGrid(
+        instance.organisationunit_set.filter(
+            path__match=str(organisation_unit.path) + ".*{1}"
+        ).prefetch_indexes(),
+        page=int(request.GET.get("ou_page", "1")),
+        page_parameter_name="ou_page",
+        request=request,
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (
+            _("Organisation Units"),
+            "connector_dhis2:organisation_unit_list",
+            instance_id,
+        ),
+    ]
+
+    for ou in instance.organisationunit_set.filter(
+        path__ancestors=organisation_unit.path
+    ).order_by("path__depth"):
+        breadcrumbs.append(
+            (
+                ou.display_name,
+                "connector_dhis2:organisation_unit_detail",
+                instance_id,
+                ou.id,
+            )
+        )
+
+    return render(
+        request,
+        "connector_dhis2/organisation_unit_detail.html",
+        {
+            "instance": instance,
+            "organisation_unit": organisation_unit,
+            "organisation_unit_card": organisation_unit_card,
+            "dataset_grid": dataset_grid,
+            "sub_organisation_unit_grid": sub_organisation_unit_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -292,6 +412,20 @@ def _get_instance_and_data_element(
     return instance, get_object_or_404(
         DataElement.objects.prefetch_indexes().filter(instance=instance),
         pk=data_element_id,
+    )
+
+
+def _get_instance_and_organisation_unit(
+    request: HttpRequest, instance_id: uuid.UUID, organisation_unit_id: uuid.UUID
+) -> tuple[Instance, DataElement]:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return instance, get_object_or_404(
+        OrganisationUnit.objects.prefetch_indexes().filter(instance=instance),
+        pk=organisation_unit_id,
     )
 
 

@@ -43,6 +43,8 @@ class Dhis2Result:
         for relation in self.RELATIONS:
             links = [
                 x[relation.dhis2_target_name]["id"]
+                if relation.dhis2_target_name
+                else x["id"]
                 for x in self._data.get(relation.dhis2_field_name)
             ]
             relations[relation] = links
@@ -131,13 +133,14 @@ class OrganisationUnitResult(Dhis2Result):
     FIELD_SPECS = {
         "code": (str, ""),
         "path": (str, "/"),
+        "leaf": (bool, None),
     }
     RELATIONS = [
         Dhis2Relation(
             dhis2_field_name="dataSets",
-            dhis2_target_name="dataSet",
+            dhis2_target_name=None,
             model_name="DataSet",
-            model_field="data_sets",
+            model_field="datasets",
         ),
     ]
 
@@ -185,4 +188,10 @@ class Dhis2Client:
         for page in self._api.get_paged(
             "organisationUnits", params={"fields": ":all"}, page_size=100
         ):
+            # rewrite path -> replace "/" by "." for correct ltree path
+            # warning: in place edit, can side effect on tests
+            for element in page["organisationUnits"]:
+                if "path" in element:
+                    element["path"] = element["path"].replace("/", ".").strip(".")
+
             yield [OrganisationUnitResult(data) for data in page["organisationUnits"]]

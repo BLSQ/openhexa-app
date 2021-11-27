@@ -52,7 +52,9 @@ class Datagrid(metaclass=DatagridMeta):
         page: int = 1,
         more_url: str = None,
         request: HttpRequest,
+        page_parameter_name: str = "page",
     ):
+        self.page_parameter_name = page_parameter_name
         self.paginator = Paginator(queryset, per_page)
         self.page = self.paginator.page(page)
         self.paginate = paginate
@@ -76,6 +78,7 @@ class Datagrid(metaclass=DatagridMeta):
             "columns": self._meta.columns,
             "pagination": {
                 "display": self.paginate,
+                "page_parameter": self.page_parameter_name,
                 "item_label": _("Item") if self.paginator.count == 1 else _("items"),
                 "previous_page_number": self.page.previous_page_number()
                 if self.page.has_previous()

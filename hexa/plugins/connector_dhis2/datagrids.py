@@ -1,6 +1,10 @@
 from django.utils.translation import gettext_lazy as _
 
-from hexa.plugins.connector_dhis2.models import DataElement, DomainType
+from hexa.plugins.connector_dhis2.models import (
+    DataElement,
+    DomainType,
+    OrganisationUnit,
+)
 from hexa.ui.datagrid import (
     Datagrid,
     DateColumn,
@@ -31,6 +35,23 @@ class DataElementGrid(Datagrid):
             return "ui/icons/user_circle.html"
 
         return "ui/icons/exclamation.html"
+
+
+class OrganisationUnitGrid(Datagrid):
+    lead = LeadingColumn(
+        label="Name",
+        text="name",
+        secondary_text="get_value_type_display",
+        icon="get_icon",
+        translate=False,
+    )
+    code = TextColumn(text="code", translate=False)
+    tags = TagColumn(value="index.tags.all")
+    last_synced = DateColumn(date="instance.last_synced_at")
+    view = LinkColumn(text="View")
+
+    def get_icon(self, organisation_unit: OrganisationUnit):
+        return "ui/icons/organisation.html"
 
 
 class IndicatorGrid(Datagrid):

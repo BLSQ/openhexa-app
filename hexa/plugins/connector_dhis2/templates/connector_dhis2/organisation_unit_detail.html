@@ -1,0 +1,19 @@
+{% extends "connector_dhis2/page.html" %}
+{% load i18n embed %}
+
+{% block page_title %}{{ organisation_unit.display_name }}{% endblock %}
+
+{% block page_content %}
+    {{ organisation_unit_card }}
+    {% include "comments/components/page_section_comments.html" with object=organisation_unit %}
+    {% embed "ui/section/section.html" with title=_("Descendants") %}
+        {% slot content %}
+            {{ sub_organisation_unit_grid }}
+        {% endslot %}
+    {% endembed %}
+    {% embed "ui/section/section.html" with title=_("Datasets") %}
+        {% slot content %}
+            {{ dataset_grid }}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

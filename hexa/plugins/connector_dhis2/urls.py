@@ -17,6 +17,16 @@ urlpatterns = [
         name="data_element_detail",
     ),
     path(
+        "<uuid:instance_id>/org-units/",
+        views.organisation_unit_list,
+        name="organisation_unit_list",
+    ),
+    path(
+        "<uuid:instance_id>/org-units/<uuid:organisation_unit_id>",
+        views.organisation_unit_detail,
+        name="organisation_unit_detail",
+    ),
+    path(
         "<uuid:instance_id>/data-elements/<uuid:data_element_id>/extract",
         views.data_element_extract,
         name="data_element_extract",
