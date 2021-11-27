@@ -1,6 +1,7 @@
 import uuid
+from logging import getLogger
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -9,6 +10,8 @@ from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket
+
+logger = getLogger(__name__)
 
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
@@ -75,6 +78,7 @@ def object_detail(
         breadcrumbs.append(
             (part, "connector_s3:object_detail", bucket_id, path),
         )
+
     if s3_object.type == "directory":
         object_grid = ObjectGrid(
             bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
@@ -128,6 +132,13 @@ def object_upload(request, bucket_id):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
+
+    if not bucket.writable_by(request.user):
+        logger.warning("object_upload() called on RO bucket %s", bucket.id)
+        raise HttpResponseForbidden(
+            "No permission to perform the upload action on this bucket"
+        )
+
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
