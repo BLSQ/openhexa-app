@@ -1,5 +1,6 @@
 import datetime
 from dataclasses import dataclass
+from typing import Any, Callable
 
 from dhis2 import Api
 from django.utils import dateparse, timezone
@@ -7,9 +8,17 @@ from django.utils import dateparse, timezone
 
 @dataclass(frozen=True)
 class Dhis2Relation:
+    """
+    describe a m2m relation from an object model to some related items
+    """
+
+    # iterable field containing a list of related item
     dhis2_field_name: str
-    dhis2_target_name: str
+    # callable to extract DHIS2 id from each item of said iterable
+    dhis2_extract_id: Callable[[Any], str]
+    # OpenHexa model of the related item
     model_name: str
+    # M2M field name in the object model
     model_field: str
 
 
@@ -42,9 +51,7 @@ class Dhis2Result:
         relations = {}
         for relation in self.RELATIONS:
             links = [
-                x[relation.dhis2_target_name]["id"]
-                if relation.dhis2_target_name
-                else x["id"]
+                relation.dhis2_extract_id(x)
                 for x in self._data.get(relation.dhis2_field_name)
             ]
             relations[relation] = links
@@ -115,7 +122,7 @@ class DataSetResult(Dhis2Result):
     RELATIONS = [
         Dhis2Relation(
             dhis2_field_name="dataSetElements",
-            dhis2_target_name="dataElement",
+            dhis2_extract_id=lambda e: e["dataElement"]["id"],
             model_name="DataElement",
             model_field="data_elements",
         ),
@@ -138,7 +145,7 @@ class OrganisationUnitResult(Dhis2Result):
     RELATIONS = [
         Dhis2Relation(
             dhis2_field_name="dataSets",
-            dhis2_target_name=None,
+            dhis2_extract_id=lambda e: e["id"],
             model_name="DataSet",
             model_field="datasets",
         ),
