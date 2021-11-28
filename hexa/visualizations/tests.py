@@ -32,7 +32,7 @@ class ExternalDashboardTest(test.TestCase):
         """no team user cant see the list of dashboard"""
         self.client.force_login(self.USER_NOTEAM)
 
-        response = self.client.get(reverse("dashboards:dashboard_index"))
+        response = self.client.get(reverse("visualizations:visualization_index"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["dashboard_indexes"].count(), 0)
@@ -41,7 +41,7 @@ class ExternalDashboardTest(test.TestCase):
         """Bjorn can see the list of dashboard"""
         self.client.force_login(self.USER_BJORN)
 
-        response = self.client.get(reverse("dashboards:dashboard_index"))
+        response = self.client.get(reverse("visualizations:visualization_index"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["dashboard_indexes"].count(), 1)
@@ -52,7 +52,7 @@ class ExternalDashboardTest(test.TestCase):
         self.client.force_login(self.USER_NOTEAM)
         response = self.client.get(
             reverse(
-                "dashboards:dashboard_detail",
+                "visualizations:dashboard_detail",
                 kwargs={"dashboard_id": self.DASHBOARD.id},
             ),
         )
@@ -64,7 +64,7 @@ class ExternalDashboardTest(test.TestCase):
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
-                "dashboards:dashboard_detail",
+                "visualizations:dashboard_detail",
                 kwargs={"dashboard_id": self.DASHBOARD.id},
             ),
         )
@@ -77,7 +77,7 @@ class ExternalDashboardTest(test.TestCase):
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
-                "dashboards:dashboard_image",
+                "visualizations:dashboard_image",
                 kwargs={"dashboard_id": self.DASHBOARD.id},
             ),
         )
