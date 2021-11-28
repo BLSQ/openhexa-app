@@ -65,8 +65,6 @@ function QuickSearch(advancedSearchUrl) {
             }
         },
         waitForInput() {
-            console.log(`Waiting for input`);
-
             this.mode = MODE_WAITING_FOR_INPUT;
             this.results = [];
         },
@@ -119,8 +117,6 @@ function AutoRefresh(url, delay) {
  * @constructor
  */
 function Updatable(url) {
-    console.log(`Creating Updatable (url: ${url})`);
-
     return {
         editing: [],
         updates: {},
@@ -197,8 +193,6 @@ function Editable(key, value, originalValue) {
  * @constructor
  */
 function Commentable(url, indexId) {
-    console.log(`Creating Commentable (url: ${url}, indexId: ${indexId})`);
-
     return {
         text: "",
         commenting: false,
@@ -303,7 +297,7 @@ function TomSelectable(multiple = true) {
 }
 
 // TODO: should be placed in s3 app
-function S3Upload(getUploadUrl, syncUrl, prefix="") {
+function S3Upload(getUploadUrl, syncUrl, prefix = "") {
     return {
         refreshedHtml: null,
         uploading: false,
@@ -315,15 +309,17 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
             const uploadedFile = this.$refs.input.files[0];
             const fileName = uploadedFile.name;
 
-            // Get presigned upload URL
-            const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
-                method: this.$refs.form.method,
-                headers: {
-                    'Content-Type': 'text/plain',
-                    "X-CSRFToken": document.cookie
+            const csrfToken = document.cookie
                         .split('; ')
                         .find(row => row.startsWith('csrftoken='))
-                        .split('=')[1]
+                        .split('=')[1];
+
+            // Get presigned upload URL
+            const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'text/plain',
+                    "X-CSRFToken": csrfToken
                 },
             });
             if (signedUrlResponse.status !== 201) {
@@ -347,7 +343,10 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
 
             // Sync & refresh section
             const refreshedResponse = await fetch(syncUrl, {
-                method: "GET",
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
             });
             if (refreshedResponse.status !== 200) {
                 console.error(`Error when refreshing after sync (code: ${refreshedResponse.status})`);
@@ -355,9 +354,18 @@ function S3Upload(getUploadUrl, syncUrl, prefix="") {
             }
             const frag = document.createElement("div");
             frag.innerHTML = await refreshedResponse.text();
-            const swap = frag.querySelector("[x-swap=objects_section]");
+            const swap = frag.querySelector("[x-swap=objects_grid]");
             this.refreshedHtml = swap.innerHTML;
-            this.uploading = false;r
+            this.uploading = false;
+        }
+    }
+}
+
+function Tabs(defaultTabId) {
+    return {
+        current: defaultTabId,
+        switchTab(tabId) {
+            this.current = tabId;
         }
     }
 }

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from django.core.paginator import Paginator
@@ -17,8 +19,14 @@ DjangoModel = typing.TypeVar("DjangoModel", bound=models.Model)
 class DatagridOptions:
     """Container for datagrid meta (config)"""
 
-    def __init__(self, *, columns: typing.Sequence["Column"]):
+    def __init__(
+        self,
+        *,
+        columns: typing.Sequence[Column],
+        actions: typing.Sequence[Action] = None,
+    ):
         self.columns = columns
+        self.actions = actions
 
 
 class DatagridMeta(type):
@@ -37,7 +45,14 @@ class DatagridMeta(type):
         ]:
             column.name = column_name
             columns.append(column)
-        new_class._meta = DatagridOptions(columns=columns)
+
+        actions = []
+        for action_name, action in [
+            (k, v) for k, v in attrs.items() if isinstance(v, Action)
+        ]:
+            action.name = action_name
+            actions.append(action)
+        new_class._meta = DatagridOptions(columns=columns, actions=actions)
 
         return new_class
 
@@ -62,7 +77,15 @@ class Datagrid(metaclass=DatagridMeta):
     def __str__(self):
         """Render the datagrid"""
 
-        template = loader.get_template("ui/datagrid/datagrid.html")
+        template = loader.get_template(self.template)
+
+        return template.render(self.context())
+
+    @property
+    def template(self):
+        return "ui/datagrid/datagrid.html"
+
+    def context(self):
         rows = []
         for item in self.page:
             bound_columns = []
@@ -70,8 +93,9 @@ class Datagrid(metaclass=DatagridMeta):
                 bound_columns.append(column.bind(grid=self, model=item))
 
             rows.append(bound_columns)
-
-        context = {
+        return {
+            "title": get_item_value(None, "title", container=self, exclude=Column),
+            "actions": [action.bind(self) for action in self._meta.actions],
             "rows": rows,
             "columns": self._meta.columns,
             "pagination": {
@@ -95,8 +119,6 @@ class Datagrid(metaclass=DatagridMeta):
             },
             "more_url": self.more_url,
         }
-
-        return template.render(context)
 
     @property
     def total_count(self):
@@ -360,7 +382,7 @@ class TagColumn(Column):
 class CountryColumn(TagColumn):
     def tags_data(self, model: DjangoModel, grid: Datagrid):
         return [
-            {"label": c.name, "short_label": c.code, "image": c.flag}
+            {"label": c.name, "short_label": c.alpha3, "image": c.flag}
             for c in self.get_value(model, self.value, container=Datagrid)
         ]
 
@@ -398,3 +420,45 @@ class StatusColumn(Column):
             "color": self.COLOR_MAPPINGS.get(status),
             "label": self.LABEL_MAPPINGS.get(status),
         }
+
+
+class Action:
+    def __init__(self, *, label, url, icon=None, method="post"):
+        self.label = label
+        self.icon = icon
+        self.url = url
+        self.method = method
+
+    def bind(self, datagrid: Datagrid):
+        return BoundAction(self, datagrid=datagrid)
+
+    def get_value(self, model, accessor, container=None):
+        return get_item_value(
+            model, accessor, container=container, exclude=(Datagrid, Column)
+        )
+
+    @property
+    def template(self):
+        return "ui/datagrid/action.html"
+
+    def context(self, grid: Datagrid):
+        return {
+            "url": self.get_value(None, self.url, container=grid),
+            "label": _(self.label),
+            "icon": self.icon,
+            "method": self.method,
+        }
+
+
+class BoundAction:
+    def __init__(self, unbound_action: Action, *, datagrid: Datagrid):
+        self.unbound_action = unbound_action
+        self.datagrid = datagrid
+
+    def __str__(self):
+        template = loader.get_template(self.unbound_action.template)
+
+        return template.render(
+            self.unbound_action.context(self.datagrid),
+            request=self.datagrid.request,
+        )
