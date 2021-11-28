@@ -236,7 +236,7 @@ def organisation_unit_detail(
         ),
     ]
 
-    for ou in instance.organisationunit_set.ancestor_of(organisation_unit).order_by(
+    for ou in instance.organisationunit_set.ancestors_of(organisation_unit).order_by(
         "path__depth"
     ):
         breadcrumbs.append(
