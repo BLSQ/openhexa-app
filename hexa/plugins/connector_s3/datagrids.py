@@ -20,6 +20,12 @@ class UploadAction(Action):
     def template(self):
         return "connector_s3/components/action_upload.html"
 
+    def context(self, grid: Datagrid):
+        return {
+            **super().context(grid),
+            "read_only": not grid.bucket.writable_by(grid.request.user),
+        }
+
 
 class ObjectGrid(Datagrid):
     title = StaticText("Objects")
