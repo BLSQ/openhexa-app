@@ -1,7 +1,8 @@
 from dhis2 import ClientException, RequestException
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db import QuerySet, models, transaction
+from django.db import models, transaction
+from django.db.models import QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
