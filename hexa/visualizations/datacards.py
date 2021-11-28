@@ -1,7 +1,6 @@
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.dashboards.models import ExternalDashboard, Index
 from hexa.ui.datacard import (
     CountryProperty,
     Datacard,
@@ -11,6 +10,7 @@ from hexa.ui.datacard import (
     TextProperty,
     URLProperty,
 )
+from hexa.visualizations.models import ExternalDashboard, Index
 
 
 class DashboardSection(Section):
@@ -48,5 +48,5 @@ class DashboardCard(Datacard):
 
     def screenshot(self, dashboard: ExternalDashboard):
         return reverse(
-            "dashboards:dashboard_image", kwargs={"dashboard_id": dashboard.id}
+            "visualizations:dashboard_image", kwargs={"dashboard_id": dashboard.id}
         )
