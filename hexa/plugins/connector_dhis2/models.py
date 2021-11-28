@@ -1,7 +1,7 @@
 from dhis2 import ClientException, RequestException
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import QuerySet, models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -308,6 +308,18 @@ class DataElement(Dhis2Entry):
         )
 
 
+class OrganisationUnitQuerySet(EntryQuerySet):
+    def direct_children_of(
+        self, organisation: "OrganisationUnit"
+    ) -> QuerySet["OrganisationUnit", "OrganisationUnit"]:
+        return self.filter(path__match=str(organisation.path) + ".*{1}")
+
+    def ancestors_of(
+        self, organisation: "OrganisationUnit"
+    ) -> QuerySet["OrganisationUnit", "OrganisationUnit"]:
+        return self.filter(path__ancestors=organisation.path)
+
+
 class OrganisationUnit(Dhis2Entry):
     def get_permission_set(self):
         return self.instance.instancepermission_set.all()
@@ -320,6 +332,8 @@ class OrganisationUnit(Dhis2Entry):
     path = PathField()
     leaf = models.BooleanField()
     datasets = models.ManyToManyField("DataSet", blank=True)
+
+    objects = OrganisationUnitQuerySet.as_manager()
 
     def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at

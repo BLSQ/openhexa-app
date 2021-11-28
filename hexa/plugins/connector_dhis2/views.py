@@ -218,8 +218,8 @@ def organisation_unit_detail(
     )
 
     sub_organisation_unit_grid = OrganisationUnitGrid(
-        instance.organisationunit_set.filter(
-            path__match=str(organisation_unit.path) + ".*{1}"
+        instance.organisationunit_set.direct_children_of(
+            organisation_unit
         ).prefetch_indexes(),
         page=int(request.GET.get("ou_page", "1")),
         page_parameter_name="ou_page",
@@ -236,9 +236,9 @@ def organisation_unit_detail(
         ),
     ]
 
-    for ou in instance.organisationunit_set.filter(
-        path__ancestors=organisation_unit.path
-    ).order_by("path__depth"):
+    for ou in instance.organisationunit_set.ancestor_of(organisation_unit).order_by(
+        "path__depth"
+    ):
         breadcrumbs.append(
             (
                 ou.display_name,
