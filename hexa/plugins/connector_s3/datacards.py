@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.plugins.connector_s3.models import Bucket, Object
-from hexa.ui.datacard import CodeProperty, Datacard, Section, TextProperty
+from hexa.plugins.connector_s3.models import Object
+from hexa.ui.datacard import Datacard, Section, TextProperty
 from hexa.ui.utils import StaticText
 
 
@@ -13,55 +13,6 @@ class BucketSection(Section):
 
     name = TextProperty(text="name", translate=False)
     content = TextProperty(text="content_summary")
-
-
-class UsageSection(Section):
-    title = "Code samples"
-
-    usage_python = CodeProperty(
-        label="Usage in Python", code="get_python_usage", language="python"
-    )
-    usage_r = CodeProperty(label="Usage in R", code="get_r_usage", language="r")
-
-    def get_python_usage(self, item: Bucket):
-        return """
-# Reading and writing to S3 using Pandas
-import pandas as pd
-
-df = pd.read_csv("s3://{{ datasource.name }}/path-in-bucket/example.csv")
-df.to_csv("s3://{{ datasource.name }}/other-path-in-bucket/result.csv")
-
-
-# Using S3FS to work directly with S3 resources
-import s3fs, json
-
-fs = s3fs.S3FileSystem()
-with fs.open("s3://{{ datasource.name }}/path-in-bucket/example.json", "rb") as f:
-    print(len(json.load(f)))
-            """.replace(
-            "{{ datasource.name }}", item.name
-        )
-
-    def get_r_usage(self, item: Bucket):
-        return """
-library(aws.s3)
-
-# Read CSV file
-df <- s3read_using(
-    FUN = read.csv,
-    object = 's3://{{ datasource.name }}/path-in-bucket/example.csv'
-)
-
-# Write CSV file
-df.out <- head(df)
-s3write_using(
-    x = df,
-    FUN = write.csv,
-    object = 's3://{{ datasource.name }}/path-in-bucket/some-output.csv'
-)
-            """.replace(
-            "{{ datasource.name }}", item.name
-        )
 
 
 class BucketCard(Datacard):
