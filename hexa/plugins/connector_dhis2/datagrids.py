@@ -42,7 +42,7 @@ class OrganisationUnitGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="name",
-        secondary_text="get_value_type_display",
+        secondary_text=None,
         icon="get_icon",
         translate=False,
     )
@@ -53,7 +53,7 @@ class OrganisationUnitGrid(Datagrid):
     view = LinkColumn(text="View")
 
     def get_icon(self, organisation_unit: OrganisationUnit):
-        return "ui/icons/organisation.html"
+        return "ui/icons/location_marker.html"
 
 
 class IndicatorGrid(Datagrid):
