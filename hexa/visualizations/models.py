@@ -20,12 +20,12 @@ class Index(BaseIndex):
         ordering = ("label",)
         indexes = [
             GinIndex(
-                name="dashboard_index_search_gin_idx",
+                name="ext_dashboard_index_gin_idx",
                 fields=["search"],
                 opclasses=["gin_trgm_ops"],
             ),
             GistIndex(
-                name="dashboard_index_search_gist_idx",
+                name="ext_dashboard_index_gist_idx",
                 fields=["search"],
                 opclasses=["gist_trgm_ops"],
             ),
@@ -44,7 +44,7 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class DashboardsQuerySet(models.QuerySet):
+class ExternalDashboardsQuerySet(models.QuerySet):
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self
@@ -65,11 +65,12 @@ class ExternalDashboard(IndexableMixin, models.Model):
     picture = models.FileField(upload_to="external_dashboard")
     credentials = EncryptedTextField(null=True, blank=True)
 
-    indexes = GenericRelation("dashboards.Index")
+    indexes = GenericRelation("visualizations.Index")
 
-    objects = DashboardsQuerySet.as_manager()
+    objects = ExternalDashboardsQuerySet.as_manager()
 
     def populate_index(self, index):
+        index.external_name = "Untitled Dashboard"  # TODO: Name field?
         index.content = self.url
         index.path = [self.id.hex]
         index.search = f"{self.url}"
@@ -94,4 +95,4 @@ class ExternalDashboardPermission(Permission):
         self.external_dashboard.build_index()
 
     def __str__(self):
-        return f"Permission for team '{self.team}' on dashboard '{self.dashboard}'"
+        return f"Permission for team '{self.team}' on dashboard '{self.external_dashboard}'"

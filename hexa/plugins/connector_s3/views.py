@@ -1,7 +1,7 @@
 import uuid
+from logging import getLogger
 
-from django.contrib.contenttypes.models import ContentType
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -10,6 +10,8 @@ from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
 from .models import Bucket
+
+logger = getLogger(__name__)
 
 
 def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
@@ -26,34 +28,25 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         (bucket.display_name, "connector_s3:datasource_detail", datasource_id),
     ]
 
-    datagrid = ObjectGrid(
-        bucket.object_set.prefetch_indexes().filter(parent_key="/", orphan=False),
+    object_grid = ObjectGrid(
+        bucket.object_set.prefetch_indexes()
+        .filter(parent_key="/", orphan=False)
+        .select_related("bucket"),
+        bucket=bucket,
+        prefix="",
         per_page=20,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
 
-    # TODO: discuss
-    # Shouldn't we place that on datasource / entry models? Or at least a helper function
-    # alternative: sync by index_id? weird but practical
-    # alternative2: upload as template tag
-    sync_url = reverse(
-        "catalog:datasource_sync",
-        kwargs={
-            "datasource_id": bucket.id,
-            "datasource_contenttype_id": ContentType.objects.get_for_model(Bucket).id,
-        },
-    )
-
     return render(
         request,
-        "connector_s3/datasource_detail.html",
+        "connector_s3/bucket_detail.html",
         {
             "datasource": bucket,
-            "sync_url": sync_url,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
-            "datagrid": datagrid,
+            "object_grid": object_grid,
         },
     )
 
@@ -86,21 +79,17 @@ def object_detail(
             (part, "connector_s3:object_detail", bucket_id, path),
         )
 
-    datagrid = ObjectGrid(
-        bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
-        per_page=20,
-        page=int(request.GET.get("page", "1")),
-        request=request,
-    )
-
-    # TODO: duplicated with above block
-    sync_url = reverse(
-        "catalog:datasource_sync",
-        kwargs={
-            "datasource_id": bucket.id,
-            "datasource_contenttype_id": ContentType.objects.get_for_model(Bucket).id,
-        },
-    )
+    if s3_object.type == "directory":
+        object_grid = ObjectGrid(
+            bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
+            bucket=bucket,
+            prefix=s3_object.key,
+            per_page=20,
+            page=int(request.GET.get("page", "1")),
+            request=request,
+        )
+    else:
+        object_grid = None
 
     return render(
         request,
@@ -108,10 +97,16 @@ def object_detail(
         {
             "datasource": bucket,
             "object": s3_object,
-            "sync_url": sync_url,
             "object_card": object_card,
             "breadcrumbs": breadcrumbs,
-            "datagrid": datagrid,
+            "object_grid": object_grid,
+            "default_tab": "content" if s3_object.type == "directory" else "details",
+            "download_url": reverse(
+                "connector_s3:object_download",
+                kwargs={"bucket_id": bucket_id, "path": path},
+            )
+            if s3_object.type == "file"
+            else None,
         },
     )
 
@@ -137,6 +132,13 @@ def object_upload(request, bucket_id):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
     )
+
+    if not bucket.writable_by(request.user):
+        logger.warning("object_upload() called on RO bucket %s", bucket.id)
+        raise HttpResponseForbidden(
+            "No permission to perform the upload action on this bucket"
+        )
+
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,

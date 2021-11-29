@@ -1,4 +1,5 @@
 from django import template
+from django.template import Node, TemplateSyntaxError
 from django.template.loader import get_template
 from django.utils.safestring import mark_safe
 from pygments import highlight
@@ -21,3 +22,24 @@ def highlight_file(context, filename, lang):
     context = dict(context.flatten())
     code = t.render(context)
     return mark_safe(highlight_code(code, lang))
+
+
+class HighlightNode(Node):
+    def __init__(self, nodelist, lang):
+        self.lang = lang
+        self.nodelist = nodelist
+
+    def render(self, context):
+        return mark_safe(highlight_code(self.nodelist.render(context), self.lang))
+
+
+@register.tag("highlight")
+def highlight_block(parser, token):
+    nodelist = parser.parse(("endhighlight",))
+    parser.delete_first_token()
+
+    bits = token.split_contents()
+    if len(bits) != 2:
+        raise TemplateSyntaxError("%r tag takes a single 'language' argument" % bits[0])
+
+    return HighlightNode(nodelist, bits[1])

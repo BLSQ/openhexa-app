@@ -10,6 +10,7 @@ from hexa.catalog.models import Index
 from hexa.plugins.connector_s3.models import (
     Bucket,
     BucketPermission,
+    BucketPermissionMode,
     Credentials,
     Object,
 )
@@ -160,3 +161,41 @@ class PermissionTest(test.TestCase):
                 {"key": "object-aws_bucket2-1"},
             ],
         )
+
+
+class PermissionTestWritableBy(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.BUCKET1 = Bucket.objects.create(name="aws_bucket1")
+        cls.BUCKET2 = Bucket.objects.create(name="aws_bucket2")
+        cls.TEAM1 = Team.objects.create(name="Test Team1")
+        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        BucketPermission.objects.create(
+            bucket=cls.BUCKET1, team=cls.TEAM1, mode=BucketPermissionMode.READ_ONLY
+        )
+        BucketPermission.objects.create(
+            bucket=cls.BUCKET2, team=cls.TEAM1, mode=BucketPermissionMode.READ_ONLY
+        )
+        BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM2)
+        cls.USER_REGULAR = User.objects.create_user(
+            "jim@bluesquarehub.com",
+            "regular",
+        )
+        Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
+        cls.USER_SUPER = User.objects.create_user(
+            "mary@bluesquarehub.com",
+            "super",
+            is_superuser=True,
+        )
+
+    def test_bucket_writable(self):
+        """
+        - user super can write in bucket 1 and 2
+        - user regular can write in bucket 1 (only one RO flag, RW flag via team 2 supersede)
+        - user regular can't write in bucket 2
+        """
+        self.assertTrue(self.BUCKET1.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET2.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET1.writable_by(self.USER_REGULAR))
+        self.assertFalse(self.BUCKET2.writable_by(self.USER_REGULAR))

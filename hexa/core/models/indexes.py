@@ -212,6 +212,16 @@ class BaseIndex(Base):
             else None,
         }
 
+    # TODO: remove me this ugly workaround when we set a value for last_synced_at on all indexes
+    def last_synced_at_fallback_to_parent(self):
+        last_synced_at = self.last_synced_at
+        if self.last_synced_at is None and len(self.path) > 1:
+            last_synced_at = self.__class__.objects.get(
+                path=self.path[0]
+            ).last_synced_at
+
+        return last_synced_at
+
 
 class BaseIndexPermission(models.Model):
     class Meta:

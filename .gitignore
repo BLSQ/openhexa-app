@@ -8,3 +8,5 @@ k8s/*
 # TODO: remove
 credentials
 .terraform*
+
+static/uploads/*

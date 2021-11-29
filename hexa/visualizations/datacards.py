@@ -1,8 +1,8 @@
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.dashboards.models import ExternalDashboard, Index
 from hexa.ui.datacard import (
+    CountryProperty,
     Datacard,
     OwnerProperty,
     Section,
@@ -10,11 +10,12 @@ from hexa.ui.datacard import (
     TextProperty,
     URLProperty,
 )
+from hexa.visualizations.models import ExternalDashboard, Index
 
 
 class DashboardSection(Section):
     title = "Information"
-    url = URLProperty(url="url", editable=True)
+    url = URLProperty(url="url", editable=False)
 
     class Meta:
         model = ExternalDashboard
@@ -26,13 +27,14 @@ class DashboardMetaDataSection(Section):
     description = TextProperty(text="description", markdown=True, editable=True)
     owner = OwnerProperty(url="owner.url", text="owner.name", editable=True)
     tags = TagProperty(value="tags.all", editable=True)
+    countries = CountryProperty(value="countries", editable=True)
 
     class Meta:
         model = Index
 
 
 class DashboardCard(Datacard):
-    title = "generic_title"
+    title = "index.display_name"
     subtitle = "generic_description"
     image_src = "screenshot"
     actions = []
@@ -41,13 +43,10 @@ class DashboardCard(Datacard):
     metadata = DashboardMetaDataSection(value="index")
 
     @property
-    def generic_title(self):
-        return _("External Dashboard")
-
-    @property
     def generic_description(self):
-        return _("Link to interesting dashboard, external of OpenHexa")
+        return _("External dashboard")
 
-    @property
-    def screenshot(self):
-        return reverse("dashboards:dashboard_image", kwargs={"dashboard_id": self.id})
+    def screenshot(self, dashboard: ExternalDashboard):
+        return reverse(
+            "visualizations:dashboard_image", kwargs={"dashboard_id": dashboard.id}
+        )

@@ -1,8 +1,10 @@
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+from django.urls import reverse
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 
@@ -71,6 +73,17 @@ class Datasource(IndexableMixin, models.Model):
 
     def sync(self):
         raise NotImplementedError
+
+    def sync_url(self):
+        return reverse(
+            "catalog:datasource_sync",
+            kwargs={
+                "datasource_id": self.id,
+                "datasource_contenttype_id": ContentType.objects.get_for_model(
+                    self.__class__
+                ).id,
+            },
+        )
 
 
 class Entry(IndexableMixin, models.Model):

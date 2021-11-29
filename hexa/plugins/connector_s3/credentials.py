@@ -26,7 +26,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "Your s3 connector plugin should have a single credentials entry"
             )
 
-        session_identifier = credentials.user.email
+        session_identifier = str(credentials.user.id)
         if credentials.user.is_superuser:
             role_identifier = "superuser"
         else:

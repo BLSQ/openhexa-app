@@ -10,8 +10,8 @@ from .datagrids import DashboardGrid
 from .models import ExternalDashboard, Index
 
 
-def dashboard_index(request: HttpRequest) -> HttpResponse:
-    breadcrumbs = [(_("Dashboards"), "dashboards:dashboard_index")]
+def visualization_index(request: HttpRequest) -> HttpResponse:
+    breadcrumbs = [(_("Visualizations"), "visualizations:visualization_index")]
     dashboard_indexes = Index.objects.filter_for_user(request.user).roots()
     dashboard_grid = DashboardGrid(
         dashboard_indexes, page=int(request.GET.get("page", "1")), request=request
@@ -19,7 +19,7 @@ def dashboard_index(request: HttpRequest) -> HttpResponse:
 
     return render(
         request,
-        "dashboards/dashboard_index.html",
+        "visualizations/visualization_index.html",
         {
             "dashboard_grid": dashboard_grid,
             "dashboard_indexes": dashboard_indexes,
@@ -38,13 +38,13 @@ def dashboard_detail(request: HttpRequest, dashboard_id: uuid.UUID) -> HttpRespo
         return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
-        (_("Dashboards"), "dashboards:dashboard_index"),
-        (dashboard.index.label, "dashboards:dashboard_detail", dashboard_id),
+        (_("Visualizations"), "visualizations:visualization_index"),
+        (dashboard.index.display_name, "visualizations:dashboard_detail", dashboard_id),
     ]
 
     return render(
         request,
-        "dashboards/dashboard_detail.html",
+        "visualizations/dashboard_detail.html",
         {
             "dashboard": dashboard,
             "breadcrumbs": breadcrumbs,

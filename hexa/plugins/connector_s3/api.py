@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import typing
+from logging import getLogger
 from time import sleep
 
 import boto3
@@ -9,6 +10,8 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 
 import hexa.plugins.connector_s3.models
+
+logger = getLogger(__name__)
 
 
 class S3ApiError(Exception):
@@ -92,7 +95,7 @@ def generate_sts_user_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
-    # Get or create the team role with the proper assume role policy
+    # Get or create the team role with the proper assume role policy. role_name max length 64 chars.
     role_name = f"{principal_credentials.username}-s3-{role_identifier}"
     assume_role_policy_doc = json.dumps(
         {
@@ -141,9 +144,13 @@ def generate_sts_user_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
+    role_session_name = (
+        f"sts-{principal_credentials.username[:22]}-{session_identifier}"
+    )
+
     response = sts_client.assume_role(
         RoleArn=role_data["Role"]["Arn"],
-        RoleSessionName=f"sts-{principal_credentials.username}-{session_identifier}",
+        RoleSessionName=role_session_name,
         DurationSeconds=duration,
     )
 
