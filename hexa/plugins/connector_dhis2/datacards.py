@@ -57,10 +57,10 @@ class InstanceCard(Datacard):
 class DataElementSection(Section):
     title = "DHIS2 Data"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
     value_type = TextProperty(label="Value type", text="get_value_type_display")
@@ -90,10 +90,10 @@ class DataElementCard(Datacard):
 class OrganisationUnitSection(Section):
     title = "DHIS2 Organisation Unit"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     leaf = BooleanProperty(label="Leaf", value="leaf")
     domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
@@ -124,10 +124,10 @@ class OrganisationUnitCard(Datacard):
 class IndicatorSection(Section):
     title = "DHIS2 Indicator"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     indicator_type = TextProperty(
         label="Indicator type", text="indicator_type.display_name"
@@ -159,10 +159,10 @@ class IndicatorCard(Datacard):
 class DatasetSection(Section):
     title = "DHIS2 Dataset"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     created = DateProperty(label="Creation date", date="created")
     last_updated = DateProperty(label="Last updated", date="last_updated")
