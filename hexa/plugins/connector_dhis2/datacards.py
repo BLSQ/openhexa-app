@@ -57,10 +57,10 @@ class InstanceCard(Datacard):
 class DataElementSection(Section):
     title = "DHIS2 Data"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
     value_type = TextProperty(label="Value type", text="get_value_type_display")
@@ -87,13 +87,47 @@ class DataElementCard(Datacard):
         return static("connector_dhis2/img/symbol.svg")
 
 
-class IndicatorSection(Section):
-    title = "DHIS2 Indicator"
+class OrganisationUnitSection(Section):
+    title = "DHIS2 Organisation Unit"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
+    code = TextProperty(label="Code", text="code", translate=False)
+    leaf = BooleanProperty(label="Leaf", value="leaf")
+    domain_type = TextProperty(label="Domain type", text="get_domain_type_display")
+    value_type = TextProperty(label="Value type", text="get_value_type_display")
+    favourite = BooleanProperty(label="Favourite", value="favourite")
+    external_access = BooleanProperty(label="External access", value="external_access")
+    created = DateProperty(label="Creation date", date="created")
+    last_updated = DateProperty(label="Last updated", date="last_updated")
+
+
+class OrganisationUnitCard(Datacard):
+    title = "display_name"
+    subtitle = "generic_description"
+    image_src = "dhis2_image_src"
+
+    external = OrganisationUnitSection()
+    metadata = OpenHexaMetaDataSection(value="index")
+
+    @property
+    def generic_description(self):
+        return _("DHIS2 Organisation Unit")
+
+    @property
+    def dhis2_image_src(self):
+        return static("connector_dhis2/img/symbol.svg")
+
+
+class IndicatorSection(Section):
+    title = "DHIS2 Indicator"
+
     dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
+    name = TextProperty(text="name")
+    short_name = TextProperty(label="Short name", text="short_name")
+    description = TextProperty(label="Description", text="description")
     code = TextProperty(label="Code", text="code", translate=False)
     indicator_type = TextProperty(
         label="Indicator type", text="indicator_type.display_name"
@@ -125,10 +159,10 @@ class IndicatorCard(Datacard):
 class DatasetSection(Section):
     title = "DHIS2 Dataset"
 
+    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     name = TextProperty(text="name")
     short_name = TextProperty(label="Short name", text="short_name")
     description = TextProperty(label="Description", text="description")
-    dhis2_id = TextProperty(label="ID", text="dhis2_id", translate=False)
     code = TextProperty(label="Code", text="code", translate=False)
     created = DateProperty(label="Creation date", date="created")
     last_updated = DateProperty(label="Last updated", date="last_updated")

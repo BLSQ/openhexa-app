@@ -2,6 +2,7 @@ from dhis2 import ClientException, RequestException
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.core.models import Base, Permission
 from hexa.core.models.locale import LocaleField
+from hexa.core.models.path import PathField
 
 from ...catalog.sync import DatasourceSyncResult
 from ...core.date_utils import date_format
@@ -135,6 +137,14 @@ class Instance(Datasource):
             for results_batch in client.fetch_datasets():
                 results += sync_from_dhis2_results(
                     model_class=DataSet,
+                    instance=self,
+                    results=results_batch,
+                )
+
+            # Sync organisation units
+            for results_batch in client.fetch_organisation_units():
+                results += sync_from_dhis2_results(
+                    model_class=OrganisationUnit,
                     instance=self,
                     results=results_batch,
                 )
@@ -296,6 +306,47 @@ class DataElement(Dhis2Entry):
         return reverse(
             "connector_dhis2:data_element_detail",
             kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
+        )
+
+
+class OrganisationUnitQuerySet(EntryQuerySet):
+    def direct_children_of(
+        self, organisation: "OrganisationUnit"
+    ) -> QuerySet["OrganisationUnit", "OrganisationUnit"]:
+        return self.filter(path__match=str(organisation.path) + ".*{1}")
+
+    def ancestors_of(
+        self, organisation: "OrganisationUnit"
+    ) -> QuerySet["OrganisationUnit", "OrganisationUnit"]:
+        return self.filter(path__ancestors=organisation.path)
+
+
+class OrganisationUnit(Dhis2Entry):
+    def get_permission_set(self):
+        return self.instance.instancepermission_set.all()
+
+    class Meta:
+        verbose_name = "DHIS2 Organisation Unit"
+        ordering = ("name",)
+
+    code = models.CharField(max_length=100, blank=True)
+    path = PathField()
+    leaf = models.BooleanField()
+    datasets = models.ManyToManyField("DataSet", blank=True)
+
+    objects = OrganisationUnitQuerySet.as_manager()
+
+    def populate_index(self, index):
+        index.last_synced_at = self.instance.last_synced_at
+        index.external_name = self.name
+        index.external_description = self.description
+        index.path = [self.instance.id.hex, self.id.hex]
+        index.search = f"{self.name} {self.description}"
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_dhis2:organisation_unit_detail",
+            kwargs={"instance_id": self.instance.id, "organisation_unit_id": self.id},
         )
 
 

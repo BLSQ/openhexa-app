@@ -4,13 +4,13 @@
     {% if pagination.total_page_count > 1 %}
         <div class="flex-1 flex justify-between sm:hidden">
             <a
-                    {% if pagination.previous_page_number is not None %}href="?page={{ pagination.previous_page_number }}"{% endif %}
+                    {% if pagination.previous_page_number is not None %}href="?{{ pagination.page_parameter }}={{ pagination.previous_page_number }}"{% endif %}
                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 {% if pagination.previous_page_number is None %} opacity-50 cursor-not-allowed{% endif %}"
             >
                 {% translate "Previous" %}
             </a>
             <a
-                    {% if pagination.next_page_number is not None %}href="?page={{ pagination.next_page_number }}"{% endif %}
+                    {% if pagination.next_page_number is not None %}href="?{{ pagination.page_parameter }}={{ pagination.next_page_number }}"{% endif %}
                     class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50{% if pagination.next_page_number is None %} opacity-50 cursor-not-allowed{% endif %}"
             >
                 {% translate "Next" %}
@@ -37,7 +37,7 @@
             <div>
                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                     <a
-                            {% if pagination.previous_page_number is not None %}href="?page={{ pagination.previous_page_number }}"{% endif %}
+                            {% if pagination.previous_page_number is not None %}href="?{{ pagination.page_parameter }}={{ pagination.previous_page_number }}"{% endif %}
                             class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50{% if pagination.previous_page_number is None %} opacity-50 cursor-not-allowed{% endif %}"
                     >
                         <span class="sr-only">{% translate "Previous" %}</span>
@@ -50,7 +50,7 @@
                         </span>
                         {% else %}
                             <a
-                                    href="?page={{ page_number }}"
+                                    href="?{{ pagination.page_parameter }}={{ page_number }}"
                                     {% if pagination.current_page_number == page_number %}aria-current="page"{% endif %}
                                     class="relative inline-flex items-center px-4 py-2 border text-sm font-medium {% if pagination.current_page_number == page_number %}z-10 bg-blue-50 border-blue-500 text-blue-600{% else %}bg-white border-gray-300 text-gray-500 hover:bg-gray-50{% endif %}"
                             >
@@ -59,7 +59,7 @@
                         {% endif %}
                     {% endfor %}
                     <a
-                            {% if pagination.next_page_number is not None %}href="?page={{ pagination.next_page_number }}"{% endif %}
+                            {% if pagination.next_page_number is not None %}href="?{{ pagination.page_parameter }}={{ pagination.next_page_number }}"{% endif %}
                             class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50{% if pagination.next_page_number is None %} opacity-50 cursor-not-allowed{% endif %}"
                     >
                         <span class="sr-only">{% translate "Next" %}</span>

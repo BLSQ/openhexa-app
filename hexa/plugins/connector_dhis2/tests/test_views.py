@@ -4,9 +4,26 @@ from django.utils import timezone
 
 from hexa.user_management.models import Team, User
 
-from ..datacards import DataElementCard, DatasetCard, IndicatorCard
-from ..datagrids import DataElementGrid, DatasetGrid, IndicatorGrid
-from ..models import DataElement, DataSet, Indicator, Instance, InstancePermission
+from ..datacards import (
+    DataElementCard,
+    DatasetCard,
+    IndicatorCard,
+    OrganisationUnitCard,
+)
+from ..datagrids import (
+    DataElementGrid,
+    DatasetGrid,
+    IndicatorGrid,
+    OrganisationUnitGrid,
+)
+from ..models import (
+    DataElement,
+    DataSet,
+    Indicator,
+    Instance,
+    InstancePermission,
+    OrganisationUnit,
+)
 
 
 class ConnectorDhis2Test(test.TestCase):
@@ -56,6 +73,42 @@ class ConnectorDhis2Test(test.TestCase):
             last_updated=timezone.now(),
             external_access=False,
             favorite=False,
+        )
+        cls.ORG_UNIT_1 = OrganisationUnit.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="kamalOUYDD1",
+            name="Region1",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            leaf=False,
+            code="OU_1",
+            path="kamalOUYDD1",
+        )
+        cls.ORG_UNIT_2 = OrganisationUnit.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="kamalOUYDD2",
+            name="SubRegion",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            leaf=False,
+            code="OU_2",
+            path="kamalOUYDD1.kamalOUYDD2",
+        )
+        cls.ORG_UNIT_3 = OrganisationUnit.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="kamalOUYDD3",
+            name="SubRegionChieftain",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            leaf=True,
+            code="OU_3",
+            path="kamalOUYDD1.kamalOUYDD02.kamalOUYDD3",
         )
         cls.DATA_INDICATOR_1 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
@@ -173,6 +226,41 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["data_element"], DataElement)
         self.assertIsInstance(response.context["data_element_card"], DataElementCard)
+
+    def test_organisation_list_200(self):
+        """As a superuser, Kristen can see the organisation unit screen."""
+
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:organisation_unit_list",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["instance"], Instance)
+        self.assertIsInstance(
+            response.context["organisation_unit_grid"], OrganisationUnitGrid
+        )
+        self.assertEqual(3, len(response.context["organisation_unit_grid"]))
+
+    def test_organisation_detail_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:organisation_unit_detail",
+                kwargs={
+                    "instance_id": self.DHIS2_INSTANCE_PLAY.id,
+                    "organisation_unit_id": self.ORG_UNIT_1.id,
+                },
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["organisation_unit"], OrganisationUnit)
+        self.assertIsInstance(
+            response.context["organisation_unit_card"], OrganisationUnitCard
+        )
+        self.assertEqual(1, len(response.context["sub_organisation_unit_grid"]))
 
     def test_indicator_list_404(self):
         """As Bjorn is not a superuser, he can't access the indicators screen."""

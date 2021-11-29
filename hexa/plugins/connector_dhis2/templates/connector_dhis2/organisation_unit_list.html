@@ -1,0 +1,15 @@
+{% extends "connector_dhis2/page.html" %}
+{% load embed i18n %}
+
+{% block page_title %}{{ instance.name }} {% translate "organisation unit" %}s{% endblock %}
+
+{% block page_content %}
+    {% embed "ui/section/section.html" %}
+        {% slot header %}
+            {% include "ui/section/heading.html" with title=section_title label=section_label %}
+        {% endslot %}
+        {% slot content %}
+            {{ organisation_unit_grid }}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}

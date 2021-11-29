@@ -13,6 +13,7 @@ from ..models import (
     IndicatorType,
     Instance,
     InstancePermission,
+    OrganisationUnit,
 )
 from .mock_data import (
     mock_data_elements_response,
@@ -20,6 +21,7 @@ from .mock_data import (
     mock_indicator_types_response,
     mock_indicators_response,
     mock_info_json,
+    mock_orgunits_response,
 )
 
 
@@ -138,8 +140,14 @@ class DHIS2SyncTest(test.TestCase):
             json=mock_datasets_response,
             status=200,
         )
+        responses.add(
+            responses.GET,
+            "https://play.dhis2.org.invalid/api/organisationUnits.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
+            json=mock_orgunits_response,
+            status=200,
+        )
 
-        for model in (DataElement, IndicatorType, Indicator, DataSet):
+        for model in (DataElement, IndicatorType, Indicator, DataSet, OrganisationUnit):
             self.assertEqual(model.objects.all().count(), 0)
 
         self.DHIS2_INSTANCE_PLAY.sync()

@@ -1,5 +1,6 @@
 import datetime
 from dataclasses import dataclass
+from typing import Any, Callable
 
 from dhis2 import Api
 from django.utils import dateparse, timezone
@@ -7,9 +8,17 @@ from django.utils import dateparse, timezone
 
 @dataclass(frozen=True)
 class Dhis2Relation:
+    """
+    describe a m2m relation from an object model to some related items
+    """
+
+    # iterable field containing a list of related item
     dhis2_field_name: str
-    dhis2_target_name: str
+    # callable to extract DHIS2 id from each item of said iterable
+    dhis2_extract_id: Callable[[Any], str]
+    # OpenHexa model of the related item
     model_name: str
+    # M2M field name in the object model
     model_field: str
 
 
@@ -42,7 +51,7 @@ class Dhis2Result:
         relations = {}
         for relation in self.RELATIONS:
             links = [
-                x[relation.dhis2_target_name]["id"]
+                relation.dhis2_extract_id(x)
                 for x in self._data.get(relation.dhis2_field_name)
             ]
             relations[relation] = links
@@ -113,7 +122,7 @@ class DataSetResult(Dhis2Result):
     RELATIONS = [
         Dhis2Relation(
             dhis2_field_name="dataSetElements",
-            dhis2_target_name="dataElement",
+            dhis2_extract_id=lambda e: e["dataElement"]["id"],
             model_name="DataElement",
             model_field="data_elements",
         ),
@@ -125,6 +134,22 @@ class IndicatorTypeResult(Dhis2Result):
         "number": (bool, None),
         "factor": (int, None),
     }
+
+
+class OrganisationUnitResult(Dhis2Result):
+    FIELD_SPECS = {
+        "code": (str, ""),
+        "path": (str, "/"),
+        "leaf": (bool, None),
+    }
+    RELATIONS = [
+        Dhis2Relation(
+            dhis2_field_name="dataSets",
+            dhis2_extract_id=lambda e: e["id"],
+            model_name="DataSet",
+            model_field="datasets",
+        ),
+    ]
 
 
 class IndicatorResult(Dhis2Result):
@@ -165,3 +190,15 @@ class Dhis2Client:
             "indicators", params={"fields": ":all"}, page_size=100
         ):
             yield [IndicatorResult(data) for data in page["indicators"]]
+
+    def fetch_organisation_units(self):
+        for page in self._api.get_paged(
+            "organisationUnits", params={"fields": ":all"}, page_size=100
+        ):
+            # rewrite path -> replace "/" by "." for correct ltree path
+            # warning: in place edit, can side effect on tests
+            for element in page["organisationUnits"]:
+                if "path" in element:
+                    element["path"] = element["path"].replace("/", ".").strip(".")
+
+            yield [OrganisationUnitResult(data) for data in page["organisationUnits"]]
