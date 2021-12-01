@@ -9,6 +9,7 @@ Version 0.14
 - CodeMirror editor for DAG configurations
 - Ability to re-run a DAG with the same parameters
 - Add DAG documentation in run screen
+- Replaced full sync by single object refresh when uploading files to S3
 
 Version 0.13
 ------------
