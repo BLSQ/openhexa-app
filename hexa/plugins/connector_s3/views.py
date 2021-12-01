@@ -146,3 +146,21 @@ def object_upload(request, bucket_id):
     )
 
     return HttpResponse(upload_url, status=201)
+
+
+def object_refresh(request, bucket_id):
+    bucket = get_object_or_404(
+        Bucket.objects.filter_for_user(request.user), pk=bucket_id
+    )
+
+    object_key = request.GET.get("object_key")
+    bucket.refresh(object_key)
+    return redirect(
+        request.META.get(
+            "HTTP_REFERER",
+            reverse(
+                "connector_s3:object_detail",
+                kwargs={"bucket_id": bucket_id, "path": object_key},
+            ),
+        )
+    )

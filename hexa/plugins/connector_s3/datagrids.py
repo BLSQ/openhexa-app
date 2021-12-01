@@ -62,7 +62,9 @@ class ObjectGrid(Datagrid):
     def context(self):
         return {
             **super().context(),
-            "sync_url": self.bucket.sync_url(),
+            "refresh_url": reverse(
+                "connector_s3:object_refresh", args=[self.bucket.id]
+            ),
             "upload_url": reverse("connector_s3:object_upload", args=[self.bucket.id]),
             "prefix": self.prefix,
         }

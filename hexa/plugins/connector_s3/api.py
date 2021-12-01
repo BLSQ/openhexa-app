@@ -283,3 +283,13 @@ def generate_upload_url(
         Params={"Bucket": bucket.name, "Key": target_key},
         ExpiresIn=60 * 60,
     )
+
+
+def get_object_info(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+    object_key: str,
+):
+    client = _build_app_s3_client(principal_credentials=principal_credentials)
+    return client.head_object(Bucket=bucket.name, Key=object_key)

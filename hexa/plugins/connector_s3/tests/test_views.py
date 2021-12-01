@@ -1,9 +1,11 @@
+import boto3
 from django import test
 from django.urls import reverse
+from moto import mock_s3, mock_sts
 
 from hexa.plugins.connector_s3.datacards import BucketCard, ObjectCard
 from hexa.plugins.connector_s3.datagrids import ObjectGrid
-from hexa.plugins.connector_s3.models import Bucket, Object
+from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
 from hexa.user_management.models import User
 
 
@@ -67,3 +69,45 @@ class ViewsTest(test.TestCase):
         self.assertIsInstance(response.context["object"], Object)
         self.assertIsInstance(response.context["object_card"], ObjectCard)
         self.assertIsInstance(response.context["object_grid"], ObjectGrid)
+
+    @mock_s3
+    @mock_sts
+    def test_bucket_refresh(self):
+        credentials = Credentials.objects.create(
+            username="test-username",
+            default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
+        )
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(Bucket="test-bucket", Key="test-object", Body="XXX")
+        s3_client.put_object(Bucket="test-bucket", Key="test-object-create", Body="YYY")
+
+        self.client.force_login(self.USER_JANE)
+        response = self.client.get(
+            reverse(
+                "connector_s3:object_refresh",
+                kwargs={"bucket_id": self.BUCKET.id},
+            )
+            + "?object_key=test-object",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            Object.objects.get(bucket__name="test-bucket", key="test-object").size, 3
+        )
+
+        response = self.client.get(
+            reverse(
+                "connector_s3:object_refresh",
+                kwargs={"bucket_id": self.BUCKET.id},
+            )
+            + "?object_key=test-object-create",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            Object.objects.get(
+                bucket__name="test-bucket", key="test-object-create"
+            ).size,
+            3,
+        )
