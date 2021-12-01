@@ -4,6 +4,8 @@ Changelog
 Version 0.14
 ------------
 
+December 2021
+
 ### Added
 
 - CodeMirror editor for DAG configurations
