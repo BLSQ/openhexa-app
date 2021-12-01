@@ -60,7 +60,7 @@ class DAGSection(Section):
     title = "Airflow Data"
 
     dag_id = TextProperty(text="dag_id", label="Identifier", translate=False)
-    description = TextProperty(text="description")
+    description = TextProperty(text="description", markdown=True)
 
 
 class DAGCard(Datacard):
