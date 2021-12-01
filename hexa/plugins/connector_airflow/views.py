@@ -173,10 +173,10 @@ def dag_run_create(
         {
             "dag": dag,
             "error": error,
-            "run_config": json.dumps(run_config, indent=4)
+            "run_config": json.dumps(run_config, indent=2)
             if error is None
             else run_config,
-            "sample_config": json.dumps(dag.sample_config, indent=4),
+            "sample_config": json.dumps(dag.sample_config, indent=2),
             "breadcrumbs": breadcrumbs,
         },
     )

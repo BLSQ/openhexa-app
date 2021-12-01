@@ -443,7 +443,7 @@ class ViewsTest(test.TestCase):
         )
         self.assertEqual(200, response.status_code)
         self.assertEqual(
-            json.dumps({"foo": "bar"}, indent=4), response.context["run_config"]
+            json.dumps({"foo": "bar"}, indent=2), response.context["run_config"]
         )
 
     @responses.activate
@@ -468,10 +468,10 @@ class ViewsTest(test.TestCase):
             response.status_code,
         )
         self.assertEqual(
-            json.dumps({"foo": "bar"}, indent=4), response.context["run_config"]
+            json.dumps({"foo": "bar"}, indent=2), response.context["run_config"]
         )
         self.assertEqual(
-            json.dumps({"foo": "bar"}, indent=4), response.context["sample_config"]
+            json.dumps({"foo": "bar"}, indent=2), response.context["sample_config"]
         )
 
     @responses.activate
@@ -558,5 +558,5 @@ class ViewsTest(test.TestCase):
         self.assertEqual(0, DAGRun.objects.count())
         self.assertEqual('{"damn": "trailing-commas",}', response.context["run_config"])
         self.assertEqual(
-            json.dumps({"bar": "baz"}, indent=4), response.context["sample_config"]
+            json.dumps({"bar": "baz"}, indent=2), response.context["sample_config"]
         )

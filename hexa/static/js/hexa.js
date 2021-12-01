@@ -310,9 +310,9 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
             const fileName = uploadedFile.name;
 
             const csrfToken = document.cookie
-                        .split('; ')
-                        .find(row => row.startsWith('csrftoken='))
-                        .split('=')[1];
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                .split('=')[1];
 
             // Get presigned upload URL
             const signedUrlResponse = await fetch(`${getUploadUrl}?object_key=${prefix}${fileName}`, {
@@ -366,6 +366,26 @@ function Tabs(defaultTabId) {
         current: defaultTabId,
         switchTab(tabId) {
             this.current = tabId;
+        }
+    }
+}
+
+function CodeMirrorrized() {
+    return {
+        init() {
+            const cm = CodeMirror.fromTextArea(this.$refs.textarea, {
+                mode: {
+                    name: "javascript",
+                    json: true,
+                    statementIndent: 2,
+                },
+                lineNumbers: true,
+                lineWrapping: true,
+                indentWithTabs: false,
+                tabSize: 2,
+                lint: true,
+                gutters: ["CodeMirror-lint-markers"],
+            });
         }
     }
 }
