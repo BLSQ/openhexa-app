@@ -109,6 +109,7 @@ class DAGRunCard(Datacard):
     title = "run_id"
     subtitle = "generic_description"
     image_src = "_image_src"
+    actions = [Action(label="Re-run", url="get_clone_url", icon="play", method="GET")]
 
     external = DAGRunSection()
 
@@ -119,3 +120,15 @@ class DAGRunCard(Datacard):
     @property
     def _image_src(self) -> str:
         return static("connector_airflow/img/symbol.svg")
+
+    def get_clone_url(self, run: DAGRun):
+        return (
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={
+                    "cluster_id": run.dag.cluster.id,
+                    "dag_id": run.dag.id,
+                },
+            )
+            + f"?conf_from={run.id}"
+        )

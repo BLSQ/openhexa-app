@@ -146,7 +146,14 @@ def dag_run_create(
         if error is None:
             dag_run = dag.run(config=run_config)
             return redirect(dag_run.get_absolute_url())
-    else:  # GET: use sample config to pre-fill the form
+    elif "conf_from" in request.GET:  # GET: use sample config to pre-fill the form
+        cloned_dag = get_object_or_404(
+            DAGRun.objects.filter_for_user(request.user).filter(
+                dag=dag, pk=request.GET["conf_from"]
+            )
+        )
+        run_config = cloned_dag.conf
+    else:
         run_config = dag.sample_config
 
     breadcrumbs = [
@@ -192,8 +199,6 @@ def dag_run_detail(
     )
 
     dag_run_card = DAGRunCard(dag_run, request=request)
-    if request.method == "POST" and dag_run_card.save():
-        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),

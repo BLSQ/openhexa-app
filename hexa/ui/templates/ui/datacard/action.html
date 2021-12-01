@@ -1,10 +1,21 @@
-<form method="{{ method }}" action="{{ url }}">
-    {% csrf_token %}
-    <button
-            type="submit"
+{% if method|lower == "post" %}
+    <form method="{{ method }}" action="{{ url }}">
+        {% if method|lower == "post" %}{% csrf_token %}{% endif %}
+        <button
+                type="submit"
+                class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+            {% include "ui/icons/"|add:icon|add:".html" with mr=2 %}
+            {{ label }}
+        </button>
+    </form>
+{% else %}
+    <a
+            href="{{ url }}"
             class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
     >
         {% include "ui/icons/"|add:icon|add:".html" with mr=2 %}
         {{ label }}
-    </button>
-</form>
+    </a>
+{% endif %}
+

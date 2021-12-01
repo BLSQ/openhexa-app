@@ -18,7 +18,7 @@ dags = {
         },
         {
             "dag_id": "same_old",
-            "description": "Hello world example",
+            "description": "Same old example",
             "file_token": "Ii9vcHQvYWlyZmxvdy9kYWdzL3JlcG8vZGFncy9oZWxsb3dvcmxkLnB5Ig.x6F3mxeBdDLzg9-dB34gk-iOU2o",
             "fileloc": "/opt/airflow/dags/repo/dags/sameold.py",
             "is_active": True,

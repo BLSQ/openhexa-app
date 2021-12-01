@@ -419,6 +419,34 @@ class ViewsTest(test.TestCase):
         self.assertEqual(json.dumps({}), response.context["sample_config"])
 
     @responses.activate
+    def test_dag_run_create_cloned_config_200(self):
+        cluster = Cluster.objects.create(
+            name="Yet another cluster", url="https://yet-another-cluster-url.com"
+        )
+
+        dag = DAG.objects.create(cluster=cluster, dag_id="hello_world")
+        cloned_dag_run = DAGRun.objects.create(
+            dag=dag,
+            conf={"foo": "bar"},
+            execution_date=timezone.now().isoformat(),
+            state=DAGRunState.SUCCESS,
+            run_id="foo_run_1",
+        )
+        self.client.force_login(self.USER_TAYLOR)
+
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_create",
+                kwargs={"cluster_id": cluster.id, "dag_id": dag.id},
+            )
+            + f"?conf_from={cloned_dag_run.id}",
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            json.dumps({"foo": "bar"}, indent=4), response.context["run_config"]
+        )
+
+    @responses.activate
     def test_dag_run_create_200_with_sample_config(self):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
