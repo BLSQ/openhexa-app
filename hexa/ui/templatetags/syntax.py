@@ -2,11 +2,17 @@ from django import template
 from django.template import Node, TemplateSyntaxError
 from django.template.loader import get_template
 from django.utils.safestring import mark_safe
+from markdown import markdown as to_markdown
 from pygments import highlight
-from pygments.formatters import HtmlFormatter
+from pygments.formatters.html import HtmlFormatter
 from pygments.lexers import get_lexer_by_name
 
 register = template.Library()
+
+
+@register.filter(name="markdown", is_safe=True)
+def highlight_markdown(code):
+    return mark_safe(to_markdown(code))
 
 
 @register.filter(name="highlight", is_safe=True)

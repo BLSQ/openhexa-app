@@ -1,5 +1,5 @@
 {% extends "layouts/page.html" %}
-{% load embed i18n %}
+{% load embed i18n syntax %}
 
 {% block extra_assets %}
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.64.0/lib/codemirror.min.css" rel="stylesheet">
@@ -34,11 +34,24 @@
                 <input type="submit" value="Run with configuration"
                        class="group relative my-4 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"/>
             </form>
-
-            {% if run_config != sample_config %}
-                <p class="my-4 text-sm text-gray-900">Pipeline sample configuration:</p>
-                <pre class="text-sm text-gray-900" translate="no">{{ sample_config }}</pre>
-            {% endif %}
         {% endslot %}
     {% endembed %}
+    {% if dag.description != "" %}
+        {% embed "ui/section/section.html" with title="Documentation" %}
+            {% slot content %}
+
+                <div class="prose prose-sm">
+                    {{ dag.description|markdown }}
+                </div>
+            {% endslot %}
+        {% endembed %}
+    {% endif %}
+    {% if run_config != sample_config %}
+        {% embed "ui/section/section.html" with title="Sample configuration" %}
+            {% slot content %}
+                <p class="my-4 text-sm text-gray-900">Pipeline sample configuration:</p>
+                <pre class="text-sm text-gray-900" translate="no">{{ sample_config }}</pre>
+            {% endslot %}
+        {% endembed %}
+    {% endif %}
 {% endblock %}

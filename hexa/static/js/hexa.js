@@ -373,7 +373,8 @@ function Tabs(defaultTabId) {
 function CodeMirrorrized() {
     return {
         init() {
-            const cm = CodeMirror.fromTextArea(this.$refs.textarea, {
+            const textArea = this.$refs.textarea;
+            const instance = CodeMirror.fromTextArea(textArea, {
                 mode: {
                     name: "javascript",
                     json: true,
@@ -385,6 +386,9 @@ function CodeMirrorrized() {
                 tabSize: 2,
                 lint: true,
                 gutters: ["CodeMirror-lint-markers"],
+            });
+            instance.on("change", function(cm) {
+                textArea.innerHTML = cm.getValue();
             });
         }
     }
