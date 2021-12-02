@@ -182,7 +182,7 @@ class Bucket(Datasource):
                 object_data["Key"] = object_data["Key"] + "/"
                 object_data["true_key"] = object_data["true_key"] + "/"
 
-            # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
+            # ETag seems to sometimes contain quotes
             if object_data.get("ETag", "").startswith('"'):
                 object_data["ETag"] = object_data["ETag"].replace('"', "")
 
@@ -492,6 +492,7 @@ class Object(Entry):
         self.type = object_data["type"]
         self.last_modified = object_data.get("LastModified")
         self.etag = object_data.get("ETag")
+        # sometime, the ETag contains double quotes -> strip them
         if self.etag and self.etag.startswith('"'):
             self.etag.strip('"')
         self.orphan = False
@@ -512,6 +513,7 @@ class Object(Entry):
             parent_key=cls.compute_parent_key(object_data["true_key"]),
             storage_class=object_data.get("StorageClass", "STANDARD"),
             last_modified=object_data.get("LastModified"),
+            # sometime, the ETag contains double quotes -> strip them
             etag=object_data["ETag"].strip('"') if "ETag" in object_data else None,
             type=object_data["type"],
             size=size,
