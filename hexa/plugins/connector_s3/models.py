@@ -1,5 +1,6 @@
 import os
 from collections import defaultdict
+from logging import getLogger
 from typing import Dict, List
 
 from django.core.exceptions import ValidationError
@@ -17,9 +18,12 @@ from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     generate_sts_app_s3_credentials,
+    get_object_info,
     head_bucket,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
+
+logger = getLogger(__name__)
 
 
 class Credentials(Base):
@@ -104,6 +108,29 @@ class Bucket(Datasource):
                 "The S3 connector plugin should be configured with a single Credentials entry"
             )
 
+    def refresh(self, path):
+        info = get_object_info(
+            principal_credentials=self.principal_credentials,
+            bucket=self,
+            object_key=path,
+        )
+
+        # extend info -> not all things from s3fs present in boto3 API
+        info["type"] = "file"  # no concept of directory from boto3 API
+        info["true_key"] = path
+
+        try:
+            object = Object.objects.get(bucket=self, key=path, orphan=False)
+        except Object.DoesNotExist:
+            Object.create_from_object_data(self, info)
+        except Object.MultipleObjectsReturned:
+            logger.warning(
+                "Bucket.refresh(): incoherent object list for bucket %s", self.id
+            )
+        else:
+            object.update_metadata(info)
+            object.save()
+
     def clean(self):
         try:
             head_bucket(principal_credentials=self.principal_credentials, bucket=self)
@@ -155,7 +182,7 @@ class Bucket(Datasource):
                 object_data["Key"] = object_data["Key"] + "/"
                 object_data["true_key"] = object_data["true_key"] + "/"
 
-            # ETag seems to sometimes contain quotes, probably because of a bug in s3fs
+            # ETag seems to sometimes contain quotes
             if object_data.get("ETag", "").startswith('"'):
                 object_data["ETag"] = object_data["ETag"].replace('"', "")
 
@@ -455,25 +482,41 @@ class Object(Entry):
 
         self.key = object_data["true_key"]
         self.parent_key = self.compute_parent_key(object_data["true_key"])
-        self.size = object_data["size"]
-        self.storage_class = object_data["StorageClass"]
+        if "size" in object_data:
+            self.size = object_data["size"]
+        elif "ContentLength" in object_data:
+            self.size = object_data["ContentLength"]
+        else:
+            raise KeyError("size")
+        self.storage_class = object_data.get("StorageClass", "STANDARD")
         self.type = object_data["type"]
         self.last_modified = object_data.get("LastModified")
         self.etag = object_data.get("ETag")
+        # sometime, the ETag contains double quotes -> strip them
+        if self.etag and self.etag.startswith('"'):
+            self.etag.strip('"')
         self.orphan = False
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
+        if "size" in object_data:
+            size = object_data["size"]
+        elif "ContentLength" in object_data:
+            size = object_data["ContentLength"]
+        else:
+            raise KeyError("size")
+
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
             key=object_data["true_key"],
             parent_key=cls.compute_parent_key(object_data["true_key"]),
-            size=object_data["size"],
-            storage_class=object_data["StorageClass"],
-            type=object_data["type"],
+            storage_class=object_data.get("StorageClass", "STANDARD"),
             last_modified=object_data.get("LastModified"),
-            etag=object_data.get("ETag"),
+            # sometime, the ETag contains double quotes -> strip them
+            etag=object_data["ETag"].strip('"') if "ETag" in object_data else None,
+            type=object_data["type"],
+            size=size,
         )
 
     def get_absolute_url(self):

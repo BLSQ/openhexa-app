@@ -297,7 +297,7 @@ function TomSelectable(multiple = true) {
 }
 
 // TODO: should be placed in s3 app
-function S3Upload(getUploadUrl, syncUrl, prefix = "") {
+function S3Upload(getUploadUrl, refreshUrl, prefix = "") {
     return {
         refreshedHtml: null,
         uploading: false,
@@ -342,7 +342,7 @@ function S3Upload(getUploadUrl, syncUrl, prefix = "") {
             }
 
             // Sync & refresh section
-            const refreshedResponse = await fetch(syncUrl, {
+            const refreshedResponse = await fetch(`${refreshUrl}?object_key=${prefix}${fileName}`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": csrfToken
