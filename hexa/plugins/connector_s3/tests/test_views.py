@@ -72,7 +72,7 @@ class ViewsTest(test.TestCase):
 
     @mock_s3
     @mock_sts
-    def test_bucket_refresh(self):
+    def test_object_refresh(self):
         credentials = Credentials.objects.create(
             username="test-username",
             default_region="eu-central-1",
