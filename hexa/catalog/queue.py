@@ -3,6 +3,8 @@ from logging import getLogger
 from django.contrib.contenttypes.models import ContentType
 from dpq.queue import AtLeastOnceQueue
 
+from .models import DatasourcesSyncJob
+
 logger = getLogger(__name__)
 
 
@@ -27,9 +29,14 @@ def datasource_sync(queue, job):
         logger.exception("datasource sync failed")
 
 
+class DatasourcesSyncQueue(AtLeastOnceQueue):
+    # override the default job model; our job model has a specific table name
+    job_model = DatasourcesSyncJob
+
+
 # task queue for the postgresql connector
 # AtLeastOnceQueue + try/except: if the worker fail, restart the task. if the task fail, drop it + log
-datasource_sync_queue = AtLeastOnceQueue(
+datasource_sync_queue = DatasourcesSyncQueue(
     tasks={
         "datasource_sync": datasource_sync,
     },

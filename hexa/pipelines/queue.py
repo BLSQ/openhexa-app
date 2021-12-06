@@ -3,6 +3,8 @@ from logging import getLogger
 from django.contrib.contenttypes.models import ContentType
 from dpq.queue import AtLeastOnceQueue
 
+from .models import EnvironmentsSyncJob
+
 logger = getLogger(__name__)
 
 
@@ -29,9 +31,13 @@ def environment_sync(queue, job):
         logger.exception("environment sync failed")
 
 
+class EnvironmentsSyncQueue(AtLeastOnceQueue):
+    job_model = EnvironmentsSyncJob
+
+
 # task queue for all the connectors providing environment running pipelines (airflow, ...)
 # AtLeastOnceQueue + try/except: if the worker fail, restart the task. if the task fail, drop it + log
-environment_sync_queue = AtLeastOnceQueue(
+environment_sync_queue = EnvironmentsSyncQueue(
     tasks={
         "environment_sync": environment_sync,
     },
