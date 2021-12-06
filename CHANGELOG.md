@@ -13,6 +13,10 @@ December 2021
 - Add DAG documentation in run screen
 - Replaced full sync by single object refresh when uploading files to S3
 
+### Fixed
+
+- Fixed sync worker
+
 Version 0.13
 ------------
 
