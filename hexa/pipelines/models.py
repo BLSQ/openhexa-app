@@ -3,6 +3,7 @@ import uuid
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 
@@ -84,3 +85,10 @@ class Pipeline(IndexableMixin, models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.build_index()
+
+
+class EnvironmentsSyncJob(BaseJob):
+    # queue table to hold sync job from django-postgres-queue. Need to redefine this class to specify a
+    # custom table name, to avoid conflicts with other queue in the system
+    class Meta:
+        db_table = "catalog_environmentssyncjob"
