@@ -28,6 +28,7 @@ def track_request_event(
                 request_time=request_time,
                 response_status=response.status_code,
                 url=request.META.get("PATH_INFO", ""),
+                query_string=request.META.get("QUERY_STRING", ""),
                 method=HttpMethod.POST if request.method == "POST" else HttpMethod.GET,
                 response_content_length=len(response.content),
                 response_time=response_time,
