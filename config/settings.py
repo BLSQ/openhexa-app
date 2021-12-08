@@ -150,6 +150,9 @@ SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "fals
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 
+# by default users need to login every 2 weeks -> update to 1 year
+SESSION_COOKIE_AGE = 365 * 24 * 3600
+
 # Trust the X_FORWARDED_PROTO header from the GCP load balancer so Django is aware it is accessed by https
 if "TRUST_FORWARDED_PROTO" in os.environ:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
