@@ -1,16 +1,36 @@
 Changelog
 =========
 
+Version 0.15
+------------
+
+December 14 2021
+
+### Added
+
+TBC
+
+### Updated
+
+- Increase session cookie lifetime to 1 year
+
+### Fixed
+
+- Exclude `.s3keep` files from search
+
 Version 0.14
 ------------
 
-December 2021
+December 7 2021
 
 ### Added
 
 - CodeMirror editor for DAG configurations
 - Ability to re-run a DAG with the same parameters
 - Add DAG documentation in run screen
+  
+### Changed
+
 - Replaced full sync by single object refresh when uploading files to S3
 
 ### Fixed

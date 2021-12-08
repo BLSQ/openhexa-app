@@ -85,6 +85,9 @@ class BaseIndexQuerySet(TreeQuerySet):
             self.filter(
                 Q(search__trigram_similar=query) | Q(search__trigram_word_similar=query)
             )
+            # exclude everything called 's3keep', it's noise from s3content manager
+            # TODO: don't index these files
+            .exclude(external_name=".s3keep")
             .annotate(rank=similarity)
             .order_by("-rank")
         )
