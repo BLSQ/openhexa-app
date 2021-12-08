@@ -6,7 +6,7 @@ Version 0.15
 
 December 14 2021
 
-### New features
+### Added
 
 TBC
 
