@@ -75,9 +75,21 @@ dag_run_same_old_1 = {
     "start_date": "2021-10-08T16:42:00.830209+00:00",
     "state": "success",
 }
+
+dag_run_same_old_2 = {
+    "conf": {},
+    "dag_id": "same_old",
+    "dag_run_id": "same_old_run_2",
+    "end_date": "2021-10-09T16:42:16.189200+00:00",
+    "execution_date": "2021-10-09T16:41:00+00:00",
+    "external_trigger": False,
+    "start_date": "2021-10-09T16:42:00.830209+00:00",
+    "state": "queued",
+}
 dag_runs_same_old = {
     "dag_runs": [
         dag_run_same_old_1,
+        dag_run_same_old_2,
     ],
-    "total_entries": 1,
+    "total_entries": 2,
 }

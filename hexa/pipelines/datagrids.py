@@ -30,13 +30,14 @@ class EnvironmentGrid(Datagrid):
         return index.object.get_absolute_url()
 
 
-class RunGrid(Datagrid):
+class DAGRunGrid(Datagrid):
     lead = LeadingColumn(
         label="Pipeline",
         text="dag.dag_id",
         icon="get_icon",
     )
     execution_date = DateColumn(date="execution_date", label="Execution date")
+    user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
 
     view = LinkColumn(text="View")

@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from hexa.pipelines.datagrids import EnvironmentGrid, RunGrid
+from hexa.pipelines.datagrids import DAGRunGrid, EnvironmentGrid
 from hexa.pipelines.models import Environment, Index
 from hexa.plugins.connector_airflow.models import AirflowAPIError, DAGRun
 
@@ -26,7 +26,7 @@ def index(request: HttpRequest) -> HttpResponse:
     environment_grid = EnvironmentGrid(environments, request=request)
 
     dag_runs = DAGRun.objects.filter_for_user(request.user)
-    run_grid = RunGrid(dag_runs[:5], request=request)
+    run_grid = DAGRunGrid(dag_runs[:5], request=request)
 
     return render(
         request,

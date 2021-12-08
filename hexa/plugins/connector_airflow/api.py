@@ -24,7 +24,7 @@ class AirflowAPIClient:
         return response.json()
 
     def trigger_dag_run(
-        self, dag_id: str, conf: typing.Dict[str, typing.Any]
+        self, dag_id: str, conf: typing.Mapping[str, typing.Any]
     ) -> typing.Dict:
         url = urljoin(self._url, f"dags/{dag_id}/dagRuns")
         response = self._session.post(
