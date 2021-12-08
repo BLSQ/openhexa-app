@@ -72,8 +72,8 @@ class ViewsTest(test.TestCase):
 
     @mock_s3
     @mock_sts
-    def test_object_refresh(self):
-        credentials = Credentials.objects.create(
+    def test_bucket_refresh(self):
+        Credentials.objects.create(
             username="test-username",
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
@@ -87,7 +87,7 @@ class ViewsTest(test.TestCase):
         self.client.force_login(self.USER_JANE)
         response = self.client.get(
             reverse(
-                "connector_s3:object_refresh",
+                "connector_s3:bucket_refresh",
                 kwargs={"bucket_id": self.BUCKET.id},
             )
             + "?object_key=test-object",
@@ -99,7 +99,7 @@ class ViewsTest(test.TestCase):
 
         response = self.client.get(
             reverse(
-                "connector_s3:object_refresh",
+                "connector_s3:bucket_refresh",
                 kwargs={"bucket_id": self.BUCKET.id},
             )
             + "?object_key=test-object-create",

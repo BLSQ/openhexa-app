@@ -6,6 +6,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.metrics.decorators import do_not_track
 from hexa.pipelines.datagrids import RunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
@@ -52,6 +53,7 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     )
 
 
+@do_not_track
 def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user),
@@ -111,6 +113,7 @@ def dag_detail(
     )
 
 
+@do_not_track
 def dag_detail_refresh(
     request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
 ) -> HttpResponse:
@@ -222,6 +225,7 @@ def dag_run_detail(
     )
 
 
+@do_not_track
 def dag_run_detail_refresh(
     request: HttpRequest,
     cluster_id: uuid.UUID,
