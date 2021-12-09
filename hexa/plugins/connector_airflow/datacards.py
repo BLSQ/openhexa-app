@@ -97,6 +97,7 @@ class DAGRunSection(Section):
 
     run_id = TextProperty(text="run_id", label="Identifier", translate=False)
     execution_date = DateProperty(date="execution_date", label="Execution Date")
+    user = TextProperty(text="user.display_name")
     state = StatusProperty(value="status", label="State")
     config = CodeProperty(code="get_conf_as_string", label="Config", language="json")
 

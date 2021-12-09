@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
-from hexa.pipelines.datagrids import RunGrid
+from hexa.pipelines.datagrids import DAGRunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.datagrids import DAGGrid
@@ -84,7 +84,7 @@ def dag_detail(
     if request.method == "POST" and dag_card.save():
         return redirect(request.META["HTTP_REFERER"])
 
-    run_grid = RunGrid(
+    run_grid = DAGRunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
         .order_by("-execution_date"),
@@ -147,7 +147,7 @@ def dag_run_create(
         else:
             run_config = {}
         if error is None:
-            dag_run = dag.run(config=run_config)
+            dag_run = dag.run(user=request.user, conf=run_config)
             return redirect(dag_run.get_absolute_url())
     elif "conf_from" in request.GET:  # GET: use sample config to pre-fill the form
         cloned_dag = get_object_or_404(

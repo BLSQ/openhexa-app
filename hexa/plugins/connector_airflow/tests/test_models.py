@@ -15,6 +15,7 @@ from hexa.plugins.connector_airflow.models import (
     DAGRunState,
 )
 from hexa.plugins.connector_airflow.tests.responses import (
+    dag_run_same_old_2,
     dag_runs_hello_world,
     dag_runs_same_old,
     dags,
@@ -106,9 +107,15 @@ class ModelsTest(test.TestCase):
             state=DAGRunState.SUCCESS,
             execution_date=timezone.now(),
         )
-        DAGRun.objects.create(  # Will be orphaned if all goes well
+        DAGRun.objects.create(
             dag=same_old,
             run_id="same_old_run_2",
+            state=DAGRunState.SUCCESS,
+            execution_date=timezone.now(),
+        )
+        DAGRun.objects.create(  # Will be orphaned if all goes well
+            dag=same_old,
+            run_id="same_old_run_3",
             state=DAGRunState.SUCCESS,
             execution_date=timezone.now(),
         )
@@ -146,14 +153,38 @@ class ModelsTest(test.TestCase):
             result.orphaned, 2
         )  # The "byebye" DAG should have been orphaned, and one "extra" run for same_old as well
         self.assertEqual(result.created, 3)  # "hello world" DAG + 2 new runs
-        self.assertEqual(result.updated, 2)  # "same_old" DAG and its remaining run
+        self.assertEqual(result.updated, 3)  # "same_old" DAG and its two remaining runs
         self.assertEqual(2, cluster.dag_set.count())
         self.assertEqual(0, cluster.dag_set.filter(dag_id="bye_bye").count())
-        self.assertEqual(3, DAGRun.objects.filter(dag__cluster=cluster).count())
-        self.assertEqual(1, DAGRun.objects.filter(dag=same_old).count())
+        self.assertEqual(4, DAGRun.objects.filter(dag__cluster=cluster).count())
+        self.assertEqual(2, DAGRun.objects.filter(dag=same_old).count())
         self.assertEqual(
             0, DAGRun.objects.filter(dag__cluster=cluster, dag=bye_bye).count()
         )
+
+    @responses.activate
+    def test_dag_run(self):
+        cluster = Cluster.objects.create(
+            name="test_cluster",
+            url="https://airflow-test.openhexa.org",
+            username="yolo",
+            password="yolo",
+        )
+        dag = DAG.objects.create(cluster=cluster, dag_id="same_old")
+
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, f"dags/{dag.dag_id}/dagRuns"),
+            json=dag_run_same_old_2,
+            status=200,
+        )
+
+        run = dag.run(user=self.USER_REGULAR, conf={"foo": "bar"})
+
+        self.assertIsInstance(run, DAGRun)
+        self.assertEqual(self.USER_REGULAR, run.user)
+        self.assertEqual({"foo": "bar"}, run.conf)
+        self.assertEqual(DAGRunState.QUEUED, run.state)
 
 
 class PermissionTest(test.TestCase):
