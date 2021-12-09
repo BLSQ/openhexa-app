@@ -1,3 +1,4 @@
+import typing
 from enum import Enum
 from urllib.parse import urljoin
 
@@ -208,16 +209,17 @@ class DAG(Pipeline):
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
-    def run(self, config=None):
+    def run(self, *, user: User, conf: typing.Mapping[str, typing.Any] = None):
         client = self.cluster.get_api_client()
-        dag_run_data = client.trigger_dag_run(self.dag_id, conf=config)
+        dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         return DAGRun.objects.create(
             dag=self,
+            user=user,
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
-            conf=config,
+            conf=conf,
         )
 
 
@@ -250,6 +252,9 @@ class DAGRun(Base, WithStatus):
     class Meta:
         ordering = ("-execution_date",)
 
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
     last_refreshed_at = models.DateTimeField(null=True)
     run_id = models.CharField(max_length=200, blank=False)
