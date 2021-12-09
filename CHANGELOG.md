@@ -13,6 +13,7 @@ TBC
 ### Updated
 
 - Increase session cookie lifetime to 1 year
+- Metrics: save query strings for GET requests and add "do not track" decorator" 
 
 ### Fixed
 

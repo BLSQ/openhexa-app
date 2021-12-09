@@ -23,6 +23,7 @@ class Request(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False)
     user_id = models.UUIDField()
     url = models.TextField()
+    query_string = models.TextField(default="")
     method = models.IntegerField(choices=HTTP_METHODS.items())
     request_time = models.DateTimeField()
     response_status = models.IntegerField()
@@ -31,3 +32,6 @@ class Request(models.Model):
     user_agent = models.TextField()
     user_lang = models.TextField()
     referer = models.TextField()
+
+    class Meta:
+        ordering = ["-response_time"]

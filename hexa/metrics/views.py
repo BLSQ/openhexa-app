@@ -5,9 +5,11 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 
+from .decorators import do_not_track
 from .models import HttpMethod, Request
 
 
+@do_not_track
 def save_redirect(request: HttpRequest) -> HttpResponse:
     if request.GET.get("to") is None:
         return redirect("/")

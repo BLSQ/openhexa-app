@@ -22,8 +22,8 @@ urlpatterns = [
         name="object_upload",
     ),
     path(
-        "<str:bucket_id>/object_refresh/",
-        views.object_refresh,
-        name="object_refresh",
+        "<str:bucket_id>/bucket_refresh/",
+        views.bucket_refresh,
+        name="bucket_refresh",
     ),
 ]

@@ -21,13 +21,14 @@ def track_request_event(
             and request.user.is_authenticated
             and request.method in ("GET", "POST")
             and not request.META.get("PATH_INFO", "").startswith("/admin")
-            and not request.META.get("PATH_INFO", "").startswith("/metrics")
+            and not request.META.get("HEXA_DO_NOT_TRACK", "false") == "true"
         ):
             Request.objects.create(
                 user_id=request.user.id,
                 request_time=request_time,
                 response_status=response.status_code,
                 url=request.META.get("PATH_INFO", ""),
+                query_string=request.META.get("QUERY_STRING", ""),
                 method=HttpMethod.POST if request.method == "POST" else HttpMethod.GET,
                 response_content_length=len(response.content),
                 response_time=response_time,
