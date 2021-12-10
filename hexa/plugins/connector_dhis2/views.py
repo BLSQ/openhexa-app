@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.catalog.csv import render_queryset_to_csv
+from hexa.core.csv import render_queryset_to_csv
 
 from .datacards import (
     DataElementCard,

@@ -59,7 +59,7 @@ class DataElementGrid(Dhis2Grid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
-    download = Action(label="Download", url="get_download_url", icon="table")
+    download = Action(label="Download all", url="get_download_url", icon="table")
 
     @property
     def download_url(self):
@@ -93,7 +93,7 @@ class OrganisationUnitGrid(Dhis2Grid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
-    download = Action(label="Download", url="get_download_url", icon="table")
+    download = Action(label="Download all", url="get_download_url", icon="table")
 
     @property
     def download_url(self):
@@ -122,7 +122,7 @@ class IndicatorGrid(Dhis2Grid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
-    download = Action(label="Download", url="get_download_url", icon="table")
+    download = Action(label="Download all", url="get_download_url", icon="table")
 
     @property
     def download_url(self):
@@ -151,7 +151,7 @@ class DatasetGrid(Dhis2Grid):
     last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
     view = LinkColumn(text="View")
 
-    download = Action(label="Download", url="get_download_url", icon="table")
+    download = Action(label="Download all", url="get_download_url", icon="table")
 
     @property
     def download_url(self):
