@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
+from hexa.catalog.csv import write_queryset_to_csv
+
 from .datacards import (
     DataElementCard,
     DatasetCard,
@@ -28,6 +30,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
 
     data_element_grid = DataElementGrid(
         instance.dataelement_set.prefetch_indexes(),
+        parent_model=instance,
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -91,6 +94,7 @@ def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespo
     )
     data_element_grid = DataElementGrid(
         instance.dataelement_set.prefetch_indexes(),
+        parent_model=instance,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -122,6 +126,22 @@ def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespo
     )
 
 
+def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": "attachment;filename=export.csv"},
+    )
+    write_queryset_to_csv(
+        instance.dataelement_set.prefetch_indexes(), target=response, field_names=["id"]
+    )
+
+    return response
+
+
 def organisation_unit_list(
     request: HttpRequest, instance_id: uuid.UUID
 ) -> HttpResponse:
@@ -133,6 +153,7 @@ def organisation_unit_list(
         instance.organisationunit_set.order_by(
             "path__depth", "name"
         ).prefetch_indexes(),
+        parent_model=instance,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -377,6 +398,7 @@ def dataset_detail(
 
     data_elements_grid = DataElementGrid(
         dataset.data_elements.prefetch_indexes().select_related("instance"),
+        parent_model=instance,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -417,7 +439,7 @@ def _get_instance_and_data_element(
 
 def _get_instance_and_organisation_unit(
     request: HttpRequest, instance_id: uuid.UUID, organisation_unit_id: uuid.UUID
-) -> tuple[Instance, DataElement]:
+) -> tuple[Instance, OrganisationUnit]:
     instance = get_object_or_404(
         Instance.objects.prefetch_indexes().filter_for_user(request.user),
         pk=instance_id,

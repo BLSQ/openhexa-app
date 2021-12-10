@@ -33,7 +33,7 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         bucket.object_set.prefetch_indexes()
         .filter(parent_key="/", orphan=False)
         .select_related("bucket"),
-        bucket=bucket,
+        parent_model=bucket,
         prefix="",
         per_page=20,
         page=int(request.GET.get("page", "1")),
@@ -83,7 +83,7 @@ def object_detail(
     if s3_object.type == "directory":
         object_grid = ObjectGrid(
             bucket.object_set.prefetch_indexes().filter(parent_key=path, orphan=False),
-            bucket=bucket,
+            parent_model=bucket,
             prefix=s3_object.key,
             per_page=20,
             page=int(request.GET.get("page", "1")),

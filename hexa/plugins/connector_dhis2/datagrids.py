@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.plugins.connector_dhis2.models import (
@@ -6,6 +7,7 @@ from hexa.plugins.connector_dhis2.models import (
     OrganisationUnit,
 )
 from hexa.ui.datagrid import (
+    Action,
     Datagrid,
     DateColumn,
     LeadingColumn,
@@ -13,9 +15,12 @@ from hexa.ui.datagrid import (
     TagColumn,
     TextColumn,
 )
+from hexa.ui.utils import StaticText
 
 
 class DataElementGrid(Datagrid):
+    title = StaticText("Data Elements")
+
     lead = LeadingColumn(
         label="Name",
         text="name",
@@ -29,6 +34,8 @@ class DataElementGrid(Datagrid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
+    download = Action(label="Download", url="get_download_url", icon="table")
+
     def get_icon(self, data_element: DataElement):
         if data_element.domain_type == DomainType.AGGREGATE:
             return "ui/icons/chart_bar.html"
@@ -36,6 +43,12 @@ class DataElementGrid(Datagrid):
             return "ui/icons/user_circle.html"
 
         return "ui/icons/exclamation.html"
+
+    def get_download_url(self):
+        return reverse(
+            "connector_dhis2:data_element_download",
+            kwargs={"instance_id": self.parent_model.id},
+        )
 
 
 class OrganisationUnitGrid(Datagrid):

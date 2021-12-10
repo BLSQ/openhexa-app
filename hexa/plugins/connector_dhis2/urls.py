@@ -12,6 +12,11 @@ urlpatterns = [
         name="data_element_list",
     ),
     path(
+        "<uuid:instance_id>/data-elements/download",
+        views.data_element_download,
+        name="data_element_download",
+    ),
+    path(
         "<uuid:instance_id>/data-elements/<uuid:data_element_id>",
         views.data_element_detail,
         name="data_element_detail",
