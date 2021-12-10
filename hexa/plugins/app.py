@@ -2,14 +2,10 @@ from importlib import import_module
 
 from django.apps import AppConfig, apps
 from django.db.models.base import ModelBase
+from django.http import HttpRequest
 
 
 class ConnectorAppConfig(AppConfig):
-    def get_last_activities(self):
-        from hexa.core.activities import ActivityList
-
-        return ActivityList()
-
     @property
     def route_prefix(self):
         """Returns the string prefix to use when including the connector app URLs.
@@ -36,6 +32,21 @@ class ConnectorAppConfig(AppConfig):
             notebooks_credentials_functions.append(getattr(module, function_name))
 
         return notebooks_credentials_functions
+
+    def get_last_activities(self, request: HttpRequest):
+        """Check if the app config class has a LAST_ACTIVITIES property. This property allows connector plugins to
+        provide a function path. The function will be called by the core module to gather activities across plugins."""
+
+        last_activity_function_path = getattr(self, "LAST_ACTIVITIES", None)
+
+        if last_activity_function_path is not None:
+            module_name, function_name = last_activity_function_path.rsplit(".", 1)
+            module = import_module(module_name)
+            return getattr(module, function_name)(request)
+
+        from hexa.core.activities import ActivityList
+
+        return ActivityList()
 
     @classmethod
     def get_models_by_capability(cls, capability, filter_app=None):

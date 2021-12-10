@@ -51,6 +51,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         key__iendswith=".ipynb"
     ).filter_for_user(request.user)
 
+    # Build latest activity
     last_activities = ActivityList(
         [
             Activity(
@@ -62,7 +63,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         ]
     )
     for app_config in get_connector_app_configs():
-        last_activities += app_config.get_last_activities()
+        last_activities += app_config.get_last_activities(request)
 
     last_activity_grid = ActivityGrid(
         last_activities, paginate=False, request=request, per_page=10

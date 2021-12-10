@@ -14,6 +14,7 @@ class ActivityGrid(Datagrid):
         image_src="symbol",
         detail_url="get_datasource_url",
         bold=False,
+        mark_safe=True,
     )
     status = StatusColumn(value="status")
     date = DateColumn(date="occurred_at")

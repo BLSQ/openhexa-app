@@ -25,11 +25,11 @@ class Activity(WithStatus):
 
 
 class ActivityList:
-    def __init__(self, items: typing.List[Activity] = []):
-        self.items = items
+    def __init__(self, items: typing.List[Activity] = None):
+        self.items = items if items is not None else []
+        self.order_by("-occurred_at")
 
     def __iter__(self):
-        self.order_by("-occurred_at")
         return iter(self.items)
 
     def __len__(self):
@@ -42,7 +42,9 @@ class ActivityList:
         if order_by not in ["-occurred_at"]:
             raise ValueError("Only -occurred is supported")
 
-        self.items = sorted(self.items, key=lambda a: a.occurred_at.timestamp())
+        self.items = sorted(
+            self.items, key=lambda a: a.occurred_at.timestamp(), reverse=True
+        )
 
     def __add__(self, other: "ActivityList"):
         return ActivityList(self.items + other.items)

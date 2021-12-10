@@ -7,6 +7,7 @@ from django.db import models
 from django.http import HttpRequest
 from django.template import loader
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
@@ -209,6 +210,7 @@ class LeadingColumn(Column):
         icon=None,
         translate=True,
         bold=True,
+        mark_safe=False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -219,6 +221,7 @@ class LeadingColumn(Column):
         self.icon = icon
         self.translate = translate
         self.bold = bold
+        self.mark_safe = mark_safe
 
     @property
     def template(self):
@@ -226,6 +229,8 @@ class LeadingColumn(Column):
 
     def context(self, model: DjangoModel, grid: Datagrid):
         text_value = self.get_value(model, self.text, container=grid)
+        if self.mark_safe:
+            text_value = mark_safe(text_value)
         data = {
             "text": text_value,
             "single": self.secondary_text is None,
@@ -246,6 +251,8 @@ class LeadingColumn(Column):
             secondary_text_value = self.get_value(
                 model, self.secondary_text, container=grid
             )
+            if self.mark_safe:
+                secondary_text_value = mark_safe(secondary_text_value)
             data.update(
                 secondary_text=secondary_text_value,
                 empty=text_value is None and secondary_text_value is None,
