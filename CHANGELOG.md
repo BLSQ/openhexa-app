@@ -8,7 +8,7 @@ December 14 2021
 
 ### Added
 
-TBC
+- Added CSV export on DHIS2 data elements, indicators and organisation units
 
 ### Updated
 

@@ -25,7 +25,13 @@ class CsvTest(test.TestCase):
         response = render_queryset_to_csv(
             Membership.objects.order_by("user__email"),
             filename="memberships.csv",
-            field_names=["id", "team.name", "user.email"],
+            field_names=[
+                "id",
+                "team.name",
+                "user.email",
+                "user.first_name",
+                "user.foo.bar",
+            ],
         )
         self.assertIsInstance(response, HttpResponse)
         self.assertEqual(200, response.status_code)
@@ -35,9 +41,9 @@ class CsvTest(test.TestCase):
         )
         self.assertEqual(
             (
-                "id,team_name,user_email\r\n"
-                f"{self.MEMBERSHIP_1.id},Tèst Teâm,jim@bluesquarehub.com\r\n"
-                f"{self.MEMBERSHIP_2.id},Tèst Teâm,mary@bluesquarehub.com\r\n"
+                "id,team_name,user_email,user_first_name,user_foo_bar\r\n"
+                f"{self.MEMBERSHIP_1.id},Tèst Teâm,jim@bluesquarehub.com,,\r\n"
+                f"{self.MEMBERSHIP_2.id},Tèst Teâm,mary@bluesquarehub.com,,\r\n"
             ).encode("utf-8"),
             response.content,
         )

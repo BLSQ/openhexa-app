@@ -40,6 +40,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
     )
     indicator_grid = IndicatorGrid(
         instance.indicator_set.prefetch_indexes().select_related("indicator_type"),
+        parent_model=instance,
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -49,6 +50,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
     )
     organisation_unit_grid = OrganisationUnitGrid(
         instance.organisationunit_set.filter(path__depth__in=(0, 1)).prefetch_indexes(),
+        parent_model=instance,
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -59,6 +61,7 @@ def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespons
     )
     dataset_grid = DatasetGrid(
         instance.dataset_set.prefetch_indexes(),
+        parent_model=instance,
         per_page=5,
         paginate=False,
         more_url=reverse(
@@ -133,7 +136,7 @@ def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpR
     )
 
     return render_queryset_to_csv(
-        instance.dataelement_set.prefetch_indexes(),
+        instance.dataelement_set.prefetch_indexes().select_related("instance"),
         filename=request.GET.get("filename", ""),
         field_names=[
             "instance.display_name",
@@ -150,6 +153,43 @@ def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpR
             "value_type",
             "aggregation_type",
         ],
+    )
+
+
+def data_element_detail(
+    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+) -> HttpResponse:
+    instance, data_element = _get_instance_and_data_element(
+        request, instance_id, data_element_id
+    )
+    data_element_card = DataElementCard(data_element, request=request)
+    if request.method == "POST" and data_element_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    dataset_grid = DatasetGrid(
+        data_element.dataset_set.prefetch_indexes(),
+        parent_model=instance,
+        page=int(request.GET.get("page", "1")),
+        request=request,
+    )
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
+        (_("Data Elements"), "connector_dhis2:data_element_list", instance_id),
+        (data_element.display_name,),
+    ]
+
+    return render(
+        request,
+        "connector_dhis2/data_element_detail.html",
+        {
+            "instance": instance,
+            "data_element": data_element,
+            "data_element_card": data_element_card,
+            "dataset_grid": dataset_grid,
+            "breadcrumbs": breadcrumbs,
+        },
     )
 
 
@@ -196,39 +236,33 @@ def organisation_unit_list(
     )
 
 
-def data_element_detail(
-    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
+def organisation_unit_download(
+    request: HttpRequest, instance_id: uuid.UUID
 ) -> HttpResponse:
-    instance, data_element = _get_instance_and_data_element(
-        request, instance_id, data_element_id
-    )
-    data_element_card = DataElementCard(data_element, request=request)
-    if request.method == "POST" and data_element_card.save():
-        return redirect(request.META["HTTP_REFERER"])
-
-    dataset_grid = DatasetGrid(
-        data_element.dataset_set.prefetch_indexes(),
-        page=int(request.GET.get("page", "1")),
-        request=request,
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
     )
 
-    breadcrumbs = [
-        (_("Catalog"), "catalog:index"),
-        (instance.display_name, "connector_dhis2:instance_detail", instance_id),
-        (_("Data Elements"), "connector_dhis2:data_element_list", instance_id),
-        (data_element.display_name,),
-    ]
-
-    return render(
-        request,
-        "connector_dhis2/data_element_detail.html",
-        {
-            "instance": instance,
-            "data_element": data_element,
-            "data_element_card": data_element_card,
-            "dataset_grid": dataset_grid,
-            "breadcrumbs": breadcrumbs,
-        },
+    return render_queryset_to_csv(
+        instance.organisationunit_set.order_by("path__depth", "name")
+        .prefetch_indexes()
+        .select_related("instance"),
+        filename=request.GET.get("filename", ""),
+        field_names=[
+            "instance.display_name",
+            "dhis2_id",
+            "name",
+            "short_name",
+            "description",
+            "external_access",
+            "favorite",
+            "created",
+            "last_updated",
+            "code",
+            "path",
+            "leaf",
+        ],
     )
 
 
@@ -244,6 +278,7 @@ def organisation_unit_detail(
 
     dataset_grid = DatasetGrid(
         organisation_unit.datasets.prefetch_indexes(),
+        parent_model=instance,
         page=int(request.GET.get("ds_page", "1")),
         page_parameter_name="ds_page",
         request=request,
@@ -253,6 +288,7 @@ def organisation_unit_detail(
         instance.organisationunit_set.direct_children_of(
             organisation_unit
         ).prefetch_indexes(),
+        parent_model=instance,
         page=int(request.GET.get("ou_page", "1")),
         page_parameter_name="ou_page",
         request=request,
@@ -301,6 +337,7 @@ def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse
     )
     indicator_grid = IndicatorGrid(
         instance.indicator_set.prefetch_indexes().select_related("indicator_type"),
+        parent_model=instance,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -329,6 +366,37 @@ def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse
             },
             "breadcrumbs": breadcrumbs,
         },
+    )
+
+
+def indicator_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return render_queryset_to_csv(
+        instance.indicator_set.prefetch_indexes().select_related(
+            "instance", "indicator_type"
+        ),
+        filename=request.GET.get("filename", ""),
+        field_names=[
+            "instance.display_name",
+            "dhis2_id",
+            "name",
+            "short_name",
+            "description",
+            "external_access",
+            "favorite",
+            "created",
+            "last_updated",
+            "code",
+            "indicator_type.dhis2_id",
+            "indicator_type.name",
+            "indicator_type.number",
+            "indicator_type.factor",
+            "annualized",
+        ],
     )
 
 
@@ -368,6 +436,7 @@ def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     )
     dataset_grid = DatasetGrid(
         instance.dataset_set.prefetch_indexes(),
+        parent_model=instance,
         page=int(request.GET.get("page", "1")),
         request=request,
     )
@@ -399,6 +468,30 @@ def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
     )
 
 
+def dataset_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
+    instance = get_object_or_404(
+        Instance.objects.prefetch_indexes().filter_for_user(request.user),
+        pk=instance_id,
+    )
+
+    return render_queryset_to_csv(
+        instance.dataset_set.prefetch_indexes().select_related("instance"),
+        filename=request.GET.get("filename", ""),
+        field_names=[
+            "instance.display_name",
+            "dhis2_id",
+            "name",
+            "short_name",
+            "description",
+            "external_access",
+            "favorite",
+            "created",
+            "last_updated",
+            "code",
+        ],
+    )
+
+
 def dataset_detail(
     request: HttpRequest, instance_id: uuid.UUID, dataset_id: uuid.UUID
 ) -> HttpResponse:
@@ -410,6 +503,7 @@ def dataset_detail(
     data_elements_grid = DataElementGrid(
         dataset.data_elements.prefetch_indexes().select_related("instance"),
         parent_model=instance,
+        export_prefix=dataset.display_name,
         page=int(request.GET.get("page", "1")),
         request=request,
     )

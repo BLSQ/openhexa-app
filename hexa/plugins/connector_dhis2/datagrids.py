@@ -19,9 +19,33 @@ from hexa.ui.datagrid import (
 from hexa.ui.utils import StaticText
 
 
-class DataElementGrid(Datagrid):
-    title = StaticText("Data Elements")
+class Dhis2Grid(Datagrid):
+    def __init__(self, queryset, *, export_prefix: str = "", **kwargs):
+        self.export_prefix = export_prefix
+        super().__init__(queryset, **kwargs)
 
+    @property
+    def download_url(self):
+        raise NotImplementedError
+
+    @property
+    def export_suffix(self):
+        raise NotImplementedError
+
+    def get_download_url(self):
+        download_url = reverse(
+            self.download_url,
+            kwargs={"instance_id": self.parent_model.id},
+        )
+        filename = generate_filename(
+            f"{self.parent_model.display_name}{self.export_prefix}_{self.export_suffix}.csv"
+        )
+
+        return f"{download_url}?filename={filename}"
+
+
+class DataElementGrid(Dhis2Grid):
+    title = StaticText("Data elements")
     lead = LeadingColumn(
         label="Name",
         text="name",
@@ -37,9 +61,13 @@ class DataElementGrid(Datagrid):
 
     download = Action(label="Download", url="get_download_url", icon="table")
 
-    def __init__(self, queryset, *, export_suffix: str = "", **kwargs):
-        self.export_suffix = export_suffix
-        super().__init__(queryset, **kwargs)
+    @property
+    def download_url(self):
+        return "connector_dhis2:data_element_download"
+
+    @property
+    def export_suffix(self):
+        return "data_elements"
 
     def get_icon(self, data_element: DataElement):
         if data_element.domain_type == DomainType.AGGREGATE:
@@ -49,19 +77,9 @@ class DataElementGrid(Datagrid):
 
         return "ui/icons/exclamation.html"
 
-    def get_download_url(self):
-        download_url = reverse(
-            "connector_dhis2:data_element_download",
-            kwargs={"instance_id": self.parent_model.id},
-        )
-        filename = generate_filename(
-            f"{self.parent_model.display_name}{self.export_suffix}_data_elements.csv"
-        ).lower()
 
-        return f"{download_url}?filename={filename}"
-
-
-class OrganisationUnitGrid(Datagrid):
+class OrganisationUnitGrid(Dhis2Grid):
+    title = StaticText("Organisation units")
     lead = LeadingColumn(
         label="Name",
         text="name",
@@ -75,11 +93,22 @@ class OrganisationUnitGrid(Datagrid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
-    def get_icon(self, organisation_unit: OrganisationUnit):
+    download = Action(label="Download", url="get_download_url", icon="table")
+
+    @property
+    def download_url(self):
+        return "connector_dhis2:organisation_unit_download"
+
+    @property
+    def export_suffix(self):
+        return "organisation_units"
+
+    def get_icon(self, _: OrganisationUnit):
         return "ui/icons/location_marker.html"
 
 
-class IndicatorGrid(Datagrid):
+class IndicatorGrid(Dhis2Grid):
+    title = StaticText("Indicators")
     lead = LeadingColumn(
         label="Name",
         text="name",
@@ -93,11 +122,23 @@ class IndicatorGrid(Datagrid):
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
+    download = Action(label="Download", url="get_download_url", icon="table")
+
+    @property
+    def download_url(self):
+        return "connector_dhis2:indicator_download"
+
+    @property
+    def export_suffix(self):
+        return "indicators"
+
     def get_icon(self, _):
         return "ui/icons/trending_up.html"
 
 
-class DatasetGrid(Datagrid):
+class DatasetGrid(Dhis2Grid):
+    title = StaticText("Datasets")
+
     lead = LeadingColumn(
         label="Name",
         text="name",
@@ -109,6 +150,16 @@ class DatasetGrid(Datagrid):
     tags = TextColumn(text="todo_tags", translate=False)
     last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
     view = LinkColumn(text="View")
+
+    download = Action(label="Download", url="get_download_url", icon="table")
+
+    @property
+    def download_url(self):
+        return "connector_dhis2:dataset_download"
+
+    @property
+    def export_suffix(self):
+        return "datasets"
 
     def get_icon(self, _):
         return "ui/icons/collection.html"
