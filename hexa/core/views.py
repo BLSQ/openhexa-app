@@ -9,9 +9,10 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.models import Index
-from hexa.core.activities import Activity
+from hexa.core.activities import Activity, ActivityList
 from hexa.core.datagrids import ActivityGrid
 from hexa.core.models.behaviors import Status
+from hexa.plugins.app import get_connector_app_configs
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 
@@ -50,14 +51,19 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         key__iendswith=".ipynb"
     ).filter_for_user(request.user)
 
-    last_activities = [
-        Activity(
-            occurred_at=timezone.now().replace(hour=0, minute=0),
-            description=_("All datasources are up to date!"),
-            status=Status.SUCCESS,
-            url=reverse("catalog:index"),
-        )
-    ]
+    last_activities = ActivityList(
+        [
+            Activity(
+                occurred_at=timezone.now().replace(hour=0, minute=0),
+                description=_("All datasources are up to date!"),
+                status=Status.SUCCESS,
+                url=reverse("catalog:index"),
+            )
+        ]
+    )
+    for app_config in get_connector_app_configs():
+        last_activities += app_config.get_last_activities()
+
     last_activity_grid = ActivityGrid(
         last_activities, paginate=False, request=request, per_page=10
     )

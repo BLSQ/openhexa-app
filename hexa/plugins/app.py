@@ -5,6 +5,11 @@ from django.db.models.base import ModelBase
 
 
 class ConnectorAppConfig(AppConfig):
+    def get_last_activities(self):
+        from hexa.core.activities import ActivityList
+
+        return ActivityList()
+
     @property
     def route_prefix(self):
         """Returns the string prefix to use when including the connector app URLs.
