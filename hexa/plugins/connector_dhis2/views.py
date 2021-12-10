@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.catalog.csv import write_queryset_to_csv
+from hexa.catalog.csv import render_queryset_to_csv
 
 from .datacards import (
     DataElementCard,
@@ -131,15 +131,12 @@ def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpR
         Instance.objects.prefetch_indexes().filter_for_user(request.user),
         pk=instance_id,
     )
-    response = HttpResponse(
-        content_type="text/csv",
-        headers={"Content-Disposition": "attachment;filename=export.csv"},
-    )
-    write_queryset_to_csv(
-        instance.dataelement_set.prefetch_indexes(), target=response, field_names=["id"]
-    )
 
-    return response
+    return render_queryset_to_csv(
+        instance.dataelement_set.prefetch_indexes(),
+        filename=request.GET.get("filename", ""),
+        field_names=["id"],
+    )
 
 
 def organisation_unit_list(

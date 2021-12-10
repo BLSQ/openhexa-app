@@ -1,6 +1,7 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from hexa.core.string import generate_filename
 from hexa.plugins.connector_dhis2.models import (
     DataElement,
     DomainType,
@@ -36,6 +37,10 @@ class DataElementGrid(Datagrid):
 
     download = Action(label="Download", url="get_download_url", icon="table")
 
+    def __init__(self, queryset, *, export_suffix: str = "", **kwargs):
+        self.export_suffix = export_suffix
+        super().__init__(queryset, **kwargs)
+
     def get_icon(self, data_element: DataElement):
         if data_element.domain_type == DomainType.AGGREGATE:
             return "ui/icons/chart_bar.html"
@@ -45,10 +50,15 @@ class DataElementGrid(Datagrid):
         return "ui/icons/exclamation.html"
 
     def get_download_url(self):
-        return reverse(
+        download_url = reverse(
             "connector_dhis2:data_element_download",
             kwargs={"instance_id": self.parent_model.id},
         )
+        filename = generate_filename(
+            f"{self.parent_model.display_name}{self.export_suffix}_data_elements.csv"
+        ).lower()
+
+        return f"{download_url}?filename={filename}"
 
 
 class OrganisationUnitGrid(Datagrid):

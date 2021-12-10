@@ -212,6 +212,35 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertIsInstance(response.context["data_element_grid"], DataElementGrid)
         self.assertEqual(3, len(response.context["data_element_grid"]))
 
+    def test_data_element_download_400(self):
+        """No filename, no download."""
+
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:data_element_download",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_data_element_download_200(self):
+        """Valid download request."""
+
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:data_element_download",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            )
+            + "?filename=test.csv",
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("text/csv", response.headers["Content-Type"])
+        self.assertEqual(
+            "attachment;filename=test.csv", response.headers["Content-Disposition"]
+        )
+
     def test_data_element_detail_200(self):
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
