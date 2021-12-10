@@ -38,7 +38,7 @@ class Dhis2Grid(Datagrid):
             kwargs={"instance_id": self.parent_model.id},
         )
         filename = generate_filename(
-            f"{self.parent_model.display_name}{self.export_prefix}_{self.export_suffix}.csv"
+            f"{self.parent_model.display_name}_{self.export_prefix}_{self.export_suffix}.csv"
         )
 
         return f"{download_url}?filename={filename}"
