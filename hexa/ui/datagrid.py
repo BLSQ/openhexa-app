@@ -208,6 +208,7 @@ class LeadingColumn(Column):
         image_src=None,
         icon=None,
         translate=True,
+        bold=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -217,6 +218,7 @@ class LeadingColumn(Column):
         self.image_src = image_src
         self.icon = icon
         self.translate = translate
+        self.bold = bold
 
     @property
     def template(self):
@@ -228,6 +230,7 @@ class LeadingColumn(Column):
             "text": text_value,
             "single": self.secondary_text is None,
             "translate": self.translate,
+            "bold": self.bold,
         }
         if (
             self.detail_url is None

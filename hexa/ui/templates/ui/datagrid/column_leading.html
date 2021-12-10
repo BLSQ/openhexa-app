@@ -14,7 +14,7 @@
         {% endif %}
         <div{% if image_src or icon %} class="ml-4"{% endif %}>
             {% if single or empty %}
-                <span class="text-sm font-medium text-gray-900" {% if not translate %}translate="no"{% endif %}>
+                <span class="text-sm {% if bold %}font-medium{% endif %} text-gray-900" {% if not translate %}translate="no"{% endif %}>
                   {{ text|truncatechars:80 }}
                 </span>
             {% else %}
