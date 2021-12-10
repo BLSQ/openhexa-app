@@ -193,11 +193,11 @@ class DAG(Pipeline):
         return self.cluster.clusterpermission_set.all()
 
     def populate_index(self, index: Index):
-        # index.external_name = self.name  # TODO
+        index.external_name = self.dag_id
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
         index.external_id = f"{self.dag_id}"
-        # index.search = f"{self.name}"
+        index.search = f"{self.dag_id}"
 
     def get_absolute_url(self) -> str:
         return reverse(

@@ -1,5 +1,8 @@
+from django.utils.translation import gettext_lazy as _
+
 from hexa.pipelines.models import Index
 from hexa.ui.datagrid import (
+    CountryColumn,
     Datagrid,
     DateColumn,
     LeadingColumn,
@@ -18,10 +21,6 @@ class EnvironmentGrid(Datagrid):
         image_src="symbol",
         detail_url="get_url",
     )
-    owner = TextColumn(
-        text="owner.display_name",
-        secondary_text="owner.get_organization_type_display",
-    )
     content = TextColumn(text="content")
     tags = TagColumn(value="tags.all")
     view = LinkColumn(text="View", url="get_url")
@@ -30,17 +29,19 @@ class EnvironmentGrid(Datagrid):
         return index.object.get_absolute_url()
 
 
-class DAGRunGrid(Datagrid):
+class PipelineIndexGrid(Datagrid):
     lead = LeadingColumn(
-        label="Pipeline",
-        text="dag.dag_id",
-        icon="get_icon",
+        label="Name",
+        text="display_name",
+        secondary_text="content_type_name",
+        image_src="symbol",
+        detail_url="get_url",
     )
-    execution_date = DateColumn(date="execution_date", label="Execution date")
-    user = TextColumn(text="user.display_name")
-    state = StatusColumn(value="status")
-
+    location = CountryColumn(value="countries")
+    tags = TagColumn(value="tags.all")
+    last_run = DateColumn(date="object.last_run.execution_date", label=_("Last run"))
+    last_state = StatusColumn(value="object.last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")
 
-    def get_icon(self, _):
-        return "ui/icons/play.html"
+    def get_url(self, index: Index):
+        return index.object.get_absolute_url()

@@ -7,10 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
-from hexa.pipelines.datagrids import DAGRunGrid
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
-from hexa.plugins.connector_airflow.datagrids import DAGGrid
+from hexa.plugins.connector_airflow.datagrids import DAGGrid, DAGRunGrid
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 
 logger = getLogger(__name__)
