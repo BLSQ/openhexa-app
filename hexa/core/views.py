@@ -5,9 +5,12 @@ from django.db import connection
 from django.http import HttpRequest, HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.models import Index
+from hexa.core.activities import Activity
+from hexa.core.models.behaviors import Status
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 
@@ -45,6 +48,14 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     accessible_notebooks = Object.objects.filter(
         key__iendswith=".ipynb"
     ).filter_for_user(request.user)
+
+    last_activities = [
+        Activity(
+            occurred_at=timezone.now().replace(hour=0, minute=0),
+            description=_("All datasources are up to date!"),
+            status=Status.SUCCESS,
+        )
+    ]
 
     return render(
         request,

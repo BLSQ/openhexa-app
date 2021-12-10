@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.timesince import timesince
 from django.utils.translation import ugettext_lazy as _
 
-from hexa.core.models import WithStatus
+from hexa.core.models.behaviors import Status
 from hexa.ui.utils import get_item_value
 
 DjangoModel = typing.TypeVar("DjangoModel", bound=models.Model)
@@ -397,19 +397,19 @@ class StatusColumn(Column):
         self.value = value
 
     COLOR_MAPPINGS = {
-        WithStatus.SUCCESS: "green",
-        WithStatus.ERROR: "red",
-        WithStatus.RUNNING: "yellow",
-        WithStatus.PENDING: "gray",
-        WithStatus.UNKNOWN: "gray",
+        Status.SUCCESS: "green",
+        Status.ERROR: "red",
+        Status.RUNNING: "yellow",
+        Status.PENDING: "gray",
+        Status.UNKNOWN: "gray",
     }
 
     LABEL_MAPPINGS = {
-        WithStatus.SUCCESS: _("Success"),
-        WithStatus.ERROR: _("Error"),
-        WithStatus.RUNNING: _("Running"),
-        WithStatus.PENDING: _("Pending"),
-        WithStatus.UNKNOWN: _("Unknown"),
+        Status.SUCCESS: _("Success"),
+        Status.ERROR: _("Error"),
+        Status.RUNNING: _("Running"),
+        Status.PENDING: _("Pending"),
+        Status.UNKNOWN: _("Unknown"),
     }
 
     @property

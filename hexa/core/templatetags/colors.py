@@ -4,7 +4,7 @@ from colorhash import ColorHash
 from django import template as django_template
 from django.template import TemplateSyntaxError
 
-from hexa.core.models import WithStatus
+from hexa.core.models.behaviors import Status
 
 register = django_template.Library()
 
@@ -20,10 +20,10 @@ class Colors(str, enum.Enum):
 
 
 STATUS_MAPPINGS = {
-    WithStatus.UNKNOWN: Colors.GRAY,
-    WithStatus.SUCCESS: Colors.GREEN,
-    WithStatus.ERROR: Colors.RED,
-    WithStatus.PENDING: Colors.YELLOW,
+    Status.UNKNOWN: Colors.GRAY,
+    Status.SUCCESS: Colors.GREEN,
+    Status.ERROR: Colors.RED,
+    Status.PENDING: Colors.YELLOW,
 }
 
 
@@ -34,7 +34,7 @@ def status_color(with_status):
     try:
         return STATUS_MAPPINGS[with_status.status].value
     except AttributeError:
-        return STATUS_MAPPINGS[WithStatus.UNKNOWN].value
+        return STATUS_MAPPINGS[Status.UNKNOWN].value
 
 
 class ColorVariant(str, enum.Enum):
