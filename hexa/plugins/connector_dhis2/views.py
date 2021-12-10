@@ -135,7 +135,21 @@ def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpR
     return render_queryset_to_csv(
         instance.dataelement_set.prefetch_indexes(),
         filename=request.GET.get("filename", ""),
-        field_names=["id"],
+        field_names=[
+            "instance.display_name",
+            "dhis2_id",
+            "name",
+            "short_name",
+            "description",
+            "external_access",
+            "favorite",
+            "created",
+            "last_updated",
+            "code",
+            "domain_type",
+            "value_type",
+            "aggregation_type",
+        ],
     )
 
 
