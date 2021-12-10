@@ -62,6 +62,7 @@ class Datagrid(metaclass=DatagridMeta):
         self,
         queryset,
         *,
+        parent_model: DjangoModel = None,
         paginate: bool = True,
         per_page: int = 20,
         page: int = 1,
@@ -69,6 +70,7 @@ class Datagrid(metaclass=DatagridMeta):
         request: HttpRequest,
         page_parameter_name: str = "page",
     ):
+        self.parent_model = parent_model
         self.page_parameter_name = page_parameter_name
         self.paginator = Paginator(queryset, per_page)
         self.page = self.paginator.page(page)

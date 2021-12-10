@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from hexa.plugins.connector_s3.models import Bucket, Object
+from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datagrid import (
     Action,
     Datagrid,
@@ -23,7 +23,7 @@ class UploadAction(Action):
     def context(self, grid: Datagrid):
         return {
             **super().context(grid),
-            "read_only": not grid.bucket.writable_by(grid.request.user),
+            "read_only": not grid.parent_model.writable_by(grid.request.user),
         }
 
 
@@ -44,8 +44,7 @@ class ObjectGrid(Datagrid):
 
     upload = UploadAction()
 
-    def __init__(self, queryset, *, bucket: Bucket, prefix: str, **kwargs):
-        self.bucket = bucket
+    def __init__(self, queryset, *, prefix: str, **kwargs):
         self.prefix = prefix
         super().__init__(queryset, **kwargs)
 
@@ -63,8 +62,10 @@ class ObjectGrid(Datagrid):
         return {
             **super().context(),
             "refresh_url": reverse(
-                "connector_s3:bucket_refresh", args=[self.bucket.id]
+                "connector_s3:bucket_refresh", args=[self.parent_model.id]
             ),
-            "upload_url": reverse("connector_s3:object_upload", args=[self.bucket.id]),
+            "upload_url": reverse(
+                "connector_s3:object_upload", args=[self.parent_model.id]
+            ),
             "prefix": self.prefix,
         }

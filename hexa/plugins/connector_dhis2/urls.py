@@ -12,6 +12,11 @@ urlpatterns = [
         name="data_element_list",
     ),
     path(
+        "<uuid:instance_id>/data-elements/download",
+        views.data_element_download,
+        name="data_element_download",
+    ),
+    path(
         "<uuid:instance_id>/data-elements/<uuid:data_element_id>",
         views.data_element_detail,
         name="data_element_detail",
@@ -20,6 +25,11 @@ urlpatterns = [
         "<uuid:instance_id>/org-units/",
         views.organisation_unit_list,
         name="organisation_unit_list",
+    ),
+    path(
+        "<uuid:instance_id>/org-units/download",
+        views.organisation_unit_download,
+        name="organisation_unit_download",
     ),
     path(
         "<uuid:instance_id>/org-units/<uuid:organisation_unit_id>",
@@ -35,6 +45,11 @@ urlpatterns = [
         "<uuid:instance_id>/indicators/",
         views.indicator_list,
         name="indicator_list",
+    ),
+    path(
+        "<uuid:instance_id>/indicators/download",
+        views.indicator_download,
+        name="indicator_download",
     ),
     path(
         "<uuid:instance_id>/indicators/<uuid:indicator_id>",
@@ -60,6 +75,11 @@ urlpatterns = [
         "<uuid:instance_id>/datasets/",
         views.dataset_list,
         name="dataset_list",
+    ),
+    path(
+        "<uuid:instance_id>/datasets/download",
+        views.dataset_download,
+        name="dataset_download",
     ),
     path(
         "<uuid:instance_id>/datasets/<uuid:dataset_id>",
