@@ -74,6 +74,9 @@ def search(request: HttpRequest) -> HttpResponse:
                 }
             )
 
+    type_options = sorted(type_options, key=lambda e: e["label"])
+    datasource_options = sorted(datasource_options, key=lambda e: e["label"])
+
     return render(
         request,
         "catalog/search.html",
