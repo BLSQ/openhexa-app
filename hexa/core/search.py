@@ -1,3 +1,4 @@
+import re
 import typing
 from dataclasses import dataclass
 from enum import Enum
@@ -15,7 +16,7 @@ class Token:
     type: TokenType
 
 
-def tokenize(input: str) -> typing.List[Token]:
+def tokenize(input_string: str) -> typing.List[Token]:
     tokens, accu, inside = [], "", False
 
     def push_token():
@@ -33,7 +34,7 @@ def tokenize(input: str) -> typing.List[Token]:
         nonlocal accu
         accu += c
 
-    for c in input:
+    for c in input_string:
         if c == " ":
             if inside:
                 accumulate(c)
@@ -46,3 +47,7 @@ def tokenize(input: str) -> typing.List[Token]:
             accumulate(c)
     push_token()
     return tokens
+
+
+def normalize_search_index(raw_search: str) -> str:
+    return re.sub(r"( +)", " ", raw_search.replace("\t", " ").lower()).strip()

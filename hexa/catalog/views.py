@@ -62,7 +62,9 @@ def search(request: HttpRequest) -> HttpResponse:
                         "selected": f"datasource:{obj.id}" in query,
                     }
                 )
-        if hasattr(model, "searchable"):
+        if hasattr(
+            model, "searchable"
+        ):  # TODO: remove (see comment in datasource_index command)
             content_code = f"{ct.app_label[10:]}_{ct.model}"
             type_options.append(
                 {

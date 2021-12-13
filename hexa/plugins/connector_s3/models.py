@@ -98,7 +98,7 @@ class Bucket(Datasource):
     )
 
     objects = BucketQuerySet.as_manager()
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     @property
     def principal_credentials(self):
@@ -410,7 +410,7 @@ class Object(Entry):
     orphan = models.BooleanField(default=False)  # TODO: remove?
 
     objects = ObjectQuerySet.as_manager()
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     def save(self, *args, **kwargs):
         if self.parent_key is None:

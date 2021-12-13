@@ -14,7 +14,3 @@ def generate_filename(candidate_name: str) -> str:
     dedup = re.sub(r"(_+)", "_", underscored)
 
     return dedup.lower()
-
-
-def normalize_search_index(raw_search: str) -> str:
-    return re.sub(r"( +)", " ", raw_search.replace("\t", " ").lower()).strip()

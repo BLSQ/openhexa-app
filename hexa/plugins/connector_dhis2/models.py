@@ -87,7 +87,7 @@ class Instance(Datasource):
 
     objects = InstanceQuerySet.as_manager()
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     @property
     def display_name(self):
@@ -294,7 +294,7 @@ class DataElement(Dhis2Entry):
         verbose_name = "DHIS2 Data Element"
         ordering = ("name",)
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     code = models.CharField(max_length=100, blank=True)
     domain_type = models.CharField(choices=DomainType.choices, max_length=100)
@@ -337,7 +337,7 @@ class OrganisationUnit(Dhis2Entry):
         verbose_name = "DHIS2 Organisation Unit"
         ordering = ("name",)
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     code = models.CharField(max_length=100, blank=True)
     path = PathField()
@@ -382,7 +382,7 @@ class Indicator(Dhis2Entry):
         verbose_name = "DHIS2 Indicator"
         ordering = ("name",)
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     code = models.CharField(max_length=100, blank=True)
     indicator_type = models.ForeignKey(
@@ -414,7 +414,7 @@ class ExtractStatus(models.TextChoices):
 
 
 class DataSet(Dhis2Entry):
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     code = models.CharField(max_length=100, blank=True)
     data_elements = models.ManyToManyField(DataElement, blank=True)

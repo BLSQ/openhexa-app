@@ -21,8 +21,7 @@ from hexa.core.models.postgres import (
     PostgresTextSearchConfigField,
     locale_to_text_search_config,
 )
-from hexa.core.search import Token, TokenType
-from hexa.core.string import normalize_search_index
+from hexa.core.search import Token, TokenType, normalize_search_index
 
 
 @Field.register_lookup

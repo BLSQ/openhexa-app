@@ -35,7 +35,7 @@ class Database(Datasource):
     def get_permission_set(self):
         return self.databasepermission_set.all()
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     hostname = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
@@ -209,7 +209,7 @@ class Table(Entry):
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)
 
-    searchable = True
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     class Meta:
         verbose_name = "PostgreSQL table"
