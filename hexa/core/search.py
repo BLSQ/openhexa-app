@@ -26,7 +26,7 @@ def tokenize(input: str) -> typing.List[Token]:
                 t = TokenType.FILTER
             elif inside:
                 t = TokenType.EXACT_WORD
-            tokens.append(Token(value=accu, type=t))
+            tokens.append(Token(value=accu.lower(), type=t))
             accu = ""
 
     def accumulate(c):

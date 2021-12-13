@@ -22,6 +22,7 @@ from hexa.core.models.postgres import (
     locale_to_text_search_config,
 )
 from hexa.core.search import Token, TokenType
+from hexa.core.string import normalize_search_index
 
 
 @Field.register_lookup
@@ -296,6 +297,9 @@ class BaseIndexableMixin:
         countries = " ".join([f"{x.code} {x.name}" for x in index.countries])
         owner = index.owner.name if index.owner else ""
         index.search += f" {owner} {tags} {countries}"
+
+        # trim duplicate spaces, lower char, remove tab
+        index.search = normalize_search_index(index.search)
 
         index.save()
 
