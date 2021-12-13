@@ -17,7 +17,7 @@ def get_last_activities(request: HttpRequest):
                     "dag": run.dag.dag_id,
                 }
             ),
-            occurred_at=run.last_refreshed_at,
+            occurred_at=run.execution_date,
             status=run.status,
             url=run.get_absolute_url(),
         )
