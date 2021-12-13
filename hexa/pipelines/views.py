@@ -9,10 +9,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from hexa.metrics.decorators import do_not_track
-from hexa.pipelines.datagrids import DAGRunGrid, EnvironmentGrid
+from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
 from hexa.pipelines.models import Environment, Index
-from hexa.plugins.connector_airflow.models import AirflowAPIError, DAGRun
 
 from .queue import environment_sync_queue
 
@@ -23,33 +21,23 @@ def index(request: HttpRequest) -> HttpResponse:
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
     ]
+    pipelines = (
+        Index.objects.filter_for_user(request.user).prefetch_related("object").leaves(1)
+    )
+    pipeline_grid = PipelineIndexGrid(pipelines, request=request)
+
     environments = Index.objects.filter_for_user(request.user).roots()
     environment_grid = EnvironmentGrid(environments, request=request)
-
-    dag_runs = DAGRun.objects.filter_for_user(request.user)
-    run_grid = DAGRunGrid(dag_runs[:5], request=request)
 
     return render(
         request,
         "pipelines/index.html",
         {
+            "pipeline_grid": pipeline_grid,
             "environment_grid": environment_grid,
-            "run_grid": run_grid,
             "breadcrumbs": breadcrumbs,
         },
     )
-
-
-@do_not_track
-def index_refresh(request: HttpRequest) -> HttpResponse:
-    dag_runs = DAGRun.objects.filter_for_user(request.user)
-    for run in dag_runs.filter_for_refresh():
-        try:
-            run.refresh()
-        except AirflowAPIError:
-            logger.exception(f"Refresh failed for DAGRun {run.id}")
-
-    return index(request)
 
 
 @require_http_methods(["POST"])

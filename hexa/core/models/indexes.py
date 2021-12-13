@@ -47,6 +47,9 @@ class TrigramWordSimilarity(TrigramBase):
 
 
 class BaseIndexQuerySet(TreeQuerySet):
+    def leaves(self, level: int):
+        return self.filter(path__depth=level + 1)
+
     def filter_for_user(self, user):
         if user.is_active and user.is_superuser:
             return self

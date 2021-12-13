@@ -71,7 +71,9 @@ class DAGCard(Datacard):
     external = DAGSection()
     metadata = OpenHexaMetaDataSection(value="index")
 
-    actions = [Action(label="Run", url="get_run_url", icon="play", method="GET")]
+    actions = [
+        Action(label="Configure & run", url="get_run_url", icon="play", method="GET")
+    ]
 
     @staticmethod
     def get_run_url(dag: DAG):
@@ -110,7 +112,11 @@ class DAGRunCard(Datacard):
     title = "run_id"
     subtitle = "generic_description"
     image_src = "_image_src"
-    actions = [Action(label="Re-run", url="get_clone_url", icon="play", method="GET")]
+    actions = [
+        Action(
+            label="Configure and re-run", url="get_clone_url", icon="play", method="GET"
+        )
+    ]
 
     external = DAGRunSection()
 

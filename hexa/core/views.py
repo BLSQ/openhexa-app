@@ -5,9 +5,14 @@ from django.db import connection
 from django.http import HttpRequest, HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from hexa.catalog.models import Index
+from hexa.core.activities import Activity, ActivityList
+from hexa.core.datagrids import ActivityGrid
+from hexa.core.models.behaviors import Status
+from hexa.plugins.app import get_connector_app_configs
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 
@@ -46,6 +51,24 @@ def dashboard(request: HttpRequest) -> HttpResponse:
         key__iendswith=".ipynb"
     ).filter_for_user(request.user)
 
+    # Build latest activity
+    last_activities = ActivityList(
+        [
+            Activity(
+                occurred_at=timezone.now().replace(hour=0, minute=0),
+                description=_("All datasources are up to date!"),
+                status=Status.SUCCESS,
+                url=reverse("catalog:index"),
+            )
+        ]
+    )
+    for app_config in get_connector_app_configs():
+        last_activities += app_config.get_last_activities(request)
+
+    last_activity_grid = ActivityGrid(
+        last_activities, paginate=False, request=request, per_page=10
+    )
+
     return render(
         request,
         "core/dashboard.html",
@@ -55,6 +78,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
                 "notebooks": accessible_notebooks.count(),
                 "pipelines": DAG.objects.filter_for_user(request.user).count(),
             },
+            "last_activity_grid": last_activity_grid,
             "breadcrumbs": breadcrumbs,
         },
     )

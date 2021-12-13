@@ -1,9 +1,13 @@
 {% extends "layouts/page.html" %}
-{% load i18n %}
+{% load embed i18n %}
 
 {% block page_title %}{% translate "Dashboard" %}{% endblock %}
 
 {% block page_content %}
     {% include "core/partials/dashboard_overview.html" %}
-    {% include "core/partials/dashboard_activity.html" %}
+    {% embed "ui/section/section.html" with title=_("Last activity") %}
+        {% slot content %}
+            {{ last_activity_grid }}
+        {% endslot %}
+    {% endembed %}
 {% endblock %}

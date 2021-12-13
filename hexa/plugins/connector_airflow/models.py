@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models import Base, Permission, WithStatus
+from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline, PipelinesQuerySet
 from hexa.pipelines.sync import EnvironmentSyncResult
@@ -193,11 +194,11 @@ class DAG(Pipeline):
         return self.cluster.clusterpermission_set.all()
 
     def populate_index(self, index: Index):
-        # index.external_name = self.name  # TODO
+        index.external_name = self.dag_id
         index.external_type = ExternalType.DAG.value
         index.path = [self.cluster.id.hex, self.id.hex]
         index.external_id = f"{self.dag_id}"
-        # index.search = f"{self.name}"
+        index.search = f"{self.dag_id}"
 
     def get_absolute_url(self) -> str:
         return reverse(
@@ -243,10 +244,10 @@ class DAGRunState(models.TextChoices):
 
 class DAGRun(Base, WithStatus):
     STATUS_MAPPINGS = {
-        DAGRunState.SUCCESS: WithStatus.SUCCESS,
-        DAGRunState.RUNNING: WithStatus.RUNNING,
-        DAGRunState.FAILED: WithStatus.ERROR,
-        DAGRunState.QUEUED: WithStatus.PENDING,
+        DAGRunState.SUCCESS: Status.SUCCESS,
+        DAGRunState.RUNNING: Status.RUNNING,
+        DAGRunState.FAILED: Status.ERROR,
+        DAGRunState.QUEUED: Status.PENDING,
     }
 
     class Meta:
@@ -283,4 +284,4 @@ class DAGRun(Base, WithStatus):
         try:
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
-            return WithStatus.UNKNOWN
+            return Status.UNKNOWN

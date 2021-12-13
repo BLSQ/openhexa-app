@@ -13,10 +13,10 @@ from markdown import markdown as to_markdown
 
 import hexa.ui.datacard
 from hexa.core.date_utils import date_format as do_date_format
-from hexa.core.models import WithStatus
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
+from ...core.models.behaviors import Status
 from .base import DatacardComponent
 
 
@@ -312,19 +312,19 @@ class DateProperty(Property):
 
 class StatusProperty(Property):
     COLOR_MAPPINGS = {
-        WithStatus.SUCCESS: "green",
-        WithStatus.ERROR: "red",
-        WithStatus.RUNNING: "yellow",
-        WithStatus.PENDING: "gray",
-        WithStatus.UNKNOWN: "gray",
+        Status.SUCCESS: "green",
+        Status.ERROR: "red",
+        Status.RUNNING: "yellow",
+        Status.PENDING: "gray",
+        Status.UNKNOWN: "gray",
     }
 
     LABEL_MAPPINGS = {
-        WithStatus.SUCCESS: _("Success"),
-        WithStatus.ERROR: _("Error"),
-        WithStatus.RUNNING: _("Running"),
-        WithStatus.PENDING: _("Pending"),
-        WithStatus.UNKNOWN: _("Unknown"),
+        Status.SUCCESS: _("Success"),
+        Status.ERROR: _("Error"),
+        Status.RUNNING: _("Running"),
+        Status.PENDING: _("Pending"),
+        Status.UNKNOWN: _("Unknown"),
     }
 
     def __init__(self, *, value=None, **kwargs):

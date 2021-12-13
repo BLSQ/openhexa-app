@@ -8,6 +8,7 @@ from hexa.ui.datagrid import (
     LinkColumn,
     StatusColumn,
     TagColumn,
+    TextColumn,
 )
 
 
@@ -27,3 +28,19 @@ class DAGGrid(Datagrid):
 
     def get_icon(self, _) -> str:
         return "ui/icons/terminal.html"
+
+
+class DAGRunGrid(Datagrid):
+    lead = LeadingColumn(
+        label="Pipeline",
+        text="dag.dag_id",
+        icon="get_icon",
+    )
+    execution_date = DateColumn(date="execution_date", label="Execution date")
+    user = TextColumn(text="user.display_name")
+    state = StatusColumn(value="status")
+
+    view = LinkColumn(text="View")
+
+    def get_icon(self, _):
+        return "ui/icons/play.html"

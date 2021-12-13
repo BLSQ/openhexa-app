@@ -14,6 +14,8 @@ December 14 2021
 
 ### Updated
 
+- Added last pipeline runs in Dashboard
+- Fine-tuned Pipelines UX (more focus on the pipeline themselves)
 - Increase session cookie lifetime to 1 year
 - Metrics: save query strings for GET requests and add "do not track" decorator" 
 
