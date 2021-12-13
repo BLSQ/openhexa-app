@@ -10,6 +10,7 @@ from hexa.plugins.connector_dhis2.models import (
     Instance,
     InstancePermission,
 )
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission
 from hexa.user_management.models import Team, User
 
 
@@ -76,6 +77,17 @@ class SearchTest(test.TestCase):
             favorite=False,
             annualized=False,
         )
+        cls.DATA_INDICATOR_1_similar = Indicator.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="xaG3AfYG2TD",
+            name="Ante-Natal Care visits",
+            description="Uses different ANC data inTdicators",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
+            annualized=False,
+        )
         cls.DATA_INDICATOR_2 = Indicator.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
             dhis2_id="oNzq8duNBx6",
@@ -86,6 +98,8 @@ class SearchTest(test.TestCase):
             favorite=False,
             annualized=False,
         )
+        cls.BUCKET = Bucket.objects.create(name="hexa-my-bucket-etc")
+        BucketPermission.objects.create(bucket=cls.BUCKET, team=cls.TEAM)
 
     def test_catalog_quick_search_200(self):
         self.client.force_login(self.USER_JANE)
@@ -115,7 +129,66 @@ class SearchTest(test.TestCase):
         response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(3, response.context["results"].count())
+        self.assertEqual(4, response.context["results"].count())
+
+    def test_catalog_search_datasource_200_invalid(self):
+        # we should not have any result for a datasource bucket but type instance
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.get(
+            reverse("catalog:search"),
+            data={
+                "query": "play type:dhis2_instance datasource:" + str(self.BUCKET.id)
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertEqual(0, len(response.context["results"]))
+
+    def test_catalog_search_instance_in_datasource(self):
+        # we should have one response: the instance itself
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.get(
+            reverse("catalog:search"),
+            data={
+                "query": "play type:dhis2_instance datasource:"
+                + str(self.DHIS2_INSTANCE_PLAY.id)
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertEqual(1, len(response.context["results"]))
+
+    def test_catalog_search_instance_elements(self):
+        # we should have a lot a response: all ANC element from the instance
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.get(
+            reverse("catalog:search"),
+            data={"query": "ANC datasource:" + str(self.DHIS2_INSTANCE_PLAY.id)},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertTrue(len(response.context["results"]) > 1)
+
+    def test_catalog_search_exact_word(self):
+        # there is a similar data indicator name: indicator vs inTdicator -> fuzzy search should return 2, exact 1
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.get(
+            reverse("catalog:search"), data={"query": "ANC data indicators"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertTrue(len(response.context["results"]) > 1)
+
+        response = self.client.get(
+            reverse("catalog:search"), data={"query": '"ANC data indicators"'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertTrue(len(response.context["results"]) == 1)
 
     def test_catalog_search_datasource_200(self):
         self.client.force_login(self.USER_KRISTEN)
@@ -145,7 +218,7 @@ class SearchTest(test.TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(1, response.context["results"].count())
+        self.assertEqual(2, response.context["results"].count())
 
     def test_catalog_quick_search_empty_200(self):
         """Bjorn is not a superuser, he can try to search for content but there will be no results"""
@@ -172,7 +245,7 @@ class SearchTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response, JsonResponse)
         results = response.json()["results"]
-        self.assertEqual(3, len(results))
+        self.assertEqual(4, len(results))
         self.assertTrue(
             any(
                 r
