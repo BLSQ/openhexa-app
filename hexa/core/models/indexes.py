@@ -1,3 +1,4 @@
+import typing
 import uuid
 from typing import Any, List
 
@@ -20,7 +21,7 @@ from hexa.core.models.postgres import (
     PostgresTextSearchConfigField,
     locale_to_text_search_config,
 )
-from hexa.core.string import Token, TokenType
+from hexa.core.search import Token, TokenType
 
 
 @Field.register_lookup
@@ -66,7 +67,7 @@ class BaseIndexQuerySet(TreeQuerySet):
         query = query.filter(q_predicats)
         return query
 
-    def search(self, tokens: List[Token]):
+    def filter_for_tokens(self, tokens: typing.Sequence[Token]):
         trig_query = " ".join([t.value for t in tokens if t.type == TokenType.WORD])
 
         # We mix similarity and word_similarity to achieve better results in long strings

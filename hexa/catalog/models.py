@@ -11,9 +11,36 @@ from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
+from hexa.core.search import tokenize
 
 
 class CatalogIndexQuerySet(BaseIndexQuerySet):
+    def search(self, query: str):
+        tokens = tokenize(query)
+
+        # filters
+        types = [t.value[5:] for t in tokens if t.value.startswith("type:")]
+        datasources = []
+        for t in tokens:
+            if t.value.startswith("datasource:"):
+                try:
+                    datasources.append(uuid.UUID(t.value[11:]))
+                except ValueError:
+                    continue
+
+        # query
+        results = (
+            self.filter_for_tokens(tokens)
+            # filter by resources type
+            .filter_for_types(types)
+            # filter by datasources
+            .filter_for_datasources(datasources)
+            # exclude s3keep, artifact of s3content mngt
+            .exclude(external_name=".s3keep")
+        )
+
+        return results
+
     def filter_for_datasources(self, ds_ids: List[uuid.UUID]):
         # sub select only those types
         q_predicats = Q()
