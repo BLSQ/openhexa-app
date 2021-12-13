@@ -87,6 +87,8 @@ class Instance(Datasource):
 
     objects = InstanceQuerySet.as_manager()
 
+    searchable = True
+
     @property
     def display_name(self):
         return self.name if self.name != "" else self.url

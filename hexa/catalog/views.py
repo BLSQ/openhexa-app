@@ -47,7 +47,7 @@ def search(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("query", "")
     results = Index.objects.filter_for_user(request.user).search(query)[:100]
 
-    types, datasources = [], []
+    type_options, datasource_options = [], []
     for ct in ContentType.objects.filter(app_label__startswith="connector_"):
         model = ct.model_class()
         if not model:
@@ -55,21 +55,29 @@ def search(request: HttpRequest) -> HttpResponse:
 
         if issubclass(model, Datasource):
             for obj in model.objects.all():
-                datasources.append(
+                datasource_options.append(
                     {
-                        "datasource_id": obj.id,
-                        "datasource_name": obj.display_name,
+                        "value": obj.id,
+                        "label": obj.display_name,
+                        "selected": f"datasource:{obj.id}" in query,
                     }
                 )
         if hasattr(model, "searchable"):
-            types.append(f"{ct.app_label[10:]}_{ct.model}")
+            content_code = f"{ct.app_label[10:]}_{ct.model}"
+            type_options.append(
+                {
+                    "value": f"{content_code}",
+                    "label": ct.name,
+                    "selected": f"type:{content_code}" in query,
+                }
+            )
 
     return render(
         request,
         "catalog/search.html",
         {
-            "types": types,
-            "datasources": datasources,
+            "type_options": type_options,
+            "datasource_options": datasource_options,
             "query": query,
             "results": results,
             "breadcrumbs": [
