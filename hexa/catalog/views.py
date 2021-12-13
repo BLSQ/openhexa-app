@@ -58,7 +58,7 @@ def search(request: HttpRequest) -> HttpResponse:
                 datasource_options.append(
                     {
                         "value": obj.id,
-                        "label": obj.display_name,
+                        "label": f"({ct.app_label[10:].capitalize()}) {obj.display_name}",
                         "selected": f"datasource:{obj.id}" in query,
                     }
                 )

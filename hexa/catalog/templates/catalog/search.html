@@ -25,7 +25,7 @@
                         x-model="query"
                 >
             </form>
-            <div class="relative border-b border-gray-200 px-4 py-2">
+            <div class="relative border-b border-gray-200 px-4 py-2 flex">
                 <div class="text-gray-400 absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     {% include "partials/icons/search.html" %}
                 </div>
@@ -40,35 +40,34 @@
                         @keydown.enter="$refs.form.submit()"
                         x-model="textQuery"
                 >
+                <button
+                        @click="$refs.form.submit()"
+                        type="submit"
+                        class="inline-flex items-center px-6 py-3 -mr-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                    {% translate "Search" %}
+                </button>
             </div>
             <div class="p-4">
-                <h3 class="text-md font-medium text-gray-900">Additional filters</h3>
-                <div class="flex">
-                    <div class="flex-1">
-                        {% include "catalog/components/search_filter.html" with key="type" label=_("By type") options=type_options %}
-                    </div>
-                    <div class="flex-1">
-                        {% include "catalog/components/search_filter.html" with key="datasource" label=_("By source") options=datasource_options %}
-                    </div>
-                </div>
                 <div class="my-4">
-                    <p class="text-sm text-yellow-700">
-                        Generated query string:
-                        <span class="bg-gray-50 border border-gray-100 rounded">"<span x-html="query"></span>"</span>
-                    </p>
-                </div>
-            </div>
-            </form>
-            <div class="bg-blue-50 p-4 relative">
-                <div class="ml-3 flex-1">
-                    <h3 class="text-md font-medium text-blue-900">Search tips</h3>
-                    <p class="text-sm text-blue-700">
+                    <h3 class="text-md font-medium text-gray-900">Search tips</h3>
+                    <p class="text-sm text-gray-700">
                         {% blocktranslate %}
-                            Enter one or more search terms separated by spaces.
+                            Enter one or more search terms separated by spaces. Use "quotes" for exact matches.
                         {% endblocktranslate %}
                     </p>
                 </div>
+                <h3 class="text-md font-medium text-gray-900">Additional filters</h3>
+                {% include "catalog/components/search_filter.html" with key="type" label=_("By type") options=type_options %}
+                {% include "catalog/components/search_filter.html" with key="datasource" label=_("By source") options=datasource_options %}
+                {#                <div class="my-4">#}
+                {#                    <p class="text-sm text-yellow-700">#}
+                {#                        Generated query string:#}
+                {#                        <span class="bg-gray-50 border border-gray-100 rounded">"<span x-html="query"></span>"</span>#}
+                {#                    </p>#}
+                {#                </div>#}
             </div>
+            </form>
             <div>
                 {% if results|length > 0 %}
                     <ul class="divide-y divide-gray-200">

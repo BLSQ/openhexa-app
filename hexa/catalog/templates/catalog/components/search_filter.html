@@ -1,8 +1,8 @@
-<div class="flex flex-row items-center my-2">
-    <label for="search_filter_{{ key }}" class="text-sm text-gray-700 font-medium mr-2">
+<div class="flex flex-row items-center my-4">
+    <label for="search_filter_{{ key }}" class="text-sm text-gray-700 font-medium mr-2 w-24">
         {{ label }}:
     </label>
-    <div class="ml-2 mr-4 h-10 flex-1" x-data="{ search: '' }">
+    <div class="ml-2 mr-4 flex-1" x-data="{ search: '' }">
         <select
                 id="search_filter_{{ key }}"
                 name="search_filter_{{ key }}"
