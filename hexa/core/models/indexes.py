@@ -70,39 +70,41 @@ class BaseIndexQuerySet(TreeQuerySet):
 
     def filter_for_tokens(self, tokens: typing.Sequence[Token]):
         trig_query = " ".join([t.value for t in tokens if t.type == TokenType.WORD])
-
-        # We mix similarity and word_similarity to achieve better results in long strings
-        # See https://dev.to/moritzrieger/build-a-fuzzy-search-with-postgresql-2029
-        similarity = Greatest(
-            TrigramSimilarity("search", trig_query),
-            TrigramWordSimilarity("search", trig_query),
-        )
-
-        # Here, we do 2 things:
-        # First, we filter with __trigram_similar, this generates SQL like `WHERE search % 'the query'`
-        # where % is the similarity operator (https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-OP-TABLE)
-        # This operator checks that the similarity is greater than pg_trgm.similarity_threshold
-        # We use the operator and not the function as postgresl does not hit the index for the function (sadly)
-        # (note: the GIN and GIST indexes are defined directly on the Index model)
-        #
-        # Then, we annotate with TrigramSimilarity("search", query) and it generates this SQL:
-        # `SELECT similarity("search", 'the query') as rank` and this is used to display the rank in the search.
-        results = (
-            self.filter(
-                Q(search__trigram_similar=trig_query)
-                | Q(search__trigram_word_similar=trig_query)
+        if trig_query:
+            # We mix similarity and word_similarity to achieve better results in long strings
+            # See https://dev.to/moritzrieger/build-a-fuzzy-search-with-postgresql-2029
+            similarity = Greatest(
+                TrigramSimilarity("search", trig_query),
+                TrigramWordSimilarity("search", trig_query),
             )
-            # exclude everything called 's3keep', it's noise from s3content manager
-            # TODO: don't index these files
-            .annotate(rank=similarity).order_by("-rank")
-        )
 
-        # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
-        # We increase it here.
-        # Warning: the SET is done right now but the queryset execution is lazy so could be delayed a lot
-        # there is no guarantee that someone will not SET a different value in the meantime. (but probability is low)
-        with connection.cursor() as cursor:
-            cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
+            # Here, we do 2 things:
+            # First, we filter with __trigram_similar, this generates SQL like `WHERE search % 'the query'`
+            # where % is the similarity operator (https://www.postgresql.org/docs/current/pgtrgm.html#PGTRGM-OP-TABLE)
+            # This operator checks that the similarity is greater than pg_trgm.similarity_threshold
+            # We use the operator and not the function as postgresl does not hit the index for the function (sadly)
+            # (note: the GIN and GIST indexes are defined directly on the Index model)
+            #
+            # Then, we annotate with TrigramSimilarity("search", query) and it generates this SQL:
+            # `SELECT similarity("search", 'the query') as rank` and this is used to display the rank in the search.
+            results = (
+                self.filter(
+                    Q(search__trigram_similar=trig_query)
+                    | Q(search__trigram_word_similar=trig_query)
+                )
+                # exclude everything called 's3keep', it's noise from s3content manager
+                # TODO: don't index these files
+                .annotate(rank=similarity).order_by("-rank")
+            )
+
+            # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
+            # We increase it here.
+            # Warning: the SET is done right now but the queryset execution is lazy so could be delayed a lot
+            # there is no guarantee that someone will not SET a different value in the meantime. (but probability is low)
+            with connection.cursor() as cursor:
+                cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
+        else:
+            results = self
 
         # filter with exact word
         for t in tokens:
