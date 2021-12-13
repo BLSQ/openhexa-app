@@ -1,16 +1,61 @@
 import uuid
+from typing import List
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
+from hexa.core.search import tokenize
+
+
+class CatalogIndexQuerySet(BaseIndexQuerySet):
+    def search(self, query: str):
+        tokens = tokenize(query)
+
+        # filters
+        types = [t.value[5:] for t in tokens if t.value.startswith("type:")]
+        datasources = []
+        for t in tokens:
+            if t.value.startswith("datasource:"):
+                try:
+                    datasources.append(uuid.UUID(t.value[11:]))
+                except ValueError:
+                    continue
+
+        # query
+        results = (
+            self.filter_for_tokens(tokens)
+            # filter by resources type
+            .filter_for_types(types)
+            # filter by datasources
+            .filter_for_datasources(datasources)
+            # exclude s3keep, artifact of s3content mngt
+            .exclude(external_name=".s3keep")
+        )
+
+        return results
+
+    def filter_for_datasources(self, ds_ids: List[uuid.UUID]):
+        # sub select only those types
+        q_predicats = Q()
+        for ds_id in ds_ids:
+            q_predicats |= Q(datasource_id=ds_id)
+        return self.filter(q_predicats)
 
 
 class Index(BaseIndex):
+    # copy container info to help filter search
+    datasource_name = models.TextField(blank=True)
+    datasource_id = models.UUIDField(null=True)
+
+    objects = BaseIndexManager.from_queryset(CatalogIndexQuerySet)()
+
     class Meta:
         verbose_name = "Catalog index"
         verbose_name_plural = "Catalog indexes"
@@ -27,6 +72,11 @@ class Index(BaseIndex):
                 opclasses=["gist_trgm_ops"],
             ),
         ]
+
+    def to_dict(self):
+        result = super().to_dict()
+        result["datasource_name"] = self.datasource_name
+        return result
 
 
 class IndexPermission(BaseIndexPermission):

@@ -47,10 +47,42 @@ def search(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("query", "")
     results = Index.objects.filter_for_user(request.user).search(query)[:100]
 
+    type_options, datasource_options = [], []
+    for ct in ContentType.objects.filter(app_label__startswith="connector_"):
+        model = ct.model_class()
+        if not model:
+            continue
+
+        if issubclass(model, Datasource):
+            for obj in model.objects.all():
+                datasource_options.append(
+                    {
+                        "value": obj.id,
+                        "label": f"({ct.app_label[10:].capitalize()}) {obj.display_name}",
+                        "selected": f"datasource:{obj.id}" in query,
+                    }
+                )
+        if hasattr(
+            model, "searchable"
+        ):  # TODO: remove (see comment in datasource_index command)
+            content_code = f"{ct.app_label[10:]}_{ct.model}"
+            type_options.append(
+                {
+                    "value": f"{content_code}",
+                    "label": ct.name,
+                    "selected": f"type:{content_code}" in query,
+                }
+            )
+
+    type_options = sorted(type_options, key=lambda e: e["label"])
+    datasource_options = sorted(datasource_options, key=lambda e: e["label"])
+
     return render(
         request,
         "catalog/search.html",
         {
+            "type_options": type_options,
+            "datasource_options": datasource_options,
             "query": query,
             "results": results,
             "breadcrumbs": [

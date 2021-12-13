@@ -21,7 +21,7 @@
 }
 
 .ts-dropdown {
-    @apply rounded-md border border-solid border-t border-gray-300
+    @apply rounded-md border border-solid border-t border-gray-300 z-50
 }
 
 .ts-dropdown [data-selectable].option {

@@ -87,6 +87,8 @@ class Instance(Datasource):
 
     objects = InstanceQuerySet.as_manager()
 
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
     @property
     def display_name(self):
         return self.name if self.name != "" else self.url
@@ -176,6 +178,8 @@ class Instance(Datasource):
         index.content = self.content_summary
         index.path = [self.id.hex]
         index.search = f"{self.name}"
+        index.datasource_name = self.name
+        index.datasource_id = self.id
 
     def get_absolute_url(self):
         return reverse(
@@ -290,6 +294,8 @@ class DataElement(Dhis2Entry):
         verbose_name = "DHIS2 Data Element"
         ordering = ("name",)
 
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
     code = models.CharField(max_length=100, blank=True)
     domain_type = models.CharField(choices=DomainType.choices, max_length=100)
     value_type = models.CharField(choices=ValueType.choices, max_length=100)
@@ -301,6 +307,8 @@ class DataElement(Dhis2Entry):
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
         index.search = f"{self.name} {self.description}"
+        index.datasource_name = self.instance.name
+        index.datasource_id = self.instance.id
 
     def get_absolute_url(self):
         return reverse(
@@ -329,6 +337,8 @@ class OrganisationUnit(Dhis2Entry):
         verbose_name = "DHIS2 Organisation Unit"
         ordering = ("name",)
 
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
     code = models.CharField(max_length=100, blank=True)
     path = PathField()
     leaf = models.BooleanField()
@@ -342,6 +352,8 @@ class OrganisationUnit(Dhis2Entry):
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
         index.search = f"{self.name} {self.description}"
+        index.datasource_name = self.instance.name
+        index.datasource_id = self.instance.id
 
     def get_absolute_url(self):
         return reverse(
@@ -370,6 +382,8 @@ class Indicator(Dhis2Entry):
         verbose_name = "DHIS2 Indicator"
         ordering = ("name",)
 
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
     code = models.CharField(max_length=100, blank=True)
     indicator_type = models.ForeignKey(
         "IndicatorType", null=True, on_delete=models.SET_NULL
@@ -382,6 +396,8 @@ class Indicator(Dhis2Entry):
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
         index.search = f"{self.name} {self.description}"
+        index.datasource_name = self.instance.name
+        index.datasource_id = self.instance.id
 
     def get_absolute_url(self):
         return reverse(
@@ -398,6 +414,8 @@ class ExtractStatus(models.TextChoices):
 
 
 class DataSet(Dhis2Entry):
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
     code = models.CharField(max_length=100, blank=True)
     data_elements = models.ManyToManyField(DataElement, blank=True)
 
@@ -414,6 +432,8 @@ class DataSet(Dhis2Entry):
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
         index.search = f"{self.name} {self.description}"
+        index.datasource_name = self.instance.name
+        index.datasource_id = self.instance.id
 
     def get_absolute_url(self):
         return reverse(

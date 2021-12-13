@@ -98,6 +98,7 @@ class Bucket(Datasource):
     )
 
     objects = BucketQuerySet.as_manager()
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     @property
     def principal_credentials(self):
@@ -333,6 +334,8 @@ class Bucket(Datasource):
         index.external_name = self.name
         index.external_type = "bucket"
         index.search = f"{self.name}"
+        index.datasource_name = self.name
+        index.datasource_id = self.id
 
     @property
     def display_name(self):
@@ -407,6 +410,7 @@ class Object(Entry):
     orphan = models.BooleanField(default=False)  # TODO: remove?
 
     objects = ObjectQuerySet.as_manager()
+    searchable = True  # TODO: remove (see comment in datasource_index command)
 
     def save(self, *args, **kwargs):
         if self.parent_key is None:
@@ -422,6 +426,8 @@ class Object(Entry):
         index.external_type = self.type
         index.external_subtype = self.extension
         index.search = f"{self.filename} {self.key}"
+        index.datasource_name = self.bucket.name
+        index.datasource_id = self.bucket.id
 
     def __repr__(self):
         return f"<Object s3://{self.bucket.name}/{self.key}>"

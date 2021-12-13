@@ -255,10 +255,13 @@ function CardSection(url, contentTypeKey, objectId) {
 
 function TomSelectable(multiple = true) {
     return {
-        init($el) {
+        init($el, $dispatch) {
             new TomSelect($el, {
                 optionClass: 'option',
                 itemClass: 'item',
+                onChange: function (value) {
+                    $dispatch('select-change', {value});
+                },
                 render: {
                     option: function (data, escape) {
                         return '<div>' + escape(data.text) + '</div>';
@@ -387,9 +390,36 @@ function CodeMirrorrized() {
                 lint: true,
                 gutters: ["CodeMirror-lint-markers"],
             });
-            instance.on("change", function(cm) {
+            instance.on("change", function (cm) {
                 textArea.innerHTML = cm.getValue();
             });
+        }
+    }
+}
+
+function AdvancedSearch(initialQuery) {
+    return {
+        query: initialQuery,
+        textQuery: "",
+        filters: {},
+        init: function () {
+            // hydrate state from query
+            const parts = initialQuery.split(" ");
+            if (parts.length > 0) {
+                this.textQuery = parts[0];
+                parts.slice(1).forEach(filter => {
+                    const filterKey = filter.split(":", 1);
+                    this.filters = Object.assign({[filterKey]: []}, this.filters);
+                    this.filters[filterKey].push(filter);
+                })
+            }
+        },
+        recomputeQuery() {
+            this.query = [this.textQuery, ...Object.values(this.filters).flat()].join(" ");
+        },
+        setFilters(eventData) {
+            this.filters[eventData.key] = eventData.value.map(value => `${eventData.key}:${value}`);
+            this.recomputeQuery();
         }
     }
 }
