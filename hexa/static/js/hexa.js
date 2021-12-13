@@ -393,3 +393,18 @@ function CodeMirrorrized() {
         }
     }
 }
+
+function AdvancedSearch() {
+    return {
+        query: "",
+        addFilter(event) {
+            if (event.target.value == null || event.target.value == undefined || event.target.value.length == 0) {
+                return
+            }
+            if (this.query.length > 0 && this.query[this.query.length - 1] != ' ') {
+                this.query += " "
+            }
+            this.query += event.detail + ":" + event.target.value + " "
+        },
+    }
+}

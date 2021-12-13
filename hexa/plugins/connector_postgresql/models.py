@@ -35,6 +35,8 @@ class Database(Datasource):
     def get_permission_set(self):
         return self.databasepermission_set.all()
 
+    searchable = True
+
     hostname = models.CharField(max_length=200)
     username = models.CharField(max_length=200)
     password = EncryptedTextField(max_length=200)
@@ -91,6 +93,8 @@ class Database(Datasource):
         index.search = f"{self.database}"
         index.path = [self.id.hex]
         index.content = self.content_summary
+        index.datasource_name = self.database
+        index.datasource_id = self.id
 
     @property
     def display_name(self):
@@ -205,6 +209,8 @@ class Table(Entry):
     name = models.CharField(max_length=512)
     rows = models.IntegerField(default=0)
 
+    searchable = True
+
     class Meta:
         verbose_name = "PostgreSQL table"
         ordering = ["name"]
@@ -222,6 +228,8 @@ class Table(Entry):
         index.external_id = f"{self.database.safe_url}/{self.name}"
         index.context = self.database.database
         index.search = f"{self.name}"
+        index.datasource_name = self.database.database
+        index.datasource_id = self.database.id
 
     def get_absolute_url(self):
         return reverse(

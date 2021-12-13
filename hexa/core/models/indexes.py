@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, List
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -20,6 +20,7 @@ from hexa.core.models.postgres import (
     PostgresTextSearchConfigField,
     locale_to_text_search_config,
 )
+from hexa.core.string import Token, TokenType
 
 
 @Field.register_lookup
@@ -53,23 +54,26 @@ class BaseIndexQuerySet(TreeQuerySet):
             indexpermission__team__in=[t.pk for t in user.team_set.all()]
         ).distinct()
 
-    def search(self, query: str):
-        tokens = query.split(" ")
-
-        try:
-            content_type_code = next(t for t in tokens if t[:5] == "type:")[5:]
-            other_tokens = [t for t in tokens if t[:5] != "type:"]
-            query = " ".join(other_tokens)
-            app_code, model_name = content_type_code.split("_", 1)
+    def filter_for_types(self, code_types: List[str]):
+        # sub select only those types
+        q_predicats = Q()
+        for code in code_types:
+            app_code, model_name = code.split("_", 1)
             app_label = f"connector_{app_code}"
             content_type = ContentType.objects.get_by_natural_key(app_label, model_name)
-        except StopIteration:
-            content_type = None
+            q_predicats |= Q(content_type=content_type)
+        query = self.select_related("content_type")
+        query = query.filter(q_predicats)
+        return query
+
+    def search(self, tokens: List[Token]):
+        trig_query = " ".join([t.value for t in tokens if t.type == TokenType.WORD])
 
         # We mix similarity and word_similarity to achieve better results in long strings
         # See https://dev.to/moritzrieger/build-a-fuzzy-search-with-postgresql-2029
         similarity = Greatest(
-            TrigramSimilarity("search", query), TrigramWordSimilarity("search", query)
+            TrigramSimilarity("search", trig_query),
+            TrigramWordSimilarity("search", trig_query),
         )
 
         # Here, we do 2 things:
@@ -83,17 +87,13 @@ class BaseIndexQuerySet(TreeQuerySet):
         # `SELECT similarity("search", 'the query') as rank` and this is used to display the rank in the search.
         results = (
             self.filter(
-                Q(search__trigram_similar=query) | Q(search__trigram_word_similar=query)
+                Q(search__trigram_similar=trig_query)
+                | Q(search__trigram_word_similar=trig_query)
             )
             # exclude everything called 's3keep', it's noise from s3content manager
             # TODO: don't index these files
-            .exclude(external_name=".s3keep")
-            .annotate(rank=similarity)
-            .order_by("-rank")
+            .annotate(rank=similarity).order_by("-rank")
         )
-
-        if content_type is not None:
-            results = results.filter(content_type=content_type)
 
         # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
         # We increase it here.
@@ -102,7 +102,12 @@ class BaseIndexQuerySet(TreeQuerySet):
         with connection.cursor() as cursor:
             cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
 
-        return results.select_related("content_type")
+        # filter with exact word
+        for t in tokens:
+            if t.type == TokenType.EXACT_WORD:
+                results = results.filter(search__contains=t.value)
+
+        return results
 
 
 class BaseIndexManager(TreeManager):

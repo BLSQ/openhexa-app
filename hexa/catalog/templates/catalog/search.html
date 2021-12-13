@@ -6,7 +6,7 @@
 {% block page_content %}
     <!-- This example requires Tailwind CSS v2.0+ -->
     <div class="bg-white shadow overflow-hidden sm:rounded-md mb-12">
-        <div class="divide-y divide-gray-200">
+        <div class="divide-y divide-gray-200" x-data="AdvancedSearch()" @addfilter="addFilter(event)">
             <div class="px-4 py-2 sm:px-6">
                 <form
                         method="get"
@@ -24,6 +24,7 @@
                                 autocomplete="off"
                                 placeholder="{% translate "Search for data sources, data elements..." %}"
                                 value="{{ query }}"
+                                x-model="query"
                         >
                     </div>
                 </form>
@@ -33,29 +34,28 @@
                     <p class="text-sm text-blue-700">
                         {% blocktranslate %}
                             Enter one or more search terms separated by spaces. You can also filter results by
-                            data type
-                            using the <code class="bg-blue-100 p-0.5 -my-0.5 mx-0.5 rounded-sm">type:</code>
-                            filter.
+                            data type or source with these:
                         {% endblocktranslate %}
                     </p>
-                    <div class="flex my-2 items-center">
-                        <p class="text-sm text-blue-700 font-bold">
-                            {% translate "Examples" %}:
-                        </p>
-                        <ul class="ml-4 flex items-center space-x-2">
-                            <li>
-                                {% include "core/components/search/query_link.html" with query="severe" %}
-                            </li>
-                            <li>
-                                {% include "core/components/search/query_link.html" with query="play type:dhis2_instance" %}
-                            </li>
-                            <li>
-                                {% include "core/components/search/query_link.html" with query="anc type:dhis2_dataelement" %}
-                            </li>
-                            <li>
-                                {% include "core/components/search/query_link.html" with query="anc type:dhis2_indicator" %}
-                            </li>
-                        </ul>
+                    <div class="flex mt-4 items-center">
+                        <span class="text-sm text-blue-700">Type:</span>
+                        <div class="ml-2 w-60 mr-4" x-data="{ search: '' }" >
+                            <select x-data="TomSelectable()" x-init="init($el)" @change="$dispatch('addfilter', 'type')">
+                                <option value="" selected></option>
+                                {% for type in types %}
+                                <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <span class="text-sm text-blue-700">Datasource:</span>
+                        <div class="mx-2 w-80">
+                            <select x-data="TomSelectable()" x-init="init($el)" @change="$dispatch('addfilter', 'datasource')">
+                                <option value="" selected></option>
+                                {% for datasource in datasources %}
+                                <option value="{{ datasource.datasource_id }}">{{ datasource.datasource_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>

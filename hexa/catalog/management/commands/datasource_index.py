@@ -3,7 +3,6 @@ from logging import getLogger
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from hexa.catalog.models import Datasource
 from hexa.plugins.app import ConnectorAppConfig
 
 logger = getLogger(__name__)
@@ -20,15 +19,12 @@ class Command(BaseCommand):
 
         for app, models in indexables.items():
             for model in models:
-                if not issubclass(model, Datasource):
-                    # ignore index-able non datasource
+                if not hasattr(model, "searchable"):
                     continue
 
                 for instance in model.objects.all():
                     try:
-                        logger.info(
-                            "building index %s:%s", model, instance.display_name
-                        )
+                        print("building index %s:%s" % (model, instance.id))
                         with transaction.atomic():
                             instance.build_index()
                     except Exception:
