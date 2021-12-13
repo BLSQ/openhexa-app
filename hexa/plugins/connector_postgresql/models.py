@@ -46,7 +46,7 @@ class Database(Datasource):
     postfix = models.CharField(max_length=200, blank=True)
 
     class Meta:
-        verbose_name = "Postgresql Database"
+        verbose_name = "PostgreSQL Database"
         ordering = ("hostname",)
         unique_together = [("database", "postfix")]
 
