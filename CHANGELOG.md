@@ -8,12 +8,14 @@ December 14 2021
 
 ### Added
 
+- New search interface, with filters for data sources and content types
 - Added CSV export on DHIS2 data elements, indicators and organisation units
 - Added ```datasource:``` filter in advanced search
 - Added exact word filter in search, when a token is in double quote
 
 ### Updated
 
+- Improved search engine and indexing
 - Added last pipeline runs in Dashboard
 - Fine-tuned Pipelines UX (more focus on the pipeline themselves)
 - Increase session cookie lifetime to 1 year
