@@ -236,6 +236,14 @@ class BaseIndex(Base):
 
         return last_synced_at
 
+    def get_absolute_url(self):
+        if hasattr(self.object, "get_absolute_url") and callable(
+            self.object.get_absolute_url
+        ):
+            return self.object.get_absolute_url()
+
+        return None
+
 
 class BaseIndexPermission(models.Model):
     class Meta:

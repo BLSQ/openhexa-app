@@ -8,10 +8,8 @@ December 14 2021
 
 ### Added
 
-- New search interface, with filters for data sources and content types
+- New search interface, with filters for data sources and content types and exact match mode
 - Added CSV export on DHIS2 data elements, indicators and organisation units
-- Added ```datasource:``` filter in advanced search
-- Added exact word filter in search, when a token is in double quote
 
 ### Updated
 

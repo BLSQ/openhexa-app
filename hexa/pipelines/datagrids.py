@@ -35,13 +35,9 @@ class PipelineIndexGrid(Datagrid):
         text="display_name",
         secondary_text="content_type_name",
         image_src="symbol",
-        detail_url="get_url",
     )
     location = CountryColumn(value="countries")
     tags = TagColumn(value="tags.all")
     last_run = DateColumn(date="object.last_run.execution_date", label=_("Last run"))
     last_state = StatusColumn(value="object.last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")
-
-    def get_url(self, index: Index):
-        return index.object.get_absolute_url()
