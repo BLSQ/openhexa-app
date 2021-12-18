@@ -166,7 +166,6 @@ class Bucket(Datasource):
                 "Key": name,
                 "true_key": name,
                 "LastModified": last_modified[name],
-                "ETag": None,
                 "Size": 0,
                 "StorageClass": "DIRECTORY",
                 "type": "directory",
