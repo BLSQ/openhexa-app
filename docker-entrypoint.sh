@@ -47,7 +47,7 @@ case "$command" in
   ;;
 "coveraged-test")
   coverage run manage.py test $arguments
-  coverage report --skip-empty --fail-under=95
+  coverage report --skip-empty --fail-under=80
   ;;
 "manage")
   wait-for-it db:5432
