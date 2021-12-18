@@ -19,4 +19,4 @@ jobs:
         run: docker-compose build
 
       - name: Run Django tests
-        run: docker-compose run app test
+        run: docker-compose run app coveraged-test

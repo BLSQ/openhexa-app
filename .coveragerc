@@ -1,0 +1,6 @@
+[run]
+omit = */migrations/*
+source = hexa/
+
+[html]
+directory = htmlcov/
