@@ -46,8 +46,8 @@ case "$command" in
   python manage.py test --parallel $arguments
   ;;
 "coveraged-test")
-  coverage run manage.py test --parallel $arguments
-  coverage report
+  coverage run manage.py test $arguments
+  coverage report --skip-empty
   ;;
 "manage")
   wait-for-it db:5432
