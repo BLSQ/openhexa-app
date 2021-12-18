@@ -150,6 +150,7 @@ class Bucket(Datasource):
         for object in objects:
             object["type"] = "file"
             object["true_key"] = object["Key"]
+            object["ETag"] = object["ETag"].strip('"')
             path = object["Key"].strip("/").split("/")
             if len(path) > 1:
                 dirname = "/".join(path[:-1]) + "/"
