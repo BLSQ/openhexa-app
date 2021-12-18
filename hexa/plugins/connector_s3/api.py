@@ -305,6 +305,9 @@ def all_objects_info(
 
     while True:
         page = client.list_objects_v2(**kwargs)
+        if "Contents" not in page:
+            assert page["IsTruncated"] is False
+            break
         objects.extend(page["Contents"])
         if page["IsTruncated"]:
             kwargs["ContinuationToken"] = page["NextContinuationToken"]
