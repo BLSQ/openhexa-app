@@ -278,7 +278,7 @@ elif os.environ.get("DEBUG_LOGGING", "false") == "true":
         "loggers": {
             "": {
                 "handlers": ["console"],
-                "level": "WARNING",
+                "level": "INFO",
             },
         },
     }
