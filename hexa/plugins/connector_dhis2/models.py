@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from dhis2 import ClientException, RequestException
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
@@ -18,6 +20,8 @@ from ...core.date_utils import date_format
 from ...core.models.cryptography import EncryptedTextField
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
+
+logger = getLogger(__name__)
 
 
 def validate_dhis2_base_url(value):
@@ -84,6 +88,7 @@ class Instance(Datasource):
     indexes = GenericRelation("catalog.Index")
     name = models.TextField(blank=True)
     locale = LocaleField(default="en")
+    verbose_sync = models.BooleanField(default=False)
 
     objects = InstanceQuerySet.as_manager()
 
@@ -96,8 +101,13 @@ class Instance(Datasource):
     def __str__(self):
         return self.display_name
 
+    def sync_log(self, fmt, *args):
+        if self.verbose_sync:
+            logger.info("sync_log %s: " + fmt, self.name, *args)
+
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""
+        self.sync_log("start syncing")
 
         client = Dhis2Client(
             url=self.api_credentials.api_url,
@@ -105,14 +115,17 @@ class Instance(Datasource):
             password=self.api_credentials.password,
         )
 
+        self.sync_log("client initialized")
         results = DatasourceSyncResult(datasource=self)
 
         # Sync data elements
         with transaction.atomic():
             info = client.fetch_info()
+            self.sync_log("fetch info done: %s", info)
             self.name = info["systemName"]
 
-            for results_batch in client.fetch_data_elements():
+            self.sync_log("start fetch data_elements")
+            for results_batch in client.fetch_data_elements(verbose=self.verbose_sync):
                 results += sync_from_dhis2_results(
                     model_class=DataElement,
                     instance=self,
@@ -120,7 +133,10 @@ class Instance(Datasource):
                 )
 
             # Sync indicator types
-            for results_batch in client.fetch_indicator_types():
+            self.sync_log("start fetch indicator_types")
+            for results_batch in client.fetch_indicator_types(
+                verbose=self.verbose_sync
+            ):
                 results += sync_from_dhis2_results(
                     model_class=IndicatorType,
                     instance=self,
@@ -128,7 +144,8 @@ class Instance(Datasource):
                 )
 
             # Sync indicators
-            for results_batch in client.fetch_indicators():
+            self.sync_log("start fetch indicators")
+            for results_batch in client.fetch_indicators(verbose=self.verbose_sync):
                 results += sync_from_dhis2_results(
                     model_class=Indicator,
                     instance=self,
@@ -136,7 +153,8 @@ class Instance(Datasource):
                 )
 
             # Sync datasets
-            for results_batch in client.fetch_datasets():
+            self.sync_log("start fetch datasets")
+            for results_batch in client.fetch_datasets(verbose=self.verbose_sync):
                 results += sync_from_dhis2_results(
                     model_class=DataSet,
                     instance=self,
@@ -144,7 +162,10 @@ class Instance(Datasource):
                 )
 
             # Sync organisation units
-            for results_batch in client.fetch_organisation_units():
+            self.sync_log("start fetch organisation_units")
+            for results_batch in client.fetch_organisation_units(
+                verbose=self.verbose_sync
+            ):
                 results += sync_from_dhis2_results(
                     model_class=OrganisationUnit,
                     instance=self,
@@ -152,9 +173,11 @@ class Instance(Datasource):
                 )
 
             # Flag the datasource as synced
+            self.sync_log("end of fetching resources")
             self.last_synced_at = timezone.now()
             self.save()
 
+        self.sync_log("end of syncing")
         return results
 
     @property

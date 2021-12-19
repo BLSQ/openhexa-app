@@ -1,9 +1,12 @@
 import datetime
 from dataclasses import dataclass
+from logging import getLogger
 from typing import Any, Callable
 
 from dhis2 import Api
 from django.utils import dateparse, timezone
+
+logger = getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -163,38 +166,67 @@ class IndicatorResult(Dhis2Result):
 class Dhis2Client:
     def __init__(self, *, url, username, password):
         self._api = Api(url, username, password)
+        self.name = url
 
     def fetch_info(self):
-        return self._api.get_info()
+        info = self._api.get_info()
+        self.name = info["systemName"]
+        return info
 
-    def fetch_data_elements(self):
+    def fetch_data_elements(self, verbose=False):
         for page in self._api.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100
         ):
+            if verbose:
+                logger.info(
+                    "sync_log %s: page from data_elements %s",
+                    self.name,
+                    page.get("pager"),
+                )
             yield [DataElementResult(data) for data in page["dataElements"]]
 
-    def fetch_datasets(self):
+    def fetch_datasets(self, verbose=False):
         for page in self._api.get_paged(
             "dataSets", params={"fields": ":all"}, page_size=100
         ):
+            if verbose:
+                logger.info(
+                    "sync_log %s: page from datasets %s", self.name, page.get("pager")
+                )
             yield [DataSetResult(data) for data in page["dataSets"]]
 
-    def fetch_indicator_types(self):
+    def fetch_indicator_types(self, verbose=False):
         for page in self._api.get_paged(
             "indicatorTypes", params={"fields": ":all"}, page_size=100
         ):
+            if verbose:
+                logger.info(
+                    "sync_log %s: page from indicator_types %s",
+                    self.name,
+                    page.get("pager"),
+                )
             yield [IndicatorTypeResult(data) for data in page["indicatorTypes"]]
 
-    def fetch_indicators(self):
+    def fetch_indicators(self, verbose=False):
         for page in self._api.get_paged(
             "indicators", params={"fields": ":all"}, page_size=100
         ):
+            if verbose:
+                logger.info(
+                    "sync_log %s: page from indicators %s", self.name, page.get("pager")
+                )
             yield [IndicatorResult(data) for data in page["indicators"]]
 
-    def fetch_organisation_units(self):
+    def fetch_organisation_units(self, verbose=False):
         for page in self._api.get_paged(
             "organisationUnits", params={"fields": ":all"}, page_size=100
         ):
+            if verbose:
+                logger.info(
+                    "sync_log %s: page from organisation_units %s",
+                    self.name,
+                    page.get("pager"),
+                )
             # rewrite path -> replace "/" by "." for correct ltree path
             # warning: in place edit, can side effect on tests
             for element in page["organisationUnits"]:

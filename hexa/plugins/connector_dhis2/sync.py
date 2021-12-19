@@ -23,11 +23,25 @@ def _match_reference(model_class, hexa_name, dhis2_value):
 def sync_from_dhis2_results(*, model_class, instance, results):
     """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
+    model_name = model_class._meta.model_name
+    instance.sync_log(
+        "start sync_from_dhis2_results model %s, results %s", model_name, len(results)
+    )
+
     created = 0
     updated = 0
     identical = 0
 
-    for result in results:
+    for i, result in enumerate(results):
+        instance.sync_log(
+            "loop sync_from_dhis2_results model %s, position %s, results %s, created %s, updated %s, identical %s",
+            model_name,
+            i,
+            result.get_value("id"),
+            created,
+            updated,
+            identical,
+        )
         # Build a dict of dhis2 values indexed by hexa field name, and replace reference to other items by
         # their FK
         dhis2_values = {}
@@ -76,7 +90,23 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             )
             created += 1
 
+        instance.sync_log(
+            "acted sync_from_dhis2_results model %s, position %s, results %s, created %s, updated %s, identical %s",
+            model_name,
+            i,
+            result.get_value("id"),
+            created,
+            updated,
+            identical,
+        )
+
         for relation, items in result.get_relations().items():
+            instance.sync_log(
+                "relation sync_from_dhis2_results model %s, relation %s, items %s",
+                model_name,
+                relation.model_name,
+                items,
+            )
             model = apps.get_model("connector_dhis2", relation.model_name)
             items = model.objects.filter(dhis2_id__in=items)
             getattr(hexa_item, relation.model_field).set(items)
