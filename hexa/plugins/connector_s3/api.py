@@ -293,3 +293,24 @@ def get_object_info(
 ):
     client = _build_app_s3_client(principal_credentials=principal_credentials)
     return client.head_object(Bucket=bucket.name, Key=object_key)
+
+
+def all_objects_info(
+    *,
+    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    bucket: hexa.plugins.connector_s3.models.Bucket,
+):
+    client = _build_app_s3_client(principal_credentials=principal_credentials)
+    kwargs, objects = {"Bucket": bucket.name}, []
+
+    while True:
+        page = client.list_objects_v2(**kwargs)
+        if "Contents" not in page:
+            assert page["IsTruncated"] is False
+            break
+        objects.extend(page["Contents"])
+        if page["IsTruncated"]:
+            kwargs["ContinuationToken"] = page["NextContinuationToken"]
+        else:
+            break
+    return objects

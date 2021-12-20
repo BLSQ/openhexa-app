@@ -9,7 +9,6 @@ from django.template.defaultfilters import filesizeformat, pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from s3fs import S3FileSystem
 
 from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
@@ -17,7 +16,7 @@ from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
-    generate_sts_app_s3_credentials,
+    all_objects_info,
     get_object_info,
     head_bucket,
 )
@@ -117,8 +116,8 @@ class Bucket(Datasource):
         )
 
         # extend info -> not all things from s3fs present in boto3 API
-        info["type"] = "file"  # no concept of directory from boto3 API
-        info["true_key"] = path
+        info["Type"] = "file"  # no concept of directory from boto3 API
+        info["Key"] = path
 
         try:
             object = Object.objects.get(bucket=self, key=path, orphan=False)
@@ -141,25 +140,45 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
-        sts_credentials = generate_sts_app_s3_credentials(
+        objects = all_objects_info(
             principal_credentials=self.principal_credentials,
             bucket=self,
         )
-        fs = S3FileSystem(
-            key=sts_credentials["AccessKeyId"],
-            secret=sts_credentials["SecretAccessKey"],
-            token=sts_credentials["SessionToken"],
-        )
-        fs.invalidate_cache()
+
+        # transform objects -> extract directories
+        directories, last_modified = set(), {}
+        for object in objects:
+            object["Type"] = "file"
+            object["ETag"] = object["ETag"].strip('"')
+            path = object["Key"].strip("/").split("/")
+            if len(path) > 1:
+                dirname = "/".join(path[:-1]) + "/"
+                directories.add(dirname)
+                if (
+                    dirname not in last_modified
+                    or last_modified[dirname] < object["LastModified"]
+                ):
+                    last_modified[dirname] = object["LastModified"]
+
+        # transform directories
+        directories = [
+            {
+                "Key": name,
+                "LastModified": last_modified[name],
+                "Size": 0,
+                "StorageClass": "DIRECTORY",
+                "Type": "directory",
+            }
+            for name in directories
+        ]
 
         # Lock the bucket
         with transaction.atomic():
             Bucket.objects.select_for_update().get(pk=self.pk)
             # Sync data elements
             with transaction.atomic():
-                objects = list(self.list_objects(fs, f"{self.name}"))
-                result = self.sync_directories(fs, objects)
-                result += self.sync_objects(fs, objects)
+                result = self.sync_directories(directories)
+                result += self.sync_objects(objects)
 
                 # Flag the datasource as synced
                 self.last_synced_at = timezone.now()
@@ -167,32 +186,7 @@ class Bucket(Datasource):
 
         return result
 
-    def list_objects(self, fs, path):
-        for object_data in fs.ls(path, detail=True):
-            # S3fs adds the bucket name in the Key, we remove it to be consistent with the S3 documentation
-            object_data["true_key"] = object_data["Key"].split("/", 1)[1]
-
-            if object_data["Key"] == f"{path}" and object_data["type"] != "directory":
-                # Detects the current directory. Ignore it as we already got it from the parent listing
-                continue
-
-            # Manually add a / at the end of the directory paths to be more POSIX-compliant
-            if object_data["type"] == "directory" and not object_data["Key"].endswith(
-                "/"
-            ):
-                object_data["Key"] = object_data["Key"] + "/"
-                object_data["true_key"] = object_data["true_key"] + "/"
-
-            # ETag seems to sometimes contain quotes
-            if object_data.get("ETag", "").startswith('"'):
-                object_data["ETag"] = object_data["ETag"].replace('"', "")
-
-            yield object_data
-
-            if object_data["type"] == "directory":
-                yield from self.list_objects(fs, object_data["Key"])
-
-    def sync_directories(self, fs, s3_objects):
+    def sync_directories(self, s3_objects):
         created_count = 0
         updated_count = 0
         identical_count = 0
@@ -203,8 +197,8 @@ class Bucket(Datasource):
         }
 
         for s3_obj in s3_objects:
-            if s3_obj["type"] == "directory":
-                s3_key = s3_obj["true_key"]
+            if s3_obj["Type"] == "directory":
+                s3_key = s3_obj["Key"]
                 existing = existing_directories_by_key.get(s3_key)
                 if existing:
                     identical_count += 1
@@ -230,7 +224,7 @@ class Bucket(Datasource):
             orphaned=new_orphans_count,
         )
 
-    def sync_objects(self, fs, discovered_objects):
+    def sync_objects(self, discovered_objects):
         existing_objects = list(self.object_set.filter(type="file"))
         existing_by_key = {x.key: x for x in existing_objects}
 
@@ -247,10 +241,10 @@ class Bucket(Datasource):
         orphaned_count = 0
 
         for object_data in discovered_objects:
-            if object_data["type"] != "file":
+            if object_data["Type"] != "file":
                 continue
 
-            key = object_data["true_key"]
+            key = object_data["Key"]
             if key.endswith("/.openhexa.json"):
                 continue
 
@@ -486,16 +480,16 @@ class Object(Entry):
     def update_metadata(self, object_data):
         self.orphan = False
 
-        self.key = object_data["true_key"]
-        self.parent_key = self.compute_parent_key(object_data["true_key"])
-        if "size" in object_data:
-            self.size = object_data["size"]
+        self.key = object_data["Key"]
+        self.parent_key = self.compute_parent_key(object_data["Key"])
+        if "Size" in object_data:
+            self.size = object_data["Size"]
         elif "ContentLength" in object_data:
             self.size = object_data["ContentLength"]
         else:
             raise KeyError("size")
         self.storage_class = object_data.get("StorageClass", "STANDARD")
-        self.type = object_data["type"]
+        self.type = object_data["Type"]
         self.last_modified = object_data.get("LastModified")
         self.etag = object_data.get("ETag")
         # sometime, the ETag contains double quotes -> strip them
@@ -505,8 +499,8 @@ class Object(Entry):
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
-        if "size" in object_data:
-            size = object_data["size"]
+        if "Size" in object_data:
+            size = object_data["Size"]
         elif "ContentLength" in object_data:
             size = object_data["ContentLength"]
         else:
@@ -515,13 +509,13 @@ class Object(Entry):
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
-            key=object_data["true_key"],
-            parent_key=cls.compute_parent_key(object_data["true_key"]),
+            key=object_data["Key"],
+            parent_key=cls.compute_parent_key(object_data["Key"]),
             storage_class=object_data.get("StorageClass", "STANDARD"),
             last_modified=object_data.get("LastModified"),
             # sometime, the ETag contains double quotes -> strip them
             etag=object_data["ETag"].strip('"') if "ETag" in object_data else None,
-            type=object_data["type"],
+            type=object_data["Type"],
             size=size,
         )
 
