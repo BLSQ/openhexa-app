@@ -113,8 +113,11 @@ docker-compose run app test --exclude-tag=external
 Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
 
 ```bash
-docker-compose run app coverage
+docker-compose run app coveraged-test
 ```
+
+If you have the .coverage generated, you can also create html report with the command
+```coverage html```.
 
 ### Code style
 

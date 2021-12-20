@@ -23,6 +23,7 @@ show_help() {
   fixtures         : migrate, create superuser, load fixtures and reindex
   bash             : run bash
   tailwind         : run tailwind browser-sync
+  coveraged-test   : launch django tests and show a coverage report
 
   Any arguments passed will be forwarded to the executed command
   """
@@ -44,9 +45,9 @@ case "$command" in
   wait-for-it db:5432
   python manage.py test --parallel $arguments
   ;;
-"coverage")
-  coverage run --source='.' manage.py test
-  coverage report
+"coveraged-test")
+  coverage run manage.py test $arguments
+  coverage report --skip-empty --fail-under=80
   ;;
 "manage")
   wait-for-it db:5432
