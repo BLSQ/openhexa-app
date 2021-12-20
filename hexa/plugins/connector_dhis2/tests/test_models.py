@@ -1,3 +1,6 @@
+from logging import getLogger
+from unittest.mock import patch
+
 import responses
 from django import test
 from django.utils import timezone
@@ -23,6 +26,8 @@ from .mock_data import (
     mock_info_json,
     mock_orgunits_response,
 )
+
+logger = getLogger(__name__)
 
 
 class ConnectorDhis2Test(test.TestCase):
@@ -106,6 +111,7 @@ class DHIS2SyncTest(test.TestCase):
                 username="test_username",
                 password="test_password",
             ),
+            verbose_sync=True,
         )
 
     @responses.activate
@@ -150,7 +156,20 @@ class DHIS2SyncTest(test.TestCase):
         for model in (DataElement, IndicatorType, Indicator, DataSet, OrganisationUnit):
             self.assertEqual(model.objects.all().count(), 0)
 
-        self.DHIS2_INSTANCE_PLAY.sync()
+        class MockLogger:
+            def __init__(self):
+                self.logs = []
+
+            def info(self, *args):
+                logger.info(args[0] % args[1:])
+                self.logs.append(args)
+
+        with patch(
+            "hexa.plugins.connector_dhis2.models.logger", MockLogger()
+        ) as mock_logger:
+            self.assertTrue(len(mock_logger.logs) == 0)
+            self.DHIS2_INSTANCE_PLAY.sync()
+            self.assertTrue(len(mock_logger.logs) > 0)
 
         for model in (DataElement, IndicatorType, Indicator, DataSet):
             self.assertTrue(model.objects.all().count() > 0)
