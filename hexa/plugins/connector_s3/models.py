@@ -116,8 +116,8 @@ class Bucket(Datasource):
         )
 
         # extend info -> not all things from s3fs present in boto3 API
-        info["type"] = "file"  # no concept of directory from boto3 API
-        info["true_key"] = path
+        info["Type"] = "file"  # no concept of directory from boto3 API
+        info["Key"] = path
 
         try:
             object = Object.objects.get(bucket=self, key=path, orphan=False)
@@ -148,8 +148,7 @@ class Bucket(Datasource):
         # transform objects -> extract directories
         directories, last_modified = set(), {}
         for object in objects:
-            object["type"] = "file"
-            object["true_key"] = object["Key"]
+            object["Type"] = "file"
             object["ETag"] = object["ETag"].strip('"')
             path = object["Key"].strip("/").split("/")
             if len(path) > 1:
@@ -165,11 +164,10 @@ class Bucket(Datasource):
         directories = [
             {
                 "Key": name,
-                "true_key": name,
                 "LastModified": last_modified[name],
                 "Size": 0,
                 "StorageClass": "DIRECTORY",
-                "type": "directory",
+                "Type": "directory",
             }
             for name in directories
         ]
@@ -199,8 +197,8 @@ class Bucket(Datasource):
         }
 
         for s3_obj in s3_objects:
-            if s3_obj["type"] == "directory":
-                s3_key = s3_obj["true_key"]
+            if s3_obj["Type"] == "directory":
+                s3_key = s3_obj["Key"]
                 existing = existing_directories_by_key.get(s3_key)
                 if existing:
                     identical_count += 1
@@ -243,10 +241,10 @@ class Bucket(Datasource):
         orphaned_count = 0
 
         for object_data in discovered_objects:
-            if object_data["type"] != "file":
+            if object_data["Type"] != "file":
                 continue
 
-            key = object_data["true_key"]
+            key = object_data["Key"]
             if key.endswith("/.openhexa.json"):
                 continue
 
@@ -482,18 +480,16 @@ class Object(Entry):
     def update_metadata(self, object_data):
         self.orphan = False
 
-        self.key = object_data["true_key"]
-        self.parent_key = self.compute_parent_key(object_data["true_key"])
-        if "size" in object_data:
-            self.size = object_data["size"]
-        elif "Size" in object_data:
+        self.key = object_data["Key"]
+        self.parent_key = self.compute_parent_key(object_data["Key"])
+        if "Size" in object_data:
             self.size = object_data["Size"]
         elif "ContentLength" in object_data:
             self.size = object_data["ContentLength"]
         else:
             raise KeyError("size")
         self.storage_class = object_data.get("StorageClass", "STANDARD")
-        self.type = object_data["type"]
+        self.type = object_data["Type"]
         self.last_modified = object_data.get("LastModified")
         self.etag = object_data.get("ETag")
         # sometime, the ETag contains double quotes -> strip them
@@ -503,9 +499,7 @@ class Object(Entry):
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):
-        if "size" in object_data:
-            size = object_data["size"]
-        elif "Size" in object_data:
+        if "Size" in object_data:
             size = object_data["Size"]
         elif "ContentLength" in object_data:
             size = object_data["ContentLength"]
@@ -515,13 +509,13 @@ class Object(Entry):
         # TODO: move to manager
         return cls.objects.create(
             bucket=bucket,
-            key=object_data["true_key"],
-            parent_key=cls.compute_parent_key(object_data["true_key"]),
+            key=object_data["Key"],
+            parent_key=cls.compute_parent_key(object_data["Key"]),
             storage_class=object_data.get("StorageClass", "STANDARD"),
             last_modified=object_data.get("LastModified"),
             # sometime, the ETag contains double quotes -> strip them
             etag=object_data["ETag"].strip('"') if "ETag" in object_data else None,
-            type=object_data["type"],
+            type=object_data["Type"],
             size=size,
         )
 
