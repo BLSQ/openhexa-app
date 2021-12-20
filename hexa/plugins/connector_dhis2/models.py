@@ -113,6 +113,7 @@ class Instance(Datasource):
             url=self.api_credentials.api_url,
             username=self.api_credentials.username,
             password=self.api_credentials.password,
+            verbose=self.verbose_sync,
         )
 
         self.sync_log("client initialized")
@@ -125,7 +126,7 @@ class Instance(Datasource):
             self.name = info["systemName"]
 
             self.sync_log("start fetch data_elements")
-            for results_batch in client.fetch_data_elements(verbose=self.verbose_sync):
+            for results_batch in client.fetch_data_elements():
                 results += sync_from_dhis2_results(
                     model_class=DataElement,
                     instance=self,
@@ -134,9 +135,7 @@ class Instance(Datasource):
 
             # Sync indicator types
             self.sync_log("start fetch indicator_types")
-            for results_batch in client.fetch_indicator_types(
-                verbose=self.verbose_sync
-            ):
+            for results_batch in client.fetch_indicator_types():
                 results += sync_from_dhis2_results(
                     model_class=IndicatorType,
                     instance=self,
@@ -145,7 +144,7 @@ class Instance(Datasource):
 
             # Sync indicators
             self.sync_log("start fetch indicators")
-            for results_batch in client.fetch_indicators(verbose=self.verbose_sync):
+            for results_batch in client.fetch_indicators():
                 results += sync_from_dhis2_results(
                     model_class=Indicator,
                     instance=self,
@@ -154,7 +153,7 @@ class Instance(Datasource):
 
             # Sync datasets
             self.sync_log("start fetch datasets")
-            for results_batch in client.fetch_datasets(verbose=self.verbose_sync):
+            for results_batch in client.fetch_datasets():
                 results += sync_from_dhis2_results(
                     model_class=DataSet,
                     instance=self,
@@ -163,9 +162,7 @@ class Instance(Datasource):
 
             # Sync organisation units
             self.sync_log("start fetch organisation_units")
-            for results_batch in client.fetch_organisation_units(
-                verbose=self.verbose_sync
-            ):
+            for results_batch in client.fetch_organisation_units():
                 results += sync_from_dhis2_results(
                     model_class=OrganisationUnit,
                     instance=self,

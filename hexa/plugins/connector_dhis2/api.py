@@ -164,20 +164,21 @@ class IndicatorResult(Dhis2Result):
 
 
 class Dhis2Client:
-    def __init__(self, *, url, username, password):
+    def __init__(self, *, url, username, password, verbose=False):
         self._api = Api(url, username, password)
         self.name = url
+        self.verbose = verbose
 
     def fetch_info(self):
         info = self._api.get_info()
         self.name = info["systemName"]
         return info
 
-    def fetch_data_elements(self, verbose=False):
+    def fetch_data_elements(self):
         for page in self._api.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100
         ):
-            if verbose:
+            if self.verbose:
                 logger.info(
                     "sync_log %s: page from data_elements %s",
                     self.name,
@@ -185,21 +186,21 @@ class Dhis2Client:
                 )
             yield [DataElementResult(data) for data in page["dataElements"]]
 
-    def fetch_datasets(self, verbose=False):
+    def fetch_datasets(self):
         for page in self._api.get_paged(
             "dataSets", params={"fields": ":all"}, page_size=100
         ):
-            if verbose:
+            if self.verbose:
                 logger.info(
                     "sync_log %s: page from datasets %s", self.name, page.get("pager")
                 )
             yield [DataSetResult(data) for data in page["dataSets"]]
 
-    def fetch_indicator_types(self, verbose=False):
+    def fetch_indicator_types(self):
         for page in self._api.get_paged(
             "indicatorTypes", params={"fields": ":all"}, page_size=100
         ):
-            if verbose:
+            if self.verbose:
                 logger.info(
                     "sync_log %s: page from indicator_types %s",
                     self.name,
@@ -207,21 +208,21 @@ class Dhis2Client:
                 )
             yield [IndicatorTypeResult(data) for data in page["indicatorTypes"]]
 
-    def fetch_indicators(self, verbose=False):
+    def fetch_indicators(self):
         for page in self._api.get_paged(
             "indicators", params={"fields": ":all"}, page_size=100
         ):
-            if verbose:
+            if self.verbose:
                 logger.info(
                     "sync_log %s: page from indicators %s", self.name, page.get("pager")
                 )
             yield [IndicatorResult(data) for data in page["indicators"]]
 
-    def fetch_organisation_units(self, verbose=False):
+    def fetch_organisation_units(self):
         for page in self._api.get_paged(
             "organisationUnits", params={"fields": ":all"}, page_size=100
         ):
-            if verbose:
+            if self.verbose:
                 logger.info(
                     "sync_log %s: page from organisation_units %s",
                     self.name,
