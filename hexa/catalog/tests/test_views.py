@@ -1,5 +1,3 @@
-from unittest import skip
-
 from django import test
 from django.db.models import QuerySet
 from django.http import JsonResponse
@@ -144,7 +142,6 @@ class CatalogTest(test.TestCase):
         self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
         self.assertEqual(4, response.context["results"].count())
 
-    @skip
     def test_catalog_quick_search_query_with_columns_200(self):
         """Using columns(:) in the query string will trick our search engine into thinking that we want a filter"""
         self.client.force_login(self.USER_KRISTEN)
