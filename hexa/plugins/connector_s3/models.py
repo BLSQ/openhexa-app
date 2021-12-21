@@ -146,14 +146,14 @@ class Bucket(Datasource):
         )
 
         # transform objects -> extract directories
-        directories_s, last_modified = set(), {}
+        directory_set, last_modified = set(), {}
         for object in objects:
             object["Type"] = "file"
             object["ETag"] = object["ETag"].strip('"')
             path = object["Key"].strip("/").split("/")
             if len(path) > 1:
                 dirname = "/".join(path[:-1]) + "/"
-                directories_s.add(dirname)
+                directory_set.add(dirname)
                 if (
                     dirname not in last_modified
                     or last_modified[dirname] < object["LastModified"]
@@ -169,11 +169,11 @@ class Bucket(Datasource):
                 "StorageClass": "DIRECTORY",
                 "Type": "directory",
             }
-            for name in directories_s
+            for name in directory_set
         ]
 
         # remove file that are directories (legacy of s3contentmngr)
-        objects = [object for object in objects if object["Key"] not in directories_s]
+        objects = [object for object in objects if object["Key"] not in directory_set]
 
         # Lock the bucket
         with transaction.atomic():
