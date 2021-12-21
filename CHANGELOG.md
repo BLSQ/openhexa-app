@@ -16,6 +16,8 @@ December 21 2021
 
 - Fixed issue with S3 objects whose key start by a slash (`/`)
 - Fixed issue with search queries containing a column (`:`)
+- Fixed issue with search queries containing an invalid type filter
+- Fixed issue with search queries containing only filters or exact words
 
 Version 0.15
 ------------
