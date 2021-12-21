@@ -1,6 +1,22 @@
 Changelog
 =========
 
+Version 0.16
+------------
+
+December 21 2021
+
+### Updated
+
+- Added Coverage analysis in build pipeline
+- Replaced s3fs by boto
+- More logs for the DHIS2 connector
+
+### Fixed
+
+- Fixed issue with S3 objects whose key start by a slash (`/`)
+- Fixed issue with search queries containing a column (`:`)
+
 Version 0.15
 ------------
 

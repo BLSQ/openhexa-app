@@ -268,3 +268,43 @@ class SyncTest(test.TestCase):
         re_added = self.bucket.object_set.get(key="new-location.csv")
         self.assertEqual(re_added.pk, original.pk)
         self.assertEqual(self.bucket.object_set.filter(orphan=True).count(), 0)
+
+    @mock_s3
+    @mock_sts
+    def test_slash_directory(self):
+        """Objects with a key that start with / are valid - but S3 will consider this first slash as a directory
+        named "/". It's not a big deal but our sync system has trouble processing them, due to an issue with s3fs
+        that strip slashes at the beginning of keys, resulting in an endless recursion issue."""
+
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        # Create object with a key that starts with "/"
+        s3_client.put_object(
+            Bucket="test-bucket", Key="/imabouttomessthingsup.csv", Body="boom"
+        )
+        self.bucket.sync()
+
+        self.assertEqual(self.bucket.object_set.count(), 1)
+
+    @mock_s3
+    @mock_sts
+    def test_dir_structure(self):
+        """a list of files with different path should be indexed as a set of dir and files"""
+
+        self.assertEqual(self.bucket.object_set.count(), 0)
+
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        # Create object with a key that starts with "/"
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/", Body="")
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/file1", Body="K")
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/file2", Body="L")
+        s3_client.put_object(Bucket="test-bucket", Key="dir2/fileA", Body="M")
+        s3_client.put_object(Bucket="test-bucket", Key="dir2/fileB", Body="N")
+
+        self.bucket.sync()
+        self.assertEqual(self.bucket.object_set.count(), 6)
+        self.assertEqual(self.bucket.object_set.filter(type="directory").count(), 2)
+        self.assertEqual(self.bucket.object_set.filter(type="file").count(), 4)
