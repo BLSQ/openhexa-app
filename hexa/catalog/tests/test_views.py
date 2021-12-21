@@ -11,7 +11,7 @@ from hexa.plugins.connector_dhis2.models import (
     Instance,
     InstancePermission,
 )
-from hexa.plugins.connector_s3.models import Bucket, BucketPermission
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
 from hexa.user_management.models import Team, User
 
 
@@ -244,6 +244,43 @@ class CatalogTest(test.TestCase):
         self.client.force_login(self.USER_BJORN)
 
         response = self.client.get(f"{reverse('catalog:quick_search')}?query=anc")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(0, len(response.json()["results"]))
+
+    def test_catalog_search_orphan(self):
+        """The search should not return orphan objects"""
+        object = Object.objects.create(
+            bucket=self.BUCKET,
+            key="test-orphanXXAAAXXXXAAAAXXXX",
+            parent_key="",
+            size=100,
+            storage_class="STANDARD",
+            type="file",
+            orphan=True,
+        )
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(f"{reverse('catalog:quick_search')}?query=orphan")
+        self.assertEqual(response.status_code, 200)
+        for result in response.json()["results"]:
+            self.assertTrue(result["external_name"] != "test-orphanXXAAAXXXXAAAAXXXX")
+
+    def test_catalog_search_should_validate_filter_input(self):
+        """Typing an invalid/corrupted filter query should not result in an error 500"""
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            f"{reverse('catalog:quick_search')}?query=type:blabla"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(0, len(response.json()["results"]))
+
+    def test_catalog_search_empty_word_query(self):
+        """Typing an filter only query should not result in an error 500"""
+        self.client.force_login(self.USER_KRISTEN)
+        print("ID:%s" % str(self.BUCKET.id))
+        response = self.client.get(
+            f"{reverse('catalog:quick_search')}?query=datasource:%s"
+            % str(self.BUCKET.id)
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(0, len(response.json()["results"]))
 
