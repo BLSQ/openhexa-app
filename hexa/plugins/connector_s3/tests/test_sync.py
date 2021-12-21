@@ -286,3 +286,25 @@ class SyncTest(test.TestCase):
         self.bucket.sync()
 
         self.assertEqual(self.bucket.object_set.count(), 1)
+
+    @mock_s3
+    @mock_sts
+    def test_dir_structure(self):
+        """a list of files with different path should be indexed as a set of dir and files"""
+
+        self.assertEqual(self.bucket.object_set.count(), 0)
+
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+
+        # Create object with a key that starts with "/"
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/", Body="")
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/file1", Body="K")
+        s3_client.put_object(Bucket="test-bucket", Key="dir1/file2", Body="L")
+        s3_client.put_object(Bucket="test-bucket", Key="dir2/fileA", Body="M")
+        s3_client.put_object(Bucket="test-bucket", Key="dir2/fileB", Body="N")
+
+        self.bucket.sync()
+        self.assertEqual(self.bucket.object_set.count(), 6)
+        self.assertEqual(self.bucket.object_set.filter(type="directory").count(), 2)
+        self.assertEqual(self.bucket.object_set.filter(type="file").count(), 4)
