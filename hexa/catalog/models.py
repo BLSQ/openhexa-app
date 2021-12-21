@@ -16,7 +16,7 @@ from hexa.core.search import tokenize
 
 class CatalogIndexQuerySet(BaseIndexQuerySet):
     def search(self, query: str):
-        tokens = tokenize(query)
+        tokens = tokenize(query, ["type", "datasource"])
 
         # filters
         types = [t.value[5:] for t in tokens if t.value.startswith("type:")]

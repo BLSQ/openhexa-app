@@ -16,17 +16,26 @@ class Token:
     type: TokenType
 
 
-def tokenize(input_string: str) -> typing.List[Token]:
+def tokenize(
+    input_string: str, valid_filter_types: typing.Sequence[str] = None
+) -> typing.List[Token]:
     tokens, accu, inside = [], "", False
+
+    def is_filter(s):
+        if valid_filter_types is None:
+            return False
+        column_index = s.find(":")
+        return column_index != -1 and s[:column_index] in valid_filter_types
 
     def push_token():
         nonlocal accu, tokens, inside
         if accu:
-            t = TokenType.WORD
-            if ":" in accu:
+            if is_filter(accu):
                 t = TokenType.FILTER
             elif inside:
                 t = TokenType.EXACT_WORD
+            else:
+                t = TokenType.WORD
             tokens.append(Token(value=accu.lower(), type=t))
             accu = ""
 

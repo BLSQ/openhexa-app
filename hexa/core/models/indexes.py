@@ -102,10 +102,12 @@ class BaseIndexQuerySet(TreeQuerySet):
             # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
             # We increase it here.
             # Warning: the SET is done right now but the queryset execution is lazy so could be delayed a lot
-            # there is no guarantee that someone will not SET a different value in the meantime. (but probability is low)
+            # there is no guarantee that someone will not SET a different value in the meantime
+            # (but probability is low)
             with connection.cursor() as cursor:
                 cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
         else:
+            # FIXME: this will cause issues as we always expect indexes to be annotated with "rank" in a search context
             results = self
 
         # filter with exact word
