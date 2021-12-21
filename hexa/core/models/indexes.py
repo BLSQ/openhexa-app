@@ -6,7 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
 from django.db import connection, models
-from django.db.models import Field, Q
+from django.db.models import Field, Q, Value
 from django.db.models.functions import Greatest
 from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
@@ -62,9 +62,15 @@ class BaseIndexQuerySet(TreeQuerySet):
         # sub select only those types
         q_predicats = Q()
         for code in code_types:
-            app_code, model_name = code.split("_", 1)
-            app_label = f"connector_{app_code}"
-            content_type = ContentType.objects.get_by_natural_key(app_label, model_name)
+            try:
+                app_code, model_name = code.split("_", 1)
+                app_label = f"connector_{app_code}"
+                content_type = ContentType.objects.get_by_natural_key(
+                    app_label, model_name
+                )
+            except Exception:
+                # invalid code ("_" not in code, app not found, contentType not found)
+                continue
             q_predicats |= Q(content_type=content_type)
         query = self.select_related("content_type")
         query = query.filter(q_predicats)
@@ -107,8 +113,7 @@ class BaseIndexQuerySet(TreeQuerySet):
             with connection.cursor() as cursor:
                 cursor.execute("SET pg_trgm.similarity_threshold = %s", [0.1])
         else:
-            # FIXME: this will cause issues as we always expect indexes to be annotated with "rank" in a search context
-            results = self
+            results = self.annotate(rank=Value(0.5))
 
         # filter with exact word
         for t in tokens:
