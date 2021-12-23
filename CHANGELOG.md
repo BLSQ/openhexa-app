@@ -8,6 +8,7 @@ December 28 2021
 
 ### Updated
 
+- Updated to Django 4.x (and other Python dependency updates)
 - Added datasource name in quick search results
 
 ### Fixed
