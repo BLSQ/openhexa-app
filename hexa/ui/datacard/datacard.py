@@ -5,7 +5,7 @@ import typing
 from django import forms
 from django.contrib import messages
 from django.template import loader
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 import hexa.ui.datacard.actions
 from hexa.ui.datacard.base import BaseMeta

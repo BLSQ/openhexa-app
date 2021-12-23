@@ -4,7 +4,7 @@ from logging import getLogger
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
 from hexa.plugins.connector_airflow.api import AirflowAPIError

@@ -9,7 +9,7 @@ from django.template import loader
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models.behaviors import Status
 from hexa.ui.utils import get_item_value
