@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.17
+------------
+
+December 28 2021
+
+### Updated
+
+- Added datasource name in quick search results
+
 Version 0.16
 ------------
 
