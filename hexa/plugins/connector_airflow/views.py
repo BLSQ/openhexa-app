@@ -88,6 +88,8 @@ def dag_detail(
         .filter(dag=dag)
         .order_by("-execution_date"),
         request=request,
+        page=request.GET.get("run_page", "1"),
+        page_parameter_name="run_page",
     )
 
     breadcrumbs = [

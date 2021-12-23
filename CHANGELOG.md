@@ -10,6 +10,10 @@ December 28 2021
 
 - Added datasource name in quick search results
 
+### Fixed
+
+- Fixed issue with pagination on DAG detail page
+
 Version 0.16
 ------------
 
