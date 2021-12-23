@@ -1,5 +1,4 @@
 ariadne
-boto3
 colorhash
 cryptography
 Django
@@ -28,7 +27,7 @@ gunicorn
 dhis2.py
 
 # connector_s3
-s3fs
+boto3
 moto[s3]
 
 # connector_airflow

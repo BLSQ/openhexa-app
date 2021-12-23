@@ -1,4 +1,4 @@
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 def get_item_value(item, accessor, *, container=None, exclude=None):
@@ -36,7 +36,7 @@ def get_item_value(item, accessor, *, container=None, exclude=None):
 
 
 class StaticText:
-    """Wrapper around ugettext_lazy that allows us to mark text as static in data sources - data grids.
+    """Wrapper around gettext_lazy that allows us to mark text as static in data sources - data grids.
     (The datacard / datagrid won't consider it as an accessor and will use it as is).
     """
 

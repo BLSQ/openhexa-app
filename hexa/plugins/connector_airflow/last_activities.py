@@ -1,5 +1,5 @@
 from django.http import HttpRequest
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from hexa.core.activities import Activity, ActivityList
 from hexa.plugins.connector_airflow.models import DAGRun
