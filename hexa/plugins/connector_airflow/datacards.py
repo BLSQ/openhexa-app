@@ -72,7 +72,15 @@ class DAGCard(Datacard):
     metadata = OpenHexaMetaDataSection(value="index")
 
     actions = [
-        Action(label="Configure & run", url="get_run_url", icon="play", method="GET")
+        Action(
+            label="Open in Airflow",
+            url="get_airflow_url",
+            icon="external_link",
+            method="GET",
+            primary=False,
+            enabled_when=lambda r: r.user.is_superuser,
+        ),
+        Action(label="Configure & run", url="get_run_url", icon="play", method="GET"),
     ]
 
     @staticmethod

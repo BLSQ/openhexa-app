@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import typing
+
+from django.http import HttpRequest
 from django.template import loader
 from django.utils.translation import gettext_lazy as _
 
@@ -10,11 +13,22 @@ from .base import DatacardComponent
 
 
 class Action(DatacardComponent):
-    def __init__(self, *, label, url, icon=None, method="post"):
+    def __init__(
+        self,
+        *,
+        label: str,
+        url: str,
+        icon: typing.Optional[str] = None,
+        method: str = "post",
+        primary: bool = True,
+        enabled_when: typing.Optional[typing.Callable] = None
+    ):
         self.label = label
         self.icon = icon
         self.url = url
         self.method = method
+        self.primary = primary
+        self.enabled_when = enabled_when
 
     def bind(self, datacard: hexa.ui.datacard.Datacard):
         return BoundAction(self, datacard=datacard)
@@ -34,6 +48,7 @@ class Action(DatacardComponent):
             "label": _(self.label),
             "icon": self.icon,
             "method": self.method,
+            "primary": self.primary,
         }
 
 
@@ -41,6 +56,12 @@ class BoundAction:
     def __init__(self, unbound_action: Action, *, datacard: hexa.ui.datacard.Datacard):
         self.unbound_action = unbound_action
         self.datacard = datacard
+
+    def is_enabled(self, request: HttpRequest):
+        if self.unbound_action.enabled_when:
+            return self.unbound_action.enabled_when(request)
+
+        return True
 
     def __str__(self):
         template = loader.get_template(self.unbound_action.template)
