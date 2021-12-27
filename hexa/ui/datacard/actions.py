@@ -20,13 +20,20 @@ class Action(DatacardComponent):
         url: str,
         icon: typing.Optional[str] = None,
         method: str = "post",
+        open_in_new_tab: bool = False,
         primary: bool = True,
         enabled_when: typing.Optional[typing.Callable] = None
     ):
+        if open_in_new_tab and method.lower() != "get":
+            raise ValueError(
+                '"open_in_new_tab" can only be set to true if "method" is "get"'
+            )
+
         self.label = label
         self.icon = icon
         self.url = url
         self.method = method
+        self.open_in_new_tab = open_in_new_tab
         self.primary = primary
         self.enabled_when = enabled_when
 
@@ -48,6 +55,7 @@ class Action(DatacardComponent):
             "label": _(self.label),
             "icon": self.icon,
             "method": self.method,
+            "open_in_new_tab": self.open_in_new_tab,
             "primary": self.primary,
         }
 

@@ -238,10 +238,11 @@ class CountryProperty(TagProperty):
 
 
 class URLProperty(Property):
-    def __init__(self, *, url, text=None, **kwargs):
+    def __init__(self, *, url: str, text: str = None, external: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.text = text
         self.url = url
+        self.external = external
 
     @property
     def template(self):
@@ -263,10 +264,7 @@ class URLProperty(Property):
                 + urllib.parse.quote(url_value, safe="")
             )
 
-        return {
-            "text": text_value,
-            "url": url_value,
-        }
+        return {"text": text_value, "url": url_value, "external": self.external}
 
 
 class OwnerProperty(URLProperty):
