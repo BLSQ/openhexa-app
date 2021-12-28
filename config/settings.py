@@ -157,23 +157,15 @@ SESSION_COOKIE_AGE = 365 * 24 * 3600
 if "TRUST_FORWARDED_PROTO" in os.environ:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# CORS
+# CORS (For GraphQL)
 # https://github.com/adamchainz/django-cors-headers
 # TODO: configure for prod
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
-CORS_URLS_REGEX = r"^/graphql/$"
-CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+# CORS_URLS_REGEX = r"^/graphql/$"
+# CORS_ALLOW_CREDENTIALS = True
 
 # SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 # SECURE_REDIRECT_EXEMPT = [r"^ready$"]
-
-# Django tailwinds specifically asks for INTERNAL_IPS to be set
-# https://django-tailwind.readthedocs.io/en/latest/installation.html
-# > Make sure that the INTERNAL_IPS list is present in the settings.py
-# > file and contains the 127.0.0.1 ip address
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -307,6 +299,10 @@ SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"
 if DEBUG:
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    # Django Tailwind and Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
+    # https://django-tailwind.readthedocs.io/en/latest/installation.html
+    # > Make sure that the INTERNAL_IPS list is present in the settings.py
+    # > file and contains the 127.0.0.1 ip address
     INTERNAL_IPS = ["127.0.0.1"]
 
     DEBUG_TOOLBAR_CONFIG = {
