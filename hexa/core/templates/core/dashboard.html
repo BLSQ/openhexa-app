@@ -4,7 +4,6 @@
 {% block page_title %}{% translate "Dashboard" %}{% endblock %}
 
 {% block page_content %}
-    <p class="text-green-900">Lodl</p>
     {% include "core/partials/dashboard_overview.html" %}
     {% embed "ui/section/section.html" with title=_("Last activity") %}
         {% slot content %}
