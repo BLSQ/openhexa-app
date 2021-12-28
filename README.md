@@ -78,7 +78,16 @@ Local development
 
 In addition to the **App component** Docker image, we also provide a `docker-compose.yaml` file for local development.
 
-The following steps will get you up and running:
+The following steps will get you up and running.
+
+Clone the repo:
+
+```bash
+git clone git@github.com:BLSQ/openhexa-app.git
+cd openhexa-app
+```
+
+Build and run:
 
 ```bash
 docker-compose build
