@@ -57,7 +57,8 @@ def sync_from_dhis2_results(*, model_class, instance, results):
         try:
             # Check if the dhis2 data is already in our database and compare values (hexa vs dhis2)
             existing_hexa_item = model_class.objects.get(
-                dhis2_id=dhis2_values["dhis2_id"]
+                dhis2_id=dhis2_values["dhis2_id"],
+                instance=instance,
             )
             existing_hexa_values = {
                 hexa_name: getattr(existing_hexa_item, hexa_name)

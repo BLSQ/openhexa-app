@@ -8,6 +8,7 @@ from django.utils import timezone
 from hexa.catalog.models import Index
 from hexa.user_management.models import Membership, Team, User
 
+from ..api import Dhis2Client
 from ..models import (
     Credentials,
     DataElement,
@@ -18,6 +19,7 @@ from ..models import (
     InstancePermission,
     OrganisationUnit,
 )
+from ..sync import sync_from_dhis2_results
 from .mock_data import (
     mock_data_elements_response,
     mock_datasets_response,
@@ -173,3 +175,67 @@ class DHIS2SyncTest(test.TestCase):
 
         for model in (DataElement, IndicatorType, Indicator, DataSet):
             self.assertTrue(model.objects.all().count() > 0)
+
+
+class DHIS2SyncInstanceSplitTest(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.DHIS2_INSTANCE_PLAY1 = Instance.objects.create(
+            url="https://play1.dhis2.org.invalid",
+            api_credentials=Credentials.objects.create(
+                api_url="https://play1.dhis2.org.invalid",
+                username="test_username",
+                password="test_password",
+            ),
+        )
+        cls.DHIS2_INSTANCE_PLAY2 = Instance.objects.create(
+            url="https://play2.dhis2.org.invalid",
+            api_credentials=Credentials.objects.create(
+                api_url="https://play2.dhis2.org.invalid",
+                username="test_username",
+                password="test_password",
+            ),
+        )
+
+    @responses.activate
+    def test_sync(self):
+        responses.add(
+            responses.GET,
+            "https://play1.dhis2.org.invalid/api/organisationUnits.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
+            json=mock_orgunits_response,
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://play2.dhis2.org.invalid/api/organisationUnits.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
+            json=mock_orgunits_response,
+            status=200,
+        )
+
+        # each mock page contains 2 org unit. two instances with the same data should generate two separate
+        # set of org units (or any other dhis2 object for that matter) -> we should have 4 org units at the end
+        self.assertEqual(OrganisationUnit.objects.all().count(), 0)
+        client_play1 = Dhis2Client(
+            url=self.DHIS2_INSTANCE_PLAY1.api_credentials.api_url,
+            username=self.DHIS2_INSTANCE_PLAY1.api_credentials.username,
+            password=self.DHIS2_INSTANCE_PLAY1.api_credentials.password,
+        )
+        client_play2 = Dhis2Client(
+            url=self.DHIS2_INSTANCE_PLAY2.api_credentials.api_url,
+            username=self.DHIS2_INSTANCE_PLAY2.api_credentials.username,
+            password=self.DHIS2_INSTANCE_PLAY2.api_credentials.password,
+        )
+
+        for results_batch in client_play1.fetch_organisation_units():
+            sync_from_dhis2_results(
+                model_class=OrganisationUnit,
+                instance=self.DHIS2_INSTANCE_PLAY1,
+                results=results_batch,
+            )
+        for results_batch in client_play2.fetch_organisation_units():
+            sync_from_dhis2_results(
+                model_class=OrganisationUnit,
+                instance=self.DHIS2_INSTANCE_PLAY2,
+                results=results_batch,
+            )
+        self.assertEqual(OrganisationUnit.objects.all().count(), 4)
