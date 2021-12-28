@@ -13,7 +13,7 @@ December 28 2021
 ### Updated
 
 - Display more explicitly the underlying DAG in DAG run detail screens 
-- Added the possibility to force-activate features (activate it for all users without regard to their soecific flags)
+- Added the possibility to force-activate features (activate it for all users without regard to their specific flags)
 - Updated to Django 4.x (and other Python dependency updates)
 - Added datasource name in quick search results
 
