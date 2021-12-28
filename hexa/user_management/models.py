@@ -68,7 +68,12 @@ class User(AbstractUser):
         return self.email[:2].upper()
 
     def has_feature_flag(self, code: str) -> bool:
-        return self.featureflag_set.filter(feature__code=code).exists()
+        try:  # Always return True for "forced-activated features"
+            Feature.objects.get(code=code, force_activate=True)
+
+            return True
+        except Feature.DoesNotExist:
+            return self.featureflag_set.filter(feature__code=code).exists()
 
     def __str__(self):
         return self.display_name
@@ -109,9 +114,16 @@ class Membership(Base):
 
 class Feature(Base):
     code = models.CharField(max_length=200)
+    force_activate = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.code
 
 
 class FeatureFlag(Base):
     feature = models.ForeignKey("Feature", on_delete=models.CharField)
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     config = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.feature.code} - {self.user.username}"

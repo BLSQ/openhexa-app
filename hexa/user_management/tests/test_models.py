@@ -28,3 +28,16 @@ class ModelsTest(test.TestCase):
 
         self.assertTrue(user.has_feature_flag("feature_1"))
         self.assertFalse(user.has_feature_flag("feature_2"))
+
+    def test_forced_feature_flag(self):
+        user = User.objects.create_user(
+            email="plop@openhexa.org",
+            first_name="John",
+            last_name="Doe",
+            password="ablackcat",
+        )
+        Feature.objects.create(code="feature_2", force_activate=True)
+        Feature.objects.create(code="feature_3", force_activate=False)
+
+        self.assertTrue(user.has_feature_flag("feature_2"))
+        self.assertFalse(user.has_feature_flag("feature_3"))

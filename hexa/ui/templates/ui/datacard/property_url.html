@@ -6,12 +6,11 @@
     {% else %}
         <a
                 href="{{ url }}"
-                rel="noopener"
-                target="_blank"
+                {% if external %}target="_blank" rel="noopener"{% endif %}
                 class="block text-blue-600 hover:text-blue-500 focus:outline-none flex items-center"
         >
             {{ text }}
-            {% include "ui/icons/external_link.html" with w=4 h=4 ml=1 %}
+            {% if external %}{% include "ui/icons/external_link.html" with w=4 h=4 ml=1 %}{% endif %}
         </a>
     {% endif %}
 {% endblock %}

@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote_plus
 
 from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
@@ -72,7 +73,16 @@ class DAGCard(Datacard):
     metadata = OpenHexaMetaDataSection(value="index")
 
     actions = [
-        Action(label="Configure & run", url="get_run_url", icon="play", method="GET")
+        Action(
+            label="Open in Airflow",
+            url="get_airflow_url",
+            icon="external_link",
+            method="GET",
+            primary=False,
+            open_in_new_tab=True,
+            enabled_when=lambda r: r.user.is_superuser,
+        ),
+        Action(label="Configure & run", url="get_run_url", icon="play", method="GET"),
     ]
 
     @staticmethod
@@ -84,6 +94,10 @@ class DAGCard(Datacard):
                 "dag_id": dag.id,
             },
         )
+
+    @staticmethod
+    def get_airflow_url(dag: DAG):
+        return f"{dag.cluster.url}graph?dag_id={dag.dag_id}"
 
     @property
     def generic_description(self) -> str:
@@ -98,10 +112,21 @@ class DAGRunSection(Section):
     title = "Airflow Data"
 
     run_id = TextProperty(text="run_id", label="Identifier", translate=False)
+    dag = URLProperty(url="get_dag_url", text="dag.dag_id", label="DAG", external=False)
     execution_date = DateProperty(date="execution_date", label="Execution Date")
     user = TextProperty(text="user.display_name")
     state = StatusProperty(value="status", label="State")
     config = CodeProperty(code="get_conf_as_string", label="Config", language="json")
+
+    @staticmethod
+    def get_dag_url(run: DAGRun):
+        return reverse(
+            "connector_airflow:dag_detail",
+            kwargs={
+                "cluster_id": run.dag.cluster.id,
+                "dag_id": run.dag.id,
+            },
+        )
 
     @staticmethod
     def get_conf_as_string(run: DAGRun):
@@ -114,8 +139,17 @@ class DAGRunCard(Datacard):
     image_src = "_image_src"
     actions = [
         Action(
+            label="Open in Airflow",
+            url="get_airflow_url",
+            icon="external_link",
+            method="GET",
+            primary=False,
+            open_in_new_tab=True,
+            enabled_when=lambda r: r.user.is_superuser,
+        ),
+        Action(
             label="Configure and re-run", url="get_clone_url", icon="play", method="GET"
-        )
+        ),
     ]
 
     external = DAGRunSection()
@@ -128,7 +162,8 @@ class DAGRunCard(Datacard):
     def _image_src(self) -> str:
         return static("connector_airflow/img/symbol.svg")
 
-    def get_clone_url(self, run: DAGRun):
+    @staticmethod
+    def get_clone_url(run: DAGRun):
         return (
             reverse(
                 "connector_airflow:dag_run_create",
@@ -139,3 +174,7 @@ class DAGRunCard(Datacard):
             )
             + f"?conf_from={run.id}"
         )
+
+    @staticmethod
+    def get_airflow_url(run: DAGRun):
+        return f"{run.dag.cluster.url}graph?dag_id={run.dag.dag_id}&execution_date={quote_plus(run.execution_date.isoformat())}"
