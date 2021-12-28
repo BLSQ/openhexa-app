@@ -78,7 +78,7 @@ class Datacard(metaclass=DatacardMeta):
 
         context = {
             "sections": self._sections.values(),
-            "actions": self._actions,
+            "actions": [a for a in self._actions if a.is_enabled(self.request)],
             "title": get_item_value(
                 self.model,
                 self._meta.title,
