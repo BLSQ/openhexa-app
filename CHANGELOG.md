@@ -20,6 +20,8 @@ December 28 2021
 ### Fixed
 
 - Fixed issue with pagination on DAG detail page
+- Fixed sync issue related to DHIS2 objects with the same id
+- Fixed tailwind watch issue
 
 Version 0.16
 ------------
