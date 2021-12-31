@@ -7,6 +7,7 @@ Version 0.18
 ### Fixed
 
 - Fixed regression on invite user with admin
+- Fixed the search by id for DHIS2
 
 Version 0.17
 ------------
