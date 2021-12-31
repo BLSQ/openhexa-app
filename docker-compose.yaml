@@ -7,9 +7,9 @@ x-app: &default-app
       - .:/code
     environment:
       - DEBUG=false
-      - SESSION_COOKIE_SECURE=true
-      - CSRF_COOKIE_SECURE=true
-      - SECURE_SSL_REDIRECT=true
+      - SESSION_COOKIE_SECURE=false
+      - CSRF_COOKIE_SECURE=false
+      - SECURE_SSL_REDIRECT=false
       - ALLOWED_HOSTS=*
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
