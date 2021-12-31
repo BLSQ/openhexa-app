@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Version 0.18
+------------
+
+### Fixed
+
+- Fixed regression on invite user with admin
+
 Version 0.17
 ------------
 

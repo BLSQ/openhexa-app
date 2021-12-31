@@ -97,13 +97,12 @@ class CustomUserAdmin(UserAdmin):
         ):
             # Django's PasswordResetForm won't let us reset an unusable
             # password. We set it above super() so we don't have to save twice.
-            obj.set_password(get_random_string())
+            obj.set_password(get_random_string(length=10))
             reset_password = True
         else:
             reset_password = False
 
         super(UserAdmin, self).save_model(request, obj, form, change)
-
         if reset_password:
             reset_form = PasswordResetForm({"email": obj.email})
             assert reset_form.is_valid()
