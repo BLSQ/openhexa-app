@@ -66,3 +66,32 @@ class AceptTosTest(test.TestCase):
         response = self.client.get(reverse("core:dashboard"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, False)
+
+
+class InviteUserAdminTest(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_ADMIN = User.objects.create_user(
+            "john@bluesquarehub.com",
+            "passwd",
+            is_superuser=True,
+            is_staff=True,
+        )
+
+    def test_invite_user(self):
+        # an admin can invite a new user via django admin pages
+        self.client.force_login(self.USER_ADMIN)
+        self.assertEqual(User.objects.all().count(), 1)
+        response = self.client.post(
+            "/admin/user_management/user/add/",
+            data={
+                "email": "invited@bluesquarehub.com",
+                "first_name": "daniel",
+                "last_name": "mote",
+                "password1": "",
+                "password2": "",
+                "_save": "Save",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(User.objects.all().count(), 2)
