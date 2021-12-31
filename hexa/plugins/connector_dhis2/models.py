@@ -326,7 +326,7 @@ class DataElement(Dhis2Entry):
         index.external_name = self.name
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
-        index.search = f"{self.name} {self.description}"
+        index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
@@ -371,7 +371,7 @@ class OrganisationUnit(Dhis2Entry):
         index.external_name = self.name
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
-        index.search = f"{self.name} {self.description}"
+        index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
@@ -415,7 +415,7 @@ class Indicator(Dhis2Entry):
         index.external_name = self.name
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
-        index.search = f"{self.name} {self.description}"
+        index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
@@ -451,7 +451,7 @@ class DataSet(Dhis2Entry):
         index.external_name = self.name
         index.external_description = self.description
         index.path = [self.instance.id.hex, self.id.hex]
-        index.search = f"{self.name} {self.description}"
+        index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 

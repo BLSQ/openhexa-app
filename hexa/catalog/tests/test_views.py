@@ -9,9 +9,11 @@ from django.utils import timezone
 from hexa.core.models import BaseIndexQuerySet
 from hexa.plugins.connector_dhis2.models import (
     DataElement,
+    DataSet,
     Indicator,
     Instance,
     InstancePermission,
+    OrganisationUnit,
 )
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
 from hexa.user_management.models import Team, User
@@ -41,6 +43,26 @@ class CatalogTest(test.TestCase):
         )
         InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
+        )
+        cls.ORGUNIT = OrganisationUnit.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="JFx4YWRDIyK",
+            name="A geo zone",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            path="JFx4YWRDIyK",
+            leaf=True,
+            external_access=False,
+            favorite=False,
+        )
+        cls.DATASET = DataSet.objects.create(
+            instance=cls.DHIS2_INSTANCE_PLAY,
+            dhis2_id="1ceDA1fEcvX",
+            name="A dataset",
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            external_access=False,
+            favorite=False,
         )
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
             instance=cls.DHIS2_INSTANCE_PLAY,
@@ -143,6 +165,20 @@ class CatalogTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
         self.assertEqual(4, response.context["results"].count())
+
+    def test_dhis2_id(self):
+        """As a user, Kristen can search for DHIS2 id and found dhis2 objects."""
+
+        self.client.force_login(self.USER_KRISTEN)
+
+        for q in ("JFx4YWRDIyK", "O1BccPF5yci", "xaG3AfYG2Ts", "1ceDA1fEcvX"):
+            response = self.client.get(reverse("catalog:search"), data={"query": q})
+            self.assertEqual(response.status_code, 200)
+            self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+            self.assertTrue(
+                len([i for i in response.context["results"] if i.object.dhis2_id == q])
+                > 0
+            )
 
     def test_catalog_quick_search_query_with_columns_200(self):
         """Using columns(:) in the query string will trick our search engine into thinking that we want a filter"""
