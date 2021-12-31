@@ -124,7 +124,7 @@ class Database(Datasource):
         created_count = 0
         updated_count = 0
         identical_count = 0
-        new_orphans_count = 0
+        deleted_count = 0
 
         # Ignore tables from postgis as there is no value in showing them in the catalog
         IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
@@ -160,7 +160,7 @@ class Database(Datasource):
             existing_tables = Table.objects.filter(database=self)
             for table in existing_tables:
                 if table.name not in new_tables.keys():
-                    new_orphans_count += 1
+                    deleted_count += 1
                     table.delete()
                 else:
                     data = new_tables[table.name]
@@ -187,7 +187,7 @@ class Database(Datasource):
             created=created_count,
             updated=updated_count,
             identical=identical_count,
-            orphaned=new_orphans_count,
+            deleted=deleted_count,
         )
 
     def get_absolute_url(self):

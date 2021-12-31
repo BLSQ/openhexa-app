@@ -1,7 +1,5 @@
 import os
-from collections import defaultdict
 from logging import getLogger
-from typing import Dict, List
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -120,7 +118,7 @@ class Bucket(Datasource):
         info["Key"] = path
 
         try:
-            object = Object.objects.get(bucket=self, key=path, orphan=False)
+            object = Object.objects.get(bucket=self, key=path)
         except Object.DoesNotExist:
             Object.create_from_object_data(self, info)
         except Object.MultipleObjectsReturned:
@@ -140,10 +138,33 @@ class Bucket(Datasource):
     def sync(self):  # TODO: move in api/sync module
         """Sync the bucket by querying the S3 API"""
 
+        objects = self.list_remote()
+
+        # Lock the bucket
+        with transaction.atomic():
+            Bucket.objects.select_for_update().get(pk=self.pk)
+            # Sync data elements
+            with transaction.atomic():
+                result = self.update_index(objects)
+                # Flag the datasource as synced
+                self.last_synced_at = timezone.now()
+                self.save()
+
+        return result
+
+    def list_remote(self):
         objects = all_objects_info(
             principal_credentials=self.principal_credentials,
             bucket=self,
         )
+
+        # Note: it seems complicated to 1/ tag everything as a file, 2/ extract the directories from the file list
+        # 3/ remove the "file" that match an extracted directory. It's because sometime the directory isnt in the s3
+        # object list. For exemple, s3 could return:
+        # object: /directory1/  (size 0)
+        # object: /directory1/fileA.csv (size > 0)
+        # object: /directory2/fileB.csv (size > 0)
+        # in that case, we want 2 directories (directory1, directory2) and 2 files (fileA, fileB).
 
         # transform objects -> extract directories
         directory_set, last_modified = set(), {}
@@ -175,141 +196,49 @@ class Bucket(Datasource):
         # remove file that are directories (legacy of s3contentmngr)
         objects = [object for object in objects if object["Key"] not in directory_set]
 
-        # Lock the bucket
-        with transaction.atomic():
-            Bucket.objects.select_for_update().get(pk=self.pk)
-            # Sync data elements
-            with transaction.atomic():
-                result = self.sync_directories(directories)
-                result += self.sync_objects(objects)
+        # merge objects and return
+        return directories + objects
 
-                # Flag the datasource as synced
-                self.last_synced_at = timezone.now()
-                self.save()
-
-        return result
-
-    def sync_directories(self, s3_objects):
+    def update_index(self, s3_objects):
         created_count = 0
         updated_count = 0
         identical_count = 0
-        new_orphans_count = 0
+        deleted_count = 0
 
-        existing_directories_by_key = {
-            str(x.key): x for x in self.object_set.filter(type="directory")
-        }
+        touched = set()
+        cache = {str(x.key): x for x in self.object_set.all()}
 
         for s3_obj in s3_objects:
-            if s3_obj["Type"] == "directory":
-                s3_key = s3_obj["Key"]
-                existing = existing_directories_by_key.get(s3_key)
-                if existing:
+            print("S3 OBJ", s3_obj)
+            key = s3_obj["Key"]
+            touched.add(key)
+            if key in cache:
+                if (
+                    s3_obj.get("ETag") == cache[key].etag
+                    and s3_obj["Type"] == cache[key].type
+                ):
+                    # If it has the same key bot not the same ETag: the file was updated on S3
                     identical_count += 1
-                    if existing.orphan:
-                        existing.orphan = False
-                        existing.save()
-                    del existing_directories_by_key[s3_key]
-                else:  # Not in the DB yet
-                    Object.create_from_object_data(self, s3_obj)
-                    created_count += 1
-
-        for obj in existing_directories_by_key.values():
-            if not obj.orphan:
-                new_orphans_count += 1
-                obj.orphan = True
-                obj.save()
-
-        return DatasourceSyncResult(
-            datasource=self,
-            created=created_count,
-            updated=updated_count,
-            identical=identical_count,
-            orphaned=new_orphans_count,
-        )
-
-    def sync_objects(self, discovered_objects):
-        existing_objects = list(self.object_set.filter(type="file"))
-        existing_by_key = {x.key: x for x in existing_objects}
-
-        existing_by_etag: Dict[str, List[Object]] = defaultdict(lambda: [])
-        for obj in existing_by_key.values():
-            existing_by_etag[obj.etag].append(obj)
-
-        appeared_on_s3 = []
-        touched = set()
-
-        updated_count = 0
-        identical_count = 0
-        created_count = 0
-        orphaned_count = 0
-
-        for object_data in discovered_objects:
-            if object_data["Type"] != "file":
-                continue
-
-            key = object_data["Key"]
-            if key.endswith("/.openhexa.json"):
-                continue
-
-            # If we know this file
-            if key in existing_by_key:
-                existing = existing_by_key[key]
-                # If it was an orphan: it re-appeared at the same place on S3
-                if existing.orphan:
-                    existing.orphan = False
-                # If it has the same key and same ETag: nothing changed
-                if object_data.get("ETag") == existing_by_key[key].etag:
-                    identical_count += 1
-                # If it has the same key bot not the same ETag: the file was updated on S3
                 else:
-                    existing_by_key[key].update_metadata(object_data)
                     updated_count += 1
-
-                touched.add(key)
-                existing.save()
-
-            # Else we never heard of this key before
+                    cache[key].update_metadata(s3_obj)
+                    cache[key].save()
             else:
-                # keep it for later
-                appeared_on_s3.append(object_data)
-
-        # Now that we updated all files we already had in OpenHexa, we can try to match "new" files on S3 with
-        # files in OH that are orphans
-        for object_data in appeared_on_s3:
-            # Do we have something in the DB that has the same ETag ?
-            same_etags = existing_by_etag[object_data.get("ETag")]
-            match = False
-            if same_etags:
-                for obj in same_etags:
-                    # Find the first object in the DB that we did not touch
-                    if obj.key not in touched:
-                        # We found an orphan that matches our S3 file
-                        match = True
-                        updated_count += 1
-                        obj.update_metadata(object_data)
-                        touched.add(obj.key)
-                        obj.save()
-
-            # We found no match, we create a new record in the DB
-            if not match:
-                Object.create_from_object_data(self, object_data)
+                Object.create_from_object_data(self, s3_obj)
                 created_count += 1
 
-        # Now we iterate on all objects we had in the DB and if we did not encounter
-        # them above, then they must be orphans
-        for obj in existing_objects:
-            if obj.key not in touched:
-                if not obj.orphan:
-                    obj.orphan = True
-                    orphaned_count += 1
-                    obj.save()
+        # cleanup unmatched objects
+        for key, obj in cache.items():
+            if key not in touched:
+                deleted_count += 1
+                obj.delete()
 
         return DatasourceSyncResult(
             datasource=self,
             created=created_count,
             updated=updated_count,
             identical=identical_count,
-            orphaned=orphaned_count,
+            deleted=deleted_count,
         )
 
     @property
@@ -404,7 +333,6 @@ class Object(Entry):
     type = models.CharField(max_length=200)  # TODO: choices
     last_modified = models.DateTimeField(null=True, blank=True)
     etag = models.CharField(max_length=200, null=True, blank=True)
-    orphan = models.BooleanField(default=False)  # TODO: remove?
 
     objects = ObjectQuerySet.as_manager()
     searchable = True  # TODO: remove (see comment in datasource_index command)
@@ -481,8 +409,6 @@ class Object(Entry):
             return None
 
     def update_metadata(self, object_data):
-        self.orphan = False
-
         self.key = object_data["Key"]
         self.parent_key = self.compute_parent_key(object_data["Key"])
         if "Size" in object_data:
@@ -498,7 +424,6 @@ class Object(Entry):
         # sometime, the ETag contains double quotes -> strip them
         if self.etag and self.etag.startswith('"'):
             self.etag.strip('"')
-        self.orphan = False
 
     @classmethod
     def create_from_object_data(cls, bucket, object_data):

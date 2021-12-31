@@ -34,7 +34,7 @@ class AsyncRefreshTest(test.TestCase):
                 created=10,
                 updated=11,
                 identical=12,
-                orphaned=13,
+                deleted=13,
             )
 
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
@@ -63,7 +63,7 @@ class AsyncRefreshTest(test.TestCase):
                 created=10,
                 updated=11,
                 identical=12,
-                orphaned=13,
+                deleted=13,
             )
 
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
