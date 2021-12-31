@@ -6,7 +6,7 @@ x-app: &default-app
     volumes:
       - .:/code
     environment:
-      - DEBUG=false
+      - DEBUG=true
       - SESSION_COOKIE_SECURE=false
       - CSRF_COOKIE_SECURE=false
       - SECURE_SSL_REDIRECT=false
