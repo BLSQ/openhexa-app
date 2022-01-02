@@ -209,7 +209,6 @@ class Bucket(Datasource):
         cache = {str(x.key): x for x in self.object_set.all()}
 
         for s3_obj in s3_objects:
-            print("S3 OBJ", s3_obj)
             key = s3_obj["Key"]
             touched.add(key)
             if key in cache:
