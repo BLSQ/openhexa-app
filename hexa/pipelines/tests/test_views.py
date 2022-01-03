@@ -1,8 +1,8 @@
 from django import test
 from django.urls import reverse
 
-from hexa.plugins.connector_airflow.models import DAG, Cluster
-from hexa.user_management.models import User
+from hexa.plugins.connector_airflow.models import DAG, Cluster, ClusterPermission
+from hexa.user_management.models import Membership, Team, User
 
 
 class ViewsTest(test.TestCase):
@@ -33,3 +33,35 @@ class ViewsTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(2, len(response.context["environment_grid"]))
         self.assertEqual(2, len(response.context["pipeline_grid"]))
+
+
+class IndexPermissionTest(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_JANE = User.objects.create_user(
+            "jane@bluesquarehub.com",
+            "janerocks2",
+            is_superuser=False,
+        )
+        cls.CLUSTER = Cluster.objects.create(name="TestCluster", url="http://invalid")
+        cls.DAG = DAG.objects.create(cluster=cls.CLUSTER, dag_id="TestDAG")
+        cls.TEAM = Team.objects.create(name="JaneTeam")
+        Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
+
+    def test_loading_perm(self):
+        self.client.force_login(self.USER_JANE)
+
+        # regular user + no perm -> empty pipeline index
+        response = self.client.get(reverse("pipelines:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(0, len(response.context["environment_grid"]))
+        self.assertEqual(0, len(response.context["pipeline_grid"]))
+
+        # create team <-> env perm
+        ClusterPermission.objects.create(team=self.TEAM, cluster=self.CLUSTER)
+
+        # regular user + perm exists -> pipeline index with 1 cluster and 1 dag
+        response = self.client.get(reverse("pipelines:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(1, len(response.context["environment_grid"]))
+        self.assertEqual(1, len(response.context["pipeline_grid"]))
