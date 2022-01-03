@@ -13,6 +13,7 @@ Version 0.18
 
 - Fixed regression on invite user with admin
 - Fixed the search by id for DHIS2
+- Fixed permission issue in Pipelines
 
 Version 0.17
 ------------
