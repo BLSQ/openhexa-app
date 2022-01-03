@@ -14,9 +14,9 @@ from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
-    all_objects_info,
-    get_object_info,
+    get_object_metadata,
     head_bucket,
+    list_objects_metadata,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
 
@@ -107,27 +107,23 @@ class Bucket(Datasource):
             )
 
     def refresh(self, path):
-        info = get_object_info(
+        metadata = get_object_metadata(
             principal_credentials=self.principal_credentials,
             bucket=self,
             object_key=path,
         )
 
-        # extend info -> not all things from s3fs present in boto3 API
-        info["Type"] = "file"  # no concept of directory from boto3 API
-        info["Key"] = path
-
         try:
-            object = Object.objects.get(bucket=self, key=path)
+            s3_object = Object.objects.get(bucket=self, key=path)
         except Object.DoesNotExist:
-            Object.create_from_object_data(self, info)
+            Object.create_from_metadata(self, metadata)
         except Object.MultipleObjectsReturned:
             logger.warning(
                 "Bucket.refresh(): incoherent object list for bucket %s", self.id
             )
         else:
-            object.update_metadata(info)
-            object.save()
+            s3_object.update_from_metadata(metadata)
+            s3_object.save()
 
     def clean(self):
         try:
@@ -135,102 +131,54 @@ class Bucket(Datasource):
         except S3ApiError as e:
             raise ValidationError(e)
 
-    def sync(self):  # TODO: move in api/sync module
+    def sync(self):
         """Sync the bucket by querying the S3 API"""
 
-        objects = self.list_remote()
+        s3_objects = list_objects_metadata(
+            principal_credentials=self.principal_credentials,
+            bucket=self,
+        )
 
         # Lock the bucket
         with transaction.atomic():
             Bucket.objects.select_for_update().get(pk=self.pk)
             # Sync data elements
             with transaction.atomic():
-                result = self.update_index(objects)
+                created_count = 0
+                updated_count = 0
+                identical_count = 0
+                deleted_count = 0
+
+                remote = set()
+                local = {str(x.key): x for x in self.object_set.all()}
+
+                for s3_object in s3_objects:
+                    key = s3_object["Key"]
+                    remote.add(key)
+                    if key in local:
+                        if (
+                            s3_object.get("ETag") == local[key].etag
+                            and s3_object["Type"] == local[key].type
+                        ):
+                            # If it has the same key bot not the same ETag: the file was updated on S3
+                            # (Sometime, the ETag contains double quotes -> strip them)
+                            identical_count += 1
+                        else:
+                            updated_count += 1
+                            local[key].update_from_metadata(s3_object)
+                            local[key].save()
+                    else:
+                        Object.create_from_metadata(self, s3_object)
+                        created_count += 1
+
+                # cleanup unmatched objects
+                for key, obj in local.items():
+                    if key not in remote:
+                        deleted_count += 1
+                        obj.delete()
                 # Flag the datasource as synced
                 self.last_synced_at = timezone.now()
                 self.save()
-
-        return result
-
-    def list_remote(self):
-        objects = all_objects_info(
-            principal_credentials=self.principal_credentials,
-            bucket=self,
-        )
-
-        # Note: it seems complicated to 1/ tag everything as a file, 2/ extract the directories from the file list
-        # 3/ remove the "file" that match an extracted directory. It's because sometime the directory isnt in the s3
-        # object list. For exemple, s3 could return:
-        # object: /directory1/  (size 0)
-        # object: /directory1/fileA.csv (size > 0)
-        # object: /directory2/fileB.csv (size > 0)
-        # in that case, we want 2 directories (directory1, directory2) and 2 files (fileA, fileB).
-
-        # transform objects -> extract directories
-        directory_set, last_modified = set(), {}
-        for object in objects:
-            object["Type"] = "file"
-            object["ETag"] = object["ETag"].strip('"')
-            path = object["Key"].strip("/").split("/")
-            if len(path) > 1:
-                dirname = "/".join(path[:-1]) + "/"
-                directory_set.add(dirname)
-                if (
-                    dirname not in last_modified
-                    or last_modified[dirname] < object["LastModified"]
-                ):
-                    last_modified[dirname] = object["LastModified"]
-
-        # transform directories
-        directories = [
-            {
-                "Key": name,
-                "LastModified": last_modified[name],
-                "Size": 0,
-                "StorageClass": "DIRECTORY",
-                "Type": "directory",
-            }
-            for name in directory_set
-        ]
-
-        # remove file that are directories (legacy of s3contentmngr)
-        objects = [object for object in objects if object["Key"] not in directory_set]
-
-        # merge objects and return
-        return directories + objects
-
-    def update_index(self, s3_objects):
-        created_count = 0
-        updated_count = 0
-        identical_count = 0
-        deleted_count = 0
-
-        touched = set()
-        cache = {str(x.key): x for x in self.object_set.all()}
-
-        for s3_obj in s3_objects:
-            key = s3_obj["Key"]
-            touched.add(key)
-            if key in cache:
-                if (
-                    s3_obj.get("ETag") == cache[key].etag
-                    and s3_obj["Type"] == cache[key].type
-                ):
-                    # If it has the same key bot not the same ETag: the file was updated on S3
-                    identical_count += 1
-                else:
-                    updated_count += 1
-                    cache[key].update_metadata(s3_obj)
-                    cache[key].save()
-            else:
-                Object.create_from_object_data(self, s3_obj)
-                created_count += 1
-
-        # cleanup unmatched objects
-        for key, obj in cache.items():
-            if key not in touched:
-                deleted_count += 1
-                obj.delete()
 
         return DatasourceSyncResult(
             datasource=self,
@@ -407,43 +355,26 @@ class Object(Entry):
         else:
             return None
 
-    def update_metadata(self, object_data):
-        self.key = object_data["Key"]
-        self.parent_key = self.compute_parent_key(object_data["Key"])
-        if "Size" in object_data:
-            self.size = object_data["Size"]
-        elif "ContentLength" in object_data:
-            self.size = object_data["ContentLength"]
-        else:
-            raise KeyError("size")
-        self.storage_class = object_data.get("StorageClass", "STANDARD")
-        self.type = object_data["Type"]
-        self.last_modified = object_data.get("LastModified")
-        self.etag = object_data.get("ETag")
-        # sometime, the ETag contains double quotes -> strip them
-        if self.etag and self.etag.startswith('"'):
-            self.etag.strip('"')
+    def update_from_metadata(self, metadata):
+        self.key = metadata["Key"]
+        self.parent_key = self.compute_parent_key(metadata["Key"])
+        self.size = metadata["Size"]
+        self.storage_class = metadata["StorageClass"]
+        self.type = metadata["Type"]
+        self.last_modified = metadata["LastModified"]
+        self.etag = metadata["ETag"]
 
     @classmethod
-    def create_from_object_data(cls, bucket, object_data):
-        if "Size" in object_data:
-            size = object_data["Size"]
-        elif "ContentLength" in object_data:
-            size = object_data["ContentLength"]
-        else:
-            raise KeyError("size")
-
-        # TODO: move to manager
+    def create_from_metadata(cls, bucket, metadata):
         return cls.objects.create(
             bucket=bucket,
-            key=object_data["Key"],
-            parent_key=cls.compute_parent_key(object_data["Key"]),
-            storage_class=object_data.get("StorageClass", "STANDARD"),
-            last_modified=object_data.get("LastModified"),
-            # sometime, the ETag contains double quotes -> strip them
-            etag=object_data["ETag"].strip('"') if "ETag" in object_data else None,
-            type=object_data["Type"],
-            size=size,
+            key=metadata["Key"],
+            parent_key=cls.compute_parent_key(metadata["Key"]),
+            storage_class=metadata["StorageClass"],
+            last_modified=metadata["LastModified"],
+            etag=metadata["ETag"],
+            type=metadata["Type"],
+            size=metadata["Size"],
         )
 
     def get_absolute_url(self):
