@@ -43,11 +43,13 @@ case "$command" in
   ;;
 "test")
   wait-for-it db:5432
+  export DEBUG=false
   python manage.py makemigrations --check
   python manage.py test --parallel $arguments
   ;;
 "coveraged-test")
   wait-for-it db:5432
+  export DEBUG=false
   python manage.py makemigrations --check
   coverage run manage.py test $arguments
   coverage report --skip-empty --fail-under=80
