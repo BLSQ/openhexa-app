@@ -33,7 +33,6 @@ class ObjectAdmin(admin.ModelAdmin):
         "key",
         "type",
         "size",
-        "orphan",
         "etag",
     )
     list_filter = ("type", "bucket")

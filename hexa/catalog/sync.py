@@ -11,16 +11,16 @@ class DatasourceSyncResult:
         created: int = 0,
         updated: int = 0,
         identical: int = 0,
-        orphaned: int = 0,
+        deleted: int = 0,
     ):
         self.datasource = datasource
         self.created = created
         self.updated = updated
         self.identical = identical
-        self.orphaned = orphaned
+        self.deleted = deleted
 
     def __str__(self) -> str:
-        figures = f"{self.created} new, {self.updated} updated, {self.identical} unaffected, {self.orphaned} orphaned"
+        figures = f"{self.created} new, {self.updated} updated, {self.identical} unaffected, {self.deleted} deleted"
 
         return f'The datasource "{self.datasource}" has been synced ({figures})'
 
@@ -35,7 +35,7 @@ class DatasourceSyncResult:
             created=self.created + other.created,
             updated=self.updated + other.updated,
             identical=self.identical + other.identical,
-            orphaned=self.orphaned + other.orphaned,
+            deleted=self.deleted + other.deleted,
         )
 
     def __eq__(self, o: "DatasourceSyncResult") -> bool:
@@ -44,7 +44,7 @@ class DatasourceSyncResult:
             and self.created == o.created
             and self.updated == o.updated
             and self.identical == o.identical
-            and self.orphaned == o.orphaned
+            and self.deleted == o.deleted
         )
 
     def __repr__(self) -> str:

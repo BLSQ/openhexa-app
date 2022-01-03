@@ -147,7 +147,7 @@ class SyncTest(test.TestCase):
         result = self.bucket.sync()
         self.assertEqual(
             DatasourceSyncResult(
-                datasource=self.bucket, created=1, updated=1, identical=3, orphaned=1
+                datasource=self.bucket, created=1, updated=1, identical=3, deleted=1
             ),
             result,
         )
@@ -159,42 +159,15 @@ class SyncTest(test.TestCase):
         )
 
         expected = [
-            ("a_dir/", False),
-            ("a_dir/keep_me.csv", False),
-            ("added.csv", False),
-            ("delete_me.csv", True),
-            ("other_dir/", False),  # new file
-            ("other_dir/leave_me.csv", False),  # new file
+            "a_dir/",
+            "a_dir/keep_me.csv",
+            "added.csv",
+            "other_dir/",  # new file
+            "other_dir/leave_me.csv",  # new file
         ]
-        result = [(x.key, x.orphan) for x in self.bucket.object_set.all()]
+        result = [x.key for x in self.bucket.object_set.all()]
         result = sorted(result)
         self.assertEqual(result, expected)
-
-    @mock_s3
-    @mock_sts
-    def test_re_uploaded_orphan(self):
-        s3_client = boto3.client("s3", region_name="us-east-1")
-        s3_client.create_bucket(Bucket="test-bucket")
-
-        # Create orphan
-        s3_client.put_object(Bucket="test-bucket", Key="dir/orphan.csv", Body="orphan")
-        self.bucket.sync()
-        s3_client.delete_object(Bucket="test-bucket", Key="dir/orphan.csv")
-        self.bucket.sync()
-
-        orphan_file = self.bucket.object_set.get(key="dir/orphan.csv")
-        orphan_dir = self.bucket.object_set.get(key="dir/")
-        self.assertTrue(orphan_file.orphan)
-        self.assertTrue(orphan_dir.orphan)
-
-        # Re-upload orphan
-        s3_client.put_object(Bucket="test-bucket", Key="dir/orphan.csv", Body="orphan")
-        self.bucket.sync()
-
-        orphan_file = self.bucket.object_set.get(key="dir/orphan.csv")
-        orphan_dir = self.bucket.object_set.get(key="dir/")
-        self.assertFalse(orphan_file.orphan)
-        self.assertFalse(orphan_dir.orphan)
 
     @mock_s3
     @mock_sts
@@ -220,54 +193,7 @@ class SyncTest(test.TestCase):
         s3_client.delete_object(Bucket="test-bucket", Key="third.csv")
 
         self.bucket.sync()
-        self.assertEqual(self.bucket.object_set.exclude(type="directory").count(), 3)
-
-        dupe = self.bucket.object_set.get(key="dupe.csv")
-        self.assertTrue(dupe.orphan)
-
-        third = self.bucket.object_set.get(key="third.csv")
-        self.assertTrue(third.orphan)
-
-        original = self.bucket.object_set.get(key="original.csv")
-        self.assertFalse(original.orphan)
-
-    @mock_s3
-    @mock_sts
-    def test_new_file_matches_old_one(self):
-        """
-        Add a file
-        sync
-        remove it
-        sync
-        add it elsewhere
-        sync
-        -> metadata should be transferred, we should have no orphans
-        """
-        s3_client = boto3.client("s3", region_name="us-east-1")
-        s3_client.create_bucket(Bucket="test-bucket")
-
-        s3_client.put_object(Bucket="test-bucket", Key="original.csv", Body="content")
-
-        self.bucket.sync()
-        self.assertEqual(self.bucket.object_set.count(), 1)
-        original = self.bucket.object_set.get(key="original.csv")
-        self.assertFalse(original.orphan)
-
-        s3_client.delete_object(Bucket="test-bucket", Key="original.csv")
-        self.bucket.sync()
-        after_delete = self.bucket.object_set.get(key="original.csv")
-        self.assertTrue(after_delete.orphan)
-        self.assertEqual(after_delete.pk, original.pk)
-
-        s3_client.put_object(
-            Bucket="test-bucket", Key="new-location.csv", Body="content"
-        )
-        self.bucket.sync()
-
-        self.assertEqual(self.bucket.object_set.count(), 1)
-        re_added = self.bucket.object_set.get(key="new-location.csv")
-        self.assertEqual(re_added.pk, original.pk)
-        self.assertEqual(self.bucket.object_set.filter(orphan=True).count(), 0)
+        self.assertEqual(self.bucket.object_set.exclude(type="directory").count(), 1)
 
     @mock_s3
     @mock_sts

@@ -4,6 +4,11 @@ Changelog
 Version 0.18
 ------------
 
+### Updated
+
+- Removed the notion of orphans from S3 data model
+- Simplified S3 sync
+
 ### Fixed
 
 - Fixed regression on invite user with admin

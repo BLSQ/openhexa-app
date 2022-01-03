@@ -285,17 +285,26 @@ def generate_upload_url(
     )
 
 
-def get_object_info(
+def get_object_metadata(
     *,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     bucket: hexa.plugins.connector_s3.models.Bucket,
     object_key: str,
 ):
     client = _build_app_s3_client(principal_credentials=principal_credentials)
-    return client.head_object(Bucket=bucket.name, Key=object_key)
+    metadata = client.head_object(Bucket=bucket.name, Key=object_key)
+
+    return {
+        "Key": object_key,
+        "LastModified": metadata["LastModified"],
+        "Size": metadata["ContentLength"],
+        "ETag": metadata["ETag"].strip('"'),
+        "StorageClass": metadata.get("StorageClass", "STANDARD"),
+        "Type": "directory" if _is_dir(metadata) else "file",
+    }
 
 
-def all_objects_info(
+def list_objects_metadata(
     *,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     bucket: hexa.plugins.connector_s3.models.Bucket,
@@ -313,4 +322,56 @@ def all_objects_info(
             kwargs["ContinuationToken"] = page["NextContinuationToken"]
         else:
             break
-    return objects
+
+    # Add "Type" property and add missing pseudo-directories (list_objects_v2 will only return directories that have
+    # been explicitly created as objects of size 0 with a key that ends with "/"
+
+    directory_names = set()
+    pseudo_directory_names = set()
+    pseudo_directory_last_modified = {}
+    for metadata in objects:
+        metadata["ETag"] = metadata["ETag"].strip('"')
+        if _is_dir(metadata):
+            metadata["Type"] = "directory"
+            directory_names.add(metadata["Key"])
+        else:
+            metadata["Type"] = "file"
+
+        path = metadata["Key"].strip("/").split("/")
+
+        if len(path) > 1:
+            dirname = "/".join(path[:-1]) + "/"
+            if dirname not in pseudo_directory_names:
+                pseudo_directory_names.add(dirname)
+                if (
+                    dirname not in pseudo_directory_last_modified
+                    or pseudo_directory_last_modified[dirname]
+                    < metadata["LastModified"]
+                ):
+                    pseudo_directory_last_modified[dirname] = metadata["LastModified"]
+
+    pseudo_directories = [
+        {
+            "Key": name,
+            "LastModified": pseudo_directory_last_modified[name],
+            "Size": 0,
+            "ETag": "",
+            "StorageClass": "STANDARD",
+            "Type": "directory",
+        }
+        for name in pseudo_directory_names
+        if name not in directory_names
+    ]
+
+    # remove file that are directories (legacy of s3contentmngr)
+    # TODO: discuss - should not be necessary anymore
+    # objects = [object for object in objects if object["Key"] not in directory_set]
+
+    # merge objects and return
+    return objects + pseudo_directories
+
+
+def _is_dir(object_data: typing.Mapping[str, typing.Any]):
+    return object_data.get(
+        "Size", object_data.get("ContentLength")
+    ) == 0 and object_data["Key"].endswith("/")
