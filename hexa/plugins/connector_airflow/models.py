@@ -162,6 +162,8 @@ class ClusterPermission(Permission):
 
     def index_object(self) -> None:
         self.cluster.build_index()
+        for dag in self.cluster.dag_set.all():
+            dag.build_index()
 
     def __str__(self) -> str:
         return f"Permission for team '{self.team}' on cluster '{self.cluster}'"
