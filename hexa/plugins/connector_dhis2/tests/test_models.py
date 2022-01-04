@@ -198,7 +198,7 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
         )
 
     @responses.activate
-    def test_sync(self):
+    def test_sync_same_org_units(self):
         responses.add(
             responses.GET,
             "https://play1.dhis2.org.invalid/api/organisationUnits.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
@@ -239,3 +239,52 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
                 results=results_batch,
             )
         self.assertEqual(OrganisationUnit.objects.all().count(), 4)
+
+    @responses.activate
+    def test_sync_same_indicator_types(self):
+        """We can have references (such as indicator types) that are common across instances. The system
+        should handle it properly."""
+
+        IndicatorType.objects.create(
+            instance=self.DHIS2_INSTANCE_PLAY1,
+            dhis2_id="bWuNrMHEoZ0",
+            external_access=True,
+            number=True,
+            factor=2,
+            favorite=False,
+            created=timezone.now(),
+            last_updated=timezone.now(),
+        )
+        IndicatorType.objects.create(
+            instance=self.DHIS2_INSTANCE_PLAY2,
+            dhis2_id="bWuNrMHEoZ0",
+            external_access=True,
+            number=True,
+            factor=2,
+            favorite=False,
+            created=timezone.now(),
+            last_updated=timezone.now(),
+        )
+        responses.add(
+            responses.GET,
+            "https://play2.dhis2.org.invalid/api/indicators.json?fields=%3Aall&pageSize=100&page=1&totalPages=True",
+            json=mock_indicators_response,
+            status=200,
+        )
+
+        client_play2 = Dhis2Client(
+            url=self.DHIS2_INSTANCE_PLAY2.api_credentials.api_url,
+            username=self.DHIS2_INSTANCE_PLAY2.api_credentials.username,
+            password=self.DHIS2_INSTANCE_PLAY2.api_credentials.password,
+        )
+        for results_batch in client_play2.fetch_indicators():
+            # This should not trigger an error, even if we have two indicator types with the same id (but different
+            # instances)
+            sync_from_dhis2_results(
+                model_class=Indicator,
+                instance=self.DHIS2_INSTANCE_PLAY2,
+                results=results_batch,
+            )
+        self.assertEqual(
+            2, Indicator.objects.filter(indicator_type__dhis2_id="bWuNrMHEoZ0").count()
+        )
