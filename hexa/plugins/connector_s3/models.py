@@ -273,7 +273,7 @@ class Object(Entry):
         ordering = ("key",)
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    key = models.TextField()
+    key = models.TextField(unique=True)
     parent_key = models.TextField()
     size = models.PositiveBigIntegerField()
     storage_class = models.CharField(max_length=200)  # TODO: choices
