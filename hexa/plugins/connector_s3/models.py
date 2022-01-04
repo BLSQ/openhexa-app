@@ -271,6 +271,7 @@ class Object(Entry):
     class Meta:
         verbose_name = "S3 Object"
         ordering = ("key",)
+        unique_together = [("bucket", "key")]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
     key = models.TextField()
