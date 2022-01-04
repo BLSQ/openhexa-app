@@ -1,11 +1,21 @@
+from __future__ import annotations
+
+import typing
+
 import stringcase
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 
+import hexa.plugins.connector_dhis2.models
 from hexa.catalog.sync import DatasourceSyncResult
 
 
-def _match_reference(model_class, hexa_name, dhis2_value):
+def _match_reference(
+    instance: hexa.plugins.connector_dhis2.models.Instance,
+    model_class: type,
+    hexa_name: str,
+    dhis2_value: typing.Mapping[str, typing.Any],
+):
     # No dict? Then return as is
     if not isinstance(dhis2_value, dict):
         return dhis2_value
@@ -15,7 +25,7 @@ def _match_reference(model_class, hexa_name, dhis2_value):
     related_model = field_info.field.related_model
 
     try:
-        return related_model.objects.get(dhis2_id=dhis2_value["id"])
+        return related_model.objects.get(instance=instance, dhis2_id=dhis2_value["id"])
     except related_model.DoesNotExist:
         return None
 
@@ -51,7 +61,7 @@ def sync_from_dhis2_results(*, model_class, instance, results):
                 hexa_name = "dhis2_id"
 
             dhis2_values[hexa_name] = _match_reference(
-                model_class, hexa_name, dhis2_value
+                instance, model_class, hexa_name, dhis2_value
             )
 
         try:
