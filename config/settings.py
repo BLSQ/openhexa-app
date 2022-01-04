@@ -157,6 +157,9 @@ SESSION_COOKIE_AGE = 365 * 24 * 3600
 if "TRUST_FORWARDED_PROTO" in os.environ:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# GraphQL
+ENABLE_GRAPHQL = os.environ.get("ENABLE_GRAPHQL", "false") == "true"
+
 # CORS (For GraphQL)
 # https://github.com/adamchainz/django-cors-headers
 # TODO: configure for prod

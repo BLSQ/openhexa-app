@@ -7,6 +7,7 @@ x-app: &default-app
       - .:/code
     environment:
       - DEBUG=true
+      - ENABLE_GRAPHQL=true
       - SESSION_COOKIE_SECURE=false
       - CSRF_COOKIE_SECURE=false
       - SECURE_SSL_REDIRECT=false

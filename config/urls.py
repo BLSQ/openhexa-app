@@ -47,7 +47,7 @@ urlpatterns = [
         GraphQLView.as_view(
             schema=schema, playground_options={"request.credentials": "include"}
         )
-        if settings.DEBUG is True
+        if settings.ENABLE_GRAPHQL is True
         else TemplateView.as_view(template_name="404.html"),
         name="graphql",
     ),
