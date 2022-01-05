@@ -162,10 +162,13 @@ ENABLE_GRAPHQL = os.environ.get("ENABLE_GRAPHQL", "false") == "true"
 
 # CORS (For GraphQL)
 # https://github.com/adamchainz/django-cors-headers
-# TODO: configure for prod
-# CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
-# CORS_URLS_REGEX = r"^/graphql/$"
-# CORS_ALLOW_CREDENTIALS = True
+
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+    CORS_URLS_REGEX = r"^/graphql/$"
+    CORS_ALLOW_CREDENTIALS = True
+else:
+    pass  # TODO: configure for demo & prod
 
 # SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
 # SECURE_REDIRECT_EXEMPT = [r"^ready$"]
