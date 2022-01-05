@@ -229,8 +229,11 @@ class SyncTest(test.TestCase):
         s3_client.put_object(Bucket="test-bucket", Key="dir1/file2", Body="L")
         s3_client.put_object(Bucket="test-bucket", Key="dir2/fileA", Body="M")
         s3_client.put_object(Bucket="test-bucket", Key="dir2/fileB", Body="N")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="dir3/dir4/dir5/dir6/fileC", Body="N"
+        )
 
         self.bucket.sync()
-        self.assertEqual(self.bucket.object_set.count(), 6)
-        self.assertEqual(self.bucket.object_set.filter(type="directory").count(), 2)
-        self.assertEqual(self.bucket.object_set.filter(type="file").count(), 4)
+        self.assertEqual(self.bucket.object_set.count(), 11)
+        self.assertEqual(self.bucket.object_set.filter(type="directory").count(), 6)
+        self.assertEqual(self.bucket.object_set.filter(type="file").count(), 5)

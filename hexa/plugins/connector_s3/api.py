@@ -340,8 +340,8 @@ def list_objects_metadata(
         path = metadata["Key"].strip("/").split("/")
 
         if len(path) > 1:
-            dirname = "/".join(path[:-1]) + "/"
-            if dirname not in pseudo_directory_names:
+            for depth in range(1, len(path)):
+                dirname = "/".join(path[:-depth]) + "/"
                 pseudo_directory_names.add(dirname)
                 if (
                     dirname not in pseudo_directory_last_modified
