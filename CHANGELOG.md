@@ -9,6 +9,10 @@ Version 0.19
 - Added the foundations of the OpenHexa GraphQL API
 - Implemented Auth GraphQL API
 
+### Updates
+
+- Treat user emails (and thus login) in a case-insensitive way
+
 ### Fixed
 
 - Fixed issue in IndicatorType admin
