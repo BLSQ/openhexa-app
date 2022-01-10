@@ -66,7 +66,6 @@ class IndicatorTypeAdmin(admin.ModelAdmin):
         "name",
         "short_name",
         "short_name",
-        "code",
     ]
 
 

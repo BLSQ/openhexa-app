@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.19
+------------
+
+### Added
+
+- Added the foundations of the OpenHexa GraphQL API
+- Implemented Auth GraphQL API
+
+### Fixed
+
+- Fixed issue in IndicatorType admin
+
 Version 0.18
 ------------
 
