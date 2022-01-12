@@ -1,7 +1,10 @@
 <div align="center">
    <img alt="OpenHexa Logo" src="https://raw.githubusercontent.com/BLSQ/openhexa-app/main/hexa/static/img/logo/logo_with_text_grey.svg" height="80">
 </div>
-<p align="center" style="margin-top: 10px">
+<p align="center">
+    <em>Open-source Data integration platform</em>
+</p>
+<p align="center">
    <a href="https://github.com/BLSQ/openhexa-app/actions/workflows/test.yml">
       <img alt="Test Suite" src="https://github.com/BLSQ/openhexa-app/actions/workflows/test.yml/badge.svg">
    </a>
