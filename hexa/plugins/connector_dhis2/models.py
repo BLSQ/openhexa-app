@@ -121,6 +121,7 @@ class Instance(Datasource):
 
         # Sync data elements
         with transaction.atomic():
+            self.last_synced_at = timezone.now()
             info = client.fetch_info()
             self.sync_log("fetch info done: %s", info)
             self.name = info["systemName"]
@@ -171,7 +172,6 @@ class Instance(Datasource):
 
             # Flag the datasource as synced
             self.sync_log("end of fetching resources")
-            self.last_synced_at = timezone.now()
             self.save()
 
         self.sync_log("end of syncing")
