@@ -149,6 +149,11 @@ AUTHENTICATION_BACKENDS = ["hexa.user_management.backends.ModelBackend"]
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
+SECURE_HSTS_SECONDS = os.environ.get(
+    "SECURE_HSTS_SECONDS", 60 * 60
+)  # TODO: increase to one year if ok
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
+SECURE_REDIRECT_EXEMPT = [r"^ready$"]
 
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600
@@ -169,9 +174,6 @@ if DEBUG:
     CORS_ALLOW_CREDENTIALS = True
 else:
     pass  # TODO: configure for demo & prod
-
-# SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
-# SECURE_REDIRECT_EXEMPT = [r"^ready$"]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
