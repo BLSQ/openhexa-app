@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.20
+------------
+
+January 18, 2022
+
+### Updated
+
+- Hardened security settings
+
 Version 0.19
 ------------
 
