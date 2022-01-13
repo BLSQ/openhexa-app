@@ -10,8 +10,14 @@ January 18, 2022
 
 - Hardened security settings
 
+### Fixed
+
+- Fixed last_synced_at on DHIS2 content
+
 Version 0.19
 ------------
+
+January 11, 2022
 
 ### Added
 
@@ -29,6 +35,8 @@ Version 0.19
 Version 0.18
 ------------
 
+January 4, 2022
+
 ### Updated
 
 - Removed the notion of orphans from S3 data model
@@ -44,7 +52,7 @@ Version 0.18
 Version 0.17
 ------------
 
-December 28 2021
+December 28, 2021
 
 ### Added
 
@@ -66,7 +74,7 @@ December 28 2021
 Version 0.16
 ------------
 
-December 21 2021
+December 21, 2021
 
 ### Updated
 
@@ -84,7 +92,7 @@ December 21 2021
 Version 0.15
 ------------
 
-December 14 2021
+December 14, 2021
 
 ### Added
 
@@ -106,7 +114,7 @@ December 14 2021
 Version 0.14
 ------------
 
-December 7 2021
+December 7, 2021
 
 ### Added
 
