@@ -85,6 +85,15 @@ class Database(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
+    def get_credentials(self):
+        return {
+            "hostname": self.hostname,
+            "username": self.username,
+            "password": self.password,
+            "port": self.port,
+            "database": self.database,
+        }
+
     def populate_index(self, index):
         index.last_synced_at = self.last_synced_at
         index.external_name = self.database

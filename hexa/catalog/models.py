@@ -125,6 +125,9 @@ class Datasource(IndexableMixin, models.Model):
     def sync(self):
         raise NotImplementedError
 
+    def get_credentials(self):
+        raise NotImplementedError
+
     def sync_url(self):
         return reverse(
             "catalog:datasource_sync",

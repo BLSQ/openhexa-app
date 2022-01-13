@@ -59,3 +59,41 @@ class AirflowAPIClient:
             raise AirflowAPIError(f"GET {url}: got {response.status_code}")
 
         return response.json()
+
+    def list_variables(self) -> typing.Dict:
+        url = urljoin(self._url, "variables")
+        response = self._session.get(url, allow_redirects=False)
+        if response.status_code != 200:
+            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+
+        return {e["key"]: e["value"] for e in response.json()["variables"]}
+
+    def update_variable(self, key, value):
+        url = urljoin(self._url, f"variables/{key}")
+        response = self._session.patch(
+            url,
+            json={
+                "key": key,
+                "value": value,
+            },
+            allow_redirects=False,
+        )
+        if response.status_code != 200:
+            raise AirflowAPIError(f"PATCH {url}: got {response.status_code}")
+
+        return response.json()
+
+    def create_variable(self, key, value):
+        url = urljoin(self._url, "variables")
+        response = self._session.post(
+            url,
+            json={
+                "key": key,
+                "value": value,
+            },
+            allow_redirects=False,
+        )
+        if response.status_code != 200:
+            raise AirflowAPIError(f"POST {url}: got {response.status_code}")
+
+        return response.json()
