@@ -6,6 +6,10 @@ Version 0.20
 
 January 18, 2022
 
+### Updated
+
+- Hardened security settings
+
 ### Fixed
 
 - Fixed last_synced_at on DHIS2 content
