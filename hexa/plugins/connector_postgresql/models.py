@@ -85,7 +85,7 @@ class Database(Datasource):
             % {"count": count, "suffix": pluralize(count)}
         )
 
-    def get_credentials(self):
+    def get_pipeline_credentials(self):
         return {
             "hostname": self.hostname,
             "username": self.username,

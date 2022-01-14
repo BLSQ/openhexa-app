@@ -6,6 +6,7 @@ from time import sleep
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -102,17 +103,13 @@ class Cluster(Environment):
             # update variables
             variables = client.list_variables()
             for template in self.dagtemplate_set.all():
-                var_name = f"BUILD_{template.builder.upper()}_DAGS"
-                builder_config = template.render_pipelines()
+                var_name = f"TEMPLATE_{template.code.upper()}_DAGS"
+                config = template.build_dag_config()
                 if var_name not in variables:
-                    client.create_variable(
-                        var_name, json.dumps(builder_config, indent=2)
-                    )
+                    client.create_variable(var_name, json.dumps(config, indent=2))
                     created_count += 1
-                elif variables[var_name] != builder_config:
-                    client.update_variable(
-                        var_name, json.dumps(builder_config, indent=2)
-                    )
+                elif variables[var_name] != config:
+                    client.update_variable(var_name, json.dumps(config, indent=2))
                     updated_count += 1
                 else:
                     identical_count += 1
@@ -219,16 +216,16 @@ class Cluster(Environment):
 class DAGTemplate(Base):
     class Meta:
         verbose_name = "DAGTemplate"
-        ordering = ["builder"]
+        ordering = ["code"]
 
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
-    builder = models.CharField(max_length=200)
+    code = models.CharField(max_length=200)
 
-    def render_pipelines(self):
-        return [dag.render_pipeline() for dag in self.dag_set.all()]
+    def build_dag_config(self):
+        return [dag.build_dag_config() for dag in self.dag_set.all()]
 
     def __str__(self):
-        return self.builder
+        return self.code
 
 
 class DAGQuerySet(PipelinesQuerySet):
@@ -250,7 +247,6 @@ class DAG(Pipeline):
     dag_id = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     sample_config = models.JSONField(default=dict, blank=True)
-    credentials = models.JSONField(default=list, blank=True)
 
     # for scheduled DAG:
     config = models.JSONField(default=dict, blank=True)
@@ -297,25 +293,26 @@ class DAG(Pipeline):
             conf=conf,
         )
 
-    def render_pipeline(self):
-        def render_credentials(target_info):
-            try:
-                model = ContentType.objects.get_by_natural_key(
-                    target_info["app"], target_info["model"]
-                ).model_class()
-                datasource = model.objects.get(id=target_info["id"])
-                return datasource.get_credentials()
-            except Exception:
-                logger.exception("render credentials error")
-            return {}
-
+    def build_dag_config(self):
         return {
             "dag_id": self.dag_id,
-            "credentials": [render_credentials(target) for target in self.credentials],
+            "credentials": [
+                ds.datasource.get_pipeline_credentials()
+                for ds in self.authorized_datasources.all()
+            ],
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule,
         }
+
+
+class DAGAuthorizedDatasource(Base):
+    dag = models.ForeignKey(
+        "DAG", on_delete=models.CASCADE, related_name="authorized_datasources"
+    )
+    datasource_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    datasource_id = models.UUIDField()
+    datasource = GenericForeignKey("datasource_type", "datasource_id")
 
 
 class DAGPermission(Permission):

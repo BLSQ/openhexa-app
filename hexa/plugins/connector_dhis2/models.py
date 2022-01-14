@@ -105,7 +105,7 @@ class Instance(Datasource):
         if self.verbose_sync:
             logger.info("sync_log %s: " + fmt, self.name, *args)
 
-    def get_credentials(self):
+    def get_pipeline_credentials(self):
         return {
             "name": self.name,
             "url": self.api_credentials.api_url,

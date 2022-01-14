@@ -125,7 +125,7 @@ class Datasource(IndexableMixin, models.Model):
     def sync(self):
         raise NotImplementedError
 
-    def get_credentials(self):
+    def get_pipeline_credentials(self):
         raise NotImplementedError
 
     def sync_url(self):

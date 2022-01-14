@@ -45,7 +45,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Test cluster", url="https://one-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         DAG.objects.create(template=template, dag_id="Test DAG 1")
         DAG.objects.create(template=template, dag_id="Test DAG 2")
 
@@ -64,7 +64,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Test cluster", url="https://one-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="hello_world")
         dag_run = DAGRun.objects.create(
             dag=dag,
@@ -98,7 +98,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Old rusty cluster", url="https://old-rusty-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="hello_world")
         DAGRun.objects.create(
             dag=dag,
@@ -131,7 +131,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Test cluster", url="https://one-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="Test DAG")
         DAGRun.objects.create(dag=dag, execution_date=timezone.now())
         DAGRun.objects.create(dag=dag, execution_date=timezone.now())
@@ -152,7 +152,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Ok test cluster", url="https://ok-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="same_old")
         dag_run = DAGRun.objects.create(
             dag=dag,
@@ -186,7 +186,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Unstable Test cluster", url="https://unstable-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="same_old")
         DAGRun.objects.create(
             dag=dag,
@@ -223,7 +223,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Perfectly fine test cluster", url="https://fine-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="same_old")
         dag_run = DAGRun.objects.create(
             dag=dag,
@@ -250,7 +250,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Great test cluster", url="https://great-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="same_old")
         dag_run = DAGRun.objects.create(
             dag=dag,
@@ -287,7 +287,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Terrible Test cluster", url="https://terrible-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="hello_world")
         dag_run = DAGRun.objects.create(
             dag=dag,
@@ -329,7 +329,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Test cluster", url="https://one-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         DAG.objects.create(
             template=template, dag_id="hello_world", schedule="* * * * *"
         )
@@ -358,7 +358,7 @@ class ViewsTest(test.TestCase):
             json={
                 "variables": [
                     {
-                        "key": "BUILD_TEST_DAGS",
+                        "key": "TEMPLATE_TEST_DAGS",
                         "value": [
                             {
                                 "dag_id": "hello_world",
@@ -399,7 +399,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Bad Test cluster", url="https://bad-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         DAG.objects.create(template=template, dag_id="same_old")
 
         responses.add(
@@ -442,7 +442,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="hello_world")
         self.client.force_login(self.USER_TAYLOR)
 
@@ -461,7 +461,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="hello_world")
         cloned_dag_run = DAGRun.objects.create(
             dag=dag,
@@ -489,7 +489,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(
             template=template, dag_id="hello_world", sample_config={"foo": "bar"}
         )
@@ -517,7 +517,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         responses.add(
             responses.POST,
             urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
@@ -546,7 +546,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Super simple cluster", url="https://super-simple-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         responses.add(
             responses.POST,
             urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
@@ -572,7 +572,7 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Unhappy cluster", url="https://unhappy-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         responses.add(
             responses.POST,
             urljoin(cluster.api_url, "dags/hello_world/dagRuns"),

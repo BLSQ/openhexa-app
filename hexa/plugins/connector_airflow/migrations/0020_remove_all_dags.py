@@ -22,6 +22,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("user_management", "0006_forced_feature_flags"),
         ("connector_airflow", "0019_dag_run_user"),
+        ("pipelines", "0008_indexes_django_4"),
     ]
 
     operations = [

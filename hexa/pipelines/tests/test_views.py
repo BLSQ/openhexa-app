@@ -26,8 +26,8 @@ class ViewsTest(test.TestCase):
         cluster_2 = Cluster.objects.create(
             name="Test cluster 2", url="http://another-cluster-url.com"
         )
-        template_1 = DAGTemplate.objects.create(cluster=cluster_1, builder="TEST")
-        template_2 = DAGTemplate.objects.create(cluster=cluster_2, builder="TEST")
+        template_1 = DAGTemplate.objects.create(cluster=cluster_1, code="TEST")
+        template_2 = DAGTemplate.objects.create(cluster=cluster_2, code="TEST")
         DAG.objects.create(template=template_1, dag_id="Test DAG 1 ")
         DAG.objects.create(template=template_2, dag_id="Test DAG 2")
 
@@ -51,7 +51,7 @@ class IndexPermissionTest(test.TestCase):
             is_superuser=False,
         )
         cls.CLUSTER = Cluster.objects.create(name="TestCluster", url="http://invalid")
-        template = DAGTemplate.objects.create(cluster=cls.CLUSTER, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cls.CLUSTER, code="TEST")
         cls.DAG = DAG.objects.create(template=template, dag_id="TestDAG")
         cls.TEAM = Team.objects.create(name="JaneTeam")
         Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)

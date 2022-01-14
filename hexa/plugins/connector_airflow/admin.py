@@ -26,7 +26,7 @@ class DAGPermissionAdmin(admin.ModelAdmin):
 
 @admin.register(DAGTemplate)
 class DAGTemplateAdmin(admin.ModelAdmin):
-    list_display = ("cluster", "builder")
+    list_display = ("cluster", "code")
 
 
 @admin.register(DAG)

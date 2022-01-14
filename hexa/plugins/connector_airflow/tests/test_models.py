@@ -8,6 +8,7 @@ from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import (
     DAG,
     Cluster,
+    DAGAuthorizedDatasource,
     DAGPermission,
     DAGRun,
     DAGRunState,
@@ -28,122 +29,106 @@ class DagTemplateTest(test.TestCase):
             "regular",
         )
 
-        cls.DHIS2_RDC = Instance.objects.create(
+        cls.DHIS2_CT1 = Instance.objects.create(
             api_credentials=Credentials.objects.create(
                 api_url="https://play.invalid/",
-                username="admin_rdc",
+                username="admin_ct1",
                 password="password",
             ),
             url="https://play.invalid/",
-            name="play rdc",
+            name="play ct1",
         )
-        cls.DHIS2_CMR = Instance.objects.create(
+        cls.DHIS2_CT2 = Instance.objects.create(
             api_credentials=Credentials.objects.create(
                 api_url="https://play.invalid/",
-                username="admin_cmr",
+                username="admin_ct2",
                 password="password",
             ),
             url="https://play.invalid/",
-            name="play cmr",
+            name="play ct2",
         )
 
-        cls.DB_RDC = Database.objects.create(
+        cls.DB_CT1 = Database.objects.create(
             hostname="127.0.0.1",
-            username="rdc-user",
+            username="ct1-user",
             password="password",
             port=5432,
-            database="rdc-db",
+            database="ct1-db",
         )
-        cls.DB_CMR = Database.objects.create(
+        cls.DB_CT2 = Database.objects.create(
             hostname="127.0.0.1",
-            username="cmr-user",
+            username="ct2-user",
             password="password",
             port=5432,
-            database="cmr-db",
+            database="ct2-db",
         )
 
         cls.TEMPLATE_CHIRPS = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, builder="CHIRPS"
+            cluster=cls.CLUSTER, code="CHIRPS"
         )
         cls.TEMPLATE_PM = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, builder="PAPERMILL"
+            cluster=cls.CLUSTER, code="PAPERMILL"
         )
         cls.TEMPLATE_DHIS2 = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, builder="DHIS2"
+            cluster=cls.CLUSTER, code="DHIS2"
         )
 
-        cls.DHIS2_EXTRACT_RDC = DAG.objects.create(
+        cls.DHIS2_EXTRACT_CT1 = DAG.objects.create(
             template=cls.TEMPLATE_DHIS2,
-            dag_id="dhis2_extract_rdc",
-            description="dhis2 extract rdc",
+            dag_id="dhis2_extract_ct1",
+            description="dhis2 extract ct1",
             sample_config={"start_date": "2021-01-01", "end_date": "2022-01-01"},
-            credentials=[
-                {
-                    "app": "connector_dhis2",
-                    "model": "instance",
-                    "id": str(cls.DHIS2_RDC.id),
-                }
-            ],
         )
-        cls.DHIS2_EXTRACT_CMR = DAG.objects.create(
+        DAGAuthorizedDatasource.objects.create(
+            dag=cls.DHIS2_EXTRACT_CT1, datasource=cls.DHIS2_CT1
+        )
+        cls.DHIS2_EXTRACT_CT2 = DAG.objects.create(
             template=cls.TEMPLATE_DHIS2,
-            dag_id="dhis2_extract_cmr",
-            description="dhis2 extract cmr",
+            dag_id="dhis2_extract_ct2",
+            description="dhis2 extract ct2",
             sample_config={"start_date": "2021-01-01", "end_date": "2022-01-01"},
-            credentials=[
-                {
-                    "app": "connector_dhis2",
-                    "model": "instance",
-                    "id": str(cls.DHIS2_CMR.id),
-                }
-            ],
+        )
+        DAGAuthorizedDatasource.objects.create(
+            dag=cls.DHIS2_EXTRACT_CT2, datasource=cls.DHIS2_CT2
         )
 
-        cls.CHIRPS_EXTRACT_RDC = DAG.objects.create(
+        cls.CHIRPS_EXTRACT_CT1 = DAG.objects.create(
             template=cls.TEMPLATE_CHIRPS,
-            dag_id="chirps_extract_rdc",
-            description="chirps extract rdc",
+            dag_id="chirps_extract_ct1",
+            description="chirps extract ct1",
             sample_config={"start_date": "2000-01-01"},
             config={
                 "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
-                "code": "RDC",
-                "contours": "s3://invalid@/geodata/rdc.gpkg",
+                "code": "CT1",
+                "contours": "s3://invalid@/geodata/ct1.gpkg",
                 "output_dir": "s3://invalid@/data/rainfall",
                 "weekly_table": "weekly_auto",
                 "monthly_table": "monthly_auto",
             },
-            credentials=[
-                {
-                    "app": "connector_postgresql",
-                    "model": "database",
-                    "id": str(cls.DB_RDC.id),
-                }
-            ],
             user=cls.USER_REGULAR,
             schedule="0 12 * * 0",
         )
-        cls.CHIRPS_EXTRACT_CMR = DAG.objects.create(
+        DAGAuthorizedDatasource.objects.create(
+            dag=cls.CHIRPS_EXTRACT_CT1, datasource=cls.DB_CT1
+        )
+        cls.CHIRPS_EXTRACT_CT2 = DAG.objects.create(
             template=cls.TEMPLATE_CHIRPS,
-            dag_id="chirps_extract_cmr",
-            description="chirps extract cmr",
+            dag_id="chirps_extract_ct2",
+            description="chirps extract ct2",
             sample_config={"start_date": "2000-01-01"},
             config={
                 "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
-                "code": "CMR",
-                "contours": "s3://invalid@/geodata/cmr.gpkg",
+                "code": "CT2",
+                "contours": "s3://invalid@/geodata/ct2.gpkg",
                 "output_dir": "s3://invalid@/data/rainfall",
                 "weekly_table": "weekly_auto",
                 "monthly_table": "monthly_auto",
             },
-            credentials=[
-                {
-                    "app": "connector_postgresql",
-                    "model": "database",
-                    "id": str(cls.DB_CMR.id),
-                }
-            ],
             user=cls.USER_REGULAR,
             schedule="0 12 * * 0",
+        )
+        DAGAuthorizedDatasource.objects.create(
+            dag=cls.CHIRPS_EXTRACT_CT2, datasource=cls.DB_CT2
         )
 
         cls.PM_GENERIC = DAG.objects.create(
@@ -156,66 +141,63 @@ class DagTemplateTest(test.TestCase):
                 "parameters": {"alpha": 10},
             },
         )
-        cls.PM_IHP = DAG.objects.create(
+        cls.PM_PRJ1 = DAG.objects.create(
             template=cls.TEMPLATE_PM,
-            dag_id="ihp_update",
-            description="ihp update dashboard",
+            dag_id="prj1_update",
+            description="prj1 update dashboard",
             sample_config={
-                "in_notebook": "s3://invalid-bucket/code/launch_ihp.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/ihp_manual_2021-01-01.ipynb",
+                "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
+                "out_notebook": "s3://invalid-bucket/code/output/prj1_manual_2021-01-01.ipynb",
                 "parameters": {"quarter": "2010-Q1"},
             },
             config={
-                "in_notebook": "s3://invalid-bucket/code/launch_ihp.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/ihp_{{ execution_date }}.ipynb",
+                "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
+                "out_notebook": "s3://invalid-bucket/code/output/prj1_{{ execution_date }}.ipynb",
                 "parameters": {},
             },
-            credentials=[
-                {
-                    "app": "connector_dhis2",
-                    "model": "instance",
-                    "id": str(cls.DHIS2_RDC.id),
-                }
-            ],
             user=cls.USER_REGULAR,
             schedule="0 12 25 * *",
         )
-        cls.PM_IMPERFA = DAG.objects.create(
+        DAGAuthorizedDatasource.objects.create(
+            dag=cls.PM_PRJ1, datasource=cls.DHIS2_CT1
+        )
+
+        cls.PM_PRJ2 = DAG.objects.create(
             template=cls.TEMPLATE_PM,
-            dag_id="imperfa_update",
-            description="Check RDC quality + update IMPERFA Dashboard",
+            dag_id="prj2_update",
+            description="Check CT1 quality + update PRJ2 Dashboard",
             sample_config={
-                "in_notebook": "s3://invalid-bucket/code/rdc_dqa.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/rdc_dqa_manual_2021-01-01.ipynb",
+                "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
+                "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_manual_2021-01-01.ipynb",
                 "parameters": {"quarter": "2010-Q1"},
             },
             config={
-                "in_notebook": "s3://invalid-bucket/code/rdc_dqa.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/rdc_dqa_{{ execution_date }}.ipynb",
+                "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
+                "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_{{ execution_date }}.ipynb",
                 "parameters": {},
             },
             user=cls.USER_REGULAR,
             schedule="0 12 20 * *",
         )
 
-    def test_render_pipeline(self):
+    def test_build_dag_config(self):
         self.assertEqual(
-            self.TEMPLATE_CHIRPS.render_pipelines(),
+            self.TEMPLATE_CHIRPS.build_dag_config(),
             [
                 {
-                    "dag_id": "chirps_extract_cmr",
+                    "dag_id": "chirps_extract_ct1",
                     "credentials": [
                         {
                             "hostname": "127.0.0.1",
-                            "username": "cmr-user",
+                            "username": "ct1-user",
                             "password": "password",
                             "port": 5432,
-                            "database": "cmr-db",
+                            "database": "ct1-db",
                         }
                     ],
                     "static_config": {
-                        "code": "CMR",
-                        "contours": "s3://invalid@/geodata/cmr.gpkg",
+                        "code": "CT1",
+                        "contours": "s3://invalid@/geodata/ct1.gpkg",
                         "output_dir": "s3://invalid@/data/rainfall",
                         "weekly_table": "weekly_auto",
                         "monthly_table": "monthly_auto",
@@ -225,19 +207,19 @@ class DagTemplateTest(test.TestCase):
                     "schedule": "0 12 * * 0",
                 },
                 {
-                    "dag_id": "chirps_extract_rdc",
+                    "dag_id": "chirps_extract_ct2",
                     "credentials": [
                         {
                             "hostname": "127.0.0.1",
-                            "username": "rdc-user",
+                            "username": "ct2-user",
                             "password": "password",
                             "port": 5432,
-                            "database": "rdc-db",
+                            "database": "ct2-db",
                         }
                     ],
                     "static_config": {
-                        "code": "RDC",
-                        "contours": "s3://invalid@/geodata/rdc.gpkg",
+                        "code": "CT2",
+                        "contours": "s3://invalid@/geodata/ct2.gpkg",
                         "output_dir": "s3://invalid@/data/rainfall",
                         "weekly_table": "weekly_auto",
                         "monthly_table": "monthly_auto",
@@ -249,15 +231,15 @@ class DagTemplateTest(test.TestCase):
             ],
         )
         self.assertEqual(
-            self.TEMPLATE_DHIS2.render_pipelines(),
+            self.TEMPLATE_DHIS2.build_dag_config(),
             [
                 {
-                    "dag_id": "dhis2_extract_cmr",
+                    "dag_id": "dhis2_extract_ct1",
                     "credentials": [
                         {
-                            "name": "play cmr",
+                            "name": "play ct1",
                             "url": "https://play.invalid/",
-                            "username": "admin_cmr",
+                            "username": "admin_ct1",
                             "password": "password",
                         }
                     ],
@@ -266,12 +248,12 @@ class DagTemplateTest(test.TestCase):
                     "schedule": None,
                 },
                 {
-                    "dag_id": "dhis2_extract_rdc",
+                    "dag_id": "dhis2_extract_ct2",
                     "credentials": [
                         {
-                            "name": "play rdc",
+                            "name": "play ct2",
                             "url": "https://play.invalid/",
-                            "username": "admin_rdc",
+                            "username": "admin_ct2",
                             "password": "password",
                         }
                     ],
@@ -282,43 +264,43 @@ class DagTemplateTest(test.TestCase):
             ],
         )
         self.assertEqual(
-            self.TEMPLATE_PM.render_pipelines(),
+            self.TEMPLATE_PM.build_dag_config(),
             [
-                {
-                    "dag_id": "ihp_update",
-                    "credentials": [
-                        {
-                            "name": "play rdc",
-                            "url": "https://play.invalid/",
-                            "username": "admin_rdc",
-                            "password": "password",
-                        }
-                    ],
-                    "static_config": {
-                        "parameters": {},
-                        "in_notebook": "s3://invalid-bucket/code/launch_ihp.ipynb",
-                        "out_notebook": "s3://invalid-bucket/code/output/ihp_{{ execution_date }}.ipynb",
-                    },
-                    "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 25 * *",
-                },
-                {
-                    "dag_id": "imperfa_update",
-                    "credentials": [],
-                    "static_config": {
-                        "parameters": {},
-                        "in_notebook": "s3://invalid-bucket/code/rdc_dqa.ipynb",
-                        "out_notebook": "s3://invalid-bucket/code/output/rdc_dqa_{{ execution_date }}.ipynb",
-                    },
-                    "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 20 * *",
-                },
                 {
                     "dag_id": "papermill_manual",
                     "credentials": [],
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
+                },
+                {
+                    "dag_id": "prj1_update",
+                    "credentials": [
+                        {
+                            "name": "play ct1",
+                            "url": "https://play.invalid/",
+                            "username": "admin_ct1",
+                            "password": "password",
+                        }
+                    ],
+                    "static_config": {
+                        "parameters": {},
+                        "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
+                        "out_notebook": "s3://invalid-bucket/code/output/prj1_{{ execution_date }}.ipynb",
+                    },
+                    "report_email": "jim@bluesquarehub.com",
+                    "schedule": "0 12 25 * *",
+                },
+                {
+                    "dag_id": "prj2_update",
+                    "credentials": [],
+                    "static_config": {
+                        "parameters": {},
+                        "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
+                        "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_{{ execution_date }}.ipynb",
+                    },
+                    "report_email": "jim@bluesquarehub.com",
+                    "schedule": "0 12 20 * *",
                 },
             ],
         )
@@ -329,9 +311,9 @@ class DAGSyncTest(test.TestCase):
     @test.override_settings(AIRFLOW_SYNC_WAIT=0.1)
     def test_sync_airflow(self):
         cluster = Cluster.objects.create(name="cluster", url="https://cluster")
-        template = DAGTemplate.objects.create(cluster=cluster, builder="PAPERMILL")
+        template = DAGTemplate.objects.create(cluster=cluster, code="PAPERMILL")
         dag = DAG.objects.create(
-            template=template, dag_id="ihp_update", schedule="10 10 * * 1"
+            template=template, dag_id="prj1_update", schedule="10 10 * * 1"
         )
 
         responses.add(
@@ -340,7 +322,7 @@ class DAGSyncTest(test.TestCase):
             json={
                 "dags": [
                     {
-                        "dag_id": "ihp_update",
+                        "dag_id": "prj1_update",
                         "description": "test dag from factory",
                         "file_token": "Ii9vcHQvYWlyZmxvdy9kYWdzL3JlcG8vZGFncy1kZW1vL2hleGFfZmFjdG9yeS5weSI.zP80SU0fjSFxAeXsKHOTAZ3Gs50",
                         "fileloc": "/opt/airflow/dags/repo/dags-demo/hexa_factory.py",
@@ -361,13 +343,13 @@ class DAGSyncTest(test.TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/ihp_update/dagRuns?order_by=-end_date"),
+            urljoin(cluster.api_url, "dags/prj1_update/dagRuns?order_by=-end_date"),
             json={
                 "dag_runs": [
                     {
                         "conf": {},
-                        "dag_id": "ihp_update",
-                        "dag_run_id": "ihp_update_id1",
+                        "dag_id": "prj1_update",
+                        "dag_run_id": "prj1_update_id1",
                         "end_date": "2021-10-08T16:43:16.629694+00:00",
                         "execution_date": "2021-10-08T16:42:00+00:00",
                         "external_trigger": False,
@@ -388,10 +370,10 @@ class DAGSyncTest(test.TestCase):
             responses.POST,
             urljoin(cluster.api_url, "variables"),
             json={
-                "key": "BUILD_TEST_DAGS",
+                "key": "TEMPLATE_TEST_DAGS",
                 "value": """[
   {
-    "dag_id": "ihp_update",
+    "dag_id": "prj1_update",
     "credentials": [],
     "static_config": {},
     "report_email": None,
@@ -463,7 +445,7 @@ class ModelsTest(test.TestCase):
             username="yolo",
             password="yolo",
         )
-        template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="same_old")
 
         responses.add(
@@ -501,7 +483,7 @@ class PermissionTest(test.TestCase):
         )
 
         for cluster in [cls.CLUSTER1, cls.CLUSTER2]:
-            template = DAGTemplate.objects.create(cluster=cluster, builder="TEST")
+            template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
             for i in range(2):
                 dag = DAG.objects.create(
                     dag_id=f"dag-{cluster.name}-{i}", template=template
