@@ -8,6 +8,7 @@ January 18, 2022
 
 ### Updated
 
+- Updated project dependencies (fixed vulnerabilities)
 - Hardened security settings
 
 ### Fixed
