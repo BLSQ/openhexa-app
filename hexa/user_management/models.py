@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager as BaseUserManager
+from django.contrib.postgres.fields import CIEmailField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -48,7 +49,7 @@ class User(AbstractUser):
 
     username = None
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(_("email address"), unique=True)
+    email = CIEmailField(_("email address"), unique=True)
     accepted_tos = models.BooleanField(default=False)
 
     objects = UserManager()

@@ -10,13 +10,37 @@ class CoreTest(test.TestCase):
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
             "simi@bluesquarehub.com",
-            "regular",
+            "regular_password",
         )
 
     def test_index_200(self):
         response = self.client.get(reverse("core:index"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_index_post_302(self):
+        response = self.client.post(
+            reverse("core:index"),
+            data={
+                "username": "simi@bluesquarehub.com",
+                "password": "regular_password",
+                "next": reverse("core:index"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_index_post_302_other_case(self):
+        response = self.client.post(
+            reverse("core:index"),
+            data={
+                "username": "SiMi@BLuesquarehub.COM",
+                "password": "regular_password",
+                "next": reverse("core:index"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
 
     def test_dashboard_200(self):
         self.client.force_login(self.USER_REGULAR)

@@ -176,6 +176,15 @@ class DHIS2SyncTest(test.TestCase):
         for model in (DataElement, IndicatorType, Indicator, DataSet):
             self.assertTrue(model.objects.all().count() > 0)
 
+        # Let's make sure that the last_synced_at at the index level matches the instance last_synced_at
+        first_data_element = DataElement.objects.filter(
+            instance=self.DHIS2_INSTANCE_PLAY
+        ).first()
+        self.assertEqual(
+            first_data_element.index.last_synced_at,
+            self.DHIS2_INSTANCE_PLAY.last_synced_at,
+        )
+
 
 class DHIS2SyncInstanceSplitTest(test.TestCase):
     @classmethod
