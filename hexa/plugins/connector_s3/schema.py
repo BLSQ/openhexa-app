@@ -45,7 +45,6 @@ s3_type_defs = """
         createdAt: DateTime!
         updatedAt: DateTime!
 
-        # RichContent
         owner: Organization
         shortName: String!
         description: String!
