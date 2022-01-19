@@ -1,81 +1,60 @@
 from ariadne import QueryType
+from django.http import HttpRequest
+from django.utils import timezone
+from django_countries.fields import Country
 
 accessmod_type_defs = """
-    # Files
-    type AccessmodFile {
+    # Projects
+    type AccessmodProject {
         id: String!
         name: String!
-        fileName: String!
-        mimeType: String!
-        uri: String!
+        country: Country!
+        owner: User!
+        createdAt: DateTime!
+        updatedAt: DateTime!
     }
-    type AccessmodFilePage {
+    type AccessmodProjectPage {
         pageNumber: Int!
         totalPages: Int!
         totalItems: Int!
-        items: [AccessmodFile!]!
+        items: [AccessmodProject!]!
     }
-    input AccessmodFileUploadUrlInput {
-        fileName: String!
-        mimeType: String
-    }
-    type AccessmodFileUploadUrlResult {
-        success: Boolean!
-        url: String!
-    }
-    input AccessmodFileInput {
+    input AccessmodProjectInput {
         name: String!
-        fileName: String!
-        mimeType: String!
-        uri: String!
+        country: CountryInput!
     }
-    type AccessmodFileResult {
+    type AccessmodProjectResult {
         success: Boolean!
-        accessModFile: AccessmodFile
+        project: AccessmodProject
     }
     extend type Query {
-        accessModFiles: AccessmodFilePage!
-        accessModFile(id: String!): AccessmodFile
+        accessModProject(id: String): AccessmodProject
+        accessModProjects: AccessmodProjectPage!
     }
     extend type Mutation {
-        generateAccessmodFileUploadUrl(input: AccessmodFileUploadUrlInput): AccessmodFileUploadUrlResult
-        createAccessmodFile(input: AccessmodFileInput!): AccessmodFileResult!
+        createAccessmodProject(input: AccessmodProjectInput): AccessmodProjectResult
+        updatedAccessmodProject(id: String, input: AccessmodProjectInput): AccessmodProjectResult
     }
-    
-    # Other content
 """
 
 accessmod_query = QueryType()
 
 
-@accessmod_query.field("accessModFiles")
-def resolve_accessmod_files(_, info):
-    return {
-        "total_pages": 1,
-        "page_number": 1,
-        "total_items": 3,
-        "items": [
-            {
-                "id": "79bc2a17-50ed-42bf-9540-dfe860b158e8",
-                "name": "Travel times scenarios",
-                "file_name": "scenarios.csv",
-                "mime_type": "text/csv",
-                "uri": "/some/dir/scenarios.csv",
-            },
-            {
-                "id": "a4043c07-379e-4c27-b2a8-df64e0238544",
-                "file_name": "file2.tif",
-                "mime_type": "image/tiff",
-                "uri": "/some/dir/file2.tiff",
-            },
-            {
-                "id": "720ae99f-8336-44ed-ba8c-2f7917afed88",
-                "file_name": "file3.svg",
-                "mime_type": "image/svg+xml",
-                "uri": "/some/dir/file1.csv",
-            },
-        ],
-    }
+@accessmod_query.field("accessModProject")
+def resolve_accessmod_project(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    if kwargs["id"] == "69fadc86-bfda-40a1-a7b2-de346a790277":
+        return {
+            "id": "69fadc86-bfda-40a1-a7b2-de346a790277",
+            "name": "Sample project",
+            "country": Country("BE"),
+            "owner": request.user,
+            "created_at": timezone.now(),
+            "updated_at": timezone.now(),
+        }
+
+    return None
 
 
-accessmod_bindables = []
+accessmod_bindables = [accessmod_query]
