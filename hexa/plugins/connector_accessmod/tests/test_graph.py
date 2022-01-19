@@ -1,18 +1,25 @@
 from hexa.core.test import GraphQLTestCase
+from hexa.plugins.connector_accessmod.models import Project
 from hexa.user_management.models import User
 
 
 class AccessmodGraphTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.USER = User.objects.create_user(
+        cls.USER_1 = User.objects.create_user(
             "jim@bluesquarehub.com",
-            "regular",
-            is_superuser=True,
+            "jimrocks",
+        )
+        cls.USER_2 = User.objects.create_user(
+            "jane@bluesquarehub.com",
+            "janesthebest",
+        )
+        cls.SAMPLE_PROJECT = Project.objects.create(
+            name="Sample project", country="BE", owner=cls.USER_1
         )
 
-    def test_accessmod_project(self):
-        self.client.force_login(self.USER)
+    def test_accessmod_project_owner(self):
+        self.client.force_login(self.USER_1)
 
         r = self.run_query(
             """
@@ -29,15 +36,34 @@ class AccessmodGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": "69fadc86-bfda-40a1-a7b2-de346a790277"},
+            {"id": str(self.SAMPLE_PROJECT.id)},
         )
 
         self.assertEqual(
             r["data"]["accessModProject"],
             {
-                "id": "69fadc86-bfda-40a1-a7b2-de346a790277",
+                "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
                 "country": {"code": "BE"},
                 "owner": {"email": "jim@bluesquarehub.com"},
             },
+        )
+
+    def test_accessmod_project_not_owner(self):
+        self.client.force_login(self.USER_2)
+
+        r = self.run_query(
+            """
+                query accessModProject($id: String!) {
+                  accessModProject(id: $id) {
+                    id
+                  }
+                }
+            """,
+            {"id": str(self.SAMPLE_PROJECT.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["accessModProject"],
+            None,
         )

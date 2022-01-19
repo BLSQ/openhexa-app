@@ -1,7 +1,7 @@
 from ariadne import QueryType
 from django.http import HttpRequest
-from django.utils import timezone
-from django_countries.fields import Country
+
+from hexa.plugins.connector_accessmod.models import Project
 
 accessmod_type_defs = """
     # Projects
@@ -44,17 +44,10 @@ accessmod_query = QueryType()
 def resolve_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    if kwargs["id"] == "69fadc86-bfda-40a1-a7b2-de346a790277":
-        return {
-            "id": "69fadc86-bfda-40a1-a7b2-de346a790277",
-            "name": "Sample project",
-            "country": Country("BE"),
-            "owner": request.user,
-            "created_at": timezone.now(),
-            "updated_at": timezone.now(),
-        }
-
-    return None
+    try:
+        return Project.objects.filter_for_user(request.user).get()
+    except Project.DoesNotExist:
+        return None
 
 
 accessmod_bindables = [accessmod_query]
