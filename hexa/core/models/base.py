@@ -2,9 +2,6 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-from django_countries.fields import CountryField
-
-from hexa.core.models.locale import LocaleField
 
 
 class Base(models.Model):
@@ -45,22 +42,3 @@ class Permission(Base):
 
     def index_object(self):
         raise NotImplementedError
-
-
-class RichContent(Base):
-    class Meta:
-        abstract = True
-
-    owner = models.ForeignKey(
-        "user_management.Organization", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    comments = GenericRelation("comments.Comment")
-    name = models.TextField(blank=True)
-    short_name = models.CharField(max_length=200, blank=True)
-    description = models.TextField(blank=True)
-    countries = CountryField(multiple=True, blank=True)
-    locale = LocaleField(default="en")
-
-    @property
-    def content_summary(self):
-        return ""
