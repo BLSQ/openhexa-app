@@ -212,3 +212,29 @@ class AccessmodGraphTest(GraphQLTestCase):
                 },
             },
         )
+
+    def test_delete_accessmod_project(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
+                  deleteAccessmodProject(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.SAMPLE_PROJECT.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["deleteAccessmodProject"],
+            {
+                "success": True,
+            },
+        )
+        self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())

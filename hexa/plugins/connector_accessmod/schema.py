@@ -33,17 +33,28 @@ accessmod_type_defs = """
         spatialResolution: Int
         country: CountryInput
     }
-    type AccessmodProjectResult {
+    input DeleteAccessmodProjectInput {
+        id: String!
+    }
+    type CreateAccessmodProjectResult {
         success: Boolean!
         project: AccessmodProject
+    }
+    type UpdateAccessmodProjectResult {
+        success: Boolean!
+        project: AccessmodProject
+    }
+    type DeleteAccessmodProjectResult {
+        success: Boolean!
     }
     extend type Query {
         accessModProject(id: String): AccessmodProject
         accessModProjects(page: Int, perPage: Int): AccessmodProjectPage!
     }
     extend type Mutation {
-        createAccessmodProject(input: CreateAccessmodProjectInput): AccessmodProjectResult
-        updateAccessmodProject(input: UpdateAccessmodProjectInput): AccessmodProjectResult
+        createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult
+        updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult
+        deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult
     }
 """
 
@@ -110,6 +121,22 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             project.save()
 
         return {"success": True, "project": project}
+    except Project.DoesNotExist:
+        return {"success": False}
+
+
+@accessmod_mutations.field("deleteAccessmodProject")
+def resolve_delete_accessmod_project(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    update_input = kwargs["input"]
+
+    try:
+        project = Project.objects.filter_for_user(request.user).get(
+            id=update_input["id"]
+        )
+        project.delete()  # TODO: soft-delete?
+
+        return {"success": True}
     except Project.DoesNotExist:
         return {"success": False}
 
