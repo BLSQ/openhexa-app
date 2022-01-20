@@ -106,3 +106,31 @@ class AccessmodGraphTest(GraphQLTestCase):
                 ],
             },
         )
+
+    def test_accessmod_projects_empty(self):
+        self.client.force_login(self.USER_2)
+
+        r = self.run_query(
+            """
+                query accessModProjects {
+                  accessModProjects {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessModProjects"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
+            },
+        )
