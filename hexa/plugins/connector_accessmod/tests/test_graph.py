@@ -15,7 +15,13 @@ class AccessmodGraphTest(GraphQLTestCase):
             "janesthebest",
         )
         cls.SAMPLE_PROJECT = Project.objects.create(
-            name="Sample project", country="BE", owner=cls.USER_1
+            name="Sample project",
+            country="BE",
+            owner=cls.USER_1,
+            spatial_resolution=100,
+        )
+        cls.OTHER_PROJECT = Project.objects.create(
+            name="Other project", country="BE", owner=cls.USER_1, spatial_resolution=100
         )
 
     def test_accessmod_project_owner(self):
@@ -27,6 +33,7 @@ class AccessmodGraphTest(GraphQLTestCase):
                   accessModProject(id: $id) {
                     id
                     name
+                    spatialResolution
                     country {
                         code
                     }
@@ -44,6 +51,7 @@ class AccessmodGraphTest(GraphQLTestCase):
             {
                 "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
+                "spatialResolution": 100,
                 "country": {"code": "BE"},
                 "owner": {"email": "jim@bluesquarehub.com"},
             },
@@ -66,4 +74,35 @@ class AccessmodGraphTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessModProject"],
             None,
+        )
+
+    def test_accessmod_projects(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessModProjects {
+                  accessModProjects {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessModProjects"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 2,
+                "items": [
+                    {"id": str(self.OTHER_PROJECT.id)},
+                    {"id": str(self.SAMPLE_PROJECT.id)},
+                ],
+            },
         )

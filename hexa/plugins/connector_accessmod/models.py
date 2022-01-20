@@ -20,5 +20,9 @@ class Project(Base):
     name = models.TextField()
     country = CountryField()
     owner = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
+    spatial_resolution = models.PositiveIntegerField()
 
     objects = ProjectQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name"]

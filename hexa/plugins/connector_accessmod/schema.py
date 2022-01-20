@@ -1,6 +1,7 @@
 from ariadne import QueryType
 from django.http import HttpRequest
 
+from hexa.core.graphql import result_page
 from hexa.plugins.connector_accessmod.models import Project
 
 accessmod_type_defs = """
@@ -8,6 +9,7 @@ accessmod_type_defs = """
     type AccessmodProject {
         id: String!
         name: String!
+        spatialResolution: Int!
         country: Country!
         owner: User!
         createdAt: DateTime!
@@ -21,6 +23,7 @@ accessmod_type_defs = """
     }
     input AccessmodProjectInput {
         name: String!
+        spatialResolution: Int!
         country: CountryInput!
     }
     type AccessmodProjectResult {
@@ -29,7 +32,7 @@ accessmod_type_defs = """
     }
     extend type Query {
         accessModProject(id: String): AccessmodProject
-        accessModProjects: AccessmodProjectPage!
+        accessModProjects(page: Int, perPage: Int): AccessmodProjectPage!
     }
     extend type Mutation {
         createAccessmodProject(input: AccessmodProjectInput): AccessmodProjectResult
@@ -45,9 +48,20 @@ def resolve_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     try:
-        return Project.objects.filter_for_user(request.user).get()
+        return Project.objects.filter_for_user(request.user).get(id=kwargs["id"])
     except Project.DoesNotExist:
         return None
+
+
+@accessmod_query.field("accessModProjects")
+def resolve_accessmod_projects(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    queryset = Project.objects.filter_for_user(request.user)
+
+    return result_page(
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("page")
+    )
 
 
 accessmod_bindables = [accessmod_query]
