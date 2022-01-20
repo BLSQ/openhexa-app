@@ -1,5 +1,6 @@
-from ariadne import QueryType
+from ariadne import MutationType, QueryType
 from django.http import HttpRequest
+from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.plugins.connector_accessmod.models import Project
@@ -21,10 +22,16 @@ accessmod_type_defs = """
         totalItems: Int!
         items: [AccessmodProject!]!
     }
-    input AccessmodProjectInput {
+    input CreateAccessmodProjectInput {
         name: String!
         spatialResolution: Int!
         country: CountryInput!
+    }
+    input UpdateAccessmodProjectInput {
+        id: String!
+        name: String
+        spatialResolution: Int
+        country: CountryInput
     }
     type AccessmodProjectResult {
         success: Boolean!
@@ -35,12 +42,13 @@ accessmod_type_defs = """
         accessModProjects(page: Int, perPage: Int): AccessmodProjectPage!
     }
     extend type Mutation {
-        createAccessmodProject(input: AccessmodProjectInput): AccessmodProjectResult
-        updatedAccessmodProject(id: String, input: AccessmodProjectInput): AccessmodProjectResult
+        createAccessmodProject(input: CreateAccessmodProjectInput): AccessmodProjectResult
+        updateAccessmodProject(input: UpdateAccessmodProjectInput): AccessmodProjectResult
     }
 """
 
 accessmod_query = QueryType()
+accessmod_mutations = MutationType()
 
 
 @accessmod_query.field("accessModProject")
@@ -64,4 +72,46 @@ def resolve_accessmod_projects(_, info, **kwargs):
     )
 
 
-accessmod_bindables = [accessmod_query]
+@accessmod_mutations.field("createAccessmodProject")
+def resolve_create_accessmod_project(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    create_input = kwargs["input"]
+    project = Project.objects.create(
+        owner=request.user,
+        name=create_input["name"],
+        country=Country(create_input["country"]["code"]),
+        spatial_resolution=create_input["spatialResolution"],
+    )
+
+    return {"success": True, "project": project}
+
+
+@accessmod_mutations.field("updateAccessmodProject")
+def resolve_update_accessmod_project(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    update_input = kwargs["input"]
+
+    try:
+        project = Project.objects.filter_for_user(request.user).get(
+            id=update_input["id"]
+        )
+        # TODO: rationalize
+        changed = False
+        if "name" in update_input:
+            project.name = update_input["name"]
+            changed = True
+        if "spatialResolution" in update_input:
+            project.spatial_resolution = update_input["spatialResolution"]
+            changed = True
+        if "country" in update_input:
+            project.country = Country(update_input["country"]["code"])
+            changed = True
+        if changed:
+            project.save()
+
+        return {"success": True, "project": project}
+    except Project.DoesNotExist:
+        return {"success": False}
+
+
+accessmod_bindables = [accessmod_query, accessmod_mutations]

@@ -134,3 +134,81 @@ class AccessmodGraphTest(GraphQLTestCase):
                 "items": [],
             },
         )
+
+    def test_create_accessmod_project(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProject($input: CreateAccessmodProjectInput) {
+                  createAccessmodProject(input: $input) {
+                    success
+                    project {
+                        name
+                        spatialResolution
+                        country {
+                            code
+                        }
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "name": "My new project",
+                    "spatialResolution": 42,
+                    "country": {"code": "CD"},
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["createAccessmodProject"],
+            {
+                "success": True,
+                "project": {
+                    "name": "My new project",
+                    "spatialResolution": 42,
+                    "country": {"code": "CD"},
+                },
+            },
+        )
+
+    def test_update_accessmod_project(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                  updateAccessmodProject(input: $input) {
+                    success
+                    project {
+                        id
+                        name
+                        country {
+                            code
+                        }
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.SAMPLE_PROJECT.id),
+                    "name": "Updated project!",
+                    "country": {"code": "CD"},
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updateAccessmodProject"],
+            {
+                "success": True,
+                "project": {
+                    "id": str(self.SAMPLE_PROJECT.id),
+                    "name": "Updated project!",
+                    "country": {"code": "CD"},
+                },
+            },
+        )
