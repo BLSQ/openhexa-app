@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class ConnectorAccessmodConfig(AppConfig):
+class AccessmodConnectorConfig(AppConfig):
     name = "hexa.plugins.connector_accessmod"
     label = "connector_accessmod"
 

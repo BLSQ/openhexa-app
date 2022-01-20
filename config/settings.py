@@ -61,7 +61,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
     "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
     "hexa.plugins.connector_postgresql.apps.PostgresqlConnectorConfig",
-    "hexa.plugins.connector_accessmod.apps.ConnectorAccessmodConfig",
+    "hexa.plugins.connector_accessmod.apps.AccessmodConnectorConfig",
     "dpq",
 ]
 
