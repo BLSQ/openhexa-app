@@ -1,3 +1,6 @@
+import uuid
+from mimetypes import guess_extension
+
 from ariadne import MutationType, QueryType
 from django.http import HttpRequest
 from django_countries.fields import Country
@@ -93,8 +96,18 @@ accessmod_type_defs = """
         success: Boolean!
         fileset: AccessmodFileset
     }
+    input PrepareAccessModFileUploadInput {
+        projectId: String!
+        mimeType: String!
+    }
+    type PrepareAccessModFileUploadResult {
+        success: Boolean!
+        uploadUrl: String!
+        fileUri: String!
+    }
     extend type Mutation {
         createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
+        prepareAccessModFileUpload(input: PrepareAccessModFileUploadInput): PrepareAccessModFileUploadResult
     }
 """
 
@@ -195,6 +208,21 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
     )
 
     return {"success": True, "fileset": fileset}
+
+
+@accessmod_mutations.field("prepareAccessModFileUpload")
+def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    prepare_input = kwargs["input"]
+    project = Project.objects.filter_for_user(request.user).get(
+        id=prepare_input["projectId"]
+    )
+
+    return {
+        "success": True,
+        "upload_url": "https://s3upload.amazon.com/blablabla",
+        "file_uri": f"s3://accessmod-user-data/{project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}",
+    }
 
 
 accessmod_bindables = [accessmod_query, accessmod_mutations]

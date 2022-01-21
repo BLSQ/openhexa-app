@@ -64,27 +64,38 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
-        # r = self.run_query(
-        #     """
-        #         mutation prepareAccessModFileUpload($input: PrepareAccessModFileUploadInput) {
-        #           prepareAccessModFileUpload(input: $input) {
-        #             success
-        #             uploadUrl
-        #             fileUri
-        #           }
-        #         }
-        #     """,
-        #     {
-        #         "input": {
-        #             "id": str(self.SAMPLE_PROJECT.id),
-        #         }
-        #     },
-        # )
-        #
-        # self.assertEqual(
-        #     r["data"]["deleteAccessmodProject"],
-        #     {
-        #         "success": True,
-        #     },
-        # )
-        # self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
+        r2 = self.run_query(
+            """
+                mutation prepareAccessModFileUpload($input: PrepareAccessModFileUploadInput) {
+                  prepareAccessModFileUpload(input: $input) {
+                    success
+                    uploadUrl
+                    fileUri
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "mimeType": "text/csv",
+                }
+            },
+        )
+
+        self.assertEqual(
+            r2["data"]["prepareAccessModFileUpload"]["success"],
+            True,
+        )
+        self.assertTrue(
+            r2["data"]["prepareAccessModFileUpload"]["uploadUrl"].startswith("https://")
+        )
+        self.assertTrue(
+            r2["data"]["prepareAccessModFileUpload"]["fileUri"].startswith("s3://")
+        )
+        self.assertTrue(
+            r2["data"]["prepareAccessModFileUpload"]["fileUri"].endswith(".csv")
+        )
+        self.assertIn(
+            str(self.SAMPLE_PROJECT.id),
+            r2["data"]["prepareAccessModFileUpload"]["fileUri"],
+        )
