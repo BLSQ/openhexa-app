@@ -20,6 +20,9 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
             spatial_resolution=100,
         )
+        cls.OTHER_PROJECT = Project.objects.create(
+            name="Other project", country="BE", owner=cls.USER_1, spatial_resolution=100
+        )
 
     def test_accessmod_project_owner(self):
         self.client.force_login(self.USER_1)
