@@ -3,7 +3,7 @@ from hexa.plugins.connector_accessmod.models import Project
 from hexa.user_management.models import User
 
 
-class AccessmodGraphTest(GraphQLTestCase):
+class AccessmodProjectGraphTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_1 = User.objects.create_user(
@@ -19,9 +19,6 @@ class AccessmodGraphTest(GraphQLTestCase):
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
-        )
-        cls.OTHER_PROJECT = Project.objects.create(
-            name="Other project", country="BE", owner=cls.USER_1, spatial_resolution=100
         )
 
     def test_accessmod_project_owner(self):

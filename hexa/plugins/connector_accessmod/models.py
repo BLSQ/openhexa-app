@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
 from hexa.core.models import Base
@@ -19,10 +20,28 @@ class ProjectQuerySet(AccessmodQuerySet):
 class Project(Base):
     name = models.TextField()
     country = CountryField()
-    owner = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
+    owner = models.ForeignKey("user_management.User", on_delete=models.PROTECT)
     spatial_resolution = models.PositiveIntegerField()
 
     objects = ProjectQuerySet.as_manager()
 
     class Meta:
         ordering = ["name"]
+
+
+class Fileset(Base):
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
+    name = models.TextField()
+    role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
+    owner = models.ForeignKey("user_management.User", on_delete=models.PROTECT)
+
+
+class FilesetFormat(models.TextChoices):
+    VECTOR = "VECTOR", _("Vector")
+    RASTER = "RASTER", _("Raster")
+    TABULAR = "TABULAR", _("Tabular")
+
+
+class FilesetRole(Base):
+    name = models.TextField()
+    format = models.CharField(max_length=20, blank=False, choices=FilesetFormat.choices)

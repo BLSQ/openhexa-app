@@ -3,7 +3,7 @@ from django.http import HttpRequest
 from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
-from hexa.plugins.connector_accessmod.models import Project
+from hexa.plugins.connector_accessmod.models import Fileset, FilesetRole, Project
 
 accessmod_type_defs = """
     # Projects
@@ -27,22 +27,22 @@ accessmod_type_defs = """
         spatialResolution: Int!
         country: CountryInput!
     }
+    type CreateAccessmodProjectResult {
+        success: Boolean!
+        project: AccessmodProject
+    }
     input UpdateAccessmodProjectInput {
         id: String!
         name: String
         spatialResolution: Int
         country: CountryInput
     }
-    input DeleteAccessmodProjectInput {
-        id: String!
-    }
-    type CreateAccessmodProjectResult {
-        success: Boolean!
-        project: AccessmodProject
-    }
     type UpdateAccessmodProjectResult {
         success: Boolean!
         project: AccessmodProject
+    }
+    input DeleteAccessmodProjectInput {
+        id: String!
     }
     type DeleteAccessmodProjectResult {
         success: Boolean!
@@ -55,6 +55,46 @@ accessmod_type_defs = """
         createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult
         updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult
         deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult
+    }
+    
+    # Filesets
+    type AccessmodFileset {
+        id: String!
+        name: String!
+        role: AccessmodFilesetRole
+        owner: User!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+    }
+    type AccessmodFilesetPage {
+        pageNumber: Int!
+        totalPages: Int!
+        totalItems: Int!
+        items: [AccessmodFileset!]!
+    }
+    type AccessmodFilesetRole {
+        id: String!
+        name: String!
+        format: AccessmodFilesetFormat!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+    }
+    enum AccessmodFilesetFormat {
+        VECTOR
+        RASTER
+        TABULAR
+    }
+    input CreateAccessmodFilesetInput {
+        name: String!
+        projectId: String!
+        roleId: String!
+    }
+    type CreateAccessmodFilesetResult {
+        success: Boolean!
+        fileset: AccessmodFileset
+    }
+    extend type Mutation {
+        createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
     }
 """
 
@@ -139,6 +179,22 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         return {"success": True}
     except Project.DoesNotExist:
         return {"success": False}
+
+
+@accessmod_mutations.field("createAccessmodFileset")
+def resolve_create_accessmod_fileset(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    create_input = kwargs["input"]
+    fileset = Fileset.objects.create(
+        owner=request.user,
+        name=create_input["name"],
+        project=Project.objects.filter_for_user(request.user).get(
+            id=create_input["projectId"]
+        ),
+        role=FilesetRole.objects.get(id=create_input["roleId"]),
+    )
+
+    return {"success": True, "fileset": fileset}
 
 
 accessmod_bindables = [accessmod_query, accessmod_mutations]
