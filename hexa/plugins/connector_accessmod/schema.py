@@ -5,8 +5,11 @@ from ariadne import MutationType, QueryType
 from django.http import HttpRequest
 from django_countries.fields import Country
 
+from config import settings
 from hexa.core.graphql import result_page
 from hexa.plugins.connector_accessmod.models import Fileset, FilesetRole, Project
+from hexa.plugins.connector_s3.api import generate_upload_url
+from hexa.plugins.connector_s3.models import Bucket
 
 accessmod_type_defs = """
     # Projects
@@ -218,10 +221,29 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         id=prepare_input["projectId"]
     )
 
+    # This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+
+    target_key = (
+        f"{project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}"
+    )
+    upload_url = generate_upload_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_key=target_key,
+    )
+
     return {
         "success": True,
-        "upload_url": "https://s3upload.amazon.com/blablabla",
-        "file_uri": f"s3://accessmod-user-data/{project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}",
+        "upload_url": upload_url,
+        "file_uri": f"s3://{bucket.name}/{target_key}",
     }
 
 

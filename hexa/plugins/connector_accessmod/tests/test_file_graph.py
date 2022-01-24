@@ -1,34 +1,40 @@
+from django.conf import settings
+from moto import mock_s3, mock_sts
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import FilesetFormat, FilesetRole, Project
+from hexa.plugins.connector_s3.models import Bucket, Credentials
 from hexa.user_management.models import User
 
 
 class AccessmodFileGraphTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.USER_1 = User.objects.create_user(
-            "jim@bluesquarehub.com",
-            "jimrocks",
-        )
-        cls.USER_2 = User.objects.create_user(
+        cls.USER = User.objects.create_user(
             "jane@bluesquarehub.com",
-            "janesthebest",
+            "janerocks",
         )
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_1,
+            owner=cls.USER,
             spatial_resolution=100,
-        )
-        cls.OTHER_PROJECT = Project.objects.create(
-            name="Other project", country="BE", owner=cls.USER_1, spatial_resolution=100
         )
         cls.ZONE_ROLE = FilesetRole.objects.create(
             name="Zone", format=FilesetFormat.RASTER
         )
+        cls.CREDENTIALS = Credentials.objects.create(
+            username="test-username",
+            default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
+        )
+        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
 
+    @mock_s3
+    @mock_sts
     def test_full_upload_workflow(self):
-        self.client.force_login(self.USER_1)
+        self.client.force_login(self.USER)
 
         # Step 1: create fileset
         r1 = self.run_query(
@@ -88,6 +94,13 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         self.assertTrue(
             r2["data"]["prepareAccessModFileUpload"]["uploadUrl"].startswith("https://")
+        )
+        self.assertIn(
+            str(self.SAMPLE_PROJECT.id),
+            r2["data"]["prepareAccessModFileUpload"]["uploadUrl"],
+        )
+        self.assertIn(
+            "X-Amz-SignedHeaders", r2["data"]["prepareAccessModFileUpload"]["uploadUrl"]
         )
         self.assertTrue(
             r2["data"]["prepareAccessModFileUpload"]["fileUri"].startswith("s3://")
