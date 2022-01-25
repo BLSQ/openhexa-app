@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 0.21
+------------
+
+January 25, 2022
+
+### Updated
+
+- Improved grids UX (should fix horizontal scrolling issues) 
+- Improved search UX (no results if no query, handling of long text)
+
+### Fixed
+
+- Fixed bug with truncated search query when switching from quick to advanced search
+
 Version 0.20
 ------------
 
