@@ -15,6 +15,8 @@ class Command(BaseCommand):
             if index.object is None:
                 created_at = index.created_at.strftime("%d/%m/%y")
                 updated_at = index.updated_at.strftime("%d/%m/%y")
-                logger.warning(
-                    f"Orphan: Index {index.id} ({created_at}, {updated_at}) for CT {index.content_type.name}"
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Orphan: Index {index.id} ({created_at}, {updated_at}) for CT {index.content_type.name}"
+                    )
                 )
