@@ -406,8 +406,8 @@ function AdvancedSearch(initialQuery) {
             // hydrate state from query
             const parts = initialQuery.split(" ");
             if (parts.length > 0) {
-                this.textQuery = parts[0];
-                parts.slice(1).forEach(filter => {
+                this.textQuery = parts.filter(part => !part.includes(":")).join(" ");
+                parts.filter(part => part.includes(":")).forEach(filter => {
                     const filterKey = filter.split(":", 1);
                     this.filters = Object.assign({[filterKey]: []}, this.filters);
                     this.filters[filterKey].push(filter);

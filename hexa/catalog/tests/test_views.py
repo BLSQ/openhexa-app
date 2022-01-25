@@ -154,6 +154,16 @@ class CatalogTest(test.TestCase):
         self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
         self.assertEqual(0, response.context["results"].count())
 
+    def test_catalog_no_query_200(self):
+        """No query, no result."""
+
+        self.client.force_login(self.USER_KRISTEN)
+
+        response = self.client.get(reverse("catalog:search"), data={"query": ""})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertEqual(0, response.context["results"].count())
+
     def test_catalog_search_200(self):
         """As a superuser, Kristen can search for content."""
 

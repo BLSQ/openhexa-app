@@ -284,7 +284,9 @@ class BaseIndexableMixin:
         # We can't use self.indexes.get(), as it would prevent fetch_related() to work properly
         indexes = self.indexes.all()
         if len(indexes) != 1:
-            raise ValueError(f"{self} has more than 1 index")
+            raise ValueError(
+                f"{self} should have exactly 1 index - found {len(indexes)}"
+            )
 
         return indexes[0]
 

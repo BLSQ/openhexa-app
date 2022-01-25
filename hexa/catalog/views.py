@@ -45,7 +45,10 @@ def quick_search(request: HttpRequest) -> HttpResponse:
 
 def search(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("query", "")
-    results = Index.objects.filter_for_user(request.user).search(query)[:100]
+    if len(query) > 0:
+        results = Index.objects.filter_for_user(request.user).search(query)[:100]
+    else:
+        results = Index.objects.none()
 
     type_options, datasource_options = [], []
     for ct in ContentType.objects.filter(app_label__startswith="connector_"):
