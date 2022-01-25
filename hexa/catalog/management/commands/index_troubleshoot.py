@@ -8,7 +8,19 @@ logger = getLogger(__name__)
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--fix",
+            action="store_true",
+            dest="fix",
+            default=False,
+            help="Fix underlying issues",
+        )
+
+    def handle(self, *args, fix=False, **options):
+        self.stdout.write(
+            f"Looking for orphaned indexes ({'fix mode' if fix else 'check only'})"
+        )
         indexes = Index.objects.all().iterator(chunk_size=50)
         orphan_count = 0
 
@@ -22,10 +34,15 @@ class Command(BaseCommand):
                         f"Orphan: Index {index.id} ({created_at}, {updated_at}) for CT {index.content_type.name}"
                     )
                 )
+                if fix:
+                    self.stdout.write(f"Deleting index {index.id}")
+                    index.delete()
 
         if orphan_count == 0:
             self.stdout.write(self.style.SUCCESS("No orphaned index found"))
         else:
             self.stdout.write(
-                self.style.WARNING(f"Found {orphan_count} orphaned indexes")
+                self.style.WARNING(
+                    f"Found{' and deleted' if fix else ''} {orphan_count} orphaned indexes"
+                )
             )
