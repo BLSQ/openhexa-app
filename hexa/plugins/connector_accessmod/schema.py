@@ -7,7 +7,7 @@ from django_countries.fields import Country
 
 from config import settings
 from hexa.core.graphql import result_page
-from hexa.plugins.connector_accessmod.models import Fileset, FilesetRole, Project
+from hexa.plugins.connector_accessmod.models import File, Fileset, FilesetRole, Project
 from hexa.plugins.connector_s3.api import generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 
@@ -90,6 +90,14 @@ accessmod_type_defs = """
         RASTER
         TABULAR
     }
+    type AccessModFile {
+        id: String!
+        uri: String!
+        fileset: AccessmodFileset
+        mimeType: String!
+        createdAt: DateTime!
+        updatedAt: DateTime!
+    }
     input CreateAccessmodFilesetInput {
         name: String!
         projectId: String!
@@ -105,12 +113,22 @@ accessmod_type_defs = """
     }
     type PrepareAccessModFileUploadResult {
         success: Boolean!
-        uploadUrl: String!
-        fileUri: String!
+        uploadUrl: String
+        fileUri: String
+    }
+    input CreateAccessModFileInput {
+        filesetId: String!
+        uri: String!
+        mimeType: String!
+    }
+    type CreateAccessModFileResult {
+        success: Boolean!
+        file: AccessModFile
     }
     extend type Mutation {
         createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
         prepareAccessModFileUpload(input: PrepareAccessModFileUploadInput): PrepareAccessModFileUploadResult
+        createAccessModFile(input: CreateAccessModFileInput): CreateAccessModFileResult
     }
 """
 
@@ -245,6 +263,21 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         "upload_url": upload_url,
         "file_uri": f"s3://{bucket.name}/{target_key}",
     }
+
+
+@accessmod_mutations.field("createAccessModFile")
+def resolve_create_accessmod_file(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    create_input = kwargs["input"]
+    file = File.objects.create(
+        uri=create_input["uri"],
+        mime_type=create_input["mimeType"],
+        fileset=Fileset.objects.filter_for_user(request.user).get(
+            id=create_input["filesetId"]
+        ),
+    )
+
+    return {"success": True, "file": file}
 
 
 accessmod_bindables = [accessmod_query, accessmod_mutations]

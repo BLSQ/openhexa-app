@@ -43,6 +43,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   createAccessmodFileset(input: $input) {
                     success
                     fileset {
+                        id
                         name
                         role {
                             id
@@ -59,16 +60,15 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
+        self.assertEqual(True, r1["data"]["createAccessmodFileset"]["success"])
         self.assertEqual(
-            r1["data"]["createAccessmodFileset"],
-            {
-                "success": True,
-                "fileset": {
-                    "name": "A nice zone file",
-                    "role": {"id": str(self.ZONE_ROLE.id)},
-                },
-            },
+            "A nice zone file", r1["data"]["createAccessmodFileset"]["fileset"]["name"]
         )
+        self.assertEqual(
+            {"id": str(self.ZONE_ROLE.id)},
+            r1["data"]["createAccessmodFileset"]["fileset"]["role"],
+        )
+        fileset_id = r1["data"]["createAccessmodFileset"]["fileset"]["id"]
 
         r2 = self.run_query(
             """
@@ -111,4 +111,37 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertIn(
             str(self.SAMPLE_PROJECT.id),
             r2["data"]["prepareAccessModFileUpload"]["fileUri"],
+        )
+        file_uri = r2["data"]["prepareAccessModFileUpload"]["fileUri"]
+
+        r3 = self.run_query(
+            """
+                mutation createAccessModFile($input: CreateAccessModFileInput) {
+                    createAccessModFile(input: $input) {
+                        success
+                        file {
+                            uri
+                            mimeType
+                            fileset {
+                                id
+                            }
+                        }
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "filesetId": fileset_id,
+                    "uri": file_uri,
+                    "mimeType": "text/csv",
+                }
+            },
+        )
+        self.assertEqual(True, r3["data"]["createAccessModFile"]["success"])
+        self.assertEqual(file_uri, r3["data"]["createAccessModFile"]["file"]["uri"])
+        self.assertEqual(
+            "text/csv", r3["data"]["createAccessModFile"]["file"]["mimeType"]
+        )
+        self.assertEqual(
+            fileset_id, r3["data"]["createAccessModFile"]["file"]["fileset"]["id"]
         )

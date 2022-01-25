@@ -29,11 +29,18 @@ class Project(Base):
         ordering = ["name"]
 
 
+class FilesetQuerySet(AccessmodQuerySet):
+    def filter_for_user(self, user):
+        return self.filter(owner=user)
+
+
 class Fileset(Base):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
     owner = models.ForeignKey("user_management.User", on_delete=models.PROTECT)
+
+    objects = FilesetQuerySet.as_manager()
 
 
 class FilesetFormat(models.TextChoices):
@@ -44,4 +51,10 @@ class FilesetFormat(models.TextChoices):
 
 class FilesetRole(Base):
     name = models.TextField()
-    format = models.CharField(max_length=20, blank=False, choices=FilesetFormat.choices)
+    format = models.CharField(max_length=20, choices=FilesetFormat.choices)
+
+
+class File(Base):
+    mime_type = models.CharField(max_length=50)
+    uri = models.TextField()
+    fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
