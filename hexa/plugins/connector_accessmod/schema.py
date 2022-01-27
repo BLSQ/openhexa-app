@@ -125,10 +125,24 @@ accessmod_type_defs = """
         success: Boolean!
         file: AccessModFile
     }
+    input DeleteAccessmodFilesetInput {
+        id: String!
+    }
+    type DeleteAccessmodFilesetResult {
+        success: Boolean!
+    }
+    input DeleteAccessmodFileInput {
+        id: String!
+    }
+    type DeleteAccessmodFileResult {
+        success: Boolean!
+    }
     extend type Mutation {
         createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
+        deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
         prepareAccessModFileUpload(input: PrepareAccessModFileUploadInput): PrepareAccessModFileUploadResult
         createAccessModFile(input: CreateAccessModFileInput): CreateAccessModFileResult
+        deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
     }
 """
 
@@ -231,6 +245,16 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
     return {"success": True, "fileset": fileset}
 
 
+@accessmod_mutations.field("deleteAccessmodFileset")
+def resolve_delete_accessmod_fileset(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    delete_input = kwargs["input"]
+    fileset = Fileset.objects.filter_for_user(request.user).get(id=delete_input["id"])
+    fileset.delete()
+
+    return {"success": True}
+
+
 @accessmod_mutations.field("prepareAccessModFileUpload")
 def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -269,15 +293,29 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
 def resolve_create_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
+    fileset = Fileset.objects.filter_for_user(request.user).get(
+        id=create_input["filesetId"]
+    )
     file = File.objects.create(
         uri=create_input["uri"],
         mime_type=create_input["mimeType"],
-        fileset=Fileset.objects.filter_for_user(request.user).get(
-            id=create_input["filesetId"]
-        ),
+        fileset=fileset,
     )
+    fileset.save()  # Will update updated_at
 
     return {"success": True, "file": file}
+
+
+@accessmod_mutations.field("deleteAccessmodFile")
+def resolve_delete_accessmod_file(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    delete_input = kwargs["input"]
+    file = File.objects.filter_for_user(request.user).get(id=delete_input["id"])
+    fileset = file.fileset
+    file.delete()
+    fileset.save()  # Will update updated_at
+
+    return {"success": True}
 
 
 accessmod_bindables = [accessmod_query, accessmod_mutations]

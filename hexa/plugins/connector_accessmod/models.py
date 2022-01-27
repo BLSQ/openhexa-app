@@ -54,7 +54,13 @@ class FilesetRole(Base):
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
 
+class FileQuerySet(AccessmodQuerySet):
+    def filter_for_user(self, user):
+        return self.filter(fileset__owner=user)
+
+
 class File(Base):
     mime_type = models.CharField(max_length=50)
     uri = models.TextField()
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
+    objects = FileQuerySet.as_manager()

@@ -2,7 +2,13 @@ from django.conf import settings
 from moto import mock_s3, mock_sts
 
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_accessmod.models import FilesetFormat, FilesetRole, Project
+from hexa.plugins.connector_accessmod.models import (
+    File,
+    Fileset,
+    FilesetFormat,
+    FilesetRole,
+    Project,
+)
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 from hexa.user_management.models import User
 
@@ -120,6 +126,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                     createAccessModFile(input: $input) {
                         success
                         file {
+                            id
                             uri
                             mimeType
                             fileset {
@@ -145,3 +152,59 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             fileset_id, r3["data"]["createAccessModFile"]["file"]["fileset"]["id"]
         )
+        file_id = r3["data"]["createAccessModFile"]["file"]["id"]
+
+        # The fileset updated_at value should be equal to the created_at of the most recent file
+        fileset = Fileset.objects.get(id=fileset_id)
+        file = File.objects.get(id=file_id)
+        self.assertGreater(fileset.updated_at, file.created_at)
+
+    def test_delete_fileset(self):
+        self.client.force_login(self.USER)
+        fileset = Fileset.objects.create(
+            name="About to be deleted",
+            role=self.ZONE_ROLE,
+            project=self.SAMPLE_PROJECT,
+            owner=self.USER,
+        )
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                  deleteAccessmodFileset(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {"input": {"id": str(fileset.id)}},
+        )
+        self.assertEqual(True, r["data"]["deleteAccessmodFileset"]["success"])
+        self.assertEqual(False, Fileset.objects.filter(id=fileset.id).exists())
+
+    def test_delete_file(self):
+        self.client.force_login(self.USER)
+        fileset = Fileset.objects.create(
+            name="About to be deleted",
+            role=self.ZONE_ROLE,
+            project=self.SAMPLE_PROJECT,
+            owner=self.USER,
+        )
+        original_fileset_updated_at = fileset.updated_at
+        file = File.objects.create(
+            fileset=fileset, uri="notreallyanuri.csv", mime_type="text_csv"
+        )
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
+                  deleteAccessmodFile(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {"input": {"id": str(file.id)}},
+        )
+        self.assertEqual(True, r["data"]["deleteAccessmodFile"]["success"])
+        self.assertEqual(False, File.objects.filter(id=file.id).exists())
+        fileset.refresh_from_db()
+        self.assertGreater(fileset.updated_at, original_fileset_updated_at)
