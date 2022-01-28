@@ -29,8 +29,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessModProject($id: String!) {
-                  accessModProject(id: $id) {
+                query accessmodProject($id: String!) {
+                  accessmodProject(id: $id) {
                     id
                     name
                     spatialResolution
@@ -47,7 +47,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessModProject"],
+            r["data"]["accessmodProject"],
             {
                 "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
@@ -62,8 +62,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessModProject($id: String!) {
-                  accessModProject(id: $id) {
+                query accessmodProject($id: String!) {
+                  accessmodProject(id: $id) {
                     id
                   }
                 }
@@ -72,7 +72,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessModProject"],
+            r["data"]["accessmodProject"],
             None,
         )
 
@@ -81,8 +81,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessModProjects {
-                  accessModProjects {
+                query accessmodProjects {
+                  accessmodProjects {
                     pageNumber
                     totalPages
                     totalItems
@@ -95,7 +95,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessModProjects"],
+            r["data"]["accessmodProjects"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -112,8 +112,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessModProjects {
-                  accessModProjects {
+                query accessmodProjects {
+                  accessmodProjects {
                     pageNumber
                     totalPages
                     totalItems
@@ -126,7 +126,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessModProjects"],
+            r["data"]["accessmodProjects"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,

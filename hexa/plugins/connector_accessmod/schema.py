@@ -1,7 +1,7 @@
 import uuid
 from mimetypes import guess_extension
 
-from ariadne import MutationType, QueryType
+from ariadne import MutationType, ObjectType, QueryType
 from django.http import HttpRequest
 from django_countries.fields import Country
 
@@ -54,8 +54,8 @@ accessmod_type_defs = """
         success: Boolean!
     }
     extend type Query {
-        accessModProject(id: String): AccessmodProject
-        accessModProjects(page: Int, perPage: Int): AccessmodProjectPage!
+        accessmodProject(id: String): AccessmodProject
+        accessmodProjects(page: Int, perPage: Int): AccessmodProjectPage!
     }
     extend type Mutation {
         createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult
@@ -69,6 +69,7 @@ accessmod_type_defs = """
         name: String!
         role: AccessmodFilesetRole
         owner: User!
+        files: [AccessModFile]!
         createdAt: DateTime!
         updatedAt: DateTime!
     }
@@ -137,6 +138,10 @@ accessmod_type_defs = """
     type DeleteAccessmodFileResult {
         success: Boolean!
     }
+    extend type Query {
+        accessmodFileset(id: String): AccessmodFileset
+        accessmodFilesets(page: Int, perPage: Int): AccessmodFilesetPage!
+    }
     extend type Mutation {
         createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
         deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
@@ -150,7 +155,7 @@ accessmod_query = QueryType()
 accessmod_mutations = MutationType()
 
 
-@accessmod_query.field("accessModProject")
+@accessmod_query.field("accessmodProject")
 def resolve_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
@@ -160,7 +165,7 @@ def resolve_accessmod_project(_, info, **kwargs):
         return None
 
 
-@accessmod_query.field("accessModProjects")
+@accessmod_query.field("accessmodProjects")
 def resolve_accessmod_projects(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
@@ -227,6 +232,35 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         return {"success": True}
     except Project.DoesNotExist:
         return {"success": False}
+
+
+fileset_object = ObjectType("AccessmodFileset")
+
+
+@fileset_object.field("files")
+def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
+    return [f for f in fileset.file_set.all()]
+
+
+@accessmod_query.field("accessmodFileset")
+def resolve_accessmod_fileset(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    try:
+        return Fileset.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Fileset.DoesNotExist:
+        return None
+
+
+@accessmod_query.field("accessmodFilesets")
+def resolve_accessmod_filesets(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    queryset = Fileset.objects.filter_for_user(request.user)
+
+    return result_page(
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("page")
+    )
 
 
 @accessmod_mutations.field("createAccessmodFileset")
@@ -318,4 +352,4 @@ def resolve_delete_accessmod_file(_, info, **kwargs):
     return {"success": True}
 
 
-accessmod_bindables = [accessmod_query, accessmod_mutations]
+accessmod_bindables = [accessmod_query, accessmod_mutations, fileset_object]

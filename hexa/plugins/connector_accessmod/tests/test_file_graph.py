@@ -16,18 +16,34 @@ from hexa.user_management.models import User
 class AccessmodFileGraphTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.USER = User.objects.create_user(
+        cls.USER_1 = User.objects.create_user(
+            "jim@bluesquarehub.com",
+            "jimrocks",
+        )
+        cls.USER_2 = User.objects.create_user(
             "jane@bluesquarehub.com",
-            "janerocks",
+            "janesthebest",
         )
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER,
+            owner=cls.USER_1,
             spatial_resolution=100,
         )
         cls.ZONE_ROLE = FilesetRole.objects.create(
             name="Zone", format=FilesetFormat.RASTER
+        )
+        cls.SAMPLE_FILESET = Fileset.objects.create(
+            name="A cool fileset",
+            role=cls.ZONE_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.SAMPLE_FILE_1 = File.objects.create(
+            fileset=cls.SAMPLE_FILESET, uri="afile.csv", mime_type="text/csv"
+        )
+        cls.SAMPLE_FILE_2 = File.objects.create(
+            fileset=cls.SAMPLE_FILESET, uri="anotherfile.csv", mime_type="text/csv"
         )
         cls.CREDENTIALS = Credentials.objects.create(
             username="test-username",
@@ -37,10 +53,127 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
 
+    def test_accessmod_fileset_owner(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFileset($id: String!) {
+                  accessmodFileset(id: $id) {
+                    id
+                    name
+                    role {
+                        id
+                    }
+                    owner {
+                        id
+                    }
+                    files {
+                        id
+                        mimeType
+                        uri
+                    }
+                  }
+                }
+            """,
+            {"id": str(self.SAMPLE_FILESET.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFileset"],
+            {
+                "id": str(self.SAMPLE_FILESET.id),
+                "name": self.SAMPLE_FILESET.name,
+                "role": {"id": str(self.SAMPLE_FILESET.role_id)},
+                "owner": {"id": str(self.SAMPLE_FILESET.owner_id)},
+                "files": [
+                    {"id": str(f.id), "mimeType": f.mime_type, "uri": f.uri}
+                    for f in self.SAMPLE_FILESET.file_set.all()
+                ],
+            },
+        )
+
+    def test_accessmod_fileset_not_owner(self):
+        self.client.force_login(self.USER_2)
+
+        r = self.run_query(
+            """
+                query accessmodFileset($id: String!) {
+                  accessmodFileset(id: $id) {
+                    id
+                  }
+                }
+            """,
+            {"id": str(self.SAMPLE_FILESET.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFileset"],
+            None,
+        )
+
+    def test_accessmod_filesets(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets {
+                  accessmodFilesets {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {"id": str(self.SAMPLE_FILESET.id)},
+                ],
+            },
+        )
+
+    def test_accessmod_filesets_empty(self):
+        self.client.force_login(self.USER_2)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets {
+                  accessmodFilesets {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
+            },
+        )
+
     @mock_s3
     @mock_sts
-    def test_full_upload_workflow(self):
-        self.client.force_login(self.USER)
+    def test_full_accessmod_upload_workflow(self):
+        self.client.force_login(self.USER_1)
 
         # Step 1: create fileset
         r1 = self.run_query(
@@ -160,12 +293,12 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertGreater(fileset.updated_at, file.created_at)
 
     def test_delete_fileset(self):
-        self.client.force_login(self.USER)
+        self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(
             name="About to be deleted",
             role=self.ZONE_ROLE,
             project=self.SAMPLE_PROJECT,
-            owner=self.USER,
+            owner=self.USER_1,
         )
 
         r = self.run_query(
@@ -182,12 +315,12 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(False, Fileset.objects.filter(id=fileset.id).exists())
 
     def test_delete_file(self):
-        self.client.force_login(self.USER)
+        self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(
             name="About to be deleted",
             role=self.ZONE_ROLE,
             project=self.SAMPLE_PROJECT,
-            owner=self.USER,
+            owner=self.USER_1,
         )
         original_fileset_updated_at = fileset.updated_at
         file = File.objects.create(

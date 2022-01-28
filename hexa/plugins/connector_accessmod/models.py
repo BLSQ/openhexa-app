@@ -42,6 +42,9 @@ class Fileset(Base):
 
     objects = FilesetQuerySet.as_manager()
 
+    class Meta:
+        ordering = ["name"]
+
 
 class FilesetFormat(models.TextChoices):
     VECTOR = "VECTOR", _("Vector")
