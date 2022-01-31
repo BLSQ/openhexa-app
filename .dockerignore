@@ -1,11 +1,14 @@
 .github
 .git
 .idea
-docker-compose.yml
-k8s
-terraform
 
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+k8s
+.coverage
 **/node_modules
+**/*.pyc
 
 **/*.DS_Store
-**/*.pyc
