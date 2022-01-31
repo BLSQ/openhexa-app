@@ -16,27 +16,27 @@ urlpatterns = [
         name="cluster_detail_refresh",
     ),
     path(
-        "<uuid:cluster_id>/<uuid:dag_id>",
+        "dag/<uuid:dag_id>",
         views.dag_detail,
         name="dag_detail",
     ),
     path(
-        "<uuid:cluster_id>/<uuid:dag_id>/refresh",
+        "dag/<uuid:dag_id>/refresh",
         views.dag_detail_refresh,
         name="dag_detail_refresh",
     ),
     path(
-        "<uuid:cluster_id>/<uuid:dag_id>/run",
+        "dag/<uuid:dag_id>/run",
         views.dag_run_create,
         name="dag_run_create",
     ),
     path(
-        "<uuid:cluster_id>/<uuid:dag_id>/runs/<uuid:dag_run_id>",
+        "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>",
         views.dag_run_detail,
         name="dag_run_detail",
     ),
     path(
-        "<uuid:cluster_id>/<uuid:dag_id>/runs/<uuid:dag_run_id>/refresh",
+        "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>/refresh",
         views.dag_run_detail_refresh,
         name="dag_run_detail_refresh",
     ),

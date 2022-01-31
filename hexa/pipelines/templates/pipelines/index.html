@@ -5,9 +5,11 @@
 
 {% block page_content %}
     {{ pipeline_grid }}
-    {% embed "ui/section/section.html" with title=_("Pipeline environments") %}
-        {% slot content %}
-            {{ environment_grid }}
-        {% endslot %}
-    {% endembed %}
+    {% if request.user.is_superuser %}
+        {% embed "ui/section/section.html" with title=_("Pipeline environments") %}
+            {% slot content %}
+                {{ environment_grid }}
+            {% endslot %}
+        {% endembed %}
+    {% endif %}
 {% endblock %}

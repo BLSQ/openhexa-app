@@ -332,3 +332,8 @@ ACCESSMOD_S3_BUCKET_NAME = os.environ.get("ACCESSMOD_S3_BUCKET_NAME")
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
+
+# Specific settings for airflow plugins
+
+# number of second of airflow dag reloading setting
+AIRFLOW_SYNC_WAIT = 61

@@ -90,14 +90,13 @@ class DAGCard(Datacard):
         return reverse(
             "connector_airflow:dag_run_create",
             kwargs={
-                "cluster_id": dag.cluster.id,
                 "dag_id": dag.id,
             },
         )
 
     @staticmethod
     def get_airflow_url(dag: DAG):
-        return f"{dag.cluster.url}graph?dag_id={dag.dag_id}"
+        return f"{dag.template.cluster.url}graph?dag_id={dag.dag_id}"
 
     @property
     def generic_description(self) -> str:
@@ -123,7 +122,6 @@ class DAGRunSection(Section):
         return reverse(
             "connector_airflow:dag_detail",
             kwargs={
-                "cluster_id": run.dag.cluster.id,
                 "dag_id": run.dag.id,
             },
         )
@@ -168,7 +166,6 @@ class DAGRunCard(Datacard):
             reverse(
                 "connector_airflow:dag_run_create",
                 kwargs={
-                    "cluster_id": run.dag.cluster.id,
                     "dag_id": run.dag.id,
                 },
             )
@@ -177,4 +174,4 @@ class DAGRunCard(Datacard):
 
     @staticmethod
     def get_airflow_url(run: DAGRun):
-        return f"{run.dag.cluster.url}graph?dag_id={run.dag.dag_id}&execution_date={quote_plus(run.execution_date.isoformat())}"
+        return f"{run.dag.template.cluster.url}graph?dag_id={run.dag.dag_id}&execution_date={quote_plus(run.execution_date.isoformat())}"

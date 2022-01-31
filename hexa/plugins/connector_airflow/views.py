@@ -70,12 +70,7 @@ def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpR
     return cluster_detail(request, cluster_id=cluster_id)
 
 
-def dag_detail(
-    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
-) -> HttpResponse:
-    cluster = get_object_or_404(
-        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
-    )
+def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     dag = get_object_or_404(
         DAG.objects.prefetch_related().filter_for_user(request.user), pk=dag_id
     )
@@ -94,12 +89,7 @@ def dag_detail(
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (
-            cluster,
-            "connector_airflow:cluster_detail",
-            cluster_id,
-        ),
-        (dag, "connector_airflow:dag_detail", cluster_id, dag_id),
+        (dag, "connector_airflow:dag_detail", dag_id),
     ]
 
     return render(
@@ -115,10 +105,7 @@ def dag_detail(
 
 
 @do_not_track
-def dag_detail_refresh(
-    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
-) -> HttpResponse:
-    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
+def dag_detail_refresh(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     for run in dag.dagrun_set.filter_for_refresh():
         try:
@@ -126,13 +113,10 @@ def dag_detail_refresh(
         except AirflowAPIError:
             logger.exception(f"Refresh failed for DAGRun {run.id}")
 
-    return dag_detail(request, cluster_id=cluster_id, dag_id=dag_id)
+    return dag_detail(request, dag_id=dag_id)
 
 
-def dag_run_create(
-    request: HttpRequest, cluster_id: uuid.UUID, dag_id: uuid.UUID
-) -> HttpResponse:
-    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
+def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
 
     error = None
@@ -162,12 +146,7 @@ def dag_run_create(
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (
-            dag.cluster.name,
-            "connector_airflow:cluster_detail",
-            dag.cluster_id,
-        ),
-        (dag, "connector_airflow:dag_detail", cluster_id, dag_id),
+        (dag, "connector_airflow:dag_detail", dag_id),
         (_("Run with config"),),
     ]
 
@@ -188,13 +167,9 @@ def dag_run_create(
 
 def dag_run_detail(
     request: HttpRequest,
-    cluster_id: uuid.UUID,
     dag_id: uuid.UUID,
     dag_run_id: uuid.UUID,
 ) -> HttpResponse:
-    cluster = get_object_or_404(
-        Cluster.objects.prefetch_indexes().filter_for_user(request.user), pk=cluster_id
-    )
     dag = get_object_or_404(
         DAG.objects.prefetch_indexes().filter_for_user(request.user), pk=dag_id
     )
@@ -206,12 +181,7 @@ def dag_run_detail(
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (
-            cluster.name,
-            "connector_airflow:cluster_detail",
-            cluster_id,
-        ),
-        (dag, "connector_airflow:dag_detail", cluster_id, dag_id),
+        (dag, "connector_airflow:dag_detail", dag_id),
         (f"Run {dag_run.run_id}",),
     ]
 
@@ -229,11 +199,9 @@ def dag_run_detail(
 @do_not_track
 def dag_run_detail_refresh(
     request: HttpRequest,
-    cluster_id: uuid.UUID,
     dag_id: uuid.UUID,
     dag_run_id: uuid.UUID,
 ) -> HttpResponse:
-    get_object_or_404(Cluster.objects.filter_for_user(request.user), pk=cluster_id)
     get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     dag_run = get_object_or_404(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
@@ -244,6 +212,4 @@ def dag_run_detail_refresh(
     except AirflowAPIError:
         logger.exception(f"Refresh failed for DAGRun {dag_run.id}")
 
-    return dag_run_detail(
-        request, cluster_id=cluster_id, dag_id=dag_id, dag_run_id=dag_run_id
-    )
+    return dag_run_detail(request, dag_id=dag_id, dag_run_id=dag_run_id)

@@ -22,7 +22,7 @@
             <form
                     x-data="CodeMirrorrized()"
                     x-init="init" method="post"
-                    action="{% url "connector_airflow:dag_run_create" cluster_id=dag.cluster_id dag_id=dag.id %}"
+                    action="{% url "connector_airflow:dag_run_create" dag_id=dag.id %}"
             >
                 {% csrf_token %}
                 {% if error %}

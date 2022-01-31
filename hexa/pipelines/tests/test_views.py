@@ -1,7 +1,12 @@
 from django import test
 from django.urls import reverse
 
-from hexa.plugins.connector_airflow.models import DAG, Cluster, ClusterPermission
+from hexa.plugins.connector_airflow.models import (
+    DAG,
+    Cluster,
+    DAGPermission,
+    DAGTemplate,
+)
 from hexa.user_management.models import Membership, Team, User
 
 
@@ -21,8 +26,10 @@ class ViewsTest(test.TestCase):
         cluster_2 = Cluster.objects.create(
             name="Test cluster 2", url="http://another-cluster-url.com"
         )
-        DAG.objects.create(cluster=cluster_1, dag_id="Test DAG 1 ")
-        DAG.objects.create(cluster=cluster_2, dag_id="Test DAG 2")
+        template_1 = DAGTemplate.objects.create(cluster=cluster_1, code="TEST")
+        template_2 = DAGTemplate.objects.create(cluster=cluster_2, code="TEST")
+        DAG.objects.create(template=template_1, dag_id="Test DAG 1 ")
+        DAG.objects.create(template=template_2, dag_id="Test DAG 2")
 
         self.client.force_login(self.USER_JANE)
         response = self.client.get(
@@ -44,7 +51,8 @@ class IndexPermissionTest(test.TestCase):
             is_superuser=False,
         )
         cls.CLUSTER = Cluster.objects.create(name="TestCluster", url="http://invalid")
-        cls.DAG = DAG.objects.create(cluster=cls.CLUSTER, dag_id="TestDAG")
+        template = DAGTemplate.objects.create(cluster=cls.CLUSTER, code="TEST")
+        cls.DAG = DAG.objects.create(template=template, dag_id="TestDAG")
         cls.TEAM = Team.objects.create(name="JaneTeam")
         Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
 
@@ -57,11 +65,9 @@ class IndexPermissionTest(test.TestCase):
         self.assertEqual(0, len(response.context["environment_grid"]))
         self.assertEqual(0, len(response.context["pipeline_grid"]))
 
-        # create team <-> env perm
-        ClusterPermission.objects.create(team=self.TEAM, cluster=self.CLUSTER)
-
         # regular user + perm exists -> pipeline index with 1 cluster and 1 dag
+        DAGPermission.objects.create(dag=self.DAG, team=self.TEAM)
         response = self.client.get(reverse("pipelines:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(1, len(response.context["environment_grid"]))
+        self.assertEqual(0, len(response.context["environment_grid"]))
         self.assertEqual(1, len(response.context["pipeline_grid"]))

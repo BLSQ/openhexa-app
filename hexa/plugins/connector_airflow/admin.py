@@ -2,35 +2,40 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.html import format_html
 
-from .models import DAG, Cluster, ClusterPermission, DAGRun
+from .models import DAG, Cluster, DAGPermission, DAGRun, DAGTemplate
 
 
 class PermissionInline(admin.StackedInline):
     extra = 1
-    model = ClusterPermission
+    model = DAGPermission
 
 
 @admin.register(Cluster)
 class ClusterAdmin(admin.ModelAdmin):
     list_display = ("name", "get_url", "last_synced_at", "auto_sync")
 
-    inlines = [
-        PermissionInline,
-    ]
-
     @display(ordering="url", description="Url")
     def get_url(self, obj):
         return format_html("<a href='{url}'>{url}</a>", url=obj.url)
 
 
-@admin.register(ClusterPermission)
-class ClusterPermissionAdmin(admin.ModelAdmin):
-    list_display = ("cluster", "team")
+@admin.register(DAGPermission)
+class DAGPermissionAdmin(admin.ModelAdmin):
+    list_display = ("dag", "team")
+
+
+@admin.register(DAGTemplate)
+class DAGTemplateAdmin(admin.ModelAdmin):
+    list_display = ("cluster", "code")
 
 
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
-    list_display = ("dag_id", "cluster")
+    list_display = ("dag_id", "template", "schedule", "user")
+
+    inlines = [
+        PermissionInline,
+    ]
 
 
 @admin.register(DAGRun)
