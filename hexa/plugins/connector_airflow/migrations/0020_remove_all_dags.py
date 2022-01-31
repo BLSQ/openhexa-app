@@ -11,10 +11,11 @@ def remove_dags(apps, schema_editor):
     for dag in DAG.objects.all():
         dag.delete()
 
-    Index = apps.get_model("pipelines", "Index")
-    for index in Index.objects.all():
-        if index.object is None:
-            index.delete()
+
+#    Index = apps.get_model("pipelines", "Index")
+#    for index in Index.objects.all():
+#        if index.object is None:
+#            index.delete()
 
 
 class Migration(migrations.Migration):
