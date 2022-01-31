@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.23
+------------
+
+Release date TBD
+
+### Added
+
+- Support DAG template for connector_airflow
+
 Version 0.22
 ------------
 
