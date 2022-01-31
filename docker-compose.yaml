@@ -20,6 +20,7 @@ x-app: &default-app
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
       - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
       - ACCESSMOD_S3_BUCKET_NAME=hexa-demo-accessmod
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
       # - DEBUG_LOGGING=true
 
 services:
