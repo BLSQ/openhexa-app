@@ -39,6 +39,12 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,
         )
+        cls.ANOTHER_SAMPLE_FILESET = Fileset.objects.create(
+            name="Another cool fileset",
+            role=cls.ZONE_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
         cls.SAMPLE_FILE_1 = File.objects.create(
             fileset=cls.SAMPLE_FILESET, uri="afile.csv", mime_type="text/csv"
         )
@@ -135,9 +141,41 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 1,
+                "totalItems": 2,
                 "items": [
                     {"id": str(self.SAMPLE_FILESET.id)},
+                    {"id": str(self.ANOTHER_SAMPLE_FILESET.id)},
+                ],
+            },
+        )
+
+    def test_accessmod_filesets_pagination(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets {
+                  accessmodFilesets(page: 1, perPage: 10) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 2,
+                "items": [
+                    {"id": str(self.SAMPLE_FILESET.id)},
+                    {"id": str(self.ANOTHER_SAMPLE_FILESET.id)},
                 ],
             },
         )
