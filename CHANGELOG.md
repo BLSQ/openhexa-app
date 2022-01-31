@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.22
+------------
+
+February 1, 2022
+
+### Fixed
+
+- Fixed fixtures command in Docker entrypoint
+
 Version 0.21
 ------------
 
