@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import typing
 
 from django.core.paginator import Paginator
@@ -321,7 +322,7 @@ class DateColumn(Column):
     def template(self):
         return "ui/datagrid/column_date.html"
 
-    def format_date(self, date):
+    def format_date(self, date: datetime.datetime):
         if date is None:
             return date
 
@@ -331,7 +332,7 @@ class DateColumn(Column):
 
             return f"{timesince(date)} {_('ago')}"
         else:
-            return NotImplementedError('Only the "timesince" format is implemented')
+            return date.strftime(self.date_format)
 
     def context(self, model: DjangoModel, grid: Datagrid):
         data = {

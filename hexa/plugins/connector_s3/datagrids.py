@@ -4,6 +4,7 @@ from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datagrid import (
     Action,
     Datagrid,
+    DateColumn,
     LeadingColumn,
     LinkColumn,
     TagColumn,
@@ -40,6 +41,7 @@ class ObjectGrid(Datagrid):
     tags = TagColumn(value="index.tags.all")
     size = TextColumn(text="file_size_display", translate=False)
     type = TextColumn(text="type_display")
+    last_modified = DateColumn(date="last_modified", date_format="%Y-%m-%d %H:%M:%S %Z")
     link = LinkColumn(text="View")
 
     upload = UploadAction()
