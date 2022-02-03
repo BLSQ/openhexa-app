@@ -56,6 +56,9 @@ class FilesetRole(Base):
     name = models.TextField()
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
+    class Meta:
+        ordering = ["name"]
+
 
 class FileQuerySet(AccessmodQuerySet):
     def filter_for_user(self, user):

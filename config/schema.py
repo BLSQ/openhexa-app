@@ -1,4 +1,10 @@
-from ariadne import make_executable_schema, snake_case_fallback_resolvers
+import pathlib
+
+from ariadne import (
+    load_schema_from_path,
+    make_executable_schema,
+    snake_case_fallback_resolvers,
+)
 
 # from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 # from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
@@ -9,14 +15,9 @@ from hexa.plugins.connector_accessmod.schema import (
 )
 from hexa.user_management.schema import identity_bindables, identity_type_defs
 
-type_defs = """
-    scalar Date
-    scalar DateTime
-    
-    type Query
-    type Mutation
-"""
-
+type_defs = load_schema_from_path(
+    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
+)
 schema = make_executable_schema(
     [
         type_defs,

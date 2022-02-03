@@ -1,0 +1,57 @@
+extend type Query {
+    me: User
+    countries: [Country!]
+    organizations: [Organization!]
+}
+type User {
+    id: String!
+    email: String!
+    firstName: String
+    lastName: String
+    avatar: Avatar!
+}
+type Avatar {
+    initials: String!
+    color: String!
+}
+type Organization {
+    id: String!
+    name: String!
+    type: String!
+    url: String!
+    contactInfo: String!
+}
+input OrganizationInput {
+    id: String!
+    name: String
+    type: String
+    url: String
+    contactInfo: String
+}
+type Country {
+    code: String!
+    alpha3: String!
+    name: String!
+    flag: String!
+}
+input CountryInput {
+    code: String!
+    alpha3: String
+    name: String
+    flag: String
+}
+type LoginResult {
+    success: Boolean!
+    me: User
+}
+type LogoutResult {
+    success: Boolean!
+}
+input LoginInput {
+    email: String!
+    password: String!
+}
+extend type Mutation {
+    login(input: LoginInput!): LoginResult
+    logout: LogoutResult
+}
