@@ -264,8 +264,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         r2 = self.run_query(
             """
-                mutation prepareAccessModFileUpload($input: PrepareAccessModFileUploadInput) {
-                  prepareAccessModFileUpload(input: $input) {
+                mutation prepareAccessmodFileUpload($input: PrepareAccessmodFileUploadInput) {
+                  prepareAccessmodFileUpload(input: $input) {
                     success
                     uploadUrl
                     fileUri
@@ -281,35 +281,35 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r2["data"]["prepareAccessModFileUpload"]["success"],
+            r2["data"]["prepareAccessmodFileUpload"]["success"],
             True,
         )
         self.assertTrue(
-            r2["data"]["prepareAccessModFileUpload"]["uploadUrl"].startswith("https://")
+            r2["data"]["prepareAccessmodFileUpload"]["uploadUrl"].startswith("https://")
         )
         self.assertIn(
             str(self.SAMPLE_PROJECT_1.id),
-            r2["data"]["prepareAccessModFileUpload"]["uploadUrl"],
+            r2["data"]["prepareAccessmodFileUpload"]["uploadUrl"],
         )
         self.assertIn(
-            "X-Amz-SignedHeaders", r2["data"]["prepareAccessModFileUpload"]["uploadUrl"]
+            "X-Amz-SignedHeaders", r2["data"]["prepareAccessmodFileUpload"]["uploadUrl"]
         )
         self.assertTrue(
-            r2["data"]["prepareAccessModFileUpload"]["fileUri"].startswith("s3://")
+            r2["data"]["prepareAccessmodFileUpload"]["fileUri"].startswith("s3://")
         )
         self.assertTrue(
-            r2["data"]["prepareAccessModFileUpload"]["fileUri"].endswith(".csv")
+            r2["data"]["prepareAccessmodFileUpload"]["fileUri"].endswith(".csv")
         )
         self.assertIn(
             str(self.SAMPLE_PROJECT_1.id),
-            r2["data"]["prepareAccessModFileUpload"]["fileUri"],
+            r2["data"]["prepareAccessmodFileUpload"]["fileUri"],
         )
-        file_uri = r2["data"]["prepareAccessModFileUpload"]["fileUri"]
+        file_uri = r2["data"]["prepareAccessmodFileUpload"]["fileUri"]
 
         r3 = self.run_query(
             """
-                mutation createAccessModFile($input: CreateAccessModFileInput) {
-                    createAccessModFile(input: $input) {
+                mutation createAccessmodFile($input: CreateAccessmodFileInput) {
+                    createAccessmodFile(input: $input) {
                         success
                         file {
                             id
@@ -330,15 +330,15 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
-        self.assertEqual(True, r3["data"]["createAccessModFile"]["success"])
-        self.assertEqual(file_uri, r3["data"]["createAccessModFile"]["file"]["uri"])
+        self.assertEqual(True, r3["data"]["createAccessmodFile"]["success"])
+        self.assertEqual(file_uri, r3["data"]["createAccessmodFile"]["file"]["uri"])
         self.assertEqual(
-            "text/csv", r3["data"]["createAccessModFile"]["file"]["mimeType"]
+            "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
         )
         self.assertEqual(
-            fileset_id, r3["data"]["createAccessModFile"]["file"]["fileset"]["id"]
+            fileset_id, r3["data"]["createAccessmodFile"]["file"]["fileset"]["id"]
         )
-        file_id = r3["data"]["createAccessModFile"]["file"]["id"]
+        file_id = r3["data"]["createAccessmodFile"]["file"]["id"]
 
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)

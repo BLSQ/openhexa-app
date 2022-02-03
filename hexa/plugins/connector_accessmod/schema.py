@@ -155,7 +155,7 @@ def resolve_delete_accessmod_fileset(_, info, **kwargs):
     return {"success": True}
 
 
-@accessmod_mutations.field("prepareAccessModFileUpload")
+@accessmod_mutations.field("prepareAccessmodFileUpload")
 def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     prepare_input = kwargs["input"]
@@ -189,7 +189,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     }
 
 
-@accessmod_mutations.field("createAccessModFile")
+@accessmod_mutations.field("createAccessmodFile")
 def resolve_create_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]

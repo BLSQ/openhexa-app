@@ -55,7 +55,7 @@ type AccessmodFileset {
     name: String!
     role: AccessmodFilesetRole
     owner: User!
-    files: [AccessModFile]!
+    files: [AccessmodFile]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -83,7 +83,7 @@ enum AccessmodFilesetFormat {
     RASTER
     TABULAR
 }
-type AccessModFile {
+type AccessmodFile {
     id: String!
     uri: String!
     fileset: AccessmodFileset
@@ -100,23 +100,23 @@ type CreateAccessmodFilesetResult {
     success: Boolean!
     fileset: AccessmodFileset
 }
-input PrepareAccessModFileUploadInput {
+input PrepareAccessmodFileUploadInput {
     projectId: String!
     mimeType: String!
 }
-type PrepareAccessModFileUploadResult {
+type PrepareAccessmodFileUploadResult {
     success: Boolean!
     uploadUrl: String
     fileUri: String
 }
-input CreateAccessModFileInput {
+input CreateAccessmodFileInput {
     filesetId: String!
     uri: String!
     mimeType: String!
 }
-type CreateAccessModFileResult {
+type CreateAccessmodFileResult {
     success: Boolean!
-    file: AccessModFile
+    file: AccessmodFile
 }
 input DeleteAccessmodFilesetInput {
     id: String!
@@ -139,7 +139,7 @@ extend type Query {
 extend type Mutation {
     createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
     deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
-    prepareAccessModFileUpload(input: PrepareAccessModFileUploadInput): PrepareAccessModFileUploadResult
-    createAccessModFile(input: CreateAccessModFileInput): CreateAccessModFileResult
+    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult
+    createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult
     deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
 }
