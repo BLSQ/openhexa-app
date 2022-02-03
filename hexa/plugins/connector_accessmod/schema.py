@@ -220,7 +220,7 @@ def resolve_delete_accessmod_file(_, info, **kwargs):
 def resolve_accessmod_fileset_role(_, info, **kwargs):
     try:
         return FilesetRole.objects.get(id=kwargs["id"])
-    except Fileset.DoesNotExist:
+    except FilesetRole.DoesNotExist:
         return None
 
 
