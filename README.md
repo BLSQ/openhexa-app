@@ -103,20 +103,19 @@ Python requirements are handled with [pip-tools](https://github.com/jazzband/pip
 When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You 
 can then rebuild the Docker image.
 
-### Database migrations with Docker
+### Running commands on the container
 
-When using Docker in local, specific commands are provided to create and apply migrations:
-
-```bash
-docker-compose run --rm app makemigrations [app_label [app_label ...]]
-```
+The app Docker image contains an entrypoint. You can use the following to list the available commands:
 
 ```bash
-docker-compose run --rm app migrate [app_label] [migration_name]
+docker-compose run app help
 ```
 
-See [django-docs](https://docs.djangoproject.com/en/4.0/ref/django-admin/#makemigrations).
+As an example, use the following command to run the migrations:
 
+```bash
+docker-compose run app migrate
+```
 
 ### Running the tests
 

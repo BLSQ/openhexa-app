@@ -82,6 +82,9 @@ case "$command" in
   python manage.py tailwind install
   python manage.py tailwind start
   ;;
+"help")
+  show_help
+  ;;
 *)
   show_help
   ;;
