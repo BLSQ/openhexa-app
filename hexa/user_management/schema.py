@@ -1,4 +1,6 @@
-from ariadne import MutationType, ObjectType, QueryType
+import pathlib
+
+from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpRequest
 from django_countries import countries
@@ -7,65 +9,9 @@ from django_countries.fields import Country
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import Organization, User
 
-identity_type_defs = """
-    extend type Query {
-        me: User
-        countries: [Country!]
-        organizations: [Organization!]
-    }
-    type User {
-        id: String!
-        email: String!
-        firstName: String
-        lastName: String
-        avatar: Avatar!
-    }
-    type Avatar {
-        initials: String!
-        color: String!
-    }
-    type Organization {
-        id: String!
-        name: String!
-        type: String!
-        url: String!
-        contactInfo: String!
-    }
-    input OrganizationInput {
-        id: String!
-        name: String
-        type: String
-        url: String
-        contactInfo: String
-    }
-    type Country {
-        code: String!
-        alpha3: String!
-        name: String!
-        flag: String!
-    }
-    input CountryInput {
-        code: String!
-        alpha3: String
-        name: String
-        flag: String
-    }
-    type LoginResult {
-        success: Boolean!
-        me: User
-    }
-    type LogoutResult {
-        success: Boolean!
-    }
-    input LoginInput {
-        email: String!
-        password: String!
-    }
-    extend type Mutation {
-        login(input: LoginInput!): LoginResult
-        logout: LogoutResult
-    }
-"""
+identity_type_defs = load_schema_from_path(
+    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
+)
 
 identity_query = QueryType()
 identity_mutations = MutationType()

@@ -1,0 +1,137 @@
+# Projects
+type AccessmodProject {
+    id: String!
+    name: String!
+    spatialResolution: Int!
+    country: Country!
+    owner: User!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+type AccessmodProjectPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodProject!]!
+}
+input CreateAccessmodProjectInput {
+    name: String!
+    spatialResolution: Int!
+    country: CountryInput!
+}
+type CreateAccessmodProjectResult {
+    success: Boolean!
+    project: AccessmodProject
+}
+input UpdateAccessmodProjectInput {
+    id: String!
+    name: String
+    spatialResolution: Int
+    country: CountryInput
+}
+type UpdateAccessmodProjectResult {
+    success: Boolean!
+    project: AccessmodProject
+}
+input DeleteAccessmodProjectInput {
+    id: String!
+}
+type DeleteAccessmodProjectResult {
+    success: Boolean!
+}
+extend type Query {
+    accessmodProject(id: String): AccessmodProject
+    accessmodProjects(page: Int, perPage: Int): AccessmodProjectPage!
+}
+extend type Mutation {
+    createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult
+    updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult
+    deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult
+}
+
+# Filesets
+type AccessmodFileset {
+    id: String!
+    name: String!
+    role: AccessmodFilesetRole
+    owner: User!
+    files: [AccessModFile]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+type AccessmodFilesetPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodFileset!]!
+}
+type AccessmodFilesetRole {
+    id: String!
+    name: String!
+    format: AccessmodFilesetFormat!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+enum AccessmodFilesetFormat {
+    VECTOR
+    RASTER
+    TABULAR
+}
+type AccessModFile {
+    id: String!
+    uri: String!
+    fileset: AccessmodFileset
+    mimeType: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+input CreateAccessmodFilesetInput {
+    name: String!
+    projectId: String!
+    roleId: String!
+}
+type CreateAccessmodFilesetResult {
+    success: Boolean!
+    fileset: AccessmodFileset
+}
+input PrepareAccessModFileUploadInput {
+    projectId: String!
+    mimeType: String!
+}
+type PrepareAccessModFileUploadResult {
+    success: Boolean!
+    uploadUrl: String
+    fileUri: String
+}
+input CreateAccessModFileInput {
+    filesetId: String!
+    uri: String!
+    mimeType: String!
+}
+type CreateAccessModFileResult {
+    success: Boolean!
+    file: AccessModFile
+}
+input DeleteAccessmodFilesetInput {
+    id: String!
+}
+type DeleteAccessmodFilesetResult {
+    success: Boolean!
+}
+input DeleteAccessmodFileInput {
+    id: String!
+}
+type DeleteAccessmodFileResult {
+    success: Boolean!
+}
+extend type Query {
+    accessmodFileset(id: String): AccessmodFileset
+    accessmodFilesets(page: Int, perPage: Int): AccessmodFilesetPage!
+}
+extend type Mutation {
+    createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
+    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
+    prepareAccessModFileUpload(input: PrepareAccessModFileUploadInput): PrepareAccessModFileUploadResult
+    createAccessModFile(input: CreateAccessModFileInput): CreateAccessModFileResult
+    deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
+}
