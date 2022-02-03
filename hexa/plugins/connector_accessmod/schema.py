@@ -159,8 +159,8 @@ def resolve_delete_accessmod_fileset(_, info, **kwargs):
 def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     prepare_input = kwargs["input"]
-    project = Project.objects.filter_for_user(request.user).get(
-        id=prepare_input["projectId"]
+    fileset = Fileset.objects.filter_for_user(request.user).get(
+        id=prepare_input["filesetId"]
     )
 
     # This is a temporary solution until we figure out storage requirements
@@ -173,9 +173,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
             f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
         )
 
-    target_key = (
-        f"{project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}"
-    )
+    target_key = f"{fileset.project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}"
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,

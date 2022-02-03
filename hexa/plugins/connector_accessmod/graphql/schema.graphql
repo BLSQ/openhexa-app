@@ -101,7 +101,7 @@ type CreateAccessmodFilesetResult {
     fileset: AccessmodFileset
 }
 input PrepareAccessmodFileUploadInput {
-    projectId: String!
+    filesetId: String!
     mimeType: String!
 }
 type PrepareAccessmodFileUploadResult {

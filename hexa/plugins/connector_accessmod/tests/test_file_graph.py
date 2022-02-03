@@ -274,7 +274,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "projectId": str(self.SAMPLE_PROJECT_1.id),
+                    "filesetId": str(self.SAMPLE_FILESET_3.id),
                     "mimeType": "text/csv",
                 }
             },
@@ -288,7 +288,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r2["data"]["prepareAccessmodFileUpload"]["uploadUrl"].startswith("https://")
         )
         self.assertIn(
-            str(self.SAMPLE_PROJECT_1.id),
+            str(self.SAMPLE_PROJECT_2.id),
             r2["data"]["prepareAccessmodFileUpload"]["uploadUrl"],
         )
         self.assertIn(
@@ -301,7 +301,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r2["data"]["prepareAccessmodFileUpload"]["fileUri"].endswith(".csv")
         )
         self.assertIn(
-            str(self.SAMPLE_PROJECT_1.id),
+            str(self.SAMPLE_PROJECT_2.id),
             r2["data"]["prepareAccessmodFileUpload"]["fileUri"],
         )
         file_uri = r2["data"]["prepareAccessmodFileUpload"]["fileUri"]
