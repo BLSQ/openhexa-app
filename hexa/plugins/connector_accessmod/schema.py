@@ -120,7 +120,9 @@ def resolve_accessmod_fileset(_, info, **kwargs):
 def resolve_accessmod_filesets(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    queryset = Fileset.objects.filter_for_user(request.user)
+    queryset = Fileset.objects.filter_for_user(request.user).filter(
+        project_id=kwargs["projectId"]
+    )
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
@@ -214,6 +216,23 @@ def resolve_delete_accessmod_file(_, info, **kwargs):
     fileset.save()  # Will update updated_at
 
     return {"success": True}
+
+
+@accessmod_query.field("accessmodFilesetRole")
+def resolve_accessmod_fileset_role(_, info, **kwargs):
+    try:
+        return FilesetRole.objects.get(id=kwargs["id"])
+    except Fileset.DoesNotExist:
+        return None
+
+
+@accessmod_query.field("accessmodFilesetRoles")
+def resolve_accessmod_fileset_roles(_, info, **kwargs):
+    queryset = FilesetRole.objects.all()
+
+    return result_page(
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+    )
 
 
 accessmod_bindables = [accessmod_query, accessmod_mutations, fileset_object]

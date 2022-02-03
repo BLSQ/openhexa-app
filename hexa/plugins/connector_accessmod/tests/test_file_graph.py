@@ -24,8 +24,14 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             "jane@bluesquarehub.com",
             "janesthebest",
         )
-        cls.SAMPLE_PROJECT = Project.objects.create(
-            name="Sample project",
+        cls.SAMPLE_PROJECT_1 = Project.objects.create(
+            name="Sample project 1",
+            country="BE",
+            owner=cls.USER_1,
+            spatial_resolution=100,
+        )
+        cls.SAMPLE_PROJECT_2 = Project.objects.create(
+            name="Sample project 2",
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
@@ -33,23 +39,29 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         cls.ZONE_ROLE = FilesetRole.objects.create(
             name="Zone", format=FilesetFormat.RASTER
         )
-        cls.SAMPLE_FILESET = Fileset.objects.create(
+        cls.SAMPLE_FILESET_1 = Fileset.objects.create(
             name="A cool fileset",
             role=cls.ZONE_ROLE,
-            project=cls.SAMPLE_PROJECT,
+            project=cls.SAMPLE_PROJECT_1,
             owner=cls.USER_1,
         )
-        cls.ANOTHER_SAMPLE_FILESET = Fileset.objects.create(
+        cls.SAMPLE_FILESET_2 = Fileset.objects.create(
             name="Another cool fileset",
             role=cls.ZONE_ROLE,
-            project=cls.SAMPLE_PROJECT,
+            project=cls.SAMPLE_PROJECT_1,
+            owner=cls.USER_1,
+        )
+        cls.SAMPLE_FILESET_3 = Fileset.objects.create(
+            name="And yet another cool fileset",
+            role=cls.ZONE_ROLE,
+            project=cls.SAMPLE_PROJECT_2,
             owner=cls.USER_1,
         )
         cls.SAMPLE_FILE_1 = File.objects.create(
-            fileset=cls.SAMPLE_FILESET, uri="afile.csv", mime_type="text/csv"
+            fileset=cls.SAMPLE_FILESET_1, uri="afile.csv", mime_type="text/csv"
         )
         cls.SAMPLE_FILE_2 = File.objects.create(
-            fileset=cls.SAMPLE_FILESET, uri="anotherfile.csv", mime_type="text/csv"
+            fileset=cls.SAMPLE_FILESET_1, uri="anotherfile.csv", mime_type="text/csv"
         )
         cls.CREDENTIALS = Credentials.objects.create(
             username="test-username",
@@ -82,19 +94,19 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.SAMPLE_FILESET.id)},
+            {"id": str(self.SAMPLE_FILESET_1.id)},
         )
 
         self.assertEqual(
             r["data"]["accessmodFileset"],
             {
-                "id": str(self.SAMPLE_FILESET.id),
-                "name": self.SAMPLE_FILESET.name,
-                "role": {"id": str(self.SAMPLE_FILESET.role_id)},
-                "owner": {"id": str(self.SAMPLE_FILESET.owner_id)},
+                "id": str(self.SAMPLE_FILESET_1.id),
+                "name": self.SAMPLE_FILESET_1.name,
+                "role": {"id": str(self.SAMPLE_FILESET_1.role_id)},
+                "owner": {"id": str(self.SAMPLE_FILESET_1.owner_id)},
                 "files": [
                     {"id": str(f.id), "mimeType": f.mime_type, "uri": f.uri}
-                    for f in self.SAMPLE_FILESET.file_set.all()
+                    for f in self.SAMPLE_FILESET_1.file_set.all()
                 ],
             },
         )
@@ -110,7 +122,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.SAMPLE_FILESET.id)},
+            {"id": str(self.SAMPLE_FILESET_1.id)},
         )
 
         self.assertEqual(
@@ -123,8 +135,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets {
-                  accessmodFilesets {
+                query accessmodFilesets($projectId: String!) {
+                  accessmodFilesets(projectId: $projectId) {
                     pageNumber
                     totalPages
                     totalItems
@@ -134,6 +146,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT_1.id)},
         )
 
         self.assertEqual(
@@ -143,8 +156,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET.id)},
-                    {"id": str(self.ANOTHER_SAMPLE_FILESET.id)},
+                    {"id": str(self.SAMPLE_FILESET_1.id)},
+                    {"id": str(self.SAMPLE_FILESET_2.id)},
                 ],
             },
         )
@@ -154,8 +167,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets {
-                  accessmodFilesets(page: 1, perPage: 10) {
+                query accessmodFilesets($projectId: String!) {
+                  accessmodFilesets(projectId: $projectId, page: 1, perPage: 10) {
                     pageNumber
                     totalPages
                     totalItems
@@ -165,6 +178,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT_1.id)},
         )
 
         self.assertEqual(
@@ -174,8 +188,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET.id)},
-                    {"id": str(self.ANOTHER_SAMPLE_FILESET.id)},
+                    {"id": str(self.SAMPLE_FILESET_1.id)},
+                    {"id": str(self.SAMPLE_FILESET_2.id)},
                 ],
             },
         )
@@ -185,8 +199,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets {
-                  accessmodFilesets {
+                query accessmodFilesets($projectId: String!) {
+                  accessmodFilesets(projectId: $projectId) {
                     pageNumber
                     totalPages
                     totalItems
@@ -196,6 +210,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT_1.id)},
         )
 
         self.assertEqual(
@@ -232,7 +247,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             {
                 "input": {
                     "name": "A nice zone file",
-                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "projectId": str(self.SAMPLE_PROJECT_1.id),
                     "roleId": str(self.ZONE_ROLE.id),
                 }
             },
@@ -259,7 +274,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "projectId": str(self.SAMPLE_PROJECT_1.id),
                     "mimeType": "text/csv",
                 }
             },
@@ -273,7 +288,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r2["data"]["prepareAccessModFileUpload"]["uploadUrl"].startswith("https://")
         )
         self.assertIn(
-            str(self.SAMPLE_PROJECT.id),
+            str(self.SAMPLE_PROJECT_1.id),
             r2["data"]["prepareAccessModFileUpload"]["uploadUrl"],
         )
         self.assertIn(
@@ -286,7 +301,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r2["data"]["prepareAccessModFileUpload"]["fileUri"].endswith(".csv")
         )
         self.assertIn(
-            str(self.SAMPLE_PROJECT.id),
+            str(self.SAMPLE_PROJECT_1.id),
             r2["data"]["prepareAccessModFileUpload"]["fileUri"],
         )
         file_uri = r2["data"]["prepareAccessModFileUpload"]["fileUri"]
@@ -335,7 +350,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         fileset = Fileset.objects.create(
             name="About to be deleted",
             role=self.ZONE_ROLE,
-            project=self.SAMPLE_PROJECT,
+            project=self.SAMPLE_PROJECT_1,
             owner=self.USER_1,
         )
 
@@ -357,7 +372,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         fileset = Fileset.objects.create(
             name="About to be deleted",
             role=self.ZONE_ROLE,
-            project=self.SAMPLE_PROJECT,
+            project=self.SAMPLE_PROJECT_1,
             owner=self.USER_1,
         )
         original_fileset_updated_at = fileset.updated_at
@@ -379,3 +394,58 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(False, File.objects.filter(id=file.id).exists())
         fileset.refresh_from_db()
         self.assertGreater(fileset.updated_at, original_fileset_updated_at)
+
+    def test_accessmod_fileset_role(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesetRole($id: String!) {
+                  accessmodFilesetRole(id: $id) {
+                    id
+                    name
+                    format
+                  }
+                }
+            """,
+            {"id": str(self.ZONE_ROLE.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesetRole"],
+            {
+                "id": str(self.ZONE_ROLE.id),
+                "name": self.ZONE_ROLE.name,
+                "format": self.ZONE_ROLE.format,
+            },
+        )
+
+    def test_accessmod_fileset_roles(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesetRoles {
+                  accessmodFilesetRoles {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesetRoles"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {"id": str(self.ZONE_ROLE.id)},
+                ],
+            },
+        )

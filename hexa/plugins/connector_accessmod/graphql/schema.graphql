@@ -72,6 +72,12 @@ type AccessmodFilesetRole {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+type AccessmodFilesetRolePage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodFilesetRole!]!
+}
 enum AccessmodFilesetFormat {
     VECTOR
     RASTER
@@ -126,7 +132,9 @@ type DeleteAccessmodFileResult {
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
-    accessmodFilesets(page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesets(projectId: String!, page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesetRole(id: String!): AccessmodFilesetRole
+    accessmodFilesetRoles(page: Int, perPage: Int): AccessmodFilesetRolePage
 }
 extend type Mutation {
     createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
