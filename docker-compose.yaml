@@ -26,6 +26,8 @@ x-app: &default-app
 services:
   db:
     image: postgres:12.5
+    volumes:
+      - pgdata-12.5:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=hexa-app
       - POSTGRES_USER=hexa-app
@@ -54,3 +56,6 @@ services:
     tty: true
     ports:
       - "8383:8383"
+
+volumes:
+  pgdata-12.5:
