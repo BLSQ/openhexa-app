@@ -89,7 +89,7 @@ In addition to the **App component** Docker image, we also provide a `docker-com
 The following steps will get you up and running:
 
 ```bash
-cp .env.template .env
+cp .env.dist .env
 docker-compose build
 docker-compose run app fixtures
 docker-compose up
