@@ -103,6 +103,20 @@ Python requirements are handled with [pip-tools](https://github.com/jazzband/pip
 When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You 
 can then rebuild the Docker image.
 
+### Running commands on the container
+
+The app Docker image contains an entrypoint. You can use the following to list the available commands:
+
+```bash
+docker-compose run app help
+```
+
+As an example, use the following command to run the migrations:
+
+```bash
+docker-compose run app migrate
+```
+
 ### Running the tests
 
 Running the tests is as simple as:
