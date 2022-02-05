@@ -302,7 +302,7 @@ class DAG(Pipeline):
             ],
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
-            "schedule": self.schedule,
+            "schedule": self.schedule if self.schedule else None,
         }
 
 

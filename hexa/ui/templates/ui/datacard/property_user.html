@@ -1,0 +1,9 @@
+{% extends "ui/datacard/property.html" %}
+
+{% block value %}
+    {% if user is None %}
+        -
+    {% else %}
+        {{ user.display_name }}
+    {% endif %}
+{% endblock %}
