@@ -2,11 +2,13 @@ import json
 import uuid
 from logging import getLogger
 
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
+from hexa.pipelines.queue import environment_sync_queue
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.datagrids import DAGGrid, DAGRunGrid
@@ -76,6 +78,18 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     )
     dag_card = DAGCard(dag, request=request)
     if request.method == "POST" and dag_card.save():
+        # enqueue a sync since we edited a DAG
+        cluster_contenttype = ContentType.objects.get(
+            app_label="connector_airflow", model="cluster"
+        )
+        environment_sync_queue.enqueue(
+            "environment_sync",
+            {
+                "contenttype_id": cluster_contenttype.id,
+                "object_id": str(dag.template.cluster.id),
+            },
+        )
+
         return redirect(request.META["HTTP_REFERER"])
 
     run_grid = DAGRunGrid(
