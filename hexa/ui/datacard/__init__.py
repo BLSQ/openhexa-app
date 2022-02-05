@@ -11,6 +11,7 @@ from .properties import (
     TagProperty,
     TextProperty,
     URLProperty,
+    UserProperty,
 )
 
 __all__ = [
@@ -27,4 +28,5 @@ __all__ = [
     "TagProperty",
     "TextProperty",
     "URLProperty",
+    "UserProperty",
 ]

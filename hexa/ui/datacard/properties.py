@@ -277,6 +277,27 @@ class OwnerProperty(URLProperty):
         )
 
 
+class UserProperty(Property):
+    def __init__(self, *, user: str, **kwargs):
+        super().__init__(**kwargs)
+        self.user = user
+
+    def context(self, model, section, **kwargs):
+        return {"user": self.get_value(model, self.user, section)}
+
+    @property
+    def template(self):
+        return "ui/datacard/property_user.html"
+
+    @property
+    def input_widget(self):
+        return forms.Select(
+            attrs={
+                "class": "form-input block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+            }
+        )
+
+
 class DateProperty(Property):
     def __init__(self, *, date=None, date_format="M d, H:i:s (e)", **kwargs):
         super().__init__(**kwargs)
