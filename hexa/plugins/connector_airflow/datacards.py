@@ -17,6 +17,7 @@ from hexa.ui.datacard import (
     StatusProperty,
     TextProperty,
     URLProperty,
+    UserProperty,
 )
 
 
@@ -60,8 +61,17 @@ class ClusterCard(Datacard):
 class DAGSection(Section):
     title = "Airflow Data"
 
-    dag_id = TextProperty(text="dag_id", label="Identifier", translate=False)
+    dag_id = TextProperty(
+        text="dag_id", label="Identifier", translate=False, editable=True
+    )
+    schedule = TextProperty(
+        text="schedule", label="Schedule", translate=False, editable=True
+    )
+    user = UserProperty(user="user", label="Report to", editable=True)
     description = TextProperty(text="description", markdown=True)
+
+    class Meta:
+        model = DAG
 
 
 class DAGCard(Datacard):
