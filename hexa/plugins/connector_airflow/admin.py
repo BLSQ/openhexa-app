@@ -2,7 +2,14 @@ from django.contrib import admin
 from django.contrib.admin import display
 from django.utils.html import format_html
 
-from .models import DAG, Cluster, DAGPermission, DAGRun, DAGTemplate
+from .models import (
+    DAG,
+    Cluster,
+    DAGAuthorizedDatasource,
+    DAGPermission,
+    DAGRun,
+    DAGTemplate,
+)
 
 
 class PermissionInline(admin.StackedInline):
@@ -45,3 +52,8 @@ class DAGRunAdmin(admin.ModelAdmin):
     @display(ordering="dag__cluster", description="Cluster")
     def get_cluster(self, obj):
         return obj.dag.cluster
+
+
+@admin.register(DAGAuthorizedDatasource)
+class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
+    list_display = ("dag", "datasource")
