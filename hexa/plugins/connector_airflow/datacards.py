@@ -61,9 +61,7 @@ class ClusterCard(Datacard):
 class DAGSection(Section):
     title = "Airflow Data"
 
-    dag_id = TextProperty(
-        text="dag_id", label="Identifier", translate=False, editable=True
-    )
+    dag_id = TextProperty(text="dag_id", label="Identifier", translate=False)
     schedule = TextProperty(
         text="schedule", label="Schedule", translate=False, editable=True
     )
