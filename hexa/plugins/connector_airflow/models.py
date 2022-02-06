@@ -165,7 +165,7 @@ class Cluster(Environment):
                         "DAG %s schedule missmatch between openhexa/airflow",
                         hexa_dag.dag_id,
                     )
-                if dag_info["is_active"] is False or dag_info["is_paused"] is False:
+                if dag_info["is_active"] is False or dag_info["is_paused"] is True:
                     logger.error("DAG %s inactive in airflow", hexa_dag.dag_id)
 
                 # update runs
