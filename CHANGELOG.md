@@ -9,6 +9,7 @@ Release date TBD
 ### Added
 
 - Support DAG template for connector_airflow
+- User can edit DAG name, schedule and owner themself
 
 Version 0.22
 ------------
