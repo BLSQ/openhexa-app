@@ -10,3 +10,6 @@ credentials
 .terraform*
 
 static/uploads/*
+.venv
+.vscode
+__pycache__
