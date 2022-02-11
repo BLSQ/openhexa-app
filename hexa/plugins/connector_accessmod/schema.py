@@ -122,8 +122,8 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 
     queryset = Fileset.objects.filter_for_user(request.user).filter(
         project_id=kwargs["projectId"]
-    )
-
+    ).order_by("-created_at")
+    
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
     )
