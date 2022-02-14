@@ -8,3 +8,6 @@ docker-compose build
 
 echo "Add fixtures"
 docker-compose run app fixtures
+
+echo "Setup pre-commit"
+pre-commit install
