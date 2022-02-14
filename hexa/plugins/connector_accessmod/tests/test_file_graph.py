@@ -156,8 +156,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET_1.id)},
                     {"id": str(self.SAMPLE_FILESET_2.id)},
+                    {"id": str(self.SAMPLE_FILESET_1.id)},
                 ],
             },
         )
@@ -188,8 +188,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET_1.id)},
                     {"id": str(self.SAMPLE_FILESET_2.id)},
+                    {"id": str(self.SAMPLE_FILESET_1.id)},
                 ],
             },
         )
