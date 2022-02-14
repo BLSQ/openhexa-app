@@ -53,7 +53,7 @@ cryptography==36.0.1
     #   moto
 dhis2.py==2.3.0
     # via -r requirements.in
-django==4.0.1
+django==4.0.2
     # via
     #   -r requirements.in
     #   django-browser-reload
