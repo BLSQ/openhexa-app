@@ -4,7 +4,7 @@ version: "3.8"
 x-app: &default-app
     build: .
     volumes:
-      - .:/code
+      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
     environment:
       - DEBUG=true
       - DEBUG_LOGGING
