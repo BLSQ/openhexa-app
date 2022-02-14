@@ -1,6 +1,7 @@
 .github
 .git
 .idea
+.devcontainer
 
 Dockerfile
 docker-compose.yml
