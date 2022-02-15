@@ -1,10 +1,23 @@
 Changelog
 =========
 
+Version 0.24
+------------
+
+February 15, 2022
+
+### Added
+
+- Added dev container for GitHub workspaces
+
+### Updated
+
+- Updated to Django 0.4.2
+
 Version 0.23
 ------------
 
-Release date TBD
+February 8, 2022
 
 ### Added
 
