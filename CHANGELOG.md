@@ -12,7 +12,7 @@ February 15, 2022
 
 ### Updated
 
-- Updated to Django 0.4.2
+- Updated to Django 4.0.2
 
 Version 0.23
 ------------
