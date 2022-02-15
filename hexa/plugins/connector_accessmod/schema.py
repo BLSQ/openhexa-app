@@ -125,6 +125,8 @@ def resolve_accessmod_filesets(_, info, **kwargs):
         .filter(project_id=kwargs["projectId"])
         .order_by("-created_at")
     )
+    if "roleId" in kwargs:
+        queryset = queryset.filter(role__id=kwargs["roleId"])
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
