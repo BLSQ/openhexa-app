@@ -133,7 +133,7 @@ type DeleteAccessmodFileResult {
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
-    accessmodFilesets(projectId: String!, page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesets(projectId: String!, roleId: String, page: Int, perPage: Int): AccessmodFilesetPage!
     accessmodFilesetRole(id: String!): AccessmodFilesetRole
     accessmodFilesetRoles(page: Int, perPage: Int): AccessmodFilesetRolePage
 }

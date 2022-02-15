@@ -39,6 +39,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         cls.ZONE_ROLE = FilesetRole.objects.create(
             name="Zone", code="zone", format=FilesetFormat.RASTER
         )
+        cls.BARRIER_ROLE = FilesetRole.objects.create(
+            name="Barriers", code="barrier", format=FilesetFormat.VECTOR
+        )
         cls.SAMPLE_FILESET_1 = Fileset.objects.create(
             name="A cool fileset",
             role=cls.ZONE_ROLE,
@@ -47,7 +50,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         cls.SAMPLE_FILESET_2 = Fileset.objects.create(
             name="Another cool fileset",
-            role=cls.ZONE_ROLE,
+            role=cls.BARRIER_ROLE,
             project=cls.SAMPLE_PROJECT_1,
             owner=cls.USER_1,
         )
@@ -158,6 +161,46 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "items": [
                     {"id": str(self.SAMPLE_FILESET_2.id)},
                     {"id": str(self.SAMPLE_FILESET_1.id)},
+                ],
+            },
+        )
+
+    def test_accessmod_filesets_by_role(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $roleId: String!) {
+                  accessmodFilesets(projectId: $projectId, roleId: $roleId) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                      role {
+                        code
+                      }
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.SAMPLE_PROJECT_1.id),
+                "roleId": str(self.BARRIER_ROLE.id),
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {
+                        "id": str(self.SAMPLE_FILESET_2.id),
+                        "role": {"code": self.BARRIER_ROLE.code},
+                    },
                 ],
             },
         )
@@ -445,8 +488,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 1,
+                "totalItems": 2,
                 "items": [
+                    {"id": str(self.BARRIER_ROLE.id)},
                     {"id": str(self.ZONE_ROLE.id)},
                 ],
             },
