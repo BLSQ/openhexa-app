@@ -54,6 +54,7 @@ class FilesetFormat(models.TextChoices):
 
 class FilesetRole(Base):
     name = models.TextField()
+    code = models.CharField(max_length=50)
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
     class Meta:

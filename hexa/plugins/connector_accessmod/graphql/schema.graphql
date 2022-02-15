@@ -67,6 +67,7 @@ type AccessmodFilesetPage {
 }
 type AccessmodFilesetRole {
     id: String!
+    code: String!
     name: String!
     format: AccessmodFilesetFormat!
     createdAt: DateTime!

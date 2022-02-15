@@ -37,7 +37,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             spatial_resolution=100,
         )
         cls.ZONE_ROLE = FilesetRole.objects.create(
-            name="Zone", format=FilesetFormat.RASTER
+            name="Zone", code="zone", format=FilesetFormat.RASTER
         )
         cls.SAMPLE_FILESET_1 = Fileset.objects.create(
             name="A cool fileset",
@@ -403,6 +403,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 query accessmodFilesetRole($id: String!) {
                   accessmodFilesetRole(id: $id) {
                     id
+                    code
                     name
                     format
                   }
@@ -415,6 +416,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["accessmodFilesetRole"],
             {
                 "id": str(self.ZONE_ROLE.id),
+                "code": self.ZONE_ROLE.code,
                 "name": self.ZONE_ROLE.name,
                 "format": self.ZONE_ROLE.format,
             },
