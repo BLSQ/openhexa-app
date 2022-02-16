@@ -36,7 +36,7 @@ def resolve_accessmod_projects(_, info, **kwargs):
     queryset = Project.objects.filter_for_user(request.user)
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
 
 
@@ -129,7 +129,7 @@ def resolve_accessmod_filesets(_, info, **kwargs):
         queryset = queryset.filter(role__id=kwargs["roleId"])
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
 
 
@@ -233,7 +233,7 @@ def resolve_accessmod_fileset_roles(_, info, **kwargs):
     queryset = FilesetRole.objects.all()
 
     return result_page(
-        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("per_page")
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
 
 
