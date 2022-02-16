@@ -52,13 +52,13 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
         )
         cls.SAMPLE_FILESET_2 = Fileset.objects.create(
-            name="Another cool fileset",
+            name="Another nice fileset",
             role=cls.BARRIER_ROLE,
             project=cls.SAMPLE_PROJECT_1,
             owner=cls.USER_1,
         )
         cls.SAMPLE_FILESET_3 = Fileset.objects.create(
-            name="And yet another cool fileset",
+            name="And yet another fileset",
             role=cls.LAND_COVER_ROLE,
             project=cls.SAMPLE_PROJECT_2,
             owner=cls.USER_1,
@@ -205,6 +205,71 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                         "role": {"code": self.BARRIER_ROLE.code},
                     },
                 ],
+            },
+        )
+
+    def test_accessmod_filesets_by_term(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $term: String!) {
+                  accessmodFilesets(projectId: $projectId, term: $term) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.SAMPLE_PROJECT_1.id),
+                "term": "cool",
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {
+                        "id": str(self.SAMPLE_FILESET_1.id),
+                    },
+                ],
+            },
+        )
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $term: String!) {
+                  accessmodFilesets(projectId: $projectId, term: $term) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.SAMPLE_PROJECT_1.id),
+                "term": "awesome",
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
             },
         )
 
