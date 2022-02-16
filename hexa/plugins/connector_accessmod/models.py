@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
 from hexa.core.models import Base
@@ -47,14 +46,25 @@ class Fileset(Base):
 
 
 class FilesetFormat(models.TextChoices):
-    VECTOR = "VECTOR", _("Vector")
-    RASTER = "RASTER", _("Raster")
-    TABULAR = "TABULAR", _("Tabular")
+    VECTOR = "VECTOR"
+    RASTER = "RASTER"
+    TABULAR = "TABULAR"
+
+
+class FilesetRoleCode(models.TextChoices):
+    LAND_COVER = "LAND_COVER"
+    DEM = "DEM"
+    TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
+    SLOPE = "SLOPE"
+    WATER = "WATER"
+    BARRIER = "BARRIER"
+    MOVING_SPEEDS = "MOVING_SPEEDS"
+    HEALTH_FACILITIES = "HEALTH_FACILITIES"
 
 
 class FilesetRole(Base):
     name = models.TextField()
-    code = models.CharField(max_length=50)
+    code = models.CharField(max_length=50, choices=FilesetRoleCode.choices)
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
     class Meta:

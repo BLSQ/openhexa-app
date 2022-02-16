@@ -67,7 +67,7 @@ type AccessmodFilesetPage {
 }
 type AccessmodFilesetRole {
     id: String!
-    code: String!
+    code: AccessmodFilesetRoleCode!
     name: String!
     format: AccessmodFilesetFormat!
     createdAt: DateTime!
@@ -79,7 +79,16 @@ type AccessmodFilesetRolePage {
     totalItems: Int!
     items: [AccessmodFilesetRole!]!
 }
-enum AccessmodFilesetFormat {
+enum AccessmodFilesetRoleCode {
+    LAND_COVER
+    DEM
+    TRANSPORT_NETWORK
+    SLOPE
+    WATER
+    BARRIER
+    MOVING_SPEEDS
+    HEALTH_FACILITIES
+}enum AccessmodFilesetFormat {
     VECTOR
     RASTER
     TABULAR
