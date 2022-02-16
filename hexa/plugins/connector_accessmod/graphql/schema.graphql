@@ -67,7 +67,7 @@ type AccessmodFilesetPage {
 }
 type AccessmodFilesetRole {
     id: String!
-    code: String!
+    code: AccessmodFilesetRoleCode!
     name: String!
     format: AccessmodFilesetFormat!
     createdAt: DateTime!
@@ -78,6 +78,16 @@ type AccessmodFilesetRolePage {
     totalPages: Int!
     totalItems: Int!
     items: [AccessmodFilesetRole!]!
+}
+enum AccessmodFilesetRoleCode {
+    LAND_COVER
+    DEM
+    TRANSPORT_NETWORK
+    SLOPE
+    WATER
+    BARRIER
+    MOVING_SPEEDS
+    HEALTH_FACILITIES
 }
 enum AccessmodFilesetFormat {
     VECTOR
@@ -133,7 +143,7 @@ type DeleteAccessmodFileResult {
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
-    accessmodFilesets(projectId: String!, roleId: String, page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
     accessmodFilesetRole(id: String!): AccessmodFilesetRole
     accessmodFilesetRoles(page: Int, perPage: Int): AccessmodFilesetRolePage
 }
