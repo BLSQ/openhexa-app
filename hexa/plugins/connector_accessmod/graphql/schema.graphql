@@ -150,10 +150,6 @@ extend type Mutation {
 }
 
 # Analysis
-type AccessmodAnalysisType {
-    id: String!
-    name: String!
-}
 enum AccessmodAnalysisStatus {
     PENDING
     READY
@@ -164,13 +160,11 @@ enum AccessmodAnalysisStatus {
 }
 interface AccessmodAnalysis {
     id: String!
-    type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
 }
 type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     id: String!
-    type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
     extent: String!
@@ -219,8 +213,6 @@ type UpdateAccessmodAccessibilityAnalysisResult {
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
     accessmodAnalyses(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodAnalysisPage!
-    accessmodAnalysisType(id: String!): AccessmodAnalysisType
-    accessmodAnalysisTypes: [AccessmodAnalysisType!]!
 }
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult

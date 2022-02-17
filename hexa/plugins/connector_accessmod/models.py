@@ -92,44 +92,70 @@ class AnalysisStatus(models.TextChoices):
     FAILED = "FAILED"
 
 
-class AnalysisTypeCode(models.TextChoices):
-    ACCESSIBILITY = "ACCESSIBILITY"
-    GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
-    ZONAL_STATISTICS = "ZONAL_STATISTICS"
-    REFERRAL = "REFERRAL"
-    SCALING_UP = "SCALING_UP"
-
-
 class Analysis(Base):
-    type = models.CharField(max_length=50, choices=AnalysisTypeCode.choices)
-    status = models.CharField(max_length=50, choices=AnalysisStatus.choices)
+    status = models.CharField(
+        max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING
+    )
     name = models.TextField()
 
 
 class AccessibilityAnalysis(Analysis):
-    extent = models.JSONField()
+    extent = models.JSONField(null=True)
     land_cover = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, related_name="+"
     )
-    dem = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    dem = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
     transport_network = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    slope = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
-    water = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
-    barrier = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    slope = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    water = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    barrier = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
     moving_speeds = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
     health_facilities = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    anisotropic = models.BooleanField()
-    max_travel_time = models.BooleanField()
+    anisotropic = models.BooleanField(null=True)
+    max_travel_time = models.IntegerField(null=True)
 
     travel_times = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
     friction_surface = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+
+
+class GeographicCoverageAnalysis(Analysis):
+    population = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    friction_surface = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    dem = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    health_facilities = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    anisotropic = models.BooleanField(null=True)
+    max_travel_time = models.IntegerField(null=True)
+    hf_processing_order = models.CharField(max_length=100)
+
+    geographic_coverage = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    catchment_areas = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )

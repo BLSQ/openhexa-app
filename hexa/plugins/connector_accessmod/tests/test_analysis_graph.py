@@ -1,5 +1,9 @@
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_accessmod.models import Project
+from hexa.plugins.connector_accessmod.models import (
+    AccessibilityAnalysis,
+    GeographicCoverageAnalysis,
+    Project,
+)
 from hexa.user_management.models import User
 
 
@@ -20,6 +24,12 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
             spatial_resolution=100,
         )
+        cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
+            name="First accessibility analysis",
+        )
+        cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
+            name="First Geo coverage analysis",
+        )
 
     def test_accessmod_analysis_owner(self):
         self.client.force_login(self.USER_1)
@@ -31,14 +41,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     id
                     name
                     status
-                    type
                     ... on AccessModAccessibilityAnalysis {
                         slope
                     }
                   }
                 }
             """,
-            {"id": str(self.SAMPLE_ANALYSIS.id)},
+            {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
         )
 
         self.assertEqual(
@@ -47,7 +56,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
                 "status": "some status",
-                "type": {"code": "BE"},
                 "slope": "some slope",
             },
         )
@@ -63,7 +71,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.SAMPLE_ANALYSIS.id)},
+            {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
         )
 
         self.assertEqual(
@@ -96,8 +104,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.ANALYSIS_1.id)},
-                    {"id": str(self.ANALYSIS_2.id)},
+                    {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id)},
                 ],
             },
         )
@@ -127,8 +135,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.ANALYSIS_1.id)},
-                    {"id": str(self.ANALYSIS_2.id)},
+                    {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id)},
                 ],
             },
         )
@@ -159,51 +167,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "totalItems": 0,
                 "items": [],
             },
-        )
-
-    def test_accessmod_analysis_type(self):
-        self.client.force_login(self.USER_1)
-
-        r = self.run_query(
-            """
-                query accessmodAnalysisType($id: String!) {
-                  accessmodAnalysisTypes(id: $id) {
-                    id
-                    code
-                    name
-                  }
-                }
-            """,
-            {"id": str(self.ANALYSIS_TYPE_ACCESSIBILITY.id)},
-        )
-
-        self.assertEqual(
-            r["data"]["accessmodFilesetRole"],
-            {
-                "id": str(self.ANALYSIS_TYPE_ACCESSIBILITY.id),
-                "code": self.ANALYSIS_TYPE_ACCESSIBILITY.code,
-                "name": self.ANALYSIS_TYPE_ACCESSIBILITY.name,
-            },
-        )
-
-    def test_accessmod_analysis_types(self):
-        self.client.force_login(self.USER_1)
-
-        r = self.run_query(
-            """
-                query accessmodAnalysisTypes {
-                  accessmodAnalysisTypes {
-                    id
-                  }
-                }
-            """,
-        )
-
-        self.assertEqual(
-            r["data"]["accessmodAnalysisTypes"],
-            [
-                {"id": str(self.ANALYSIS_TYPE_ACCESSIBILITY.id)},
-            ],
         )
 
     def test_create_accessmod_accessibility_analysis(self):
