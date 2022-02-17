@@ -25,9 +25,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             spatial_resolution=100,
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
+            project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
+            project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
         )
 
@@ -41,7 +43,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     id
                     name
                     status
-                    ... on AccessModAccessibilityAnalysis {
+                    ... on AccessmodAccessibilityAnalysis {
                         slope
                     }
                   }
@@ -53,10 +55,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalysis"],
             {
-                "id": str(self.SAMPLE_PROJECT.id),
-                "name": "Sample project",
-                "status": "some status",
-                "slope": "some slope",
+                "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                "name": self.ACCESSIBILITY_ANALYSIS.name,
+                "status": self.ACCESSIBILITY_ANALYSIS.status,
+                "slope": self.ACCESSIBILITY_ANALYSIS.slope,
             },
         )
 
@@ -84,8 +86,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses {
-                  accessmodAnalyses {
+                query accessmodAnalyses($projectId: String!) {
+                  accessmodAnalyses(projectId: $projectId) {
                     pageNumber
                     totalPages
                     totalItems
@@ -95,10 +97,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT.id)},
         )
 
         self.assertEqual(
-            r["data"]["accessmodProjects"],
+            r["data"]["accessmodAnalyses"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -115,8 +118,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses {
-                  accessmodAnalyses(page: 1, perPage: 10) {
+                query accessmodAnalyses($projectId: String!) {
+                  accessmodAnalyses(projectId: $projectId, page: 1, perPage: 10) {
                     pageNumber
                     totalPages
                     totalItems
@@ -126,6 +129,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT.id)},
         )
 
         self.assertEqual(
@@ -146,8 +150,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses {
-                  accessmodAnalyses {
+                query accessmodAnalyses($projectId: String!) {
+                  accessmodAnalyses(projectId: $projectId) {
                     pageNumber
                     totalPages
                     totalItems
@@ -157,6 +161,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   }
                 }
             """,
+            {"projectId": str(self.SAMPLE_PROJECT.id)},
         )
 
         self.assertEqual(
@@ -178,31 +183,28 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   createAccessmodAccessibilityAnalysis(input: $input) {
                     success
                     analysis {
+                        id
                         name
-                        slope
                     }
                   }
                 }
             """,
             {
                 "input": {
-                    "name": "My new project",
-                    "spatialResolution": 42,
-                    "country": {"code": "CD"},
+                    "name": "A new accessibility analysis",
                 }
             },
         )
 
         self.assertEqual(
-            r["data"]["createAccessmodAccessibilityAnalysis"],
-            {
-                "success": True,
-                "project": {
-                    "name": "My new project",
-                    "spatialResolution": 42,
-                    "country": {"code": "CD"},
-                },
-            },
+            r["data"]["createAccessmodAccessibilityAnalysis"]["success"], True
+        )
+        self.assertEqual(
+            r["data"]["createAccessmodAccessibilityAnalysis"]["analysis"]["name"],
+            "A new accessibility analysis",
+        )
+        self.assertIsInstance(
+            r["data"]["createAccessmodAccessibilityAnalysis"]["analysis"]["name"], str
         )
 
     def test_update_accessmod_accessibility_analysis(self):
@@ -216,16 +218,14 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     analysis {
                         id
                         name
-                        slope
                     }
                   }
                 }
             """,
             {
                 "input": {
-                    "id": str(self.SAMPLE_PROJECT.id),
-                    "name": "Updated project!",
-                    "country": {"code": "CD"},
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "name": "Updated accessibility analysis!",
                 }
             },
         )
@@ -234,10 +234,9 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             r["data"]["updateAccessmodAccessibilityAnalysis"],
             {
                 "success": True,
-                "project": {
-                    "id": str(self.SAMPLE_PROJECT.id),
-                    "name": "Updated project!",
-                    "country": {"code": "CD"},
+                "analysis": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "name": "Updated accessibility analysis!",
                 },
             },
         )

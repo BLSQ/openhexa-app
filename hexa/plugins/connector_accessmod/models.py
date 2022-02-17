@@ -19,7 +19,9 @@ class ProjectQuerySet(AccessmodQuerySet):
 class Project(Base):
     name = models.TextField()
     country = CountryField()
-    owner = models.ForeignKey("user_management.User", on_delete=models.PROTECT)
+    owner = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
     spatial_resolution = models.PositiveIntegerField()
 
     objects = ProjectQuerySet.as_manager()
@@ -37,7 +39,9 @@ class Fileset(Base):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
-    owner = models.ForeignKey("user_management.User", on_delete=models.PROTECT)
+    owner = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
 
     objects = FilesetQuerySet.as_manager()
 
@@ -93,6 +97,10 @@ class AnalysisStatus(models.TextChoices):
 
 
 class Analysis(Base):
+    project = models.ForeignKey("Project", on_delete=models.PROTECT)
+    owner = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
     status = models.CharField(
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING
     )

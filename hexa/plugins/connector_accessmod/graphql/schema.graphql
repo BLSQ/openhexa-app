@@ -193,6 +193,7 @@ type CreateAccessmodAccessibilityAnalysisResult {
     analysis: AccessmodAccessibilityAnalysis!
 }
 input UpdateAccessmodAccessibilityAnalysisInput {
+    id: String!
     name: String
     extent: String
     landCover: String
@@ -212,7 +213,7 @@ type UpdateAccessmodAccessibilityAnalysisResult {
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
-    accessmodAnalyses(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodAnalysisPage!
+    accessmodAnalyses(projectId: String!, term: String, page: Int, perPage: Int): AccessmodAnalysisPage!
 }
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
