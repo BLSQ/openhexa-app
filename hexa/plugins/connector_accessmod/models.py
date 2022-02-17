@@ -81,3 +81,55 @@ class File(Base):
     uri = models.TextField()
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
+
+
+class AnalysisStatus(models.TextChoices):
+    PENDING = "PENDING"
+    READY = "READY"
+    QUEUED = "QUEUED"
+    RUNNING = "RUNNING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+
+
+class AnalysisTypeCode(models.TextChoices):
+    ACCESSIBILITY = "ACCESSIBILITY"
+    GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
+    ZONAL_STATISTICS = "ZONAL_STATISTICS"
+    REFERRAL = "REFERRAL"
+    SCALING_UP = "SCALING_UP"
+
+
+class Analysis(Base):
+    type = models.CharField(max_length=50, choices=AnalysisTypeCode.choices)
+    status = models.CharField(max_length=50, choices=AnalysisStatus.choices)
+    name = models.TextField()
+
+
+class AccessibilityAnalysis(Analysis):
+    extent = models.JSONField()
+    land_cover = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
+    dem = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    transport_network = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
+    slope = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    water = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    barrier = models.ForeignKey("Fileset", on_delete=models.PROTECT, related_name="+")
+    moving_speeds = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
+    health_facilities = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
+    anisotropic = models.BooleanField()
+    max_travel_time = models.BooleanField()
+
+    travel_times = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
+    friction_surface = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, related_name="+"
+    )
