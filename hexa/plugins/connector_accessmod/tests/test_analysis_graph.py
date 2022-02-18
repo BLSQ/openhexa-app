@@ -25,10 +25,12 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             spatial_resolution=100,
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
+            owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
+            owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
         )
@@ -44,7 +46,9 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     name
                     status
                     ... on AccessmodAccessibilityAnalysis {
-                        slope
+                        slope {
+                            id
+                        }
                     }
                   }
                 }

@@ -167,17 +167,35 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     id: String!
     status: AccessmodAnalysisStatus!
     name: String!
-    extent: String!
-    landCover: String!
-    dem: String!
-    transportNetwork: String!
-    slope: String!
-    water: String!
-    barrier: String!
-    movingSpeeds: String!
-    healthFacilities: String!
-    anisotropic: Boolean!
-    maxTravelTime: Int!
+    extent: AccessmodFileset
+    landCover: AccessmodFileset
+    dem: AccessmodFileset
+    transportNetwork: AccessmodFileset
+    slope: AccessmodFileset
+    water: AccessmodFileset
+    barrier: AccessmodFileset
+    movingSpeeds: AccessmodFileset
+    healthFacilities: AccessmodFileset
+    anisotropic: Boolean
+    maxTravelTime: Int
+
+    travelTimes: AccessmodFileset
+    frictionSurface: AccessmodFileset
+}
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
+    id: String!
+    status: AccessmodAnalysisStatus!
+    name: String!
+    population: AccessmodFileset
+    frictionSurface: AccessmodFileset
+    dem: AccessmodFileset
+    healthFacilities: AccessmodFileset
+    anisotropic: Boolean
+    maxTravelTime: Int
+    hfProcessingOrder: String
+
+    geographicCoverage: AccessmodFileset
+    catchmentAreas: AccessmodFileset
 }
 type AccessmodAnalysisPage {
     pageNumber: Int!
@@ -195,15 +213,14 @@ type CreateAccessmodAccessibilityAnalysisResult {
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
     name: String
-    extent: String
-    landCover: String
-    dem: String
-    transportNetwork: String
-    slope: String
-    water: String
-    barrier: String
-    movingSpeeds: String
-    healthFacilities: String
+    extentId: String
+    landCoverId: String
+    transportNetworkId: String
+    slopeId: String
+    waterId: String
+    barrierId: String
+    movingSpeedsId: String
+    healthFacilitiesId: String
     anisotropic: Boolean
     maxTravelTime: Int
 }

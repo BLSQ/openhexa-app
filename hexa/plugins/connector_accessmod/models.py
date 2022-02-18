@@ -1,5 +1,6 @@
 from django.db import models
 from django_countries.fields import CountryField
+from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
 
@@ -96,6 +97,22 @@ class AnalysisStatus(models.TextChoices):
     FAILED = "FAILED"
 
 
+class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
+    def filter_for_user(self, user):
+        return self.filter(owner=user)
+
+
+class AnalysisManager(InheritanceManager):
+    """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
+    and "re-attach" the queryset methods ourselves"""
+
+    def get_queryset(self):
+        return AnalysisQuerySet(self.model)
+
+    def filter_for_user(self, user):
+        return self.get_queryset().filter_for_user(user)
+
+
 class Analysis(Base):
     project = models.ForeignKey("Project", on_delete=models.PROTECT)
     owner = models.ForeignKey(
@@ -105,6 +122,8 @@ class Analysis(Base):
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING
     )
     name = models.TextField()
+
+    objects = AnalysisManager()
 
 
 class AccessibilityAnalysis(Analysis):
