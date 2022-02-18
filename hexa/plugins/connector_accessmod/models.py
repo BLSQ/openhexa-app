@@ -1,3 +1,5 @@
+import enum
+
 from django.db import models
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -28,7 +30,7 @@ class Project(Base):
     objects = ProjectQuerySet.as_manager()
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["-created_at"]
 
 
 class FilesetQuerySet(AccessmodQuerySet):
@@ -47,7 +49,7 @@ class Fileset(Base):
     objects = FilesetQuerySet.as_manager()
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["-created_at"]
 
 
 class FilesetFormat(models.TextChoices):
@@ -65,6 +67,7 @@ class FilesetRoleCode(models.TextChoices):
     BARRIER = "BARRIER"
     MOVING_SPEEDS = "MOVING_SPEEDS"
     HEALTH_FACILITIES = "HEALTH_FACILITIES"
+    FRICTION_SURFACE = "FRICTION_SURFACE"
 
 
 class FilesetRole(Base):
@@ -73,7 +76,7 @@ class FilesetRole(Base):
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["code"]
 
 
 class FileQuerySet(AccessmodQuerySet):
@@ -87,6 +90,9 @@ class File(Base):
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
 
+    class Meta:
+        ordering = ["-created_at"]
+
 
 class AnalysisStatus(models.TextChoices):
     PENDING = "PENDING"
@@ -95,6 +101,11 @@ class AnalysisStatus(models.TextChoices):
     RUNNING = "RUNNING"
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
+
+
+class AnalysisType(str, enum.Enum):
+    ACCESSIBILITY = "ACCESSIBILITY"
+    GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
 
 
 class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
@@ -124,6 +135,13 @@ class Analysis(Base):
     name = models.TextField()
 
     objects = AnalysisManager()
+
+    @property
+    def type(self) -> AnalysisType:
+        raise NotImplementedError
+
+    class Meta:
+        ordering = ["-created_at"]
 
 
 class AccessibilityAnalysis(Analysis):
@@ -162,6 +180,10 @@ class AccessibilityAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.ACCESSIBILITY
+
 
 class GeographicCoverageAnalysis(Analysis):
     population = models.ForeignKey(
@@ -186,3 +208,7 @@ class GeographicCoverageAnalysis(Analysis):
     catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.GEOGRAPHIC_COVERAGE

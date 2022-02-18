@@ -274,6 +274,22 @@ def resolve_accessmod_analysis(_, info, **kwargs):
         return None
 
 
+@accessmod_query.field("accessmodAnalyses")
+def resolve_accessmod_analyses(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    queryset = (
+        Analysis.objects.filter_for_user(request.user)
+        .filter(project_id=kwargs["projectId"])
+        .order_by("-created_at")
+        .select_subclasses()
+    )
+
+    return result_page(
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+    )
+
+
 accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,
