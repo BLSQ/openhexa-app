@@ -282,6 +282,8 @@ class DAG(Pipeline):
 
     def run(self, *, user: User, conf: typing.Mapping[str, typing.Any] = None):
         client = self.template.cluster.get_api_client()
+        # add report email to feedback user
+        conf["_report_email"] = user.email
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         return DAGRun.objects.create(
