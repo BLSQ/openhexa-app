@@ -16,7 +16,7 @@ class DAGGrid(Datagrid):
     lead = LeadingColumn(
         label="Name",
         text="dag_id",
-        secondary_text="description",
+        secondary_text="template",
         icon="get_icon",
         translate=False,
     )

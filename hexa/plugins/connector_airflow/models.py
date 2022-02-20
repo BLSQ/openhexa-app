@@ -147,8 +147,8 @@ class Cluster(Environment):
                 dag_info = [d for d in dags_data["dags"] if d["dag_id"] == dag_id][0]
 
                 # update dag info
-                hexa_dag.description = dag_info["description"]
-                hexa_dag.save()
+                hexa_dag.template.description = dag_info["description"]
+                hexa_dag.template.save()
 
                 # check schedule
                 if not (
@@ -220,6 +220,8 @@ class DAGTemplate(Base):
 
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     code = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    sample_config = models.JSONField(default=dict, blank=True)
 
     def build_dag_config(self):
         return [dag.build_dag_config() for dag in self.dag_set.all()]
@@ -245,8 +247,6 @@ class DAG(Pipeline):
 
     template = models.ForeignKey(DAGTemplate, on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    sample_config = models.JSONField(default=dict, blank=True)
 
     # for scheduled DAG:
     config = models.JSONField(default=dict, blank=True)

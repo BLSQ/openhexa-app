@@ -156,7 +156,7 @@ def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
         )
         run_config = cloned_dag.conf
     else:
-        run_config = dag.sample_config
+        run_config = dag.template.sample_config
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
@@ -173,7 +173,7 @@ def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
             "run_config": json.dumps(run_config, indent=2)
             if error is None
             else run_config,
-            "sample_config": json.dumps(dag.sample_config, indent=2),
+            "sample_config": json.dumps(dag.template.sample_config, indent=2),
             "breadcrumbs": breadcrumbs,
         },
     )
