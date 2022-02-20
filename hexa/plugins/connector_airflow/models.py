@@ -294,12 +294,14 @@ class DAG(Pipeline):
         )
 
     def build_dag_config(self):
+        credentials = []
+        for ds in self.authorized_datasources.all():
+            credential = ds.datasource.get_pipeline_credentials()
+            credential["label"] = ds.label
+            credentials.append(credential)
         return {
             "dag_id": self.dag_id,
-            "credentials": [
-                ds.datasource.get_pipeline_credentials()
-                for ds in self.authorized_datasources.all()
-            ],
+            "credentials": credentials,
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule if self.schedule else None,
@@ -313,6 +315,7 @@ class DAGAuthorizedDatasource(Base):
     datasource_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     datasource_id = models.UUIDField()
     datasource = GenericForeignKey("datasource_type", "datasource_id")
+    label = models.CharField(max_length=200, default="datasource")
 
 
 class DAGPermission(Permission):
