@@ -66,13 +66,10 @@ class DAGSection(Section):
         text="schedule", label="Schedule", translate=False, editable=True
     )
     user = UserProperty(user="user", label="Report to", editable=True)
-    description = TextProperty(text="get_description", markdown=True)
+    description = TextProperty(text="template.description", markdown=True)
 
     class Meta:
         model = DAG
-
-    def get_description(self, dag: DAG):
-        return dag.template.description
 
 
 class DAGCard(Datacard):
