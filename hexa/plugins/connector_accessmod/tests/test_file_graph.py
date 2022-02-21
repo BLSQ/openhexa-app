@@ -541,12 +541,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """
                 query accessmodFilesetRoles {
                   accessmodFilesetRoles {
-                    pageNumber
-                    totalPages
-                    totalItems
-                    items {
-                      id
-                    }
+                    id
                   }
                 }
             """,
@@ -554,13 +549,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         self.assertEqual(
             r["data"]["accessmodFilesetRoles"],
-            {
-                "pageNumber": 1,
-                "totalPages": 1,
-                "totalItems": 2,
-                "items": [
-                    {"id": str(self.BARRIER_ROLE.id)},
-                    {"id": str(self.LAND_COVER_ROLE.id)},
-                ],
-            },
+            [
+                {"id": str(self.BARRIER_ROLE.id)},
+                {"id": str(self.LAND_COVER_ROLE.id)},
+            ],
         )

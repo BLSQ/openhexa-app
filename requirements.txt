@@ -60,6 +60,7 @@ django==4.0.2
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-ltree
+    #   django-model-utils
     #   django-postgres-queue
     #   django-storages
     #   django-tailwind
@@ -72,6 +73,8 @@ django-countries==7.2.1
 django-debug-toolbar==3.2.4
     # via -r requirements.in
 django-ltree==0.5.3
+    # via -r requirements.in
+django-model-utils==4.2.0
     # via -r requirements.in
 django-postgres-queue==1.0.0
     # via -r requirements.in

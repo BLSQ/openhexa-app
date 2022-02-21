@@ -4,6 +4,9 @@ from django import test
 
 
 class GraphQLTestCase(test.TestCase):
+    def setUp(self) -> None:
+        self.maxDiff = None
+
     def run_query(self, query, variables=None):
         return json.loads(
             self.client.post(

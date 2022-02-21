@@ -6,6 +6,7 @@ django-cors-headers
 django-countries
 django-debug-toolbar
 django-ltree
+django-model-utils
 django-postgres-queue
 django-storages[google]
 django-tailwind

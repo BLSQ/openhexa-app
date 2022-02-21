@@ -2,13 +2,27 @@ import pathlib
 import uuid
 from mimetypes import guess_extension
 
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from ariadne import (
+    InterfaceType,
+    MutationType,
+    ObjectType,
+    QueryType,
+    load_schema_from_path,
+)
 from django.http import HttpRequest
 from django_countries.fields import Country
 
 from config import settings
 from hexa.core.graphql import result_page
-from hexa.plugins.connector_accessmod.models import File, Fileset, FilesetRole, Project
+from hexa.plugins.connector_accessmod.models import (
+    AccessibilityAnalysis,
+    Analysis,
+    File,
+    Fileset,
+    FilesetRole,
+    GeographicCoverageAnalysis,
+    Project,
+)
 from hexa.plugins.connector_s3.api import generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 
@@ -232,11 +246,53 @@ def resolve_accessmod_fileset_role(_, info, **kwargs):
 
 @accessmod_query.field("accessmodFilesetRoles")
 def resolve_accessmod_fileset_roles(_, info, **kwargs):
-    queryset = FilesetRole.objects.all()
+    return FilesetRole.objects.all()
+
+
+analysis_interface = InterfaceType("AccessmodAnalysis")
+
+
+@analysis_interface.type_resolver
+def resolve_analysis_type(analysis: Analysis, *_):
+    if isinstance(analysis, AccessibilityAnalysis):
+        return "AccessmodAccessibilityAnalysis"
+    elif isinstance(analysis, GeographicCoverageAnalysis):
+        return "AccessmodGeographicCoverageAnalysis"
+
+    return None
+
+
+@accessmod_query.field("accessmodAnalysis")
+def resolve_accessmod_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    try:
+        return Analysis.objects.filter_for_user(request.user).get_subclass(
+            id=kwargs["id"]
+        )
+    except Analysis.DoesNotExist:
+        return None
+
+
+@accessmod_query.field("accessmodAnalyses")
+def resolve_accessmod_analyses(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    queryset = (
+        Analysis.objects.filter_for_user(request.user)
+        .filter(project_id=kwargs["projectId"])
+        .order_by("-created_at")
+        .select_subclasses()
+    )
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
 
 
-accessmod_bindables = [accessmod_query, accessmod_mutations, fileset_object]
+accessmod_bindables = [
+    accessmod_query,
+    accessmod_mutations,
+    fileset_object,
+    analysis_interface,
+]

@@ -73,12 +73,6 @@ type AccessmodFilesetRole {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
-type AccessmodFilesetRolePage {
-    pageNumber: Int!
-    totalPages: Int!
-    totalItems: Int!
-    items: [AccessmodFilesetRole!]!
-}
 enum AccessmodFilesetRoleCode {
     LAND_COVER
     DEM
@@ -145,7 +139,7 @@ extend type Query {
     accessmodFileset(id: String): AccessmodFileset
     accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
     accessmodFilesetRole(id: String!): AccessmodFilesetRole
-    accessmodFilesetRoles(page: Int, perPage: Int): AccessmodFilesetRolePage
+    accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }
 extend type Mutation {
     createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
@@ -153,4 +147,99 @@ extend type Mutation {
     prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult
     createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult
     deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
+}
+
+# Analysis
+enum AccessmodAnalysisType {
+    ACCESSIBILITY
+    GEOGRAPHIC_COVERAGE
+}
+enum AccessmodAnalysisStatus {
+    PENDING
+    READY
+    QUEUED
+    RUNNING
+    SUCCESS
+    FAILED
+}
+interface AccessmodAnalysis {
+    id: String!
+    type: AccessmodAnalysisType!
+    status: AccessmodAnalysisStatus!
+    name: String!
+}
+type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
+    id: String!
+    type: AccessmodAnalysisType!
+    status: AccessmodAnalysisStatus!
+    name: String!
+    extent: AccessmodFileset
+    landCover: AccessmodFileset
+    dem: AccessmodFileset
+    transportNetwork: AccessmodFileset
+    slope: AccessmodFileset
+    water: AccessmodFileset
+    barrier: AccessmodFileset
+    movingSpeeds: AccessmodFileset
+    healthFacilities: AccessmodFileset
+    anisotropic: Boolean
+    maxTravelTime: Int
+
+    travelTimes: AccessmodFileset
+    frictionSurface: AccessmodFileset
+}
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
+    id: String!
+    type: AccessmodAnalysisType!
+    status: AccessmodAnalysisStatus!
+    name: String!
+    population: AccessmodFileset
+    frictionSurface: AccessmodFileset
+    dem: AccessmodFileset
+    healthFacilities: AccessmodFileset
+    anisotropic: Boolean
+    maxTravelTime: Int
+    hfProcessingOrder: String
+
+    geographicCoverage: AccessmodFileset
+    catchmentAreas: AccessmodFileset
+}
+type AccessmodAnalysisPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodAnalysis!]!
+}
+input CreateAccessmodAccessibilityAnalysisInput {
+    name: String!
+}
+type CreateAccessmodAccessibilityAnalysisResult {
+    success: Boolean!
+    analysis: AccessmodAccessibilityAnalysis!
+}
+input UpdateAccessmodAccessibilityAnalysisInput {
+    id: String!
+    name: String
+    extentId: String
+    landCoverId: String
+    transportNetworkId: String
+    slopeId: String
+    waterId: String
+    barrierId: String
+    movingSpeedsId: String
+    healthFacilitiesId: String
+    anisotropic: Boolean
+    maxTravelTime: Int
+}
+type UpdateAccessmodAccessibilityAnalysisResult {
+    success: Boolean!
+    analysis: AccessmodAccessibilityAnalysis!
+}
+extend type Query {
+    accessmodAnalysis(id: String): AccessmodAnalysis
+    accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
+}
+extend type Mutation {
+    createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
+    updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult
 }
