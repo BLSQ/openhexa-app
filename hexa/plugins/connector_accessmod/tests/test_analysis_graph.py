@@ -1,6 +1,7 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AnalysisStatus,
     Fileset,
     FilesetFormat,
     FilesetRole,
@@ -28,19 +29,85 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
             spatial_resolution=100,
         )
+        cls.GEOMETRY_ROLE = FilesetRole.objects.create(
+            name="Geometry",
+            code=FilesetRoleCode.GEOMETRY,
+            format=FilesetFormat.VECTOR,
+        )
+        cls.LAND_COVER_ROLE = FilesetRole.objects.create(
+            name="Land Cover",
+            code=FilesetRoleCode.LAND_COVER,
+            format=FilesetFormat.RASTER,
+        )
+        cls.DEM_ROLE = FilesetRole.objects.create(
+            name="Digital Elevation Model",
+            code=FilesetRoleCode.DEM,
+            format=FilesetFormat.RASTER,
+        )
+        cls.TRANSPORT_NETWORK_ROLE = FilesetRole.objects.create(
+            name="Transport Network",
+            code=FilesetRoleCode.TRANSPORT_NETWORK,
+            format=FilesetFormat.VECTOR,
+        )
         cls.SLOPE_ROLE = FilesetRole.objects.create(
             name="Slope",
             code=FilesetRoleCode.SLOPE,
             format=FilesetFormat.RASTER,
+        )
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water",
+            code=FilesetRoleCode.WATER,
+            format=FilesetFormat.RASTER,
+        )
+        cls.HEALTH_FACILITIES_ROLE = FilesetRole.objects.create(
+            name="Health Facilities",
+            code=FilesetRoleCode.HEALTH_FACILITIES,
+            format=FilesetFormat.VECTOR,
         )
         cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
             name="Friction surface",
             code=FilesetRoleCode.FRICTION_SURFACE,
             format=FilesetFormat.RASTER,
         )
+        cls.EXTENT_FILESET = Fileset.objects.create(
+            name="Extent fileset",
+            role=cls.GEOMETRY_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.LAND_COVER_FILESET = Fileset.objects.create(
+            name="An impressive land cover",
+            role=cls.LAND_COVER_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.DEM_FILESET = Fileset.objects.create(
+            name="My favourite DEM",
+            role=cls.DEM_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.TRANSPORT_NETWORK_FILESET = Fileset.objects.create(
+            name="Worst Transport Network ever",
+            role=cls.TRANSPORT_NETWORK_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
         cls.SLOPE_FILESET = Fileset.objects.create(
             name="A beautiful slope",
             role=cls.SLOPE_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.WATER_FILESET = Fileset.objects.create(
+            name="I like water",
+            role=cls.WATER_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.HEALTH_FACILITIES_FILESET = Fileset.objects.create(
+            name="Would you look at those health facilities!",
+            role=cls.HEALTH_FACILITIES_ROLE,
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,
         )
@@ -276,6 +343,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     analysis {
                         id
                         name
+                        status
                     }
                   }
                 }
@@ -296,6 +364,41 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "analysis": {
                     "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                     "name": "Updated accessibility analysis!",
+                    "status": AnalysisStatus.PENDING,
                 },
+            },
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodAccessibilityAnalysis($input: UpdateAccessmodAccessibilityAnalysisInput) {
+                  updateAccessmodAccessibilityAnalysis(input: $input) {
+                    success
+                    analysis {
+                        status
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "name": "Updated accessibility analysis!",
+                    "extentId": str(self.EXTENT_FILESET.id),
+                    "landCoverId": str(self.LAND_COVER_FILESET.id),
+                    "demId": str(self.DEM_FILESET.id),
+                    "transportNetworkId": str(self.TRANSPORT_NETWORK_FILESET.id),
+                    "slopeId": str(self.SLOPE_FILESET.id),
+                    "waterId": str(self.WATER_FILESET.id),
+                    "healthFacilitiesId": str(self.HEALTH_FACILITIES_FILESET.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
+            {
+                "success": True,
+                "analysis": {"status": AnalysisStatus.READY},
             },
         )

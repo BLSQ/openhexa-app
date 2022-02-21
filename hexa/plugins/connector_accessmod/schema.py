@@ -11,6 +11,7 @@ from ariadne import (
 )
 from django.http import HttpRequest
 from django_countries.fields import Country
+from stringcase import snakecase
 
 from config import settings
 from hexa.core.graphql import result_page
@@ -311,17 +312,18 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
     update_input = kwargs["input"]
 
     try:
-        analysis = Analysis.objects.filter_for_user(request.user).get(
+        analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
             id=update_input["id"]
         )
         changed = False
         for scalar_field in ["name", "anisotropic", "maxTravelTime"]:
             if scalar_field in update_input:
-                setattr(analysis, scalar_field, update_input[scalar_field])
+                setattr(analysis, snakecase(scalar_field), update_input[scalar_field])
                 changed = True
         for fileset_field in [
             "extentId",
             "landCoverId",
+            "demId",
             "transportNetworkId",
             "slopeId",
             "waterId",
@@ -333,9 +335,10 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                 fileset = Fileset.objects.filter_for_user(request.user).get(
                     id=update_input[fileset_field]
                 )
-                setattr(analysis, scalar_field, fileset.id)
+                setattr(analysis, snakecase(fileset_field), fileset.id)
                 changed = True
         if changed:
+            analysis.update_status()
             analysis.save()
 
         return {"success": True, "analysis": analysis}
