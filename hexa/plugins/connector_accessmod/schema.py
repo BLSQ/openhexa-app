@@ -292,10 +292,10 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 
 
 @accessmod_mutations.field("createAccessmodAccessibilityAnalysis")
-def resolve_create_accessmod_analysis(_, info, **kwargs):
+def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    analysis = Analysis.objects.create(
+    analysis = AccessibilityAnalysis.objects.create(
         owner=request.user,
         project=Project.objects.filter_for_user(request.user).get(
             id=create_input["projectId"]
