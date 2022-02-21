@@ -11,6 +11,7 @@ from ariadne import (
 )
 from django.http import HttpRequest
 from django_countries.fields import Country
+from stringcase import snakecase
 
 from config import settings
 from hexa.core.graphql import result_page
@@ -288,6 +289,61 @@ def resolve_accessmod_analyses(_, info, **kwargs):
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
+
+
+@accessmod_mutations.field("createAccessmodAccessibilityAnalysis")
+def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    create_input = kwargs["input"]
+    analysis = AccessibilityAnalysis.objects.create(
+        owner=request.user,
+        project=Project.objects.filter_for_user(request.user).get(
+            id=create_input["projectId"]
+        ),
+        name=create_input["name"],
+    )
+
+    return {"success": True, "analysis": analysis}
+
+
+@accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
+def resolve_update_accessmod_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    update_input = kwargs["input"]
+
+    try:
+        analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+            id=update_input["id"]
+        )
+        changed = False
+        for scalar_field in ["name", "anisotropic", "maxTravelTime"]:
+            if scalar_field in update_input:
+                setattr(analysis, snakecase(scalar_field), update_input[scalar_field])
+                changed = True
+        for fileset_field in [
+            "extentId",
+            "landCoverId",
+            "demId",
+            "transportNetworkId",
+            "slopeId",
+            "waterId",
+            "barrierId",
+            "movingSpeedsId",
+            "healthFacilitiesId",
+        ]:
+            if fileset_field in update_input:
+                fileset = Fileset.objects.filter_for_user(request.user).get(
+                    id=update_input[fileset_field]
+                )
+                setattr(analysis, snakecase(fileset_field), fileset.id)
+                changed = True
+        if changed:
+            analysis.update_status()
+            analysis.save()
+
+        return {"success": True, "analysis": analysis}
+    except Project.DoesNotExist:
+        return {"success": False}
 
 
 accessmod_bindables = [

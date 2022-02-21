@@ -3,6 +3,7 @@ import enum
 from django.db import models
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
+from stringcase import snakecase
 
 from hexa.core.models import Base
 
@@ -59,15 +60,16 @@ class FilesetFormat(models.TextChoices):
 
 
 class FilesetRoleCode(models.TextChoices):
-    LAND_COVER = "LAND_COVER"
-    DEM = "DEM"
-    TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
-    SLOPE = "SLOPE"
-    WATER = "WATER"
     BARRIER = "BARRIER"
-    MOVING_SPEEDS = "MOVING_SPEEDS"
-    HEALTH_FACILITIES = "HEALTH_FACILITIES"
+    DEM = "DEM"
     FRICTION_SURFACE = "FRICTION_SURFACE"
+    GEOMETRY = "GEOMETRY"
+    HEALTH_FACILITIES = "HEALTH_FACILITIES"
+    LAND_COVER = "LAND_COVER"
+    MOVING_SPEEDS = "MOVING_SPEEDS"
+    SLOPE = "SLOPE"
+    TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
+    WATER = "WATER"
 
 
 class FilesetRole(Base):
@@ -140,12 +142,17 @@ class Analysis(Base):
     def type(self) -> AnalysisType:
         raise NotImplementedError
 
+    def update_status(self):
+        raise NotImplementedError
+
     class Meta:
         ordering = ["-created_at"]
 
 
 class AccessibilityAnalysis(Analysis):
-    extent = models.JSONField(null=True)
+    extent = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, null=True, related_name="+"
+    )
     land_cover = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, related_name="+"
     )
@@ -170,8 +177,9 @@ class AccessibilityAnalysis(Analysis):
     health_facilities = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    anisotropic = models.BooleanField(null=True)
-    max_travel_time = models.IntegerField(null=True)
+    anisotropic = models.BooleanField(default=True)
+    invert_direction = models.BooleanField(default=False)
+    max_travel_time = models.IntegerField(null=True, default=360)
 
     travel_times = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
@@ -179,6 +187,26 @@ class AccessibilityAnalysis(Analysis):
     friction_surface = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    def update_status(self):
+        if self.status != AnalysisStatus.PENDING:
+            raise ValueError("Analysis is already ready")
+        if all(
+            value is not None
+            for value in [
+                getattr(self, snakecase(field))
+                for field in [
+                    "name",
+                    "extentId",
+                    "landCoverId",
+                    "transportNetworkId",
+                    "slopeId",
+                    "waterId",
+                    "healthFacilitiesId",
+                ]
+            ]
+        ):
+            self.status = AnalysisStatus.READY
 
     @property
     def type(self) -> AnalysisType:

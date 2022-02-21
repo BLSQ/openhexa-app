@@ -167,12 +167,18 @@ interface AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
+    owner: User!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     id: String!
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
+    owner: User!
+    createdAt: DateTime!
+    updatedAt: DateTime!
     extent: AccessmodFileset
     landCover: AccessmodFileset
     dem: AccessmodFileset
@@ -183,6 +189,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     movingSpeeds: AccessmodFileset
     healthFacilities: AccessmodFileset
     anisotropic: Boolean
+    invertDirection: Boolean
     maxTravelTime: Int
 
     travelTimes: AccessmodFileset
@@ -193,6 +200,9 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
+    owner: User!
+    createdAt: DateTime!
+    updatedAt: DateTime!
     population: AccessmodFileset
     frictionSurface: AccessmodFileset
     dem: AccessmodFileset
@@ -211,6 +221,7 @@ type AccessmodAnalysisPage {
     items: [AccessmodAnalysis!]!
 }
 input CreateAccessmodAccessibilityAnalysisInput {
+    projectId: String!
     name: String!
 }
 type CreateAccessmodAccessibilityAnalysisResult {
@@ -222,6 +233,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     name: String
     extentId: String
     landCoverId: String
+    demId: String
     transportNetworkId: String
     slopeId: String
     waterId: String
@@ -229,6 +241,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     movingSpeedsId: String
     healthFacilitiesId: String
     anisotropic: Boolean
+    invertDirection: Boolean
     maxTravelTime: Int
 }
 type UpdateAccessmodAccessibilityAnalysisResult {
