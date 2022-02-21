@@ -1,3 +1,5 @@
+from unittest import skip
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
@@ -231,6 +233,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
         )
 
+    @skip
     def test_create_accessmod_accessibility_analysis(self):
         self.client.force_login(self.USER_1)
 
@@ -264,6 +267,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             r["data"]["createAccessmodAccessibilityAnalysis"]["analysis"]["name"], str
         )
 
+    @skip
     def test_update_accessmod_accessibility_analysis(self):
         self.client.force_login(self.USER_1)
 
