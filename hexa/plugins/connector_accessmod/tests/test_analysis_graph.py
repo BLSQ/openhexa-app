@@ -298,6 +298,38 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
         )
 
+    def test_accessmod_analyses_type_resolver(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodAnalyses($projectId: String!) {
+                    accessmodAnalyses(projectId: $projectId) {
+                        totalItems
+                        items {
+                            name
+                        }
+                    }
+                }
+            """,
+            {"projectId": str(self.SAMPLE_PROJECT.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodAnalyses"],
+            {
+                "totalItems": 2,
+                "items": [
+                    {
+                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS.name,
+                    },
+                    {
+                        "name": self.ACCESSIBILITY_ANALYSIS.name,
+                    },
+                ],
+            },
+        )
+
     def test_create_accessmod_accessibility_analysis(self):
         self.client.force_login(self.USER_1)
 
