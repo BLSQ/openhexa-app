@@ -489,10 +489,10 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Yet another cluster", url="https://yet-another-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
-        dag = DAG.objects.create(
-            template=template, dag_id="hello_world", sample_config={"foo": "bar"}
+        template = DAGTemplate.objects.create(
+            cluster=cluster, code="TEST", sample_config={"foo": "bar"}
         )
+        dag = DAG.objects.create(template=template, dag_id="hello_world")
         self.client.force_login(self.USER_TAYLOR)
 
         response = self.client.get(
@@ -572,7 +572,9 @@ class ViewsTest(test.TestCase):
         cluster = Cluster.objects.create(
             name="Unhappy cluster", url="https://unhappy-cluster-url.com"
         )
-        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
+        template = DAGTemplate.objects.create(
+            cluster=cluster, code="TEST", sample_config={"bar": "baz"}
+        )
         responses.add(
             responses.POST,
             urljoin(cluster.api_url, "dags/hello_world/dagRuns"),
@@ -580,9 +582,7 @@ class ViewsTest(test.TestCase):
             status=200,
         )
 
-        dag = DAG.objects.create(
-            template=template, dag_id="hello_world", sample_config={"bar": "baz"}
-        )
+        dag = DAG.objects.create(template=template, dag_id="hello_world")
         self.client.force_login(self.USER_TAYLOR)
 
         response = self.client.post(

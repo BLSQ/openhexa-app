@@ -66,7 +66,7 @@ class DAGSection(Section):
         text="schedule", label="Schedule", translate=False, editable=True
     )
     user = UserProperty(user="user", label="Report to", editable=True)
-    description = TextProperty(text="description", markdown=True)
+    description = TextProperty(text="template.description", markdown=True)
 
     class Meta:
         model = DAG

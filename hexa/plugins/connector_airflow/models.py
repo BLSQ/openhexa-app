@@ -147,8 +147,8 @@ class Cluster(Environment):
                 dag_info = [d for d in dags_data["dags"] if d["dag_id"] == dag_id][0]
 
                 # update dag info
-                hexa_dag.description = dag_info["description"]
-                hexa_dag.save()
+                hexa_dag.template.description = dag_info["description"]
+                hexa_dag.template.save()
 
                 # check schedule
                 if not (
@@ -220,6 +220,8 @@ class DAGTemplate(Base):
 
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     code = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    sample_config = models.JSONField(default=dict, blank=True)
 
     def build_dag_config(self):
         return [dag.build_dag_config() for dag in self.dag_set.all()]
@@ -245,8 +247,6 @@ class DAG(Pipeline):
 
     template = models.ForeignKey(DAGTemplate, on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    sample_config = models.JSONField(default=dict, blank=True)
 
     # for scheduled DAG:
     config = models.JSONField(default=dict, blank=True)
@@ -282,6 +282,8 @@ class DAG(Pipeline):
 
     def run(self, *, user: User, conf: typing.Mapping[str, typing.Any] = None):
         client = self.template.cluster.get_api_client()
+        # add report email to feedback user
+        conf["_report_email"] = user.email
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         return DAGRun.objects.create(
@@ -294,12 +296,14 @@ class DAG(Pipeline):
         )
 
     def build_dag_config(self):
+        credentials = []
+        for ds in self.authorized_datasources.all():
+            credential = ds.datasource.get_pipeline_credentials()
+            credential["label"] = ds.label
+            credentials.append(credential)
         return {
             "dag_id": self.dag_id,
-            "credentials": [
-                ds.datasource.get_pipeline_credentials()
-                for ds in self.authorized_datasources.all()
-            ],
+            "credentials": credentials,
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule if self.schedule else None,
@@ -313,6 +317,7 @@ class DAGAuthorizedDatasource(Base):
     datasource_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     datasource_id = models.UUIDField()
     datasource = GenericForeignKey("datasource_type", "datasource_id")
+    label = models.CharField(max_length=200, default="datasource")
 
 
 class DAGPermission(Permission):

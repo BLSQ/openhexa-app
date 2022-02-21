@@ -64,20 +64,31 @@ class DagTemplateTest(test.TestCase):
         )
 
         cls.TEMPLATE_CHIRPS = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, code="CHIRPS"
+            cluster=cls.CLUSTER,
+            code="CHIRPS",
+            description="chirps extract ct1",
+            sample_config={"start_date": "2000-01-01"},
         )
         cls.TEMPLATE_PM = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, code="PAPERMILL"
+            cluster=cls.CLUSTER,
+            code="PAPERMILL",
+            description="Generic Papermill pipeline",
+            sample_config={
+                "in_notebook": "",
+                "out_notebook": "",
+                "parameters": {"alpha": 10},
+            },
         )
         cls.TEMPLATE_DHIS2 = DAGTemplate.objects.create(
-            cluster=cls.CLUSTER, code="DHIS2"
+            cluster=cls.CLUSTER,
+            code="DHIS2",
+            description="dhis2 extract",
+            sample_config={"start_date": "2021-01-01", "end_date": "2022-01-01"},
         )
 
         cls.DHIS2_EXTRACT_CT1 = DAG.objects.create(
             template=cls.TEMPLATE_DHIS2,
             dag_id="dhis2_extract_ct1",
-            description="dhis2 extract ct1",
-            sample_config={"start_date": "2021-01-01", "end_date": "2022-01-01"},
         )
         DAGAuthorizedDatasource.objects.create(
             dag=cls.DHIS2_EXTRACT_CT1, datasource=cls.DHIS2_CT1
@@ -85,8 +96,6 @@ class DagTemplateTest(test.TestCase):
         cls.DHIS2_EXTRACT_CT2 = DAG.objects.create(
             template=cls.TEMPLATE_DHIS2,
             dag_id="dhis2_extract_ct2",
-            description="dhis2 extract ct2",
-            sample_config={"start_date": "2021-01-01", "end_date": "2022-01-01"},
         )
         DAGAuthorizedDatasource.objects.create(
             dag=cls.DHIS2_EXTRACT_CT2, datasource=cls.DHIS2_CT2
@@ -95,8 +104,6 @@ class DagTemplateTest(test.TestCase):
         cls.CHIRPS_EXTRACT_CT1 = DAG.objects.create(
             template=cls.TEMPLATE_CHIRPS,
             dag_id="chirps_extract_ct1",
-            description="chirps extract ct1",
-            sample_config={"start_date": "2000-01-01"},
             config={
                 "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
                 "code": "CT1",
@@ -114,8 +121,6 @@ class DagTemplateTest(test.TestCase):
         cls.CHIRPS_EXTRACT_CT2 = DAG.objects.create(
             template=cls.TEMPLATE_CHIRPS,
             dag_id="chirps_extract_ct2",
-            description="chirps extract ct2",
-            sample_config={"start_date": "2000-01-01"},
             config={
                 "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
                 "code": "CT2",
@@ -134,22 +139,10 @@ class DagTemplateTest(test.TestCase):
         cls.PM_GENERIC = DAG.objects.create(
             template=cls.TEMPLATE_PM,
             dag_id="papermill_manual",
-            description="Generic Papermill pipeline",
-            sample_config={
-                "in_notebook": "",
-                "out_notebook": "",
-                "parameters": {"alpha": 10},
-            },
         )
         cls.PM_PRJ1 = DAG.objects.create(
             template=cls.TEMPLATE_PM,
             dag_id="prj1_update",
-            description="prj1 update dashboard",
-            sample_config={
-                "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/prj1_manual_2021-01-01.ipynb",
-                "parameters": {"quarter": "2010-Q1"},
-            },
             config={
                 "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
                 "out_notebook": "s3://invalid-bucket/code/output/prj1_{{ execution_date }}.ipynb",
@@ -165,12 +158,6 @@ class DagTemplateTest(test.TestCase):
         cls.PM_PRJ2 = DAG.objects.create(
             template=cls.TEMPLATE_PM,
             dag_id="prj2_update",
-            description="Check CT1 quality + update PRJ2 Dashboard",
-            sample_config={
-                "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
-                "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_manual_2021-01-01.ipynb",
-                "parameters": {"quarter": "2010-Q1"},
-            },
             config={
                 "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
                 "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_{{ execution_date }}.ipynb",
@@ -193,6 +180,7 @@ class DagTemplateTest(test.TestCase):
                             "password": "password",
                             "port": 5432,
                             "database": "ct1-db",
+                            "label": "datasource",
                         }
                     ],
                     "static_config": {
@@ -215,6 +203,7 @@ class DagTemplateTest(test.TestCase):
                             "password": "password",
                             "port": 5432,
                             "database": "ct2-db",
+                            "label": "datasource",
                         }
                     ],
                     "static_config": {
@@ -241,6 +230,7 @@ class DagTemplateTest(test.TestCase):
                             "url": "https://play.invalid/",
                             "username": "admin_ct1",
                             "password": "password",
+                            "label": "datasource",
                         }
                     ],
                     "static_config": {},
@@ -255,6 +245,7 @@ class DagTemplateTest(test.TestCase):
                             "url": "https://play.invalid/",
                             "username": "admin_ct2",
                             "password": "password",
+                            "label": "datasource",
                         }
                     ],
                     "static_config": {},
@@ -281,6 +272,7 @@ class DagTemplateTest(test.TestCase):
                             "url": "https://play.invalid/",
                             "username": "admin_ct1",
                             "password": "password",
+                            "label": "datasource",
                         }
                     ],
                     "static_config": {
@@ -386,7 +378,7 @@ class DAGSyncTest(test.TestCase):
         cluster.sync()
         dag.refresh_from_db()
         self.assertEqual(DAGRun.objects.count(), 1)
-        self.assertEqual(dag.description, "test dag from factory")
+        self.assertEqual(dag.template.description, "test dag from factory")
 
 
 class ModelsTest(test.TestCase):
@@ -459,7 +451,9 @@ class ModelsTest(test.TestCase):
 
         self.assertIsInstance(run, DAGRun)
         self.assertEqual(self.USER_REGULAR, run.user)
-        self.assertEqual({"foo": "bar"}, run.conf)
+        self.assertEqual(
+            {"foo": "bar", "_report_email": "jim@bluesquarehub.com"}, run.conf
+        )
         self.assertEqual(DAGRunState.QUEUED, run.state)
 
 

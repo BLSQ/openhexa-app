@@ -56,4 +56,4 @@ class DAGRunAdmin(admin.ModelAdmin):
 
 @admin.register(DAGAuthorizedDatasource)
 class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
-    list_display = ("dag", "datasource")
+    list_display = ("dag", "datasource", "label")
