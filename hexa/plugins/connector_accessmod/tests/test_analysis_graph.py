@@ -233,7 +233,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
         )
 
-    @skip
     def test_create_accessmod_accessibility_analysis(self):
         self.client.force_login(self.USER_1)
 
@@ -251,6 +250,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
                     "name": "A new accessibility analysis",
                 }
             },
