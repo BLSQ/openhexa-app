@@ -211,7 +211,7 @@ type AccessmodAnalysisPage {
     items: [AccessmodAnalysis!]!
 }
 input CreateAccessmodAccessibilityAnalysisInput {
-        projectId: String!
+    projectId: String!
     name: String!
 }
 type CreateAccessmodAccessibilityAnalysisResult {
