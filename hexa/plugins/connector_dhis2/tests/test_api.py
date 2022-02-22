@@ -145,3 +145,84 @@ class Dhis2Test(test.TestCase):
         result = FooResult({})
         self.assertIs(result.get_value("foo", "it"), "baz")
         self.assertIs(result.get_value("foo"), "baz")
+
+
+class Dhis2LocaleTranslation(test.TestCase):
+    def test_dhis2_locale_none(self):
+        de = DataElementResult(
+            {
+                "code": "CODECODE",
+                "lastUpdated": "2019-08-21T13:08:02.032",
+                "id": "IDIDID",
+                "href": "https://invalid/api/dataElements/IDIDID",
+                "created": "2016-04-27T02:20:28.312",
+                "name": "Outcome of illness",
+                "shortName": "Outcome ",
+                "aggregationType": "NONE",
+                "domainType": "TRACKER",
+                "displayName": "Outcome of illness",
+                "publicAccess": "r-------",
+                "description": "The final outcome of the case",
+                "displayShortName": "Outcome ",
+                "externalAccess": False,
+                "periodOffset": 0,
+                "valueType": "TEXT",
+                "displayDescription": "The final outcome of the case",
+                "dimensionItem": "UUU",
+                "sharing": {
+                    "owner": "XXX",
+                    "external": False,
+                    "users": {},
+                    "userGroups": {},
+                    "public": "r-------",
+                },
+                "displayFormName": "Outcome of illness",
+                "zeroIsSignificant": False,
+                "favorite": False,
+                "optionSetValue": True,
+                "dimensionItemType": "DATA_ELEMENT",
+                "access": {
+                    "read": True,
+                    "update": True,
+                    "externalize": False,
+                    "delete": True,
+                    "write": True,
+                    "manage": True,
+                },
+                "optionSet": {"id": "WWW"},
+                "categoryCombo": {"id": "TTT"},
+                "lastUpdatedBy": {
+                    "displayName": "TH",
+                    "name": "TH",
+                    "id": "XXX",
+                    "username": "system",
+                },
+                "createdBy": {
+                    "displayName": "JH",
+                    "name": "JH",
+                    "id": "XXX",
+                    "username": "admin",
+                },
+                "user": {
+                    "displayName": "JH",
+                    "name": "JH",
+                    "id": "XXX",
+                    "username": "admin",
+                },
+                "favorites": [],
+                "dataSetElements": [],
+                "translations": [
+                    {"property": "SHORT_NAME", "locale": "km", "value": "សា្លប់"},
+                    {"property": "FORM_NAME", "locale": "km", "value": "សា្លប់"},
+                    {"property": "DESCRIPTION", "locale": "km", "value": "សា្លប់"},
+                    {"property": "NAME", "locale": "km", "value": "សា្លប់"},
+                ],
+                "userGroupAccesses": [],
+                "dataElementGroups": [],
+                "attributeValues": [],
+                "userAccesses": [],
+                "legendSets": [],
+                "aggregationLevels": [],
+            }
+        )
+        self.assertEqual(de.get_value("name"), "Outcome of illness")
