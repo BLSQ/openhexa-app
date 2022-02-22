@@ -10,6 +10,7 @@ February 22, 2022
 
 - Data model for connector_airflow, to better reflect the way the DAG works
 - Locale management for DHIS2, add a preference to english locales when syncing an instance
+- DHIS2 sync deletes openhexa objects if they disapear on the remote instance
 
 Version 0.24
 ------------

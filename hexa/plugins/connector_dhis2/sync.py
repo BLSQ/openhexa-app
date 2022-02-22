@@ -41,6 +41,7 @@ def sync_from_dhis2_results(*, model_class, instance, results):
     created = 0
     updated = 0
     identical = 0
+    seen_results = set()
 
     for i, result in enumerate(results):
         instance.sync_log(
@@ -63,6 +64,8 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             dhis2_values[hexa_name] = _match_reference(
                 instance, model_class, hexa_name, dhis2_value
             )
+
+        seen_results.add(result.get_value("id"))
 
         try:
             # Check if the dhis2 data is already in our database and compare values (hexa vs dhis2)
@@ -122,9 +125,17 @@ def sync_from_dhis2_results(*, model_class, instance, results):
             items = model.objects.filter(dhis2_id__in=items)
             getattr(hexa_item, relation.model_field).set(items)
 
+    # remove data elements present in openhexa but not on remote anymore
+    deleted, _ = (
+        model_class.objects.filter(instance=instance)
+        .exclude(dhis2_id__in=seen_results)
+        .delete()
+    )
+
     return DatasourceSyncResult(
         datasource=instance,
         created=created,
         updated=updated,
         identical=identical,
+        deleted=deleted,
     )

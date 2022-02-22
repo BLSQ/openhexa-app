@@ -8,7 +8,7 @@ from django.utils import timezone
 from hexa.catalog.models import Index
 from hexa.user_management.models import Membership, Team, User
 
-from ..api import Dhis2Client
+from ..api import DataElementResult, Dhis2Client
 from ..models import (
     Credentials,
     DataElement,
@@ -296,4 +296,61 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
             )
         self.assertEqual(
             2, Indicator.objects.filter(indicator_type__dhis2_id="bWuNrMHEoZ0").count()
+        )
+
+
+class Dhis2SyncDeleteTest(test.TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
+            url="https://play.dhis2.org.invalid",
+        )
+
+    def test_delete_data_element(self):
+        """if DEs disapear from remote instance, sync should delete DEs+index in OH"""
+
+        common_info = {
+            "externalAccess": False,
+            "favorite": False,
+            "created": "2022-01-01T00:00:00",
+            "lastUpdated": "2022-01-01T00:00:00",
+            "code": "CODE",
+            "domainType": "AGGREGATE",
+            "valueType": "TEXT",
+            "aggregationType": "AVERAGE",
+        }
+        data_element = DataElement.objects.create(
+            dhis2_id="XXX",
+            name="XXX",
+            instance=self.DHIS2_INSTANCE_PLAY,
+            external_access=False,
+            favorite=False,
+            created="2022-01-01T00:00:00Z",
+            last_updated="2022-01-01T00:00:00Z",
+        )
+        self.assertEqual(
+            DataElement.objects.filter(instance=self.DHIS2_INSTANCE_PLAY).count(), 1
+        )
+        dsr = sync_from_dhis2_results(
+            model_class=DataElement,
+            instance=self.DHIS2_INSTANCE_PLAY,
+            results=[
+                DataElementResult(dict({"id": "XXX", "name": "XXX"}, **common_info)),
+                DataElementResult(dict({"id": "YYY", "name": "YYY"}, **common_info)),
+            ],
+        )
+        self.assertEqual(dsr.deleted, 0)
+        self.assertEqual(
+            DataElement.objects.filter(instance=self.DHIS2_INSTANCE_PLAY).count(), 2
+        )
+        dsr = sync_from_dhis2_results(
+            model_class=DataElement,
+            instance=self.DHIS2_INSTANCE_PLAY,
+            results=[
+                DataElementResult(dict({"id": "YYY", "name": "YYY"}, **common_info)),
+            ],
+        )
+        self.assertEqual(dsr.deleted, 2)  # 2 because 1 DE + 1 index
+        self.assertEqual(
+            DataElement.objects.filter(instance=self.DHIS2_INSTANCE_PLAY).count(), 1
         )

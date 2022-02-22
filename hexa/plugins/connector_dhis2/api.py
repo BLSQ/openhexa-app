@@ -79,9 +79,12 @@ class Dhis2Result:
 
         # If "datetime" type, convert to time-aware datetime
         if field_type is datetime.datetime:
-            return timezone.make_aware(
-                dateparse.parse_datetime(self._data.get(field_name, field_default))
-            )
+            value = self._data.get(field_name, field_default)
+            if value is None:
+                # parse_datetime doesn't support None value
+                return None
+            else:
+                return timezone.make_aware(dateparse.parse_datetime(value))
 
         # If not a translated property (or no translations), early return
         if "translations" not in self._data or not any(
