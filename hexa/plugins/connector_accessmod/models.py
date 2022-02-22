@@ -3,7 +3,6 @@ import enum
 from django.db import models
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
-from stringcase import snakecase
 
 from hexa.core.models import Base
 
@@ -139,12 +138,17 @@ class Analysis(Base):
 
     objects = AnalysisManager()
 
+    def save(self, *args, **kwargs):
+        self.update_status()
+        super().save(*args, **kwargs)
+
     @property
     def type(self) -> AnalysisType:
         raise NotImplementedError
 
     def update_status(self):
-        raise NotImplementedError
+        if self.status != AnalysisStatus.DRAFT:
+            raise ValueError("Analysis is already ready")
 
     class Meta:
         ordering = ["-created_at"]
@@ -190,20 +194,20 @@ class AccessibilityAnalysis(Analysis):
     )
 
     def update_status(self):
-        if self.status != AnalysisStatus.DRAFT:
-            raise ValueError("Analysis is already ready")
+        super().update_status()
+
         if all(
             value is not None
             for value in [
-                getattr(self, snakecase(field))
+                getattr(self, field)
                 for field in [
                     "name",
-                    "extentId",
-                    "landCoverId",
-                    "transportNetworkId",
-                    "slopeId",
-                    "waterId",
-                    "healthFacilitiesId",
+                    "extent",
+                    "land_cover",
+                    "transport_network",
+                    "slope",
+                    "water",
+                    "health_facilities",
                 ]
             ]
         ):
@@ -227,8 +231,8 @@ class GeographicCoverageAnalysis(Analysis):
     health_facilities = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    anisotropic = models.BooleanField(null=True)
-    max_travel_time = models.IntegerField(null=True)
+    anisotropic = models.BooleanField(default=True)
+    max_travel_time = models.IntegerField(null=True, default=360)
     hf_processing_order = models.CharField(max_length=100)
 
     geographic_coverage = models.ForeignKey(
@@ -241,3 +245,22 @@ class GeographicCoverageAnalysis(Analysis):
     @property
     def type(self) -> AnalysisType:
         return AnalysisType.GEOGRAPHIC_COVERAGE
+
+    def update_status(self):
+        super().update_status()
+
+        if all(
+            value is not None
+            for value in [
+                getattr(self, field)
+                for field in [
+                    "name",
+                    "population",
+                    "friction_surface",
+                    "dem",
+                    "health_facilities",
+                    "hf_processing_order",
+                ]
+            ]
+        ):
+            self.status = AnalysisStatus.READY

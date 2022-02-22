@@ -122,7 +122,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
+            extent=cls.EXTENT_FILESET,
+            land_cover=cls.LAND_COVER_FILESET,
+            dem=cls.DEM_FILESET,
+            transport_network=cls.TRANSPORT_NETWORK_FILESET,
             slope=cls.SLOPE_FILESET,
+            water=cls.WATER_FILESET,
+            health_facilities=cls.HEALTH_FACILITIES_FILESET,
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -434,4 +440,30 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "success": True,
                 "analysis": {"status": AnalysisStatus.READY},
             },
+        )
+
+    def test_trigger_accessmod_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation triggerAccessmodAnalysis($input: TriggerAccessmodAnalysisInput) {
+                  triggerAccessmodAnalysis(input: $input) {
+                    success
+                    analysis {
+                        status
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "analysisId": str(self.ACCESSIBILITY_ANALYSIS.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
+            r["data"]["createAccessmodAccessibilityAnalysis"],
         )
