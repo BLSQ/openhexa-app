@@ -134,11 +134,18 @@ class Dhis2Test(test.TestCase):
         self.assertIs(result.get_value("foo", "en"), "bar")
         self.assertIs(result.get_value("foo"), "bar")
 
-        # missing locale
+        # missing locale -> fallback to default
         result = FooResult(
-            {"translations": [{"property": "FOO", "locale": "fr", "value": "bar"}]}
+            {
+                "foo": "bax",
+                "translations": [
+                    {"property": "FOO", "locale": "en_US", "value": "bar"}
+                ],
+            }
         )
-        self.assertIs(result.get_value("foo", "en"), "bar")
+        self.assertIs(result.get_value("foo", "en"), "bax")
+
+        # locale is none -> select english/derivative by default
         self.assertIs(result.get_value("foo"), "bar")
 
         # defaults
