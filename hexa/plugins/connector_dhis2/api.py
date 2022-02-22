@@ -89,23 +89,23 @@ class Dhis2Result:
         ):
             return self._data.get(field_name, field_default)
 
-        try:
-            # Attempt to extract the translated value for the provided locale (which can be None)
-            return next(
-                p
-                for p in self._data["translations"]
-                if p["property"] == field_name.upper()
-                # If locale is None, the first description will be returned
-                and (locale is None or locale in p["locale"])
-            )["value"]
-        except StopIteration:
-            if (
-                locale is None
-            ):  # Locale is None: if no description at all, return the default
-                return field_default
+        if locale is None:
+            # find english or derivative
+            locale = ("en", "en_GB", "en_US")
 
-            # Could not find a description for the provided locale, find any description
-            return self.get_value(field_name, None)
+        if isinstance(locale, str):
+            # if locale only str -> make it iterable
+            locale = (locale,)
+
+        # Attempt to extract the translated value for the provided locale
+        for translation in self._data["translations"]:
+            if (
+                translation["property"] == field_name.upper()
+                and translation["locale"] in locale
+            ):
+                return translation["value"]
+
+        return self._data.get(field_name, field_default)
 
 
 class DataElementResult(Dhis2Result):
