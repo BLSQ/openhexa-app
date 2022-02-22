@@ -178,6 +178,7 @@ class Dhis2Client:
         return info
 
     def fetch_data_elements(self):
+        results = []
         for page in self._api.get_paged(
             "dataElements", params={"fields": ":all"}, page_size=100
         ):
@@ -187,9 +188,11 @@ class Dhis2Client:
                     self.name,
                     page.get("pager"),
                 )
-            yield [DataElementResult(data) for data in page["dataElements"]]
+            results.extend([DataElementResult(data) for data in page["dataElements"]])
+        return results
 
     def fetch_datasets(self):
+        results = []
         for page in self._api.get_paged(
             "dataSets", params={"fields": ":all"}, page_size=100
         ):
@@ -197,9 +200,11 @@ class Dhis2Client:
                 logger.info(
                     "sync_log %s: page from datasets %s", self.name, page.get("pager")
                 )
-            yield [DataSetResult(data) for data in page["dataSets"]]
+            results.extend([DataSetResult(data) for data in page["dataSets"]])
+        return results
 
     def fetch_indicator_types(self):
+        results = []
         for page in self._api.get_paged(
             "indicatorTypes", params={"fields": ":all"}, page_size=100
         ):
@@ -209,9 +214,13 @@ class Dhis2Client:
                     self.name,
                     page.get("pager"),
                 )
-            yield [IndicatorTypeResult(data) for data in page["indicatorTypes"]]
+            results.extend(
+                [IndicatorTypeResult(data) for data in page["indicatorTypes"]]
+            )
+        return results
 
     def fetch_indicators(self):
+        results = []
         for page in self._api.get_paged(
             "indicators", params={"fields": ":all"}, page_size=100
         ):
@@ -219,9 +228,11 @@ class Dhis2Client:
                 logger.info(
                     "sync_log %s: page from indicators %s", self.name, page.get("pager")
                 )
-            yield [IndicatorResult(data) for data in page["indicators"]]
+            results.extend([IndicatorResult(data) for data in page["indicators"]])
+        return results
 
     def fetch_organisation_units(self):
+        results = []
         for page in self._api.get_paged(
             "organisationUnits", params={"fields": ":all"}, page_size=100
         ):
@@ -237,4 +248,7 @@ class Dhis2Client:
                 if "path" in element:
                     element["path"] = element["path"].replace("/", ".").strip(".")
 
-            yield [OrganisationUnitResult(data) for data in page["organisationUnits"]]
+            results.extend(
+                [OrganisationUnitResult(data) for data in page["organisationUnits"]]
+            )
+        return results
