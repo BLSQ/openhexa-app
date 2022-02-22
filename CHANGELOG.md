@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 0.25
+------------
+
+February 22, 2022
+
+### Updated
+
+- Data model for connector_airflow, to better reflect the way the DAG works
+- Locale management for DHIS2, add a preference to english locales when syncing an instance
+
 Version 0.24
 ------------
 
