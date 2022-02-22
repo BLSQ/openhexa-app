@@ -67,6 +67,7 @@ class FilesetRoleCode(models.TextChoices):
     HEALTH_FACILITIES = "HEALTH_FACILITIES"
     LAND_COVER = "LAND_COVER"
     MOVING_SPEEDS = "MOVING_SPEEDS"
+    POPULATION = "POPULATION"
     SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     WATER = "WATER"
@@ -139,16 +140,22 @@ class Analysis(Base):
     objects = AnalysisManager()
 
     def save(self, *args, **kwargs):
-        self.update_status()
+        if self.status == AnalysisStatus.DRAFT:
+            self.update_status_if_draft()
         super().save(*args, **kwargs)
+
+    def run(self):
+        if self.status != AnalysisStatus.READY:
+            raise ValueError(f"Cannot run analyses in {self.status} status")
+        self.status = AnalysisStatus.QUEUED
+        self.save()
 
     @property
     def type(self) -> AnalysisType:
         raise NotImplementedError
 
-    def update_status(self):
-        if self.status != AnalysisStatus.DRAFT:
-            raise ValueError("Analysis is already ready")
+    def update_status_if_draft(self):
+        raise NotImplementedError
 
     class Meta:
         ordering = ["-created_at"]
@@ -193,9 +200,7 @@ class AccessibilityAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
-    def update_status(self):
-        super().update_status()
-
+    def update_status_if_draft(self):
         if all(
             value is not None
             for value in [
@@ -246,9 +251,7 @@ class GeographicCoverageAnalysis(Analysis):
     def type(self) -> AnalysisType:
         return AnalysisType.GEOGRAPHIC_COVERAGE
 
-    def update_status(self):
-        super().update_status()
-
+    def update_status_if_draft(self):
         if all(
             value is not None
             for value in [

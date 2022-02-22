@@ -70,6 +70,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             code=FilesetRoleCode.FRICTION_SURFACE,
             format=FilesetFormat.RASTER,
         )
+        cls.POPULATION_ROLE = FilesetRole.objects.create(
+            name="Population",
+            code=FilesetRoleCode.POPULATION,
+            format=FilesetFormat.RASTER,
+        )
         cls.EXTENT_FILESET = Fileset.objects.create(
             name="Extent fileset",
             role=cls.GEOMETRY_ROLE,
@@ -118,23 +123,27 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,
         )
+        cls.POPULATION_FILESET = Fileset.objects.create(
+            name="Best population ever",
+            role=cls.POPULATION_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
-            extent=cls.EXTENT_FILESET,
-            land_cover=cls.LAND_COVER_FILESET,
-            dem=cls.DEM_FILESET,
-            transport_network=cls.TRANSPORT_NETWORK_FILESET,
             slope=cls.SLOPE_FILESET,
-            water=cls.WATER_FILESET,
-            health_facilities=cls.HEALTH_FACILITIES_FILESET,
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
+            population=cls.POPULATION_FILESET,
             friction_surface=cls.FRICTION_SURFACE_FILESET,
+            dem=cls.DEM_FILESET,
+            health_facilities=cls.HEALTH_FACILITIES_FILESET,
+            hf_processing_order="plop",
         )
 
     def test_accessmod_analysis_owner(self):
@@ -397,7 +406,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["updateAccessmodAccessibilityAnalysis"],
             {
                 "success": True,
                 "analysis": {
@@ -406,6 +414,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     "status": AnalysisStatus.DRAFT,
                 },
             },
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
         )
 
         r = self.run_query(
@@ -442,13 +451,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
         )
 
-    def test_trigger_accessmod_analysis(self):
+    def test_launch_accessmod_ready_analysis(self):
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
             """
-                mutation triggerAccessmodAnalysis($input: TriggerAccessmodAnalysisInput) {
-                  triggerAccessmodAnalysis(input: $input) {
+                mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
+                  launchAccessmodAnalysis(input: $input) {
                     success
                     analysis {
                         status
@@ -458,12 +467,35 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "analysisId": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id),
                 }
             },
         )
 
         self.assertEqual(
             {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
-            r["data"]["createAccessmodAccessibilityAnalysis"],
+            r["data"]["launchAccessmodAnalysis"],
+        )
+
+    def test_launch_accessmod_draft_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
+                  launchAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False},
+            r["data"]["launchAccessmodAnalysis"],
         )

@@ -228,7 +228,7 @@ input CreateAccessmodAccessibilityAnalysisInput {
 }
 type CreateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
-    analysis: AccessmodAccessibilityAnalysis!
+    analysis: AccessmodAccessibilityAnalysis
 }
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
@@ -248,7 +248,14 @@ input UpdateAccessmodAccessibilityAnalysisInput {
 }
 type UpdateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
-    analysis: AccessmodAccessibilityAnalysis!
+    analysis: AccessmodAccessibilityAnalysis
+}
+input LaunchAccessmodAnalysisInput {
+    id: String!
+}
+type LaunchAccessmodAnalysisResult {
+    success: Boolean!
+    analysis: AccessmodAnalysis
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
@@ -257,4 +264,5 @@ extend type Query {
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
     updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult
+    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult
 }
