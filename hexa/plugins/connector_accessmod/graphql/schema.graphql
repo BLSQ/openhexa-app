@@ -3,6 +3,7 @@ type AccessmodProject {
     id: String!
     name: String!
     spatialResolution: Int!
+    crs: Int!
     country: Country!
     owner: User!
     createdAt: DateTime!
@@ -17,6 +18,7 @@ type AccessmodProjectPage {
 input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
+    crs: Int!
     country: CountryInput!
 }
 type CreateAccessmodProjectResult {
@@ -155,7 +157,7 @@ enum AccessmodAnalysisType {
     GEOGRAPHIC_COVERAGE
 }
 enum AccessmodAnalysisStatus {
-    PENDING
+    DRAFT
     READY
     QUEUED
     RUNNING

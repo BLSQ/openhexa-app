@@ -27,6 +27,7 @@ class Project(Base):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     spatial_resolution = models.PositiveIntegerField()
+    crs = models.PositiveIntegerField()
 
     objects = ProjectQuerySet.as_manager()
 
@@ -97,7 +98,7 @@ class File(Base):
 
 
 class AnalysisStatus(models.TextChoices):
-    PENDING = "PENDING"
+    DRAFT = "DRAFT"
     READY = "READY"
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
@@ -132,7 +133,7 @@ class Analysis(Base):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     status = models.CharField(
-        max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING
+        max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
     name = models.TextField()
 
@@ -189,7 +190,7 @@ class AccessibilityAnalysis(Analysis):
     )
 
     def update_status(self):
-        if self.status != AnalysisStatus.PENDING:
+        if self.status != AnalysisStatus.DRAFT:
             raise ValueError("Analysis is already ready")
         if all(
             value is not None

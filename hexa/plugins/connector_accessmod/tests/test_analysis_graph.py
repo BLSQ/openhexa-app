@@ -28,6 +28,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
+            crs=4326,
         )
         cls.GEOMETRY_ROLE = FilesetRole.objects.create(
             name="Geometry",
@@ -396,7 +397,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "analysis": {
                     "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                     "name": "Updated accessibility analysis!",
-                    "status": AnalysisStatus.PENDING,
+                    "status": AnalysisStatus.DRAFT,
                 },
             },
         )

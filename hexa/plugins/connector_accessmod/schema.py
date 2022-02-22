@@ -64,6 +64,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
         name=create_input["name"],
         country=Country(create_input["country"]["code"]),
         spatial_resolution=create_input["spatialResolution"],
+        crs=create_input["crs"],
     )
 
     return {"success": True, "project": project}

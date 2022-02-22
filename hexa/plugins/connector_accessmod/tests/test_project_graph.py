@@ -19,9 +19,14 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
+            crs=4326,
         )
         cls.OTHER_PROJECT = Project.objects.create(
-            name="Other project", country="BE", owner=cls.USER_1, spatial_resolution=100
+            name="Other project",
+            country="BE",
+            owner=cls.USER_1,
+            spatial_resolution=100,
+            crs=4326,
         )
 
     def test_accessmod_project_owner(self):
@@ -177,6 +182,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                     project {
                         name
                         spatialResolution
+                        crs
                         country {
                             code
                         }
@@ -188,6 +194,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "input": {
                     "name": "My new project",
                     "spatialResolution": 42,
+                    "crs": 4326,
                     "country": {"code": "CD"},
                 }
             },
@@ -200,6 +207,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "project": {
                     "name": "My new project",
                     "spatialResolution": 42,
+                    "crs": 4326,
                     "country": {"code": "CD"},
                 },
             },
