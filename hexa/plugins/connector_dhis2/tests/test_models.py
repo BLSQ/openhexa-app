@@ -235,18 +235,16 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
             password=self.DHIS2_INSTANCE_PLAY2.api_credentials.password,
         )
 
-        for results_batch in client_play1.fetch_organisation_units():
-            sync_from_dhis2_results(
-                model_class=OrganisationUnit,
-                instance=self.DHIS2_INSTANCE_PLAY1,
-                results=results_batch,
-            )
-        for results_batch in client_play2.fetch_organisation_units():
-            sync_from_dhis2_results(
-                model_class=OrganisationUnit,
-                instance=self.DHIS2_INSTANCE_PLAY2,
-                results=results_batch,
-            )
+        sync_from_dhis2_results(
+            model_class=OrganisationUnit,
+            instance=self.DHIS2_INSTANCE_PLAY1,
+            results=client_play1.fetch_organisation_units(),
+        )
+        sync_from_dhis2_results(
+            model_class=OrganisationUnit,
+            instance=self.DHIS2_INSTANCE_PLAY2,
+            results=client_play2.fetch_organisation_units(),
+        )
         self.assertEqual(OrganisationUnit.objects.all().count(), 4)
 
     @responses.activate
@@ -286,14 +284,13 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
             username=self.DHIS2_INSTANCE_PLAY2.api_credentials.username,
             password=self.DHIS2_INSTANCE_PLAY2.api_credentials.password,
         )
-        for results_batch in client_play2.fetch_indicators():
-            # This should not trigger an error, even if we have two indicator types with the same id (but different
-            # instances)
-            sync_from_dhis2_results(
-                model_class=Indicator,
-                instance=self.DHIS2_INSTANCE_PLAY2,
-                results=results_batch,
-            )
+        # This should not trigger an error, even if we have two indicator types with the same id (but different
+        # instances)
+        sync_from_dhis2_results(
+            model_class=Indicator,
+            instance=self.DHIS2_INSTANCE_PLAY2,
+            results=client_play2.fetch_indicators(),
+        )
         self.assertEqual(
             2, Indicator.objects.filter(indicator_type__dhis2_id="bWuNrMHEoZ0").count()
         )
