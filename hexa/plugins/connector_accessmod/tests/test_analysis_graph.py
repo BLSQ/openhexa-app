@@ -28,6 +28,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
+            crs=4326,
         )
         cls.GEOMETRY_ROLE = FilesetRole.objects.create(
             name="Geometry",
@@ -67,6 +68,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
             name="Friction surface",
             code=FilesetRoleCode.FRICTION_SURFACE,
+            format=FilesetFormat.RASTER,
+        )
+        cls.POPULATION_ROLE = FilesetRole.objects.create(
+            name="Population",
+            code=FilesetRoleCode.POPULATION,
             format=FilesetFormat.RASTER,
         )
         cls.EXTENT_FILESET = Fileset.objects.create(
@@ -117,17 +123,38 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,
         )
+        cls.POPULATION_FILESET = Fileset.objects.create(
+            name="Best population ever",
+            role=cls.POPULATION_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
         )
-        cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
+        cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
+            population=cls.POPULATION_FILESET,
             friction_surface=cls.FRICTION_SURFACE_FILESET,
+            dem=cls.DEM_FILESET,
+            health_facilities=cls.HEALTH_FACILITIES_FILESET,
+            hf_processing_order="plop",
+        )
+        cls.GEOGRAPHIC_COVERAGE_ANALYSIS_2 = GeographicCoverageAnalysis.objects.create(
+            owner=cls.USER_1,
+            status=AnalysisStatus.RUNNING,
+            project=cls.SAMPLE_PROJECT,
+            name="Second Geo coverage analysis",
+            population=cls.POPULATION_FILESET,
+            friction_surface=cls.FRICTION_SURFACE_FILESET,
+            dem=cls.DEM_FILESET,
+            health_facilities=cls.HEALTH_FACILITIES_FILESET,
+            hf_processing_order="yolo",
         )
 
     def test_accessmod_analysis_owner(self):
@@ -217,14 +244,23 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
                     {
-                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id),
-                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS.type,
+                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.type,
                         "frictionSurface": {
                             "id": str(
-                                self.GEOGRAPHIC_COVERAGE_ANALYSIS.friction_surface.id
+                                self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.friction_surface.id
+                            )
+                        },
+                    },
+                    {
+                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.type,
+                        "frictionSurface": {
+                            "id": str(
+                                self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.friction_surface.id
                             )
                         },
                     },
@@ -261,9 +297,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
-                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id)},
                     {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
                 ],
             },
@@ -318,10 +355,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalyses"],
             {
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
                     {
-                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS.name,
+                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.name,
+                    },
+                    {
+                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.name,
                     },
                     {
                         "name": self.ACCESSIBILITY_ANALYSIS.name,
@@ -390,15 +430,15 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["updateAccessmodAccessibilityAnalysis"],
             {
                 "success": True,
                 "analysis": {
                     "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                     "name": "Updated accessibility analysis!",
-                    "status": AnalysisStatus.PENDING,
+                    "status": AnalysisStatus.DRAFT,
                 },
             },
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
         )
 
         r = self.run_query(
@@ -433,4 +473,99 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "success": True,
                 "analysis": {"status": AnalysisStatus.READY},
             },
+        )
+
+    def test_launch_accessmod_ready_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
+                  launchAccessmodAnalysis(input: $input) {
+                    success
+                    analysis {
+                        status
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
+            r["data"]["launchAccessmodAnalysis"],
+        )
+
+    def test_launch_accessmod_draft_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
+                  launchAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False},
+            r["data"]["launchAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_running_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False},
+            r["data"]["deleteAccessmodAnalysis"],
         )

@@ -3,7 +3,6 @@ import enum
 from django.db import models
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
-from stringcase import snakecase
 
 from hexa.core.models import Base
 
@@ -27,6 +26,7 @@ class Project(Base):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     spatial_resolution = models.PositiveIntegerField()
+    crs = models.PositiveIntegerField()
 
     objects = ProjectQuerySet.as_manager()
 
@@ -67,6 +67,7 @@ class FilesetRoleCode(models.TextChoices):
     HEALTH_FACILITIES = "HEALTH_FACILITIES"
     LAND_COVER = "LAND_COVER"
     MOVING_SPEEDS = "MOVING_SPEEDS"
+    POPULATION = "POPULATION"
     SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     WATER = "WATER"
@@ -87,7 +88,9 @@ class FileQuerySet(AccessmodQuerySet):
 
 
 class File(Base):
-    mime_type = models.CharField(max_length=50)
+    mime_type = models.CharField(
+        max_length=255
+    )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
     uri = models.TextField()
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
@@ -97,7 +100,7 @@ class File(Base):
 
 
 class AnalysisStatus(models.TextChoices):
-    PENDING = "PENDING"
+    DRAFT = "DRAFT"
     READY = "READY"
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
@@ -132,17 +135,33 @@ class Analysis(Base):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     status = models.CharField(
-        max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.PENDING
+        max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
     name = models.TextField()
 
     objects = AnalysisManager()
 
+    def save(self, *args, **kwargs):
+        if self.status == AnalysisStatus.DRAFT:
+            self.update_status_if_draft()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.status in [AnalysisStatus.QUEUED, AnalysisStatus.RUNNING]:
+            raise ValueError(f"Cannot delete analyses in {self.status} state")
+        return super().delete(*args, **kwargs)
+
+    def run(self):
+        if self.status != AnalysisStatus.READY:
+            raise ValueError(f"Cannot run analyses in {self.status} state")
+        self.status = AnalysisStatus.QUEUED
+        self.save()
+
     @property
     def type(self) -> AnalysisType:
         raise NotImplementedError
 
-    def update_status(self):
+    def update_status_if_draft(self):
         raise NotImplementedError
 
     class Meta:
@@ -188,21 +207,19 @@ class AccessibilityAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
-    def update_status(self):
-        if self.status != AnalysisStatus.PENDING:
-            raise ValueError("Analysis is already ready")
+    def update_status_if_draft(self):
         if all(
             value is not None
             for value in [
-                getattr(self, snakecase(field))
+                getattr(self, field)
                 for field in [
                     "name",
-                    "extentId",
-                    "landCoverId",
-                    "transportNetworkId",
-                    "slopeId",
-                    "waterId",
-                    "healthFacilitiesId",
+                    "extent",
+                    "land_cover",
+                    "transport_network",
+                    "slope",
+                    "water",
+                    "health_facilities",
                 ]
             ]
         ):
@@ -226,8 +243,8 @@ class GeographicCoverageAnalysis(Analysis):
     health_facilities = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    anisotropic = models.BooleanField(null=True)
-    max_travel_time = models.IntegerField(null=True)
+    anisotropic = models.BooleanField(default=True)
+    max_travel_time = models.IntegerField(null=True, default=360)
     hf_processing_order = models.CharField(max_length=100)
 
     geographic_coverage = models.ForeignKey(
@@ -240,3 +257,20 @@ class GeographicCoverageAnalysis(Analysis):
     @property
     def type(self) -> AnalysisType:
         return AnalysisType.GEOGRAPHIC_COVERAGE
+
+    def update_status_if_draft(self):
+        if all(
+            value is not None
+            for value in [
+                getattr(self, field)
+                for field in [
+                    "name",
+                    "population",
+                    "friction_surface",
+                    "dem",
+                    "health_facilities",
+                    "hf_processing_order",
+                ]
+            ]
+        ):
+            self.status = AnalysisStatus.READY

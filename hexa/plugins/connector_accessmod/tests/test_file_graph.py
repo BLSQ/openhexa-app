@@ -30,12 +30,14 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
+            crs=4326,
         )
         cls.SAMPLE_PROJECT_2 = Project.objects.create(
             name="Sample project 2",
             country="BE",
             owner=cls.USER_1,
             spatial_resolution=100,
+            crs=4326,
         )
         cls.LAND_COVER_ROLE = FilesetRole.objects.create(
             name="Land Cover",

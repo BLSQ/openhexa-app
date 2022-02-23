@@ -64,6 +64,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
         name=create_input["name"],
         country=Country(create_input["country"]["code"]),
         spatial_resolution=create_input["spatialResolution"],
+        crs=create_input["crs"],
     )
 
     return {"success": True, "project": project}
@@ -338,11 +339,40 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                 setattr(analysis, snakecase(fileset_field), fileset.id)
                 changed = True
         if changed:
-            analysis.update_status()
             analysis.save()
 
         return {"success": True, "analysis": analysis}
     except Project.DoesNotExist:
+        return {"success": False}
+
+
+@accessmod_mutations.field("launchAccessmodAnalysis")
+def resolve_launch_accessmod_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    launch_input = kwargs["input"]
+    analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+        id=launch_input["id"]
+    )
+
+    try:
+        analysis.run()
+        return {"success": True, "analysis": analysis}
+    except ValueError:
+        return {"success": False}
+
+
+@accessmod_mutations.field("deleteAccessmodAnalysis")
+def resolve_delete_accessmod_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    delete_input = kwargs["input"]
+    analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+        id=delete_input["id"]
+    )
+
+    try:
+        analysis.delete()
+        return {"success": True}
+    except ValueError:
         return {"success": False}
 
 

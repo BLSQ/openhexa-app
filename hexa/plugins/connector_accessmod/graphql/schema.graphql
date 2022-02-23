@@ -3,6 +3,7 @@ type AccessmodProject {
     id: String!
     name: String!
     spatialResolution: Int!
+    crs: Int!
     country: Country!
     owner: User!
     createdAt: DateTime!
@@ -17,6 +18,7 @@ type AccessmodProjectPage {
 input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
+    crs: Int!
     country: CountryInput!
 }
 type CreateAccessmodProjectResult {
@@ -155,7 +157,7 @@ enum AccessmodAnalysisType {
     GEOGRAPHIC_COVERAGE
 }
 enum AccessmodAnalysisStatus {
-    PENDING
+    DRAFT
     READY
     QUEUED
     RUNNING
@@ -226,7 +228,7 @@ input CreateAccessmodAccessibilityAnalysisInput {
 }
 type CreateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
-    analysis: AccessmodAccessibilityAnalysis!
+    analysis: AccessmodAccessibilityAnalysis
 }
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
@@ -246,7 +248,20 @@ input UpdateAccessmodAccessibilityAnalysisInput {
 }
 type UpdateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
-    analysis: AccessmodAccessibilityAnalysis!
+    analysis: AccessmodAccessibilityAnalysis
+}
+input LaunchAccessmodAnalysisInput {
+    id: String!
+}
+type LaunchAccessmodAnalysisResult {
+    success: Boolean!
+    analysis: AccessmodAnalysis
+}
+input DeleteAccessmodAnalysisInput {
+    id: String!
+}
+type DeleteAccessmodAnalysisResult {
+    success: Boolean!
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
@@ -255,4 +270,6 @@ extend type Query {
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
     updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult
+    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult
+    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult
 }
