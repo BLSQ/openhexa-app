@@ -144,9 +144,14 @@ class Analysis(Base):
             self.update_status_if_draft()
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        if self.status in [AnalysisStatus.QUEUED, AnalysisStatus.RUNNING]:
+            raise ValueError(f"Cannot delete analyses in {self.status} state")
+        return super().delete(*args, **kwargs)
+
     def run(self):
         if self.status != AnalysisStatus.READY:
-            raise ValueError(f"Cannot run analyses in {self.status} status")
+            raise ValueError(f"Cannot run analyses in {self.status} state")
         self.status = AnalysisStatus.QUEUED
         self.save()
 

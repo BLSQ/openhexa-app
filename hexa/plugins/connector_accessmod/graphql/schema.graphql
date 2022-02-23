@@ -257,6 +257,12 @@ type LaunchAccessmodAnalysisResult {
     success: Boolean!
     analysis: AccessmodAnalysis
 }
+input DeleteAccessmodAnalysisInput {
+    id: String!
+}
+type DeleteAccessmodAnalysisResult {
+    success: Boolean!
+}
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
     accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
@@ -265,4 +271,5 @@ extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
     updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult
     launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult
+    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult
 }

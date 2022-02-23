@@ -361,6 +361,21 @@ def resolve_launch_accessmod_analysis(_, info, **kwargs):
         return {"success": False}
 
 
+@accessmod_mutations.field("deleteAccessmodAnalysis")
+def resolve_delete_accessmod_analysis(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    delete_input = kwargs["input"]
+    analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+        id=delete_input["id"]
+    )
+
+    try:
+        analysis.delete()
+        return {"success": True}
+    except ValueError:
+        return {"success": False}
+
+
 accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,

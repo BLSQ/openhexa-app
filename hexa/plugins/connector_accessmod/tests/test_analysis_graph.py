@@ -135,7 +135,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
         )
-        cls.GEOGRAPHIC_COVERAGE_ANALYSIS = GeographicCoverageAnalysis.objects.create(
+        cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
@@ -144,6 +144,17 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             dem=cls.DEM_FILESET,
             health_facilities=cls.HEALTH_FACILITIES_FILESET,
             hf_processing_order="plop",
+        )
+        cls.GEOGRAPHIC_COVERAGE_ANALYSIS_2 = GeographicCoverageAnalysis.objects.create(
+            owner=cls.USER_1,
+            status=AnalysisStatus.RUNNING,
+            project=cls.SAMPLE_PROJECT,
+            name="Second Geo coverage analysis",
+            population=cls.POPULATION_FILESET,
+            friction_surface=cls.FRICTION_SURFACE_FILESET,
+            dem=cls.DEM_FILESET,
+            health_facilities=cls.HEALTH_FACILITIES_FILESET,
+            hf_processing_order="yolo",
         )
 
     def test_accessmod_analysis_owner(self):
@@ -233,14 +244,23 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
                     {
-                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id),
-                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS.type,
+                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.type,
                         "frictionSurface": {
                             "id": str(
-                                self.GEOGRAPHIC_COVERAGE_ANALYSIS.friction_surface.id
+                                self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.friction_surface.id
+                            )
+                        },
+                    },
+                    {
+                        "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.type,
+                        "frictionSurface": {
+                            "id": str(
+                                self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.friction_surface.id
                             )
                         },
                     },
@@ -277,9 +297,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
-                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id)},
+                    {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id)},
                     {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
                 ],
             },
@@ -334,10 +355,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalyses"],
             {
-                "totalItems": 2,
+                "totalItems": 3,
                 "items": [
                     {
-                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS.name,
+                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.name,
+                    },
+                    {
+                        "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.name,
                     },
                     {
                         "name": self.ACCESSIBILITY_ANALYSIS.name,
@@ -467,7 +491,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS.id),
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
                 }
             },
         )
@@ -498,4 +522,50 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False},
             r["data"]["launchAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_running_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False},
+            r["data"]["deleteAccessmodAnalysis"],
         )
