@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('connector_accessmod', '0011_crs_status_coverage_roles'),
+        ("connector_accessmod", "0011_crs_status_coverage_roles"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='file',
-            name='mime_type',
+            model_name="file",
+            name="mime_type",
             field=models.CharField(max_length=255),
         ),
     ]
