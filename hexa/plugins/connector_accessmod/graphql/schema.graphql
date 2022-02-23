@@ -84,6 +84,7 @@ enum AccessmodFilesetRoleCode {
     BARRIER
     MOVING_SPEEDS
     HEALTH_FACILITIES
+    GEOMETRY
 }
 enum AccessmodFilesetFormat {
     VECTOR
