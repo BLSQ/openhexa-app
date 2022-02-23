@@ -88,7 +88,9 @@ class FileQuerySet(AccessmodQuerySet):
 
 
 class File(Base):
-    mime_type = models.CharField(max_length=50)
+    mime_type = models.CharField(
+        max_length=255
+    )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
     uri = models.TextField()
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
