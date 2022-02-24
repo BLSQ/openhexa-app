@@ -163,7 +163,7 @@ class Cluster(Environment):
             for airflow_orphan in airflow_dags - hexa_dags:
                 logger.error(
                     "DAG %s present in airflow and not in hexa -> configuration issue",
-                    airflow_dags,
+                    airflow_orphan,
                 )
             orphans_count += len(airflow_dags - hexa_dags)
             orphans_count += len(hexa_dags - airflow_dags)
