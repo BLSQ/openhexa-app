@@ -114,10 +114,11 @@ class Cluster(Environment):
                 else:
                     identical_count += 1
 
-            # let's wait to airflow to reload dags -- can take up to 60s
-            # it isn't a problem: edition is rare and sync is async
-            # just don't lock the DB when doing cluster.sync
-            sleep(settings.AIRFLOW_SYNC_WAIT)
+            if created_count or updated_count:
+                # let's wait to airflow to reload dags -- can take up to 60s
+                # it isn't a problem: edition is rare and sync is async
+                # just don't lock the DB when doing cluster.sync
+                sleep(settings.AIRFLOW_SYNC_WAIT)
 
             # check import error
             # refresh dags and check if conform to target
