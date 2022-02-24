@@ -93,3 +93,55 @@ dag_runs_same_old = {
     ],
     "total_entries": 2,
 }
+
+dag_continuous_sync1 = {
+    "dag_runs": [
+        {
+            "conf": {},
+            "dag_id": "hello_world",
+            "dag_run_id": "run1",
+            "end_date": "2022-02-05T13:42:42.140724+00:00",
+            "execution_date": "2022-02-05T13:42:25.261989+00:00",
+            "external_trigger": True,
+            "start_date": "2022-02-05T13:42:25.615264+00:00",
+            "state": "success",
+        },
+        {
+            "conf": {},
+            "dag_id": "hello_world",
+            "dag_run_id": "untracked",
+            "end_date": "2022-02-05T13:40:44.185503+00:00",
+            "execution_date": "2022-02-05T13:39:50.613372+00:00",
+            "external_trigger": True,
+            "start_date": "2022-02-05T13:39:52.082496+00:00",
+            "state": "success",
+        },
+    ],
+    "total_entries": 2,
+}
+
+dag_continuous_sync2 = {
+    "dag_runs": [
+        {
+            "conf": {},
+            "dag_id": "hello_world",
+            "dag_run_id": "run1",
+            "end_date": "2022-02-05T13:42:42.140724+00:00",
+            "execution_date": "2022-02-05T13:42:25.261989+00:00",
+            "external_trigger": True,
+            "start_date": "2022-02-05T13:42:25.615264+00:00",
+            "state": "success",
+        },
+        {
+            "conf": {},
+            "dag_id": "hello_world",
+            "dag_run_id": "run2",
+            "end_date": "2022-02-05T13:40:44.185503+00:00",
+            "execution_date": "2022-02-05T13:39:50.613372+00:00",
+            "external_trigger": True,
+            "start_date": "2022-02-05T13:39:52.082496+00:00",
+            "state": "success",
+        },
+    ],
+    "total_entries": 2,
+}

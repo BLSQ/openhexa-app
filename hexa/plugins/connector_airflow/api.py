@@ -40,8 +40,10 @@ class AirflowAPIClient:
 
         return response.json()
 
-    def list_dag_runs(self, dag_id: str) -> typing.Dict:
-        url = urljoin(self._url, f"dags/{dag_id}/dagRuns?order_by=-end_date")
+    def list_dag_runs(self, dag_id: str, limit: int = 100) -> typing.Dict:
+        url = urljoin(
+            self._url, f"dags/{dag_id}/dagRuns?order_by=-end_date&limit={limit}"
+        )
         response = self._session.get(url, allow_redirects=False)
         if response.status_code != 200:
             raise AirflowAPIError(f"GET {url}: got {response.status_code}")
