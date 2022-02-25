@@ -1,4 +1,5 @@
 import enum
+import mimetypes
 
 from django.db import models
 from django_countries.fields import CountryField
@@ -61,6 +62,8 @@ class FilesetFormat(models.TextChoices):
 
 class FilesetRoleCode(models.TextChoices):
     BARRIER = "BARRIER"
+    CATCHMENT_AREAS = "CATCHMENT_AREAS"
+    COVERAGE = "COVERAGE"
     DEM = "DEM"
     FRICTION_SURFACE = "FRICTION_SURFACE"
     GEOMETRY = "GEOMETRY"
@@ -70,6 +73,7 @@ class FilesetRoleCode(models.TextChoices):
     POPULATION = "POPULATION"
     SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
+    TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
 
 
@@ -164,6 +168,9 @@ class Analysis(Base):
     def update_status_if_draft(self):
         raise NotImplementedError
 
+    def set_outputs(self, **kwargs):
+        raise NotImplementedError
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -225,6 +232,27 @@ class AccessibilityAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    def set_outputs(self, travel_times: str, friction_surface: str):
+        self.travel_times = Fileset.objects.create(
+            project=self.project,
+            name="Travel times",
+            role=FilesetRole.objects.get(code=FilesetRoleCode.TRAVEL_TIMES),
+            owner=self.owner,
+        )
+        self.travel_times.file_set.create(
+            mime_type=mimetypes.guess_type(travel_times), uri=travel_times
+        )
+        self.friction_surface = Fileset.objects.create(
+            project=self.project,
+            name="Friction surface",
+            role=FilesetRole.objects.get(code=FilesetRoleCode.FRICTION_SURFACE),
+            owner=self.owner,
+        )
+        self.friction_surface.file_set.create(
+            mime_type=mimetypes.guess_type(friction_surface), uri=friction_surface
+        )
+        self.save()
+
     @property
     def type(self) -> AnalysisType:
         return AnalysisType.ACCESSIBILITY
@@ -254,10 +282,6 @@ class GeographicCoverageAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
-    @property
-    def type(self) -> AnalysisType:
-        return AnalysisType.GEOGRAPHIC_COVERAGE
-
     def update_status_if_draft(self):
         if all(
             value is not None
@@ -274,3 +298,29 @@ class GeographicCoverageAnalysis(Analysis):
             ]
         ):
             self.status = AnalysisStatus.READY
+
+    def set_outputs(self, geographic_coverage: str, catchment_areas: str):
+        self.geographic_coverage = Fileset.objects.create(
+            project=self.project,
+            name="Geographic coverage",
+            role=FilesetRole.objects.get(code=FilesetRoleCode.COVERAGE),
+            owner=self.owner,
+        )
+        self.geographic_coverage.file_set.create(
+            mime_type=mimetypes.guess_type(geographic_coverage),
+            uri=geographic_coverage,
+        )
+        self.catchment_areas = Fileset.objects.create(
+            project=self.project,
+            name="Catchment areas",
+            role=FilesetRole.objects.get(code=FilesetRoleCode.CATCHMENT_AREAS),
+            owner=self.owner,
+        )
+        self.catchment_areas.file_set.create(
+            mime_type=mimetypes.guess_type(catchment_areas), uri=catchment_areas
+        )
+        self.save()
+
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.GEOGRAPHIC_COVERAGE
