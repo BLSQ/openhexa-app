@@ -7,17 +7,25 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from hexa.plugins.app import get_connector_app_configs
+
 ANONYMOUS_URLS = [
-    reverse("logout"),
-    reverse("core:index"),
-    reverse("core:ready"),
-    reverse("notebooks:credentials"),
-    reverse("graphql"),
-    reverse("password_reset"),
-    reverse("password_reset_done"),
-    reverse("user:accept_tos"),
+    "logout",
+    "core:index",
+    "core:ready",
+    "notebooks:credentials",
+    "graphql",
+    "password_reset",
+    "password_reset_done",
+    "user:accept_tos",
 ]
+for app_config in get_connector_app_configs():
+    ANONYMOUS_URLS += getattr(app_config, "ANONYMOUS_URLS", [])
+REVERSED_ANONYMOUS_URLS = [reverse(url) for url in ANONYMOUS_URLS]
+
 ANONYMOUS_PREFIXES = ["/auth/reset/"]
+for app_config in get_connector_app_configs():
+    ANONYMOUS_PREFIXES += getattr(app_config, "ANONYMOUS_PREFIXES", [])
 
 
 @cache
@@ -30,7 +38,7 @@ def is_protected_routes(url: str) -> bool:
         if url.startswith(prefix):
             matches_prefix = True
 
-    return not (matches_prefix or (url in ANONYMOUS_URLS))
+    return not (matches_prefix or (url in REVERSED_ANONYMOUS_URLS))
 
 
 def login_required_middleware(
@@ -60,7 +68,7 @@ def accepted_tos_required_middleware(
         if (
             request.user.is_authenticated
             and is_protected_routes(request.path)
-            and not request.user.accepted_tos
+            and not getattr(request.user, "accepted_tos", False)
             and settings.USER_MUST_ACCEPT_TOS
         ):
             return render(request, "user_management/terms_of_service.html")

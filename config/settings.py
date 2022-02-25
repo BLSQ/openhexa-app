@@ -73,6 +73,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "hexa.plugins.connector_accessmod.middlewares.dag_run_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
@@ -304,7 +305,7 @@ EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 # Activate an analytics middleware to save every call done on the app
 SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"
 
-if DEBUG:
+if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
     # Django Tailwind and Django Debug Toolbar specifically ask for INTERNAL_IPS to be set

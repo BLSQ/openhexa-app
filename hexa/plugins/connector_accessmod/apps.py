@@ -1,8 +1,14 @@
-from django.apps import AppConfig
+from hexa.plugins.app import ConnectorAppConfig
 
 
-class AccessmodConnectorConfig(AppConfig):
+class AccessmodConnectorConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_accessmod"
     label = "connector_accessmod"
 
     verbose_name = "Accessmod Connector"
+
+    ANONYMOUS_URLS = ["connector_accessmod:webhook"]
+
+    @property
+    def route_prefix(self):
+        return "accessmod"
