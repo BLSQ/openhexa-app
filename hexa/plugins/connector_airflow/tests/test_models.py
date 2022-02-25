@@ -335,7 +335,9 @@ class DAGSyncTest(test.TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/prj1_update/dagRuns?order_by=-end_date"),
+            urljoin(
+                cluster.api_url, "dags/prj1_update/dagRuns?order_by=-end_date&limit=100"
+            ),
             json={
                 "dag_runs": [
                     {
