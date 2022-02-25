@@ -421,6 +421,7 @@ class DAGRun(Base, WithStatus):
 
         self.last_refreshed_at = timezone.now()
         self.state = run_data["state"]
+        self.save()
 
     @property
     def status(self):
