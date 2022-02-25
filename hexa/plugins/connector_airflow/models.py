@@ -94,6 +94,32 @@ class Cluster(Environment):
             % {"dag_count": count, "suffix": pluralize(count)}
         )
 
+    def dag_runs_sync(self, limit: int = 100):
+        """
+        Sync the last few dag run, to maintain the state of the most recent one up to date
+        Try to minimise the DB update -> only refresh when state is different or dag is "active"
+
+        :param limit: number of dag runs to track, starting from the most recent one
+        :return: None
+        """
+        client = self.get_api_client()
+        dag_runs = client.list_dag_runs("~", limit)
+        for run_info in dag_runs["dag_runs"]:
+            try:
+                dag_run = DAGRun.objects.get(
+                    dag__dag_id=run_info["dag_id"],
+                    run_id=run_info["dag_run_id"],
+                )
+            except DAGRun.DoesNotExist:
+                continue
+            if dag_run.state != run_info["state"] or dag_run.state in (
+                DAGRunState.RUNNING,
+                DAGRunState.QUEUED,
+            ):
+                dag_run.last_refreshed_at = timezone.now()
+                dag_run.state = run_info["state"]
+                dag_run.save()
+
     def sync(self):
         created_count = 0
         updated_count = 0
@@ -117,10 +143,11 @@ class Cluster(Environment):
                 else:
                     identical_count += 1
 
-            # let's wait to airflow to reload dags -- can take up to 60s
-            # it isn't a problem: edition is rare and sync is async
-            # just don't lock the DB when doing cluster.sync
-            sleep(settings.AIRFLOW_SYNC_WAIT)
+            if created_count or updated_count:
+                # let's wait to airflow to reload dags -- can take up to 60s
+                # it isn't a problem: edition is rare and sync is async
+                # just don't lock the DB when doing cluster.sync
+                sleep(settings.AIRFLOW_SYNC_WAIT)
 
             # check import error
             # refresh dags and check if conform to target
@@ -139,7 +166,7 @@ class Cluster(Environment):
             for airflow_orphan in airflow_dags - hexa_dags:
                 logger.error(
                     "DAG %s present in airflow and not in hexa -> configuration issue",
-                    airflow_dags,
+                    airflow_orphan,
                 )
             orphans_count += len(airflow_dags - hexa_dags)
             orphans_count += len(hexa_dags - airflow_dags)
