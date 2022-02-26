@@ -1,3 +1,7 @@
+from urllib.parse import urljoin
+
+import responses
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
@@ -9,6 +13,7 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
 )
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRunState, DAGTemplate
 from hexa.user_management.models import User
 
 
@@ -16,13 +21,26 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_1 = User.objects.create_user(
-            "jim@bluesquarehub.com",
-            "jimrocks",
+            "jim@bluesquarehub.com", "jimrocks", is_superuser=True
         )
         cls.USER_2 = User.objects.create_user(
             "jane@bluesquarehub.com",
             "janerocks",
         )
+        cls.CLUSTER = Cluster.objects.create(
+            name="test_cluster", url="https://lookimacluster.com/api"
+        )
+        cls.DAG_TEMPLATE = DAGTemplate.objects.create(
+            cluster=cls.CLUSTER,
+            code="AM_GEOGRAPHIC_COVERAGE",
+            description="AccessMod Geographic coverage Analysis",
+            sample_config={"foo": "bar"},
+        )
+        cls.DAG = DAG.objects.create(
+            template=cls.DAG_TEMPLATE,
+            dag_id="am_geographic_coverage",
+        )
+
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
@@ -475,7 +493,24 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
         )
 
+    @responses.activate
     def test_launch_accessmod_ready_analysis(self):
+        responses.add(
+            responses.POST,
+            urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
+            json={
+                "conf": {},
+                "dag_id": "am_geographic_coverage",
+                "dag_run_id": "am_geographic_coverage_run_1",
+                "end_date": "2021-10-09T16:42:16.189200+00:00",
+                "execution_date": "2021-10-09T16:41:00+00:00",
+                "external_trigger": False,
+                "start_date": "2021-10-09T16:42:00.830209+00:00",
+                "state": "queued",
+            },
+            status=200,
+        )
+
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
@@ -500,6 +535,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
             r["data"]["launchAccessmodAnalysis"],
         )
+
+        self.assertEqual(1, self.DAG.dagrun_set.count())
+        dag_run = self.DAG.dagrun_set.get()
+        self.assertEqual(DAGRunState.QUEUED, dag_run.state)
 
     def test_launch_accessmod_draft_analysis(self):
         self.client.force_login(self.USER_1)

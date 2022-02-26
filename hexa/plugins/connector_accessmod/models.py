@@ -6,6 +6,8 @@ from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
+from hexa.plugins.connector_airflow.models import DAG
+from hexa.user_management.models import User
 
 
 class AccessmodQuerySet(models.QuerySet):
@@ -142,6 +144,13 @@ class Analysis(Base):
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
     name = models.TextField()
+    dag_run = models.ForeignKey(
+        "connector_airflow.DAGRun",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
 
     objects = AnalysisManager()
 
@@ -155,14 +164,21 @@ class Analysis(Base):
             raise ValueError(f"Cannot delete analyses in {self.status} state")
         return super().delete(*args, **kwargs)
 
-    def run(self):
+    def run(self, user: User):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
+
+        dag = DAG.objects.filter_for_user(user).get(dag_id=self.dag_id)
+        self.dag_run = dag.run(user=user)  # TODO: config
         self.status = AnalysisStatus.QUEUED
         self.save()
 
     @property
     def type(self) -> AnalysisType:
+        raise NotImplementedError
+
+    @property
+    def dag_id(self):
         raise NotImplementedError
 
     def update_status_if_draft(self):
@@ -270,6 +286,10 @@ class AccessibilityAnalysis(Analysis):
     def type(self) -> AnalysisType:
         return AnalysisType.ACCESSIBILITY
 
+    @property
+    def dag_id(self):
+        return "am_accessibility"
+
 
 class GeographicCoverageAnalysis(Analysis):
     population = models.ForeignKey(
@@ -337,3 +357,7 @@ class GeographicCoverageAnalysis(Analysis):
     @property
     def type(self) -> AnalysisType:
         return AnalysisType.GEOGRAPHIC_COVERAGE
+
+    @property
+    def dag_id(self):
+        return "am_geographic_coverage"
