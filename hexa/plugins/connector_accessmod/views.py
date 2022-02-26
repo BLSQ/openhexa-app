@@ -1,6 +1,7 @@
 import enum
 import json
 
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -32,9 +33,10 @@ def webhook(request: HttpRequest) -> HttpResponse:
     if event_type == EventType.STATUS_UPDATE:
         try:
             analysis = Analysis.objects.get_subclass(id=event_data["analysis_id"])
-            analysis.update_status(event_data["status"])
-            if "outputs" in event_data:
-                analysis.set_outputs(**event_data["outputs"])
+            with transaction.atomic():
+                analysis.update_status(event_data["status"])
+                if "outputs" in event_data:
+                    analysis.set_outputs(**event_data["outputs"])
         except Analysis.DoesNotExist:
             return JsonResponse(
                 {"success": False},

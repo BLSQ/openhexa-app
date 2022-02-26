@@ -1,7 +1,7 @@
 import enum
 import mimetypes
 
-from django.db import models
+from django.db import models, transaction
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
@@ -164,6 +164,7 @@ class Analysis(Base):
             raise ValueError(f"Cannot delete analyses in {self.status} state")
         return super().delete(*args, **kwargs)
 
+    @transaction.atomic
     def run(self, user: User):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
@@ -189,7 +190,8 @@ class Analysis(Base):
             self.status == AnalysisStatus.QUEUED
             and status
             in [AnalysisStatus.RUNNING, AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
-            or self.status == AnalysisStatus.RUNNING
+        ) or (
+            self.status == AnalysisStatus.RUNNING
             and status in [AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
         ):
             self.status = status
@@ -199,6 +201,29 @@ class Analysis(Base):
 
     def set_outputs(self, **kwargs):
         raise NotImplementedError
+
+    def set_output(
+        self,
+        *,
+        output_key: str,
+        output_role_code: FilesetRoleCode,
+        output_name: str,
+        output_value: str,
+    ):
+        setattr(
+            self,
+            output_key,
+            Fileset.objects.create(
+                project=self.project,
+                name=output_name,
+                role=FilesetRole.objects.get(code=output_role_code),
+                owner=self.owner,
+            ),
+        )
+        getattr(self, output_key).file_set.create(
+            mime_type=mimetypes.guess_type(output_value), uri=output_value
+        )
+        self.save()
 
     class Meta:
         ordering = ["-created_at"]
@@ -262,25 +287,18 @@ class AccessibilityAnalysis(Analysis):
             self.status = AnalysisStatus.READY
 
     def set_outputs(self, travel_times: str, friction_surface: str):
-        self.travel_times = Fileset.objects.create(
-            project=self.project,
-            name="Travel times",
-            role=FilesetRole.objects.get(code=FilesetRoleCode.TRAVEL_TIMES),
-            owner=self.owner,
+        self.set_output(
+            output_key="travel_times",
+            output_role_code=FilesetRoleCode.TRAVEL_TIMES,
+            output_name="Travel times",
+            output_value=travel_times,
         )
-        self.travel_times.file_set.create(
-            mime_type=mimetypes.guess_type(travel_times), uri=travel_times
+        self.set_output(
+            output_key="friction_surface",
+            output_role_code=FilesetRoleCode.FRICTION_SURFACE,
+            output_name="Friction surface",
+            output_value=friction_surface,
         )
-        self.friction_surface = Fileset.objects.create(
-            project=self.project,
-            name="Friction surface",
-            role=FilesetRole.objects.get(code=FilesetRoleCode.FRICTION_SURFACE),
-            owner=self.owner,
-        )
-        self.friction_surface.file_set.create(
-            mime_type=mimetypes.guess_type(friction_surface), uri=friction_surface
-        )
-        self.save()
 
     @property
     def type(self) -> AnalysisType:
@@ -333,26 +351,18 @@ class GeographicCoverageAnalysis(Analysis):
             self.status = AnalysisStatus.READY
 
     def set_outputs(self, geographic_coverage: str, catchment_areas: str):
-        self.geographic_coverage = Fileset.objects.create(
-            project=self.project,
-            name="Geographic coverage",
-            role=FilesetRole.objects.get(code=FilesetRoleCode.COVERAGE),
-            owner=self.owner,
+        self.set_output(
+            output_key="geographic_coverage",
+            output_role_code=FilesetRoleCode.COVERAGE,
+            output_name="Geographic coverage",
+            output_value=geographic_coverage,
         )
-        self.geographic_coverage.file_set.create(
-            mime_type=mimetypes.guess_type(geographic_coverage),
-            uri=geographic_coverage,
+        self.set_output(
+            output_key="catchment_areas",
+            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
+            output_name="Catchment areas",
+            output_value=catchment_areas,
         )
-        self.catchment_areas = Fileset.objects.create(
-            project=self.project,
-            name="Catchment areas",
-            role=FilesetRole.objects.get(code=FilesetRoleCode.CATCHMENT_AREAS),
-            owner=self.owner,
-        )
-        self.catchment_areas.file_set.create(
-            mime_type=mimetypes.guess_type(catchment_areas), uri=catchment_areas
-        )
-        self.save()
 
     @property
     def type(self) -> AnalysisType:
