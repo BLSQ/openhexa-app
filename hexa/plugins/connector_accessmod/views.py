@@ -5,11 +5,11 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from hexa.plugins.connector_accessmod.models import Analysis, AnalysisStatus
+from hexa.plugins.connector_accessmod.models import Analysis
 
 
 class EventType(str, enum.Enum):
-    SUCCESS = "success"
+    STATUS_UPDATE = "status_update"
 
 
 @require_http_methods(["POST"])
@@ -29,11 +29,12 @@ def webhook(request: HttpRequest) -> HttpResponse:
     event_type = payload["type"]
     event_data = payload["data"]
 
-    if event_type == EventType.SUCCESS:
+    if event_type == EventType.STATUS_UPDATE:
         try:
             analysis = Analysis.objects.get_subclass(id=event_data["analysis_id"])
-            analysis.status = AnalysisStatus.SUCCESS
-            analysis.set_outputs(**event_data["outputs"])
+            analysis.update_status(event_data["status"])
+            if "outputs" in event_data:
+                analysis.set_outputs(**event_data["outputs"])
         except Analysis.DoesNotExist:
             return JsonResponse(
                 {"success": False},

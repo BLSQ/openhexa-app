@@ -168,6 +168,19 @@ class Analysis(Base):
     def update_status_if_draft(self):
         raise NotImplementedError
 
+    def update_status(self, status: AnalysisStatus):
+        if (
+            self.status == AnalysisStatus.QUEUED
+            and status
+            in [AnalysisStatus.RUNNING, AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
+            or self.status == AnalysisStatus.RUNNING
+            and status in [AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
+        ):
+            self.status = status
+            self.save()
+        else:
+            raise ValueError(f"Cannot change status from {self.status} to {status}")
+
     def set_outputs(self, **kwargs):
         raise NotImplementedError
 

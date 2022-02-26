@@ -88,7 +88,10 @@ class AccessmodViewsTest(test.TestCase):
             {"success": False},
         )
 
-    def test_webhook_200(self):
+    def test_webhook_state_update_200(self):
+        self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.QUEUED
+        self.ACCESSIBILITY_ANALYSIS.save()
+
         response = self.client.post(
             reverse(
                 "connector_accessmod:webhook",
@@ -97,9 +100,38 @@ class AccessmodViewsTest(test.TestCase):
                 "id": str(uuid.uuid4()),
                 "object": "event",
                 "created": datetime.timestamp(timezone.now()),
-                "type": "success",
+                "type": "status_update",
                 "data": {
                     "analysis_id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "status": AnalysisStatus.RUNNING,
+                },
+            },
+            **{"HTTP_AUTHORIZATION": f"Bearer {self.DAG_RUN.sign_webhook_token()}"},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {"success": True},
+        )
+        self.ACCESSIBILITY_ANALYSIS.refresh_from_db()
+        self.assertEqual(AnalysisStatus.RUNNING, self.ACCESSIBILITY_ANALYSIS.status)
+
+    def test_webhook_success_200(self):
+        self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.RUNNING
+        self.ACCESSIBILITY_ANALYSIS.save()
+        response = self.client.post(
+            reverse(
+                "connector_accessmod:webhook",
+            ),
+            {
+                "id": str(uuid.uuid4()),
+                "object": "event",
+                "created": datetime.timestamp(timezone.now()),
+                "type": "status_update",
+                "data": {
+                    "analysis_id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "status": AnalysisStatus.SUCCESS,
                     "outputs": {
                         "travel_times": "s3://some-bucket/some-dir/travel_times.tif",
                         "friction_surface": "s3://some-bucket/some-dir/friction_surface.tif",
