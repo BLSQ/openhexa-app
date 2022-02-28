@@ -254,7 +254,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     maxTravelTime: Int
     maxSlope: Float
     priorityRoads: Boolean
-    priorityLandCover: [String]
+    priorityLandCover: [String!]
     waterAllTouched: Boolean
     algorithm: AccessmodAccessibilityAnalysisAlgorithm
     knightMove: Boolean
