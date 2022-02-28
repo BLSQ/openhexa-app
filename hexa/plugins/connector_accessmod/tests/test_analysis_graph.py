@@ -1,6 +1,7 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessibilityAnalysisAlgorithm,
     AnalysisStatus,
     Fileset,
     FilesetFormat,
@@ -134,6 +135,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
+            priority_land_cover=["foo", "bar"],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -196,9 +198,14 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     healthFacilities {
                       id
                     }
-                    anisotropic
                     invertDirection
                     maxTravelTime
+                    maxSlope
+                    priorityRoads
+                    priorityLandCover
+                    waterAllTouched
+                    algorithm
+                    knightMove
                     travelTimes {
                       id
                     }
@@ -227,9 +234,14 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "barrier": None,
                 "movingSpeeds": None,
                 "healthFacilities": None,
-                "anisotropic": True,
                 "invertDirection": False,
                 "maxTravelTime": 360,
+                "maxSlope": None,
+                "priorityRoads": True,
+                "priorityLandCover": ["foo", "bar"],
+                "waterAllTouched": True,
+                "algorithm": AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+                "knightMove": False,
                 "travelTimes": None,
                 "frictionSurface": None,
             },

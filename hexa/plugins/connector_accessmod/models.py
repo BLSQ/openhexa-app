@@ -1,5 +1,6 @@
 import enum
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -168,37 +169,52 @@ class Analysis(Base):
         ordering = ["-created_at"]
 
 
+class AccessibilityAnalysisAlgorithm(models.TextChoices):
+    ANISOTROPIC = "ANISOTROPIC"
+    ISOTROPIC = "ISOTROPIC"
+
+
 class AccessibilityAnalysis(Analysis):
     extent = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     land_cover = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     dem = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     transport_network = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     slope = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     water = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     barrier = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     moving_speeds = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     health_facilities = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    anisotropic = models.BooleanField(default=True)
     invert_direction = models.BooleanField(default=False)
-    max_travel_time = models.IntegerField(null=True, default=360)
+    max_travel_time = models.IntegerField(default=360)
+    max_slope = models.FloatField(null=True, blank=True)
+    priority_roads = models.BooleanField(default=True)
+    priority_land_cover = ArrayField(models.CharField(max_length=50), default=list)
+
+    water_all_touched = models.BooleanField(default=True)
+    algorithm = models.CharField(
+        max_length=50,
+        choices=AccessibilityAnalysisAlgorithm.choices,
+        default=AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+    )
+    knight_move = models.BooleanField(default=False)
 
     travel_times = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"

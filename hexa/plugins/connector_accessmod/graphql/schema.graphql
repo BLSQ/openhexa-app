@@ -174,6 +174,10 @@ interface AccessmodAnalysis {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+enum AccessmodAccessibilityAnalysisAlgorithm {
+    ANISOTROPIC
+    ISOTROPIC
+}
 type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     id: String!
     type: AccessmodAnalysisType!
@@ -191,10 +195,14 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     barrier: AccessmodFileset
     movingSpeeds: AccessmodFileset
     healthFacilities: AccessmodFileset
-    anisotropic: Boolean
     invertDirection: Boolean
     maxTravelTime: Int
-
+    maxSlope: Float
+    priorityRoads: Boolean
+    priorityLandCover: [String]
+    waterAllTouched: Boolean
+    algorithm: AccessmodAccessibilityAnalysisAlgorithm
+    knightMove: Boolean
     travelTimes: AccessmodFileset
     frictionSurface: AccessmodFileset
 }
@@ -213,7 +221,6 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     anisotropic: Boolean
     maxTravelTime: Int
     hfProcessingOrder: String
-
     geographicCoverage: AccessmodFileset
     catchmentAreas: AccessmodFileset
 }
@@ -243,9 +250,14 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     barrierId: String
     movingSpeedsId: String
     healthFacilitiesId: String
-    anisotropic: Boolean
     invertDirection: Boolean
     maxTravelTime: Int
+    maxSlope: Float
+    priorityRoads: Boolean
+    priorityLandCover: [String]
+    waterAllTouched: Boolean
+    algorithm: AccessmodAccessibilityAnalysisAlgorithm
+    knightMove: Boolean
 }
 type UpdateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
