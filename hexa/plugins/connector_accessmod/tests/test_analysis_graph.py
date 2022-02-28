@@ -5,6 +5,7 @@ import responses
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessibilityAnalysisAlgorithm,
     AnalysisStatus,
     Fileset,
     FilesetFormat,
@@ -152,6 +153,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
+            priority_land_cover=[1, 2],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -180,32 +182,92 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalysis($id: String!) {
-                  accessmodAnalysis(id: $id) {
-                    id
-                    type
-                    status
-                    name
-                    ... on AccessmodAccessibilityAnalysis {
-                        slope {
-                            id
-                        }
+              query accessmodAnalysis($id: String!) {
+                accessmodAnalysis(id: $id) {
+                  id
+                  type
+                  status
+                  name
+                  ... on AccessmodAccessibilityAnalysis {
+                    extent {
+                      id
+                    }
+                    landCover {
+                      id
+                    }
+                    dem {
+                      id
+                    }
+                    transportNetwork {
+                      id
+                    }
+                    slope {
+                      id
+                    }
+                    water {
+                      id
+                    }
+                    barrier {
+                      id
+                    }
+                    movingSpeeds {
+                      id
+                    }
+                    healthFacilities {
+                      id
+                    }
+                    invertDirection
+                    maxTravelTime
+                    maxSlope
+                    priorityRoads
+                    priorityLandCover
+                    waterAllTouched
+                    algorithm
+                    knightMove
+                    travelTimes {
+                      id
+                    }
+                    frictionSurface {
+                      id
+                    }
+                    catchmentAreas {
+                      id
                     }
                   }
                 }
+              }
             """,
             {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
         )
 
         self.assertEqual(
-            r["data"]["accessmodAnalysis"],
             {
                 "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                 "type": self.ACCESSIBILITY_ANALYSIS.type,
                 "status": self.ACCESSIBILITY_ANALYSIS.status,
                 "name": self.ACCESSIBILITY_ANALYSIS.name,
+                "extent": None,
+                "landCover": None,
+                "dem": None,
+                "transportNetwork": None,
                 "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS.slope.id)},
+                "water": None,
+                "barrier": None,
+                "movingSpeeds": None,
+                "healthFacilities": None,
+                "invertDirection": False,
+                "maxTravelTime": 360,
+                "maxSlope": None,
+                "priorityRoads": True,
+                "priorityLandCover": [1, 2],
+                "waterAllTouched": True,
+                "algorithm": AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+                "knightMove": False,
+                "travelTimes": None,
+                "frictionSurface": None,
+                "catchmentAreas": None,
             },
+            r["data"]["accessmodAnalysis"],
         )
 
     def test_accessmod_analysis_not_owner(self):
