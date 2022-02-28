@@ -162,32 +162,78 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalysis($id: String!) {
-                  accessmodAnalysis(id: $id) {
-                    id
-                    type
-                    status
-                    name
-                    ... on AccessmodAccessibilityAnalysis {
-                        slope {
-                            id
-                        }
+              query accessmodAnalysis($id: String!) {
+                accessmodAnalysis(id: $id) {
+                  id
+                  type
+                  status
+                  name
+                  ... on AccessmodAccessibilityAnalysis {
+                    extent {
+                      id
+                    }
+                    landCover {
+                      id
+                    }
+                    dem {
+                      id
+                    }
+                    transportNetwork {
+                      id
+                    }
+                    slope {
+                      id
+                    }
+                    water {
+                      id
+                    }
+                    barrier {
+                      id
+                    }
+                    movingSpeeds {
+                      id
+                    }
+                    healthFacilities {
+                      id
+                    }
+                    anisotropic
+                    invertDirection
+                    maxTravelTime
+                    travelTimes {
+                      id
+                    }
+                    frictionSurface {
+                      id
                     }
                   }
                 }
+              }
             """,
             {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
         )
 
         self.assertEqual(
-            r["data"]["accessmodAnalysis"],
             {
                 "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                 "type": self.ACCESSIBILITY_ANALYSIS.type,
                 "status": self.ACCESSIBILITY_ANALYSIS.status,
                 "name": self.ACCESSIBILITY_ANALYSIS.name,
+                "extent": None,
+                "landCover": None,
+                "dem": None,
+                "transportNetwork": None,
                 "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS.slope.id)},
+                "water": None,
+                "barrier": None,
+                "movingSpeeds": None,
+                "healthFacilities": None,
+                "anisotropic": True,
+                "invertDirection": False,
+                "maxTravelTime": 360,
+                "travelTimes": None,
+                "frictionSurface": None,
             },
+            r["data"]["accessmodAnalysis"],
         )
 
     def test_accessmod_analysis_not_owner(self):
