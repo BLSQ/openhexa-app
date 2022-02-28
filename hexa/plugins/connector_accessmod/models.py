@@ -31,6 +31,9 @@ class Project(Base):
     )
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
+    extent = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
 
     objects = ProjectQuerySet.as_manager()
 
@@ -236,9 +239,6 @@ class AccessibilityAnalysisAlgorithm(models.TextChoices):
 
 
 class AccessibilityAnalysis(Analysis):
-    extent = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
-    )
     land_cover = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
@@ -294,7 +294,6 @@ class AccessibilityAnalysis(Analysis):
                 getattr(self, field)
                 for field in [
                     "name",
-                    "extent",
                     "land_cover",
                     "transport_network",
                     "slope",

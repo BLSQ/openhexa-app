@@ -65,6 +65,11 @@ def resolve_create_accessmod_project(_, info, **kwargs):
         country=Country(create_input["country"]["code"]),
         spatial_resolution=create_input["spatialResolution"],
         crs=create_input["crs"],
+        extent=Fileset.objects.filter_for_user(request.user).get(
+            id=create_input["filesetId"]
+        )
+        if "extentId" in create_input
+        else None,
     )
 
     return {"success": True, "project": project}
@@ -79,16 +84,19 @@ def resolve_update_accessmod_project(_, info, **kwargs):
         project = Project.objects.filter_for_user(request.user).get(
             id=update_input["id"]
         )
-        # TODO: rationalize
         changed = False
-        if "name" in update_input:
-            project.name = update_input["name"]
-            changed = True
-        if "spatialResolution" in update_input:
-            project.spatial_resolution = update_input["spatialResolution"]
+        for scalar_field in ["name", "spatialResolution", "crs"]:
+            if scalar_field in update_input:
+                setattr(project, snakecase(scalar_field), update_input[scalar_field])
+                changed = True
+        if "extentId" in update_input:
+            fileset = Fileset.objects.filter_for_user(request.user).get(
+                id=update_input["extentId"]
+            )
+            project.extent = fileset
             changed = True
         if "country" in update_input:
-            project.country = Country(update_input["country"]["code"])
+            project.country = update_input["country"]["code"]
             changed = True
         if changed:
             project.save()
@@ -317,12 +325,21 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             id=update_input["id"]
         )
         changed = False
-        for scalar_field in ["name", "anisotropic", "maxTravelTime"]:
+        for scalar_field in [
+            "name",
+            "invertDirection",
+            "maxTravelTime",
+            "maxSlope",
+            "priorityRoads",
+            "priorityLandCover",
+            "waterAllTouched",
+            "algorithm",
+            "knightMove",
+        ]:
             if scalar_field in update_input:
                 setattr(analysis, snakecase(scalar_field), update_input[scalar_field])
                 changed = True
         for fileset_field in [
-            "extentId",
             "landCoverId",
             "demId",
             "transportNetworkId",
