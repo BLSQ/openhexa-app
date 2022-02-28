@@ -499,6 +499,29 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
         )
 
+    def test_create_duplicate_fileset(self):
+        self.client.force_login(self.USER_1)
+        r1 = self.run_query(
+            """
+                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput) {
+                  createAccessmodFileset(input: $input) {
+                    success
+                    fileset {
+                        id
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "name": self.SAMPLE_FILESET_1.name,
+                    "projectId": str(self.SAMPLE_PROJECT_1.id),
+                    "roleId": str(self.LAND_COVER_ROLE.id),
+                }
+            },
+        )
+        self.assertEqual(False, r1["data"]["createAccessmodFileset"]["success"])
+
     def test_delete_fileset(self):
         self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(

@@ -8,6 +8,7 @@ from ariadne import (
     QueryType,
     load_schema_from_path,
 )
+from django.db import IntegrityError
 from django.http import HttpRequest
 from django_countries.fields import Country
 from slugify import slugify
@@ -59,20 +60,22 @@ def resolve_accessmod_projects(_, info, **kwargs):
 def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    project = Project.objects.create(
-        owner=request.user,
-        name=create_input["name"],
-        country=Country(create_input["country"]["code"]),
-        spatial_resolution=create_input["spatialResolution"],
-        crs=create_input["crs"],
-        extent=Fileset.objects.filter_for_user(request.user).get(
-            id=create_input["filesetId"]
+    try:
+        project = Project.objects.create(
+            owner=request.user,
+            name=create_input["name"],
+            country=Country(create_input["country"]["code"]),
+            spatial_resolution=create_input["spatialResolution"],
+            crs=create_input["crs"],
+            extent=Fileset.objects.filter_for_user(request.user).get(
+                id=create_input["filesetId"]
+            )
+            if "extentId" in create_input
+            else None,
         )
-        if "extentId" in create_input
-        else None,
-    )
-
-    return {"success": True, "project": project}
+        return {"success": True, "project": project}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("updateAccessmodProject")
@@ -163,16 +166,18 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 def resolve_create_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    fileset = Fileset.objects.create(
-        owner=request.user,
-        name=create_input["name"],
-        project=Project.objects.filter_for_user(request.user).get(
-            id=create_input["projectId"]
-        ),
-        role=FilesetRole.objects.get(id=create_input["roleId"]),
-    )
-
-    return {"success": True, "fileset": fileset}
+    try:
+        fileset = Fileset.objects.create(
+            owner=request.user,
+            name=create_input["name"],
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            role=FilesetRole.objects.get(id=create_input["roleId"]),
+        )
+        return {"success": True, "fileset": fileset}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("deleteAccessmodFileset")
@@ -251,14 +256,16 @@ def resolve_create_accessmod_file(_, info, **kwargs):
     fileset = Fileset.objects.filter_for_user(request.user).get(
         id=create_input["filesetId"]
     )
-    file = File.objects.create(
-        uri=create_input["uri"],
-        mime_type=create_input["mimeType"],
-        fileset=fileset,
-    )
-    fileset.save()  # Will update updated_at
-
-    return {"success": True, "file": file}
+    try:
+        file = File.objects.create(
+            uri=create_input["uri"],
+            mime_type=create_input["mimeType"],
+            fileset=fileset,
+        )
+        fileset.save()  # Will update updated_at
+        return {"success": True, "file": file}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("deleteAccessmodFile")
@@ -331,15 +338,17 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    analysis = AccessibilityAnalysis.objects.create(
-        owner=request.user,
-        project=Project.objects.filter_for_user(request.user).get(
-            id=create_input["projectId"]
-        ),
-        name=create_input["name"],
-    )
-
-    return {"success": True, "analysis": analysis}
+    try:
+        analysis = AccessibilityAnalysis.objects.create(
+            owner=request.user,
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            name=create_input["name"],
+        )
+        return {"success": True, "analysis": analysis}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")

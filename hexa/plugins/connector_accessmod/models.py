@@ -1,6 +1,8 @@
 import enum
 import mimetypes
+import typing
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django_countries.fields import CountryField
@@ -19,7 +21,10 @@ class AccessmodQuerySet(models.QuerySet):
 
 
 class ProjectQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_authenticated:
+            return self.none()
+
         return self.filter(owner=user)
 
 
