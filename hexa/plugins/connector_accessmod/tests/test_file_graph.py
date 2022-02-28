@@ -359,7 +359,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "name": "A nice land cover file",
+                    "name": "A scary nâme!!!  😱",
                     "projectId": str(self.SAMPLE_PROJECT_1.id),
                     "roleId": str(self.LAND_COVER_ROLE.id),
                 }
@@ -367,7 +367,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         self.assertEqual(True, r1["data"]["createAccessmodFileset"]["success"])
         self.assertEqual(
-            "A nice land cover file",
+            "A scary nâme!!!  😱",
             r1["data"]["createAccessmodFileset"]["fileset"]["name"],
         )
         self.assertEqual(
@@ -411,8 +411,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertTrue(
             r2["data"]["prepareAccessmodFileUpload"]["fileUri"].startswith("s3://")
         )
-        self.assertTrue(
-            r2["data"]["prepareAccessmodFileUpload"]["fileUri"].endswith(".csv")
+        self.assertIn(
+            "a_scary_name.csv",
+            r2["data"]["prepareAccessmodFileUpload"]["fileUri"],
         )
         self.assertIn(
             str(self.SAMPLE_PROJECT_1.id),
@@ -428,6 +429,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                         file {
                             id
                             uri
+                            name
                             mimeType
                             fileset {
                                 id
@@ -448,6 +450,10 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(file_uri, r3["data"]["createAccessmodFile"]["file"]["uri"])
         self.assertEqual(
             "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
+        )
+        self.assertIn(
+            "a_scary_name.csv",
+            r3["data"]["createAccessmodFile"]["file"]["name"],
         )
         self.assertEqual(
             fileset_id, r3["data"]["createAccessmodFile"]["file"]["fileset"]["id"]

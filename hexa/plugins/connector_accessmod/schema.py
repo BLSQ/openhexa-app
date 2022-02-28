@@ -1,5 +1,4 @@
 import pathlib
-import uuid
 from mimetypes import guess_extension
 
 from ariadne import (
@@ -11,6 +10,7 @@ from ariadne import (
 )
 from django.http import HttpRequest
 from django_countries.fields import Country
+from slugify import slugify
 from stringcase import snakecase
 
 from config import settings
@@ -202,8 +202,8 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         raise ValueError(
             f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
         )
-
-    target_key = f"{fileset.project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}"
+    target_slug = slugify(fileset.name, separator="_")
+    target_key = f"{fileset.project.id}/{target_slug}{guess_extension(prepare_input['mimeType'])}"
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,

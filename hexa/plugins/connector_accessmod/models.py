@@ -39,6 +39,9 @@ class Project(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
+        ]
 
 
 class FilesetQuerySet(AccessmodQuerySet):
@@ -58,6 +61,11 @@ class Fileset(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="fileset_unique_name_project"
+            )
+        ]
 
 
 class FilesetFormat(models.TextChoices):
@@ -101,9 +109,13 @@ class File(Base):
     mime_type = models.CharField(
         max_length=255
     )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
-    uri = models.TextField()
+    uri = models.TextField(unique=True)
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
+
+    @property
+    def name(self):
+        return self.uri.split("/")[-1]
 
     class Meta:
         ordering = ["-created_at"]

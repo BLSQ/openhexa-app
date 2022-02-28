@@ -102,6 +102,7 @@ enum AccessmodFilesetFormat {
 type AccessmodFile {
     id: String!
     uri: String!
+    name: String!
     fileset: AccessmodFileset
     mimeType: String!
     createdAt: DateTime!
