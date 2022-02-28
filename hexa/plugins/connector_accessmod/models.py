@@ -1,11 +1,14 @@
 import enum
+import mimetypes
 
 from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
+from hexa.plugins.connector_airflow.models import DAG
+from hexa.user_management.models import User
 
 
 class AccessmodQuerySet(models.QuerySet):
@@ -62,6 +65,8 @@ class FilesetFormat(models.TextChoices):
 
 class FilesetRoleCode(models.TextChoices):
     BARRIER = "BARRIER"
+    CATCHMENT_AREAS = "CATCHMENT_AREAS"
+    COVERAGE = "COVERAGE"
     DEM = "DEM"
     FRICTION_SURFACE = "FRICTION_SURFACE"
     GEOMETRY = "GEOMETRY"
@@ -71,6 +76,7 @@ class FilesetRoleCode(models.TextChoices):
     POPULATION = "POPULATION"
     SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
+    TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
 
 
@@ -139,6 +145,13 @@ class Analysis(Base):
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
     name = models.TextField()
+    dag_run = models.ForeignKey(
+        "connector_airflow.DAGRun",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
 
     objects = AnalysisManager()
 
@@ -152,9 +165,13 @@ class Analysis(Base):
             raise ValueError(f"Cannot delete analyses in {self.status} state")
         return super().delete(*args, **kwargs)
 
-    def run(self):
+    @transaction.atomic
+    def run(self, user: User):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
+
+        dag = DAG.objects.filter_for_user(user).get(dag_id=self.dag_id)
+        self.dag_run = dag.run(user=user)  # TODO: config
         self.status = AnalysisStatus.QUEUED
         self.save()
 
@@ -162,8 +179,52 @@ class Analysis(Base):
     def type(self) -> AnalysisType:
         raise NotImplementedError
 
+    @property
+    def dag_id(self):
+        raise NotImplementedError
+
     def update_status_if_draft(self):
         raise NotImplementedError
+
+    def update_status(self, status: AnalysisStatus):
+        if (
+            self.status == AnalysisStatus.QUEUED
+            and status
+            in [AnalysisStatus.RUNNING, AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
+        ) or (
+            self.status == AnalysisStatus.RUNNING
+            and status in [AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]
+        ):
+            self.status = status
+            self.save()
+        else:
+            raise ValueError(f"Cannot change status from {self.status} to {status}")
+
+    def set_outputs(self, **kwargs):
+        raise NotImplementedError
+
+    def set_output(
+        self,
+        *,
+        output_key: str,
+        output_role_code: FilesetRoleCode,
+        output_name: str,
+        output_value: str,
+    ):
+        setattr(
+            self,
+            output_key,
+            Fileset.objects.create(
+                project=self.project,
+                name=output_name,
+                role=FilesetRole.objects.get(code=output_role_code),
+                owner=self.owner,
+            ),
+        )
+        getattr(self, output_key).file_set.create(
+            mime_type=mimetypes.guess_type(output_value), uri=output_value
+        )
+        self.save()
 
     class Meta:
         ordering = ["-created_at"]
@@ -244,9 +305,27 @@ class AccessibilityAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    def set_outputs(self, travel_times: str, friction_surface: str):
+        self.set_output(
+            output_key="travel_times",
+            output_role_code=FilesetRoleCode.TRAVEL_TIMES,
+            output_name="Travel times",
+            output_value=travel_times,
+        )
+        self.set_output(
+            output_key="friction_surface",
+            output_role_code=FilesetRoleCode.FRICTION_SURFACE,
+            output_name="Friction surface",
+            output_value=friction_surface,
+        )
+
     @property
     def type(self) -> AnalysisType:
         return AnalysisType.ACCESSIBILITY
+
+    @property
+    def dag_id(self):
+        return "am_accessibility"
 
 
 class GeographicCoverageAnalysis(Analysis):
@@ -273,10 +352,6 @@ class GeographicCoverageAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
-    @property
-    def type(self) -> AnalysisType:
-        return AnalysisType.GEOGRAPHIC_COVERAGE
-
     def update_status_if_draft(self):
         if all(
             value is not None
@@ -293,3 +368,25 @@ class GeographicCoverageAnalysis(Analysis):
             ]
         ):
             self.status = AnalysisStatus.READY
+
+    def set_outputs(self, geographic_coverage: str, catchment_areas: str):
+        self.set_output(
+            output_key="geographic_coverage",
+            output_role_code=FilesetRoleCode.COVERAGE,
+            output_name="Geographic coverage",
+            output_value=geographic_coverage,
+        )
+        self.set_output(
+            output_key="catchment_areas",
+            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
+            output_name="Catchment areas",
+            output_value=catchment_areas,
+        )
+
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.GEOGRAPHIC_COVERAGE
+
+    @property
+    def dag_id(self):
+        return "am_geographic_coverage"

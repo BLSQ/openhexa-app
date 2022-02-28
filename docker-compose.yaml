@@ -6,8 +6,9 @@ x-app: &default-app
     volumes:
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
     environment:
-      - DEBUG=true
       - DEBUG_LOGGING
+      - DEBUG_TOOLBAR
+      - DEBUG=true
       - ENABLE_GRAPHQL=true
       - SESSION_COOKIE_SECURE=false
       - CSRF_COOKIE_SECURE=false

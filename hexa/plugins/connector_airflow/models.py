@@ -1,5 +1,7 @@
 import json
 import typing
+import uuid
+from base64 import b64encode
 from enum import Enum
 from logging import getLogger
 from time import sleep
@@ -9,6 +11,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.signing import Signer
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -308,6 +311,9 @@ class DAG(Pipeline):
         return self.dagrun_set.first()
 
     def run(self, *, user: User, conf: typing.Mapping[str, typing.Any] = None):
+        if conf is None:
+            conf = {}
+
         client = self.template.cluster.get_api_client()
         # add report email to feedback user
         conf["_report_email"] = user.email
@@ -320,6 +326,7 @@ class DAG(Pipeline):
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
             conf=conf,
+            webhook_token=uuid.uuid4(),
         )
 
     def build_dag_config(self):
@@ -398,6 +405,7 @@ class DAGRun(Base, WithStatus):
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
     conf = models.JSONField(default=dict, blank=True)
+    webhook_token = models.CharField(max_length=200, blank=True)
 
     objects = DAGRunQuerySet.as_manager()
 
@@ -421,3 +429,8 @@ class DAGRun(Base, WithStatus):
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return Status.UNKNOWN
+
+    def sign_webhook_token(self):
+        return b64encode(Signer().sign(self.webhook_token).encode("utf-8")).decode(
+            "utf-8"
+        )
