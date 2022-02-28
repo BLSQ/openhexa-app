@@ -79,15 +79,20 @@ type AccessmodFilesetRole {
     updatedAt: DateTime!
 }
 enum AccessmodFilesetRoleCode {
-    LAND_COVER
-    DEM
-    TRANSPORT_NETWORK
-    SLOPE
-    WATER
     BARRIER
-    MOVING_SPEEDS
-    HEALTH_FACILITIES
+    CATCHMENT_AREAS
+    COVERAGE
+    DEM
+    FRICTION_SURFACE
     GEOMETRY
+    HEALTH_FACILITIES
+    LAND_COVER
+    MOVING_SPEEDS
+    POPULATION
+    SLOPE
+    TRANSPORT_NETWORK
+    TRAVEL_TIMES
+    WATER
 }
 enum AccessmodFilesetFormat {
     VECTOR
