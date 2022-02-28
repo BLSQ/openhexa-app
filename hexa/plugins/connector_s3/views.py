@@ -121,7 +121,7 @@ def object_download(
     download_url = generate_download_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
-        target_object=target_object,
+        target_key=target_object.key,
     )
 
     return redirect(download_url)

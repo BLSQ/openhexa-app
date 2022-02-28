@@ -42,7 +42,7 @@ class ApiTest(test.TestCase):
             generate_download_url(
                 principal_credentials=self.credentials,
                 bucket=self.bucket,
-                target_object=target_object,
+                target_key=target_object.key,
             ),
             str,
         )

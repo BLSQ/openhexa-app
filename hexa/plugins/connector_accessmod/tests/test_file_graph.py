@@ -465,6 +465,40 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         file = File.objects.get(id=file_id)
         self.assertGreater(fileset.updated_at, file.created_at)
 
+        r4 = self.run_query(
+            """
+              mutation prepareAccessmodFileDownload($input: PrepareAccessmodFileDownloadInput) {
+                prepareAccessmodFileDownload(input: $input) {
+                  success
+                  downloadUrl
+                }
+              }
+            """,
+            {
+                "input": {
+                    "fileId": str(file.id),
+                }
+            },
+        )
+        self.assertEqual(True, r4["data"]["prepareAccessmodFileDownload"]["success"])
+        self.assertTrue(
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"].startswith(
+                "https://"
+            )
+        )
+        self.assertIn(
+            str(self.SAMPLE_PROJECT_1.id),
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+        self.assertIn(
+            "X-Amz-SignedHeaders",
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+        self.assertIn(
+            "a_scary_name.csv",
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+
     def test_delete_fileset(self):
         self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(

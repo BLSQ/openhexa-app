@@ -24,7 +24,7 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
 )
-from hexa.plugins.connector_s3.api import generate_upload_url
+from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 
 accessmod_type_defs = load_schema_from_path(
@@ -214,6 +214,33 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         "success": True,
         "upload_url": upload_url,
         "file_uri": f"s3://{bucket.name}/{target_key}",
+    }
+
+
+@accessmod_mutations.field("prepareAccessmodFileDownload")
+def resolve_prepare_accessmod_file_download(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    prepare_input = kwargs["input"]
+    file = File.objects.filter_for_user(request.user).get(id=prepare_input["fileId"])
+
+    # This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+    download_url = generate_download_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_key=file.uri,
+    )
+
+    return {
+        "success": True,
+        "download_url": download_url,
     }
 
 
