@@ -135,7 +135,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
-            priority_land_cover=["foo", "bar"],
+            priority_land_cover=[1, 2],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -212,6 +212,9 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     frictionSurface {
                       id
                     }
+                    catchmentAreas {
+                      id
+                    }
                   }
                 }
               }
@@ -238,12 +241,13 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "maxTravelTime": 360,
                 "maxSlope": None,
                 "priorityRoads": True,
-                "priorityLandCover": ["foo", "bar"],
+                "priorityLandCover": [1, 2],
                 "waterAllTouched": True,
                 "algorithm": AccessibilityAnalysisAlgorithm.ANISOTROPIC,
                 "knightMove": False,
                 "travelTimes": None,
                 "frictionSurface": None,
+                "catchmentAreas": None,
             },
             r["data"]["accessmodAnalysis"],
         )

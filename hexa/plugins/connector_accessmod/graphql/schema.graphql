@@ -199,12 +199,13 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     maxTravelTime: Int
     maxSlope: Float
     priorityRoads: Boolean
-    priorityLandCover: [String]
+    priorityLandCover: [Int!]
     waterAllTouched: Boolean
     algorithm: AccessmodAccessibilityAnalysisAlgorithm
     knightMove: Boolean
     travelTimes: AccessmodFileset
     frictionSurface: AccessmodFileset
+    catchmentAreas: AccessmodFileset
 }
 type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     id: String!
@@ -254,7 +255,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     maxTravelTime: Int
     maxSlope: Float
     priorityRoads: Boolean
-    priorityLandCover: [String!]
+    priorityLandCover: [Int!]
     waterAllTouched: Boolean
     algorithm: AccessmodAccessibilityAnalysisAlgorithm
     knightMove: Boolean

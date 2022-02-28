@@ -206,7 +206,7 @@ class AccessibilityAnalysis(Analysis):
     max_travel_time = models.IntegerField(default=360)
     max_slope = models.FloatField(null=True, blank=True)
     priority_roads = models.BooleanField(default=True)
-    priority_land_cover = ArrayField(models.CharField(max_length=50), default=list)
+    priority_land_cover = ArrayField(models.PositiveSmallIntegerField(), default=list)
 
     water_all_touched = models.BooleanField(default=True)
     algorithm = models.CharField(
@@ -220,6 +220,9 @@ class AccessibilityAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
     friction_surface = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+    )
+    catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
