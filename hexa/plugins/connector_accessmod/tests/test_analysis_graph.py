@@ -189,9 +189,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   status
                   name
                   ... on AccessmodAccessibilityAnalysis {
-                    extent {
-                      id
-                    }
                     landCover {
                       id
                     }
@@ -246,7 +243,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "type": self.ACCESSIBILITY_ANALYSIS.type,
                 "status": self.ACCESSIBILITY_ANALYSIS.status,
                 "name": self.ACCESSIBILITY_ANALYSIS.name,
-                "extent": None,
                 "landCover": None,
                 "dem": None,
                 "transportNetwork": None,
@@ -536,7 +532,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.ACCESSIBILITY_ANALYSIS.id),
                     "name": "Updated accessibility analysis!",
-                    "extentId": str(self.EXTENT_FILESET.id),
                     "landCoverId": str(self.LAND_COVER_FILESET.id),
                     "demId": str(self.DEM_FILESET.id),
                     "transportNetworkId": str(self.TRANSPORT_NETWORK_FILESET.id),

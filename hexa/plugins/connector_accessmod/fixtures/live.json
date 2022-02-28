@@ -1,0 +1,156 @@
+[
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "231b64cd-a75d-4e10-82c2-adeb711476a1",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Barriers",
+      "code": "BARRIER",
+      "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "f5ed4886-c26f-41b8-9d2c-78c1a4c5b8a4",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Catchment Areas",
+      "code": "CATCHMENT_AREAS",
+      "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "f2d7acc7-d826-4450-b14d-36ce4c0bf84d",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Coverage",
+      "code": "COVERAGE",
+      "format": "TABLE"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "eba8fbcb-5903-41c0-9632-21486820808f",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Digital Elevation Model",
+      "code": "DEM",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "67fda0f3-df14-4f70-9cad-43acb7ed045a",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Friction Surface",
+      "code": "FRICTION_SURFACE",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "e05d9aac-10ff-4b25-9dee-de9b23f1d05f",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Geometry",
+      "code": "GEOMETRY",
+      "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "ed63ef2c-6f68-46ba-8cdb-72dc342e02cb",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Health Facilities",
+      "code": "HEALTH_FACILITIES",
+      "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "e373acfe-3bde-459b-bfbf-708a18cf99ca",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Land cover",
+      "code": "LAND_COVER",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "2219f9d7-af83-43f5-ab8e-868d447fec7a",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Moving speeds",
+      "code": "MOVING_SPEEDS",
+      "format": "TABLE"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "4c7c37c1-6963-4c81-976f-a4ca4ce99cd7",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Population",
+      "code": "POPULATION",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "c4dd6193-2ddd-4093-b68c-72672ba74b9f",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Slope",
+      "code": "SLOPE",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "e8167b9f-34d6-411f-a9b8-caece7e59df3",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Transport network",
+      "code": "TRANSPORT_NETWORK",
+      "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "3312be1f-b439-4ee6-9038-cf7391373636",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Travel times",
+      "code": "TRAVEL_TIMES",
+      "format": "RASTER"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "d71ec7b0-3fd4-418b-b950-cc0906cd645b",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Water",
+      "code": "WATER",
+      "format": "VECTOR"
+    }
+  }
+]

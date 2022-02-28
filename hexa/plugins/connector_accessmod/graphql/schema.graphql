@@ -8,6 +8,7 @@ type AccessmodProject {
     owner: User!
     createdAt: DateTime!
     updatedAt: DateTime!
+    extent: AccessmodFileset
 }
 type AccessmodProjectPage {
     pageNumber: Int!
@@ -19,6 +20,7 @@ input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
     crs: Int!
+    extentId: String
     country: CountryInput!
 }
 type CreateAccessmodProjectResult {
@@ -30,6 +32,7 @@ input UpdateAccessmodProjectInput {
     name: String
     spatialResolution: Int
     country: CountryInput
+    extentId: String
 }
 type UpdateAccessmodProjectResult {
     success: Boolean!
@@ -76,15 +79,20 @@ type AccessmodFilesetRole {
     updatedAt: DateTime!
 }
 enum AccessmodFilesetRoleCode {
-    LAND_COVER
-    DEM
-    TRANSPORT_NETWORK
-    SLOPE
-    WATER
     BARRIER
-    MOVING_SPEEDS
-    HEALTH_FACILITIES
+    CATCHMENT_AREAS
+    COVERAGE
+    DEM
+    FRICTION_SURFACE
     GEOMETRY
+    HEALTH_FACILITIES
+    LAND_COVER
+    MOVING_SPEEDS
+    POPULATION
+    SLOPE
+    TRANSPORT_NETWORK
+    TRAVEL_TIMES
+    WATER
 }
 enum AccessmodFilesetFormat {
     VECTOR
@@ -186,7 +194,6 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     owner: User!
     createdAt: DateTime!
     updatedAt: DateTime!
-    extent: AccessmodFileset
     landCover: AccessmodFileset
     dem: AccessmodFileset
     transportNetwork: AccessmodFileset
@@ -242,7 +249,6 @@ type CreateAccessmodAccessibilityAnalysisResult {
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
     name: String
-    extentId: String
     landCoverId: String
     demId: String
     transportNetworkId: String
