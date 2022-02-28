@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Version 0.26
+------------
+
+March 1, 2022
+
+### Updated
+
+- Refresh worker to keep the state of each Airflow DAGRun up to date faster
+- Airflow pipeline sync is faster if there is no need to recompute DAGs
+
 Version 0.25
 ------------
 
