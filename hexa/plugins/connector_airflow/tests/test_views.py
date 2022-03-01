@@ -342,13 +342,17 @@ class ViewsTest(test.TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
+            urljoin(
+                cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date&limit=100"
+            ),
             json=dag_runs_same_old,
             status=200,
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
+            urljoin(
+                cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date&limit=100"
+            ),
             json=dag_runs_hello_world,
             status=200,
         )
