@@ -453,9 +453,7 @@ class ModelsTest(test.TestCase):
 
         self.assertIsInstance(run, DAGRun)
         self.assertEqual(self.USER_REGULAR, run.user)
-        self.assertEqual(
-            {"foo": "bar", "_report_email": "jim@bluesquarehub.com"}, run.conf
-        )
+        self.assertEqual({"foo": "bar"}, run.conf)
         self.assertEqual(DAGRunState.QUEUED, run.state)
 
 

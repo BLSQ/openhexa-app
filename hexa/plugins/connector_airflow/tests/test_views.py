@@ -342,13 +342,17 @@ class ViewsTest(test.TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date"),
+            urljoin(
+                cluster.api_url, "dags/same_old/dagRuns?order_by=-end_date&limit=100"
+            ),
             json=dag_runs_same_old,
             status=200,
         )
         responses.add(
             responses.GET,
-            urljoin(cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date"),
+            urljoin(
+                cluster.api_url, "dags/hello_world/dagRuns?order_by=-end_date&limit=100"
+            ),
             json=dag_runs_hello_world,
             status=200,
         )
@@ -534,12 +538,16 @@ class ViewsTest(test.TestCase):
                 kwargs={"dag_id": dag.id},
             ),
             data={
-                "dag_config": '{"value": 2}',
+                "dag_config": '{"value": 2, "_info": "XXX"}',
             },
         )
         self.assertEqual(302, response.status_code)
         self.assertEqual(1, len(responses.calls))
         self.assertEqual(1, DAGRun.objects.count())
+
+        # we have only 1 dagrun (^), check that backend doesnt save private info
+        run = DAGRun.objects.all().first()
+        self.assertTrue("_info" not in run.conf)
 
     @responses.activate
     def test_dag_run_create_post_no_config_302(self):
