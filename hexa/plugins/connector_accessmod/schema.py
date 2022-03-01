@@ -1,5 +1,4 @@
 import pathlib
-import uuid
 from mimetypes import guess_extension
 
 from ariadne import (
@@ -9,8 +8,10 @@ from ariadne import (
     QueryType,
     load_schema_from_path,
 )
+from django.db import IntegrityError
 from django.http import HttpRequest
 from django_countries.fields import Country
+from slugify import slugify
 from stringcase import snakecase
 
 from config import settings
@@ -24,7 +25,7 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
 )
-from hexa.plugins.connector_s3.api import generate_upload_url
+from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 
 accessmod_type_defs = load_schema_from_path(
@@ -59,20 +60,22 @@ def resolve_accessmod_projects(_, info, **kwargs):
 def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    project = Project.objects.create(
-        owner=request.user,
-        name=create_input["name"],
-        country=Country(create_input["country"]["code"]),
-        spatial_resolution=create_input["spatialResolution"],
-        crs=create_input["crs"],
-        extent=Fileset.objects.filter_for_user(request.user).get(
-            id=create_input["filesetId"]
+    try:
+        project = Project.objects.create(
+            owner=request.user,
+            name=create_input["name"],
+            country=Country(create_input["country"]["code"]),
+            spatial_resolution=create_input["spatialResolution"],
+            crs=create_input["crs"],
+            extent=Fileset.objects.filter_for_user(request.user).get(
+                id=create_input["filesetId"]
+            )
+            if "extentId" in create_input
+            else None,
         )
-        if "extentId" in create_input
-        else None,
-    )
-
-    return {"success": True, "project": project}
+        return {"success": True, "project": project}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("updateAccessmodProject")
@@ -163,16 +166,18 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 def resolve_create_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    fileset = Fileset.objects.create(
-        owner=request.user,
-        name=create_input["name"],
-        project=Project.objects.filter_for_user(request.user).get(
-            id=create_input["projectId"]
-        ),
-        role=FilesetRole.objects.get(id=create_input["roleId"]),
-    )
-
-    return {"success": True, "fileset": fileset}
+    try:
+        fileset = Fileset.objects.create(
+            owner=request.user,
+            name=create_input["name"],
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            role=FilesetRole.objects.get(id=create_input["roleId"]),
+        )
+        return {"success": True, "fileset": fileset}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("deleteAccessmodFileset")
@@ -202,8 +207,8 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         raise ValueError(
             f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
         )
-
-    target_key = f"{fileset.project.id}/{uuid.uuid4()}{guess_extension(prepare_input['mimeType'])}"
+    target_slug = slugify(fileset.name, separator="_")
+    target_key = f"{fileset.project.id}/{target_slug}{guess_extension(prepare_input['mimeType'])}"
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
@@ -217,6 +222,33 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     }
 
 
+@accessmod_mutations.field("prepareAccessmodFileDownload")
+def resolve_prepare_accessmod_file_download(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    prepare_input = kwargs["input"]
+    file = File.objects.filter_for_user(request.user).get(id=prepare_input["fileId"])
+
+    # This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+    download_url = generate_download_url(
+        principal_credentials=bucket.principal_credentials,
+        bucket=bucket,
+        target_key=file.uri,
+    )
+
+    return {
+        "success": True,
+        "download_url": download_url,
+    }
+
+
 @accessmod_mutations.field("createAccessmodFile")
 def resolve_create_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -224,14 +256,16 @@ def resolve_create_accessmod_file(_, info, **kwargs):
     fileset = Fileset.objects.filter_for_user(request.user).get(
         id=create_input["filesetId"]
     )
-    file = File.objects.create(
-        uri=create_input["uri"],
-        mime_type=create_input["mimeType"],
-        fileset=fileset,
-    )
-    fileset.save()  # Will update updated_at
-
-    return {"success": True, "file": file}
+    try:
+        file = File.objects.create(
+            uri=create_input["uri"],
+            mime_type=create_input["mimeType"],
+            fileset=fileset,
+        )
+        fileset.save()  # Will update updated_at
+        return {"success": True, "file": file}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("deleteAccessmodFile")
@@ -304,15 +338,17 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
-    analysis = AccessibilityAnalysis.objects.create(
-        owner=request.user,
-        project=Project.objects.filter_for_user(request.user).get(
-            id=create_input["projectId"]
-        ),
-        name=create_input["name"],
-    )
-
-    return {"success": True, "analysis": analysis}
+    try:
+        analysis = AccessibilityAnalysis.objects.create(
+            owner=request.user,
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            name=create_input["name"],
+        )
+        return {"success": True, "analysis": analysis}
+    except IntegrityError:
+        return {"success": False}
 
 
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")

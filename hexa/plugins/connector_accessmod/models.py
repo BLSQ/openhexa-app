@@ -1,6 +1,8 @@
 import enum
 import mimetypes
+import typing
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django_countries.fields import CountryField
@@ -19,7 +21,10 @@ class AccessmodQuerySet(models.QuerySet):
 
 
 class ProjectQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_authenticated:
+            return self.none()
+
         return self.filter(owner=user)
 
 
@@ -39,6 +44,9 @@ class Project(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
+        ]
 
 
 class FilesetQuerySet(AccessmodQuerySet):
@@ -58,6 +66,11 @@ class Fileset(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="fileset_unique_name_project"
+            )
+        ]
 
 
 class FilesetFormat(models.TextChoices):
@@ -101,9 +114,13 @@ class File(Base):
     mime_type = models.CharField(
         max_length=255
     )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
-    uri = models.TextField()
+    uri = models.TextField(unique=True)
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
+
+    @property
+    def name(self):
+        return self.uri.split("/")[-1]
 
     class Meta:
         ordering = ["-created_at"]

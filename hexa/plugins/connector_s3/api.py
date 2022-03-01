@@ -259,13 +259,13 @@ def generate_download_url(
     *,
     principal_credentials: hexa.plugins.connector_s3.models.Credentials,
     bucket: hexa.plugins.connector_s3.models.Bucket,
-    target_object: hexa.plugins.connector_s3.models.Object,
+    target_key: str,
 ):
     s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
 
     return s3_client.generate_presigned_url(
         "get_object",
-        Params={"Bucket": bucket.name, "Key": target_object.key},
+        Params={"Bucket": bucket.name, "Key": target_key},
         ExpiresIn=60 * 10,
     )
 

@@ -102,6 +102,7 @@ enum AccessmodFilesetFormat {
 type AccessmodFile {
     id: String!
     uri: String!
+    name: String!
     fileset: AccessmodFileset
     mimeType: String!
     createdAt: DateTime!
@@ -134,6 +135,13 @@ type CreateAccessmodFileResult {
     success: Boolean!
     file: AccessmodFile
 }
+input PrepareAccessmodFileDownloadInput {
+    fileId: String!
+}
+type PrepareAccessmodFileDownloadResult {
+    success: Boolean!
+    downloadUrl: String
+}
 input DeleteAccessmodFilesetInput {
     id: String!
 }
@@ -156,6 +164,7 @@ extend type Mutation {
     createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
     deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
     prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult
+    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult
     createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult
     deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
 }

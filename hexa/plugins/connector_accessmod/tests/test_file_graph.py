@@ -359,7 +359,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "name": "A nice land cover file",
+                    "name": "A scary nâme!!!  😱",
                     "projectId": str(self.SAMPLE_PROJECT_1.id),
                     "roleId": str(self.LAND_COVER_ROLE.id),
                 }
@@ -367,7 +367,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         self.assertEqual(True, r1["data"]["createAccessmodFileset"]["success"])
         self.assertEqual(
-            "A nice land cover file",
+            "A scary nâme!!!  😱",
             r1["data"]["createAccessmodFileset"]["fileset"]["name"],
         )
         self.assertEqual(
@@ -411,8 +411,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertTrue(
             r2["data"]["prepareAccessmodFileUpload"]["fileUri"].startswith("s3://")
         )
-        self.assertTrue(
-            r2["data"]["prepareAccessmodFileUpload"]["fileUri"].endswith(".csv")
+        self.assertIn(
+            "a_scary_name.csv",
+            r2["data"]["prepareAccessmodFileUpload"]["fileUri"],
         )
         self.assertIn(
             str(self.SAMPLE_PROJECT_1.id),
@@ -428,6 +429,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                         file {
                             id
                             uri
+                            name
                             mimeType
                             fileset {
                                 id
@@ -449,6 +451,10 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
         )
+        self.assertIn(
+            "a_scary_name.csv",
+            r3["data"]["createAccessmodFile"]["file"]["name"],
+        )
         self.assertEqual(
             fileset_id, r3["data"]["createAccessmodFile"]["file"]["fileset"]["id"]
         )
@@ -458,6 +464,63 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         fileset = Fileset.objects.get(id=fileset_id)
         file = File.objects.get(id=file_id)
         self.assertGreater(fileset.updated_at, file.created_at)
+
+        r4 = self.run_query(
+            """
+              mutation prepareAccessmodFileDownload($input: PrepareAccessmodFileDownloadInput) {
+                prepareAccessmodFileDownload(input: $input) {
+                  success
+                  downloadUrl
+                }
+              }
+            """,
+            {
+                "input": {
+                    "fileId": str(file.id),
+                }
+            },
+        )
+        self.assertEqual(True, r4["data"]["prepareAccessmodFileDownload"]["success"])
+        self.assertTrue(
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"].startswith(
+                "https://"
+            )
+        )
+        self.assertIn(
+            str(self.SAMPLE_PROJECT_1.id),
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+        self.assertIn(
+            "X-Amz-SignedHeaders",
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+        self.assertIn(
+            "a_scary_name.csv",
+            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
+        )
+
+    def test_create_duplicate_fileset(self):
+        self.client.force_login(self.USER_1)
+        r1 = self.run_query(
+            """
+                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput) {
+                  createAccessmodFileset(input: $input) {
+                    success
+                    fileset {
+                        id
+                    }
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "name": self.SAMPLE_FILESET_1.name,
+                    "projectId": str(self.SAMPLE_PROJECT_1.id),
+                    "roleId": str(self.LAND_COVER_ROLE.id),
+                }
+            },
+        )
+        self.assertEqual(False, r1["data"]["createAccessmodFileset"]["success"])
 
     def test_delete_fileset(self):
         self.client.force_login(self.USER_1)

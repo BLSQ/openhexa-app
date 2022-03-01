@@ -13,6 +13,7 @@ django-tailwind
 markdown
 pandas
 psycopg2-binary
+python-slugify
 responses
 stringcase
 tblib
