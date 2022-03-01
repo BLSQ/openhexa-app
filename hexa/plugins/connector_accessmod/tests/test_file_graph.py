@@ -481,21 +481,12 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
         self.assertEqual(True, r4["data"]["prepareAccessmodFileDownload"]["success"])
-        self.assertTrue(
-            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"].startswith(
-                "https://"
-            )
-        )
         self.assertIn(
-            str(self.SAMPLE_PROJECT_1.id),
+            f"https://{self.BUCKET.name}.s3.amazonaws.com/{self.SAMPLE_PROJECT_1.id}/{file.name}",
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
         )
         self.assertIn(
             "X-Amz-SignedHeaders",
-            r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
-        )
-        self.assertIn(
-            "a_scary_name.csv",
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
         )
 

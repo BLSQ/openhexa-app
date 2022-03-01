@@ -240,7 +240,8 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     download_url = generate_download_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
-        target_key=file.uri,
+        # Ugly workaround, TBD when we know more about storage
+        target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
     )
 
     return {
