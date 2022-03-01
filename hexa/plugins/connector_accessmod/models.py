@@ -398,7 +398,7 @@ class AccessibilityAnalysis(Analysis):
             "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
-            "overwrite": True,  # TODO: check
+            "overwrite": False,
         }
 
 
