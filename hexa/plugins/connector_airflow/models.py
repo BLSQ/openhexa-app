@@ -319,14 +319,17 @@ class DAG(Pipeline):
         conf["_report_email"] = user.email
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
+        # don't save private information in past run, like email, tokens...
+        public_conf = {k: v for k, v in conf.items() if not k.startswith("_")}
+
         return DAGRun.objects.create(
             dag=self,
             user=user,
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
-            conf=conf,
             webhook_token=uuid.uuid4(),
+            conf=public_conf,
         )
 
     def build_dag_config(self):
