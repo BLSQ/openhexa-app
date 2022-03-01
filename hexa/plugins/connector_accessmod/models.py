@@ -33,7 +33,13 @@ class ProjectQuerySet(AccessmodQuerySet):
 
 
 class Project(Base):
-    name = models.TextField()
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
+        ]
+
+    name = models.TextField(verbose_name="project name")
     country = CountryField()
     owner = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
@@ -46,11 +52,8 @@ class Project(Base):
 
     objects = ProjectQuerySet.as_manager()
 
-    class Meta:
-        ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
-        ]
+    def __str__(self):
+        return self.name
 
 
 class FilesetQuerySet(AccessmodQuerySet):
@@ -291,6 +294,9 @@ class AccessibilityAnalysisAlgorithm(models.TextChoices):
 
 
 class AccessibilityAnalysis(Analysis):
+    class Meta:
+        verbose_name_plural = "Accessibility analyses"
+
     land_cover = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )

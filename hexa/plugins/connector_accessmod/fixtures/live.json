@@ -29,7 +29,7 @@
       "updated_at": "2022-03-01T10:00:00Z",
       "name": "Coverage",
       "code": "COVERAGE",
-      "format": "TABLE"
+      "format": "TABULAR"
     }
   },
   {
@@ -95,7 +95,7 @@
       "updated_at": "2022-03-01T10:00:00Z",
       "name": "Moving speeds",
       "code": "MOVING_SPEEDS",
-      "format": "TABLE"
+      "format": "TABULAR"
     }
   },
   {
