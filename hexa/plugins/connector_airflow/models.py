@@ -325,8 +325,11 @@ class DAG(Pipeline):
         # add report email to feedback user
         conf["_report_email"] = request.user.email
         if webhook_path is not None:
+            raw_token, signed_token = self.build_webhook_token()
             conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
-            conf["_webhook_token"] = str(uuid.uuid4())
+            conf["_webhook_token"] = signed_token
+        else:
+            raw_token = ""
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         # don't save private information in past run, like email, tokens...
@@ -339,6 +342,7 @@ class DAG(Pipeline):
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
             conf=public_conf,
+            webhook_token=raw_token,
         )
 
     def build_dag_config(self):
@@ -354,6 +358,14 @@ class DAG(Pipeline):
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule if self.schedule else None,
         }
+
+    @staticmethod
+    def build_webhook_token() -> typing.Tuple[uuid.UUID, str]:
+        unsigned = uuid.uuid4()
+
+        return unsigned, b64encode(Signer().sign(unsigned).encode("utf-8")).decode(
+            "utf-8"
+        )
 
 
 class DAGAuthorizedDatasource(Base):
@@ -441,8 +453,3 @@ class DAGRun(Base, WithStatus):
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return Status.UNKNOWN
-
-    def sign_webhook_token(self):
-        return b64encode(Signer().sign(self.webhook_token).encode("utf-8")).decode(
-            "utf-8"
-        )

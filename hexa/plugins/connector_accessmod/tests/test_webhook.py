@@ -1,8 +1,10 @@
 import uuid
+from base64 import b64encode
 from datetime import datetime
 from urllib.parse import urljoin
 
 import responses
+from django.core.signing import Signer
 from django.urls import reverse
 from django.utils import timezone
 
@@ -109,7 +111,9 @@ class AccessmodViewsTest(TestCase):
                     "status": AnalysisStatus.RUNNING,
                 },
             },
-            **{"HTTP_AUTHORIZATION": f"Bearer {self.DAG_RUN.sign_webhook_token()}"},
+            **{
+                "HTTP_AUTHORIZATION": f"Bearer {b64encode(Signer().sign(self.DAG_RUN.webhook_token).encode('utf-8')).decode('utf-8')}"
+            },
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
@@ -141,7 +145,9 @@ class AccessmodViewsTest(TestCase):
                     },
                 },
             },
-            **{"HTTP_AUTHORIZATION": f"Bearer {self.DAG_RUN.sign_webhook_token()}"},
+            **{
+                "HTTP_AUTHORIZATION": f"Bearer {b64encode(Signer().sign(self.DAG_RUN.webhook_token).encode('utf-8')).decode('utf-8')}"
+            },
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
