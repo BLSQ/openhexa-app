@@ -177,6 +177,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             status=AnalysisStatus.READY,  # let's cheat a little
             slope=cls.SLOPE_FILESET,
             max_travel_time=42,
+            priority_land_cover=[1, 2, 3],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -589,6 +590,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             Signer().sign(mock_raw_token).encode("utf-8")
         ).decode("utf-8")
 
+        output_dir = f"s3://{self.BUCKET.name}/{self.SAMPLE_PROJECT.id}/{self.ACCESSIBILITY_ANALYSIS_2.id}/"
         responses.add(
             responses.POST,
             urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
@@ -606,7 +608,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 matchers.json_params_matcher(
                     {
                         "conf": {
-                            "output_dir": f"s3://{self.BUCKET.name}/{self.SAMPLE_PROJECT.id}/{self.ACCESSIBILITY_ANALYSIS_2.id}/",
+                            "output_dir": output_dir,
                             "health_facilities": None,
                             "dem": None,
                             "slope": self.SLOPE_FILESET.file_set.first().uri,
@@ -620,7 +622,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             # "category_column": "???",   # TODO: add
                             "max_travel_time": 42,
                             "priority_roads": True,
-                            "priority_land_cover": [],
+                            "priority_land_cover": "1,2,3",
                             "water_all_touched": True,
                             "knight_move": False,
                             "invert_direction": False,

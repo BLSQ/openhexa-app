@@ -73,10 +73,14 @@ class AccessmodViewsTest(TestCase):
             code=FilesetRoleCode.FRICTION_SURFACE,
             format=FilesetFormat.RASTER,
         )
-
         cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.create(
             name="Friction surface",
             code=FilesetRoleCode.TRAVEL_TIMES,
+            format=FilesetFormat.RASTER,
+        )
+        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.create(
+            name="Catchment areas",
+            code=FilesetRoleCode.CATCHMENT_AREAS,
             format=FilesetFormat.RASTER,
         )
 
@@ -142,6 +146,7 @@ class AccessmodViewsTest(TestCase):
                     "outputs": {
                         "travel_times": "s3://some-bucket/some-dir/travel_times.tif",
                         "friction_surface": "s3://some-bucket/some-dir/friction_surface.tif",
+                        "catchment_areas": "s3://some-bucket/some-dir/catchment_areas.tif",
                     },
                 },
             },
@@ -162,4 +167,8 @@ class AccessmodViewsTest(TestCase):
         self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.friction_surface, Fileset)
         self.assertEqual(
             1, self.ACCESSIBILITY_ANALYSIS.friction_surface.file_set.count()
+        )
+        self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.catchment_areas, Fileset)
+        self.assertEqual(
+            1, self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.count()
         )

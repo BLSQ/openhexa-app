@@ -356,7 +356,9 @@ class AccessibilityAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
-    def set_outputs(self, travel_times: str, friction_surface: str):
+    def set_outputs(
+        self, travel_times: str, friction_surface: str, catchment_areas: str
+    ):
         self.set_output(
             output_key="travel_times",
             output_role_code=FilesetRoleCode.TRAVEL_TIMES,
@@ -368,6 +370,12 @@ class AccessibilityAnalysis(Analysis):
             output_role_code=FilesetRoleCode.FRICTION_SURFACE,
             output_name="Friction surface",
             output_value=friction_surface,
+        )
+        self.set_output(
+            output_key="catchment_areas",
+            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
+            output_name="Catchment areas",
+            output_value=catchment_areas,
         )
 
     @property
@@ -394,7 +402,7 @@ class AccessibilityAnalysis(Analysis):
             # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
             "priority_roads": self.priority_roads,
-            "priority_land_cover": self.priority_land_cover,
+            "priority_land_cover": ",".join([str(p) for p in self.priority_land_cover]),
             "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
