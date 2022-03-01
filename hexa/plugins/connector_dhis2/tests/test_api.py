@@ -1,7 +1,7 @@
 import responses
-from django import test
 
-from ..api import (
+from hexa.core.test import TestCase
+from hexa.plugins.connector_dhis2.api import (
     DataElementResult,
     DataSetResult,
     Dhis2Client,
@@ -10,6 +10,7 @@ from ..api import (
     IndicatorTypeResult,
     OrganisationUnitResult,
 )
+
 from .mock_data import (
     mock_data_elements_response,
     mock_datasets_response,
@@ -19,7 +20,7 @@ from .mock_data import (
 )
 
 
-class Dhis2Test(test.TestCase):
+class Dhis2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.dhis2_client = Dhis2Client(
@@ -28,7 +29,6 @@ class Dhis2Test(test.TestCase):
             password="district",
         )
 
-    @test.tag("external")
     @responses.activate
     def test_fetch_data_elements(self):
         responses.add(
@@ -42,7 +42,6 @@ class Dhis2Test(test.TestCase):
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], DataElementResult)
 
-    @test.tag("external")
     @responses.activate
     def test_fetch_indicator_types(self):
         responses.add(
@@ -56,7 +55,6 @@ class Dhis2Test(test.TestCase):
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], IndicatorTypeResult)
 
-    @test.tag("external")
     @responses.activate
     def test_fetch_org_unit(self):
         responses.add(
@@ -70,7 +68,6 @@ class Dhis2Test(test.TestCase):
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], OrganisationUnitResult)
 
-    @test.tag("external")
     @responses.activate
     def test_fetch_indicators(self):
         responses.add(
@@ -84,7 +81,6 @@ class Dhis2Test(test.TestCase):
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], IndicatorResult)
 
-    @test.tag("external")
     @responses.activate
     def test_fetch_datasets(self):
         responses.add(
@@ -138,8 +134,6 @@ class Dhis2Test(test.TestCase):
         self.assertIs(result.get_value("foo", "it"), "baz")
         self.assertIs(result.get_value("foo"), "baz")
 
-
-class Dhis2LocaleTranslation(test.TestCase):
     def test_dhis2_locale_none(self):
         de = DataElementResult(
             {

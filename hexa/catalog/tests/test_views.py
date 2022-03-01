@@ -1,10 +1,10 @@
-from django import test
 from django.db.models import QuerySet
 from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
 from hexa.core.models import BaseIndexQuerySet
+from hexa.core.test import TestCase
 from hexa.plugins.connector_dhis2.models import (
     DataElement,
     DataSet,
@@ -17,7 +17,7 @@ from hexa.plugins.connector_s3.models import Bucket, BucketPermission
 from hexa.user_management.models import Team, User
 
 
-class CatalogTest(test.TestCase):
+class CatalogTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(

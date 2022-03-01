@@ -1,9 +1,8 @@
-from django import test
-
 from hexa.core.string import generate_filename, remove_whitespace
+from hexa.core.test import TestCase
 
 
-class StringTest(test.TestCase):
+class StringTest(TestCase):
     def test_remove_whitespace(self):
         self.assertEqual("", remove_whitespace("\t \n \r \t"))
 

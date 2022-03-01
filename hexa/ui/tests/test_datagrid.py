@@ -1,11 +1,11 @@
 import dataclasses
 import datetime
 
-from django import test
-from django.http import HttpRequest
+from django.contrib.auth.models import AnonymousUser
 from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 
+from hexa.core.test import TestCase
 from hexa.ui.datagrid import (
     Datagrid,
     DatagridOptions,
@@ -16,7 +16,7 @@ from hexa.ui.datagrid import (
 )
 
 
-class DatagridTest(test.TestCase):
+class DatagridTest(TestCase):
     def build_simple_datagrid_class(self):
         class BikeDatagrid(Datagrid):
             leading = LeadingColumn(
@@ -52,8 +52,6 @@ class DatagridTest(test.TestCase):
         created_at = parse_datetime("2022-01-02T03:04:05Z")
         launch_in = parse_datetime("2022-02-01T10:00:00Z")
 
-        request = HttpRequest()
-        request.session = {}
         queryset = [
             Item(
                 model="Fluid HT",
@@ -76,7 +74,7 @@ class DatagridTest(test.TestCase):
         ]
 
         datagrid = self.build_simple_datagrid_class()(
-            queryset=queryset, page=1, request=request
+            queryset=queryset, page=1, request=self.mock_request(AnonymousUser())
         )
         rendered = str(datagrid)
         self.assertGreater(len(rendered), 0)

@@ -1,12 +1,12 @@
 from unittest.mock import patch
 
-from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import User
 
 
-class LoggerTest(test.TestCase):
+class LoggerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.SUPER_USER = User.objects.create_user(

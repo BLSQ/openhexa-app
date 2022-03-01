@@ -1,22 +1,20 @@
-from django import test
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.user_management.models import Team, User
-
-from ..datacards import (
+from hexa.core.test import TestCase
+from hexa.plugins.connector_dhis2.datacards import (
     DataElementCard,
     DatasetCard,
     IndicatorCard,
     OrganisationUnitCard,
 )
-from ..datagrids import (
+from hexa.plugins.connector_dhis2.datagrids import (
     DataElementGrid,
     DatasetGrid,
     IndicatorGrid,
     OrganisationUnitGrid,
 )
-from ..models import (
+from hexa.plugins.connector_dhis2.models import (
     DataElement,
     DataSet,
     Indicator,
@@ -24,9 +22,10 @@ from ..models import (
     InstancePermission,
     OrganisationUnit,
 )
+from hexa.user_management.models import Team, User
 
 
-class ConnectorDhis2Test(test.TestCase):
+class ConnectorDhis2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")

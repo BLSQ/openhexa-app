@@ -1,10 +1,11 @@
 from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import User
 
 
-class ViewsTest(test.TestCase):
+class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
@@ -41,7 +42,7 @@ class ViewsTest(test.TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class AceptTosTest(test.TestCase):
+class AceptTosTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(
@@ -68,7 +69,7 @@ class AceptTosTest(test.TestCase):
         self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, False)
 
 
-class InviteUserAdminTest(test.TestCase):
+class InviteUserAdminTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_ADMIN = User.objects.create_user(

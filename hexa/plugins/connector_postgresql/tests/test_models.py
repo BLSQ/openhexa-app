@@ -1,11 +1,9 @@
-from django import test
-
+from hexa.core.test import TestCase
+from hexa.plugins.connector_postgresql.models import Database, DatabasePermission, Table
 from hexa.user_management.models import Membership, Team, User
 
-from ..models import Database, DatabasePermission, Table
 
-
-class PermissionTest(test.TestCase):
+class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DB1 = Database.objects.create(
@@ -14,18 +12,18 @@ class PermissionTest(test.TestCase):
         cls.DB2 = Database.objects.create(
             hostname="host", username="user", password="pwd", database="db2"
         )
-        cls.TEAM1 = Team.objects.create(name="Test Team1")
-        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        cls.TEAM1 = Team.objects.create(name="Test Team 1")
+        cls.TEAM2 = Team.objects.create(name="Test Team 2")
         DatabasePermission.objects.create(database=cls.DB1, team=cls.TEAM1)
         DatabasePermission.objects.create(database=cls.DB1, team=cls.TEAM2)
         cls.USER_REGULAR = User.objects.create_user(
-            "jim@bluesquarehub.com",
+            "jimmy@bluesquarehub.com",
             "regular",
         )
         Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
         Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
         cls.USER_SUPER = User.objects.create_user(
-            "mary@bluesquarehub.com",
+            "maryline@bluesquarehub.com",
             "super",
             is_superuser=True,
         )

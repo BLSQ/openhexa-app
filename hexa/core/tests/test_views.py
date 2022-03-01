@@ -1,11 +1,11 @@
-from django import test
 from django.urls import reverse
 
 from hexa.core.datagrids import ActivityGrid
+from hexa.core.test import TestCase
 from hexa.user_management.models import User
 
 
-class CoreTest(test.TestCase):
+class CoreTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(

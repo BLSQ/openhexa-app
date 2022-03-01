@@ -2,14 +2,12 @@ from logging import getLogger
 from unittest.mock import patch
 
 import responses
-from django import test
 from django.utils import timezone
 
 from hexa.catalog.models import Index
-from hexa.user_management.models import Membership, Team, User
-
-from ..api import DataElementResult, Dhis2Client
-from ..models import (
+from hexa.core.test import TestCase
+from hexa.plugins.connector_dhis2.api import DataElementResult, Dhis2Client
+from hexa.plugins.connector_dhis2.models import (
     Credentials,
     DataElement,
     DataSet,
@@ -19,7 +17,9 @@ from ..models import (
     InstancePermission,
     OrganisationUnit,
 )
-from ..sync import sync_from_dhis2_results
+from hexa.plugins.connector_dhis2.sync import sync_from_dhis2_results
+from hexa.user_management.models import Membership, Team, User
+
 from .mock_data import (
     mock_data_elements_response,
     mock_datasets_response,
@@ -32,7 +32,7 @@ from .mock_data import (
 logger = getLogger(__name__)
 
 
-class ConnectorDhis2Test(test.TestCase):
+class ConnectorDhis2Test(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
@@ -56,7 +56,7 @@ class ConnectorDhis2Test(test.TestCase):
         self.assertEqual(0, Index.objects.filter(object_id=data_element_id).count())
 
 
-class PermissionTest(test.TestCase):
+class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2A = Instance.objects.create(url="https://play1.dhis2.org.invalid")
@@ -103,7 +103,7 @@ class PermissionTest(test.TestCase):
         )
 
 
-class DHIS2SyncTest(test.TestCase):
+class DHIS2SyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
@@ -186,7 +186,7 @@ class DHIS2SyncTest(test.TestCase):
         )
 
 
-class DHIS2SyncInstanceSplitTest(test.TestCase):
+class DHIS2SyncInstanceSplitTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY1 = Instance.objects.create(
@@ -296,7 +296,7 @@ class DHIS2SyncInstanceSplitTest(test.TestCase):
         )
 
 
-class Dhis2SyncDeleteTest(test.TestCase):
+class Dhis2SyncDeleteTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(

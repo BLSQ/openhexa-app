@@ -2,9 +2,9 @@ import json
 from unittest.mock import patch
 
 import boto3
-from django import test
 from moto import mock_iam, mock_s3, mock_sts
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.api import (
     generate_download_url,
     generate_s3_policy,
@@ -15,7 +15,7 @@ from hexa.plugins.connector_s3.api import (
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
 
 
-class ApiTest(test.TestCase):
+class ApiTest(TestCase):
     bucket_name = "test-bucket"
 
     def setUp(self):

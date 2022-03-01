@@ -3,11 +3,12 @@ import urllib.parse
 from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.metrics.models import Request
 from hexa.user_management.models import User
 
 
-class MetricsTest(test.TestCase):
+class MetricsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_FOO = User.objects.create_user(

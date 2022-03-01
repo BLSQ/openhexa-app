@@ -1,12 +1,12 @@
-from django import test
 from django.http import HttpResponse
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import Membership, Team, User
 
 from ..csv import render_queryset_to_csv
 
 
-class CsvTest(test.TestCase):
+class CsvTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         user_1 = User.objects.create_user(

@@ -1,4 +1,4 @@
-from django import forms, test
+from django import forms
 
 from hexa.core.graphql import (
     EmptyValue,
@@ -6,9 +6,10 @@ from hexa.core.graphql import (
     GraphQLForm,
     GraphQLMultipleChoiceField,
 )
+from hexa.core.test import TestCase
 
 
-class ConnectorS3Test(test.TestCase):
+class ConnectorS3Test(TestCase):
     def test_base_form(self):
         class TestForm(GraphQLForm):
             a = forms.CharField()

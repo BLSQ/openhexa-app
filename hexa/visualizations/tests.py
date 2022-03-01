@@ -1,12 +1,11 @@
-from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import Membership, Team, User
+from hexa.visualizations.models import ExternalDashboard, ExternalDashboardPermission
 
-from .models import ExternalDashboard, ExternalDashboardPermission
 
-
-class ExternalDashboardTest(test.TestCase):
+class ExternalDashboardTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")

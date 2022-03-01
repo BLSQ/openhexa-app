@@ -326,7 +326,7 @@ class DAG(Pipeline):
         conf["_report_email"] = request.user.email
         if webhook_path is not None:
             conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
-            conf["_webhook_token"] = uuid.uuid4()
+            conf["_webhook_token"] = str(uuid.uuid4())
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         # don't save private information in past run, like email, tokens...

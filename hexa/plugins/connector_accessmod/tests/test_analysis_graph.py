@@ -1,6 +1,7 @@
 from urllib.parse import urljoin
 
 import responses
+from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
@@ -15,6 +16,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
 )
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRunState, DAGTemplate
+from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
 
@@ -28,18 +30,19 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             "jane@bluesquarehub.com",
             "janerocks",
         )
+        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
         cls.CLUSTER = Cluster.objects.create(
             name="test_cluster", url="https://lookimacluster.com/api"
         )
         cls.DAG_TEMPLATE = DAGTemplate.objects.create(
             cluster=cls.CLUSTER,
-            code="AM_GEOGRAPHIC_COVERAGE",
-            description="AccessMod Geographic coverage Analysis",
+            code="AM_ACCESSIBILITY",
+            description="AccessMod accessibility Analysis",
             sample_config={"foo": "bar"},
         )
         cls.DAG = DAG.objects.create(
             template=cls.DAG_TEMPLATE,
-            dag_id="am_geographic_coverage",
+            dag_id="am_accessibility",
         )
 
         cls.SAMPLE_PROJECT = Project.objects.create(
@@ -148,12 +151,18 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,
         )
-        cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
+        cls.ACCESSIBILITY_ANALYSIS_1 = AccessibilityAnalysis.objects.create(
             owner=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
             priority_land_cover=[1, 2],
+        )
+        cls.ACCESSIBILITY_ANALYSIS_2 = AccessibilityAnalysis.objects.create(
+            owner=cls.USER_1,
+            project=cls.SAMPLE_PROJECT,
+            name="Second accessibility analysis",
+            status=AnalysisStatus.READY,  # let's cheat a little
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             owner=cls.USER_1,
@@ -234,19 +243,19 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 }
               }
             """,
-            {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
+            {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
         )
 
         self.assertEqual(
             {
-                "id": str(self.ACCESSIBILITY_ANALYSIS.id),
-                "type": self.ACCESSIBILITY_ANALYSIS.type,
-                "status": self.ACCESSIBILITY_ANALYSIS.status,
-                "name": self.ACCESSIBILITY_ANALYSIS.name,
+                "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
+                "type": self.ACCESSIBILITY_ANALYSIS_1.type,
+                "status": self.ACCESSIBILITY_ANALYSIS_1.status,
+                "name": self.ACCESSIBILITY_ANALYSIS_1.name,
                 "landCover": None,
                 "dem": None,
                 "transportNetwork": None,
-                "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS.slope.id)},
+                "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.slope.id)},
                 "water": None,
                 "barrier": None,
                 "movingSpeeds": None,
@@ -277,7 +286,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
+            {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
         )
 
         self.assertEqual(
@@ -320,7 +329,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 3,
+                "totalItems": 4,
                 "items": [
                     {
                         "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
@@ -341,9 +350,14 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                         },
                     },
                     {
-                        "id": str(self.ACCESSIBILITY_ANALYSIS.id),
-                        "type": self.ACCESSIBILITY_ANALYSIS.type,
-                        "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS.slope.id)},
+                        "id": str(self.ACCESSIBILITY_ANALYSIS_2.id),
+                        "type": self.ACCESSIBILITY_ANALYSIS_2.type,
+                        "slope": None,
+                    },
+                    {
+                        "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
+                        "type": self.ACCESSIBILITY_ANALYSIS_1.type,
+                        "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.slope.id)},
                     },
                 ],
             },
@@ -373,11 +387,12 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 3,
+                "totalItems": 4,
                 "items": [
                     {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id)},
                     {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id)},
-                    {"id": str(self.ACCESSIBILITY_ANALYSIS.id)},
+                    {"id": str(self.ACCESSIBILITY_ANALYSIS_2.id)},
+                    {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
                 ],
             },
         )
@@ -431,7 +446,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalyses"],
             {
-                "totalItems": 3,
+                "totalItems": 4,
                 "items": [
                     {
                         "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.name,
@@ -440,7 +455,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                         "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.name,
                     },
                     {
-                        "name": self.ACCESSIBILITY_ANALYSIS.name,
+                        "name": self.ACCESSIBILITY_ANALYSIS_2.name,
+                    },
+                    {
+                        "name": self.ACCESSIBILITY_ANALYSIS_1.name,
                     },
                 ],
             },
@@ -498,7 +516,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                     "name": "Updated accessibility analysis!",
                     "slopeId": str(self.SLOPE_FILESET.id),
                 }
@@ -509,7 +527,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "success": True,
                 "analysis": {
-                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                     "name": "Updated accessibility analysis!",
                     "status": AnalysisStatus.DRAFT,
                 },
@@ -530,7 +548,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                     "name": "Updated accessibility analysis!",
                     "landCoverId": str(self.LAND_COVER_FILESET.id),
                     "demId": str(self.DEM_FILESET.id),
@@ -557,8 +575,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
             json={
                 "conf": {},
-                "dag_id": "am_geographic_coverage",
-                "dag_run_id": "am_geographic_coverage_run_1",
+                "dag_id": "am_accessibility",
+                "dag_run_id": "am_accessibility_run_1",
                 "end_date": "2021-10-09T16:42:16.189200+00:00",
                 "execution_date": "2021-10-09T16:41:00+00:00",
                 "external_trigger": False,
@@ -583,7 +601,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_2.id),
                 }
             },
         )
@@ -610,7 +628,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                 }
             },
         )
@@ -633,7 +651,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.ACCESSIBILITY_ANALYSIS.id),
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                 }
             },
         )

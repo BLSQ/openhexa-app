@@ -1,12 +1,12 @@
-from django import test
 from django.contrib.contenttypes.models import ContentType
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import Membership, Team, User
 
 from ..models import Index, IndexPermission
 
 
-class PermissionTest(test.TestCase):
+class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_REGULAR = User.objects.create_user(

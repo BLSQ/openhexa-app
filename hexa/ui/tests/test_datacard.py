@@ -1,6 +1,6 @@
-from django import test
 from django.http import HttpRequest
 
+from hexa.core.test import TestCase
 from hexa.ui.datacard import Action, Datacard, Section, TextProperty
 from hexa.ui.datacard.datacard import DatacardOptions
 from hexa.ui.datacard.properties import Property
@@ -28,7 +28,7 @@ class UserDatacard(Datacard):
     ]
 
 
-class DatacardTest(test.TestCase):
+class DatacardTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JOHN = User.objects.create_user(
@@ -56,12 +56,9 @@ class DatacardTest(test.TestCase):
             self.assertIsInstance(prop, Property)
 
     def test_render(self):
-        request = HttpRequest()
-        request.user = self.USER_JOHN
-        request.session = {}
         datacard = UserDatacard(
             self.USER_JOHN,
-            request=request,
+            request=self.mock_request(self.USER_JOHN),
         )
         rendered_card = str(datacard)
         self.assertGreater(len(rendered_card), 0)

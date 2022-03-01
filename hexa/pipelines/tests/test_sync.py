@@ -4,12 +4,13 @@ from django import test
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.pipelines.queue import environment_sync_queue
 from hexa.plugins.connector_airflow.models import Cluster, EnvironmentSyncResult
 from hexa.user_management.models import User
 
 
-class AsyncRefreshTest(test.TestCase):
+class AsyncRefreshTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.SUPER_USER = User.objects.create_user(
