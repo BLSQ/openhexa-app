@@ -1,5 +1,4 @@
 import enum
-import mimetypes
 import typing
 
 from django.conf import settings
@@ -11,6 +10,7 @@ from django.urls import reverse
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
+from hexa.core import mimetypes
 from hexa.core.models import Base
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Bucket
@@ -280,7 +280,7 @@ class Analysis(Base):
             ),
         )
         getattr(self, output_key).file_set.create(
-            mime_type=mimetypes.guess_type(output_value), uri=output_value
+            mime_type=mimetypes.guess_type(output_value)[0], uri=output_value
         )
         self.save()
 

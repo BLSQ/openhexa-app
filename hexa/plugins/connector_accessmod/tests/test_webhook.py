@@ -172,3 +172,5 @@ class AccessmodViewsTest(TestCase):
         self.assertEqual(
             1, self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.count()
         )
+        file = self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.first()
+        self.assertEqual("image/tiff", file.mime_type)

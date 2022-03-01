@@ -1,5 +1,4 @@
 import pathlib
-from mimetypes import guess_extension
 
 from ariadne import (
     InterfaceType,
@@ -15,6 +14,7 @@ from slugify import slugify
 from stringcase import snakecase
 
 from config import settings
+from hexa.core import mimetypes
 from hexa.core.graphql import result_page
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
@@ -208,7 +208,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
             f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
         )
     target_slug = slugify(fileset.name, separator="_")
-    target_key = f"{fileset.project.id}/{target_slug}{guess_extension(prepare_input['mimeType'])}"
+    target_key = f"{fileset.project.id}/{target_slug}{mimetypes.guess_extension(prepare_input['mimeType'])}"
     upload_url = generate_upload_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
