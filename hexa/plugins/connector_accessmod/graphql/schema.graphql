@@ -60,7 +60,7 @@ type AccessmodFileset {
     name: String!
     role: AccessmodFilesetRole
     owner: User!
-    files: [AccessmodFile]!
+    files: [AccessmodFile!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
