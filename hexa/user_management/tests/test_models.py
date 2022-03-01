@@ -1,9 +1,8 @@
-from django import test
-
+from hexa.core.test import TestCase
 from hexa.user_management.models import Feature, FeatureFlag, User
 
 
-class ModelsTest(test.TestCase):
+class ModelsTest(TestCase):
     def test_initials_no_first_and_last_name(self):
         """Users without first/last names should have the first two letters of their username as initials"""
 

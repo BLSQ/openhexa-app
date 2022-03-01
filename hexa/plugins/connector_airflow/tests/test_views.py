@@ -9,6 +9,7 @@ from django.contrib.messages import ERROR
 from django.urls import reverse
 from django.utils import timezone
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.models import (
     DAG,
@@ -27,7 +28,7 @@ from hexa.plugins.connector_airflow.tests.responses import (
 from hexa.user_management.models import User
 
 
-class ViewsTest(test.TestCase):
+class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_TAYLOR = User.objects.create_user(

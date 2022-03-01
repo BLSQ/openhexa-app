@@ -1,9 +1,9 @@
 from urllib.parse import urljoin
 
 import responses
-from django import test
 from django.utils import timezone
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_airflow.management.commands.dagruns_continuous_sync import (
     Command,
 )
@@ -21,7 +21,7 @@ from hexa.plugins.connector_airflow.tests.responses import (
 from hexa.user_management.models import User
 
 
-class ContinuousSyncTest(test.TestCase):
+class ContinuousSyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_TAYLOR = User.objects.create_user(

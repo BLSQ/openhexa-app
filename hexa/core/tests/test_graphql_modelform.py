@@ -1,12 +1,13 @@
 from unittest.mock import Mock
 
-from django import forms, test
+from django import forms
 
 from hexa.core.graphql import GraphQLModelChoiceField, GraphQLModelForm
+from hexa.core.test import TestCase
 from hexa.user_management.models import Organization
 
 
-class ConnectorS3Test(test.TestCase):
+class ConnectorS3Test(TestCase):
     def test_base_form(self):
         class TestForm(GraphQLModelForm):
             a_b = forms.CharField()

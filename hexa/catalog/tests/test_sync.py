@@ -5,11 +5,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from hexa.catalog.queue import datasource_sync_queue
+from hexa.core.test import TestCase
 from hexa.plugins.connector_postgresql.models import Database, DatasourceSyncResult
 from hexa.user_management.models import User
 
 
-class AsyncRefreshTest(test.TestCase):
+class AsyncRefreshTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.SUPER_USER = User.objects.create_user(

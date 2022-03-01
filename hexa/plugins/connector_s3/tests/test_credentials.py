@@ -4,16 +4,16 @@ import json
 from unittest.mock import patch
 
 import boto3
-from django import test
 from moto import mock_iam, mock_sts
 
+from hexa.core.test import TestCase
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.plugins.connector_s3.credentials import notebooks_credentials
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import Feature, FeatureFlag, Team, User
 
 
-class CredentialsTest(test.TestCase):
+class CredentialsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(

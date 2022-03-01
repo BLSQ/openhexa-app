@@ -1,12 +1,12 @@
 import boto3
-from django import test
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.sync import DatasourceSyncResult
+from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 
 
-class SyncTest(test.TestCase):
+class SyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.credentials = Credentials.objects.create(

@@ -1,11 +1,11 @@
-from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_postgresql.models import Database, DatabasePermission
 from hexa.user_management.models import Membership, Team, User
 
 
-class CredentialsTest(test.TestCase):
+class CredentialsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")

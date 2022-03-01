@@ -1,12 +1,12 @@
 from cryptography.fernet import Fernet
-from django import test
 from django.conf import settings
 from django.db import connection
 
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.core.test import TestCase
 
 
-class ModelsTest(test.TestCase):
+class ModelsTest(TestCase):
     def test_encrypted_field_get_db_prep_value(self):
         field = EncryptedTextField()
         self.assertNotEqual(

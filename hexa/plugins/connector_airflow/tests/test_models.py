@@ -4,6 +4,7 @@ import responses
 from django import test
 from django.core.exceptions import ObjectDoesNotExist
 
+from hexa.core.test import TestCase
 from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import (
     DAG,
@@ -20,7 +21,7 @@ from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Membership, Team, User
 
 
-class DagTemplateTest(test.TestCase):
+class DagTemplateTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.CLUSTER = Cluster.objects.create(name="test_cluster", url="https://wap")
@@ -298,7 +299,7 @@ class DagTemplateTest(test.TestCase):
         )
 
 
-class DAGSyncTest(test.TestCase):
+class DAGSyncTest(TestCase):
     @responses.activate
     @test.override_settings(AIRFLOW_SYNC_WAIT=0.1)
     def test_sync_airflow(self):
@@ -383,7 +384,7 @@ class DAGSyncTest(test.TestCase):
         self.assertEqual(dag.template.description, "test dag from factory")
 
 
-class ModelsTest(test.TestCase):
+class ModelsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.CLUSTER = Cluster.objects.create(name="test_cluster")
@@ -448,8 +449,7 @@ class ModelsTest(test.TestCase):
             json=dag_run_same_old_2,
             status=200,
         )
-
-        run = dag.run(user=self.USER_REGULAR, conf={"foo": "bar"})
+        run = dag.run(request=self.mock_request(self.USER_REGULAR), conf={"foo": "bar"})
 
         self.assertIsInstance(run, DAGRun)
         self.assertEqual(self.USER_REGULAR, run.user)
@@ -457,7 +457,7 @@ class ModelsTest(test.TestCase):
         self.assertEqual(DAGRunState.QUEUED, run.state)
 
 
-class PermissionTest(test.TestCase):
+class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.CLUSTER1 = Cluster.objects.create(name="test_cluster1")

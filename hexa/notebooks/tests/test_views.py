@@ -1,10 +1,10 @@
-from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.user_management.models import User
 
 
-class ViewsTest(test.TestCase):
+class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(

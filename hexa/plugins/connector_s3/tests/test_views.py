@@ -1,15 +1,15 @@
 import boto3
-from django import test
 from django.urls import reverse
 from moto import mock_s3, mock_sts
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.datacards import BucketCard, ObjectCard
 from hexa.plugins.connector_s3.datagrids import ObjectGrid
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
 from hexa.user_management.models import User
 
 
-class ViewsTest(test.TestCase):
+class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.BUCKET = Bucket.objects.create(name="test-bucket")

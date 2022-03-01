@@ -1,12 +1,12 @@
 from unittest import skip
 
 import boto3
-from django import test
 from django.core.exceptions import ValidationError
 from django.urls import reverse
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
+from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.models import (
     Bucket,
     BucketPermission,
@@ -17,7 +17,7 @@ from hexa.plugins.connector_s3.models import (
 from hexa.user_management.models import Membership, Team, User
 
 
-class ConnectorS3Test(test.TestCase):
+class ConnectorS3Test(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.team = Team.objects.create(name="Test Team")
@@ -86,23 +86,23 @@ class ConnectorS3Test(test.TestCase):
             bucket.clean()
 
 
-class PermissionTest(test.TestCase):
+class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.BUCKET1 = Bucket.objects.create(name="aws_bucket1")
         cls.BUCKET2 = Bucket.objects.create(name="aws_bucket2")
-        cls.TEAM1 = Team.objects.create(name="Test Team1")
-        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        cls.TEAM1 = Team.objects.create(name="Test Team 1")
+        cls.TEAM2 = Team.objects.create(name="Test Team 2")
         BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM1)
         BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM2)
         cls.USER_REGULAR = User.objects.create_user(
-            "jim@bluesquarehub.com",
+            "jimbo@bluesquarehub.com",
             "regular",
         )
         Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
         Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
         cls.USER_SUPER = User.objects.create_user(
-            "mary@bluesquarehub.com",
+            "marylou@bluesquarehub.com",
             "super",
             is_superuser=True,
         )
@@ -163,7 +163,7 @@ class PermissionTest(test.TestCase):
         )
 
 
-class PermissionTestWritableBy(test.TestCase):
+class PermissionTestWritableBy(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.BUCKET1 = Bucket.objects.create(name="aws_bucket1")

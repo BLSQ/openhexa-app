@@ -1,6 +1,6 @@
-from django import test
 from django.urls import reverse
 
+from hexa.core.test import TestCase
 from hexa.plugins.connector_airflow.models import (
     DAG,
     Cluster,
@@ -10,7 +10,7 @@ from hexa.plugins.connector_airflow.models import (
 from hexa.user_management.models import Membership, Team, User
 
 
-class ViewsTest(test.TestCase):
+class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
@@ -42,7 +42,7 @@ class ViewsTest(test.TestCase):
         self.assertEqual(2, len(response.context["pipeline_grid"]))
 
 
-class IndexPermissionTest(test.TestCase):
+class IndexPermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(

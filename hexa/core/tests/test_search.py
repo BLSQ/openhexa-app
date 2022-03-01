@@ -1,9 +1,8 @@
-from django import test
-
 from hexa.core.search import Token, TokenType, tokenize
+from hexa.core.test import TestCase
 
 
-class TokenizeTest(test.TestCase):
+class TokenizeTest(TestCase):
     def test_tokenize(self):
         self.assertEqual(
             tokenize("bonjour le  monde"),
