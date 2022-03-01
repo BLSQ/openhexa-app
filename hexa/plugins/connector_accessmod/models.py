@@ -2,14 +2,18 @@ import enum
 import mimetypes
 import typing
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
+from django.http import HttpRequest
+from django.urls import reverse
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
 from hexa.plugins.connector_airflow.models import DAG
+from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
 
@@ -186,12 +190,32 @@ class Analysis(Base):
         return super().delete(*args, **kwargs)
 
     @transaction.atomic
-    def run(self, user: User):
+    def run(self, request: HttpRequest):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
-        dag = DAG.objects.filter_for_user(user).get(dag_id=self.dag_id)
-        self.dag_run = dag.run(user=user)  # TODO: config
+        dag = DAG.objects.filter_for_user(request.user).get(dag_id=self.dag_id)
+
+        # This is a temporary solution until we figure out storage requirements
+        if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+            raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+        try:
+            bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        except Bucket.DoesNotExist:
+            raise ValueError(
+                f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+            )
+
+        self.dag_run = dag.run(
+            request=request,
+            conf=self.build_dag_conf(
+                {
+                    "output_dir": f"s3://{bucket.name}/{self.project.id}/{self.id}/",
+                }
+            ),
+            webhook_path=reverse("connector_accessmod:webhook"),
+        )
+
         self.status = AnalysisStatus.QUEUED
         self.save()
 
@@ -201,6 +225,9 @@ class Analysis(Base):
 
     @property
     def dag_id(self):
+        raise NotImplementedError
+
+    def build_dag_conf(self, conf: typing.Mapping[str, typing.Any]):
         raise NotImplementedError
 
     def update_status_if_draft(self):
@@ -219,6 +246,14 @@ class Analysis(Base):
             self.save()
         else:
             raise ValueError(f"Cannot change status from {self.status} to {status}")
+
+    def input_path(self, input_fileset: typing.Optional[Fileset] = None):
+        if input_fileset is None:
+            return None
+
+        return (
+            input_fileset.file_set.first().uri
+        )  # TODO: handle exceptions and multi-files filesets
 
     def set_outputs(self, **kwargs):
         raise NotImplementedError
@@ -343,6 +378,29 @@ class AccessibilityAnalysis(Analysis):
     def dag_id(self):
         return "am_accessibility"
 
+    def build_dag_conf(self, base_config: typing.Mapping[str, typing.Any]):
+        return {
+            **base_config,
+            "health_facilities": self.input_path(self.health_facilities),
+            "dem": self.input_path(self.dem),
+            "slope": self.input_path(self.slope),
+            "land_cover": self.input_path(self.land_cover),
+            "transport_network": self.input_path(self.transport_network),
+            "barrier": self.input_path(self.barrier),
+            "water": self.input_path(self.water),
+            "moving_speeds": self.input_path(self.moving_speeds),
+            "max_slope": self.max_slope,
+            "algorithm": self.algorithm,
+            # "category_column": "???",   # TODO: add
+            "max_travel_time": self.max_travel_time,
+            "priority_roads": self.priority_roads,
+            "priority_land_cover": self.priority_land_cover,
+            "water_all_touched": self.water_all_touched,
+            "knight_move": self.knight_move,
+            "invert_direction": self.invert_direction,
+            "overwrite": True,  # TODO: check
+        }
+
 
 class GeographicCoverageAnalysis(Analysis):
     population = models.ForeignKey(
@@ -406,3 +464,6 @@ class GeographicCoverageAnalysis(Analysis):
     @property
     def dag_id(self):
         return "am_geographic_coverage"
+
+    def build_dag_conf(self, output_dir: str):
+        raise NotImplementedError

@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.db import models, transaction
+from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -310,13 +311,22 @@ class DAG(Pipeline):
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
 
-    def run(self, *, user: User, conf: typing.Mapping[str, typing.Any] = None):
+    def run(
+        self,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
         if conf is None:
             conf = {}
 
         client = self.template.cluster.get_api_client()
         # add report email to feedback user
-        conf["_report_email"] = user.email
+        conf["_report_email"] = request.user.email
+        if webhook_path is not None:
+            conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
+            conf["_webhook_token"] = uuid.uuid4()
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         # don't save private information in past run, like email, tokens...
@@ -324,11 +334,10 @@ class DAG(Pipeline):
 
         return DAGRun.objects.create(
             dag=self,
-            user=user,
+            user=request.user,
             run_id=dag_run_data["dag_run_id"],
             execution_date=dag_run_data["execution_date"],
             state=DAGRunState.QUEUED,
-            webhook_token=uuid.uuid4(),
             conf=public_conf,
         )
 

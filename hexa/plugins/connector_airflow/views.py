@@ -146,7 +146,7 @@ def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
         else:
             run_config = {}
         if error is None:
-            dag_run = dag.run(user=request.user, conf=run_config)
+            dag_run = dag.run(request=request, conf=run_config)
             return redirect(dag_run.get_absolute_url())
     elif "conf_from" in request.GET:  # GET: use sample config to pre-fill the form
         cloned_dag = get_object_or_404(

@@ -408,7 +408,7 @@ def resolve_launch_accessmod_analysis(_, info, **kwargs):
     )
 
     try:
-        analysis.run(request.user)
+        analysis.run(request)
         return {"success": True, "analysis": analysis}
     except ValueError:
         return {"success": False}

@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 
 import responses
 from django import test
+from django.http import HttpRequest
 from django.urls import reverse
 from django.utils import timezone
 
@@ -50,7 +51,12 @@ class AccessmodViewsTest(test.TestCase):
             },
             status=200,
         )
-        cls.DAG_RUN = cls.DAG.run(user=cls.USER_TAYLOR)
+        request = HttpRequest()
+        request.user = cls.USER_TAYLOR
+        request.session = {}
+        cls.DAG_RUN = cls.DAG.run(
+            request=request, webhook_path=reverse("connector_accessmod:webhook")
+        )
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",

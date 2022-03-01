@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 import responses
 from django import test
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpRequest
 
 from hexa.pipelines.models import Index
 from hexa.plugins.connector_airflow.models import (
@@ -448,8 +449,10 @@ class ModelsTest(test.TestCase):
             json=dag_run_same_old_2,
             status=200,
         )
-
-        run = dag.run(user=self.USER_REGULAR, conf={"foo": "bar"})
+        request = HttpRequest()
+        request.user = self.USER_REGULAR
+        request.session = {}
+        run = dag.run(request=request, conf={"foo": "bar"})
 
         self.assertIsInstance(run, DAGRun)
         self.assertEqual(self.USER_REGULAR, run.user)
