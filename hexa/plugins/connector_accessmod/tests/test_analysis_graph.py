@@ -617,7 +617,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             "barrier": None,
                             "water": None,
                             "moving_speeds": None,
-                            "max_slope": None,
                             "algorithm": "ANISOTROPIC",
                             # "category_column": "???",   # TODO: add
                             "max_travel_time": 42,

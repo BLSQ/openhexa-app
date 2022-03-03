@@ -393,7 +393,7 @@ class AccessibilityAnalysis(Analysis):
         return "am_accessibility"
 
     def build_dag_conf(self, base_config: typing.Mapping[str, typing.Any]):
-        return {
+        dag_conf = {
             **base_config,
             "health_facilities": self.input_path(self.health_facilities),
             "dem": self.input_path(self.dem),
@@ -403,17 +403,23 @@ class AccessibilityAnalysis(Analysis):
             "barrier": self.input_path(self.barrier),
             "water": self.input_path(self.water),
             "moving_speeds": self.input_path(self.moving_speeds),
-            "max_slope": self.max_slope,
             "algorithm": self.algorithm,
             # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
             "priority_roads": self.priority_roads,
-            "priority_land_cover": ",".join([str(p) for p in self.priority_land_cover]),
             "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
             "overwrite": False,
         }
+        if self.max_slope is not None:
+            dag_conf["max_slope"] = self.max_slope
+        if len(self.priority_land_cover) > 0:
+            dag_conf["priority_land_cover"] = ",".join(
+                [str(p) for p in self.priority_land_cover]
+            )
+
+        return dag_conf
 
 
 class GeographicCoverageAnalysis(Analysis):
