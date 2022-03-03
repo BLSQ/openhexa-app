@@ -97,7 +97,7 @@ class AccessmodViewsTest(TestCase):
             {"success": False},
         )
 
-    def test_webhook_state_update_200(self):
+    def test_webhook_status_update_200(self):
         self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.QUEUED
         self.ACCESSIBILITY_ANALYSIS.save()
 
