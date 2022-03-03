@@ -67,6 +67,7 @@ class AccessmodViewsTest(TestCase):
             owner=cls.USER_TAYLOR,
             project=cls.SAMPLE_PROJECT,
             name="Test accessibility analysis",
+            dag_run=cls.DAG_RUN,
         )
         cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
             name="Friction surface",
@@ -131,6 +132,7 @@ class AccessmodViewsTest(TestCase):
     def test_webhook_success_200(self):
         self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.RUNNING
         self.ACCESSIBILITY_ANALYSIS.save()
+
         response = self.client.post(
             reverse(
                 "connector_accessmod:webhook",
@@ -141,7 +143,6 @@ class AccessmodViewsTest(TestCase):
                 "created": datetime.timestamp(timezone.now()),
                 "type": "status_update",
                 "data": {
-                    "analysis_id": str(self.ACCESSIBILITY_ANALYSIS.id),
                     "status": AnalysisStatus.SUCCESS,
                     "outputs": {
                         "travel_times": "s3://some-bucket/some-dir/travel_times.tif",
