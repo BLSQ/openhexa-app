@@ -16,8 +16,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, limit, **options):
-        for cluster in Cluster.objects.all():
-            cluster.dag_runs_sync(limit)
-            if options.get("_test_once") is True:
-                break
+        while True:
+            for cluster in Cluster.objects.all():
+                cluster.dag_runs_sync(limit)
+                if options.get("_test_once") is True:
+                    return
             sleep(60)
