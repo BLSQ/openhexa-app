@@ -197,7 +197,7 @@ class Analysis(Base):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
-        dag = DAG.objects.filter_for_user(request.user).get(dag_id=self.dag_id)
+        dag = DAG.objects.get(dag_id=self.dag_id)
 
         # This is a temporary solution until we figure out storage requirements
         if settings.ACCESSMOD_S3_BUCKET_NAME is None:
