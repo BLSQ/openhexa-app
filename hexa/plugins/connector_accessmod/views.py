@@ -20,7 +20,7 @@ def webhook(request: HttpRequest) -> HttpResponse:
     In addition to basic user information, every connector plugin can provide its own set of credentials (environment
     variables for S3 for example)."""
 
-    if not request.user.is_authenticated:
+    if not request.user.is_authenticated or not hasattr(request.user, "dag_run"):
         return JsonResponse(
             {"success": False},
             status=401,
@@ -32,16 +32,17 @@ def webhook(request: HttpRequest) -> HttpResponse:
 
     if event_type == EventType.STATUS_UPDATE:
         try:
-            analysis = Analysis.objects.get_subclass(id=event_data["analysis_id"])
-            with transaction.atomic():
-                analysis.update_status(event_data["status"])
-                if "outputs" in event_data:
-                    analysis.set_outputs(**event_data["outputs"])
+            analysis = Analysis.objects.get_subclass(dag_run=request.user.dag_run.id)
         except Analysis.DoesNotExist:
             return JsonResponse(
                 {"success": False},
                 status=401,
             )
+
+        with transaction.atomic():
+            analysis.update_status(event_data["status"])
+            if "outputs" in event_data:
+                analysis.set_outputs(**event_data["outputs"])
 
     return JsonResponse(
         {"success": True},

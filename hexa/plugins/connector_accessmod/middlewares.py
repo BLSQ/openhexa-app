@@ -16,7 +16,7 @@ def dag_run_authentication_middleware(get_response):
             if auth_type.lower() == "bearer":
                 token = Signer().unsign(b64decode(encoded_token).decode("utf-8"))
                 dag_run = DAGRun.objects.get(webhook_token=token)
-                request.user = DAGRunUser(dag_run_id=dag_run.id)
+                request.user = DAGRunUser(dag_run=dag_run)
         except (ValueError, KeyError):
             pass
 
