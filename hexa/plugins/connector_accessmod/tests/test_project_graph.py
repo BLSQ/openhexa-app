@@ -1,3 +1,5 @@
+import uuid
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import Project
 from hexa.user_management.models import User
@@ -187,6 +189,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                             code
                         }
                     }
+                    errors
                   }
                 }
             """,
@@ -210,7 +213,38 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                     "crs": 4326,
                     "country": {"code": "CD"},
                 },
+                "errors": [],
             },
+        )
+
+    def test_create_accessmod_project_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProject($input: CreateAccessmodProjectInput) {
+                  createAccessmodProject(input: $input) {
+                    success
+                    project {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "name": self.SAMPLE_PROJECT.name,
+                    "spatialResolution": 42,
+                    "crs": 4326,
+                    "country": {"code": "CD"},
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["createAccessmodProject"],
+            {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]},
         )
 
     def test_update_accessmod_project(self):
@@ -228,6 +262,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                             code
                         }
                     }
+                    errors
                   }
                 }
             """,
@@ -249,7 +284,67 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                     "name": "Updated project!",
                     "country": {"code": "CD"},
                 },
+                "errors": [],
             },
+        )
+
+    def test_update_accessmod_project_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                  updateAccessmodProject(input: $input) {
+                    success
+                    project {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.SAMPLE_PROJECT.id),
+                    "name": self.OTHER_PROJECT.name,
+                    "country": {"code": "CD"},
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updateAccessmodProject"],
+            {
+                "success": False,
+                "project": {"id": str(self.SAMPLE_PROJECT.id)},
+                "errors": ["NAME_DUPLICATE"],
+            },
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                  updateAccessmodProject(input: $input) {
+                    success
+                    project {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                    "name": "YOLO",
+                    "country": {"code": "CD"},
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "project": None, "errors": ["NOT_FOUND"]},
+            r["data"]["updateAccessmodProject"],
         )
 
     def test_delete_accessmod_project(self):
@@ -260,6 +355,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
                   deleteAccessmodProject(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
@@ -272,8 +368,31 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         self.assertEqual(
             r["data"]["deleteAccessmodProject"],
-            {
-                "success": True,
-            },
+            {"success": True, "errors": []},
         )
         self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
+
+    def test_delete_accessmod_project_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
+                  deleteAccessmodProject(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["deleteAccessmodProject"],
+            {"success": False, "errors": ["NOT_FOUND"]},
+        )
+        self.assertIsNotNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())

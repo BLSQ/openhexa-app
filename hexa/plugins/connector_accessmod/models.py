@@ -184,7 +184,7 @@ class Analysis(Base):
     status = models.CharField(
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
-    name = models.TextField()
+    name = models.TextField(unique=True)
     dag_run = models.ForeignKey(
         "connector_airflow.DAGRun",
         null=True,
