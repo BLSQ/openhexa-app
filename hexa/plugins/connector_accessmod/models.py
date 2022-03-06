@@ -395,14 +395,6 @@ class AccessibilityAnalysis(Analysis):
     def build_dag_conf(self, base_config: typing.Mapping[str, typing.Any]):
         dag_conf = {
             **base_config,
-            "health_facilities": self.input_path(self.health_facilities),
-            "dem": self.input_path(self.dem),
-            "slope": self.input_path(self.slope),
-            "land_cover": self.input_path(self.land_cover),
-            "transport_network": self.input_path(self.transport_network),
-            "barrier": self.input_path(self.barrier),
-            "water": self.input_path(self.water),
-            "moving_speeds": self.input_path(self.moving_speeds),
             "algorithm": self.algorithm,
             # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
@@ -412,6 +404,21 @@ class AccessibilityAnalysis(Analysis):
             "invert_direction": self.invert_direction,
             "overwrite": False,
         }
+
+        for fileset_field in [
+            "health_facilities",
+            "dem",
+            "slope",
+            "land_cover",
+            "transport_network",
+            "barrier",
+            "water",
+            "moving_speeds",
+        ]:
+            field_value = getattr(self, fileset_field)
+            if field_value is not None:
+                dag_conf[fileset_field] = self.input_path(field_value)
+
         if self.max_slope is not None:
             dag_conf["max_slope"] = self.max_slope
         if len(self.priority_land_cover) > 0:
