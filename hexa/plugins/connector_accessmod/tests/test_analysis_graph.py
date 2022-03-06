@@ -491,6 +491,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                         id
                         name
                     }
+                    errors
                   }
                 }
             """,
@@ -512,6 +513,37 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         self.assertIsInstance(
             r["data"]["createAccessmodAccessibilityAnalysis"]["analysis"]["name"], str
         )
+        self.assertEqual(
+            [], r["data"]["createAccessmodAccessibilityAnalysis"]["errors"]
+        )
+
+    def test_create_accessmod_accessibility_analysis_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodAccessibilityAnalysis($input: CreateAccessmodAccessibilityAnalysisInput) {
+                  createAccessmodAccessibilityAnalysis(input: $input) {
+                    success
+                    analysis {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "name": self.ACCESSIBILITY_ANALYSIS_2.name,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]},
+            r["data"]["createAccessmodAccessibilityAnalysis"],
+        )
 
     def test_update_accessmod_accessibility_analysis(self):
         self.client.force_login(self.USER_1)
@@ -526,6 +558,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                         name
                         status
                     }
+                    errors
                   }
                 }
             """,
@@ -546,6 +579,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     "name": "Updated accessibility analysis!",
                     "status": AnalysisStatus.DRAFT,
                 },
+                "errors": [],
             },
             r["data"]["updateAccessmodAccessibilityAnalysis"],
         )
@@ -558,6 +592,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     analysis {
                         status
                     }
+                    errors
                   }
                 }
             """,
@@ -580,11 +615,69 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             {
                 "success": True,
                 "analysis": {"status": AnalysisStatus.READY},
+                "errors": [],
             },
         )
 
+    def test_update_accessmod_accessibility_analysis_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodAccessibilityAnalysis($input: UpdateAccessmodAccessibilityAnalysisInput) {
+                  updateAccessmodAccessibilityAnalysis(input: $input) {
+                    success
+                    analysis {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
+                    "name": self.ACCESSIBILITY_ANALYSIS_2.name,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "analysis": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
+                "errors": ["NAME_DUPLICATE"],
+            },
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodAccessibilityAnalysis($input: UpdateAccessmodAccessibilityAnalysisInput) {
+                  updateAccessmodAccessibilityAnalysis(input: $input) {
+                    success
+                    analysis {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                    "name": "YOLO",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "analysis": None, "errors": ["NOT_FOUND"]},
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
+        )
+
     @responses.activate
-    def test_launch_accessmod_ready_analysis(self):
+    def test_launch_accessmod_analysis(self):
         mock_raw_token = uuid.uuid4()
         mock_signed_token = b64encode(
             Signer().sign(mock_raw_token).encode("utf-8")
@@ -647,6 +740,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             analysis {
                                 status
                             }
+                            errors
                           }
                         }
                     """,
@@ -658,7 +752,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 )
 
         self.assertEqual(
-            {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
+            {
+                "success": True,
+                "analysis": {"status": AnalysisStatus.QUEUED},
+                "errors": [],
+            },
             r["data"]["launchAccessmodAnalysis"],
         )
 
@@ -666,7 +764,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         dag_run = self.DAG.dagrun_set.get()
         self.assertEqual(DAGRunState.QUEUED, dag_run.state)
 
-    def test_launch_accessmod_draft_analysis(self):
+    def test_launch_accessmod_analysis_errors(self):
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
@@ -674,6 +772,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
                   launchAccessmodAnalysis(input: $input) {
                     success
+                    analysis {
+                      id
+                    }
+                    errors
                   }
                 }
             """,
@@ -685,7 +787,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"success": False},
+            {
+                "success": False,
+                "analysis": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
+                "errors": ["LAUNCH_FAILED"],
+            },
             r["data"]["launchAccessmodAnalysis"],
         )
 
@@ -697,6 +803,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
                   deleteAccessmodAnalysis(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
@@ -708,7 +815,52 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"success": True},
+            {"success": True, "errors": []},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_analysis_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["DELETE_FAILED"]},
             r["data"]["deleteAccessmodAnalysis"],
         )
 

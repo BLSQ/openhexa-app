@@ -26,6 +26,10 @@ input CreateAccessmodProjectInput {
 type CreateAccessmodProjectResult {
     success: Boolean!
     project: AccessmodProject
+    errors: [CreateAccessmodProjectError!]!
+}
+enum CreateAccessmodProjectError {
+    NAME_DUPLICATE
 }
 input UpdateAccessmodProjectInput {
     id: String!
@@ -37,12 +41,21 @@ input UpdateAccessmodProjectInput {
 type UpdateAccessmodProjectResult {
     success: Boolean!
     project: AccessmodProject
+    errors: [UpdateAccessmodProjectError!]!
+}
+enum UpdateAccessmodProjectError {
+    NOT_FOUND
+    NAME_DUPLICATE
 }
 input DeleteAccessmodProjectInput {
     id: String!
 }
 type DeleteAccessmodProjectResult {
     success: Boolean!
+    errors: [DeleteAccessmodProjectError!]!
+}
+enum DeleteAccessmodProjectError {
+    NOT_FOUND
 }
 extend type Query {
     accessmodProject(id: String): AccessmodProject
@@ -116,6 +129,10 @@ input CreateAccessmodFilesetInput {
 type CreateAccessmodFilesetResult {
     success: Boolean!
     fileset: AccessmodFileset
+    errors: [CreateAccessmodFilesetError!]!
+}
+enum CreateAccessmodFilesetError {
+    NAME_DUPLICATE
 }
 input PrepareAccessmodFileUploadInput {
     filesetId: String!
@@ -134,6 +151,10 @@ input CreateAccessmodFileInput {
 type CreateAccessmodFileResult {
     success: Boolean!
     file: AccessmodFile
+    errors: [CreateAccessmodFileError!]!
+}
+enum CreateAccessmodFileError {
+    URI_DUPLICATE
 }
 input PrepareAccessmodFileDownloadInput {
     fileId: String!
@@ -147,12 +168,20 @@ input DeleteAccessmodFilesetInput {
 }
 type DeleteAccessmodFilesetResult {
     success: Boolean!
+    errors: [DeleteAccessmodFilesetError!]!
+}
+enum DeleteAccessmodFilesetError {
+    NOT_FOUND
 }
 input DeleteAccessmodFileInput {
     id: String!
 }
 type DeleteAccessmodFileResult {
     success: Boolean!
+    errors: [DeleteAccessmodFileError!]!
+}
+enum DeleteAccessmodFileError {
+    NOT_FOUND
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
@@ -254,6 +283,10 @@ input CreateAccessmodAccessibilityAnalysisInput {
 type CreateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
     analysis: AccessmodAccessibilityAnalysis
+    errors: [CreateAccessmodAccessibilityAnalysisError!]!
+}
+enum CreateAccessmodAccessibilityAnalysisError {
+    NAME_DUPLICATE
 }
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
@@ -278,6 +311,11 @@ input UpdateAccessmodAccessibilityAnalysisInput {
 type UpdateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
     analysis: AccessmodAccessibilityAnalysis
+    errors: [UpdateAccessmodAccessibilityAnalysisError!]!
+}
+enum UpdateAccessmodAccessibilityAnalysisError {
+    NOT_FOUND
+    NAME_DUPLICATE
 }
 input LaunchAccessmodAnalysisInput {
     id: String!
@@ -285,12 +323,21 @@ input LaunchAccessmodAnalysisInput {
 type LaunchAccessmodAnalysisResult {
     success: Boolean!
     analysis: AccessmodAnalysis
+    errors: [LaunchAccessmodAnalysisError!]!
+}
+enum LaunchAccessmodAnalysisError {
+    LAUNCH_FAILED
 }
 input DeleteAccessmodAnalysisInput {
     id: String!
 }
 type DeleteAccessmodAnalysisResult {
     success: Boolean!
+    errors: [DeleteAccessmodAnalysisError!]!
+}
+enum DeleteAccessmodAnalysisError {
+    NOT_FOUND
+    DELETE_FAILED
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis

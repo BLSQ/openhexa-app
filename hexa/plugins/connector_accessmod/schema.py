@@ -7,7 +7,7 @@ from ariadne import (
     QueryType,
     load_schema_from_path,
 )
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django_countries.fields import Country
 from slugify import slugify
@@ -57,6 +57,7 @@ def resolve_accessmod_projects(_, info, **kwargs):
 
 
 @accessmod_mutations.field("createAccessmodProject")
+@transaction.atomic
 def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
@@ -73,12 +74,13 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             if "extentId" in create_input
             else None,
         )
-        return {"success": True, "project": project}
+        return {"success": True, "project": project, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("updateAccessmodProject")
+@transaction.atomic
 def resolve_update_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     update_input = kwargs["input"]
@@ -102,14 +104,22 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             project.country = update_input["country"]["code"]
             changed = True
         if changed:
-            project.save()
+            try:
+                project.save()
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "project": project,
+                    "errors": ["NAME_DUPLICATE"],
+                }
 
-        return {"success": True, "project": project}
+        return {"success": True, "project": project, "errors": []}
     except Project.DoesNotExist:
-        return {"success": False}
+        return {"success": False, "project": None, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("deleteAccessmodProject")
+@transaction.atomic
 def resolve_delete_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     update_input = kwargs["input"]
@@ -118,11 +128,11 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         project = Project.objects.filter_for_user(request.user).get(
             id=update_input["id"]
         )
-        project.delete()  # TODO: soft-delete?
+        project.delete()
 
-        return {"success": True}
+        return {"success": True, "errors": []}
     except Project.DoesNotExist:
-        return {"success": False}
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 fileset_object = ObjectType("AccessmodFileset")
@@ -163,6 +173,7 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 
 
 @accessmod_mutations.field("createAccessmodFileset")
+@transaction.atomic
 def resolve_create_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
@@ -175,22 +186,28 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
             ),
             role=FilesetRole.objects.get(id=create_input["roleId"]),
         )
-        return {"success": True, "fileset": fileset}
+        return {"success": True, "fileset": fileset, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "fileset": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("deleteAccessmodFileset")
+@transaction.atomic
 def resolve_delete_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     delete_input = kwargs["input"]
-    fileset = Fileset.objects.filter_for_user(request.user).get(id=delete_input["id"])
-    fileset.delete()
-
-    return {"success": True}
+    try:
+        fileset = Fileset.objects.filter_for_user(request.user).get(
+            id=delete_input["id"]
+        )
+        fileset.delete()
+        return {"success": True, "errors": []}
+    except Fileset.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("prepareAccessmodFileUpload")
+@transaction.atomic
 def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     prepare_input = kwargs["input"]
@@ -223,6 +240,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
 
 
 @accessmod_mutations.field("prepareAccessmodFileDownload")
+@transaction.atomic
 def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     prepare_input = kwargs["input"]
@@ -251,6 +269,7 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
 
 
 @accessmod_mutations.field("createAccessmodFile")
+@transaction.atomic
 def resolve_create_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
@@ -264,21 +283,24 @@ def resolve_create_accessmod_file(_, info, **kwargs):
             fileset=fileset,
         )
         fileset.save()  # Will update updated_at
-        return {"success": True, "file": file}
+        return {"success": True, "file": file, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "file": None, "errors": ["URI_DUPLICATE"]}
 
 
 @accessmod_mutations.field("deleteAccessmodFile")
+@transaction.atomic
 def resolve_delete_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     delete_input = kwargs["input"]
-    file = File.objects.filter_for_user(request.user).get(id=delete_input["id"])
-    fileset = file.fileset
-    file.delete()
-    fileset.save()  # Will update updated_at
-
-    return {"success": True}
+    try:
+        file = File.objects.filter_for_user(request.user).get(id=delete_input["id"])
+        fileset = file.fileset
+        file.delete()
+        fileset.save()  # Will update updated_at
+        return {"success": True, "errors": []}
+    except File.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_query.field("accessmodFilesetRole")
@@ -336,6 +358,7 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 
 
 @accessmod_mutations.field("createAccessmodAccessibilityAnalysis")
+@transaction.atomic
 def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     create_input = kwargs["input"]
@@ -347,12 +370,13 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
             ),
             name=create_input["name"],
         )
-        return {"success": True, "analysis": analysis}
+        return {"success": True, "analysis": analysis, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
+@transaction.atomic
 def resolve_update_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     update_input = kwargs["input"]
@@ -393,14 +417,22 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                 setattr(analysis, snakecase(fileset_field), fileset.id)
                 changed = True
         if changed:
-            analysis.save()
+            try:
+                analysis.save()
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "analysis": analysis,
+                    "errors": ["NAME_DUPLICATE"],
+                }
 
-        return {"success": True, "analysis": analysis}
-    except Project.DoesNotExist:
-        return {"success": False}
+        return {"success": True, "analysis": analysis, "errors": []}
+    except Analysis.DoesNotExist:
+        return {"success": False, "analysis": None, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("launchAccessmodAnalysis")
+@transaction.atomic
 def resolve_launch_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     launch_input = kwargs["input"]
@@ -410,24 +442,27 @@ def resolve_launch_accessmod_analysis(_, info, **kwargs):
 
     try:
         analysis.run(request)
-        return {"success": True, "analysis": analysis}
+        return {"success": True, "analysis": analysis, "errors": []}
     except ValueError:
-        return {"success": False}
+        return {"success": False, "analysis": analysis, "errors": ["LAUNCH_FAILED"]}
 
 
 @accessmod_mutations.field("deleteAccessmodAnalysis")
+@transaction.atomic
 def resolve_delete_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     delete_input = kwargs["input"]
-    analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
-        id=delete_input["id"]
-    )
 
     try:
+        analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+            id=delete_input["id"]
+        )
         analysis.delete()
-        return {"success": True}
+        return {"success": True, "errors": []}
+    except Analysis.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
     except ValueError:
-        return {"success": False}
+        return {"success": False, "errors": ["DELETE_FAILED"]}
 
 
 accessmod_bindables = [
