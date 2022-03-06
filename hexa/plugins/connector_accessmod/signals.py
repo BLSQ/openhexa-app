@@ -10,9 +10,6 @@ def update_analysis_handler(sender: type, *, instance: DAGRun, **kwargs):
     if instance.state in [DAGRunState.RUNNING, DAGRunState.FAILED, DAGRunState.SUCCESS]:
         try:
             analysis = Analysis.objects.get(dag_run=instance)
-            # This 1-1 mapping between DAGRun states and Analysis status is a bit coincidental
-            # TODO: We should think about a more robust way to map both values
-            if analysis.status != instance.state:
-                analysis.update_status_from_dag_run_state(instance.state)
+            analysis.update_status_from_dag_run_state(instance.state)
         except Analysis.DoesNotExist:
             pass
