@@ -650,6 +650,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             },
             r["data"]["updateAccessmodAccessibilityAnalysis"],
         )
+
         r = self.run_query(
             """
                 mutation updateAccessmodAccessibilityAnalysis($input: UpdateAccessmodAccessibilityAnalysisInput) {

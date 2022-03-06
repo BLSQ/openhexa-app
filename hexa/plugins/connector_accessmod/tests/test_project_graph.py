@@ -1,3 +1,5 @@
+import uuid
+
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import Project
 from hexa.user_management.models import User
@@ -333,7 +335,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.SAMPLE_PROJECT.id),
+                    "id": str(uuid.uuid4()),
                     "name": "YOLO",
                     "country": {"code": "CD"},
                 }
@@ -341,8 +343,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
+            {"success": False, "project": None, "errors": ["NOT_FOUND"]},
             r["data"]["updateAccessmodProject"],
-            {"success": True, "project": None, "errors": ["NOT_FOUND"]},
         )
 
     def test_delete_accessmod_project(self):
