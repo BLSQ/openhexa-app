@@ -702,14 +702,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     {
                         "conf": {
                             "output_dir": output_dir,
-                            "health_facilities": None,
-                            "dem": None,
                             "slope": self.SLOPE_FILESET.file_set.first().uri,
-                            "land_cover": None,
-                            "transport_network": None,
-                            "barrier": None,
-                            "water": None,
-                            "moving_speeds": None,
                             "algorithm": "ANISOTROPIC",
                             # "category_column": "???",   # TODO: add
                             "max_travel_time": 42,
