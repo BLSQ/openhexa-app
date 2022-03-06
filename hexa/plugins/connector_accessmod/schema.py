@@ -73,9 +73,9 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             if "extentId" in create_input
             else None,
         )
-        return {"success": True, "project": project}
+        return {"success": True, "project": project, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("updateAccessmodProject")
@@ -102,11 +102,18 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             project.country = update_input["country"]["code"]
             changed = True
         if changed:
-            project.save()
+            try:
+                project.save()
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "project": project,
+                    "errors": ["NAME_DUPLICATE"],
+                }
 
-        return {"success": True, "project": project}
+        return {"success": True, "project": project, "errors": []}
     except Project.DoesNotExist:
-        return {"success": False}
+        return {"success": False, "project": None, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("deleteAccessmodProject")
@@ -175,9 +182,9 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
             ),
             role=FilesetRole.objects.get(id=create_input["roleId"]),
         )
-        return {"success": True, "fileset": fileset}
+        return {"success": True, "fileset": fileset, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "fileset": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("deleteAccessmodFileset")
@@ -347,9 +354,9 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
             ),
             name=create_input["name"],
         )
-        return {"success": True, "analysis": analysis}
+        return {"success": True, "analysis": analysis, "errors": []}
     except IntegrityError:
-        return {"success": False}
+        return {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]}
 
 
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
@@ -393,11 +400,18 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                 setattr(analysis, snakecase(fileset_field), fileset.id)
                 changed = True
         if changed:
-            analysis.save()
+            try:
+                analysis.save()
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "analysis": analysis,
+                    "errors": ["NAME_DUPLICATE"],
+                }
 
-        return {"success": True, "analysis": analysis}
+        return {"success": True, "analysis": analysis, "errors": []}
     except Project.DoesNotExist:
-        return {"success": False}
+        return {"success": False, "analysis": None, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("launchAccessmodAnalysis")

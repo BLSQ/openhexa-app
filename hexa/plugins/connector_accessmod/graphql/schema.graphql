@@ -26,6 +26,10 @@ input CreateAccessmodProjectInput {
 type CreateAccessmodProjectResult {
     success: Boolean!
     project: AccessmodProject
+    errors: [CreateAccessmodProjectError!]!
+}
+enum CreateAccessmodProjectError {
+    NAME_DUPLICATE
 }
 input UpdateAccessmodProjectInput {
     id: String!
@@ -37,6 +41,11 @@ input UpdateAccessmodProjectInput {
 type UpdateAccessmodProjectResult {
     success: Boolean!
     project: AccessmodProject
+    errors: [UpdateAccessmodProjectError!]!
+}
+enum UpdateAccessmodProjectError {
+    NOT_FOUND
+    NAME_DUPLICATE
 }
 input DeleteAccessmodProjectInput {
     id: String!
@@ -116,6 +125,10 @@ input CreateAccessmodFilesetInput {
 type CreateAccessmodFilesetResult {
     success: Boolean!
     fileset: AccessmodFileset
+    errors: [CreateAccessmodFilesetError!]!
+}
+enum CreateAccessmodFilesetError {
+    NAME_DUPLICATE
 }
 input PrepareAccessmodFileUploadInput {
     filesetId: String!
@@ -254,6 +267,10 @@ input CreateAccessmodAccessibilityAnalysisInput {
 type CreateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
     analysis: AccessmodAccessibilityAnalysis
+    errors: [CreateAccessmodAccessibilityAnalysisError!]!
+}
+enum CreateAccessmodAccessibilityAnalysisError {
+    NAME_DUPLICATE
 }
 input UpdateAccessmodAccessibilityAnalysisInput {
     id: String!
@@ -278,6 +295,11 @@ input UpdateAccessmodAccessibilityAnalysisInput {
 type UpdateAccessmodAccessibilityAnalysisResult {
     success: Boolean!
     analysis: AccessmodAccessibilityAnalysis
+    errors: [UpdateAccessmodAccessibilityAnalysisError!]!
+}
+enum UpdateAccessmodAccessibilityAnalysisError {
+    NOT_FOUND
+    NAME_DUPLICATE
 }
 input LaunchAccessmodAnalysisInput {
     id: String!
