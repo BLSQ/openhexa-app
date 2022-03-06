@@ -12,7 +12,7 @@ from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core import mimetypes
 from hexa.core.models import Base
-from hexa.plugins.connector_airflow.models import DAG
+from hexa.plugins.connector_airflow.models import DAG, DAGRunState
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
@@ -164,6 +164,19 @@ class AnalysisManager(InheritanceManager):
 
 
 class Analysis(Base):
+    """Base analysis class
+
+    NOTE: This model is impacted by a signal (see signals.py in the current module)
+    Whenever a DAGRun linked to an analysis has a new state, the analysis status is likely to change.
+    (see also the update_status_from_dag_run_state() method of this class)
+    """
+
+    DAG_RUN_STATE_MAPPINGS = {
+        DAGRunState.QUEUED: AnalysisStatus.QUEUED,
+        DAGRunState.RUNNING: AnalysisStatus.RUNNING,
+        DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
+        DAGRunState.FAILED: AnalysisStatus.FAILED,
+    }
     project = models.ForeignKey("Project", on_delete=models.PROTECT)
     owner = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
@@ -250,7 +263,16 @@ class Analysis(Base):
         else:
             raise ValueError(f"Cannot change status from {self.status} to {status}")
 
-    def input_path(self, input_fileset: typing.Optional[Fileset] = None):
+    def update_status_from_dag_run_state(self, state: DAGRunState):
+        try:
+            new_status_candidate = self.DAG_RUN_STATE_MAPPINGS[state]
+            if new_status_candidate != self.status:
+                self.update_status(self.DAG_RUN_STATE_MAPPINGS[state])
+        except KeyError:
+            raise ValueError(f"Cannot map DAGRunState {state}")
+
+    @staticmethod
+    def input_path(input_fileset: typing.Optional[Fileset] = None):
         if input_fileset is None:
             return None
 

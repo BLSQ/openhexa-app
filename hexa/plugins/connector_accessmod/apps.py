@@ -12,3 +12,6 @@ class AccessmodConnectorConfig(ConnectorAppConfig):
     @property
     def route_prefix(self):
         return "accessmod"
+
+    def ready(self):
+        from . import signals  # noqa
