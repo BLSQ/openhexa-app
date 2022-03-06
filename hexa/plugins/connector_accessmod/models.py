@@ -164,6 +164,13 @@ class AnalysisManager(InheritanceManager):
 
 
 class Analysis(Base):
+    """Base analysis class
+
+    NOTE: This model is impacted by a signal (see signals.py in the current module)
+    Whenever a DAGRun linked to an analysis has a new state, the analysis status is likely to change.
+    (see also the update_status_from_dag_run_state() method of this class)
+    """
+
     DAG_RUN_STATE_MAPPINGS = {
         DAGRunState.QUEUED: AnalysisStatus.QUEUED,
         DAGRunState.RUNNING: AnalysisStatus.RUNNING,
