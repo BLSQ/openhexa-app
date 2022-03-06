@@ -168,6 +168,10 @@ input DeleteAccessmodFilesetInput {
 }
 type DeleteAccessmodFilesetResult {
     success: Boolean!
+    errors: [DeleteAccessmodFilesetError!]!
+}
+enum DeleteAccessmodFilesetError {
+    NOT_FOUND
 }
 input DeleteAccessmodFileInput {
     id: String!

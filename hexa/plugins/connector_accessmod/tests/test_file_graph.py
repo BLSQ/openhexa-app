@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from moto import mock_s3, mock_sts
 
@@ -513,9 +515,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
-        self.assertEqual(False, r["data"]["createAccessmodFileset"]["success"])
         self.assertEqual(
-            ["NAME_DUPLICATE"], r["data"]["createAccessmodFileset"]["errors"]
+            {"success": False, "fileset": None, "errors": ["NAME_DUPLICATE"]},
+            r["data"]["createAccessmodFileset"],
         )
 
     def test_delete_fileset(self):
@@ -532,13 +534,63 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
                   deleteAccessmodFileset(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
             {"input": {"id": str(fileset.id)}},
         )
-        self.assertEqual(True, r["data"]["deleteAccessmodFileset"]["success"])
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["deleteAccessmodFileset"]
+        )
         self.assertEqual(False, Fileset.objects.filter(id=fileset.id).exists())
+
+    def test_delete_fileset_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                  deleteAccessmodFileset(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteAccessmodFileset"],
+        )
+
+    def test_create_file_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodFile($input: CreateAccessmodFileInput) {
+                  createAccessmodFile(input: $input) {
+                    success
+                    file {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "uri": self.SAMPLE_FILE_1.uri,
+                    "filesetId": str(self.SAMPLE_FILESET_1.id),
+                    "mimeType": "text/csv",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "file": None, "errors": ["URI_DUPLICATE"]},
+            r["data"]["createAccessmodFile"],
+        )
 
     def test_delete_file(self):
         self.client.force_login(self.USER_1)
@@ -558,15 +610,37 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
                   deleteAccessmodFile(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
             {"input": {"id": str(file.id)}},
         )
-        self.assertEqual(True, r["data"]["deleteAccessmodFile"]["success"])
+        self.assertEqual(
+            {"success": True, "errors": []}, r["data"]["deleteAccessmodFile"]
+        )
         self.assertEqual(False, File.objects.filter(id=file.id).exists())
         fileset.refresh_from_db()
         self.assertGreater(fileset.updated_at, original_fileset_updated_at)
+
+    def test_delete_file_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
+                  deleteAccessmodFile(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteAccessmodFile"],
+        )
 
     def test_accessmod_fileset_role(self):
         self.client.force_login(self.USER_1)

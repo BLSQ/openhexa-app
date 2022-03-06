@@ -677,7 +677,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
     @responses.activate
-    def test_launch_accessmod_ready_analysis(self):
+    def test_launch_accessmod_analysis(self):
         mock_raw_token = uuid.uuid4()
         mock_signed_token = b64encode(
             Signer().sign(mock_raw_token).encode("utf-8")
@@ -747,6 +747,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             analysis {
                                 status
                             }
+                            errors
                           }
                         }
                     """,
@@ -758,7 +759,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 )
 
         self.assertEqual(
-            {"success": True, "analysis": {"status": AnalysisStatus.QUEUED}},
+            {
+                "success": True,
+                "analysis": {"status": AnalysisStatus.QUEUED},
+                "errors": [],
+            },
             r["data"]["launchAccessmodAnalysis"],
         )
 
@@ -766,7 +771,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         dag_run = self.DAG.dagrun_set.get()
         self.assertEqual(DAGRunState.QUEUED, dag_run.state)
 
-    def test_launch_accessmod_draft_analysis(self):
+    def test_launch_accessmod_analysis_errors(self):
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
@@ -774,6 +779,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 mutation launchAccessmodAnalysis($input: LaunchAccessmodAnalysisInput) {
                   launchAccessmodAnalysis(input: $input) {
                     success
+                    analysis {
+                      id
+                    }
+                    errors
                   }
                 }
             """,
@@ -785,7 +794,11 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"success": False},
+            {
+                "success": False,
+                "analysis": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.id)},
+                "errors": ["LAUNCH_FAILED"],
+            },
             r["data"]["launchAccessmodAnalysis"],
         )
 
@@ -797,6 +810,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
                   deleteAccessmodAnalysis(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
@@ -808,7 +822,52 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"success": True},
+            {"success": True, "errors": []},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+    def test_delete_accessmod_analysis_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteAccessmodAnalysis"],
+        )
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodAnalysis($input: DeleteAccessmodAnalysisInput) {
+                  deleteAccessmodAnalysis(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["DELETE_FAILED"]},
             r["data"]["deleteAccessmodAnalysis"],
         )
 

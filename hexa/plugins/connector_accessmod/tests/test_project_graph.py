@@ -355,6 +355,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
                   deleteAccessmodProject(input: $input) {
                     success
+                    errors
                   }
                 }
             """,
@@ -367,8 +368,31 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
 
         self.assertEqual(
             r["data"]["deleteAccessmodProject"],
-            {
-                "success": True,
-            },
+            {"success": True, "errors": []},
         )
         self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
+
+    def test_delete_accessmod_project_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
+                  deleteAccessmodProject(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(uuid.uuid4()),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["deleteAccessmodProject"],
+            {"success": False, "errors": ["NOT_FOUND"]},
+        )
+        self.assertIsNotNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())

@@ -128,7 +128,7 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         project = Project.objects.filter_for_user(request.user).get(
             id=update_input["id"]
         )
-        project.delete()  # TODO: soft-delete?
+        project.delete()
 
         return {"success": True, "errors": []}
     except Project.DoesNotExist:
@@ -203,7 +203,7 @@ def resolve_delete_accessmod_fileset(_, info, **kwargs):
         fileset.delete()
         return {"success": True, "errors": []}
     except Fileset.DoesNotExist:
-        return {"success": False, "errors": "NOT_FOUND"}
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_mutations.field("prepareAccessmodFileUpload")
@@ -300,7 +300,7 @@ def resolve_delete_accessmod_file(_, info, **kwargs):
         fileset.save()  # Will update updated_at
         return {"success": True, "errors": []}
     except File.DoesNotExist:
-        return {"success": True, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 @accessmod_query.field("accessmodFilesetRole")
