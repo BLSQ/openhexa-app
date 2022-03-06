@@ -427,7 +427,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
                 }
 
         return {"success": True, "analysis": analysis, "errors": []}
-    except Project.DoesNotExist:
+    except Analysis.DoesNotExist:
         return {"success": False, "analysis": None, "errors": ["NOT_FOUND"]}
 
 

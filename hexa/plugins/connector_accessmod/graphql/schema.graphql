@@ -52,6 +52,10 @@ input DeleteAccessmodProjectInput {
 }
 type DeleteAccessmodProjectResult {
     success: Boolean!
+    errors: [DeleteAccessmodProjectError!]!
+}
+enum DeleteAccessmodProjectError {
+    NOT_FOUND
 }
 extend type Query {
     accessmodProject(id: String): AccessmodProject
@@ -147,6 +151,10 @@ input CreateAccessmodFileInput {
 type CreateAccessmodFileResult {
     success: Boolean!
     file: AccessmodFile
+    errors: [CreateAccessmodFileError!]!
+}
+enum CreateAccessmodFileError {
+    URI_DUPLICATE
 }
 input PrepareAccessmodFileDownloadInput {
     fileId: String!
@@ -166,6 +174,10 @@ input DeleteAccessmodFileInput {
 }
 type DeleteAccessmodFileResult {
     success: Boolean!
+    errors: [DeleteAccessmodFileError!]!
+}
+enum DeleteAccessmodFileError {
+    NOT_FOUND
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
@@ -307,12 +319,21 @@ input LaunchAccessmodAnalysisInput {
 type LaunchAccessmodAnalysisResult {
     success: Boolean!
     analysis: AccessmodAnalysis
+    errors: [LaunchAccessmodAnalysisError!]!
+}
+enum LaunchAccessmodAnalysisError {
+    LAUNCH_FAILED
 }
 input DeleteAccessmodAnalysisInput {
     id: String!
 }
 type DeleteAccessmodAnalysisResult {
     success: Boolean!
+    errors: [DeleteAccessmodAnalysisError!]!
+}
+enum DeleteAccessmodAnalysisError {
+    NOT_FOUND
+    DELETE_FAILED
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis
