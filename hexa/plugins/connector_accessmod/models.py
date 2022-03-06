@@ -12,7 +12,7 @@ from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core import mimetypes
 from hexa.core.models import Base
-from hexa.plugins.connector_airflow.models import DAG
+from hexa.plugins.connector_airflow.models import DAG, DAGRunState
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
@@ -249,6 +249,16 @@ class Analysis(Base):
             self.save()
         else:
             raise ValueError(f"Cannot change status from {self.status} to {status}")
+
+    def update_status_from_dag_run_state(self, state: DAGRunState):
+        if state == DAGRunState.RUNNING:
+            status = AnalysisStatus.RUNNING
+        if state == DAGRunState.SUCCESS:
+            status = AnalysisStatus.SUCCESS
+        if state == DAGRunState.FAILED:
+            status = AnalysisStatus.FAILED
+
+        self.update_status(status)
 
     def input_path(self, input_fileset: typing.Optional[Fileset] = None):
         if input_fileset is None:
