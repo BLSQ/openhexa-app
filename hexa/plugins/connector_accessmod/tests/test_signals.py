@@ -12,7 +12,7 @@ from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRunState, DAG
 from hexa.user_management.models import User
 
 
-class AccessmodViewsTest(TestCase):
+class AccessmodSignalsTest(TestCase):
     @classmethod
     @responses.activate
     def setUpTestData(cls):
