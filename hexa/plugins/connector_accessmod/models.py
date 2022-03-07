@@ -52,6 +52,14 @@ class Project(Base):
 
     objects = ProjectQuerySet.as_manager()
 
+    def delete(self, *args, **kwargs):
+        """We override delete() here because we can't control Django CASCADE order. Foreign keys from Analysis to
+        Fileset are PROTECTED, which prevents a simple CASCADE delete at the project level."""
+
+        self.analysis_set.all().delete()
+
+        return super().delete(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -177,7 +185,7 @@ class Analysis(Base):
         DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
         DAGRunState.FAILED: AnalysisStatus.FAILED,
     }
-    project = models.ForeignKey("Project", on_delete=models.PROTECT)
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
     owner = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
@@ -189,7 +197,7 @@ class Analysis(Base):
         "connector_airflow.DAGRun",
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="+",
     )
 
