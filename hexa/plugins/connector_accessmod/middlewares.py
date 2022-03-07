@@ -1,10 +1,13 @@
 from base64 import b64decode
+from logging import getLogger
 
 from django.core.signing import Signer
 from django.http import HttpRequest
 
 from hexa.plugins.connector_accessmod.authentication import DAGRunUser
 from hexa.plugins.connector_airflow.models import DAGRun
+
+logger = getLogger(__name__)
 
 
 def dag_run_authentication_middleware(get_response):
@@ -17,8 +20,12 @@ def dag_run_authentication_middleware(get_response):
                 token = Signer().unsign(b64decode(encoded_token).decode("utf-8"))
                 dag_run = DAGRun.objects.get(webhook_token=token)
                 request.user = DAGRunUser(dag_run=dag_run)
-        except (ValueError, KeyError):
-            pass
+        except KeyError:
+            pass  # No Authorization header
+        except ValueError as e:
+            logger.exception(
+                "dag_run_authentication_middleware error raw",
+            )
 
         return get_response(request)
 
