@@ -49,9 +49,9 @@ class DAGAdmin(admin.ModelAdmin):
 class DAGRunAdmin(admin.ModelAdmin):
     list_display = ("run_id", "state", "execution_date", "dag", "get_cluster")
 
-    @display(ordering="dag__cluster", description="Cluster")
-    def get_cluster(self, obj):
-        return obj.dag.cluster
+    @display(ordering="dag__template__cluster", description="Cluster")
+    def get_cluster(self, obj: DAGRun):
+        return obj.dag.template.cluster
 
 
 @admin.register(DAGAuthorizedDatasource)

@@ -9,6 +9,7 @@ March 8, 2022
 ### Fixed
 
 - Fixed horizontal scrolling issues in grids
+- Fixed crash in DAGRun admin list view
 
 Version 0.26
 ------------
