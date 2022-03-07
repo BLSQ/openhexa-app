@@ -52,6 +52,6 @@ input LoginInput {
     password: String!
 }
 extend type Mutation {
-    login(input: LoginInput!): LoginResult
-    logout: LogoutResult
+    login(input: LoginInput!): LoginResult!
+    logout: LogoutResult!
 }

@@ -62,9 +62,9 @@ extend type Query {
     accessmodProjects(page: Int, perPage: Int): AccessmodProjectPage!
 }
 extend type Mutation {
-    createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult
-    updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult
-    deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult
+    createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
+    updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
+    deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
 }
 
 # Filesets
@@ -190,12 +190,12 @@ extend type Query {
     accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }
 extend type Mutation {
-    createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult
-    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult
-    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult
-    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult
-    createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult
-    deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult
+    createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult!
+    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult!
+    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult!
+    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult!
+    createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult!
+    deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult!
 }
 
 # Analysis
@@ -344,8 +344,8 @@ extend type Query {
     accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
 }
 extend type Mutation {
-    createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult
-    updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult
-    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult
-    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult
+    createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
+    updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
+    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
+    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
 }
