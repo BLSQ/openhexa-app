@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.27
+------------
+
+March 8, 2022
+
+### Fixed
+
+- Fixed horizontal scrolling issues in grids
+
 Version 0.26
 ------------
 
