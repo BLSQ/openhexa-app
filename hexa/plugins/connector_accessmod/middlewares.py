@@ -24,7 +24,7 @@ def dag_run_authentication_middleware(get_response):
             pass  # No Authorization header
         except ValueError as e:
             logger.exception(
-                "dag_run_authentication_middleware error raw",
+                "dag_run_authentication_middleware error",
             )
 
         return get_response(request)

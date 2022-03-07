@@ -10,3 +10,4 @@ class DiscoverRunner(BaseDiscoverRunner):
         settings.STATICFILES_STORAGE = (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
         )
+        settings.SAVE_REQUESTS = True
