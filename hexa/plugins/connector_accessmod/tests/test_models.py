@@ -32,6 +32,13 @@ class AccessmodModelsTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
+        cls.OTHER_PROJECT = Project.objects.create(
+            name="Other project",
+            country="BE",
+            owner=cls.USER_TAYLOR,
+            spatial_resolution=100,
+            crs=4326,
+        )
         cls.SLOPE_ROLE = FilesetRole.objects.create(
             name="Slope",
             code=FilesetRoleCode.SLOPE,
@@ -51,6 +58,12 @@ class AccessmodModelsTest(TestCase):
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
+            priority_land_cover=[1, 2],
+        )
+        cls.OTHER_ANALYSIS = AccessibilityAnalysis.objects.create(
+            owner=cls.USER_TAYLOR,
+            project=cls.OTHER_PROJECT,
+            name="Accessibility analysis with a common name",
             priority_land_cover=[1, 2],
         )
 
@@ -75,20 +88,39 @@ class AccessmodModelsTest(TestCase):
         self.assertEqual(analysis.status, AnalysisStatus.FAILED)
 
     def test_project_delete(self):
-        # Cascade delete Project > Fileset > File & Project > Analysis
+        """Cascade delete Project > Fileset > File & Project > Analysis"""
+
+        self.assertEqual(2, Project.objects.filter().count())
+        self.assertEqual(2, Analysis.objects.filter().count())
         self.SAMPLE_PROJECT.delete()
-        self.assertEqual(0, Project.objects.count())
+        self.assertEqual(1, Project.objects.filter().count())
+        self.assertEqual(1, Analysis.objects.count())
         self.assertEqual(0, Fileset.objects.count())
         self.assertEqual(0, File.objects.count())
-        self.assertEqual(0, Analysis.objects.count())
 
     def test_fileset_delete(self):
-        # Can't delete filesets if used in an analysis
-        with self.assertRaises(ProtectedError):
+        """Cascade delete Fileset > File"""
+        with self.assertRaises(
+            ProtectedError
+        ):  # Can't delete filesets if used in an analysis
             self.SLOPE_FILESET.delete()
 
-        # Cascade delete Fileset > File
         self.ACCESSIBILITY_ANALYSIS.slope = None
         self.ACCESSIBILITY_ANALYSIS.save()
         self.SLOPE_FILESET.delete()
         self.assertEqual(0, File.objects.count())
+
+    def test_analysis_name_unique(self):
+        self.assertEqual(
+            1,
+            AccessibilityAnalysis.objects.filter(name=self.OTHER_ANALYSIS.name).count(),
+        )
+        AccessibilityAnalysis.objects.create(
+            owner=self.USER_TAYLOR,
+            project=self.SAMPLE_PROJECT,
+            name=self.OTHER_ANALYSIS.name,
+        )
+        self.assertEqual(
+            2,
+            AccessibilityAnalysis.objects.filter(name=self.OTHER_ANALYSIS.name).count(),
+        )

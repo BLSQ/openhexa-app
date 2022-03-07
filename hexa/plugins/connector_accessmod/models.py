@@ -179,6 +179,14 @@ class Analysis(Base):
     (see also the update_status_from_dag_run_state() method of this class)
     """
 
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="analysis_unique_name_project"
+            )
+        ]
+
     DAG_RUN_STATE_MAPPINGS = {
         DAGRunState.QUEUED: AnalysisStatus.QUEUED,
         DAGRunState.RUNNING: AnalysisStatus.RUNNING,
@@ -192,7 +200,7 @@ class Analysis(Base):
     status = models.CharField(
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
-    name = models.TextField(unique=True)
+    name = models.TextField()
     dag_run = models.ForeignKey(
         "connector_airflow.DAGRun",
         null=True,
@@ -316,9 +324,6 @@ class Analysis(Base):
             mime_type=mimetypes.guess_type(output_value)[0], uri=output_value
         )
         self.save()
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
