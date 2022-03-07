@@ -250,7 +250,8 @@ class Analysis(Base):
         raise NotImplementedError
 
     def update_status(self, status: AnalysisStatus):
-        if self.status == status:
+        if self.status in [status, AnalysisStatus.SUCCESS, AnalysisStatus.FAILED]:
+            # If no status change or already successful or failed, do nothing
             return
         elif (
             self.status == AnalysisStatus.QUEUED

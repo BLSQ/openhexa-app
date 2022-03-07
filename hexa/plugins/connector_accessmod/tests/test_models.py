@@ -1,7 +1,11 @@
 import responses
 
 from hexa.core.test import TestCase
-from hexa.plugins.connector_accessmod.models import AccessibilityAnalysis, Project
+from hexa.plugins.connector_accessmod.models import (
+    AccessibilityAnalysis,
+    AnalysisStatus,
+    Project,
+)
 from hexa.user_management.models import User
 
 
@@ -21,11 +25,23 @@ class AccessmodModelsTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
-            project=cls.SAMPLE_PROJECT,
-            name="Test accessibility analysis",
-        )
 
     def test_analysis_update_status_noop(self):
-        self.ACCESSIBILITY_ANALYSIS.update_status(self.ACCESSIBILITY_ANALYSIS.status)
+        analysis = AccessibilityAnalysis.objects.create(
+            owner=self.USER_TAYLOR,
+            project=self.SAMPLE_PROJECT,
+            name="Test accessibility analysis",
+            status=AnalysisStatus.RUNNING,
+        )
+        analysis.update_status(AnalysisStatus.RUNNING)
+        self.assertEqual(analysis.status, AnalysisStatus.RUNNING)
+
+        analysis.status = AnalysisStatus.SUCCESS
+        analysis.save()
+        analysis.update_status(AnalysisStatus.RUNNING)
+        self.assertEqual(analysis.status, AnalysisStatus.SUCCESS)
+
+        analysis.status = AnalysisStatus.FAILED
+        analysis.save()
+        analysis.update_status(AnalysisStatus.RUNNING)
+        self.assertEqual(analysis.status, AnalysisStatus.FAILED)
