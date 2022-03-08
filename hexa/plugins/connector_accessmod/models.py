@@ -315,7 +315,7 @@ class Analysis(Base):
             output_key,
             Fileset.objects.create(
                 project=self.project,
-                name=output_name,
+                name=f"{output_name} ({self.name})",
                 role=FilesetRole.objects.get(code=output_role_code),
                 owner=self.owner,
             ),
@@ -400,6 +400,7 @@ class AccessibilityAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    @transaction.atomic
     def set_outputs(
         self, travel_times: str, friction_surface: str, catchment_areas: str
     ):
@@ -508,6 +509,7 @@ class GeographicCoverageAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    @transaction.atomic
     def set_outputs(self, geographic_coverage: str, catchment_areas: str):
         self.set_output(
             output_key="geographic_coverage",
