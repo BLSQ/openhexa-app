@@ -1,7 +1,15 @@
 import uuid
 
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_accessmod.models import Project
+from hexa.plugins.connector_accessmod.models import (
+    AccessibilityAnalysis,
+    File,
+    Fileset,
+    FilesetFormat,
+    FilesetRole,
+    FilesetRoleCode,
+    Project,
+)
 from hexa.user_management.models import User
 
 
@@ -29,6 +37,27 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
+        )
+        cls.SLOPE_ROLE = FilesetRole.objects.create(
+            name="Slope",
+            code=FilesetRoleCode.SLOPE,
+            format=FilesetFormat.RASTER,
+        )
+        cls.SLOPE_FILESET = Fileset.objects.create(
+            name="A wonderful slope",
+            role=cls.SLOPE_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_1,
+        )
+        cls.SLOPE_FILE = File.objects.create(
+            fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
+        )
+        cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
+            owner=cls.USER_1,
+            project=cls.SAMPLE_PROJECT,
+            name="A random accessibility analysis",
+            slope=cls.SLOPE_FILESET,
+            priority_land_cover=[1, 2],
         )
 
     def test_accessmod_project_owner(self):

@@ -52,6 +52,15 @@ class Project(Base):
 
     objects = ProjectQuerySet.as_manager()
 
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        """We override delete() here because we can't control Django CASCADE order. Foreign keys from Analysis to
+        Fileset are PROTECTED, which prevents a simple CASCADE delete at the project level."""
+
+        self.analysis_set.all().delete()
+
+        return super().delete(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -171,25 +180,33 @@ class Analysis(Base):
     (see also the update_status_from_dag_run_state() method of this class)
     """
 
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="analysis_unique_name_project"
+            )
+        ]
+
     DAG_RUN_STATE_MAPPINGS = {
         DAGRunState.QUEUED: AnalysisStatus.QUEUED,
         DAGRunState.RUNNING: AnalysisStatus.RUNNING,
         DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
         DAGRunState.FAILED: AnalysisStatus.FAILED,
     }
-    project = models.ForeignKey("Project", on_delete=models.PROTECT)
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
     owner = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     status = models.CharField(
         max_length=50, choices=AnalysisStatus.choices, default=AnalysisStatus.DRAFT
     )
-    name = models.TextField(unique=True)
+    name = models.TextField()
     dag_run = models.ForeignKey(
         "connector_airflow.DAGRun",
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="+",
     )
 
@@ -299,7 +316,7 @@ class Analysis(Base):
             output_key,
             Fileset.objects.create(
                 project=self.project,
-                name=output_name,
+                name=f"{output_name} ({self.name})",
                 role=FilesetRole.objects.get(code=output_role_code),
                 owner=self.owner,
             ),
@@ -308,9 +325,6 @@ class Analysis(Base):
             mime_type=mimetypes.guess_type(output_value)[0], uri=output_value
         )
         self.save()
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
@@ -387,6 +401,7 @@ class AccessibilityAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    @transaction.atomic
     def set_outputs(
         self, travel_times: str, friction_surface: str, catchment_areas: str
     ):
@@ -495,6 +510,7 @@ class GeographicCoverageAnalysis(Analysis):
         ):
             self.status = AnalysisStatus.READY
 
+    @transaction.atomic
     def set_outputs(self, geographic_coverage: str, catchment_areas: str):
         self.set_output(
             output_key="geographic_coverage",
