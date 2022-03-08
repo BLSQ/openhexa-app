@@ -52,6 +52,7 @@ class Project(Base):
 
     objects = ProjectQuerySet.as_manager()
 
+    @transaction.atomic
     def delete(self, *args, **kwargs):
         """We override delete() here because we can't control Django CASCADE order. Foreign keys from Analysis to
         Fileset are PROTECTED, which prevents a simple CASCADE delete at the project level."""
