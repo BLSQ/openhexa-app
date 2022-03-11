@@ -17,6 +17,7 @@ from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models import Base, Permission, WithStatus
@@ -113,13 +114,8 @@ class Cluster(Environment):
                 )
             except DAGRun.DoesNotExist:
                 continue
-            if dag_run.state != run_info["state"] or dag_run.state in (
-                DAGRunState.RUNNING,
-                DAGRunState.QUEUED,
-            ):
-                dag_run.last_refreshed_at = timezone.now()
-                dag_run.state = run_info["state"]
-                dag_run.save()
+
+            dag_run.update_state(run_info["state"])
 
     def sync(self):
         created_count = 0
@@ -213,11 +209,11 @@ class Cluster(Environment):
                     run, created = DAGRun.objects.get_or_create(
                         dag=hexa_dag,
                         run_id=run_info["dag_run_id"],
-                        defaults={"execution_date": run_info["execution_date"]},
+                        defaults={
+                            "execution_date": parse_datetime(run_info["execution_date"])
+                        },
                     )
-                    run.last_refreshed_at = timezone.now()
-                    run.state = run_info["state"]
-                    run.save()
+                    run.update_state(run_info["state"])
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -339,7 +335,7 @@ class DAG(Pipeline):
             dag=self,
             user=request.user,
             run_id=dag_run_data["dag_run_id"],
-            execution_date=dag_run_data["execution_date"],
+            execution_date=parse_datetime(dag_run_data["execution_date"]),
             state=DAGRunState.QUEUED,
             conf=public_conf,
             webhook_token=raw_token,
@@ -428,6 +424,7 @@ class DAGRun(Base, WithStatus):
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
+    duration = models.DurationField(null=True)
     conf = models.JSONField(default=dict, blank=True)
     webhook_token = models.CharField(max_length=200, blank=True)
 
@@ -443,9 +440,20 @@ class DAGRun(Base, WithStatus):
         client = self.dag.template.cluster.get_api_client()
         run_data = client.get_dag_run(self.dag.dag_id, self.run_id)
 
-        self.last_refreshed_at = timezone.now()
-        self.state = run_data["state"]
-        self.save()
+        self.update_state(run_data["state"])
+
+    def update_state(self, state: DAGRunState):
+        should_update = self.state != state or self.state in [
+            DAGRunState.RUNNING,
+            DAGRunState.QUEUED,
+        ]
+        success_or_failed = state in [DAGRunState.SUCCESS, DAGRunState.FAILED]
+        if should_update:
+            self.last_refreshed_at = timezone.now()
+            self.state = state
+            if success_or_failed:
+                self.duration = timezone.now() - self.execution_date
+            self.save()
 
     @property
     def status(self):

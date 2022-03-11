@@ -1,8 +1,11 @@
+import datetime
+from unittest import mock
 from urllib.parse import urljoin
 
 import responses
 from django import test
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.dateparse import parse_datetime
 
 from hexa.core.test import TestCase
 from hexa.pipelines.models import Index
@@ -387,7 +390,6 @@ class DAGSyncTest(TestCase):
 class ModelsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.CLUSTER = Cluster.objects.create(name="test_cluster")
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_REGULAR = User.objects.create_user(
             "jim@bluesquarehub.com",
@@ -399,6 +401,14 @@ class ModelsTest(TestCase):
             "super",
             is_superuser=True,
         )
+        cls.CLUSTER = Cluster.objects.create(
+            name="test_cluster",
+            url="https://airflow-test.openhexa.org",
+            username="yolo",
+            password="yolo",
+        )
+        cls.DAG_TEMPLATE = DAGTemplate.objects.create(cluster=cls.CLUSTER, code="TEST")
+        cls.DAG = DAG.objects.create(template=cls.DAG_TEMPLATE, dag_id="same_old")
 
     def test_cluster_without_permission(self):
         """Without creating a permission, a regular user cannot access a cluster"""
@@ -417,44 +427,57 @@ class ModelsTest(TestCase):
     def test_cluster_index(self):
         """When a cluster is saved, an index should be created as well (taking access control into account)"""
 
-        cluster = Cluster(name="test_cluster")
-        cluster.save()
+        self.CLUSTER.save()
 
         # Expected index for super users
         pipeline_index = Index.objects.filter_for_user(self.USER_SUPER).get(
-            object_id=cluster.id,
+            object_id=self.CLUSTER.id,
         )
         self.assertEqual("test_cluster", pipeline_index.external_name)
 
         # No permission, no index
         with self.assertRaises(ObjectDoesNotExist):
             Index.objects.filter_for_user(self.USER_REGULAR).get(
-                object_id=cluster.id,
+                object_id=self.CLUSTER.id,
             )
 
     @responses.activate
     def test_dag_run(self):
-        cluster = Cluster.objects.create(
-            name="test_cluster",
-            url="https://airflow-test.openhexa.org",
-            username="yolo",
-            password="yolo",
-        )
-        template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
-        dag = DAG.objects.create(template=template, dag_id="same_old")
-
         responses.add(
             responses.POST,
-            urljoin(cluster.api_url, f"dags/{dag.dag_id}/dagRuns"),
+            urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
             json=dag_run_same_old_2,
             status=200,
         )
-        run = dag.run(request=self.mock_request(self.USER_REGULAR), conf={"foo": "bar"})
+        run = self.DAG.run(
+            request=self.mock_request(self.USER_REGULAR), conf={"foo": "bar"}
+        )
 
         self.assertIsInstance(run, DAGRun)
         self.assertEqual(self.USER_REGULAR, run.user)
         self.assertEqual({"foo": "bar"}, run.conf)
         self.assertEqual(DAGRunState.QUEUED, run.state)
+
+    @responses.activate
+    def test_dag_run_duration(self):
+        responses.add(
+            responses.POST,
+            urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
+            json=dag_run_same_old_2,
+            status=200,
+        )
+        run = self.DAG.run(
+            request=self.mock_request(self.USER_REGULAR), conf={"bar": "baz"}
+        )
+
+        with mock.patch(
+            "django.utils.timezone.now",
+            return_value=parse_datetime(dag_run_same_old_2["execution_date"])
+            + datetime.timedelta(hours=1),
+        ):
+            run.update_state(DAGRunState.SUCCESS)
+
+        self.assertEqual(datetime.timedelta(hours=1), run.duration)
 
 
 class PermissionTest(TestCase):
