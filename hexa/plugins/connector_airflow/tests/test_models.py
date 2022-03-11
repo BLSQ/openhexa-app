@@ -15,6 +15,7 @@ from hexa.plugins.connector_airflow.models import (
     DAGAuthorizedDatasource,
     DAGPermission,
     DAGRun,
+    DAGRunFavorite,
     DAGRunState,
     DAGTemplate,
 )
@@ -389,6 +390,7 @@ class DAGSyncTest(TestCase):
 
 class ModelsTest(TestCase):
     @classmethod
+    @responses.activate
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_REGULAR = User.objects.create_user(
@@ -409,6 +411,15 @@ class ModelsTest(TestCase):
         )
         cls.DAG_TEMPLATE = DAGTemplate.objects.create(cluster=cls.CLUSTER, code="TEST")
         cls.DAG = DAG.objects.create(template=cls.DAG_TEMPLATE, dag_id="same_old")
+        responses.add(
+            responses.POST,
+            urljoin(cls.CLUSTER.api_url, f"dags/{cls.DAG.dag_id}/dagRuns"),
+            json=dag_run_same_old_2,
+            status=200,
+        )
+        cls.DAG_RUN = cls.DAG.run(
+            request=cls.mock_request(cls.USER_REGULAR), conf={"bar": "baz"}
+        )
 
     def test_cluster_without_permission(self):
         """Without creating a permission, a regular user cannot access a cluster"""
@@ -458,26 +469,24 @@ class ModelsTest(TestCase):
         self.assertEqual({"foo": "bar"}, run.conf)
         self.assertEqual(DAGRunState.QUEUED, run.state)
 
-    @responses.activate
     def test_dag_run_duration(self):
-        responses.add(
-            responses.POST,
-            urljoin(self.CLUSTER.api_url, f"dags/{self.DAG.dag_id}/dagRuns"),
-            json=dag_run_same_old_2,
-            status=200,
-        )
-        run = self.DAG.run(
-            request=self.mock_request(self.USER_REGULAR), conf={"bar": "baz"}
-        )
-
         with mock.patch(
             "django.utils.timezone.now",
             return_value=parse_datetime(dag_run_same_old_2["execution_date"])
             + datetime.timedelta(hours=1),
         ):
-            run.update_state(DAGRunState.SUCCESS)
+            self.DAG_RUN.update_state(DAGRunState.SUCCESS)
 
-        self.assertEqual(datetime.timedelta(hours=1), run.duration)
+        self.assertEqual(datetime.timedelta(hours=1), self.DAG_RUN.duration)
+
+    def test_dag_run_favorite(self):
+        favorite = self.DAG_RUN.add_to_favorite(
+            user=self.USER_REGULAR, name="My favorite run"
+        )
+        self.assertIsInstance(favorite, DAGRunFavorite)
+        self.assertEqual(self.USER_REGULAR, favorite.user)
+        self.assertEqual(self.DAG_RUN, favorite.dag_run)
+        self.assertEqual("My favorite run", favorite.name)
 
 
 class PermissionTest(TestCase):

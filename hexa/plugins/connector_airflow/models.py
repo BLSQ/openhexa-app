@@ -455,9 +455,18 @@ class DAGRun(Base, WithStatus):
                 self.duration = timezone.now() - self.execution_date
             self.save()
 
+    def add_to_favorite(self, *, user: User, name: str):
+        return DAGRunFavorite.objects.create(user=user, dag_run=self, name=name)
+
     @property
     def status(self):
         try:
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return Status.UNKNOWN
+
+
+class DAGRunFavorite(Base):
+    user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
+    dag_run = models.ForeignKey("DAGRun", on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
