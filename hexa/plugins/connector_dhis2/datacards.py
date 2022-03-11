@@ -8,6 +8,7 @@ from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Action,
     BooleanProperty,
+    CodeProperty,
     Datacard,
     DateProperty,
     LocaleProperty,
@@ -25,6 +26,29 @@ class InstanceSection(Section):
     url = URLProperty(url="url")
 
 
+class UsageSection(Section):
+    title = "Code samples"
+
+    usage_python = CodeProperty(
+        label="Usage in Python", code="get_python_usage", language="python"
+    )
+
+    def get_python_usage(self, item: Instance):
+        return """
+%pip install --upgrade git+https://@github.com/blsq/blsq_dqapp.git
+
+from blsq_dqapp.metadata_extraction import Dhis2Client
+
+client = Dhis2Client(
+    url=os.environ["{{ instance.env_name }}_URL"],
+    username=os.environ["{{ instance.env_name }}_USERNAME"],
+    password=os.environ["{{ instance.env_name }}_PASSWORD"],
+)
+            """.replace(
+            "{{ instance.env_name }}", item.env_name
+        )
+
+
 class InstanceCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
@@ -33,6 +57,8 @@ class InstanceCard(Datacard):
 
     external = InstanceSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    # FIXME: this should be shown only if the user has permission to see the credentials
+    usage = UsageSection()
 
     @property
     def generic_description(self):

@@ -17,16 +17,17 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("api_url", "username")
 
 
-class PermissionInline(admin.StackedInline):
+class PermissionInline(admin.TabularInline):
     extra = 1
     model = InstancePermission
 
 
 @admin.register(Instance)
 class InstanceAdmin(admin.ModelAdmin):
-    list_display = ("url", "display_name", "last_synced_at", "auto_sync")
+    list_display = ("url", "display_name", "slug", "last_synced_at", "auto_sync")
     list_filter = ("url",)
     search_fields = ("url", "display_name")
+    prepopulated_fields = {"slug": ("name",)}
 
     inlines = [
         PermissionInline,
@@ -98,4 +99,4 @@ class DataSetAdmin(admin.ModelAdmin):
 
 @admin.register(InstancePermission)
 class InstancePermissionAdmin(admin.ModelAdmin):
-    list_display = ("instance", "team")
+    list_display = ("instance", "team", "show_credentials")
