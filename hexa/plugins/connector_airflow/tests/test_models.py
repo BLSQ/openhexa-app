@@ -479,18 +479,24 @@ class ModelsTest(TestCase):
 
         self.assertEqual(datetime.timedelta(hours=1), self.DAG_RUN.duration)
 
-    def test_dag_run_add_to_favorites(self):
-        favorite = self.DAG_RUN.add_to_favorites(
+    def test_dag_run_toggle_favorite(self):
+        toggle_result = self.DAG_RUN.toggle_favorite(
             user=self.USER_REGULAR, name="My favorite run"
         )
-        self.assertIsInstance(favorite, DAGRunFavorite)
-        self.assertEqual(self.USER_REGULAR, favorite.user)
-        self.assertEqual(self.DAG_RUN, favorite.dag_run)
-        self.assertEqual("My favorite run", favorite.name)
+        self.assertIsInstance(toggle_result, DAGRunFavorite)
+        self.assertEqual(self.USER_REGULAR, toggle_result.user)
+        self.assertEqual(self.DAG_RUN, toggle_result.dag_run)
+        self.assertEqual("My favorite run", toggle_result.name)
+
+        toggle_result = self.DAG_RUN.toggle_favorite(
+            user=self.USER_REGULAR, name="My favorite run"
+        )
+        self.assertIsNone(toggle_result)
+        self.assertFalse(self.DAG_RUN.is_in_favorites(self.USER_REGULAR))
 
     def test_dag_run_is_in_favorites(self):
         self.assertFalse(self.DAG_RUN.is_in_favorites(self.USER_REGULAR))
-        self.DAG_RUN.add_to_favorites(user=self.USER_REGULAR, name="My favorite run")
+        self.DAG_RUN.toggle_favorite(user=self.USER_REGULAR, name="My favorite run")
         self.assertTrue(self.DAG_RUN.is_in_favorites(self.USER_REGULAR))
 
 

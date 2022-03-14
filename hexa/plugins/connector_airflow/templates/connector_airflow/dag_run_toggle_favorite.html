@@ -12,7 +12,8 @@
             <div class="bg-white overflow-hidden shadow sm:rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
                     <form
-                            action="{% url "connector_airflow:dag_run_favorite" dag_id=dag.id dag_run_id=dag_run.id %}"
+                            method="post"
+                            action="{% url "connector_airflow:dag_run_toggle_favorite" dag_id=dag.id dag_run_id=dag_run.id %}"
                     >
                         {% csrf_token %}
                         {% if error %}
@@ -20,10 +21,18 @@
                         {% endif %}
                         <div class="max-w-4xl">
                             <div class="space-y-6 sm:space-y-5">
+                                <p class="text-sm text-gray-700">
+                                    {% blocktranslate with dag_id=dag.dag_id dag_run_id=dag_run.run_id %}
+                                        Add the run "{{ dag_run_id }}" from the "{{ dag_id }}" pipeline
+                                        to your favourites.
+                                    {% endblocktranslate %}
+                                </p>
                                 <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start">
                                     <label for="name"
-                                           class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-                                        First name </label>
+                                           class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
+                                    >
+                                        Name
+                                    </label>
                                     <div class="mt-1 sm:mt-0 sm:col-span-2">
                                         <input type="text" name="name" id="name" autocomplete="given-name"
                                                class="form-input max-w-lg block w-full shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:max-w-xs sm:text-sm border-gray-300 rounded-md">

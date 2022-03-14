@@ -230,7 +230,7 @@ def dag_run_detail_refresh(
     return dag_run_detail(request, dag_id=dag_id, dag_run_id=dag_run_id)
 
 
-def dag_run_favorite(
+def dag_run_toggle_favorite(
     request: HttpRequest,
     dag_id: uuid.UUID,
     dag_run_id: uuid.UUID,
@@ -243,8 +243,8 @@ def dag_run_favorite(
     )
 
     if request.method == "POST":
-        if not dag_run.is_in_favorites(request.user):
-            dag_run.add_to_favorites(user=request.user, name=request.POST["name"])
+        dag_run.toggle_favorite(user=request.user, name=request.POST.get("name"))
+
         return redirect(
             reverse(
                 "connector_airflow:dag_run_detail",
@@ -266,7 +266,7 @@ def dag_run_favorite(
 
     return render(
         request,
-        "connector_airflow/dag_run_favorite.html",
+        "connector_airflow/dag_run_toggle_favorite.html",
         {
             "dag": dag,
             "dag_run": dag_run,

@@ -455,7 +455,13 @@ class DAGRun(Base, WithStatus):
                 self.duration = timezone.now() - self.execution_date
             self.save()
 
-    def add_to_favorites(self, *, user: User, name: str):
+    def toggle_favorite(
+        self, *, user: User, name: typing.Optional[str]
+    ) -> typing.Optional["DAGRunFavorite"]:
+        if self.is_in_favorites(user):
+            DAGRunFavorite.objects.get(user=user, dag_run=self).delete()
+            return None
+
         return DAGRunFavorite.objects.create(user=user, dag_run=self, name=name)
 
     def is_in_favorites(self, user: User):

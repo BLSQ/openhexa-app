@@ -22,7 +22,7 @@ class UserDatacard(Datacard):
             label="Secret action",
             method="GET",
             url="https://notanurl.com",
-            enabled_when=lambda r: r.user.is_superuser,
+            enabled_when=lambda r, _: r.user.is_superuser,
             icon="external_link",
         ),
     ]

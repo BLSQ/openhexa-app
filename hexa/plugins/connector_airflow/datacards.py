@@ -88,7 +88,7 @@ class DAGCard(Datacard):
             method="GET",
             primary=False,
             open_in_new_tab=True,
-            enabled_when=lambda r: r.user.is_superuser,
+            enabled_when=lambda r, _: r.user.is_superuser,
         ),
         Action(label="Configure & run", url="get_run_url", icon="play", method="GET"),
     ]
@@ -151,14 +151,23 @@ class DAGRunCard(Datacard):
             method="GET",
             primary=False,
             open_in_new_tab=True,
-            enabled_when=lambda r: r.user.is_superuser,
+            enabled_when=lambda r, _: r.user.is_superuser,
         ),
         Action(
             label="Add to favorites",
             url="get_favorite_url",
             icon="star",
-            method="GET",
+            method="get",
             primary=False,
+            enabled_when=lambda req, run: not run.is_in_favorites(req.user),
+        ),
+        Action(
+            label="Remove from favorites",
+            url="get_favorite_url",
+            icon="trash",
+            method="post",
+            primary=False,
+            enabled_when=lambda req, run: run.is_in_favorites(req.user),
         ),
         Action(
             label="Configure and re-run", url="get_clone_url", icon="play", method="GET"
@@ -190,7 +199,7 @@ class DAGRunCard(Datacard):
     @staticmethod
     def get_favorite_url(run: DAGRun):
         return reverse(
-            "connector_airflow:dag_run_favorite",
+            "connector_airflow:dag_run_toggle_favorite",
             kwargs={"dag_id": run.dag.id, "dag_run_id": run.id},
         )
 

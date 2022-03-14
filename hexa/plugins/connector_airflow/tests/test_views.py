@@ -613,7 +613,7 @@ class ViewsTest(TestCase):
         )
 
     @responses.activate
-    def test_dag_run_favorite_get_200(self):
+    def test_dag_run_toggle_favorite_get_200(self):
         cluster = Cluster.objects.create(
             name="Favorite cluster", url="https://favorite-cluster-url.com"
         )
@@ -633,7 +633,7 @@ class ViewsTest(TestCase):
 
         response = self.client.get(
             reverse(
-                "connector_airflow:dag_run_favorite",
+                "connector_airflow:dag_run_toggle_favorite",
                 kwargs={"dag_id": dag.id, "dag_run_id": run.id},
             ),
         )
@@ -642,7 +642,7 @@ class ViewsTest(TestCase):
         self.assertEqual(run, response.context["dag_run"])
 
     @responses.activate
-    def test_dag_run_favorite_post_302(self):
+    def test_dag_run_toggle_favorite_post_302(self):
         cluster = Cluster.objects.create(
             name="Second favorite cluster",
             url="https://second-favorite-cluster-url.com",
@@ -661,27 +661,43 @@ class ViewsTest(TestCase):
 
         self.client.force_login(self.USER_TAYLOR)
 
-        for _ in range(2):
-            response = self.client.post(
-                reverse(
-                    "connector_airflow:dag_run_favorite",
-                    kwargs={"dag_id": dag.id, "dag_run_id": run.id},
-                ),
-                data={
-                    "name": "My favorite DAG run",
-                },
-            )
-            self.assertRedirects(
-                response,
-                reverse(
-                    "connector_airflow:dag_run_detail",
-                    kwargs={"dag_id": dag.id, "dag_run_id": run.id},
-                ),
-                status_code=302,
-            )
-            self.assertEqual(1, DAGRunFavorite.objects.count())
-            self.assertEqual(
-                "My favorite DAG run",
-                DAGRunFavorite.objects.get(dag_run=run, user=self.USER_TAYLOR).name,
-            )
-            self.assertTrue(run.is_in_favorites(self.USER_TAYLOR))
+        add_response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_toggle_favorite",
+                kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+            ),
+            data={
+                "name": "My favorite DAG run",
+            },
+        )
+        self.assertRedirects(
+            add_response,
+            reverse(
+                "connector_airflow:dag_run_detail",
+                kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+            ),
+            status_code=302,
+        )
+        self.assertEqual(1, DAGRunFavorite.objects.count())
+        self.assertEqual(
+            "My favorite DAG run",
+            DAGRunFavorite.objects.get(dag_run=run, user=self.USER_TAYLOR).name,
+        )
+        self.assertTrue(run.is_in_favorites(self.USER_TAYLOR))
+
+        delete_response = self.client.post(
+            reverse(
+                "connector_airflow:dag_run_toggle_favorite",
+                kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+            ),
+        )
+        self.assertRedirects(
+            delete_response,
+            reverse(
+                "connector_airflow:dag_run_detail",
+                kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+            ),
+            status_code=302,
+        )
+        self.assertEqual(0, DAGRunFavorite.objects.count())
+        self.assertFalse(run.is_in_favorites(self.USER_TAYLOR))

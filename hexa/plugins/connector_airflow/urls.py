@@ -42,7 +42,7 @@ urlpatterns = [
     ),
     path(
         "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>/favorite",
-        views.dag_run_favorite,
-        name="dag_run_favorite",
+        views.dag_run_toggle_favorite,
+        name="dag_run_toggle_favorite",
     ),
 ]

@@ -67,7 +67,7 @@ class BoundAction:
 
     def is_enabled(self, request: HttpRequest):
         if self.unbound_action.enabled_when:
-            return self.unbound_action.enabled_when(request)
+            return self.unbound_action.enabled_when(request, self.datacard.model)
 
         return True
 
