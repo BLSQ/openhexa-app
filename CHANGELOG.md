@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 0.28
+------------
+
+March 14, 2022
+
+### Added
+
+- User can star and unstar some pipeline runs to execute them easily later.
+
+### Updated
+
+- Collect and show pipeline run durations
+- DHIS2 credentials injection in notebooks
+
 Version 0.27
 ------------
 
