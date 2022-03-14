@@ -1,15 +1,15 @@
-import base64
-from typing import TYPE_CHECKING
+from __future__ import annotations
 
-if TYPE_CHECKING:
-    from hexa.pipelines.models import Pipeline
+import base64
+
+from hexa.pipelines import models
 
 
 class PipelinesConfiguration:
     """This class acts as a container for credentials to be provided to the pipelines component."""
 
-    def __init__(self, pipeline: "Pipeline"):
-        self.pipeline: "Pipeline" = pipeline
+    def __init__(self, pipeline: models.Pipeline):
+        self.pipeline: models.Pipeline = pipeline
         self.env: dict[str, str] = {}
         self.files: dict[str, bytes] = {}
         self.connectors_configuration: dict[str, dict[str, str]] = {}
