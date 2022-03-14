@@ -455,14 +455,19 @@ class DAGRun(Base, WithStatus):
                 self.duration = timezone.now() - self.execution_date
             self.save()
 
-    def toggle_favorite(
+    def add_to_favorites(
         self, *, user: User, name: typing.Optional[str]
-    ) -> typing.Optional["DAGRunFavorite"]:
+    ) -> "DAGRunFavorite":
         if self.is_in_favorites(user):
-            DAGRunFavorite.objects.get(user=user, dag_run=self).delete()
-            return None
+            raise ValueError("DAGRun is already in favorites")
 
         return DAGRunFavorite.objects.create(user=user, dag_run=self, name=name)
+
+    def remove_from_favorites(self, *, user: User):
+        if not self.is_in_favorites(user):
+            raise ValueError("DAGRun is not in favorites")
+
+        DAGRunFavorite.objects.get(user=user, dag_run=self).delete()
 
     def is_in_favorites(self, user: User):
         try:

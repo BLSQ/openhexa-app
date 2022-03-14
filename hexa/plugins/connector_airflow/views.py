@@ -243,7 +243,10 @@ def dag_run_toggle_favorite(
     )
 
     if request.method == "POST":
-        dag_run.toggle_favorite(user=request.user, name=request.POST.get("name"))
+        if dag_run.is_in_favorites(request.user):
+            dag_run.remove_from_favorites(user=request.user)
+        else:
+            dag_run.add_to_favorites(user=request.user, name=request.POST.get("name"))
 
         return redirect(
             reverse(
