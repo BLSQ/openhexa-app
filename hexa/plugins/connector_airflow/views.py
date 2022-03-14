@@ -103,7 +103,7 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
     ]
 
     return render(
@@ -160,7 +160,7 @@ def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
         (_("Run with config"),),
     ]
 
@@ -195,8 +195,8 @@ def dag_run_detail(
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
-        (f"Run {dag_run.run_id}",),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
+        (_("Run %(run_id)s" % {"run_id": dag_run.run_id}),),
     ]
 
     return render(
@@ -227,3 +227,37 @@ def dag_run_detail_refresh(
         logger.exception(f"Refresh failed for DAGRun {dag_run.id}")
 
     return dag_run_detail(request, dag_id=dag_id, dag_run_id=dag_run_id)
+
+
+def dag_run_favourite(
+    request: HttpRequest,
+    dag_id: uuid.UUID,
+    dag_run_id: uuid.UUID,
+) -> HttpResponse:
+    dag = get_object_or_404(
+        DAG.objects.prefetch_indexes().filter_for_user(request.user), pk=dag_id
+    )
+    dag_run = get_object_or_404(
+        DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
+    )
+
+    breadcrumbs = [
+        (_("Data Pipelines"), "pipelines:index"),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
+        (
+            _("Run %(run_id)s" % {"run_id": dag_run.run_id}),
+            "connector_airflow:dag_run_detail",
+            dag_id,
+            dag_run_id,
+        ),
+        ("Add to favourites",),
+    ]
+
+    return render(
+        request,
+        "connector_airflow/dag_run_favourite.html",
+        {
+            "dag_run": dag_run,
+            "breadcrumbs": breadcrumbs,
+        },
+    )
