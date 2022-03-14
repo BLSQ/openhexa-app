@@ -43,7 +43,7 @@ class ConnectorDhis2Test(TestCase):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
             url="https://play.dhis2.org.invalid",
         )
-        InstancePermission.objects.create(
+        cls.PERMISSION = InstancePermission.objects.create(
             team=cls.TEAM, instance=cls.DHIS2_INSTANCE_PLAY
         )
         cls.DATA_ELEMENT_1 = DataElement.objects.create(
@@ -390,3 +390,48 @@ class ConnectorDhis2Test(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["dataset"], DataSet)
         self.assertIsInstance(response.context["dataset_card"], DatasetCard)
+
+    def test_instance_superuser_code_sample(self):
+        """As a superuser, Kristen can see the code sample."""
+
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Usage in Python")
+
+    def test_instance_code_sample(self):
+        """As a normal user, Bjorn can not see the code sample by default."""
+
+        self.TEAM.members.add(self.USER_BJORN)
+
+        self.client.force_login(self.USER_BJORN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Usage in Python")
+
+    def test_instance_code_sample_with_permission(self):
+        """As a normal user, Bjorn can see the code sample if given the permission"""
+
+        self.TEAM.members.add(self.USER_BJORN)
+        self.PERMISSION.enable_notebooks_credentials = True
+        self.PERMISSION.save()
+
+        self.client.force_login(self.USER_BJORN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:instance_detail",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.pk},
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Usage in Python")

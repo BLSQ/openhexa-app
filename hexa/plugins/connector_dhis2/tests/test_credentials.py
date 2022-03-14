@@ -46,7 +46,7 @@ class CredentialsTest(TestCase):
             ),
         )
         InstancePermission.objects.create(
-            instance=cls.INSTANCE_1, team=cls.TEAM, show_credentials=True
+            instance=cls.INSTANCE_1, team=cls.TEAM, enable_notebooks_credentials=True
         )
         InstancePermission.objects.create(instance=cls.INSTANCE_2, team=cls.TEAM)
 
@@ -62,6 +62,9 @@ class CredentialsTest(TestCase):
         )
 
     def test_credentials_200_regular_user(self):
+        """
+        A regular should get credentials for the instances he has credentials
+        permissions for. (instance1 and not instance2 or instance3)"""
         self.client.force_login(self.REGULAR_USER)
         response = self.client.post(reverse("notebooks:credentials"))
 
@@ -71,3 +74,12 @@ class CredentialsTest(TestCase):
             "instance1",
             response_data["env"]["DHIS2_INSTANCES_SLUGS"],
         )
+
+        # REGULAR_USER has permission + enable_notebooks_credentials
+        self.assertIn("DHIS2_INSTANCE1_PASSWORD", response_data["env"])
+
+        # REGULAR_USER has permission but not enable_notebooks_credentials
+        self.assertNotIn("DHIS2_INSTANCE2_PASSWORD", response_data["env"])
+
+        # REGULAR_USER has no permission
+        self.assertNotIn("DHIS2_INSTANCE3_PASSWORD", response_data["env"])

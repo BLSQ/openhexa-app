@@ -8,8 +8,8 @@ from django.db.models import QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from slugify import slugify
 
 from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.core.models import Base, Permission
@@ -107,7 +107,7 @@ class Instance(Datasource):
         return self.name if self.name != "" else self.url
 
     @property
-    def env_name(self):
+    def notebooks_credentials_prefix(self):
         slug = self.slug.replace("-", "_").upper()
         return f"DHIS2_{slug}"
 
@@ -226,7 +226,7 @@ class Instance(Datasource):
 
 class InstancePermission(Permission):
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
-    show_credentials = models.BooleanField(
+    enable_notebooks_credentials = models.BooleanField(
         default=False, help_text="Should the user have access to the API credentials?"
     )
 

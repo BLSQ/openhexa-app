@@ -99,4 +99,4 @@ class DataSetAdmin(admin.ModelAdmin):
 
 @admin.register(InstancePermission)
 class InstancePermissionAdmin(admin.ModelAdmin):
-    list_display = ("instance", "team", "show_credentials")
+    list_display = ("instance", "team", "enable_notebooks_credentials")

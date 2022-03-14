@@ -10,15 +10,17 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
     instances = Instance.objects.filter_for_user(credentials.user)
     if not (credentials.user.is_active and credentials.user.is_superuser):
-        instances = instances.filter(instancepermission__show_credentials=True)
+        instances = instances.filter(
+            instancepermission__enable_notebooks_credentials=True
+        )
 
     if len(instances) > 0:
         for instance in instances:
             credentials.update_env(
                 {
-                    f"{instance.env_name}_URL": instance.api_credentials.api_url,
-                    f"{instance.env_name}_USERNAME": instance.api_credentials.username,
-                    f"{instance.env_name}_PASSWORD": instance.api_credentials.password,
+                    f"{instance.notebooks_credentials_prefix}_URL": instance.api_credentials.api_url,
+                    f"{instance.notebooks_credentials_prefix}_USERNAME": instance.api_credentials.username,
+                    f"{instance.notebooks_credentials_prefix}_PASSWORD": instance.api_credentials.password,
                 }
             )
 

@@ -4,6 +4,7 @@ import typing
 
 from django import forms
 from django.contrib import messages
+from django.http import HttpRequest
 from django.template import loader
 from django.utils.translation import gettext_lazy as _
 
@@ -150,6 +151,9 @@ class Section(DatacardComponent, metaclass=SectionMeta):
     def template(self):
         return "ui/datacard/section.html"
 
+    def is_enabled(self, request: HttpRequest, model):
+        return True
+
 
 class BoundSection:
     def __init__(self, unbound_section: Section, *, datacard: Datacard) -> None:
@@ -157,6 +161,9 @@ class BoundSection:
         self.datacard = datacard
         self.form = self.build_form()
         self.properties = [p.bind(self) for p in self.unbound_section.properties]
+
+    def is_enabled(self, request: HttpRequest, model):
+        return self.unbound_section.is_enabled(request, model)
 
     def build_form(self):
         editable_properties = [p for p in self.unbound_section.properties if p.editable]
@@ -199,15 +206,18 @@ class BoundSection:
         return self.datacard.request
 
     def __str__(self):
-        template = loader.get_template("ui/datacard/section.html")
+        if self.is_enabled(self.datacard.request, self.model):
+            template = loader.get_template("ui/datacard/section.html")
 
-        context = {
-            "name": self.unbound_section.name,
-            "title": _(self.unbound_section.title)
-            if self.unbound_section.title is not None
-            else None,
-            "properties": self.properties,
-            "editable": any(p.editable for p in self.properties),
-        }
+            context = {
+                "name": self.unbound_section.name,
+                "title": _(self.unbound_section.title)
+                if self.unbound_section.title is not None
+                else None,
+                "properties": self.properties,
+                "editable": any(p.editable for p in self.properties),
+            }
 
-        return template.render(context, request=self.datacard.request)
+            return template.render(context, request=self.datacard.request)
+        else:
+            return ""

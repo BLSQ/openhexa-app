@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.http import HttpRequest
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -33,19 +34,26 @@ class UsageSection(Section):
         label="Usage in Python", code="get_python_usage", language="python"
     )
 
+    def is_enabled(self, request: HttpRequest, model):
+        if request.user.is_active and request.user.is_superuser:
+            return True
+
+        return model.instancepermission_set.get().enable_notebooks_credentials
+
     def get_python_usage(self, item: Instance):
         return """
-%pip install --upgrade git+https://@github.com/blsq/blsq_dqapp.git
+%pip install dhis2.py
 
-from blsq_dqapp.metadata_extraction import Dhis2Client
+from dhis2 import Api
 
-client = Dhis2Client(
-    url=os.environ["{{ instance.env_name }}_URL"],
-    username=os.environ["{{ instance.env_name }}_USERNAME"],
-    password=os.environ["{{ instance.env_name }}_PASSWORD"],
+client = Api(
+    server=os.environ["{{ instance.notebooks_credentials_prefix }}_URL"],
+    username=os.environ["{{ instance.notebooks_credentials_prefix }}_USERNAME"],
+    password=os.environ["{{ instance.notebooks_credentials_prefix }}_PASSWORD"],
 )
             """.replace(
-            "{{ instance.env_name }}", item.env_name
+            "{{ instance.notebooks_credentials_prefix }}",
+            item.notebooks_credentials_prefix,
         )
 
 
@@ -57,7 +65,6 @@ class InstanceCard(Datacard):
 
     external = InstanceSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    # FIXME: this should be shown only if the user has permission to see the credentials
     usage = UsageSection()
 
     @property
