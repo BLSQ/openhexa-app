@@ -4,6 +4,7 @@ from hexa.ui.datagrid import (
     CountryColumn,
     Datagrid,
     DateColumn,
+    DurationColumn,
     LeadingColumn,
     LinkColumn,
     StatusColumn,
@@ -39,6 +40,7 @@ class DAGRunGrid(Datagrid):
     execution_date = DateColumn(date="execution_date", label="Execution date")
     user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
+    duration = DurationColumn(duration="duration")
 
     view = LinkColumn(text="View")
 

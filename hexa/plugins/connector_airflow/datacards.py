@@ -154,6 +154,13 @@ class DAGRunCard(Datacard):
             enabled_when=lambda r: r.user.is_superuser,
         ),
         Action(
+            label="Add to favourites",
+            url="get_favourites_url",
+            icon="star",
+            method="GET",
+            primary=False,
+        ),
+        Action(
             label="Configure and re-run", url="get_clone_url", icon="play", method="GET"
         ),
     ]
