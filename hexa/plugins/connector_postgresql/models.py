@@ -60,7 +60,7 @@ class Database(Datasource):
             return self.database
 
     @property
-    def env_name(self):
+    def notebooks_credentials_prefix(self):
         slug = self.unique_name.replace("-", "_").upper()
         return f"POSTGRESQL_{slug}"
 

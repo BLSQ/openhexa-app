@@ -31,7 +31,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine(os.environ["{{ datasource.env_name }}_URL"])
+engine = create_engine(os.environ["{{ datasource.notebooks_credentials_prefix }}_URL"])
 
 # Create sample dataframe
 df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
@@ -42,7 +42,8 @@ df.to_sql("database_tutorial", con=engine, if_exists="replace")
 # Read data
 pd.read_sql("SELECT * FROM database_tutorial", con=engine)
             """.replace(
-            "{{ datasource.env_name }}", item.env_name
+            "{{ datasource.notebooks_credentials_prefix }}",
+            item.notebooks_credentials_prefix,
         )
 
     def get_r_usage(self, item: Database):
@@ -51,16 +52,17 @@ library(DBI)
 
 con <- dbConnect(
     RPostgres::Postgres(),
-    dbname = Sys.getenv("{{ datasource.env_name }}_DATABASE"),
-    host = Sys.getenv("{{ datasource.env_name }}_HOSTNAME"),
-    port = Sys.getenv("{{ datasource.env_name }}_PORT"),
-    user = Sys.getenv("{{ datasource.env_name }}_USERNAME"),
-    password = Sys.getenv("{{ datasource.env_name }}_PASSWORD")
+    dbname = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_DATABASE"),
+    host = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_HOSTNAME"),
+    port = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_PORT"),
+    user = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_USERNAME"),
+    password = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_PASSWORD")
 )
 
 dbWriteTable(con, "some_table_name", Data_fin, overwrite=TRUE)
             """.replace(
-            "{{ datasource.env_name }}", item.env_name
+            "{{ datasource.notebooks_credentials_prefix }}",
+            item.notebooks_credentials_prefix,
         )
 
 

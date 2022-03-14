@@ -15,6 +15,7 @@
     "pk": "51f8e7b8-6308-462b-8b8b-0d9112ace4b4",
     "fields": {
       "name": "DHIS2 Play",
+      "slug": "play",
       "last_synced_at": null,
       "locale": "en",
       "created_at": "2021-01-25T15:55:37.392Z",
@@ -39,6 +40,7 @@
     "pk": "820ac04a-beec-4b6e-8dd4-5f62eebba811",
     "fields": {
       "name": "WHO Aggregate Package Demo Instance",
+      "slug": "who-aggregate-demo",
       "last_synced_at": null,
       "locale": "en",
       "created_at": "2021-04-08T07:57:46.486Z",
@@ -63,6 +65,7 @@
     "pk": "893656f4-c14d-44f5-adcb-957e57762e98",
     "fields": {
       "name": "WHO Tracker Package Demo Instance",
+      "slug": "who-tracker-demo",
       "last_synced_at": null,
       "locale": "en",
       "created_at": "2021-04-08T07:59:13.273Z",

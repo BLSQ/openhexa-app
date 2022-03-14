@@ -16,12 +16,12 @@ def notebooks_credentials(credentials: NotebooksCredentials):
         for database in databases:
             credentials.update_env(
                 {
-                    f"{database.env_name}_HOSTNAME": database.hostname,
-                    f"{database.env_name}_USERNAME": database.username,
-                    f"{database.env_name}_PASSWORD": database.password,
-                    f"{database.env_name}_DATABASE": database.database,
-                    f"{database.env_name}_PORT": str(database.port),
-                    f"{database.env_name}_URL": database.url,
+                    f"{database.notebooks_credentials_prefix}_HOSTNAME": database.hostname,
+                    f"{database.notebooks_credentials_prefix}_USERNAME": database.username,
+                    f"{database.notebooks_credentials_prefix}_PASSWORD": database.password,
+                    f"{database.notebooks_credentials_prefix}_DATABASE": database.database,
+                    f"{database.notebooks_credentials_prefix}_PORT": str(database.port),
+                    f"{database.notebooks_credentials_prefix}_URL": database.url,
                 }
             )
             pgpass_lines.append(
