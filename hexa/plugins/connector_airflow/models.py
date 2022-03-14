@@ -3,10 +3,12 @@ import typing
 import uuid
 from base64 import b64encode
 from enum import Enum
+from functools import cache
 from logging import getLogger
 from time import sleep
 from urllib.parse import urljoin
 
+import django.apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -19,6 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from hexa.catalog.models import Datasource
 from hexa.core.models import Base, Permission, WithStatus
 from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
@@ -346,14 +349,13 @@ class DAG(Pipeline):
         )
 
     def build_dag_config(self):
-        credentials = []
-        for ds in self.authorized_datasources.all():
-            credential = ds.datasource.get_pipeline_credentials()
-            credential["label"] = ds.label
-            credentials.append(credential)
+        pipeline_configuration = self.get_configuration()
+
         return {
             "dag_id": self.dag_id,
-            "credentials": credentials,
+            # FIXME: also send the files
+            "credentials": pipeline_configuration.env,
+            "connector_configuration": pipeline_configuration.connectors_configuration,
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule if self.schedule else None,
@@ -368,14 +370,37 @@ class DAG(Pipeline):
         )
 
 
+@cache
+def limit_data_source_types():
+    all_models = django.apps.apps.get_models()
+    datasources = [x for x in all_models if issubclass(x, Datasource)]
+    names = [x.__name__.lower() for x in datasources]
+    return {"model__in": names}
+
+
 class DAGAuthorizedDatasource(Base):
     dag = models.ForeignKey(
         "DAG", on_delete=models.CASCADE, related_name="authorized_datasources"
     )
-    datasource_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    datasource_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=limit_data_source_types,
+    )
     datasource_id = models.UUIDField()
     datasource = GenericForeignKey("datasource_type", "datasource_id")
-    label = models.CharField(max_length=200, default="datasource")
+    label = models.CharField(
+        max_length=200, blank=True, null=True
+    )  # blank and null needed to allow for multiple empty labels per dag
+    # https://docs.djangoproject.com/en/4.0/ref/models/fields/#django.db.models.Field.null
+
+    class Meta:
+        unique_together = [
+            ("dag", "label"),
+        ]
+
+    def __str__(self):
+        return f'Access to "{self.datasource}" ({self.datasource._meta.verbose_name}) for DAG "{self.dag}"'
 
 
 class DAGPermission(Permission):

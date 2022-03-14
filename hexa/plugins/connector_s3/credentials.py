@@ -2,9 +2,20 @@ import base64
 import hashlib
 import json
 
-from hexa.notebooks.credentials import NotebooksCredentials, NotebooksCredentialsError
-from hexa.plugins.connector_s3.api import generate_sts_user_s3_credentials
-from hexa.plugins.connector_s3.models import Bucket, BucketPermissionMode, Credentials
+from django.contrib.contenttypes.models import ContentType
+
+from hexa.notebooks.credentials import NotebooksCredentials
+from hexa.pipelines.credentials import PipelinesConfiguration
+from hexa.plugins.connector_s3.api import (
+    _build_iam_client,
+    _get_credentials,
+    attach_policy,
+    generate_s3_policy,
+    generate_sts_user_s3_credentials,
+    get_or_create_role,
+    parse_arn,
+)
+from hexa.plugins.connector_s3.models import Bucket, BucketPermissionMode
 
 
 def notebooks_credentials(credentials: NotebooksCredentials):
@@ -19,12 +30,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
     # We only need to generate s3 credentials if the user has access to one or more buckets
     if ro_buckets or rw_buckets:
-        try:
-            principal_s3_credentials = Credentials.objects.get()
-        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
-            raise NotebooksCredentialsError(
-                "Your s3 connector plugin should have a single credentials entry"
-            )
+        principal_s3_credentials = _get_credentials()
 
         session_identifier = str(credentials.user.id)
         if credentials.user.is_superuser:
@@ -88,3 +94,57 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                     "HEXA_FEATURE_FLAG_S3FS": "true",
                 }
             )
+
+
+def pipelines_credentials(credentials: PipelinesConfiguration):
+    """
+    Provides the notebooks credentials data that allows users to access S3 buckets
+    in the pipelines component.
+    """
+    env = {}
+
+    authorized_datasources = credentials.pipeline.authorized_datasources.filter(
+        datasource_type=ContentType.objects.get_for_model(Bucket)
+    )
+    buckets = [x.datasource for x in authorized_datasources]
+
+    if not buckets:
+        return
+
+    principal_s3_credentials = _get_credentials()
+    iam_client = _build_iam_client(principal_credentials=principal_s3_credentials)
+
+    principal_role_path = parse_arn(principal_s3_credentials.app_role_arn)["resource"]
+    pipeline_app = credentials.pipeline._meta.app_label
+    pipeline_role_path = f"/{principal_role_path}/pipelines/{pipeline_app}/"
+
+    role_data = get_or_create_role(
+        principal_credentials=principal_s3_credentials,
+        role_path=pipeline_role_path,
+        role_name=str(credentials.pipeline.id),
+        description=f'Role used to run the pipeline "{credentials.pipeline}" ({credentials.pipeline._meta.verbose_name})',
+    )
+
+    attach_policy(
+        iam_client=iam_client,
+        role_name=role_data["Role"]["RoleName"],
+        policy_name="s3-access",
+        document=generate_s3_policy(
+            read_write_bucket_names=[b.name for b in buckets], read_only_bucket_names=[]
+        ),
+    )
+
+    if principal_s3_credentials.default_region != "":
+        env["AWS_DEFAULT_REGION"] = principal_s3_credentials.default_region
+
+    env["AWS_S3_BUCKET_NAMES"] = ",".join(b.name for b in buckets)
+
+    for authorized_bucket in authorized_datasources:
+        if authorized_bucket.label:
+            label = authorized_bucket.label.replace("-", "_").upper()
+            env[f"AWS_BUCKET_{label}_NAME"] = authorized_bucket.datasource.name
+
+    credentials.env.update(env)
+    credentials.connectors_configuration["connector_s3"] = {
+        "AWS_S3_ROLE_ARN": role_data["Role"]["Arn"]
+    }

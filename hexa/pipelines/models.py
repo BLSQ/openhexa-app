@@ -6,6 +6,8 @@ from django.db import models
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.pipelines.credentials import PipelinesConfiguration
+from hexa.plugins.app import get_connector_app_configs
 
 
 class Index(BaseIndex):
@@ -85,6 +87,16 @@ class Pipeline(IndexableMixin, models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.build_index()
+
+    def get_configuration(self) -> PipelinesConfiguration:
+        pipelines_configuration = PipelinesConfiguration(self)
+
+        for app_config in get_connector_app_configs():
+            credentials_functions = app_config.get_pipelines_configuration()
+            for credentials_function in credentials_functions:
+                credentials_function(pipelines_configuration)
+
+        return pipelines_configuration
 
 
 class EnvironmentsSyncJob(BaseJob):

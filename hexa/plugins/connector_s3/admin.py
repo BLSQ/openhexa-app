@@ -9,9 +9,10 @@ class CredentialsAdmin(admin.ModelAdmin):
     search_fields = ("username",)
 
 
-class PermissionInline(admin.StackedInline):
+class PermissionInline(admin.TabularInline):
     extra = 1
     model = BucketPermission
+    verbose_name = "Team permission"
 
 
 @admin.register(Bucket)

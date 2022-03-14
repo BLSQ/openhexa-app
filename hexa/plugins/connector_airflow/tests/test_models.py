@@ -169,21 +169,22 @@ class DagTemplateTest(TestCase):
         )
 
     def test_build_dag_config(self):
+        self.maxDiff = None
         self.assertEqual(
             self.TEMPLATE_CHIRPS.build_dag_config(),
             [
                 {
                     "dag_id": "chirps_extract_ct1",
-                    "credentials": [
-                        {
-                            "hostname": "127.0.0.1",
-                            "username": "ct1-user",
-                            "password": "password",
-                            "port": 5432,
-                            "database": "ct1-db",
-                            "label": "datasource",
-                        }
-                    ],
+                    "connector_configuration": {},
+                    "credentials": {
+                        "POSTGRESQL_CT1_DB_HOSTNAME": "127.0.0.1",
+                        "POSTGRESQL_CT1_DB_USERNAME": "ct1-user",
+                        "POSTGRESQL_CT1_DB_PASSWORD": "password",
+                        "POSTGRESQL_CT1_DB_PORT": "5432",
+                        "POSTGRESQL_CT1_DB_DATABASE": "ct1-db",
+                        "POSTGRESQL_CT1_DB_URL": "postgresql://ct1-user:password@127.0.0.1:5432/ct1-db",
+                        "POSTGRESQL_DATABASE_NAMES": "CT1_DB",
+                    },
                     "static_config": {
                         "code": "CT1",
                         "contours": "s3://invalid@/geodata/ct1.gpkg",
@@ -197,16 +198,16 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "chirps_extract_ct2",
-                    "credentials": [
-                        {
-                            "hostname": "127.0.0.1",
-                            "username": "ct2-user",
-                            "password": "password",
-                            "port": 5432,
-                            "database": "ct2-db",
-                            "label": "datasource",
-                        }
-                    ],
+                    "connector_configuration": {},
+                    "credentials": {
+                        "POSTGRESQL_CT2_DB_HOSTNAME": "127.0.0.1",
+                        "POSTGRESQL_CT2_DB_USERNAME": "ct2-user",
+                        "POSTGRESQL_CT2_DB_PASSWORD": "password",
+                        "POSTGRESQL_CT2_DB_PORT": "5432",
+                        "POSTGRESQL_CT2_DB_DATABASE": "ct2-db",
+                        "POSTGRESQL_CT2_DB_URL": "postgresql://ct2-user:password@127.0.0.1:5432/ct2-db",
+                        "POSTGRESQL_DATABASE_NAMES": "CT2_DB",
+                    },
                     "static_config": {
                         "code": "CT2",
                         "contours": "s3://invalid@/geodata/ct2.gpkg",
@@ -225,30 +226,26 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "dhis2_extract_ct1",
-                    "credentials": [
-                        {
-                            "name": "play ct1",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct1",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "connector_configuration": {},
+                    "credentials": {
+                        "DHIS2_INSTANCES_SLUGS": "PLAY_CT1",
+                        "DHIS2_PLAY_CT1_URL": "https://play.invalid/",
+                        "DHIS2_PLAY_CT1_USERNAME": "admin_ct1",
+                        "DHIS2_PLAY_CT1_PASSWORD": "password",
+                    },
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
                 },
                 {
                     "dag_id": "dhis2_extract_ct2",
-                    "credentials": [
-                        {
-                            "name": "play ct2",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct2",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "connector_configuration": {},
+                    "credentials": {
+                        "DHIS2_INSTANCES_SLUGS": "PLAY_CT2",
+                        "DHIS2_PLAY_CT2_URL": "https://play.invalid/",
+                        "DHIS2_PLAY_CT2_USERNAME": "admin_ct2",
+                        "DHIS2_PLAY_CT2_PASSWORD": "password",
+                    },
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
@@ -260,22 +257,21 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "papermill_manual",
-                    "credentials": [],
+                    "credentials": {},
+                    "connector_configuration": {},
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
                 },
                 {
                     "dag_id": "prj1_update",
-                    "credentials": [
-                        {
-                            "name": "play ct1",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct1",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "connector_configuration": {},
+                    "credentials": {
+                        "DHIS2_INSTANCES_SLUGS": "PLAY_CT1",
+                        "DHIS2_PLAY_CT1_URL": "https://play.invalid/",
+                        "DHIS2_PLAY_CT1_USERNAME": "admin_ct1",
+                        "DHIS2_PLAY_CT1_PASSWORD": "password",
+                    },
                     "static_config": {
                         "parameters": {},
                         "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
@@ -286,7 +282,8 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "prj2_update",
-                    "credentials": [],
+                    "connector_configuration": {},
+                    "credentials": {},
                     "static_config": {
                         "parameters": {},
                         "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",

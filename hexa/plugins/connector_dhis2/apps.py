@@ -11,6 +11,10 @@ class Dhis2ConnectorConfig(ConnectorAppConfig):
         "hexa.plugins.connector_dhis2.credentials.notebooks_credentials"
     ]
 
+    PIPELINES_CONFIGURATION = [
+        "hexa.plugins.connector_dhis2.credentials.pipelines_credentials"
+    ]
+
     @property
     def route_prefix(self):
         return "dhis2"

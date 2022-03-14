@@ -1,6 +1,8 @@
 from django.urls import reverse
 
 from hexa.core.test import TestCase
+from hexa.pipelines.tests.test_credentials import CredentialsTestCase
+from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
 from hexa.plugins.connector_dhis2.models import (
     Credentials,
     Instance,
@@ -9,7 +11,7 @@ from hexa.plugins.connector_dhis2.models import (
 from hexa.user_management.models import Membership, Team, User
 
 
-class CredentialsTest(TestCase):
+class NotebookCredentialsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.TEAM = Team.objects.create(name="Test Team")
@@ -57,7 +59,7 @@ class CredentialsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(
-            "instance1,instance2,instance3",
+            "INSTANCE1,INSTANCE2,INSTANCE3",
             response_data["env"]["DHIS2_INSTANCES_SLUGS"],
         )
 
@@ -71,7 +73,7 @@ class CredentialsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_data = response.json()
         self.assertEqual(
-            "instance1",
+            "INSTANCE1",
             response_data["env"]["DHIS2_INSTANCES_SLUGS"],
         )
 
@@ -83,3 +85,50 @@ class CredentialsTest(TestCase):
 
         # REGULAR_USER has no permission
         self.assertNotIn("DHIS2_INSTANCE3_PASSWORD", response_data["env"])
+
+
+class PipelinesCredentialsTest(CredentialsTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.INSTANCE = Instance.objects.create(
+            url="https://dhis2.example.com",
+            api_credentials=Credentials.objects.create(
+                api_url="https://dhis2.example.com",
+                username="test_username",
+                password="test_password",
+            ),
+            verbose_sync=True,
+            slug="play",
+        )
+
+    def test_single(self):
+        DAGAuthorizedDatasource.objects.create(
+            dag=self.PIPELINE, datasource=self.INSTANCE
+        )
+
+        self.assertEqual(
+            {
+                "DHIS2_INSTANCES_SLUGS": "PLAY",
+                "DHIS2_PLAY_PASSWORD": "test_password",
+                "DHIS2_PLAY_URL": "https://dhis2.example.com",
+                "DHIS2_PLAY_USERNAME": "test_username",
+            },
+            self.PIPELINE.get_configuration().env,
+        )
+
+    def test_label(self):
+        DAGAuthorizedDatasource.objects.create(
+            dag=self.PIPELINE, datasource=self.INSTANCE, label="label1"
+        )
+
+        self.assertEqual(
+            {
+                "DHIS2_INSTANCES_SLUGS": "LABEL1",
+                "DHIS2_LABEL1_PASSWORD": "test_password",
+                "DHIS2_LABEL1_URL": "https://dhis2.example.com",
+                "DHIS2_LABEL1_USERNAME": "test_username",
+            },
+            self.PIPELINE.get_configuration().env,
+        )

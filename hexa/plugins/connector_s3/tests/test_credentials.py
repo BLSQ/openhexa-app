@@ -8,12 +8,14 @@ from moto import mock_iam, mock_sts
 
 from hexa.core.test import TestCase
 from hexa.notebooks.credentials import NotebooksCredentials
+from hexa.pipelines.tests.test_credentials import CredentialsTestCase
+from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
 from hexa.plugins.connector_s3.credentials import notebooks_credentials
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import Feature, FeatureFlag, Team, User
 
 
-class CredentialsTest(TestCase):
+class NotebooksCredentialsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
@@ -133,3 +135,151 @@ class CredentialsTest(TestCase):
             self.assertEqual("hexa-test-bucket-", bucket_config["name"][:17])
             self.assertEqual("eu-central-1", bucket_config["region"])
             self.assertEqual("RW", bucket_config["mode"])
+
+
+class PipelinesCredentialsTest(CredentialsTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.CREDENTIALS = Credentials.objects.create(
+            username="hexa-app-test",
+            access_key_id="foo",
+            secret_access_key="bar",
+            default_region="eu-central-1",
+            user_arn="arn:aws:iam::111:user/hexa-app-unittest",
+            app_role_arn="arn:aws:iam::222:role/hexa-app-unittest",
+        )
+        cls.BUCKET = Bucket.objects.create(name="hexa-test-bucket-1")
+
+        cls.CLIENT = boto3.client(
+            "iam",
+            aws_access_key_id=cls.CREDENTIALS.access_key_id,
+            aws_secret_access_key=cls.CREDENTIALS.secret_access_key,
+        )
+
+    @mock_iam
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_new_role(self, _):
+        # Setup
+        DAGAuthorizedDatasource.objects.create(
+            dag=self.PIPELINE, datasource=self.BUCKET
+        )
+
+        # Test
+        configuration = self.PIPELINE.get_configuration()
+
+        # Check that we did create the role
+        roles_data = self.CLIENT.list_roles()
+        self.assertEqual(1, len(roles_data["Roles"]))
+
+        expected_role_name = str(self.PIPELINE.id)
+        self.assertEqual(expected_role_name, roles_data["Roles"][0]["RoleName"])
+
+        expected_role_path = "/hexa-app-unittest/pipelines/connector_airflow/"
+        self.assertEqual(expected_role_path, roles_data["Roles"][0]["Path"])
+
+        # Check that the role has the correct policies
+        policy_data = self.CLIENT.get_role_policy(
+            RoleName=expected_role_name, PolicyName="s3-access"
+        )
+        self.assertEqual(
+            policy_data["PolicyDocument"],
+            {
+                "Statement": [
+                    {
+                        "Action": "s3:*",
+                        "Effect": "Allow",
+                        "Resource": [
+                            "arn:aws:s3:::hexa-test-bucket-1",
+                            "arn:aws:s3:::hexa-test-bucket-1/*",
+                        ],
+                        "Sid": "S3AllActions",
+                    }
+                ],
+                "Version": "2012-10-17",
+            },
+        )
+
+        # Check that we do send the correct env variables
+        self.assertEqual(
+            {
+                "AWS_DEFAULT_REGION": "eu-central-1",
+                "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
+            },
+            configuration.env,
+        )
+
+        # And the correct configuration
+        self.assertEqual(
+            {"AWS_S3_ROLE_ARN": roles_data["Roles"][0]["Arn"]},
+            configuration.connectors_configuration["connector_s3"],
+        )
+
+    @mock_iam
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_existing_role(self, _):
+        """
+        When the role already exists, we should not create it again
+        But the policy should be updated
+        """
+
+        # Setup
+        self.CLIENT.create_role(
+            Path="/hexa-app-unittest/pipelines/",
+            RoleName=str(self.PIPELINE.id),
+            AssumeRolePolicyDocument="some document",
+        )
+
+        DAGAuthorizedDatasource.objects.create(
+            dag=self.PIPELINE, datasource=self.BUCKET
+        )
+
+        # Test
+        self.PIPELINE.get_configuration()
+
+        # Check that we did not create a new role
+        roles_data = self.CLIENT.list_roles()
+        self.assertEqual(1, len(roles_data["Roles"]))
+
+        # Check that the role has the correct policies
+        expected_role_name = str(self.PIPELINE.id)
+        policy_data = self.CLIENT.get_role_policy(
+            RoleName=expected_role_name, PolicyName="s3-access"
+        )
+        self.assertEqual(
+            policy_data["PolicyDocument"],
+            {
+                "Statement": [
+                    {
+                        "Action": "s3:*",
+                        "Effect": "Allow",
+                        "Resource": [
+                            "arn:aws:s3:::hexa-test-bucket-1",
+                            "arn:aws:s3:::hexa-test-bucket-1/*",
+                        ],
+                        "Sid": "S3AllActions",
+                    }
+                ],
+                "Version": "2012-10-17",
+            },
+        )
+
+    @mock_iam
+    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
+    def test_label(self, _):
+        DAGAuthorizedDatasource.objects.create(
+            dag=self.PIPELINE, datasource=self.BUCKET, label="label1"
+        )
+
+        # Test
+        configuration = self.PIPELINE.get_configuration()
+
+        self.assertEqual(
+            {
+                "AWS_DEFAULT_REGION": "eu-central-1",
+                "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
+                "AWS_BUCKET_LABEL1_NAME": "hexa-test-bucket-1",
+            },
+            configuration.env,
+        )
