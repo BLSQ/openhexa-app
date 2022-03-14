@@ -307,6 +307,24 @@ class TextColumn(Column):
         return data
 
 
+class BooleanColumn(Column):
+    """Simple boolean column"""
+
+    def __init__(self, *, value=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.value = value
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_boolean.html"
+
+    def context(self, model: DjangoModel, grid: Datagrid):
+        return {
+            "value": self.get_value(model, self.value, container=grid),
+        }
+
+
 class DateColumn(Column):
     """Date column, with one or two rows"""
 

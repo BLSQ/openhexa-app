@@ -154,7 +154,8 @@ class ViewsTest(TestCase):
         self.assertEqual(
             favorite_run, response.context["run_grid"].paginator.page(1)[0]
         )
-        self.assertEqual(1, response.context["run_grid"].paginator.page(1)[0].favorite)
+        self.assertTrue(response.context["run_grid"].paginator.page(1)[0].favorite)
+        self.assertFalse(response.context["run_grid"].paginator.page(1)[1].favorite)
 
     @responses.activate
     def test_dag_detail_refresh_200(self):
