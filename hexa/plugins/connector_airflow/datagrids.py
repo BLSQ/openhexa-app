@@ -1,9 +1,11 @@
 from django.utils.translation import gettext_lazy as _
 
 from hexa.ui.datagrid import (
+    BooleanColumn,
     CountryColumn,
     Datagrid,
     DateColumn,
+    DurationColumn,
     LeadingColumn,
     LinkColumn,
     StatusColumn,
@@ -39,6 +41,8 @@ class DAGRunGrid(Datagrid):
     execution_date = DateColumn(date="execution_date", label="Execution date")
     user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
+    duration = DurationColumn(duration="duration")
+    favorite = BooleanColumn(value="favorite")
 
     view = LinkColumn(text="View")
 

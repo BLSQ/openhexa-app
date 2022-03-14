@@ -5,6 +5,7 @@ from logging import getLogger
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
@@ -95,7 +96,8 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     run_grid = DAGRunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
-        .order_by("-execution_date"),
+        .with_favorite(request.user)
+        .order_by("-favorite", "-execution_date"),
         request=request,
         page=request.GET.get("run_page", "1"),
         page_parameter_name="run_page",
@@ -103,7 +105,7 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
     ]
 
     return render(
@@ -160,7 +162,7 @@ def dag_run_create(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
         (_("Run with config"),),
     ]
 
@@ -195,8 +197,8 @@ def dag_run_detail(
 
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
-        (dag, "connector_airflow:dag_detail", dag_id),
-        (f"Run {dag_run.run_id}",),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
+        (dag_run.run_id,),
     ]
 
     return render(
@@ -227,3 +229,51 @@ def dag_run_detail_refresh(
         logger.exception(f"Refresh failed for DAGRun {dag_run.id}")
 
     return dag_run_detail(request, dag_id=dag_id, dag_run_id=dag_run_id)
+
+
+def dag_run_toggle_favorite(
+    request: HttpRequest,
+    dag_id: uuid.UUID,
+    dag_run_id: uuid.UUID,
+) -> HttpResponse:
+    dag = get_object_or_404(
+        DAG.objects.prefetch_indexes().filter_for_user(request.user), pk=dag_id
+    )
+    dag_run = get_object_or_404(
+        DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
+    )
+
+    if request.method == "POST":
+        if dag_run.is_in_favorites(request.user):
+            dag_run.remove_from_favorites(request.user)
+        else:
+            dag_run.add_to_favorites(user=request.user, name=request.POST.get("name"))
+
+        return redirect(
+            reverse(
+                "connector_airflow:dag_run_detail",
+                kwargs={"dag_id": dag.id, "dag_run_id": dag_run.id},
+            )
+        )
+
+    breadcrumbs = [
+        (_("Data Pipelines"), "pipelines:index"),
+        (dag.dag_id, "connector_airflow:dag_detail", dag_id),
+        (
+            dag_run.run_id,
+            "connector_airflow:dag_run_detail",
+            dag_id,
+            dag_run_id,
+        ),
+        ("Add to favorites",),
+    ]
+
+    return render(
+        request,
+        "connector_airflow/dag_run_toggle_favorite.html",
+        {
+            "dag": dag,
+            "dag_run": dag_run,
+            "breadcrumbs": breadcrumbs,
+        },
+    )

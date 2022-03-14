@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
 
+from hexa.core.date_utils import duration_format
 from hexa.core.models.behaviors import Status
 from hexa.ui.utils import get_item_value
 
@@ -306,6 +307,24 @@ class TextColumn(Column):
         return data
 
 
+class BooleanColumn(Column):
+    """Simple boolean column"""
+
+    def __init__(self, *, value=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.value = value
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_boolean.html"
+
+    def context(self, model: DjangoModel, grid: Datagrid):
+        return {
+            "value": self.get_value(model, self.value, container=grid),
+        }
+
+
 class DateColumn(Column):
     """Date column, with one or two rows"""
 
@@ -337,6 +356,43 @@ class DateColumn(Column):
     def context(self, model: DjangoModel, grid: Datagrid):
         data = {
             "date": self.format_date(self.get_value(model, self.date, container=grid)),
+            "single": self.secondary_text is None,
+        }
+        if self.secondary_text is not None:
+            data.update(
+                secondary_text=self.get_value(
+                    model, self.secondary_text, container=grid
+                ),
+            )
+
+        return data
+
+
+class DurationColumn(Column):
+    """Duration column, with one or two rows"""
+
+    def __init__(self, *, duration=None, secondary_text=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.duration = duration
+        self.secondary_text = secondary_text
+
+    @property
+    def template(self):
+        return "ui/datagrid/column_duration.html"
+
+    @staticmethod
+    def format_duration(duration: datetime.timedelta):
+        if duration is None:
+            return duration
+
+        return duration_format(duration)
+
+    def context(self, model: DjangoModel, grid: Datagrid):
+        data = {
+            "duration": self.format_duration(
+                self.get_value(model, self.duration, container=grid)
+            ),
             "single": self.secondary_text is None,
         }
         if self.secondary_text is not None:
