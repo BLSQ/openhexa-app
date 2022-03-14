@@ -41,8 +41,8 @@ urlpatterns = [
         name="dag_run_detail_refresh",
     ),
     path(
-        "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>/favourite",
-        views.dag_run_favourite,
-        name="dag_run_favourite",
+        "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>/favorite",
+        views.dag_run_favorite,
+        name="dag_run_favorite",
     ),
 ]

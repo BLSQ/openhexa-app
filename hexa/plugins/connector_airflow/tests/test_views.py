@@ -15,6 +15,7 @@ from hexa.plugins.connector_airflow.models import (
     DAG,
     Cluster,
     DAGRun,
+    DAGRunFavorite,
     DAGRunState,
     DAGTemplate,
 )
@@ -610,3 +611,77 @@ class ViewsTest(TestCase):
         self.assertEqual(
             json.dumps({"bar": "baz"}, indent=2), response.context["sample_config"]
         )
+
+    @responses.activate
+    def test_dag_run_favorite_get_200(self):
+        cluster = Cluster.objects.create(
+            name="Favorite cluster", url="https://favorite-cluster-url.com"
+        )
+        template = DAGTemplate.objects.create(
+            cluster=cluster, code="FAVORITE", sample_config={}
+        )
+        dag = DAG.objects.create(template=template, dag_id="favorite")
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, "dags/favorite/dagRuns"),
+            json=dag_run_hello_world_1,
+            status=200,
+        )
+        run = dag.run(request=self.mock_request(self.USER_TAYLOR))
+
+        self.client.force_login(self.USER_TAYLOR)
+
+        response = self.client.get(
+            reverse(
+                "connector_airflow:dag_run_favorite",
+                kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+            ),
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(dag, response.context["dag"])
+        self.assertEqual(run, response.context["dag_run"])
+
+    @responses.activate
+    def test_dag_run_favorite_post_302(self):
+        cluster = Cluster.objects.create(
+            name="Second favorite cluster",
+            url="https://second-favorite-cluster-url.com",
+        )
+        template = DAGTemplate.objects.create(
+            cluster=cluster, code="FAVORITE_2", sample_config={}
+        )
+        dag = DAG.objects.create(template=template, dag_id="favorite_2")
+        responses.add(
+            responses.POST,
+            urljoin(cluster.api_url, "dags/favorite_2/dagRuns"),
+            json=dag_run_hello_world_1,
+            status=200,
+        )
+        run = dag.run(request=self.mock_request(self.USER_TAYLOR))
+
+        self.client.force_login(self.USER_TAYLOR)
+
+        for _ in range(2):
+            response = self.client.post(
+                reverse(
+                    "connector_airflow:dag_run_favorite",
+                    kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+                ),
+                data={
+                    "name": "My favorite DAG run",
+                },
+            )
+            self.assertRedirects(
+                response,
+                reverse(
+                    "connector_airflow:dag_run_detail",
+                    kwargs={"dag_id": dag.id, "dag_run_id": run.id},
+                ),
+                status_code=302,
+            )
+            self.assertEqual(1, DAGRunFavorite.objects.count())
+            self.assertEqual(
+                "My favorite DAG run",
+                DAGRunFavorite.objects.get(dag_run=run, user=self.USER_TAYLOR).name,
+            )
+            self.assertTrue(run.is_in_favorites(self.USER_TAYLOR))

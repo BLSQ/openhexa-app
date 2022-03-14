@@ -154,8 +154,8 @@ class DAGRunCard(Datacard):
             enabled_when=lambda r: r.user.is_superuser,
         ),
         Action(
-            label="Add to favourites",
-            url="get_favourite_url",
+            label="Add to favorites",
+            url="get_favorite_url",
             icon="star",
             method="GET",
             primary=False,
@@ -188,9 +188,9 @@ class DAGRunCard(Datacard):
         )
 
     @staticmethod
-    def get_favourite_url(run: DAGRun):
+    def get_favorite_url(run: DAGRun):
         return reverse(
-            "connector_airflow:dag_run_favourite",
+            "connector_airflow:dag_run_favorite",
             kwargs={"dag_id": run.dag.id, "dag_run_id": run.id},
         )
 

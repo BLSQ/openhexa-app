@@ -5,6 +5,7 @@ from logging import getLogger
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.metrics.decorators import do_not_track
@@ -229,7 +230,7 @@ def dag_run_detail_refresh(
     return dag_run_detail(request, dag_id=dag_id, dag_run_id=dag_run_id)
 
 
-def dag_run_favourite(
+def dag_run_favorite(
     request: HttpRequest,
     dag_id: uuid.UUID,
     dag_run_id: uuid.UUID,
@@ -241,6 +242,16 @@ def dag_run_favourite(
         DAGRun.objects.filter_for_user(request.user), pk=dag_run_id
     )
 
+    if request.method == "POST":
+        if not dag_run.is_in_favorites(request.user):
+            dag_run.add_to_favorites(user=request.user, name=request.POST["name"])
+        return redirect(
+            reverse(
+                "connector_airflow:dag_run_detail",
+                kwargs={"dag_id": dag.id, "dag_run_id": dag_run.id},
+            )
+        )
+
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (dag.dag_id, "connector_airflow:dag_detail", dag_id),
@@ -250,13 +261,14 @@ def dag_run_favourite(
             dag_id,
             dag_run_id,
         ),
-        ("Add to favourites",),
+        ("Add to favorites",),
     ]
 
     return render(
         request,
-        "connector_airflow/dag_run_favourite.html",
+        "connector_airflow/dag_run_favorite.html",
         {
+            "dag": dag,
             "dag_run": dag_run,
             "breadcrumbs": breadcrumbs,
         },

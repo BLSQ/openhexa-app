@@ -367,7 +367,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
-        self.assertEqual(True, r1["data"]["createAccessmodFileset"]["success"])
+        self.assertTrue(r1["data"]["createAccessmodFileset"]["success"])
         self.assertEqual(
             "A scary nâme!!!  😱",
             r1["data"]["createAccessmodFileset"]["fileset"]["name"],
@@ -448,7 +448,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
-        self.assertEqual(True, r3["data"]["createAccessmodFile"]["success"])
+        self.assertTrue(r3["data"]["createAccessmodFile"]["success"])
         self.assertEqual(file_uri, r3["data"]["createAccessmodFile"]["file"]["uri"])
         self.assertEqual(
             "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
@@ -482,7 +482,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             },
         )
-        self.assertEqual(True, r4["data"]["prepareAccessmodFileDownload"]["success"])
+        self.assertTrue(r4["data"]["prepareAccessmodFileDownload"]["success"])
         self.assertIn(
             f"https://{self.BUCKET.name}.s3.amazonaws.com/{self.SAMPLE_PROJECT_1.id}/{file.name}",
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
@@ -543,7 +543,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             {"success": True, "errors": []}, r["data"]["deleteAccessmodFileset"]
         )
-        self.assertEqual(False, Fileset.objects.filter(id=fileset.id).exists())
+        self.assertFalse(Fileset.objects.filter(id=fileset.id).exists())
 
     def test_delete_fileset_errors(self):
         self.client.force_login(self.USER_1)
@@ -619,7 +619,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             {"success": True, "errors": []}, r["data"]["deleteAccessmodFile"]
         )
-        self.assertEqual(False, File.objects.filter(id=file.id).exists())
+        self.assertFalse(File.objects.filter(id=file.id).exists())
         fileset.refresh_from_db()
         self.assertGreater(fileset.updated_at, original_fileset_updated_at)
 
