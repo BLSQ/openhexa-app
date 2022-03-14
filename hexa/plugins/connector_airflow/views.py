@@ -198,7 +198,7 @@ def dag_run_detail(
     breadcrumbs = [
         (_("Data Pipelines"), "pipelines:index"),
         (dag.dag_id, "connector_airflow:dag_detail", dag_id),
-        (_("Run %(run_id)s" % {"run_id": dag_run.run_id}),),
+        (dag_run.run_id,),
     ]
 
     return render(
@@ -260,7 +260,7 @@ def dag_run_toggle_favorite(
         (_("Data Pipelines"), "pipelines:index"),
         (dag.dag_id, "connector_airflow:dag_detail", dag_id),
         (
-            _("Run %(run_id)s" % {"run_id": dag_run.run_id}),
+            dag_run.run_id,
             "connector_airflow:dag_run_detail",
             dag_id,
             dag_run_id,
