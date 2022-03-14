@@ -136,7 +136,10 @@ class ViewsTest(TestCase):
         template = DAGTemplate.objects.create(cluster=cluster, code="TEST")
         dag = DAG.objects.create(template=template, dag_id="Test DAG")
         DAGRun.objects.create(dag=dag, execution_date=timezone.now())
-        DAGRun.objects.create(dag=dag, execution_date=timezone.now())
+        favorite_run = DAGRun.objects.create(
+            dag=dag, execution_date=timezone.now() - timedelta(hours=1)
+        )
+        favorite_run.add_to_favorites(user=self.USER_TAYLOR, name="My best run so far")
 
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.get(
@@ -148,6 +151,10 @@ class ViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.context["dag_card"], DAGCard)
         self.assertEqual(2, len(response.context["run_grid"]))
+        self.assertEqual(
+            favorite_run, response.context["run_grid"].paginator.page(1)[0]
+        )
+        self.assertEqual(1, response.context["run_grid"].paginator.page(1)[0].favorite)
 
     @responses.activate
     def test_dag_detail_refresh_200(self):

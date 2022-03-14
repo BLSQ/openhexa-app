@@ -488,7 +488,7 @@ class ModelsTest(TestCase):
         self.assertEqual(self.DAG_RUN, favorite.dag_run)
         self.assertEqual("My favorite run", favorite.name)
 
-        removed = self.DAG_RUN.remove_from_favorites(user=self.USER_REGULAR)
+        removed = self.DAG_RUN.remove_from_favorites(self.USER_REGULAR)
         self.assertIsNone(removed)
         self.assertFalse(self.DAG_RUN.is_in_favorites(self.USER_REGULAR))
 

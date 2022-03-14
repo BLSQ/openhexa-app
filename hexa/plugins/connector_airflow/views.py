@@ -96,7 +96,8 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     run_grid = DAGRunGrid(
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
-        .order_by("-execution_date"),
+        .with_favorite(request.user)
+        .order_by("-favorite", "-execution_date"),
         request=request,
         page=request.GET.get("run_page", "1"),
         page_parameter_name="run_page",
@@ -244,7 +245,7 @@ def dag_run_toggle_favorite(
 
     if request.method == "POST":
         if dag_run.is_in_favorites(request.user):
-            dag_run.remove_from_favorites(user=request.user)
+            dag_run.remove_from_favorites(request.user)
         else:
             dag_run.add_to_favorites(user=request.user, name=request.POST.get("name"))
 

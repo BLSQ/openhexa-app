@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.db import models, transaction
+from django.db.models import Exists, OuterRef, Prefetch
 from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -397,6 +398,16 @@ class DAGRunQuerySet(PipelinesQuerySet):
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
 
+    def with_favorite(self, user: User):
+        return self.prefetch_related(
+            Prefetch(
+                "dagrunfavorite_set",
+                queryset=DAGRunFavorite.objects.filter_for_user(user),
+            )
+        ).annotate(
+            favorite=Exists(DAGRunFavorite.objects.filter(dag_run=OuterRef("id")))
+        )
+
 
 class DAGRunState(models.TextChoices):
     SUCCESS = "success", _("Success")
@@ -463,7 +474,7 @@ class DAGRun(Base, WithStatus):
 
         return DAGRunFavorite.objects.create(user=user, dag_run=self, name=name)
 
-    def remove_from_favorites(self, *, user: User):
+    def remove_from_favorites(self, user: User):
         if not self.is_in_favorites(user):
             raise ValueError("DAGRun is not in favorites")
 
@@ -484,7 +495,14 @@ class DAGRun(Base, WithStatus):
             return Status.UNKNOWN
 
 
+class DAGRunFavoriteQuerySet(PipelinesQuerySet):
+    def filter_for_user(self, user: User):
+        return self.filter(user=user)
+
+
 class DAGRunFavorite(Base):
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
     dag_run = models.ForeignKey("DAGRun", on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
+
+    objects = DAGRunFavoriteQuerySet.as_manager()
