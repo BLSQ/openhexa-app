@@ -8,7 +8,7 @@ March 14, 2022
 
 ### Added
 
-- User can star and unstar some pipeline runs to execute them easily later.
+- User can add pipeline runs to favorites to easily retrieve them later and relaunch them
 
 ### Updated
 
