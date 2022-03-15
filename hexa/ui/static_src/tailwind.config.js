@@ -43,6 +43,9 @@ module.exports = {
         '../../**/*.py'
     ],
     theme: {
+        maxWidth: {
+            'xxs': '16rem',
+        },
         extend: {
             fontFamily: {
                 sans: ['Inter var', ...defaultTheme.fontFamily.sans],
