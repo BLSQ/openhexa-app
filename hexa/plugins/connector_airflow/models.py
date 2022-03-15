@@ -507,6 +507,9 @@ class DAGRunFavoriteQuerySet(PipelinesQuerySet):
 
 
 class DAGRunFavorite(Base):
+    class Meta:
+        unique_together = [("user", "dag_run")]
+
     user = models.ForeignKey("user_management.User", on_delete=models.CASCADE)
     dag_run = models.ForeignKey("DAGRun", on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
