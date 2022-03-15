@@ -1,9 +1,11 @@
 {% load i18n %}
 
-<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-    {% if value is True %}
-        {% translate "Yes" %}
-    {% elif value is False %}
-        {% translate "No" %}
-    {% endif %}
+<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+    <div class="flex items-center justify-center">
+        {% if value is True %}
+            {% include "ui/icons/check_circle.html" %}
+        {% elif value is False %}
+            -
+        {% endif %}
+    </div>
 </td>

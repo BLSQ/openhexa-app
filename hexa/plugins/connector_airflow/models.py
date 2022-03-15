@@ -13,7 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.db import models, transaction
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import OuterRef, Prefetch, Subquery
 from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -405,7 +405,13 @@ class DAGRunQuerySet(PipelinesQuerySet):
                 queryset=DAGRunFavorite.objects.filter_for_user(user),
             )
         ).annotate(
-            favorite=Exists(DAGRunFavorite.objects.filter(dag_run=OuterRef("id")))
+            favorite=Subquery(
+                DAGRunFavorite.objects.filter_for_user(user)
+                .filter(
+                    dag_run=OuterRef("id"),
+                )
+                .values("name")[:1]
+            ),
         )
 
 

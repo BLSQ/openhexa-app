@@ -97,7 +97,7 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
         DAGRun.objects.filter_for_user(request.user)
         .filter(dag=dag)
         .with_favorite(request.user)
-        .order_by("-favorite", "-execution_date"),
+        .order_by("favorite", "-execution_date"),
         request=request,
         page=request.GET.get("run_page", "1"),
         page_parameter_name="run_page",
