@@ -12,8 +12,9 @@ def forwards_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    """Migration 0024_instance_slug_and_permission_notebooks_credentials.py was modified after the fact because
-    it crashed our production instance. This one is necessary for our dev environments."""
+    """Migrations 0024_instance_slug_and_permission_notebooks_credentials.py  and 0025_instance_slug_unique.py were
+    modified after the fact because they crashed our production instance. This one is necessary for our dev
+    environments."""
 
     dependencies = [
         ("connector_dhis2", "0025_instance_slug_unique"),
