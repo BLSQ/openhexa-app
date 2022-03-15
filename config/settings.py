@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 import logging.config
 import os
 from pathlib import Path
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -175,6 +176,11 @@ if RAW_CORS_ALLOWED_ORIGINS is not None:
     CORS_ALLOWED_ORIGINS = RAW_CORS_ALLOWED_ORIGINS.split(",")
     CORS_URLS_REGEX = r"^/graphql/$"
     CORS_ALLOW_CREDENTIALS = True
+
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "sentry-trace",
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
