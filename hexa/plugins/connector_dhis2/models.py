@@ -75,7 +75,7 @@ class InstanceQuerySet(CatalogQuerySet):
 
 
 class Instance(Datasource):
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, max_length=200)
 
     def get_permission_set(self):
         return self.instancepermission_set.all()
