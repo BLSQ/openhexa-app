@@ -9,6 +9,7 @@ from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from slugify import slugify
 
 from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.core.models import Base, Permission
@@ -89,14 +90,25 @@ class Instance(Datasource):
     name = models.TextField(blank=True)
     locale = LocaleField(default="en")
     verbose_sync = models.BooleanField(default=False)
+    slug = models.SlugField(unique=True, max_length=200)
 
     objects = InstanceQuerySet.as_manager()
 
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
     @property
     def display_name(self):
         return self.name if self.name != "" else self.url
+
+    @property
+    def notebooks_credentials_prefix(self):
+        slug = self.slug.replace("-", "_").upper()
+        return f"DHIS2_{slug}"
 
     def __str__(self):
         return self.display_name
@@ -213,6 +225,9 @@ class Instance(Datasource):
 
 class InstancePermission(Permission):
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
+    enable_notebooks_credentials = models.BooleanField(
+        default=False, help_text="Should the user have access to the API credentials?"
+    )
 
     class Meta:
         unique_together = [("instance", "team")]

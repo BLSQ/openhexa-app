@@ -7,6 +7,10 @@ class Dhis2ConnectorConfig(ConnectorAppConfig):
 
     verbose_name = "DHIS2 Connector"
 
+    NOTEBOOKS_CREDENTIALS = [
+        "hexa.plugins.connector_dhis2.credentials.notebooks_credentials"
+    ]
+
     @property
     def route_prefix(self):
         return "dhis2"

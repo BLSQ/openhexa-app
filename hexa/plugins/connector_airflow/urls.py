@@ -40,4 +40,9 @@ urlpatterns = [
         views.dag_run_detail_refresh,
         name="dag_run_detail_refresh",
     ),
+    path(
+        "dag/<uuid:dag_id>/runs/<uuid:dag_run_id>/favorite",
+        views.dag_run_toggle_favorite,
+        name="dag_run_toggle_favorite",
+    ),
 ]

@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.http import HttpRequest
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -8,6 +9,7 @@ from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Action,
     BooleanProperty,
+    CodeProperty,
     Datacard,
     DateProperty,
     LocaleProperty,
@@ -25,6 +27,36 @@ class InstanceSection(Section):
     url = URLProperty(url="url")
 
 
+class UsageSection(Section):
+    title = "Code samples"
+
+    usage_python = CodeProperty(
+        label="Usage in Python", code="get_python_usage", language="python"
+    )
+
+    def is_enabled(self, request: HttpRequest, model):
+        if request.user.is_active and request.user.is_superuser:
+            return True
+
+        return model.instancepermission_set.get().enable_notebooks_credentials
+
+    def get_python_usage(self, item: Instance):
+        return """
+%pip install dhis2.py
+
+from dhis2 import Api
+
+client = Api(
+    server=os.environ["{{ instance.notebooks_credentials_prefix }}_URL"],
+    username=os.environ["{{ instance.notebooks_credentials_prefix }}_USERNAME"],
+    password=os.environ["{{ instance.notebooks_credentials_prefix }}_PASSWORD"],
+)
+            """.replace(
+            "{{ instance.notebooks_credentials_prefix }}",
+            item.notebooks_credentials_prefix,
+        )
+
+
 class InstanceCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
@@ -33,6 +65,7 @@ class InstanceCard(Datacard):
 
     external = InstanceSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    usage = UsageSection()
 
     @property
     def generic_description(self):

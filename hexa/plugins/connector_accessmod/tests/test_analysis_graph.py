@@ -117,7 +117,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             owner=cls.USER_1,
         )
         cls.DEM_FILESET = Fileset.objects.create(
-            name="My favourite DEM",
+            name="My favorite DEM",
             role=cls.DEM_ROLE,
             project=cls.SAMPLE_PROJECT,
             owner=cls.USER_1,

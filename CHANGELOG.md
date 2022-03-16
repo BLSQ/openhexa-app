@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 0.28
+------------
+
+March 14, 2022
+
+### Added
+
+- User can add pipeline runs to favorites to easily retrieve them later and relaunch them
+
+### Updated
+
+- Collect and show pipeline run durations
+- DHIS2 credentials injection in notebooks
+
 Version 0.27
 ------------
 

@@ -59,8 +59,12 @@ class ConnectorDhis2Test(TestCase):
 class PermissionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.DHIS2A = Instance.objects.create(url="https://play1.dhis2.org.invalid")
-        cls.DHIS2B = Instance.objects.create(url="https://play2.dhis2.org.invalid")
+        cls.DHIS2A = Instance.objects.create(
+            url="https://play1.dhis2.org.invalid", slug="invalidA"
+        )
+        cls.DHIS2B = Instance.objects.create(
+            url="https://play2.dhis2.org.invalid", slug="invalidB"
+        )
         cls.TEAM1 = Team.objects.create(name="Test Team1")
         cls.TEAM2 = Team.objects.create(name="Test Team2")
         InstancePermission.objects.create(instance=cls.DHIS2A, team=cls.TEAM1)
@@ -191,6 +195,7 @@ class DHIS2SyncInstanceSplitTest(TestCase):
     def setUpTestData(cls):
         cls.DHIS2_INSTANCE_PLAY1 = Instance.objects.create(
             url="https://play1.dhis2.org.invalid",
+            slug="invalid1",
             api_credentials=Credentials.objects.create(
                 api_url="https://play1.dhis2.org.invalid",
                 username="test_username",
@@ -199,6 +204,7 @@ class DHIS2SyncInstanceSplitTest(TestCase):
         )
         cls.DHIS2_INSTANCE_PLAY2 = Instance.objects.create(
             url="https://play2.dhis2.org.invalid",
+            slug="invalid2",
             api_credentials=Credentials.objects.create(
                 api_url="https://play2.dhis2.org.invalid",
                 username="test_username",

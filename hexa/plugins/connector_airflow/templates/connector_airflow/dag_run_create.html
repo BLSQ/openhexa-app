@@ -14,8 +14,9 @@
 {% block page_title %}{{ dag.dag_id }}{% endblock %}
 
 {% block page_content %}
-    {% blocktranslate asvar title with dag_id=dag.dag_id %}Specify configuration for DAG
-        {{ dag_id }}{% endblocktranslate %}
+    {% blocktranslate asvar title with dag_id=dag.dag_id %}
+        Specify configuration for DAG {{ dag_id }}
+    {% endblocktranslate %}
     {% embed "ui/section/section.html" with title=title %}
         {% slot content %}
             <!-- TEST-KEY: SET_DAG_CONFIG -->

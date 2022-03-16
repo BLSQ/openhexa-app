@@ -1,9 +1,12 @@
 from django.utils.translation import gettext_lazy as _
 
+from hexa.plugins.connector_airflow.models import DAGRun
 from hexa.ui.datagrid import (
+    BooleanColumn,
     CountryColumn,
     Datagrid,
     DateColumn,
+    DurationColumn,
     LeadingColumn,
     LinkColumn,
     StatusColumn,
@@ -32,15 +35,28 @@ class DAGGrid(Datagrid):
 
 class DAGRunGrid(Datagrid):
     lead = LeadingColumn(
-        label="Pipeline",
-        text="dag.dag_id",
+        label="Run",
+        text="get_label",
         icon="get_icon",
     )
+    favorite = BooleanColumn(value="is_favorite")
     execution_date = DateColumn(date="execution_date", label="Execution date")
     user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
+    duration = DurationColumn(duration="duration")
 
     view = LinkColumn(text="View")
+
+    @staticmethod
+    def get_label(run: DAGRun) -> str:
+        if hasattr(run, "favorite") and getattr(run, "favorite") is not None:
+            return getattr(run, "favorite")
+
+        return run.run_id
+
+    @staticmethod
+    def is_favorite(run: DAGRun) -> str:
+        return hasattr(run, "favorite") and getattr(run, "favorite") is not None
 
     def get_icon(self, _):
         return "ui/icons/play.html"
