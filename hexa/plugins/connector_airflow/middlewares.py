@@ -26,6 +26,8 @@ def dag_run_authentication_middleware(get_response):
             logger.exception(
                 "dag_run_authentication_middleware error",
             )
+        except UnicodeDecodeError:
+            pass
 
         return get_response(request)
 

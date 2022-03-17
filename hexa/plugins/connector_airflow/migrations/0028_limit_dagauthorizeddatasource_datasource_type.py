@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
-        ("connector_airflow", "0027_dagauthorizeddatasource_unique_together_dag_label"),
+        ("connector_airflow", "0027_dagauthorizeddatasource_unique_together_dag_slug"),
     ]
 
     operations = [

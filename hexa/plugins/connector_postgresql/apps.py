@@ -11,7 +11,7 @@ class PostgresqlConnectorConfig(ConnectorAppConfig):
         "hexa.plugins.connector_postgresql.credentials.notebooks_credentials"
     ]
 
-    PIPELINES_CONFIGURATION = [
+    PIPELINES_CREDENTIALS = [
         "hexa.plugins.connector_postgresql.credentials.pipelines_credentials"
     ]
 

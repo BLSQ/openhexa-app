@@ -2,10 +2,11 @@ import base64
 import hashlib
 import json
 
+import boto3
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.notebooks.credentials import NotebooksCredentials
-from hexa.pipelines.credentials import PipelinesConfiguration
+from hexa.pipelines.credentials import PipelinesCredentials
 from hexa.plugins.connector_s3.api import (
     _build_iam_client,
     _get_credentials,
@@ -96,7 +97,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             )
 
 
-def pipelines_credentials(credentials: PipelinesConfiguration):
+def pipelines_credentials(credentials: PipelinesCredentials):
     """
     Provides the notebooks credentials data that allows users to access S3 buckets
     in the pipelines component.
@@ -111,6 +112,7 @@ def pipelines_credentials(credentials: PipelinesConfiguration):
     if not buckets:
         return
 
+    # Set up the role dedicated to the pipeline
     principal_s3_credentials = _get_credentials()
     iam_client = _build_iam_client(principal_credentials=principal_s3_credentials)
 
@@ -134,17 +136,34 @@ def pipelines_credentials(credentials: PipelinesConfiguration):
         ),
     )
 
+    # Ask new temporary credentials
+    sts_client = boto3.client(
+        "sts",
+        aws_access_key_id=principal_s3_credentials.access_key_id,
+        aws_secret_access_key=principal_s3_credentials.secret_access_key,
+    )
+
+    sts_response = sts_client.assume_role(
+        RoleArn=role_data["Role"]["Arn"],
+        RoleSessionName="dag-run",
+        DurationSeconds=12 * 60 * 60,
+    )
+
+    sts_credentials = sts_response["Credentials"]
+
+    env["AWS_ACCESS_KEY_ID"] = sts_credentials["AccessKeyId"]
+    env["AWS_SECRET_ACCESS_KEY"] = sts_credentials["SecretAccessKey"]
+    env["AWS_SESSION_TOKEN"] = sts_credentials["SessionToken"]
+
+    # Set some environment variables to help the user
     if principal_s3_credentials.default_region != "":
         env["AWS_DEFAULT_REGION"] = principal_s3_credentials.default_region
 
     env["AWS_S3_BUCKET_NAMES"] = ",".join(b.name for b in buckets)
 
     for authorized_bucket in authorized_datasources:
-        if authorized_bucket.label:
-            label = authorized_bucket.label.replace("-", "_").upper()
+        if authorized_bucket.slug:
+            label = authorized_bucket.slug.replace("-", "_").upper()
             env[f"AWS_BUCKET_{label}_NAME"] = authorized_bucket.datasource.name
 
     credentials.env.update(env)
-    credentials.connectors_configuration["connector_s3"] = {
-        "AWS_S3_ROLE_ARN": role_data["Role"]["Arn"]
-    }

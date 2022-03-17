@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.notebooks.credentials import NotebooksCredentials
-from hexa.pipelines.credentials import PipelinesConfiguration
+from hexa.pipelines.credentials import PipelinesCredentials
 from hexa.plugins.connector_postgresql.models import Database
 
 
@@ -61,7 +61,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     credentials.files.update(files)
 
 
-def pipelines_credentials(credentials: PipelinesConfiguration):
+def pipelines_credentials(credentials: PipelinesCredentials):
     """
     Provides the notebooks credentials data that allows users to access PostgreSQL databases
     in the pipelines component.
@@ -70,7 +70,7 @@ def pipelines_credentials(credentials: PipelinesConfiguration):
     authorized_datasource = credentials.pipeline.authorized_datasources.filter(
         datasource_type=ContentType.objects.get_for_model(Database)
     )
-    databases = [(x.datasource, x.label) for x in authorized_datasource]
+    databases = [(x.datasource, x.slug) for x in authorized_datasource]
 
     env, files = get_env(databases)
 

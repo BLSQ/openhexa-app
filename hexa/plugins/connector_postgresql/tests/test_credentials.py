@@ -1,8 +1,10 @@
 from django.urls import reverse
 
 from hexa.core.test import TestCase
-from hexa.pipelines.tests.test_credentials import CredentialsTestCase
+from hexa.pipelines.credentials import PipelinesCredentials
+from hexa.pipelines.tests.test_credentials import BaseCredentialsTestCase
 from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
+from hexa.plugins.connector_postgresql.credentials import pipelines_credentials
 from hexa.plugins.connector_postgresql.models import Database, DatabasePermission
 from hexa.user_management.models import Membership, Team, User
 
@@ -53,7 +55,7 @@ class NotebooksCredentialsTest(TestCase):
         )
 
 
-class PipelinesCredentialsTest(CredentialsTestCase):
+class PipelinesCredentialsTest(BaseCredentialsTestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -67,6 +69,9 @@ class PipelinesCredentialsTest(CredentialsTestCase):
             dag=self.PIPELINE, datasource=self.DATABASE
         )
 
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
+
         self.assertEqual(
             {
                 "POSTGRESQL_DATABASE_NAMES": "DB1",
@@ -77,23 +82,26 @@ class PipelinesCredentialsTest(CredentialsTestCase):
                 "POSTGRESQL_DB1_URL": "postgresql://user1:pass1@localhost:5432/db1",
                 "POSTGRESQL_DB1_USERNAME": "user1",
             },
-            self.PIPELINE.get_configuration().env,
+            credentials.env,
         )
 
-    def test_label(self):
+    def test_slug(self):
         DAGAuthorizedDatasource.objects.create(
-            dag=self.PIPELINE, datasource=self.DATABASE, label="label1"
+            dag=self.PIPELINE, datasource=self.DATABASE, slug="slug1"
         )
+
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
 
         self.assertEqual(
             {
-                "POSTGRESQL_DATABASE_NAMES": "LABEL1",
-                "POSTGRESQL_LABEL1_DATABASE": "db1",
-                "POSTGRESQL_LABEL1_HOSTNAME": "localhost",
-                "POSTGRESQL_LABEL1_PASSWORD": "pass1",
-                "POSTGRESQL_LABEL1_PORT": "5432",
-                "POSTGRESQL_LABEL1_URL": "postgresql://user1:pass1@localhost:5432/db1",
-                "POSTGRESQL_LABEL1_USERNAME": "user1",
+                "POSTGRESQL_DATABASE_NAMES": "SLUG1",
+                "POSTGRESQL_SLUG1_DATABASE": "db1",
+                "POSTGRESQL_SLUG1_HOSTNAME": "localhost",
+                "POSTGRESQL_SLUG1_PASSWORD": "pass1",
+                "POSTGRESQL_SLUG1_PORT": "5432",
+                "POSTGRESQL_SLUG1_URL": "postgresql://user1:pass1@localhost:5432/db1",
+                "POSTGRESQL_SLUG1_USERNAME": "user1",
             },
-            self.PIPELINE.get_configuration().env,
+            credentials.env,
         )

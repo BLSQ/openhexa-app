@@ -33,21 +33,21 @@ class ConnectorAppConfig(AppConfig):
 
         return notebooks_credentials_functions
 
-    def get_pipelines_configuration(self):
-        """Check if the app config class has a PIPELINES_CONFIGURATION property. This property allows connector plugins to
+    def get_pipelines_credentials(self):
+        """Check if the app config class has a PIPELINES_CREDENTIALS property. This property allows connector plugins to
         provide a list of functions that can update pipelines credentials with plugin-specific credentials."""
 
-        pipelines_configuration_function_paths = getattr(
-            self, "PIPELINES_CONFIGURATION", []
+        pipelines_credentials_function_paths = getattr(
+            self, "PIPELINES_CREDENTIALS", []
         )
 
-        pipelines_configuration_functions = []
-        for function_path in pipelines_configuration_function_paths:
+        pipelines_credentials_functions = []
+        for function_path in pipelines_credentials_function_paths:
             module_name, function_name = function_path.rsplit(".", 1)
             module = import_module(module_name)
-            pipelines_configuration_functions.append(getattr(module, function_name))
+            pipelines_credentials_functions.append(getattr(module, function_name))
 
-        return pipelines_configuration_functions
+        return pipelines_credentials_functions
 
     def get_last_activities(self, request: HttpRequest):
         """Check if the app config class has a LAST_ACTIVITIES property. This property allows connector plugins to

@@ -1,8 +1,10 @@
 from django.urls import reverse
 
 from hexa.core.test import TestCase
-from hexa.pipelines.tests.test_credentials import CredentialsTestCase
+from hexa.pipelines.credentials import PipelinesCredentials
+from hexa.pipelines.tests.test_credentials import BaseCredentialsTestCase
 from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
+from hexa.plugins.connector_dhis2.credentials import pipelines_credentials
 from hexa.plugins.connector_dhis2.models import (
     Credentials,
     Instance,
@@ -87,7 +89,7 @@ class NotebookCredentialsTest(TestCase):
         self.assertNotIn("DHIS2_INSTANCE3_PASSWORD", response_data["env"])
 
 
-class PipelinesCredentialsTest(CredentialsTestCase):
+class PipelinesCredentialsTest(BaseCredentialsTestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -108,6 +110,9 @@ class PipelinesCredentialsTest(CredentialsTestCase):
             dag=self.PIPELINE, datasource=self.INSTANCE
         )
 
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
+
         self.assertEqual(
             {
                 "DHIS2_INSTANCES_SLUGS": "PLAY",
@@ -115,20 +120,23 @@ class PipelinesCredentialsTest(CredentialsTestCase):
                 "DHIS2_PLAY_URL": "https://dhis2.example.com",
                 "DHIS2_PLAY_USERNAME": "test_username",
             },
-            self.PIPELINE.get_configuration().env,
+            credentials.env,
         )
 
-    def test_label(self):
+    def test_slug(self):
         DAGAuthorizedDatasource.objects.create(
-            dag=self.PIPELINE, datasource=self.INSTANCE, label="label1"
+            dag=self.PIPELINE, datasource=self.INSTANCE, slug="slug1"
         )
+
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
 
         self.assertEqual(
             {
-                "DHIS2_INSTANCES_SLUGS": "LABEL1",
-                "DHIS2_LABEL1_PASSWORD": "test_password",
-                "DHIS2_LABEL1_URL": "https://dhis2.example.com",
-                "DHIS2_LABEL1_USERNAME": "test_username",
+                "DHIS2_INSTANCES_SLUGS": "SLUG1",
+                "DHIS2_SLUG1_PASSWORD": "test_password",
+                "DHIS2_SLUG1_URL": "https://dhis2.example.com",
+                "DHIS2_SLUG1_USERNAME": "test_username",
             },
-            self.PIPELINE.get_configuration().env,
+            credentials.env,
         )

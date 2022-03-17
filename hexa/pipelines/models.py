@@ -2,12 +2,11 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
+from django.core.signing import Signer
 from django.db import models
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
-from hexa.pipelines.credentials import PipelinesConfiguration
-from hexa.plugins.app import get_connector_app_configs
 
 
 class Index(BaseIndex):
@@ -88,15 +87,14 @@ class Pipeline(IndexableMixin, models.Model):
         super().save(*args, **kwargs)
         self.build_index()
 
-    def get_configuration(self) -> PipelinesConfiguration:
-        pipelines_configuration = PipelinesConfiguration(self)
-
-        for app_config in get_connector_app_configs():
-            credentials_functions = app_config.get_pipelines_configuration()
-            for credentials_function in credentials_functions:
-                credentials_function(pipelines_configuration)
-
-        return pipelines_configuration
+    def get_token(self):
+        return Signer().sign_object(
+            {
+                "id": str(self.id),
+                "model": self._meta.model_name,
+                "app_label": self._meta.app_label,
+            }
+        )
 
 
 class EnvironmentsSyncJob(BaseJob):

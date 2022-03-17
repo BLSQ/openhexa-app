@@ -73,12 +73,11 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "hexa.plugins.connector_accessmod.middlewares.dag_run_authentication_middleware",
+    "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.user_management.middlewares.accepted_tos_required_middleware",
-    "hexa.metrics.middlewares.track_request_event",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -337,3 +336,7 @@ TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
+
+# Needed so that external component know how to hit us back
+# Do not add a trailing slash
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")

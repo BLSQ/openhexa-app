@@ -349,13 +349,11 @@ class DAG(Pipeline):
         )
 
     def build_dag_config(self):
-        pipeline_configuration = self.get_configuration()
 
         return {
             "dag_id": self.dag_id,
-            # FIXME: also send the files
-            "credentials": pipeline_configuration.env,
-            "connector_configuration": pipeline_configuration.connectors_configuration,
+            "token": self.get_token(),
+            "credentials_url": f'{settings.BASE_URL}{reverse("pipelines:credentials")}',
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
             "schedule": self.schedule if self.schedule else None,
@@ -389,14 +387,18 @@ class DAGAuthorizedDatasource(Base):
     )
     datasource_id = models.UUIDField()
     datasource = GenericForeignKey("datasource_type", "datasource_id")
-    label = models.CharField(
-        max_length=200, blank=True, null=True
-    )  # blank and null needed to allow for multiple empty labels per dag
+    slug = models.SlugField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="A slug to identify the datasource in the pipeline. "
+        "If left empty, the datasource will be available with the same name as in the notebooks",
+    )  # blank and null needed to allow for multiple empty slugs per dag
     # https://docs.djangoproject.com/en/4.0/ref/models/fields/#django.db.models.Field.null
 
     class Meta:
         unique_together = [
-            ("dag", "label"),
+            ("dag", "slug"),
         ]
 
     def __str__(self):

@@ -8,9 +8,14 @@ from moto import mock_iam, mock_sts
 
 from hexa.core.test import TestCase
 from hexa.notebooks.credentials import NotebooksCredentials
-from hexa.pipelines.tests.test_credentials import CredentialsTestCase
+from hexa.pipelines.credentials import PipelinesCredentials
+from hexa.pipelines.tests.test_credentials import BaseCredentialsTestCase
 from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
-from hexa.plugins.connector_s3.credentials import notebooks_credentials
+from hexa.plugins.connector_s3.api import parse_arn
+from hexa.plugins.connector_s3.credentials import (
+    notebooks_credentials,
+    pipelines_credentials,
+)
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import Feature, FeatureFlag, Team, User
 
@@ -137,7 +142,7 @@ class NotebooksCredentialsTest(TestCase):
             self.assertEqual("RW", bucket_config["mode"])
 
 
-class PipelinesCredentialsTest(CredentialsTestCase):
+class PipelinesCredentialsTest(BaseCredentialsTestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -159,6 +164,7 @@ class PipelinesCredentialsTest(CredentialsTestCase):
         )
 
     @mock_iam
+    @mock_sts
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_new_role(self, _):
         # Setup
@@ -167,7 +173,8 @@ class PipelinesCredentialsTest(CredentialsTestCase):
         )
 
         # Test
-        configuration = self.PIPELINE.get_configuration()
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
 
         # Check that we did create the role
         roles_data = self.CLIENT.list_roles()
@@ -201,22 +208,38 @@ class PipelinesCredentialsTest(CredentialsTestCase):
             },
         )
 
+        # Check that the STS credentials belong to the correct role
+        client = boto3.client(
+            "sts",
+            aws_access_key_id=credentials.env["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=credentials.env["AWS_SECRET_ACCESS_KEY"],
+        )
+        response = client.get_caller_identity()
+
+        self.assertEqual(
+            parse_arn(response["Arn"])["resource"].split("/")[0], expected_role_name
+        )
+
         # Check that we do send the correct env variables
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(credentials.env[key], str)
+            self.assertGreater(len(credentials.env[key]), 0)
+            del credentials.env[key]
+
         self.assertEqual(
             {
                 "AWS_DEFAULT_REGION": "eu-central-1",
                 "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
             },
-            configuration.env,
-        )
-
-        # And the correct configuration
-        self.assertEqual(
-            {"AWS_S3_ROLE_ARN": roles_data["Roles"][0]["Arn"]},
-            configuration.connectors_configuration["connector_s3"],
+            credentials.env,
         )
 
     @mock_iam
+    @mock_sts
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_existing_role(self, _):
         """
@@ -236,7 +259,8 @@ class PipelinesCredentialsTest(CredentialsTestCase):
         )
 
         # Test
-        self.PIPELINE.get_configuration()
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
 
         # Check that we did not create a new role
         roles_data = self.CLIENT.list_roles()
@@ -265,21 +289,45 @@ class PipelinesCredentialsTest(CredentialsTestCase):
             },
         )
 
+        # Check that the STS credentials belong to the correct role
+        client = boto3.client(
+            "sts",
+            aws_access_key_id=credentials.env["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=credentials.env["AWS_SECRET_ACCESS_KEY"],
+        )
+        response = client.get_caller_identity()
+
+        self.assertEqual(
+            parse_arn(response["Arn"])["resource"].split("/")[0], expected_role_name
+        )
+
     @mock_iam
+    @mock_sts
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
-    def test_label(self, _):
+    def test_slug(self, _):
         DAGAuthorizedDatasource.objects.create(
-            dag=self.PIPELINE, datasource=self.BUCKET, label="label1"
+            dag=self.PIPELINE, datasource=self.BUCKET, slug="slug1"
         )
 
         # Test
-        configuration = self.PIPELINE.get_configuration()
+        credentials = PipelinesCredentials(self.PIPELINE)
+        pipelines_credentials(credentials)
+
+        # Validate
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(credentials.env[key], str)
+            self.assertGreater(len(credentials.env[key]), 0)
+            del credentials.env[key]
 
         self.assertEqual(
             {
                 "AWS_DEFAULT_REGION": "eu-central-1",
                 "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
-                "AWS_BUCKET_LABEL1_NAME": "hexa-test-bucket-1",
+                "AWS_BUCKET_SLUG1_NAME": "hexa-test-bucket-1",
             },
-            configuration.env,
+            credentials.env,
         )

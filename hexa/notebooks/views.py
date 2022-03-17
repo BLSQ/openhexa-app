@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.plugins.app import get_connector_app_configs
@@ -14,7 +14,7 @@ def index(request: HttpRequest) -> HttpResponse:
     )
 
 
-@require_http_methods(["POST"])
+@require_POST
 @csrf_exempt  # TODO: we should remove this
 def credentials(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the notebooks component to get credentials for Jupyterhub.

@@ -61,7 +61,7 @@ class DAGRunAdmin(admin.ModelAdmin):
 
 @admin.register(DAGAuthorizedDatasource)
 class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
-    list_display = ("dag", "datasource", "connector", "label")
+    list_display = ("dag", "datasource", "connector", "slug")
 
     @admin.display(
         ordering="datasource_type__app_label",

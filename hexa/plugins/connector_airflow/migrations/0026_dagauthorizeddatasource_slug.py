@@ -10,9 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RenameField(
+            model_name="dagauthorizeddatasource",
+            old_name="label",
+            new_name="slug",
+        ),
         migrations.AlterField(
             model_name="dagauthorizeddatasource",
-            name="label",
+            name="slug",
             field=models.CharField(blank=True, max_length=200, null=True),
         ),
     ]
