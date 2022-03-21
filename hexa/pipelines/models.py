@@ -5,6 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+from django.http import HttpRequest
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
@@ -82,6 +83,24 @@ class Pipeline(IndexableMixin, models.Model):
 
     class Meta:
         abstract = True
+
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def run(
+        self,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
+        raise NotImplementedError
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

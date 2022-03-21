@@ -9,6 +9,7 @@ from ariadne import (
 )
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
+from django.urls import reverse
 from django_countries.fields import Country
 from slugify import slugify
 from stringcase import snakecase
@@ -441,7 +442,9 @@ def resolve_launch_accessmod_analysis(_, info, **kwargs):
     )
 
     try:
-        analysis.run(request)
+        analysis.run(
+            request=request, webhook_path=reverse("connector_accessmod:webhook")
+        )
         return {"success": True, "analysis": analysis, "errors": []}
     except ValueError:
         return {"success": False, "analysis": analysis, "errors": ["LAUNCH_FAILED"]}

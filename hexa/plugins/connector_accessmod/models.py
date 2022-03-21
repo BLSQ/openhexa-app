@@ -7,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
-from django.urls import reverse
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
@@ -305,7 +304,13 @@ class Analysis(Pipeline):
         return super().delete(*args, **kwargs)
 
     @transaction.atomic
-    def run(self, request: HttpRequest):
+    def run(
+        self,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
@@ -328,7 +333,7 @@ class Analysis(Pipeline):
                     "output_dir": f"s3://{bucket.name}/{self.project.id}/{self.id}/",
                 }
             ),
-            webhook_path=reverse("connector_accessmod:webhook"),
+            webhook_path=webhook_path,
         )
 
         self.status = AnalysisStatus.QUEUED
