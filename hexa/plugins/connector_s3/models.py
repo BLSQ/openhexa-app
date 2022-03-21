@@ -10,9 +10,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
@@ -55,7 +56,7 @@ class BucketPermissionMode(models.IntegerChoices):
     READ_WRITE = 2, "Read Write"
 
 
-class BucketQuerySet(CatalogQuerySet):
+class BucketQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User], mode: BucketPermissionMode = None
     ):
@@ -253,13 +254,8 @@ class BucketPermission(Permission):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
 
 
-class ObjectQuerySet(CatalogQuerySet):
+class ObjectQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 

@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
-from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
 from hexa.core.models.cryptography import EncryptedTextField
@@ -21,6 +21,7 @@ from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.user_management.models import User
 
+from ...core.models.base import BaseQuerySet
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -66,16 +67,14 @@ class Credentials(Base):
                 raise ValidationError("DHIS2 URL is invalid")
 
 
-class InstanceQuerySet(CatalogQuerySet):
+class InstanceQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            instancepermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            filter_callback=lambda q: q.filter(
+                instancepermission__team__in=[t.pk for t in user.team_set.all()]
+            ).distinct(),
+        )
 
 
 class Instance(Datasource):
@@ -243,13 +242,8 @@ class InstancePermission(Permission):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
 
 
-class EntryQuerySet(CatalogQuerySet):
+class EntryQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
         return self.filter(
             instance__in=Instance.objects.filter_for_user(user)
         ).distinct()

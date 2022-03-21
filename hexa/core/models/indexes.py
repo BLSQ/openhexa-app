@@ -17,7 +17,7 @@ from django_countries.fields import CountryField
 from django_ltree.managers import TreeManager, TreeQuerySet
 
 from hexa.core.date_utils import date_format
-from hexa.core.models.base import Base
+from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.core.models.postgres import (
@@ -50,21 +50,19 @@ class TrigramWordSimilarity(TrigramBase):
     function = "WORD_SIMILARITY"
 
 
-class BaseIndexQuerySet(TreeQuerySet):
+class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def leaves(self, level: int):
         return self.filter(path__depth=level + 1)
 
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, user_management_models.User]
     ):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            filter_callback=lambda q: q.filter(
+                indexpermission__team__in=[t.pk for t in user.team_set.all()]
+            ).distinct(),
+        )
 
     def filter_for_types(self, code_types: List[str]):
         # sub select only those types
@@ -133,19 +131,12 @@ class BaseIndexQuerySet(TreeQuerySet):
 
 class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
-    own queryset."""
+    own queryset, and re-attach filter_for_user()."""
 
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, user_management_models.User]
     ):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+        return self.get_queryset().filter_for_user(user)
 
     def get_queryset(self):  # TODO: PR in django-ltree?
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)

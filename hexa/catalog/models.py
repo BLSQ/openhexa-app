@@ -1,8 +1,6 @@
-import typing
 import uuid
 from typing import List
 
-from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -12,9 +10,9 @@ from django.urls import reverse
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
-from hexa.user_management.models import User
 
 
 class CatalogIndexQuerySet(BaseIndexQuerySet):
@@ -103,17 +101,6 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class CatalogQuerySet(models.QuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        raise NotImplementedError
-
-    def prefetch_indexes(self):
-        if not hasattr(self.model, "indexes"):
-            raise ValueError(f"Model {self.model} has no indexes")
-
-        return self.prefetch_related("indexes", "indexes__tags")
-
-
 class Datasource(IndexableMixin, models.Model):
     class Meta:
         abstract = True
@@ -126,7 +113,7 @@ class Datasource(IndexableMixin, models.Model):
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = CatalogQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
     def get_permission_set(self):
         raise NotImplementedError
@@ -169,7 +156,7 @@ class Entry(IndexableMixin, models.Model):
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = CatalogQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
     def get_permission_set(self):
         raise NotImplementedError

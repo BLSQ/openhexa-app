@@ -23,9 +23,10 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models import Base, Permission, WithStatus
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import Environment, Index, Pipeline, PipelinesQuerySet
+from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management.models import User
@@ -38,14 +39,12 @@ class ExternalType(Enum):
     DAG = "dag"
 
 
-class ClusterQuerySet(PipelinesQuerySet):
+class ClusterQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.none()  # Clusters are only visible to superusers for now
+        # Clusters are only visible to superusers for now
+        return self.filter_for_user_and_callback(
+            user, filter_callback=lambda q: q.none()
+        )
 
 
 class Cluster(Environment):
@@ -261,16 +260,14 @@ class DAGTemplate(Base):
         return self.code
 
 
-class DAGQuerySet(PipelinesQuerySet):
+class DAGQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            dagpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            filter_callback=lambda q: q.filter(
+                dagpermission__team__in=[t.pk for t in user.team_set.all()]
+            ).distinct(),
+        )
 
 
 class DAG(Pipeline):
@@ -393,13 +390,8 @@ class DAGPermission(Permission):
         return f"Permission for team '{self.team}' for dag '{self.dag}'"
 
 
-class DAGRunQuerySet(PipelinesQuerySet):
+class DAGRunQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
         return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
     def filter_for_refresh(self):
@@ -508,12 +500,13 @@ class DAGRun(Base, WithStatus):
             return Status.UNKNOWN
 
 
-class DAGRunFavoriteQuerySet(PipelinesQuerySet):
+class DAGRunFavoriteQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-
-        return self.filter(user=user)
+        return self.filter_for_user_and_callback(
+            user,
+            return_all_if_superuser=False,
+            filter_callback=lambda q: q.filter(user=user),
+        )
 
 
 class DAGRunFavorite(Base):

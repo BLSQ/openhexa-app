@@ -12,6 +12,7 @@ from hexa.core.models import (
     BaseIndexPermission,
     Permission,
 )
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.user_management.models import User
 
@@ -47,16 +48,16 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class ExternalDashboardsQuerySet(models.QuerySet):
+class ExternalDashboardsQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            externaldashboardpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            filter_callback=lambda q: q.filter(
+                externaldashboardpermission__team__in=[
+                    t.pk for t in user.team_set.all()
+                ]
+            ).distinct(),
+        )
 
     def prefetch_indexes(self):
         return self.prefetch_related("indexes", "indexes__tags")

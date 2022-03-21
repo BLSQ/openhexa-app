@@ -13,26 +13,28 @@ from model_utils.managers import InheritanceManager, InheritanceQuerySet
 from hexa.catalog.models import Datasource, Entry
 from hexa.core import mimetypes
 from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow.models import DAG, DAGRunState
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
 
-class AccessmodQuerySet(models.QuerySet):
+class AccessmodQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         raise NotImplementedError
 
 
 class ProjectQuerySet(AccessmodQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-
-        return self.filter(
-            Q(owner=user)
-            | Q(projectpermission__team__in=[t.pk for t in user.team_set.all()])
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            return_all_if_superuser=False,
+            filter_callback=lambda q: q.filter(
+                Q(owner=user)
+                | Q(projectpermission__team__in=[t.pk for t in user.team_set.all()])
+            ).distinct(),
+        )
 
 
 class Project(Datasource):
@@ -102,13 +104,14 @@ class ProjectPermission(Permission):
 
 class FilesetQuerySet(AccessmodQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-
-        return self.filter(
-            Q(owner=user)
-            | Q(filesetpermission__team__in=[t.pk for t in user.team_set.all()])
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            return_all_if_superuser=False,
+            filter_callback=lambda q: q.filter(
+                Q(owner=user)
+                | Q(filesetpermission__team__in=[t.pk for t in user.team_set.all()])
+            ).distinct(),
+        )
 
 
 class Fileset(Entry):
@@ -186,9 +189,6 @@ class FilesetRole(Base):
 
 class FileQuerySet(AccessmodQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
@@ -224,13 +224,14 @@ class AnalysisType(str, enum.Enum):
 
 class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-
-        return self.filter(
-            Q(owner=user)
-            | Q(analysispermission__team__in=[t.pk for t in user.team_set.all()])
-        ).distinct()
+        return self.filter_for_user_and_callback(
+            user,
+            return_all_if_superuser=False,
+            filter_callback=lambda q: q.filter(
+                Q(owner=user)
+                | Q(analysispermission__team__in=[t.pk for t in user.team_set.all()])
+            ).distinct(),
+        )
 
 
 class AnalysisManager(InheritanceManager):
