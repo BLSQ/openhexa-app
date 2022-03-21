@@ -13,10 +13,10 @@ from markdown import markdown as to_markdown
 
 import hexa.ui.datacard
 from hexa.core.date_utils import date_format as do_date_format
+from hexa.core.models.behaviors import Status
 from hexa.core.models.locale import Locale
 from hexa.ui.utils import get_item_value
 
-from ...core.models.behaviors import Status
 from .base import DatacardComponent
 
 

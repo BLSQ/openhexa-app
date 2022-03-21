@@ -14,14 +14,14 @@ from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.sync import DatasourceSyncResult
+from hexa.core.date_utils import date_format
 from hexa.core.models import Base, Permission
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
+from hexa.user_management.models import User
 
-from ...catalog.sync import DatasourceSyncResult
-from ...core.date_utils import date_format
-from ...core.models.cryptography import EncryptedTextField
-from ...user_management.models import User
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
