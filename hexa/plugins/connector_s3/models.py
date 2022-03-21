@@ -56,33 +56,25 @@ class BucketPermissionMode(models.IntegerChoices):
 
 
 class BucketQuerySet(CatalogQuerySet):
-    def filter_by_mode(self, user, mode: BucketPermissionMode = None):
-        if user.is_active and user.is_superuser:
-            # if SU -> all buckets are RW; so if mode is provided and mode == RO -> no buckets available
-            if mode == BucketPermissionMode.READ_ONLY:
-                return self.none()
-            else:
-                return self
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User], mode: BucketPermissionMode = None
+    ):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
+            # For superusers, all buckets are read & write
+            # If requested mode is read-only, we don't want to return any bucket
+            return self.none() if mode == BucketPermissionMode.READ_ONLY else self
 
-        if mode is None:
-            # return all buckets
-            modes = [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
-        else:
-            modes = [mode]
+        modes = (
+            [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
+            if mode is None
+            else [mode]
+        )
 
         return self.filter(
             bucketpermission__team__in=[t.pk for t in user.team_set.all()],
             bucketpermission__mode__in=modes,
-        ).distinct()
-
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_active:
-            return self.none()
-        elif user.is_superuser:
-            return self
-
-        return self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
         ).distinct()
 
 

@@ -10,10 +10,10 @@ from hexa.plugins.connector_s3.models import Bucket, BucketPermissionMode, Crede
 def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access S3 buckets in the notebooks component."""
 
-    ro_buckets = Bucket.objects.filter_by_mode(
+    ro_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode=BucketPermissionMode.READ_ONLY
     )
-    rw_buckets = Bucket.objects.filter_by_mode(
+    rw_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode=BucketPermissionMode.READ_WRITE
     )
 
