@@ -20,12 +20,7 @@ from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
 
-class AccessmodQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        raise NotImplementedError
-
-
-class ProjectQuerySet(AccessmodQuerySet):
+class ProjectQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter_for_user_and_callback(
             user,
@@ -102,7 +97,7 @@ class ProjectPermission(Permission):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
 
 
-class FilesetQuerySet(AccessmodQuerySet):
+class FilesetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter_for_user_and_callback(
             user,
@@ -187,7 +182,7 @@ class FilesetRole(Base):
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
 
-class FileQuerySet(AccessmodQuerySet):
+class FileQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
@@ -222,7 +217,7 @@ class AnalysisType(str, enum.Enum):
     GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
 
 
-class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
+class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter_for_user_and_callback(
             user,
