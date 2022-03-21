@@ -97,7 +97,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "hexa.core.context_processors.global_variables",
-                "hexa.plugins.connector_dhis2.context_processors.current_extract",
             ],
         },
     },

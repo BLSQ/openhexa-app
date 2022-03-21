@@ -1,6 +1,5 @@
 import uuid
 
-from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -16,7 +15,7 @@ from .datacards import (
     OrganisationUnitCard,
 )
 from .datagrids import DataElementGrid, DatasetGrid, IndicatorGrid, OrganisationUnitGrid
-from .models import DataElement, DataSet, Extract, Indicator, Instance, OrganisationUnit
+from .models import DataElement, DataSet, Indicator, Instance, OrganisationUnit
 
 
 def instance_detail(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
@@ -580,83 +579,3 @@ def _get_instance_and_indicator(
     return instance, get_object_or_404(
         Indicator.objects.prefetch_indexes().filter(instance=instance), pk=indicator_id
     )
-
-
-def data_element_extract(
-    request: HttpRequest, instance_id: uuid.UUID, data_element_id: uuid.UUID
-) -> HttpResponse:  # TODO: should be post + DRY indicators
-    instance, data_element = _get_instance_and_data_element(
-        request, instance_id, data_element_id
-    )
-
-    current_extract = _get_current_extract(request)
-    current_extract.data_elements.add(data_element)
-    current_extract.save()
-
-    messages.success(request, _("Added data element to current extract"))
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
-def indicator_extract(
-    request: HttpRequest, instance_id: uuid.UUID, indicator_id: uuid.UUID
-) -> HttpResponse:  # TODO: should be post + DRY data elements
-    instance, indicator = _get_instance_and_indicator(
-        request, instance_id, indicator_id
-    )
-
-    current_extract = _get_current_extract(request)
-    current_extract.indicators.add(indicator)
-    current_extract.save()
-
-    messages.success(request, _("Added indicator to current extract"))
-
-    return redirect(request.META.get("HTTP_REFERER"))
-
-
-def extract_detail(request: HttpRequest, extract_id: uuid.UUID) -> HttpResponse:
-    extract = get_object_or_404(
-        Extract.objects.filter_for_user(request.user), id=extract_id
-    )
-
-    breadcrumbs = [
-        (_("Catalog"), "catalog:index"),
-        (extract.display_name,),
-    ]
-
-    return render(
-        request,
-        "connector_dhis2/extract_detail.html",
-        {
-            "extract": extract,
-            "breadcrumbs": breadcrumbs,
-        },
-    )
-
-
-def extract_delete(request: HttpRequest, extract_id: uuid.UUID) -> HttpResponse:
-    extract = get_object_or_404(
-        Extract.objects.filter_for_user(request.user), id=extract_id
-    )
-    extract.delete()
-
-    messages.success(request, _("Delete current extract"))
-
-    return redirect(reverse("catalog:index"))
-
-
-def _get_current_extract(request: HttpRequest) -> Extract:
-    current_extract = None
-    if request.session.get("connector_dhis2_current_extract") is not None:
-        try:
-            current_extract = Extract.objects.filter_for_user(request.user).get(
-                id=request.session.get("connector_dhis2_current_extract")
-            )
-        except Extract.DoesNotExist:
-            pass
-
-    if current_extract is None:
-        current_extract = Extract.objects.create(user=request.user)
-        request.session["connector_dhis2_current_extract"] = str(current_extract.id)
-
-    return current_extract
