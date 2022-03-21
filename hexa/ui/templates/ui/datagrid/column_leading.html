@@ -12,7 +12,7 @@
                 {% endif %}
             </div>
         {% endif %}
-        <div{% if image_src or icon %} class="ml-4 max-w-sm"{% endif %}>
+        <div class="max-w-xxs{% if image_src or icon %} ml-4{% endif %}">
             {% if single or empty %}
                 <div class="text-sm truncate {% if bold %}font-medium{% endif %} text-gray-900" {% if not translate %}translate="no"{% endif %} title="{{ text }}">
                   {{ text }}

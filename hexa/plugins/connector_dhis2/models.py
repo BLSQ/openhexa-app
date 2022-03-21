@@ -75,8 +75,6 @@ class InstanceQuerySet(CatalogQuerySet):
 
 
 class Instance(Datasource):
-    slug = models.SlugField(unique=True)
-
     def get_permission_set(self):
         return self.instancepermission_set.all()
 
@@ -92,6 +90,7 @@ class Instance(Datasource):
     name = models.TextField(blank=True)
     locale = LocaleField(default="en")
     verbose_sync = models.BooleanField(default=False)
+    slug = models.SlugField(unique=True, max_length=200)
 
     objects = InstanceQuerySet.as_manager()
 
