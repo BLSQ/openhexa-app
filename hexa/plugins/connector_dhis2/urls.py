@@ -37,11 +37,6 @@ urlpatterns = [
         name="organisation_unit_detail",
     ),
     path(
-        "<uuid:instance_id>/data-elements/<uuid:data_element_id>/extract",
-        views.data_element_extract,
-        name="data_element_extract",
-    ),
-    path(
         "<uuid:instance_id>/indicators/",
         views.indicator_list,
         name="indicator_list",
@@ -55,21 +50,6 @@ urlpatterns = [
         "<uuid:instance_id>/indicators/<uuid:indicator_id>",
         views.indicator_detail,
         name="indicator_detail",
-    ),
-    path(
-        "<uuid:instance_id>/indicators/<uuid:indicator_id>/extract",
-        views.indicator_extract,
-        name="indicator_extract",
-    ),
-    path(
-        "extract/<uuid:extract_id>",
-        views.extract_detail,
-        name="extract_detail",
-    ),
-    path(
-        "extract/<uuid:extract_id>/delete",
-        views.extract_delete,
-        name="extract_delete",
     ),
     path(
         "<uuid:instance_id>/datasets/",
