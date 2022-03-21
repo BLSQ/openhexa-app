@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
+from django.db.models import Q
 from django.http import HttpRequest
 from django.urls import reverse
 from django_countries.fields import CountryField
@@ -20,18 +21,19 @@ from hexa.user_management.models import User
 
 
 class AccessmodQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Catalog querysets should implement the filter_for_user() method"
-        )
+    def filter_for_user(self, user: typing.Union[User, AnonymousUser]):
+        raise NotImplementedError
 
 
 class ProjectQuerySet(AccessmodQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_authenticated:
+        if not user.is_active:
             return self.none()
 
-        return self.filter(owner=user)
+        return self.filter(
+            Q(owner=user)
+            | Q(projectpermission__team__in=[t.pk for t in user.team_set.all()])
+        ).distinct()
 
 
 class Project(Datasource):
@@ -100,8 +102,14 @@ class ProjectPermission(Permission):
 
 
 class FilesetQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
-        return self.filter(owner=user)
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+
+        return self.filter(
+            Q(owner=user)
+            | Q(filesetpermission__team__in=[t.pk for t in user.team_set.all()])
+        ).distinct()
 
 
 class Fileset(Entry):
@@ -178,8 +186,11 @@ class FilesetRole(Base):
 
 
 class FileQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
-        return self.filter(fileset__owner=user)
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+
+        return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
 class File(Base):
@@ -214,7 +225,13 @@ class AnalysisType(str, enum.Enum):
 
 class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
     def filter_for_user(self, user):
-        return self.filter(owner=user)
+        if not user.is_active:
+            return self.none()
+
+        return self.filter(
+            Q(owner=user)
+            | Q(analysispermission__team__in=[t.pk for t in user.team_set.all()])
+        ).distinct()
 
 
 class AnalysisManager(InheritanceManager):
