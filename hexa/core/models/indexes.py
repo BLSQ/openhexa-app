@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import typing
 import uuid
 from typing import Any, List
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
@@ -22,6 +25,7 @@ from hexa.core.models.postgres import (
     locale_to_text_search_config,
 )
 from hexa.core.search import Token, TokenType, normalize_search_index
+from hexa.user_management import models as user_management_models
 
 
 @Field.register_lookup
@@ -50,8 +54,12 @@ class BaseIndexQuerySet(TreeQuerySet):
     def leaves(self, level: int):
         return self.filter(path__depth=level + 1)
 
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(
@@ -127,8 +135,12 @@ class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
     own queryset."""
 
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(

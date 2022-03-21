@@ -8,6 +8,7 @@ from time import sleep
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -38,11 +39,13 @@ class ExternalType(Enum):
 
 
 class ClusterQuerySet(PipelinesQuerySet):
-    def filter_for_user(self, user: User):
-        if user.is_active and user.is_superuser:
-            return self
-        else:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
             return self.none()
+        elif user.is_superuser:
+            return self
+
+        return self.none()  # Clusters are only visible to superusers for now
 
 
 class Cluster(Environment):
@@ -259,8 +262,10 @@ class DAGTemplate(Base):
 
 
 class DAGQuerySet(PipelinesQuerySet):
-    def filter_for_user(self, user: User):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(
@@ -389,8 +394,10 @@ class DAGPermission(Permission):
 
 
 class DAGRunQuerySet(PipelinesQuerySet):
-    def filter_for_user(self, user: User):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(dag__in=DAG.objects.filter_for_user(user))
@@ -502,7 +509,10 @@ class DAGRun(Base, WithStatus):
 
 
 class DAGRunFavoriteQuerySet(PipelinesQuerySet):
-    def filter_for_user(self, user: User):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+
         return self.filter(user=user)
 
 

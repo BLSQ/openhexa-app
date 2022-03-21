@@ -1,7 +1,9 @@
+import typing
 from enum import Enum
 from typing import Dict, List, Tuple
 
 import psycopg2
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import pluralize
@@ -14,6 +16,7 @@ from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.user_management.models import User
 
 
 class ExternalType(Enum):
@@ -22,8 +25,10 @@ class ExternalType(Enum):
 
 
 class DatabaseQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(
@@ -206,8 +211,10 @@ class Database(Datasource):
 
 
 class TableQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(database__in=Database.objects.filter_for_user(user))

@@ -1,6 +1,8 @@
+import typing
 from logging import getLogger
 
 from dhis2 import ClientException, RequestException
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -19,6 +21,7 @@ from hexa.core.models.path import PathField
 from ...catalog.sync import DatasourceSyncResult
 from ...core.date_utils import date_format
 from ...core.models.cryptography import EncryptedTextField
+from ...user_management.models import User
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -65,8 +68,10 @@ class Credentials(Base):
 
 
 class InstanceQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(
@@ -240,8 +245,10 @@ class InstancePermission(Permission):
 
 
 class EntryQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(

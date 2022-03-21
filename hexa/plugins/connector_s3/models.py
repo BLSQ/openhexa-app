@@ -1,6 +1,8 @@
 import os
+import typing
 from logging import getLogger
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import filesizeformat, pluralize
@@ -19,6 +21,7 @@ from hexa.plugins.connector_s3.api import (
     list_objects_metadata,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
+from hexa.user_management.models import User
 
 logger = getLogger(__name__)
 
@@ -72,8 +75,10 @@ class BucketQuerySet(CatalogQuerySet):
             bucketpermission__mode__in=modes,
         ).distinct()
 
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(
@@ -257,8 +262,10 @@ class BucketPermission(Permission):
 
 
 class ObjectQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))

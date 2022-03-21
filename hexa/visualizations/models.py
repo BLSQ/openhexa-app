@@ -1,5 +1,7 @@
+import typing
 import uuid
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
@@ -11,6 +13,7 @@ from hexa.core.models import (
     Permission,
 )
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.user_management.models import User
 
 
 class Index(BaseIndex):
@@ -45,8 +48,10 @@ class IndexableMixin(BaseIndexableMixin):
 
 
 class ExternalDashboardsQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
             return self
 
         return self.filter(

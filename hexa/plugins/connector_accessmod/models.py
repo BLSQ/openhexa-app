@@ -21,7 +21,7 @@ from hexa.user_management.models import User
 
 
 class AccessmodQuerySet(models.QuerySet):
-    def filter_for_user(self, user: typing.Union[User, AnonymousUser]):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         raise NotImplementedError
 
 
@@ -224,7 +224,7 @@ class AnalysisType(str, enum.Enum):
 
 
 class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         if not user.is_active:
             return self.none()
 
@@ -236,12 +236,12 @@ class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
 
 class AnalysisManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
-    and "re-attach" the queryset methods ourselves"""
+    and "re-attach" the queryset methods ourselves."""
 
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
 
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
 

@@ -1,6 +1,8 @@
+import typing
 import uuid
 from typing import List
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -12,6 +14,7 @@ from dpq.models import BaseJob
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
+from hexa.user_management.models import User
 
 
 class CatalogIndexQuerySet(BaseIndexQuerySet):
@@ -101,10 +104,8 @@ class IndexableMixin(BaseIndexableMixin):
 
 
 class CatalogQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Catalog querysets should implement the filter_for_user() method"
-        )
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        raise NotImplementedError
 
     def prefetch_indexes(self):
         if not hasattr(self.model, "indexes"):

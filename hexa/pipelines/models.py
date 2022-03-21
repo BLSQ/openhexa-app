@@ -1,11 +1,14 @@
+import typing
 import uuid
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.user_management.models import User
 
 
 class Index(BaseIndex):
@@ -40,10 +43,8 @@ class IndexableMixin(BaseIndexableMixin):
 
 
 class PipelinesQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Pipelines querysets should implement the filter_for_user() method"
-        )
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        raise NotImplementedError
 
     def prefetch_indexes(self):
         if not hasattr(self.model, "indexes"):
