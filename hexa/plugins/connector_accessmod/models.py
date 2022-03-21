@@ -10,8 +10,10 @@ from django.urls import reverse
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
+from hexa.catalog.models import Datasource, Entry
 from hexa.core import mimetypes
-from hexa.core.models import Base
+from hexa.core.models import Base, Permission
+from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow.models import DAG, DAGRunState
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
@@ -32,7 +34,7 @@ class ProjectQuerySet(AccessmodQuerySet):
         return self.filter(owner=user)
 
 
-class Project(Base):
+class Project(Datasource):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
@@ -61,8 +63,40 @@ class Project(Base):
 
         return super().delete(*args, **kwargs)
 
+    @property
+    def display_name(self):
+        return self.name
+
+    def sync(self):
+        pass  # No need to sync, source of truth is OpenHexa
+
+    def get_pipeline_credentials(self):
+        pass
+
+    def get_permission_set(self):
+        return self.projectpermission_set.all()
+
+    def populate_index(self, index):
+        raise NotImplementedError  # Skip indexing for now
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def __str__(self):
         return self.name
+
+
+class ProjectPermission(Permission):
+    project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [("project", "team")]
+
+    def index_object(self):
+        self.project.build_index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on AM project '{self.project}'"
 
 
 class FilesetQuerySet(AccessmodQuerySet):
@@ -70,7 +104,15 @@ class FilesetQuerySet(AccessmodQuerySet):
         return self.filter(owner=user)
 
 
-class Fileset(Base):
+class Fileset(Entry):
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="fileset_unique_name_project"
+            )
+        ]
+
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
@@ -80,13 +122,27 @@ class Fileset(Base):
 
     objects = FilesetQuerySet.as_manager()
 
+    def get_permission_set(self):
+        return self.filesetpermission_set.all()
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+
+class FilesetPermission(Permission):
+    fileset = models.ForeignKey("connector_accessmod.Fileset", on_delete=models.CASCADE)
+
     class Meta:
-        ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint(
-                "name", "project", name="fileset_unique_name_project"
-            )
-        ]
+        unique_together = [("fileset", "team")]
+
+    def index_object(self):
+        self.fileset.build_index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on AM fileset '{self.fileset}'"
 
 
 class FilesetFormat(models.TextChoices):
@@ -113,12 +169,12 @@ class FilesetRoleCode(models.TextChoices):
 
 
 class FilesetRole(Base):
+    class Meta:
+        ordering = ["code"]
+
     name = models.TextField()
     code = models.CharField(max_length=50, choices=FilesetRoleCode.choices)
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
-
-    class Meta:
-        ordering = ["code"]
 
 
 class FileQuerySet(AccessmodQuerySet):
@@ -127,6 +183,9 @@ class FileQuerySet(AccessmodQuerySet):
 
 
 class File(Base):
+    class Meta:
+        ordering = ["-created_at"]
+
     mime_type = models.CharField(
         max_length=255
     )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
@@ -137,9 +196,6 @@ class File(Base):
     @property
     def name(self):
         return self.uri.split("/")[-1]
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class AnalysisStatus(models.TextChoices):
@@ -172,7 +228,7 @@ class AnalysisManager(InheritanceManager):
         return self.get_queryset().filter_for_user(user)
 
 
-class Analysis(Base):
+class Analysis(Pipeline):
     """Base analysis class
 
     NOTE: This model is impacted by a signal (see signals.py in the current module)
@@ -211,6 +267,15 @@ class Analysis(Base):
     )
 
     objects = AnalysisManager()
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def get_permission_set(self):
+        return self.analysispermission_set.all()
 
     def save(self, *args, **kwargs):
         if self.status == AnalysisStatus.DRAFT:
@@ -327,6 +392,21 @@ class Analysis(Base):
         self.save()
 
 
+class AnalysisPermission(Permission):
+    analysis = models.ForeignKey(
+        "connector_accessmod.Analysis", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = [("analysis", "team")]
+
+    def index_object(self):
+        self.analysis.build_index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on AM analysis '{self.analysis}'"
+
+
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
     ANISOTROPIC = "ANISOTROPIC"
     ISOTROPIC = "ISOTROPIC"
@@ -383,6 +463,12 @@ class AccessibilityAnalysis(Analysis):
     catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def update_status_if_draft(self):
         if all(
@@ -492,6 +578,12 @@ class GeographicCoverageAnalysis(Analysis):
     catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def update_status_if_draft(self):
         if all(

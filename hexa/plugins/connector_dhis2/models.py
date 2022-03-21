@@ -265,6 +265,15 @@ class Dhis2Entry(Entry):
 
     objects = EntryQuerySet.as_manager()
 
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     @property
     def display_name(self):
         return self.name
@@ -409,8 +418,14 @@ class IndicatorType(Dhis2Entry):
     number = models.BooleanField()
     factor = models.IntegerField()
 
-    def build_index(self):  # TODO: fishy
-        pass
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError  # Skip indexing for now
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
 
 class Indicator(Dhis2Entry):

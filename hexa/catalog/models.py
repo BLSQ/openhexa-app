@@ -84,6 +84,15 @@ class IndexPermission(BaseIndexPermission):
 
 
 class IndexableMixin(BaseIndexableMixin):
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def get_permission_model(self):
         return IndexPermission
 
@@ -105,6 +114,9 @@ class CatalogQuerySet(models.QuerySet):
 
 
 class Datasource(IndexableMixin, models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -115,8 +127,14 @@ class Datasource(IndexableMixin, models.Model):
 
     objects = CatalogQuerySet.as_manager()
 
-    class Meta:
-        abstract = True
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     @property
     def display_name(self):
@@ -141,6 +159,9 @@ class Datasource(IndexableMixin, models.Model):
 
 
 class Entry(IndexableMixin, models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -149,8 +170,14 @@ class Entry(IndexableMixin, models.Model):
 
     objects = CatalogQuerySet.as_manager()
 
-    class Meta:
-        abstract = True
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

@@ -282,7 +282,7 @@ class BaseIndexableMixin:
     @property
     def index(self):
         # We can't use self.indexes.get(), as it would prevent fetch_related() to work properly
-        indexes = self.indexes.all()
+        indexes = getattr(self, "indexes").all()
         if len(indexes) != 1:
             raise ValueError(
                 f"{self} should have exactly 1 index - found {len(indexes)}"
@@ -300,15 +300,20 @@ class BaseIndexableMixin:
         raise NotImplementedError
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        getattr(super(), "save")(*args, **kwargs)
         self.build_index()
 
     def build_index(self):
-        index, _ = self.get_index_model().objects.get_or_create(
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-        self.populate_index(index)
+        try:
+            index, _ = self.get_index_model().objects.get_or_create(
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=getattr(self, "id"),
+            )
+            self.populate_index(index)
+        # For some Entry subclasses, we want to skip indexing. This might be an inheritance issue and we
+        # might want to refactor this in the future - or make sure that all entries are indexed.
+        except NotImplementedError:
+            return
 
         # Add to the search string the fields from the index (hexa metadata)
         index.search += (
