@@ -1,3 +1,4 @@
+import binascii
 from base64 import b64decode
 from logging import getLogger
 
@@ -26,7 +27,7 @@ def dag_run_authentication_middleware(get_response):
             logger.exception(
                 "dag_run_authentication_middleware error",
             )
-        except UnicodeDecodeError:
+        except (UnicodeDecodeError, binascii.Error):
             pass
 
         return get_response(request)

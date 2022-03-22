@@ -80,6 +80,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.user_management.middlewares.accepted_tos_required_middleware",
+    "hexa.metrics.middlewares.track_request_event",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -96,7 +97,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "hexa.core.context_processors.global_variables",
-                "hexa.plugins.connector_dhis2.context_processors.current_extract",
             ],
         },
     },

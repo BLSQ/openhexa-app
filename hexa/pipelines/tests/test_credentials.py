@@ -84,4 +84,4 @@ class CredentialsTestCase(BaseCredentialsTestCase):
 
         self.assertEqual(response.status_code, 401)
         response_data = response.json()
-        self.assertEqual(0, len(response_data))
+        self.assertIn("error", response_data)

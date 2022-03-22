@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("connector_airflow", "0025_am_webhook_token"),
+        ("connector_airflow", "0028_dagrun_favorite_unique"),
     ]
 
     operations = [
@@ -18,6 +18,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="dagauthorizeddatasource",
             name="slug",
-            field=models.CharField(blank=True, max_length=200, null=True),
+            field=models.SlugField(
+                blank=True,
+                help_text="A slug to identify the datasource in the pipeline. If left empty, the datasource will be available with the same name as in the notebooks",
+                max_length=200,
+                null=True,
+            ),
         ),
     ]
