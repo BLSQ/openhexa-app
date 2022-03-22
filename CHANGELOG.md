@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.30
+------------
+
+March 29, 2022
+
+### Updated
+
+- Revamped permission / access controls for datasources and pipelines
+
 Version 0.28
 ------------
 
