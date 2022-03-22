@@ -3,6 +3,7 @@ import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
+from django.core.signing import Signer
 from django.db import models
 from django.http import HttpRequest
 from dpq.models import BaseJob
@@ -93,6 +94,15 @@ class Pipeline(IndexableMixin, models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.build_index()
+
+    def get_token(self):
+        return Signer().sign_object(
+            {
+                "id": str(self.id),
+                "model": self._meta.model_name,
+                "app_label": self._meta.app_label,
+            }
+        )
 
 
 class EnvironmentsSyncJob(BaseJob):

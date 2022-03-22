@@ -43,10 +43,10 @@ module.exports = {
         '../../**/*.py'
     ],
     theme: {
-        maxWidth: {
-            'xxs': '16rem',
-        },
         extend: {
+            maxWidth: {
+                'xxs': '16rem',
+            },
             fontFamily: {
                 sans: ['Inter var', ...defaultTheme.fontFamily.sans],
             },

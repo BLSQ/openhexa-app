@@ -8,8 +8,9 @@ from time import sleep
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from django.core.exceptions import ImproperlyConfigured
 
-import hexa.plugins.connector_s3.models
+import hexa.plugins.connector_s3.models as models
 
 logger = getLogger(__name__)
 
@@ -20,8 +21,8 @@ class S3ApiError(Exception):
 
 def generate_sts_app_s3_credentials(
     *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: typing.Optional[hexa.plugins.connector_s3.models.Bucket] = None,
+    principal_credentials: models.Credentials,
+    bucket: typing.Optional[models.Bucket] = None,
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary S3 credentials for app operations, using the app role.
@@ -64,13 +65,69 @@ def generate_sts_app_s3_credentials(
     return response["Credentials"]
 
 
+def get_or_create_role(
+    *,
+    principal_credentials: models.Credentials,
+    role_name: str,
+    role_path: str = "/",
+    description: str = "",
+):
+    iam_client = boto3.client(
+        "iam",
+        aws_access_key_id=principal_credentials.access_key_id,
+        aws_secret_access_key=principal_credentials.secret_access_key,
+    )
+
+    assume_role_policy_doc = json.dumps(
+        {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "sts:AssumeRole",
+                    "Effect": "Allow",
+                    "Principal": {"AWS": principal_credentials.user_arn},
+                },
+            ],
+        }
+    )
+    try:
+        role_data = iam_client.get_role(RoleName=role_name)
+    except iam_client.exceptions.NoSuchEntityException:
+        role_data = iam_client.create_role(
+            RoleName=role_name,
+            MaxSessionDuration=12 * 60 * 60,
+            AssumeRolePolicyDocument=assume_role_policy_doc,
+            Description=description,
+            Path=role_path,
+        )
+        # Very unfortunate, but the assume role policy effect is not immediate
+        sleep(10)
+
+    return role_data
+
+
+def attach_policy(iam_client, role_name: str, policy_name: str, document: typing.Dict):
+    policy_doc = json.dumps(document)
+    if len(policy_doc) > 10240:
+        raise S3ApiError(
+            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
+        )
+
+    # Build a fresh version of the s3 policy and set it as an inline policy on the role (forced update)
+    iam_client.put_role_policy(
+        RoleName=role_name,
+        PolicyName=policy_name,
+        PolicyDocument=policy_doc,
+    )
+
+
 def generate_sts_user_s3_credentials(
     *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
+    principal_credentials: models.Credentials,
     role_identifier: str,
     session_identifier: str,
-    read_only_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
-    read_write_buckets: typing.Sequence[hexa.plugins.connector_s3.models.Bucket],
+    read_only_buckets: typing.Sequence[models.Bucket],
+    read_write_buckets: typing.Sequence[models.Bucket],
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
     """Generate temporary S3 credentials for a specific team and for specific buckets.
@@ -95,46 +152,20 @@ def generate_sts_user_s3_credentials(
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
 
-    # Get or create the team role with the proper assume role policy. role_name max length 64 chars.
+    # role_name max length 64 chars.
     role_name = f"{principal_credentials.username}-s3-{role_identifier}"
-    assume_role_policy_doc = json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Action": "sts:AssumeRole",
-                    "Effect": "Allow",
-                    "Principal": {"AWS": principal_credentials.user_arn},
-                },
-            ],
-        }
-    )
-    try:
-        role_data = iam_client.get_role(RoleName=role_name)
-    except iam_client.exceptions.NoSuchEntityException:
-        role_data = iam_client.create_role(
-            RoleName=role_name,
-            MaxSessionDuration=12 * 60 * 60,
-            AssumeRolePolicyDocument=assume_role_policy_doc,
-        )
-        # Very unfortunate, but the assume role policy effect is not immediate
-        sleep(10)
 
-    policy_doc = json.dumps(
-        generate_s3_policy(
+    role_data = get_or_create_role(
+        principal_credentials=principal_credentials, role_name=role_name
+    )
+
+    attach_policy(
+        iam_client=iam_client,
+        role_name=role_data["Role"]["RoleName"],
+        policy_name="s3-access",
+        document=generate_s3_policy(
             [b.name for b in read_write_buckets], [b.name for b in read_only_buckets]
-        )
-    )
-    if len(policy_doc) > 10240:
-        raise S3ApiError(
-            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
-        )
-
-    # Build a fresh version of the s3 policy and set it as an inline policy on the role (forced update)
-    iam_client.put_role_policy(
-        RoleName=role_data["Role"]["RoleName"],
-        PolicyName="s3-access",
-        PolicyDocument=policy_doc,
+        ),
     )
 
     # We can then assume the team role
@@ -224,10 +255,7 @@ def generate_s3_policy(
     }
 
 
-def _build_app_s3_client(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-):
+def _build_app_s3_client(*, principal_credentials: models.Credentials):
     sts_credentials = generate_sts_app_s3_credentials(
         principal_credentials=principal_credentials,
         duration=900,
@@ -242,10 +270,30 @@ def _build_app_s3_client(
     )
 
 
+def _get_credentials():
+    try:
+        return models.Credentials.objects.get()
+    except (
+        models.Credentials.DoesNotExist,
+        models.Credentials.MultipleObjectsReturned,
+    ):
+        raise ImproperlyConfigured(
+            "The S3 connector plugin should have a single credentials entry"
+        )
+
+
+def _build_iam_client(*, principal_credentials: models.Credentials):
+    return boto3.client(
+        "iam",
+        aws_access_key_id=principal_credentials.access_key_id,
+        aws_secret_access_key=principal_credentials.secret_access_key,
+    )
+
+
 def head_bucket(
     *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
+    principal_credentials: models.Credentials,
+    bucket: models.Bucket,
 ):
     s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
 
@@ -256,10 +304,7 @@ def head_bucket(
 
 
 def generate_download_url(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
-    target_key: str,
+    *, principal_credentials: models.Credentials, bucket: models.Bucket, target_key: str
 ):
     s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
 
@@ -271,10 +316,7 @@ def generate_download_url(
 
 
 def generate_upload_url(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
-    target_key: str,
+    *, principal_credentials: models.Credentials, bucket: models.Bucket, target_key: str
 ):
     s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
 
@@ -286,10 +328,7 @@ def generate_upload_url(
 
 
 def get_object_metadata(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
-    object_key: str,
+    *, principal_credentials: models.Credentials, bucket: models.Bucket, object_key: str
 ):
     client = _build_app_s3_client(principal_credentials=principal_credentials)
     metadata = client.head_object(Bucket=bucket.name, Key=object_key)
@@ -305,9 +344,7 @@ def get_object_metadata(
 
 
 def list_objects_metadata(
-    *,
-    principal_credentials: hexa.plugins.connector_s3.models.Credentials,
-    bucket: hexa.plugins.connector_s3.models.Bucket,
+    *, principal_credentials: models.Credentials, bucket: models.Bucket
 ):
     client = _build_app_s3_client(principal_credentials=principal_credentials)
     kwargs, objects = {"Bucket": bucket.name}, []
@@ -375,3 +412,22 @@ def _is_dir(object_data: typing.Mapping[str, typing.Any]):
     return object_data.get(
         "Size", object_data.get("ContentLength")
     ) == 0 and object_data["Key"].endswith("/")
+
+
+def parse_arn(arn):
+    # http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+    elements = arn.split(":", 5)
+    result = {
+        "arn": elements[0],
+        "partition": elements[1],
+        "service": elements[2],
+        "region": elements[3],
+        "account": elements[4],
+        "resource": elements[5],
+        "resource_type": None,
+    }
+    if "/" in result["resource"]:
+        result["resource_type"], result["resource"] = result["resource"].split("/", 1)
+    elif ":" in result["resource"]:
+        result["resource_type"], result["resource"] = result["resource"].split(":", 1)
+    return result

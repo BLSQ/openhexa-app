@@ -64,11 +64,6 @@ class Database(Datasource):
             return self.database
 
     @property
-    def notebooks_credentials_prefix(self):
-        slug = self.unique_name.replace("-", "_").upper()
-        return f"POSTGRESQL_{slug}"
-
-    @property
     def url(self):
         return f"postgresql://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.database}"
 
@@ -88,15 +83,6 @@ class Database(Datasource):
             else _("%(count)d table%(suffix)s")
             % {"count": count, "suffix": pluralize(count)}
         )
-
-    def get_pipeline_credentials(self):
-        return {
-            "hostname": self.hostname,
-            "username": self.username,
-            "password": self.password,
-            "port": self.port,
-            "database": self.database,
-        }
 
     def populate_index(self, index):
         index.last_synced_at = self.last_synced_at

@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from .datagrids import DatasourceGrid
 from .models import Datasource, Index
@@ -96,7 +96,7 @@ def search(request: HttpRequest) -> HttpResponse:
     )
 
 
-@require_http_methods(["POST"])
+@require_POST
 def datasource_sync(
     request: HttpRequest, datasource_contenttype_id: int, datasource_id: uuid.UUID
 ):

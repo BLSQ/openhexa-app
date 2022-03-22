@@ -1,13 +1,12 @@
 from functools import cache
 from typing import Callable
 
+from django.apps import apps
 from django.conf import settings
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
-
-from hexa.plugins.app import get_connector_app_configs
 
 ANONYMOUS_URLS = [
     "logout",
@@ -19,12 +18,12 @@ ANONYMOUS_URLS = [
     "password_reset_done",
     "user:accept_tos",
 ]
-for app_config in get_connector_app_configs():
+for app_config in apps.get_app_configs():
     ANONYMOUS_URLS += getattr(app_config, "ANONYMOUS_URLS", [])
 REVERSED_ANONYMOUS_URLS = [reverse(url) for url in ANONYMOUS_URLS]
 
 ANONYMOUS_PREFIXES = ["/auth/reset/"]
-for app_config in get_connector_app_configs():
+for app_config in apps.get_app_configs():
     ANONYMOUS_PREFIXES += getattr(app_config, "ANONYMOUS_PREFIXES", [])
 
 
@@ -44,7 +43,9 @@ def is_protected_routes(url: str) -> bool:
 def login_required_middleware(
     get_response: Callable[[HttpRequest], HttpResponse]
 ) -> Callable[[HttpRequest], HttpResponse]:
-    """Authentication is mandatory for all routes except logout, index and ready endpoint."""
+    """Authentication by cookie is mandatory for all routes except the ones specified in
+    the app configs ANONYMOUS_PREFIXES and ANONYMOUS_URLS.
+    Mostly: logout, index, ready and some API endpoints (that implement their own authentication)"""
 
     def middleware(request: HttpRequest) -> HttpResponse:
         if not request.user.is_authenticated and is_protected_routes(request.path):

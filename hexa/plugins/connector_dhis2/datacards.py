@@ -47,13 +47,12 @@ class UsageSection(Section):
 from dhis2 import Api
 
 client = Api(
-    server=os.environ["{{ instance.notebooks_credentials_prefix }}_URL"],
-    username=os.environ["{{ instance.notebooks_credentials_prefix }}_USERNAME"],
-    password=os.environ["{{ instance.notebooks_credentials_prefix }}_PASSWORD"],
+    server=os.environ["DHIS2_{{ label }}_URL"],
+    username=os.environ["DHIS2_{{ label }}_USERNAME"],
+    password=os.environ["DHIS2_{{ label }}_PASSWORD"],
 )
             """.replace(
-            "{{ instance.notebooks_credentials_prefix }}",
-            item.notebooks_credentials_prefix,
+            "{{ label }}", item.slug.replace("-", "_").upper()
         )
 
 
