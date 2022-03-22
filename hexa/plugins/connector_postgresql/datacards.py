@@ -31,7 +31,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine(os.environ["{{ datasource.notebooks_credentials_prefix }}_URL"])
+engine = create_engine(os.environ["POSTGRESQL_{{ label }}_URL"])
 
 # Create sample dataframe
 df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
@@ -42,8 +42,7 @@ df.to_sql("database_tutorial", con=engine, if_exists="replace")
 # Read data
 pd.read_sql("SELECT * FROM database_tutorial", con=engine)
             """.replace(
-            "{{ datasource.notebooks_credentials_prefix }}",
-            item.notebooks_credentials_prefix,
+            "{{ label }}", item.unique_name.replace("-", "_").upper()
         )
 
     def get_r_usage(self, item: Database):
@@ -52,17 +51,16 @@ library(DBI)
 
 con <- dbConnect(
     RPostgres::Postgres(),
-    dbname = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_DATABASE"),
-    host = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_HOSTNAME"),
-    port = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_PORT"),
-    user = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_USERNAME"),
-    password = Sys.getenv("{{ datasource.notebooks_credentials_prefix }}_PASSWORD")
+    dbname = Sys.getenv("POSTGRESQL_{{ label }}_DATABASE"),
+    host = Sys.getenv("POSTGRESQL_{{ label }}_HOSTNAME"),
+    port = Sys.getenv("POSTGRESQL_{{ label }}_PORT"),
+    user = Sys.getenv("POSTGRESQL_{{ label }}_USERNAME"),
+    password = Sys.getenv("POSTGRESQL_{{ label }}_PASSWORD")
 )
 
 dbWriteTable(con, "some_table_name", Data_fin, overwrite=TRUE)
             """.replace(
-            "{{ datasource.notebooks_credentials_prefix }}",
-            item.notebooks_credentials_prefix,
+            "{{ label }}", item.unique_name.replace("-", "_").upper()
         )
 
 

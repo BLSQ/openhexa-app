@@ -15,6 +15,13 @@ from .models import (
 class PermissionInline(admin.StackedInline):
     extra = 1
     model = DAGPermission
+    verbose_name = "Team permission"
+
+
+class DAGAuthorizedDatasourceInline(admin.TabularInline):
+    extra = 1
+    model = DAGAuthorizedDatasource
+    verbose_name = "Authorized Datasource"
 
 
 @admin.register(Cluster)
@@ -40,9 +47,7 @@ class DAGTemplateAdmin(admin.ModelAdmin):
 class DAGAdmin(admin.ModelAdmin):
     list_display = ("dag_id", "template", "schedule", "user")
 
-    inlines = [
-        PermissionInline,
-    ]
+    inlines = [PermissionInline, DAGAuthorizedDatasourceInline]
 
 
 @admin.register(DAGRun)
@@ -56,4 +61,10 @@ class DAGRunAdmin(admin.ModelAdmin):
 
 @admin.register(DAGAuthorizedDatasource)
 class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
-    list_display = ("dag", "datasource", "label")
+    list_display = ("dag", "datasource", "connector", "slug")
+
+    @admin.display(
+        ordering="datasource_type__app_label",
+    )
+    def connector(self, instance):
+        return instance.datasource_type.app_label

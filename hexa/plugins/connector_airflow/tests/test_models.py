@@ -173,21 +173,14 @@ class DagTemplateTest(TestCase):
         )
 
     def test_build_dag_config(self):
+        self.maxDiff = None
         self.assertEqual(
             self.TEMPLATE_CHIRPS.build_dag_config(),
             [
                 {
                     "dag_id": "chirps_extract_ct1",
-                    "credentials": [
-                        {
-                            "hostname": "127.0.0.1",
-                            "username": "ct1-user",
-                            "password": "password",
-                            "port": 5432,
-                            "database": "ct1-db",
-                            "label": "datasource",
-                        }
-                    ],
+                    "token": self.CHIRPS_EXTRACT_CT1.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "code": "CT1",
                         "contours": "s3://invalid@/geodata/ct1.gpkg",
@@ -201,16 +194,8 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "chirps_extract_ct2",
-                    "credentials": [
-                        {
-                            "hostname": "127.0.0.1",
-                            "username": "ct2-user",
-                            "password": "password",
-                            "port": 5432,
-                            "database": "ct2-db",
-                            "label": "datasource",
-                        }
-                    ],
+                    "token": self.CHIRPS_EXTRACT_CT2.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "code": "CT2",
                         "contours": "s3://invalid@/geodata/ct2.gpkg",
@@ -229,30 +214,16 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "dhis2_extract_ct1",
-                    "credentials": [
-                        {
-                            "name": "play ct1",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct1",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "token": self.DHIS2_EXTRACT_CT1.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
                 },
                 {
                     "dag_id": "dhis2_extract_ct2",
-                    "credentials": [
-                        {
-                            "name": "play ct2",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct2",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "token": self.DHIS2_EXTRACT_CT2.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
@@ -264,22 +235,16 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "papermill_manual",
-                    "credentials": [],
+                    "token": self.PM_GENERIC.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
                     "schedule": None,
                 },
                 {
                     "dag_id": "prj1_update",
-                    "credentials": [
-                        {
-                            "name": "play ct1",
-                            "url": "https://play.invalid/",
-                            "username": "admin_ct1",
-                            "password": "password",
-                            "label": "datasource",
-                        }
-                    ],
+                    "token": self.PM_PRJ1.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "parameters": {},
                         "in_notebook": "s3://invalid-bucket/code/launch_prj1.ipynb",
@@ -290,7 +255,8 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "prj2_update",
-                    "credentials": [],
+                    "token": self.PM_PRJ2.get_token(),
+                    "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "parameters": {},
                         "in_notebook": "s3://invalid-bucket/code/ct1_dqa.ipynb",
@@ -373,7 +339,7 @@ class DAGSyncTest(TestCase):
                 "value": """[
   {
     "dag_id": "prj1_update",
-    "credentials": [],
+    "env": [],
     "static_config": {},
     "report_email": None,
     "schedule": "10 10 * * 1"

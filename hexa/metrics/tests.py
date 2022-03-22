@@ -24,7 +24,7 @@ class MetricsTest(TestCase):
         self.client.get(reverse("catalog:index"))
         req_count_2 = Request.objects.count()
         self.assertEqual(req_count_1 + 1, req_count_2)
-        saved_request = Request.objects.first()
+        saved_request = Request.objects.get()
         self.assertEqual(saved_request.url, reverse("catalog:index"))
         self.assertEqual(saved_request.query_string, "")
 
@@ -34,7 +34,7 @@ class MetricsTest(TestCase):
         self.client.get(
             f"{reverse('catalog:index')}?yo",
         )
-        saved_request = Request.objects.first()
+        saved_request = Request.objects.get()
         self.assertEqual(saved_request.query_string, "yo")
 
     @test.override_settings(SAVE_REQUESTS=True)
@@ -43,7 +43,7 @@ class MetricsTest(TestCase):
         self.client.get(
             f"{reverse('catalog:index')}?foo=bar&bar=baz",
         )
-        saved_request = Request.objects.first()
+        saved_request = Request.objects.get()
         self.assertEqual(saved_request.query_string, "foo=bar&bar=baz")
 
     @test.override_settings(SAVE_REQUESTS=True)

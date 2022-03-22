@@ -104,25 +104,12 @@ class Instance(Datasource):
     def display_name(self):
         return self.name if self.name != "" else self.url
 
-    @property
-    def notebooks_credentials_prefix(self):
-        slug = self.slug.replace("-", "_").upper()
-        return f"DHIS2_{slug}"
-
     def __str__(self):
         return self.display_name
 
     def sync_log(self, fmt, *args):
         if self.verbose_sync:
             logger.info("sync_log %s: " + fmt, self.name, *args)
-
-    def get_pipeline_credentials(self):
-        return {
-            "name": self.name,
-            "url": self.api_credentials.api_url,
-            "username": self.api_credentials.username,
-            "password": self.api_credentials.password,
-        }
 
     def sync(self):
         """Sync the datasource by querying the DHIS2 API"""

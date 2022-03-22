@@ -5,7 +5,7 @@ from logging import getLogger
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from hexa.metrics.decorators import do_not_track
 from hexa.plugins.connector_accessmod.authentication import DAGRunUser
@@ -18,14 +18,10 @@ class EventType(str, enum.Enum):
     STATUS_UPDATE = "status_update"
 
 
-@require_http_methods(["POST"])
+@require_POST
 @csrf_exempt
 @do_not_track
 def webhook(request: HttpRequest) -> HttpResponse:
-    """This API endpoint is called by the notebooks component to get credentials for Jupyterhub.
-    In addition to basic user information, every connector plugin can provide its own set of credentials (environment
-    variables for S3 for example)."""
-
     if not request.user.is_authenticated or not isinstance(request.user, DAGRunUser):
         logger.error(
             "dag_run_authentication_middleware error",
