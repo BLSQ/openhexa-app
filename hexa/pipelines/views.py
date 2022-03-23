@@ -1,4 +1,5 @@
 import uuid
+from base64 import b64decode
 from logging import getLogger
 
 from django.apps import apps
@@ -84,13 +85,13 @@ def environment_sync(
 @csrf_exempt  # TODO: we should remove this
 def credentials(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the pipelines component to get credentials for Airflow DAGs."""
-    auth_type, token = request.headers.get("Authorization", " ").split(" ")
+    auth_type, encoded_token = request.headers.get("Authorization", " ").split(" ")
     if auth_type.lower() != "bearer":
         return JsonResponse(
             {"error": "Authorization header should start with 'bearer'"}, status=401
         )
     try:
-        data = Signer().unsign_object(token)
+        data = Signer().unsign(b64decode(encoded_token).decode("utf-8"))
     except BadSignature:
         return JsonResponse({"error": "Token signature is invalid"}, status=401)
 

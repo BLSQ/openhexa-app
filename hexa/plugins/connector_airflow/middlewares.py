@@ -29,7 +29,8 @@ def dag_run_authentication_middleware(get_response):
             )
         except (UnicodeDecodeError, binascii.Error):
             pass
-
+        except DAGRun.DoesNotExist:
+            pass
         return get_response(request)
 
     return middleware
