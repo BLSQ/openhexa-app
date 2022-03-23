@@ -1,4 +1,5 @@
 import datetime
+from base64 import b64encode
 from unittest import mock
 from urllib.parse import urljoin
 
@@ -179,7 +180,9 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "chirps_extract_ct1",
-                    "token": self.CHIRPS_EXTRACT_CT1.get_token(),
+                    "token": b64encode(
+                        self.CHIRPS_EXTRACT_CT1.get_token().encode("utf-8")
+                    ).decode("utf-8"),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "code": "CT1",
@@ -194,7 +197,9 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "chirps_extract_ct2",
-                    "token": self.CHIRPS_EXTRACT_CT2.get_token(),
+                    "token": b64encode(
+                        self.CHIRPS_EXTRACT_CT2.get_token().encode("utf-8")
+                    ).decode("utf-8"),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "code": "CT2",
@@ -214,7 +219,9 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "dhis2_extract_ct1",
-                    "token": self.DHIS2_EXTRACT_CT1.get_token(),
+                    "token": b64encode(
+                        self.DHIS2_EXTRACT_CT1.get_token().encode("utf-8")
+                    ).decode("utf-8"),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
@@ -222,7 +229,9 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "dhis2_extract_ct2",
-                    "token": self.DHIS2_EXTRACT_CT2.get_token(),
+                    "token": b64encode(
+                        self.DHIS2_EXTRACT_CT2.get_token().encode("utf-8")
+                    ).decode("utf-8"),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
@@ -235,7 +244,9 @@ class DagTemplateTest(TestCase):
             [
                 {
                     "dag_id": "papermill_manual",
-                    "token": self.PM_GENERIC.get_token(),
+                    "token": b64encode(
+                        self.PM_GENERIC.get_token().encode("utf-8")
+                    ).decode("utf-8"),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {},
                     "report_email": None,
@@ -243,7 +254,9 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "prj1_update",
-                    "token": self.PM_PRJ1.get_token(),
+                    "token": b64encode(self.PM_PRJ1.get_token().encode("utf-8")).decode(
+                        "utf-8"
+                    ),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "parameters": {},
@@ -255,7 +268,9 @@ class DagTemplateTest(TestCase):
                 },
                 {
                     "dag_id": "prj2_update",
-                    "token": self.PM_PRJ2.get_token(),
+                    "token": b64encode(self.PM_PRJ2.get_token().encode("utf-8")).decode(
+                        "utf-8"
+                    ),
                     "credentials_url": "http://localhost:8000/pipelines/credentials/",
                     "static_config": {
                         "parameters": {},
