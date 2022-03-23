@@ -47,6 +47,8 @@ class CustomUserAdmin(UserAdmin):
         "is_superuser",
     )
 
+    list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
+
     fieldsets = (
         (
             None,

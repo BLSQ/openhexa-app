@@ -346,10 +346,9 @@ class DAG(Pipeline):
         )
 
     def build_dag_config(self):
-
         return {
             "dag_id": self.dag_id,
-            "token": self.get_token(),
+            "token": b64encode(self.get_token().encode("utf-8")).decode("utf-8"),
             "credentials_url": f'{settings.BASE_URL}{reverse("pipelines:credentials")}',
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,

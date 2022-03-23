@@ -40,12 +40,14 @@ class DAGPermissionAdmin(admin.ModelAdmin):
 
 @admin.register(DAGTemplate)
 class DAGTemplateAdmin(admin.ModelAdmin):
-    list_display = ("cluster", "code")
+    list_display = ("code", "cluster")
 
 
 @admin.register(DAG)
 class DAGAdmin(admin.ModelAdmin):
     list_display = ("dag_id", "template", "schedule", "user")
+    list_filter = ("template",)
+    search_fields = ("dag_id",)
 
     inlines = [PermissionInline, DAGAuthorizedDatasourceInline]
 
@@ -53,6 +55,7 @@ class DAGAdmin(admin.ModelAdmin):
 @admin.register(DAGRun)
 class DAGRunAdmin(admin.ModelAdmin):
     list_display = ("run_id", "state", "execution_date", "dag", "get_cluster")
+    list_filter = ("state", "execution_date", "dag", "dag__template__cluster")
 
     @display(ordering="dag__template__cluster", description="Cluster")
     def get_cluster(self, obj: DAGRun):
@@ -62,6 +65,7 @@ class DAGRunAdmin(admin.ModelAdmin):
 @admin.register(DAGAuthorizedDatasource)
 class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
     list_display = ("dag", "datasource", "connector", "slug")
+    search_fields = ("dag__dag_id",)
 
     @admin.display(
         ordering="datasource_type__app_label",
