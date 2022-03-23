@@ -1,5 +1,4 @@
 import binascii
-from base64 import b64decode
 from logging import getLogger
 
 from django.core.signing import Signer
@@ -16,9 +15,9 @@ def dag_run_authentication_middleware(get_response):
 
     def middleware(request: HttpRequest):
         try:
-            auth_type, encoded_token = request.headers["Authorization"].split(" ")
+            auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
-                token = Signer().unsign(b64decode(encoded_token).decode("utf-8"))
+                token = Signer().unsign(token)
                 dag_run = DAGRun.objects.get(webhook_token=token)
                 request.user = DAGRunUser(dag_run=dag_run)
         except KeyError:
