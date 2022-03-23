@@ -1,0 +1,464 @@
+"""Exposes a URL that specifies the behaviour of this scalar."""
+directive @specifiedBy(
+  """The URL that specifies the behaviour of this scalar."""
+  url: String!
+) on SCALAR
+
+type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
+  id: String!
+  type: AccessmodAnalysisType!
+  status: AccessmodAnalysisStatus!
+  name: String!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  landCover: AccessmodFileset
+  dem: AccessmodFileset
+  transportNetwork: AccessmodFileset
+  slope: AccessmodFileset
+  water: AccessmodFileset
+  barrier: AccessmodFileset
+  movingSpeeds: AccessmodFileset
+  healthFacilities: AccessmodFileset
+  invertDirection: Boolean
+  maxTravelTime: Int
+  maxSlope: Float
+  priorityRoads: Boolean
+  priorityLandCover: [Int!]
+  waterAllTouched: Boolean
+  algorithm: AccessmodAccessibilityAnalysisAlgorithm
+  knightMove: Boolean
+  travelTimes: AccessmodFileset
+  frictionSurface: AccessmodFileset
+  catchmentAreas: AccessmodFileset
+}
+
+enum AccessmodAccessibilityAnalysisAlgorithm {
+  ANISOTROPIC
+  ISOTROPIC
+}
+
+interface AccessmodAnalysis {
+  id: String!
+  type: AccessmodAnalysisType!
+  status: AccessmodAnalysisStatus!
+  name: String!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AccessmodAnalysisPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [AccessmodAnalysis!]!
+}
+
+enum AccessmodAnalysisStatus {
+  DRAFT
+  READY
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum AccessmodAnalysisType {
+  ACCESSIBILITY
+  GEOGRAPHIC_COVERAGE
+}
+
+type AccessmodFile {
+  id: String!
+  uri: String!
+  name: String!
+  fileset: AccessmodFileset
+  mimeType: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AccessmodFileset {
+  id: String!
+  name: String!
+  role: AccessmodFilesetRole
+  owner: User!
+  files: [AccessmodFile!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum AccessmodFilesetFormat {
+  VECTOR
+  RASTER
+  TABULAR
+}
+
+type AccessmodFilesetPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [AccessmodFileset!]!
+}
+
+type AccessmodFilesetRole {
+  id: String!
+  code: AccessmodFilesetRoleCode!
+  name: String!
+  format: AccessmodFilesetFormat!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum AccessmodFilesetRoleCode {
+  BARRIER
+  CATCHMENT_AREAS
+  COVERAGE
+  DEM
+  FRICTION_SURFACE
+  GEOMETRY
+  HEALTH_FACILITIES
+  LAND_COVER
+  MOVING_SPEEDS
+  POPULATION
+  SLOPE
+  TRANSPORT_NETWORK
+  TRAVEL_TIMES
+  WATER
+}
+
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
+  id: String!
+  type: AccessmodAnalysisType!
+  status: AccessmodAnalysisStatus!
+  name: String!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  population: AccessmodFileset
+  frictionSurface: AccessmodFileset
+  dem: AccessmodFileset
+  healthFacilities: AccessmodFileset
+  anisotropic: Boolean
+  maxTravelTime: Int
+  hfProcessingOrder: String
+  geographicCoverage: AccessmodFileset
+  catchmentAreas: AccessmodFileset
+}
+
+type AccessmodProject {
+  id: String!
+  name: String!
+  spatialResolution: Int!
+  crs: Int!
+  country: Country!
+  owner: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  extent: AccessmodFileset
+}
+
+type AccessmodProjectPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [AccessmodProject!]!
+}
+
+type Avatar {
+  initials: String!
+  color: String!
+}
+
+type Country {
+  code: String!
+  alpha3: String!
+  name: String!
+  flag: String!
+}
+
+input CountryInput {
+  code: String!
+  alpha3: String
+  name: String
+  flag: String
+}
+
+enum CreateAccessmodAccessibilityAnalysisError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodAccessibilityAnalysisInput {
+  projectId: String!
+  name: String!
+}
+
+type CreateAccessmodAccessibilityAnalysisResult {
+  success: Boolean!
+  analysis: AccessmodAccessibilityAnalysis
+  errors: [CreateAccessmodAccessibilityAnalysisError!]!
+}
+
+enum CreateAccessmodFileError {
+  URI_DUPLICATE
+}
+
+input CreateAccessmodFileInput {
+  filesetId: String!
+  uri: String!
+  mimeType: String!
+}
+
+type CreateAccessmodFileResult {
+  success: Boolean!
+  file: AccessmodFile
+  errors: [CreateAccessmodFileError!]!
+}
+
+enum CreateAccessmodFilesetError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodFilesetInput {
+  name: String!
+  projectId: String!
+  roleId: String!
+}
+
+type CreateAccessmodFilesetResult {
+  success: Boolean!
+  fileset: AccessmodFileset
+  errors: [CreateAccessmodFilesetError!]!
+}
+
+enum CreateAccessmodProjectError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodProjectInput {
+  name: String!
+  spatialResolution: Int!
+  crs: Int!
+  extentId: String
+  country: CountryInput!
+}
+
+type CreateAccessmodProjectResult {
+  success: Boolean!
+  project: AccessmodProject
+  errors: [CreateAccessmodProjectError!]!
+}
+
+scalar Date
+
+scalar DateTime
+
+enum DeleteAccessmodAnalysisError {
+  NOT_FOUND
+  DELETE_FAILED
+}
+
+input DeleteAccessmodAnalysisInput {
+  id: String!
+}
+
+type DeleteAccessmodAnalysisResult {
+  success: Boolean!
+  errors: [DeleteAccessmodAnalysisError!]!
+}
+
+enum DeleteAccessmodFileError {
+  NOT_FOUND
+}
+
+input DeleteAccessmodFileInput {
+  id: String!
+}
+
+type DeleteAccessmodFileResult {
+  success: Boolean!
+  errors: [DeleteAccessmodFileError!]!
+}
+
+enum DeleteAccessmodFilesetError {
+  NOT_FOUND
+}
+
+input DeleteAccessmodFilesetInput {
+  id: String!
+}
+
+type DeleteAccessmodFilesetResult {
+  success: Boolean!
+  errors: [DeleteAccessmodFilesetError!]!
+}
+
+enum DeleteAccessmodProjectError {
+  NOT_FOUND
+}
+
+input DeleteAccessmodProjectInput {
+  id: String!
+}
+
+type DeleteAccessmodProjectResult {
+  success: Boolean!
+  errors: [DeleteAccessmodProjectError!]!
+}
+
+enum LaunchAccessmodAnalysisError {
+  LAUNCH_FAILED
+}
+
+input LaunchAccessmodAnalysisInput {
+  id: String!
+}
+
+type LaunchAccessmodAnalysisResult {
+  success: Boolean!
+  analysis: AccessmodAnalysis
+  errors: [LaunchAccessmodAnalysisError!]!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+type LoginResult {
+  success: Boolean!
+  me: User
+}
+
+type LogoutResult {
+  success: Boolean!
+}
+
+type Mutation {
+  login(input: LoginInput!): LoginResult!
+  logout: LogoutResult!
+  createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
+  updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
+  deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
+  createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult!
+  deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult!
+  prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult!
+  prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult!
+  createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult!
+  deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult!
+  createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
+  updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
+  launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
+  deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
+}
+
+type Organization {
+  id: String!
+  name: String!
+  type: String!
+  url: String!
+  contactInfo: String!
+}
+
+input OrganizationInput {
+  id: String!
+  name: String
+  type: String
+  url: String
+  contactInfo: String
+}
+
+input PrepareAccessmodFileDownloadInput {
+  fileId: String!
+}
+
+type PrepareAccessmodFileDownloadResult {
+  success: Boolean!
+  downloadUrl: String
+}
+
+input PrepareAccessmodFileUploadInput {
+  filesetId: String!
+  mimeType: String!
+}
+
+type PrepareAccessmodFileUploadResult {
+  success: Boolean!
+  uploadUrl: String
+  fileUri: String
+}
+
+type Query {
+  me: User
+  countries: [Country!]
+  organizations: [Organization!]
+  accessmodProject(id: String): AccessmodProject
+  accessmodProjects(page: Int, perPage: Int): AccessmodProjectPage!
+  accessmodFileset(id: String): AccessmodFileset
+  accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
+  accessmodFilesetRole(id: String!): AccessmodFilesetRole
+  accessmodFilesetRoles: [AccessmodFilesetRole!]!
+  accessmodAnalysis(id: String): AccessmodAnalysis
+  accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
+}
+
+enum UpdateAccessmodAccessibilityAnalysisError {
+  NOT_FOUND
+  NAME_DUPLICATE
+}
+
+input UpdateAccessmodAccessibilityAnalysisInput {
+  id: String!
+  name: String
+  landCoverId: String
+  demId: String
+  transportNetworkId: String
+  slopeId: String
+  waterId: String
+  barrierId: String
+  movingSpeedsId: String
+  healthFacilitiesId: String
+  invertDirection: Boolean
+  maxTravelTime: Int
+  maxSlope: Float
+  priorityRoads: Boolean
+  priorityLandCover: [Int!]
+  waterAllTouched: Boolean
+  algorithm: AccessmodAccessibilityAnalysisAlgorithm
+  knightMove: Boolean
+}
+
+type UpdateAccessmodAccessibilityAnalysisResult {
+  success: Boolean!
+  analysis: AccessmodAccessibilityAnalysis
+  errors: [UpdateAccessmodAccessibilityAnalysisError!]!
+}
+
+enum UpdateAccessmodProjectError {
+  NOT_FOUND
+  NAME_DUPLICATE
+}
+
+input UpdateAccessmodProjectInput {
+  id: String!
+  name: String
+  spatialResolution: Int
+  country: CountryInput
+  extentId: String
+}
+
+type UpdateAccessmodProjectResult {
+  success: Boolean!
+  project: AccessmodProject
+  errors: [UpdateAccessmodProjectError!]!
+}
+
+type User {
+  id: String!
+  email: String!
+  firstName: String
+  lastName: String
+  avatar: Avatar!
+}
+

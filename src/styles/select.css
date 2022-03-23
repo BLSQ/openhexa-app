@@ -1,0 +1,42 @@
+/* React-Select styles */
+
+.react-select-container {
+  @apply relative w-full;
+}
+.react-select-container .react-select__control {
+  @apply relative mt-1 form-input p-0 shadow-sm focus:ring-blue-500 focus:border-blue-500 w-full sm:text-sm border-gray-300 rounded-md focus:outline-none;
+  min-height: 34px;
+}
+
+.react-select-container
+  .react-select__control.react-select__control--is-disabled {
+  @apply bg-gray-50;
+}
+.react-select-container
+  .react-select__control.react-select__control--is-focused {
+  @apply ring-1 ring-blue-500 border-blue-500;
+}
+
+.react-select-container .react-select__value-container {
+  @apply py-0;
+}
+
+.react-select-container .react-select__option {
+  @apply text-sm;
+}
+
+.react-select-container .react-select__single-value {
+  @apply text-sm text-inherit;
+}
+
+.react-select-container .react-select__indicators .react-select__indicator {
+  @apply cursor-pointer text-gray-400 px-1 py-0;
+}
+
+.react-select-container .react-select__menu {
+  @apply border border-gray-300 mt-1 z-10 shadow-lg rounded-md overflow-auto;
+}
+
+.react-select-container .react-select__menu-notice {
+  @apply p-2 text-gray-500 text-sm;
+}

@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "./select.css";
+
+@layer base {
+  html {
+    @apply text-gray-800;
+  }
+
+  body {
+    @apply overflow-x-hidden;
+  }
+}
