@@ -96,6 +96,13 @@ class DataSetAdmin(admin.ModelAdmin):
         "dhis2_id",
     )
 
+    search_fields = [
+        "dhis2_id",
+        "name",
+        "short_name",
+        "code",
+    ]
+
 
 @admin.register(InstancePermission)
 class InstancePermissionAdmin(admin.ModelAdmin):
