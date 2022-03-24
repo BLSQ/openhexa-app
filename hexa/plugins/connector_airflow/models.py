@@ -1,7 +1,6 @@
 import json
 import typing
 import uuid
-from base64 import b64encode
 from enum import Enum
 from functools import cache
 from logging import getLogger
@@ -348,7 +347,7 @@ class DAG(Pipeline):
     def build_dag_config(self):
         return {
             "dag_id": self.dag_id,
-            "token": b64encode(self.get_token().encode("utf-8")).decode("utf-8"),
+            "token": self.get_token(),
             "credentials_url": f'{settings.BASE_URL}{reverse("pipelines:credentials")}',
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
@@ -357,11 +356,8 @@ class DAG(Pipeline):
 
     @staticmethod
     def build_webhook_token() -> typing.Tuple[uuid.UUID, str]:
-        unsigned = uuid.uuid4()
-
-        return unsigned, b64encode(Signer().sign(unsigned).encode("utf-8")).decode(
-            "utf-8"
-        )
+        unsigned = str(uuid.uuid4())
+        return unsigned, Signer().sign_object(unsigned)
 
 
 @cache

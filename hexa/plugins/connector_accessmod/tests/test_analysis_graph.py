@@ -1,5 +1,4 @@
 import uuid
-from base64 import b64encode
 from unittest.mock import patch
 from urllib.parse import urljoin
 
@@ -678,10 +677,8 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
 
     @responses.activate
     def test_launch_accessmod_analysis(self):
-        mock_raw_token = uuid.uuid4()
-        mock_signed_token = b64encode(
-            Signer().sign(mock_raw_token).encode("utf-8")
-        ).decode("utf-8")
+        mock_raw_token = str(uuid.uuid4())
+        mock_signed_token = Signer().sign_object(mock_raw_token)
 
         output_dir = f"s3://{self.BUCKET.name}/{self.SAMPLE_PROJECT.id}/{self.ACCESSIBILITY_ANALYSIS_2.id}/"
         responses.add(
