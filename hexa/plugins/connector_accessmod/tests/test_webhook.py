@@ -116,7 +116,7 @@ class AccessmodViewsTest(TestCase):
                 },
             },
             **{
-                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign(self.DAG_RUN.webhook_token)}"
+                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
             },
             content_type="application/json",
         )
@@ -151,7 +151,7 @@ class AccessmodViewsTest(TestCase):
                 },
             },
             **{
-                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign(self.DAG_RUN.webhook_token)}"
+                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
             },
             content_type="application/json",
         )

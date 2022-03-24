@@ -356,9 +356,8 @@ class DAG(Pipeline):
 
     @staticmethod
     def build_webhook_token() -> typing.Tuple[uuid.UUID, str]:
-        unsigned = uuid.uuid4()
-
-        return unsigned, Signer().sign(unsigned)
+        unsigned = str(uuid.uuid4())
+        return unsigned, Signer().sign_object(unsigned)
 
 
 @cache

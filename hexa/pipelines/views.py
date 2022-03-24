@@ -90,7 +90,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
             {"error": "Authorization header should start with 'bearer'"}, status=401
         )
     try:
-        data = Signer().unsign(token)
+        data = Signer().unsign_object(token)
     except BadSignature:
         return JsonResponse({"error": "Token signature is invalid"}, status=401)
 
