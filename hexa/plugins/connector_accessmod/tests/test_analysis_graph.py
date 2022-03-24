@@ -711,7 +711,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             "overwrite": False,
                             "_report_email": "jim@bluesquarehub.com",
                             "_webhook_token": mock_signed_token,
-                            "_webhook_url": "http://app.openhexa.test/accessmod/webhook",
+                            "_webhook_url": "http://app.openhexa.test/accessmod/webhook/",
                         },
                         "execution_date": "2022-03-01T11:19:29.730028+00:00",
                     }
