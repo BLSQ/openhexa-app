@@ -57,11 +57,13 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, user_management_models.User]
     ):
-        return self.filter_for_user_and_callback(
+        return self._filter_for_user_and_query_object(
             user,
-            filter_callback=lambda q: q.filter(
-                indexpermission__team__in=[t.pk for t in user.team_set.all()]
-            ).distinct(),
+            Q(
+                indexpermission__team__in=user_management_models.Team.objects.filter_for_user(
+                    user
+                )
+            ),
         )
 
     def filter_for_types(self, code_types: List[str]):

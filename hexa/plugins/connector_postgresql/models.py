@@ -6,6 +6,7 @@ import psycopg2
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -17,7 +18,7 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.user_management.models import User
+from hexa.user_management.models import Team, User
 
 
 class ExternalType(Enum):
@@ -27,11 +28,9 @@ class ExternalType(Enum):
 
 class DatabaseQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self.filter_for_user_and_callback(
+        return self._filter_for_user_and_query_object(
             user,
-            filter_callback=lambda q: q.filter(
-                databasepermission__team__in=[t.pk for t in user.team_set.all()]
-            ).distinct(),
+            Q(databasepermission__team__in=Team.objects.filter_for_user(user)),
         )
 
 

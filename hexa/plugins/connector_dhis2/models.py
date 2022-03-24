@@ -6,7 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -16,12 +16,12 @@ from slugify import slugify
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
-from hexa.user_management.models import User
+from hexa.user_management.models import Team, User
 
-from ...core.models.base import BaseQuerySet
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -69,11 +69,9 @@ class Credentials(Base):
 
 class InstanceQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self.filter_for_user_and_callback(
+        return self._filter_for_user_and_query_object(
             user,
-            filter_callback=lambda q: q.filter(
-                instancepermission__team__in=[t.pk for t in user.team_set.all()]
-            ).distinct(),
+            Q(instancepermission__team__in=Team.objects.filter_for_user(user)),
         )
 
 

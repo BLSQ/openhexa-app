@@ -18,18 +18,18 @@ class BaseQuerySet(models.QuerySet):
 
         raise NotImplementedError
 
-    def filter_for_user_and_callback(
+    def _filter_for_user_and_query_object(
         self,
         user: typing.Union[AnonymousUser, user_management_models.User],
+        query_object: models.Q,
         *,
-        filter_callback: typing.Callable[[models.QuerySet], models.QuerySet],
         return_all_if_superuser: bool = True,
     ) -> models.QuerySet:
         """Helper method useful to keep consistency in access control management within models:
 
         1. Inactive users (including anonymous users) will get an empty queryset
         2. Superusers will get the full, unfiltered queryset (unless return_all_if_superuser is set to False)
-        3. Regular, authenticated users will get the queryset returned by calling the filter_callback callable
+        3. Regular, authenticated users will get the queryset filtered using the query_object argument
         """
 
         if not user.is_active:
@@ -37,7 +37,7 @@ class BaseQuerySet(models.QuerySet):
         elif return_all_if_superuser and user.is_superuser:
             return self.all()
 
-        return filter_callback(self)
+        return self.filter(query_object).distinct()
 
     def prefetch_indexes(self):
         if not hasattr(self.model, "indexes"):

@@ -15,7 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
 from django.db import models, transaction
-from django.db.models import OuterRef, Prefetch, Subquery
+from django.db.models import OuterRef, Prefetch, Q, Subquery
 from django.http import HttpRequest
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -31,7 +31,7 @@ from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
-from hexa.user_management.models import User
+from hexa.user_management.models import Team, User
 
 logger = getLogger(__name__)
 
@@ -44,9 +44,7 @@ class ExternalType(Enum):
 class ClusterQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         # Clusters are only visible to superusers for now
-        return self.filter_for_user_and_callback(
-            user, filter_callback=lambda q: q.none()
-        )
+        return self._filter_for_user_and_query_object(user, Q(pk=None))
 
 
 class Cluster(Environment):
@@ -264,11 +262,9 @@ class DAGTemplate(Base):
 
 class DAGQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self.filter_for_user_and_callback(
+        return self._filter_for_user_and_query_object(
             user,
-            filter_callback=lambda q: q.filter(
-                dagpermission__team__in=[t.pk for t in user.team_set.all()]
-            ).distinct(),
+            Q(dagpermission__team__in=Team.objects.filter_for_user(user)),
         )
 
 
@@ -524,10 +520,10 @@ class DAGRun(Base, WithStatus):
 
 class DAGRunFavoriteQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self.filter_for_user_and_callback(
+        return self._filter_for_user_and_query_object(
             user,
+            Q(user=user),
             return_all_if_superuser=False,
-            filter_callback=lambda q: q.filter(user=user),
         )
 
 

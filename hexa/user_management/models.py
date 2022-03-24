@@ -1,13 +1,16 @@
+import typing
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.postgres.fields import CIEmailField
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
 from hexa.core.models import Base
+from hexa.core.models.base import BaseQuerySet
 
 
 class UserManager(BaseUserManager):
@@ -99,9 +102,18 @@ class Organization(Base):
     contact_info = models.TextField(blank=True)
 
 
+class TeamQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User]
+    ) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(user, Q(members=user))
+
+
 class Team(Base):
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
+
+    objects = TeamQuerySet.as_manager()
 
 
 class Membership(Base):
