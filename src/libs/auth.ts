@@ -46,7 +46,7 @@ export async function getUser(
   };
 }
 
-export async function logout(redirectTo: string = "/login") {
+export async function logout(redirectTo: string = "/") {
   const client = getApolloClient();
   const res: any = await client.mutate({
     mutation: gql`
