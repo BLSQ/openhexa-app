@@ -1,7 +1,7 @@
 import datetime
 
 from django.utils.formats import date_format as django_date_format
-from django.utils.translation import ngettext
+from django.utils.translation import gettext, ngettext
 
 DEFAULT_DATE_FORMAT = "M d, H:i:s (e)"
 ONE_HOUR = 60 * 60
@@ -14,7 +14,7 @@ def date_format(value: datetime.datetime, format_string=DEFAULT_DATE_FORMAT):
     return django_date_format(value, format_string)
 
 
-def duration_format(value: datetime.timedelta):
+def duration_format(value: datetime.timedelta, *, short_form=False, max_parts: int = 2):
     """Convert timedelta to x hours, x minutes-style strings"""
     parts = []
     display_seconds = True
@@ -33,6 +33,8 @@ def duration_format(value: datetime.timedelta):
             % {
                 "hours": full_hours,
             }
+            if not short_form
+            else gettext("%dh" % full_hours)
         )
     if full_minutes > 0:
         parts.append(
@@ -44,6 +46,8 @@ def duration_format(value: datetime.timedelta):
             % {
                 "minutes": full_minutes,
             }
+            if not short_form
+            else gettext("%dm" % full_minutes)
         )
     if display_seconds and full_seconds > 0:
         parts.append(
@@ -55,6 +59,8 @@ def duration_format(value: datetime.timedelta):
             % {
                 "seconds": full_seconds,
             }
+            if not short_form
+            else gettext("%ds" % full_seconds)
         )
 
-    return ", ".join(parts)
+    return (", " if not short_form else " ").join(parts[:max_parts])

@@ -1,5 +1,4 @@
 import uuid
-from base64 import b64encode
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -117,7 +116,7 @@ class AccessmodViewsTest(TestCase):
                 },
             },
             **{
-                "HTTP_AUTHORIZATION": f"Bearer {b64encode(Signer().sign(self.DAG_RUN.webhook_token).encode('utf-8')).decode('utf-8')}"
+                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
             },
             content_type="application/json",
         )
@@ -152,7 +151,7 @@ class AccessmodViewsTest(TestCase):
                 },
             },
             **{
-                "HTTP_AUTHORIZATION": f"Bearer {b64encode(Signer().sign(self.DAG_RUN.webhook_token).encode('utf-8')).decode('utf-8')}"
+                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
             },
             content_type="application/json",
         )
