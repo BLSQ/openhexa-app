@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Version 0.29
+------------
+
+March 24, 2022
+
+### Updated
+
+- Enforce S3 permission restriction for pipeline
+- Inject datasource information into notebooks and pipelines, the same way
+
+### Fixed
+
+- Fixing horizontal scroll issues
+- Removed Extract model and features in DHIS2 module
+
 Version 0.28
 ------------
 
