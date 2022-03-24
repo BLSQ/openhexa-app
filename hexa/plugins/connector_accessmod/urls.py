@@ -6,7 +6,7 @@ app_name = "connector_accessmod"
 
 urlpatterns = [
     path(
-        "webhook",
+        "webhook/",
         views.webhook,
         name="webhook",
     ),
