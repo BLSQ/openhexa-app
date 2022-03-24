@@ -36,7 +36,18 @@ class ClusterCard(Datacard):
     external = ClusterSection()
     metadata = OpenHexaMetaDataSection(value="index")
 
-    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
+    actions = [
+        Action(
+            label="Open in Airflow",
+            url="cluster.url",
+            icon="external_link",
+            method="GET",
+            primary=False,
+            open_in_new_tab=True,
+            enabled_when=lambda r, _: r.user.is_superuser,
+        ),
+        Action(label="Sync", url="get_sync_url", icon="refresh"),
+    ]
 
     def get_sync_url(self, cluster: Cluster):
         return reverse(
