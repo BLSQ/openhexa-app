@@ -387,6 +387,12 @@ class ViewsTest(TestCase):
             },
             status=200,
         )
+        responses.add(
+            responses.PATCH,
+            urljoin(cluster.api_url, "variables/TEMPLATE_TEST_DAGS"),
+            json={"variables": []},
+            status=200,
+        )
 
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.post(
