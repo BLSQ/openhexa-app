@@ -43,7 +43,7 @@ class DAGRunGrid(Datagrid):
     execution_date = DateColumn(date="execution_date", label="Execution date")
     user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
-    duration = DurationColumn(duration="duration")
+    duration = DurationColumn(duration="duration", short_form=True)
 
     view = LinkColumn(text="View")
 

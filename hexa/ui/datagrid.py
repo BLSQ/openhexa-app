@@ -164,12 +164,14 @@ class Column:
         return _(self._label) if self._label is not None else _(self.name)
 
     @property
-    def template(self):
+    def template(self) -> str:
         raise NotImplementedError(
             "Each Column class should implement the template() property"
         )
 
-    def context(self, model: DjangoModel, grid: Datagrid):
+    def context(
+        self, model: DjangoModel, grid: Datagrid
+    ) -> typing.Mapping[str, typing.Any]:
         raise NotImplementedError(
             "Each Column class should implement the context() method"
         )
@@ -371,24 +373,37 @@ class DateColumn(Column):
 class DurationColumn(Column):
     """Duration column, with one or two rows"""
 
-    def __init__(self, *, duration=None, secondary_text=None, **kwargs):
+    def __init__(
+        self,
+        *,
+        duration: str = None,
+        secondary_text: str = None,
+        max_parts: int = 2,
+        short_form: bool = False,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.duration = duration
         self.secondary_text = secondary_text
+        self.max_parts = max_parts
+        self.short_form = short_form
 
     @property
-    def template(self):
+    def template(self) -> str:
         return "ui/datagrid/column_duration.html"
 
-    @staticmethod
-    def format_duration(duration: datetime.timedelta):
+    def format_duration(self, duration: datetime.timedelta) -> typing.Optional[str]:
         if duration is None:
             return duration
 
-        return duration_format(duration)
+        return duration_format(
+            duration, max_parts=self.max_parts, short_form=self.short_form
+        )
 
-    def context(self, model: DjangoModel, grid: Datagrid):
+    def context(
+        self, model: DjangoModel, grid: Datagrid
+    ) -> typing.Mapping[str, typing.Any]:
         data = {
             "duration": self.format_duration(
                 self.get_value(model, self.duration, container=grid)
