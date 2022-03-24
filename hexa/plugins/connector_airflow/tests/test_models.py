@@ -348,6 +348,13 @@ class DAGSyncTest(TestCase):
             },
             status=200,
         )
+        responses.add(
+            responses.PATCH,
+            urljoin(cluster.api_url, "variables/TEMPLATE_TEST_DAGS"),
+            json={"variables": []},
+            status=200,
+        )
+
         cluster.sync()
         dag.refresh_from_db()
         self.assertEqual(DAGRun.objects.count(), 1)
