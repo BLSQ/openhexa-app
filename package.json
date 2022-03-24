@@ -8,6 +8,7 @@
     "watch": "npm-run-all --parallel dev 'codegen -- --watch'",
     "dev": "next dev",
     "build": "next build",
+    "build:ci": "CI=1 next build",
     "start": "next start -p $PORT",
     "test": "jest --watch",
     "test:ci": "jest --ci",
