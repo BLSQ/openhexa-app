@@ -4,6 +4,7 @@ import Input from "components/forms/Input";
 import Spinner from "components/Spinner";
 import useForm from "hooks/useForm";
 import { useLoginMutation } from "libs/graphql";
+import { createGetServerSideProps } from "libs/page";
 import { NextPageWithLayout } from "libs/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,9 +35,8 @@ const LoginPage: NextPageWithLayout = () => {
           input: { email: values.email, password: values.password },
         },
       });
-      const next = (router.query.next as string) ?? "/dashboard";
       if (data?.login.success) {
-        router.push(next);
+        router.push((router.query.next as string) ?? "/dashboard");
       }
     },
     initialState: {},
@@ -129,5 +129,18 @@ const LoginPage: NextPageWithLayout = () => {
 };
 
 LoginPage.getLayout = (page: ReactElement) => page;
+
+export const getServerSideProps = createGetServerSideProps({
+  getServerSideProps: (ctx) => {
+    if (ctx.user) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: (ctx.query.next as string) || "/dashboard",
+        },
+      };
+    }
+  },
+});
 
 export default LoginPage;
