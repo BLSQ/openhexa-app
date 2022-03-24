@@ -180,7 +180,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         roles_data = self.CLIENT.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
 
-        expected_role_name = str(self.PIPELINE.id)
+        expected_role_name = "hexa-app-test-p-" + str(self.PIPELINE.id)
         self.assertEqual(expected_role_name, roles_data["Roles"][0]["RoleName"])
 
         expected_role_path = "/hexa-app-unittest/pipelines/connector_airflow/"
@@ -250,7 +250,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         # Setup
         self.CLIENT.create_role(
             Path="/hexa-app-unittest/pipelines/",
-            RoleName=str(self.PIPELINE.id),
+            RoleName="hexa-app-test-p-" + str(self.PIPELINE.id),
             AssumeRolePolicyDocument="some document",
         )
 
@@ -267,7 +267,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         self.assertEqual(1, len(roles_data["Roles"]))
 
         # Check that the role has the correct policies
-        expected_role_name = str(self.PIPELINE.id)
+        expected_role_name = "hexa-app-test-p-" + str(self.PIPELINE.id)
         policy_data = self.CLIENT.get_role_policy(
             RoleName=expected_role_name, PolicyName="s3-access"
         )

@@ -123,7 +123,7 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     role_data = get_or_create_role(
         principal_credentials=principal_s3_credentials,
         role_path=pipeline_role_path,
-        role_name=str(credentials.pipeline.id),
+        role_name=f"{principal_s3_credentials.username}-p-{str(credentials.pipeline.id)}",
         description=f'Role used to run the pipeline "{credentials.pipeline}" ({credentials.pipeline._meta.verbose_name})',
     )
 
