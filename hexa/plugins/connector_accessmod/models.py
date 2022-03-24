@@ -97,12 +97,7 @@ class ProjectPermission(Permission):
 
 class FilesetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(owner=user)
-            | Q(filesetpermission__team__in=Team.objects.filter_for_user(user)),
-            return_all_if_superuser=False,
-        )
+        return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
 
 
 class Fileset(Entry):
@@ -124,26 +119,13 @@ class Fileset(Entry):
     objects = FilesetQuerySet.as_manager()
 
     def get_permission_set(self):
-        return self.filesetpermission_set.all()
+        return self.project.get_permission_set()
 
     def populate_index(self, index):
         raise NotImplementedError
 
     def get_absolute_url(self):
         raise NotImplementedError
-
-
-class FilesetPermission(Permission):
-    fileset = models.ForeignKey("connector_accessmod.Fileset", on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = [("fileset", "team")]
-
-    def index_object(self):
-        self.fileset.build_index()
-
-    def __str__(self):
-        return f"Permission for team '{self.team}' on AM fileset '{self.fileset}'"
 
 
 class FilesetFormat(models.TextChoices):
@@ -183,7 +165,7 @@ class FileQuerySet(BaseQuerySet):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
-class File(Base):
+class File(Entry):
     class Meta:
         ordering = ["-created_at"]
 
@@ -193,6 +175,15 @@ class File(Base):
     uri = models.TextField(unique=True)
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
+
+    def get_permission_set(self):
+        return self.fileset.get_permission_set()
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     @property
     def name(self):

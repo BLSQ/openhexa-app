@@ -12,7 +12,6 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetFormat,
-    FilesetPermission,
     FilesetRole,
     FilesetRoleCode,
     Project,
@@ -168,6 +167,7 @@ class AccessmodModelsTest(TestCase):
             File.objects.filter_for_user(self.USER_SAM).get(id=file.id)
 
     def test_fileset_and_files_permissions_team(self):
+        ProjectPermission.objects.create(project=self.SAMPLE_PROJECT, team=self.TEAM)
         fileset = Fileset.objects.create(
             name="A private slope",
             role=self.SLOPE_ROLE,
@@ -177,7 +177,6 @@ class AccessmodModelsTest(TestCase):
         file = File.objects.create(
             fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
         )
-        FilesetPermission.objects.create(fileset=fileset, team=self.TEAM)
         self.assertEqual(
             fileset,
             Fileset.objects.filter_for_user(self.USER_TAYLOR).get(id=fileset.id),
