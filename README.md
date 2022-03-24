@@ -20,6 +20,7 @@ The following environment variables should be provided at build time:
 - `NEXT_PUBLIC_SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
 - `SENTRY_RELEASE`: a release identifier for Sentry (such as a Git tag)
+- `NEXT_PUBLIC_FALLBACK_URL`: The URL of the backend server
 
 ## Local development
 

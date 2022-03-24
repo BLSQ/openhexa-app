@@ -3,9 +3,28 @@
 const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
+const { NEXT_PUBLIC_FALLBACK_URL = "" } = process.env;
 const config = {
   reactStrictMode: true,
+  trailingSlash: false,
   i18n,
+  async rewrites() {
+    return {
+      // After checking all Next.js pages (including dynamic routes)...
+      // ...and static files we proxy any other requests
+      fallback: [
+        // Proxied static files do not need to have a trailing slash
+        {
+          source: "/static/:path*",
+          destination: `${NEXT_PUBLIC_FALLBACK_URL}/static/:path*`,
+        },
+        {
+          source: "/:path*",
+          destination: `${NEXT_PUBLIC_FALLBACK_URL}/:path*/`,
+        },
+      ],
+    };
+  },
 };
 
 const sentryWebpackPluginOptions = {
