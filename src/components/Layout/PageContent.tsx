@@ -6,7 +6,7 @@ export function PageHeader({
   ...delegated
 }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="bg-blue">
+    <div className="">
       <div
         {...delegated}
         className={clsx(
@@ -21,13 +21,10 @@ export function PageHeader({
 export function PageContent(props: HTMLAttributes<HTMLDivElement>) {
   const { children, className, ...delegated } = props;
   return (
-    <main
-      className="flex-1 bg-gray-50 pb-6 before:bg-blue before:block before:h-16 before:content-['']"
-      {...delegated}
-    >
+    <main className="flex-1 bg-gray-50 pb-6" {...delegated}>
       <div
         className={clsx(
-          "max-w-5xl px-4 sm:px-4 md:px-8 w-full mx-auto -mt-16",
+          "max-w-5xl px-4 sm:px-4 md:px-8 w-full mx-auto",
           className
         )}
       >

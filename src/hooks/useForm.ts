@@ -34,9 +34,11 @@ type UseFormOptions<T> = {
   initialState?: Partial<T>;
   getInitialState?: () => Partial<T>;
   onSubmit: (formData: T) => void | Promise<any>;
-  validate?: (values: Partial<T>) => {
-    [key in keyof T]: FormFieldError;
-  };
+  validate?: (values: Partial<T>) =>
+    | {
+        [key in keyof T]?: FormFieldError;
+      }
+    | void;
 };
 
 function useForm<T = FormData>(options: UseFormOptions<T>): UseFormResult<T> {
