@@ -8,7 +8,7 @@ March 29, 2022
 
 ### Updated
 
-- Revamped permission / access control for datasources and pipelines
+- Revamped permission/access control for data sources and pipelines
 - Enforce trailing slashes for all URLs to prepare the next frontend iteration
 
 Version 0.29
