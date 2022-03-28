@@ -10,6 +10,7 @@ from django.urls import reverse
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
 
@@ -84,6 +85,15 @@ class IndexPermission(BaseIndexPermission):
 
 
 class IndexableMixin(BaseIndexableMixin):
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def get_permission_model(self):
         return IndexPermission
 
@@ -91,20 +101,10 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class CatalogQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Catalog querysets should implement the filter_for_user() method"
-        )
-
-    def prefetch_indexes(self):
-        if not hasattr(self.model, "indexes"):
-            raise ValueError(f"Model {self.model} has no indexes")
-
-        return self.prefetch_related("indexes", "indexes__tags")
-
-
 class Datasource(IndexableMixin, models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -113,10 +113,16 @@ class Datasource(IndexableMixin, models.Model):
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = CatalogQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
-    class Meta:
-        abstract = True
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     @property
     def display_name(self):
@@ -138,16 +144,25 @@ class Datasource(IndexableMixin, models.Model):
 
 
 class Entry(IndexableMixin, models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = CatalogQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
-    class Meta:
-        abstract = True
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

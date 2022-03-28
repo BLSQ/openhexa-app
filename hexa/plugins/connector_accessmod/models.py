@@ -5,34 +5,32 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
+from django.db.models import Q
 from django.http import HttpRequest
-from django.urls import reverse
 from django_countries.fields import CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
+from hexa.catalog.models import Datasource, Entry
 from hexa.core import mimetypes
-from hexa.core.models import Base
+from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
+from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow.models import DAG, DAGRunState
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.models import User
+from hexa.user_management.models import Team, User
 
 
-class AccessmodQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Catalog querysets should implement the filter_for_user() method"
+class ProjectQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(owner=user)
+            | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
+            return_all_if_superuser=False,
         )
 
 
-class ProjectQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.is_authenticated:
-            return self.none()
-
-        return self.filter(owner=user)
-
-
-class Project(Base):
+class Project(Datasource):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
@@ -61,16 +59,56 @@ class Project(Base):
 
         return super().delete(*args, **kwargs)
 
+    @property
+    def display_name(self):
+        return self.name
+
+    def sync(self):
+        pass  # No need to sync, source of truth is OpenHexa
+
+    def get_pipeline_credentials(self):
+        pass
+
+    def get_permission_set(self):
+        return self.projectpermission_set.all()
+
+    def populate_index(self, index):
+        raise NotImplementedError  # Skip indexing for now
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     def __str__(self):
         return self.name
 
 
-class FilesetQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
-        return self.filter(owner=user)
+class ProjectPermission(Permission):
+    project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = [("project", "team")]
+
+    def index_object(self):
+        self.project.build_index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on AM project '{self.project}'"
 
 
-class Fileset(Base):
+class FilesetQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
+
+
+class Fileset(Entry):
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "name", "project", name="fileset_unique_name_project"
+            )
+        ]
+
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
@@ -80,13 +118,14 @@ class Fileset(Base):
 
     objects = FilesetQuerySet.as_manager()
 
-    class Meta:
-        ordering = ["-created_at"]
-        constraints = [
-            models.UniqueConstraint(
-                "name", "project", name="fileset_unique_name_project"
-            )
-        ]
+    def get_permission_set(self):
+        return self.project.get_permission_set()
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
 
 class FilesetFormat(models.TextChoices):
@@ -113,20 +152,23 @@ class FilesetRoleCode(models.TextChoices):
 
 
 class FilesetRole(Base):
+    class Meta:
+        ordering = ["code"]
+
     name = models.TextField()
     code = models.CharField(max_length=50, choices=FilesetRoleCode.choices)
     format = models.CharField(max_length=20, choices=FilesetFormat.choices)
 
+
+class FileQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
+
+
+class File(Entry):
     class Meta:
-        ordering = ["code"]
+        ordering = ["-created_at"]
 
-
-class FileQuerySet(AccessmodQuerySet):
-    def filter_for_user(self, user):
-        return self.filter(fileset__owner=user)
-
-
-class File(Base):
     mime_type = models.CharField(
         max_length=255
     )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
@@ -134,12 +176,18 @@ class File(Base):
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
     objects = FileQuerySet.as_manager()
 
+    def get_permission_set(self):
+        return self.fileset.get_permission_set()
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
     @property
     def name(self):
         return self.uri.split("/")[-1]
-
-    class Meta:
-        ordering = ["-created_at"]
 
 
 class AnalysisStatus(models.TextChoices):
@@ -156,23 +204,28 @@ class AnalysisType(str, enum.Enum):
     GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
 
 
-class AnalysisQuerySet(AccessmodQuerySet, InheritanceQuerySet):
-    def filter_for_user(self, user):
-        return self.filter(owner=user)
+class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(owner=user)
+            | Q(analysispermission__team__in=Team.objects.filter_for_user(user)),
+            return_all_if_superuser=False,
+        )
 
 
 class AnalysisManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
-    and "re-attach" the queryset methods ourselves"""
+    and "re-attach" the queryset methods ourselves."""
 
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
 
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
 
-class Analysis(Base):
+class Analysis(Pipeline):
     """Base analysis class
 
     NOTE: This model is impacted by a signal (see signals.py in the current module)
@@ -212,6 +265,15 @@ class Analysis(Base):
 
     objects = AnalysisManager()
 
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def get_permission_set(self):
+        return self.analysispermission_set.all()
+
     def save(self, *args, **kwargs):
         if self.status == AnalysisStatus.DRAFT:
             self.update_status_if_draft()
@@ -223,7 +285,13 @@ class Analysis(Base):
         return super().delete(*args, **kwargs)
 
     @transaction.atomic
-    def run(self, request: HttpRequest):
+    def run(
+        self,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
@@ -246,7 +314,7 @@ class Analysis(Base):
                     "output_dir": f"s3://{bucket.name}/{self.project.id}/{self.id}/",
                 }
             ),
-            webhook_path=reverse("connector_accessmod:webhook"),
+            webhook_path=webhook_path,
         )
 
         self.status = AnalysisStatus.QUEUED
@@ -327,6 +395,21 @@ class Analysis(Base):
         self.save()
 
 
+class AnalysisPermission(Permission):
+    analysis = models.ForeignKey(
+        "connector_accessmod.Analysis", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = [("analysis", "team")]
+
+    def index_object(self):
+        self.analysis.build_index()
+
+    def __str__(self):
+        return f"Permission for team '{self.team}' on AM analysis '{self.analysis}'"
+
+
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
     ANISOTROPIC = "ANISOTROPIC"
     ISOTROPIC = "ISOTROPIC"
@@ -383,6 +466,12 @@ class AccessibilityAnalysis(Analysis):
     catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def update_status_if_draft(self):
         if all(
@@ -492,6 +581,12 @@ class GeographicCoverageAnalysis(Analysis):
     catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     def update_status_if_draft(self):
         if all(

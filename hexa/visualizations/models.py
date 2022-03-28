@@ -1,8 +1,11 @@
+import typing
 import uuid
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
+from django.db.models import Q
 
 from hexa.core.models import (
     BaseIndex,
@@ -10,7 +13,9 @@ from hexa.core.models import (
     BaseIndexPermission,
     Permission,
 )
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.user_management.models import Team, User
 
 
 class Index(BaseIndex):
@@ -44,14 +49,12 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class ExternalDashboardsQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            externaldashboardpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+class ExternalDashboardsQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(externaldashboardpermission__team__in=Team.objects.filter_for_user(user)),
+        )
 
     def prefetch_indexes(self):
         return self.prefetch_related("indexes", "indexes__tags")

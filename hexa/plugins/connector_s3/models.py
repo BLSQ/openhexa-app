@@ -1,6 +1,8 @@
 import os
+import typing
 from logging import getLogger
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.template.defaultfilters import filesizeformat, pluralize
@@ -8,9 +10,10 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
@@ -19,6 +22,7 @@ from hexa.plugins.connector_s3.api import (
     list_objects_metadata,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
+from hexa.user_management.models import User
 
 logger = getLogger(__name__)
 
@@ -52,32 +56,26 @@ class BucketPermissionMode(models.IntegerChoices):
     READ_WRITE = 2, "Read Write"
 
 
-class BucketQuerySet(CatalogQuerySet):
-    def filter_by_mode(self, user, mode: BucketPermissionMode = None):
-        if user.is_active and user.is_superuser:
-            # if SU -> all buckets are RW; so if mode is provided and mode == RO -> no buckets available
-            if mode == BucketPermissionMode.READ_ONLY:
-                return self.none()
-            else:
-                return self
+class BucketQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User], mode: BucketPermissionMode = None
+    ):
+        if not user.is_active:
+            return self.none()
+        elif user.is_superuser:
+            # For superusers, all buckets are read & write
+            # If requested mode is read-only, we don't want to return any bucket
+            return self.none() if mode == BucketPermissionMode.READ_ONLY else self
 
-        if mode is None:
-            # return all buckets
-            modes = [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
-        else:
-            modes = [mode]
+        modes = (
+            [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
+            if mode is None
+            else [mode]
+        )
 
         return self.filter(
             bucketpermission__team__in=[t.pk for t in user.team_set.all()],
             bucketpermission__mode__in=modes,
-        ).distinct()
-
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
         ).distinct()
 
 
@@ -256,11 +254,8 @@ class BucketPermission(Permission):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
 
 
-class ObjectQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
+class ObjectQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 

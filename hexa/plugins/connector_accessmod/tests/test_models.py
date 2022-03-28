@@ -1,10 +1,13 @@
 import responses
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import ProtectedError
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     Analysis,
+    AnalysisPermission,
     AnalysisStatus,
     File,
     Fileset,
@@ -12,8 +15,9 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetRole,
     FilesetRoleCode,
     Project,
+    ProjectPermission,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import Membership, Team, User
 
 
 class AccessmodModelsTest(TestCase):
@@ -23,8 +27,18 @@ class AccessmodModelsTest(TestCase):
         cls.USER_TAYLOR = User.objects.create_user(
             "taylor@bluesquarehub.com",
             "taylorrocks66",
-            is_superuser=True,
         )
+        cls.USER_SAM = User.objects.create_user(
+            "sam@bluesquarehub.com",
+            "samspasswOrD!!",
+        )
+        cls.USER_GRACE = User.objects.create_user(
+            "grace@bluesquarehub.com",
+            "grace_8798-:/",
+        )
+        cls.TEAM = Team.objects.create(name="Test Team")
+        Membership.objects.create(user=cls.USER_SAM, team=cls.TEAM)
+        Membership.objects.create(user=cls.USER_TAYLOR, team=cls.TEAM)
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
@@ -86,6 +100,105 @@ class AccessmodModelsTest(TestCase):
             project=cls.SAMPLE_PROJECT,
             name="Yet another accessibility analysis",
         )
+
+    def test_project_permissions_owner(self):
+        project = Project.objects.create(
+            name="Private project",
+            country="BE",
+            owner=self.USER_TAYLOR,
+            spatial_resolution=100,
+            crs=4326,
+        )
+        self.assertEqual(
+            project,
+            Project.objects.filter_for_user(self.USER_TAYLOR).get(id=project.id),
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.filter_for_user(AnonymousUser()).get(id=project.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.filter_for_user(self.USER_SAM).get(id=project.id)
+
+    def test_project_permissions_team(self):
+        project = Project.objects.create(
+            name="Private project",
+            country="BE",
+            owner=self.USER_TAYLOR,
+            spatial_resolution=100,
+            crs=4326,
+        )
+        ProjectPermission.objects.create(project=project, team=self.TEAM)
+        self.assertEqual(
+            project,
+            Project.objects.filter_for_user(self.USER_TAYLOR).get(id=project.id),
+        )
+        self.assertEqual(
+            project, Project.objects.filter_for_user(self.USER_SAM).get(id=project.id)
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.filter_for_user(AnonymousUser()).get(id=project.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            Project.objects.filter_for_user(self.USER_GRACE).get(id=project.id)
+
+    def test_fileset_and_files_permissions_owner(self):
+        fileset = Fileset.objects.create(
+            name="A private slope",
+            role=self.SLOPE_ROLE,
+            project=self.SAMPLE_PROJECT,
+            owner=self.USER_TAYLOR,
+        )
+        file = File.objects.create(
+            fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
+        )
+        self.assertEqual(
+            fileset,
+            Fileset.objects.filter_for_user(self.USER_TAYLOR).get(id=fileset.id),
+        )
+        self.assertEqual(
+            file,
+            File.objects.filter_for_user(self.USER_TAYLOR).get(id=file.id),
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Fileset.objects.filter_for_user(AnonymousUser()).get(id=fileset.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            File.objects.filter_for_user(AnonymousUser()).get(id=file.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            Fileset.objects.filter_for_user(self.USER_SAM).get(id=fileset.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            File.objects.filter_for_user(self.USER_SAM).get(id=file.id)
+
+    def test_fileset_and_files_permissions_team(self):
+        ProjectPermission.objects.create(project=self.SAMPLE_PROJECT, team=self.TEAM)
+        fileset = Fileset.objects.create(
+            name="A private slope",
+            role=self.SLOPE_ROLE,
+            project=self.SAMPLE_PROJECT,
+            owner=self.USER_TAYLOR,
+        )
+        file = File.objects.create(
+            fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
+        )
+        self.assertEqual(
+            fileset,
+            Fileset.objects.filter_for_user(self.USER_TAYLOR).get(id=fileset.id),
+        )
+        self.assertEqual(
+            file,
+            File.objects.filter_for_user(self.USER_TAYLOR).get(id=file.id),
+        )
+        self.assertEqual(
+            fileset, Fileset.objects.filter_for_user(self.USER_SAM).get(id=fileset.id)
+        )
+        self.assertEqual(
+            file, File.objects.filter_for_user(self.USER_SAM).get(id=file.id)
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Fileset.objects.filter_for_user(AnonymousUser()).get(id=fileset.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            File.objects.filter_for_user(AnonymousUser()).get(id=file.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            Fileset.objects.filter_for_user(self.USER_GRACE).get(id=fileset.id)
+        with self.assertRaises(ObjectDoesNotExist):
+            File.objects.filter_for_user(self.USER_GRACE).get(id=file.id)
 
     def test_analysis_update_status_noop(self):
         analysis = AccessibilityAnalysis.objects.create(
@@ -165,3 +278,54 @@ class AccessmodModelsTest(TestCase):
             "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_2.tif",
         }
         self.YET_ANOTHER_ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_2)
+
+    def test_analysis_permissions_owner(self):
+        analysis = AccessibilityAnalysis.objects.create(
+            owner=self.USER_TAYLOR,
+            project=self.SAMPLE_PROJECT,
+            name="Private accessibility analysis",
+            slope=self.SLOPE_FILESET,
+            priority_land_cover=[1, 2],
+        )
+        self.assertEqual(
+            analysis,
+            Analysis.objects.filter_for_user(self.USER_TAYLOR).get_subclass(
+                id=analysis.id
+            ),
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Analysis.objects.filter_for_user(AnonymousUser()).get_subclass(
+                id=analysis.id
+            )
+        with self.assertRaises(ObjectDoesNotExist):
+            Analysis.objects.filter_for_user(self.USER_SAM).get_subclass(id=analysis.id)
+
+    def test_analysis_permissions_team(self):
+        analysis = AccessibilityAnalysis.objects.create(
+            owner=self.USER_TAYLOR,
+            project=self.SAMPLE_PROJECT,
+            name="Private accessibility analysis",
+            slope=self.SLOPE_FILESET,
+            priority_land_cover=[1, 2],
+        )
+        AnalysisPermission.objects.create(analysis=analysis, team=self.TEAM)
+        self.assertEqual(
+            analysis,
+            Analysis.objects.filter_for_user(self.USER_TAYLOR).get_subclass(
+                id=analysis.id
+            ),
+        )
+        self.assertEqual(
+            analysis,
+            Analysis.objects.filter_for_user(self.USER_SAM).get_subclass(
+                id=analysis.id
+            ),
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Analysis.objects.filter_for_user(AnonymousUser()).get_subclass(
+                id=analysis.id
+            )
+        with self.assertRaises(ObjectDoesNotExist):
+            Analysis.objects.filter_for_user(self.USER_GRACE).get_subclass(
+                id=analysis.id
+            )

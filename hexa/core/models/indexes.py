@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import typing
 import uuid
 from typing import Any, List
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
@@ -14,7 +17,7 @@ from django_countries.fields import CountryField
 from django_ltree.managers import TreeManager, TreeQuerySet
 
 from hexa.core.date_utils import date_format
-from hexa.core.models.base import Base
+from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.core.models.postgres import (
@@ -22,6 +25,7 @@ from hexa.core.models.postgres import (
     locale_to_text_search_config,
 )
 from hexa.core.search import Token, TokenType, normalize_search_index
+from hexa.user_management import models as user_management_models
 
 
 @Field.register_lookup
@@ -46,17 +50,21 @@ class TrigramWordSimilarity(TrigramBase):
     function = "WORD_SIMILARITY"
 
 
-class BaseIndexQuerySet(TreeQuerySet):
+class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def leaves(self, level: int):
         return self.filter(path__depth=level + 1)
 
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(
+                indexpermission__team__in=user_management_models.Team.objects.filter_for_user(
+                    user
+                )
+            ),
+        )
 
     def filter_for_types(self, code_types: List[str]):
         # sub select only those types
@@ -125,15 +133,12 @@ class BaseIndexQuerySet(TreeQuerySet):
 
 class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
-    own queryset."""
+    own queryset, and re-attach filter_for_user()."""
 
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            indexpermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
+        return self.get_queryset().filter_for_user(user)
 
     def get_queryset(self):  # TODO: PR in django-ltree?
         return self._queryset_class(model=self.model, using=self._db, hints=self._hints)
@@ -282,7 +287,7 @@ class BaseIndexableMixin:
     @property
     def index(self):
         # We can't use self.indexes.get(), as it would prevent fetch_related() to work properly
-        indexes = self.indexes.all()
+        indexes = getattr(self, "indexes").all()
         if len(indexes) != 1:
             raise ValueError(
                 f"{self} should have exactly 1 index - found {len(indexes)}"
@@ -300,15 +305,20 @@ class BaseIndexableMixin:
         raise NotImplementedError
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+        getattr(super(), "save")(*args, **kwargs)
         self.build_index()
 
     def build_index(self):
-        index, _ = self.get_index_model().objects.get_or_create(
-            content_type=ContentType.objects.get_for_model(self),
-            object_id=self.id,
-        )
-        self.populate_index(index)
+        try:
+            index, _ = self.get_index_model().objects.get_or_create(
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=getattr(self, "id"),
+            )
+            self.populate_index(index)
+        # For some Entry subclasses, we want to skip indexing. This might be an inheritance issue and we
+        # might want to refactor this in the future - or make sure that all entries are indexed.
+        except NotImplementedError:
+            return
 
         # Add to the search string the fields from the index (hexa metadata)
         index.search += (

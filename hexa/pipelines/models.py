@@ -1,12 +1,15 @@
+import typing
 import uuid
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.signing import Signer
 from django.db import models
+from django.http import HttpRequest
 from dpq.models import BaseJob
 
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
+from hexa.core.models.base import BaseQuerySet
 
 
 class Index(BaseIndex):
@@ -40,19 +43,6 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
-class PipelinesQuerySet(models.QuerySet):
-    def filter_for_user(self, user):
-        raise NotImplementedError(
-            "Pipelines querysets should implement the filter_for_user() method"
-        )
-
-    def prefetch_indexes(self):
-        if not hasattr(self.model, "indexes"):
-            raise ValueError(f"Model {self.model} has no indexes")
-
-        return self.prefetch_related("indexes", "indexes__tags")
-
-
 class Environment(IndexableMixin, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -62,7 +52,7 @@ class Environment(IndexableMixin, models.Model):
 
     indexes = GenericRelation("pipelines.Index")
 
-    objects = PipelinesQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
     class Meta:
         abstract = True
@@ -78,10 +68,28 @@ class Pipeline(IndexableMixin, models.Model):
 
     indexes = GenericRelation("pipelines.Index")
 
-    objects = PipelinesQuerySet.as_manager()
+    objects = BaseQuerySet.as_manager()
 
     class Meta:
         abstract = True
+
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def run(
+        self,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
+        raise NotImplementedError
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

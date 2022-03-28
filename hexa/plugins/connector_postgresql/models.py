@@ -1,19 +1,24 @@
+import typing
 from enum import Enum
 from typing import Dict, List, Tuple
 
 import psycopg2
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError, sql
 
-from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Permission
+from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.user_management.models import Team, User
 
 
 class ExternalType(Enum):
@@ -21,14 +26,12 @@ class ExternalType(Enum):
     TABLE = "table"
 
 
-class DatabaseQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            databasepermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+class DatabaseQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(databasepermission__team__in=Team.objects.filter_for_user(user)),
+        )
 
 
 class Database(Datasource):
@@ -191,11 +194,8 @@ class Database(Datasource):
         )
 
 
-class TableQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
+class TableQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(database__in=Database.objects.filter_for_user(user))
 
 

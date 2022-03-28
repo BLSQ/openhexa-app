@@ -1,23 +1,27 @@
+import typing
 from logging import getLogger
 
 from dhis2 import ClientException, RequestException
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
-from hexa.catalog.models import CatalogQuerySet, Datasource, Entry
+from hexa.catalog.models import Datasource, Entry
+from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base, Permission
+from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
+from hexa.user_management.models import Team, User
 
-from ...catalog.sync import DatasourceSyncResult
-from ...core.models.cryptography import EncryptedTextField
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -63,14 +67,12 @@ class Credentials(Base):
                 raise ValidationError("DHIS2 URL is invalid")
 
 
-class InstanceQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
-        return self.filter(
-            instancepermission__team__in=[t.pk for t in user.team_set.all()]
-        ).distinct()
+class InstanceQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(instancepermission__team__in=Team.objects.filter_for_user(user)),
+        )
 
 
 class Instance(Datasource):
@@ -225,11 +227,8 @@ class InstancePermission(Permission):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
 
 
-class EntryQuerySet(CatalogQuerySet):
-    def filter_for_user(self, user):
-        if user.is_active and user.is_superuser:
-            return self
-
+class EntryQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(
             instance__in=Instance.objects.filter_for_user(user)
         ).distinct()
@@ -250,6 +249,15 @@ class Dhis2Entry(Entry):
     last_updated = models.DateTimeField()
 
     objects = EntryQuerySet.as_manager()
+
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
     @property
     def display_name(self):
@@ -395,8 +403,14 @@ class IndicatorType(Dhis2Entry):
     number = models.BooleanField()
     factor = models.IntegerField()
 
-    def build_index(self):  # TODO: fishy
-        pass
+    def get_permission_set(self):
+        raise NotImplementedError
+
+    def populate_index(self, index):
+        raise NotImplementedError  # Skip indexing for now
+
+    def get_absolute_url(self):
+        raise NotImplementedError
 
 
 class Indicator(Dhis2Entry):
