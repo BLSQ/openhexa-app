@@ -143,6 +143,36 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             },
         )
 
+    def test_accessmod_projects_with_term(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodProjects {
+                  accessmodProjects(term: "samp", page: 1, perPage: 10) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodProjects"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {"id": str(self.SAMPLE_PROJECT.id)},
+                ],
+            },
+        )
+
     def test_accessmod_projects_with_pagination(self):
         self.client.force_login(self.USER_1)
 
