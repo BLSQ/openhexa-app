@@ -39,7 +39,7 @@ class ClusterCard(Datacard):
     actions = [
         Action(
             label="Open in Airflow",
-            url="cluster.url",
+            url="url",
             icon="external_link",
             method="GET",
             primary=False,
