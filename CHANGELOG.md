@@ -11,6 +11,10 @@ March 29, 2022
 - Revamped permission/access control for data sources and pipelines
 - Enforce trailing slashes for all URLs to prepare the next frontend iteration
 
+### Fixed
+
+- Fixed Airflow cluster external link
+
 Version 0.29
 ------------
 
