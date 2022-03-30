@@ -110,6 +110,9 @@ class TeamQuerySet(BaseQuerySet):
 
 
 class Team(Base):
+    class Meta:
+        ordering = ["name"]
+
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
 
@@ -122,6 +125,9 @@ class MembershipRole(models.TextChoices):
 
 
 class Membership(Base):
+    class Meta:
+        ordering = ["team__name", "user__email"]
+
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
     role = models.CharField(

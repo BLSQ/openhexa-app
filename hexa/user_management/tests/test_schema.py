@@ -2,7 +2,7 @@ from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import Membership, MembershipRole, Team, User
 
 
-class UserManagementGraphTest(GraphQLTestCase):
+class SchemaTest(GraphQLTestCase):
     USER_JIM = None
     USER_JANE = None
     USER_TAYLOR = None
@@ -164,7 +164,7 @@ class UserManagementGraphTest(GraphQLTestCase):
                     {
                         "id": str(self.TEAM_CORE.id),
                         "name": self.TEAM_CORE.name,
-                        "members": {
+                        "memberships": {
                             "pageNumber": 1,
                             "totalPages": 1,
                             "totalItems": 2,
@@ -198,6 +198,7 @@ class UserManagementGraphTest(GraphQLTestCase):
                   totalItems
                   items {
                     id
+                    name
                     memberships {
                       pageNumber
                       totalPages
@@ -228,10 +229,10 @@ class UserManagementGraphTest(GraphQLTestCase):
                     {
                         "id": str(self.TEAM_EXTERNAL.id),
                         "name": self.TEAM_EXTERNAL.name,
-                        "members": {
+                        "memberships": {
                             "pageNumber": 1,
                             "totalPages": 1,
-                            "totalItems": 2,
+                            "totalItems": 1,
                             "items": [
                                 {
                                     "user": {"id": str(self.USER_TAYLOR.id)},
