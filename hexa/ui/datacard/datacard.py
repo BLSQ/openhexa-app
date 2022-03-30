@@ -26,7 +26,7 @@ class DatacardOptions:
         subtitle: typing.Union[StaticText, str],
         sections: typing.Sequence[Section],
         image_src: str = None,
-        actions: list[hexa.ui.datacard.actions.Action] = None
+        actions: list[hexa.ui.datacard.actions.Action] = None,
     ):
         self.sections = sections
         self.title = title
