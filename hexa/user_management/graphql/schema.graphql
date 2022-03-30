@@ -51,7 +51,33 @@ input LoginInput {
     email: String!
     password: String!
 }
+input ResetPasswordInput {
+    email: String!
+}
+type ResetPasswordResult {
+    success: Boolean!
+}
+
+input SetPasswordInput {
+    uidb64: String!
+    token: String!
+    password1: String!
+    password2: String!
+}
+enum SetPasswordError {
+    USER_NOT_FOUND
+    PASSWORD_MISMATCH
+    INVALID_TOKEN
+    INVALID_PASSWORD
+}
+type SetPasswordResult {
+    success: Boolean!
+    error: SetPasswordError
+}
+
 extend type Mutation {
     login(input: LoginInput!): LoginResult!
     logout: LogoutResult!
+    resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+    setPassword(input: SetPasswordInput!): SetPasswordResult!
 }
