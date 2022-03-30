@@ -1,8 +1,12 @@
 import pathlib
 
 from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, password_validation
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
+from django.utils.http import urlsafe_base64_decode
 from django_countries import countries
 from django_countries.fields import Country
 
@@ -91,6 +95,47 @@ def resolve_logout(_, info, **kwargs):
         logout(request)
 
     return {"success": True}
+
+
+@identity_mutations.field("resetPassword")
+def resolve_reset_password(_, info, input, **kwargs):
+    request: HttpRequest = info.context["request"]
+    form = PasswordResetForm({"email": input["email"]})
+    if form.is_valid():
+        form.save(request=request)
+        return {"success": True}
+    else:
+        return {"success": False}
+
+
+@identity_mutations.field("setPassword")
+def resolve_set_password(_, info, input, **kwargs):
+    try:
+        uid = urlsafe_base64_decode(input["uidb64"]).decode()
+        user = User._default_manager.get(pk=uid)
+    except User.DoesNotExist:
+        return {"success": False, "error": "USER_NOT_FOUND"}
+    except (TypeError, ValueError, OverflowError, ValidationError):
+        return {"success": False, "error": "INVALID_TOKEN"}
+
+    if default_token_generator.check_token(user, input["token"]):
+        password1 = input["password1"]
+        password2 = input["password2"]
+
+        if not password1 or not password2 or password1 != password2:
+            return {"success": False, "error": "PASSWORD_MISMATCH"}
+        try:
+            password_validation.validate_password(
+                password1,
+            )
+        except ValidationError:
+            return {"success": False, "error": "INVALID_PASSWORD"}
+
+        user.set_password(password1)
+        user.save()
+        return {"success": True}
+    else:
+        return {"success": False, "error": "INVALID_TOKEN"}
 
 
 user_object = ObjectType("User")
