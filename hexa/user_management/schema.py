@@ -30,6 +30,16 @@ def resolve_countries(*_):
     return [Country(c) for c, _ in countries]
 
 
+@identity_query.field("team")
+def resolve_team(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+
+    try:
+        return Team.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Team.DoesNotExist:
+        return None
+
+
 @identity_query.field("teams")
 def resolve_teams(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

@@ -155,7 +155,6 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["teams"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -184,6 +183,7 @@ class SchemaTest(GraphQLTestCase):
                     },
                 ],
             },
+            r["data"]["teams"],
         )
 
     def test_teams_2(self):
@@ -220,7 +220,6 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["teams"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -244,4 +243,58 @@ class SchemaTest(GraphQLTestCase):
                     },
                 ],
             },
+            r["data"]["teams"],
+        )
+
+    def test_team_not_member(self):
+        self.client.force_login(self.USER_TAYLOR)
+
+        r = self.run_query(
+            """
+              query team($id: String!) {
+                team(id: $id) {
+                  id
+                  name
+                  memberships {
+                    pageNumber
+                    totalPages
+                    totalItems
+                  }
+                }
+              }
+            """,
+            {"id": str(self.TEAM_CORE.id)},
+        )
+
+        self.assertIsNone(
+            r["data"]["team"],
+        )
+
+    def test_team_member(self):
+        self.client.force_login(self.USER_TAYLOR)
+
+        r = self.run_query(
+            """
+              query team($id: String!) {
+                team(id: $id) {
+                  id
+                  name
+                  memberships {
+                    pageNumber
+                    totalPages
+                    totalItems
+                  }
+                }
+              }
+            """,
+            {"id": str(self.TEAM_EXTERNAL.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(self.TEAM_EXTERNAL.id),
+                "name": self.TEAM_EXTERNAL.name,
+                "memberships": {"pageNumber": 1, "totalPages": 1, "totalItems": 1},
+            },
+            r["data"]["team"],
         )
