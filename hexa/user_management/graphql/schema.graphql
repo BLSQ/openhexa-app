@@ -1,8 +1,3 @@
-extend type Query {
-    me: User
-    countries: [Country!]
-    organizations: [Organization!]
-}
 type User {
     id: String!
     email: String!
@@ -13,6 +8,33 @@ type User {
 type Avatar {
     initials: String!
     color: String!
+}
+type Team {
+    id: String!
+    name: String!
+    memberships(page: Int, perPage: Int): MembershipPage!
+}
+type TeamPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Team!]!
+}
+enum MembershipRole {
+    ADMIN
+    REGULAR
+}
+type MembershipPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Membership!]!
+}
+type Membership {
+    id: String!
+    user: User!
+    team: Team!
+    role: MembershipRole!
 }
 type Organization {
     id: String!
@@ -50,6 +72,12 @@ type LogoutResult {
 input LoginInput {
     email: String!
     password: String!
+}
+extend type Query {
+    me: User
+    countries: [Country!]!
+    organizations: [Organization!]!
+    teams(page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {
     login(input: LoginInput!): LoginResult!

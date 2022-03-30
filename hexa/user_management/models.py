@@ -116,9 +116,17 @@ class Team(Base):
     objects = TeamQuerySet.as_manager()
 
 
+class MembershipRole(models.TextChoices):
+    ADMIN = "ADMIN", _("Admin")
+    REGULAR = "REGULAR", _("Regular")
+
+
 class Membership(Base):
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
+    role = models.CharField(
+        max_length=200, choices=MembershipRole.choices, default=MembershipRole.REGULAR
+    )
 
     @property
     def display_name(self):
