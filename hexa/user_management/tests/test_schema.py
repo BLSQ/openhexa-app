@@ -7,7 +7,7 @@ from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 
 
-class UserManagementGraphTest(GraphQLTestCase):
+class SchemaTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user(
@@ -46,15 +46,6 @@ class UserManagementGraphTest(GraphQLTestCase):
         self.assertEqual(
             {"id": str(self.USER.id)},
             r["data"]["me"],
-        )
-
-
-class AuthGraphTest(GraphQLTestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.USER = User.objects.create_user(
-            "jim@bluesquarehub.com",
-            "jimspassword",
         )
 
     def test_login(self):
