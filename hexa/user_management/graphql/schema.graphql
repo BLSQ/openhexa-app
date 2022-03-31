@@ -1,18 +1,46 @@
-extend type Query {
-    me: User
-    countries: [Country!]
-    organizations: [Organization!]
-}
 type User {
     id: String!
     email: String!
     firstName: String
     lastName: String
     avatar: Avatar!
+    dateJoined: DateTime!
+    lastLogin: DateTime
 }
 type Avatar {
     initials: String!
     color: String!
+}
+type Team {
+    id: String!
+    name: String!
+    memberships(page: Int, perPage: Int): MembershipPage!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+type TeamPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Team!]!
+}
+enum MembershipRole {
+    ADMIN
+    REGULAR
+}
+type MembershipPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Membership!]!
+}
+type Membership {
+    id: String!
+    user: User!
+    team: Team!
+    role: MembershipRole!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 type Organization {
     id: String!
@@ -74,7 +102,13 @@ type SetPasswordResult {
     success: Boolean!
     error: SetPasswordError
 }
-
+extend type Query {
+    me: User
+    countries: [Country!]!
+    organizations: [Organization!]!
+    team(id: String!): Team
+    teams(page: Int, perPage: Int): TeamPage!
+}
 extend type Mutation {
     login(input: LoginInput!): LoginResult!
     logout: LogoutResult!

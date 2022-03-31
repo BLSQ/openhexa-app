@@ -14,6 +14,11 @@ from hexa.user_management.models import User
 
 
 class AccessmodProjectGraphTest(GraphQLTestCase):
+    SLOPE_FILESET = None
+    SAMPLE_PROJECT = None
+    SLOPE_ROLE = None
+    USER_1 = None
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_1 = User.objects.create_user(

@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.31
+------------
+
+April 5, 2022
+
+### Added
+
+- Teams & permissions API
+
 Version 0.30
 ------------
 
