@@ -4,6 +4,7 @@ from django.core import mail
 from django.utils.http import urlsafe_base64_encode
 
 from hexa.core.test import GraphQLTestCase
+from hexa.core.test.utils import graphql_datetime_format
 from hexa.user_management.models import Membership, MembershipRole, Team, User
 
 
@@ -29,10 +30,10 @@ class SchemaTest(GraphQLTestCase):
             "taylortaylor2000",
         )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
-        Membership.objects.create(
+        cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
             user=cls.USER_JANE, team=cls.TEAM_CORE, role=MembershipRole.ADMIN
         )
-        Membership.objects.create(
+        cls.MEMBERSHIP_JIM_CORE = Membership.objects.create(
             user=cls.USER_JIM, team=cls.TEAM_CORE, role=MembershipRole.REGULAR
         )
         cls.TEAM_EXTERNAL = Team.objects.create(name="External team")
@@ -63,13 +64,25 @@ class SchemaTest(GraphQLTestCase):
                query {
                   me {
                       id
+                      firstName
+                      lastName
+                      email
+                      dateJoined
+                      lastLogin
                   }
                 }
             """,
         )
 
         self.assertEqual(
-            {"id": str(self.USER_JIM.id)},
+            {
+                "id": str(self.USER_JIM.id),
+                "firstName": self.USER_JIM.first_name,
+                "lastName": self.USER_JIM.last_name,
+                "email": self.USER_JIM.email,
+                "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
+                "lastLogin": graphql_datetime_format(self.USER_JIM.last_login),
+            },
             r["data"]["me"],
         )
 
@@ -86,6 +99,8 @@ class SchemaTest(GraphQLTestCase):
                   items {
                     id
                     name
+                    createdAt
+                    updatedAt
                     memberships {
                       pageNumber
                       totalPages
@@ -98,6 +113,8 @@ class SchemaTest(GraphQLTestCase):
                           id
                         }
                         role
+                        createdAt
+                        updatedAt
                       }
                     }
                   }
@@ -115,6 +132,8 @@ class SchemaTest(GraphQLTestCase):
                     {
                         "id": str(self.TEAM_CORE.id),
                         "name": self.TEAM_CORE.name,
+                        "createdAt": graphql_datetime_format(self.TEAM_CORE.created_at),
+                        "updatedAt": graphql_datetime_format(self.TEAM_CORE.updated_at),
                         "memberships": {
                             "pageNumber": 1,
                             "totalPages": 1,
@@ -124,11 +143,23 @@ class SchemaTest(GraphQLTestCase):
                                     "user": {"id": str(self.USER_JANE.id)},
                                     "team": {"id": str(self.TEAM_CORE.id)},
                                     "role": MembershipRole.ADMIN,
+                                    "createdAt": graphql_datetime_format(
+                                        self.MEMBERSHIP_JANE_CORE.created_at
+                                    ),
+                                    "updatedAt": graphql_datetime_format(
+                                        self.MEMBERSHIP_JANE_CORE.updated_at
+                                    ),
                                 },
                                 {
                                     "user": {"id": str(self.USER_JIM.id)},
                                     "team": {"id": str(self.TEAM_CORE.id)},
                                     "role": MembershipRole.REGULAR,
+                                    "createdAt": graphql_datetime_format(
+                                        self.MEMBERSHIP_JIM_CORE.created_at
+                                    ),
+                                    "updatedAt": graphql_datetime_format(
+                                        self.MEMBERSHIP_JIM_CORE.updated_at
+                                    ),
                                 },
                             ],
                         },

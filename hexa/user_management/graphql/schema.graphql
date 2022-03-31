@@ -4,6 +4,8 @@ type User {
     firstName: String
     lastName: String
     avatar: Avatar!
+    dateJoined: DateTime!
+    lastLogin: DateTime
 }
 type Avatar {
     initials: String!
@@ -13,6 +15,8 @@ type Team {
     id: String!
     name: String!
     memberships(page: Int, perPage: Int): MembershipPage!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 type TeamPage {
     pageNumber: Int!
@@ -35,6 +39,8 @@ type Membership {
     user: User!
     team: Team!
     role: MembershipRole!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 type Organization {
     id: String!
