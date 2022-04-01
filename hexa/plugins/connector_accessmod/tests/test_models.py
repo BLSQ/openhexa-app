@@ -101,44 +101,6 @@ class AccessmodModelsTest(TestCase):
             name="Yet another accessibility analysis",
         )
 
-    def test_project_permissions_owner(self):
-        project = Project.objects.create(
-            name="Private project",
-            country="BE",
-            owner=self.USER_TAYLOR,
-            spatial_resolution=100,
-            crs=4326,
-        )
-        self.assertEqual(
-            project,
-            Project.objects.filter_for_user(self.USER_TAYLOR).get(id=project.id),
-        )
-        with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.filter_for_user(AnonymousUser()).get(id=project.id)
-        with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.filter_for_user(self.USER_SAM).get(id=project.id)
-
-    def test_project_permissions_team(self):
-        project = Project.objects.create(
-            name="Private project",
-            country="BE",
-            owner=self.USER_TAYLOR,
-            spatial_resolution=100,
-            crs=4326,
-        )
-        ProjectPermission.objects.create(project=project, team=self.TEAM)
-        self.assertEqual(
-            project,
-            Project.objects.filter_for_user(self.USER_TAYLOR).get(id=project.id),
-        )
-        self.assertEqual(
-            project, Project.objects.filter_for_user(self.USER_SAM).get(id=project.id)
-        )
-        with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.filter_for_user(AnonymousUser()).get(id=project.id)
-        with self.assertRaises(ObjectDoesNotExist):
-            Project.objects.filter_for_user(self.USER_GRACE).get(id=project.id)
-
     def test_fileset_and_files_permissions_owner(self):
         fileset = Fileset.objects.create(
             name="A private slope",
@@ -219,17 +181,6 @@ class AccessmodModelsTest(TestCase):
         analysis.save()
         analysis.update_status(AnalysisStatus.RUNNING)
         self.assertEqual(analysis.status, AnalysisStatus.FAILED)
-
-    def test_project_delete(self):
-        """Cascade delete Project > Fileset > File & Project > Analysis"""
-
-        self.assertEqual(2, Project.objects.filter().count())
-        self.assertEqual(3, Analysis.objects.filter().count())
-        self.SAMPLE_PROJECT.delete()
-        self.assertEqual(1, Project.objects.filter().count())
-        self.assertEqual(1, Analysis.objects.count())
-        self.assertEqual(0, Fileset.objects.count())
-        self.assertEqual(0, File.objects.count())
 
     def test_fileset_delete(self):
         """Cascade delete Fileset > File"""
