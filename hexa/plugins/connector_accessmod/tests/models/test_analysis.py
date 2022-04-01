@@ -18,7 +18,7 @@ from hexa.plugins.connector_accessmod.models import (
 from hexa.user_management.models import Membership, Team, User
 
 
-class AccessmodModelsTest(TestCase):
+class AnalysisTest(TestCase):
     USER_TAYLOR = None
     USER_SAM = None
     USER_GRACE = None

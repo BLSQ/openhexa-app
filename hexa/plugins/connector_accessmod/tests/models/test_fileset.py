@@ -17,36 +17,44 @@ from hexa.plugins.connector_accessmod.models import (
 from hexa.user_management.models import Membership, Team, User
 
 
-class AccessmodModelsTest(TestCase):
+class FilesetTest(TestCase):
+    USER_SIMONE = None
+    USER_ROBERT = None
+    USER_DONALD = None
+    TEAM = None
+    PROJECT_SAMPLE = None
+    SLOPE_ROLE = None
+    SLOPE_FILESET = None
+
     @classmethod
     @responses.activate
     def setUpTestData(cls):
-        cls.USER_TAYLOR = User.objects.create_user(
-            "taylor@bluesquarehub.com",
-            "taylorrocks66",
+        cls.USER_SIMONE = User.objects.create_user(
+            "simone@bluesquarehub.com",
+            "simonerocks66",
         )
-        cls.USER_SAM = User.objects.create_user(
-            "sam@bluesquarehub.com",
-            "samspasswOrD!!",
+        cls.USER_ROBERT = User.objects.create_user(
+            "robert@bluesquarehub.com",
+            "robert2000",
         )
-        cls.USER_GRACE = User.objects.create_user(
-            "grace@bluesquarehub.com",
-            "grace_8798-:/",
+        cls.USER_DONALD = User.objects.create_user(
+            "donald@bluesquarehub.com",
+            "donald^^",
         )
-        cls.TEAM = Team.objects.create(name="Test Team")
-        Membership.objects.create(user=cls.USER_SAM, team=cls.TEAM)
-        Membership.objects.create(user=cls.USER_TAYLOR, team=cls.TEAM)
-        cls.SAMPLE_PROJECT = Project.objects.create(
+        cls.TEAM = Team.objects.create(name="Some Team")
+        Membership.objects.create(user=cls.USER_ROBERT, team=cls.TEAM)
+        Membership.objects.create(user=cls.USER_SIMONE, team=cls.TEAM)
+        cls.PROJECT_SAMPLE = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_TAYLOR,
+            owner=cls.USER_SIMONE,
             spatial_resolution=100,
             crs=4326,
         )
-        cls.OTHER_PROJECT = Project.objects.create(
-            name="Other project",
+        cls.PROJECT_OTHER = Project.objects.create(
+            name="Another project",
             country="BE",
-            owner=cls.USER_TAYLOR,
+            owner=cls.USER_SIMONE,
             spatial_resolution=100,
             crs=4326,
         )
@@ -55,109 +63,84 @@ class AccessmodModelsTest(TestCase):
             code=FilesetRoleCode.SLOPE,
             format=FilesetFormat.RASTER,
         )
-        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
-            code=FilesetRoleCode.FRICTION_SURFACE,
-            format=FilesetFormat.RASTER,
-        )
-        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
-            code=FilesetRoleCode.TRAVEL_TIMES,
-            format=FilesetFormat.RASTER,
-        )
-        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.create(
-            name="Catchment areas",
-            code=FilesetRoleCode.CATCHMENT_AREAS,
-            format=FilesetFormat.RASTER,
-        )
         cls.SLOPE_FILESET = Fileset.objects.create(
             name="A beautiful slope",
             role=cls.SLOPE_ROLE,
-            project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_TAYLOR,
+            project=cls.PROJECT_SAMPLE,
+            owner=cls.USER_SIMONE,
         )
         cls.SLOPE_FILE = File.objects.create(
             fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
-            project=cls.SAMPLE_PROJECT,
+            owner=cls.USER_SIMONE,
+            project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
             priority_land_cover=[1, 2],
-        )
-        cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
-            project=cls.OTHER_PROJECT,
-            name="Accessibility analysis with a common name",
-            priority_land_cover=[1, 2],
-        )
-        cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
-            project=cls.SAMPLE_PROJECT,
-            name="Yet another accessibility analysis",
         )
 
     def test_fileset_and_files_permissions_owner(self):
         fileset = Fileset.objects.create(
             name="A private slope",
             role=self.SLOPE_ROLE,
-            project=self.SAMPLE_PROJECT,
-            owner=self.USER_TAYLOR,
+            project=self.PROJECT_SAMPLE,
+            owner=self.USER_SIMONE,
         )
         file = File.objects.create(
             fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
         )
         self.assertEqual(
             fileset,
-            Fileset.objects.filter_for_user(self.USER_TAYLOR).get(id=fileset.id),
+            Fileset.objects.filter_for_user(self.USER_SIMONE).get(id=fileset.id),
         )
         self.assertEqual(
             file,
-            File.objects.filter_for_user(self.USER_TAYLOR).get(id=file.id),
+            File.objects.filter_for_user(self.USER_SIMONE).get(id=file.id),
         )
         with self.assertRaises(ObjectDoesNotExist):
             Fileset.objects.filter_for_user(AnonymousUser()).get(id=fileset.id)
         with self.assertRaises(ObjectDoesNotExist):
             File.objects.filter_for_user(AnonymousUser()).get(id=file.id)
         with self.assertRaises(ObjectDoesNotExist):
-            Fileset.objects.filter_for_user(self.USER_SAM).get(id=fileset.id)
+            Fileset.objects.filter_for_user(self.USER_ROBERT).get(id=fileset.id)
         with self.assertRaises(ObjectDoesNotExist):
-            File.objects.filter_for_user(self.USER_SAM).get(id=file.id)
+            File.objects.filter_for_user(self.USER_ROBERT).get(id=file.id)
 
     def test_fileset_and_files_permissions_team(self):
-        ProjectPermission.objects.create(project=self.SAMPLE_PROJECT, team=self.TEAM)
+        ProjectPermission.objects.create(project=self.PROJECT_SAMPLE, team=self.TEAM)
         fileset = Fileset.objects.create(
             name="A private slope",
             role=self.SLOPE_ROLE,
-            project=self.SAMPLE_PROJECT,
-            owner=self.USER_TAYLOR,
+            project=self.PROJECT_SAMPLE,
+            owner=self.USER_SIMONE,
         )
         file = File.objects.create(
             fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
         )
         self.assertEqual(
             fileset,
-            Fileset.objects.filter_for_user(self.USER_TAYLOR).get(id=fileset.id),
+            Fileset.objects.filter_for_user(self.USER_SIMONE).get(id=fileset.id),
         )
         self.assertEqual(
             file,
-            File.objects.filter_for_user(self.USER_TAYLOR).get(id=file.id),
+            File.objects.filter_for_user(self.USER_SIMONE).get(id=file.id),
         )
         self.assertEqual(
-            fileset, Fileset.objects.filter_for_user(self.USER_SAM).get(id=fileset.id)
+            fileset,
+            Fileset.objects.filter_for_user(self.USER_ROBERT).get(id=fileset.id),
         )
         self.assertEqual(
-            file, File.objects.filter_for_user(self.USER_SAM).get(id=file.id)
+            file, File.objects.filter_for_user(self.USER_ROBERT).get(id=file.id)
         )
         with self.assertRaises(ObjectDoesNotExist):
             Fileset.objects.filter_for_user(AnonymousUser()).get(id=fileset.id)
         with self.assertRaises(ObjectDoesNotExist):
             File.objects.filter_for_user(AnonymousUser()).get(id=file.id)
         with self.assertRaises(ObjectDoesNotExist):
-            Fileset.objects.filter_for_user(self.USER_GRACE).get(id=fileset.id)
+            Fileset.objects.filter_for_user(self.USER_DONALD).get(id=fileset.id)
         with self.assertRaises(ObjectDoesNotExist):
-            File.objects.filter_for_user(self.USER_GRACE).get(id=file.id)
+            File.objects.filter_for_user(self.USER_DONALD).get(id=file.id)
 
     def test_fileset_delete(self):
         """Cascade delete Fileset > File"""
