@@ -6,9 +6,6 @@ from django.db.models import ProtectedError
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
-    Analysis,
-    AnalysisPermission,
-    AnalysisStatus,
     File,
     Fileset,
     FilesetFormat,
@@ -162,26 +159,6 @@ class AccessmodModelsTest(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             File.objects.filter_for_user(self.USER_GRACE).get(id=file.id)
 
-    def test_analysis_update_status_noop(self):
-        analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
-            project=self.SAMPLE_PROJECT,
-            name="Test accessibility analysis",
-            status=AnalysisStatus.RUNNING,
-        )
-        analysis.update_status(AnalysisStatus.RUNNING)
-        self.assertEqual(analysis.status, AnalysisStatus.RUNNING)
-
-        analysis.status = AnalysisStatus.SUCCESS
-        analysis.save()
-        analysis.update_status(AnalysisStatus.RUNNING)
-        self.assertEqual(analysis.status, AnalysisStatus.SUCCESS)
-
-        analysis.status = AnalysisStatus.FAILED
-        analysis.save()
-        analysis.update_status(AnalysisStatus.RUNNING)
-        self.assertEqual(analysis.status, AnalysisStatus.FAILED)
-
     def test_fileset_delete(self):
         """Cascade delete Fileset > File"""
         with self.assertRaises(
@@ -193,90 +170,3 @@ class AccessmodModelsTest(TestCase):
         self.ACCESSIBILITY_ANALYSIS.save()
         self.SLOPE_FILESET.delete()
         self.assertEqual(0, File.objects.count())
-
-    def test_analysis_name_unique(self):
-        self.assertEqual(
-            1,
-            AccessibilityAnalysis.objects.filter(
-                name=self.OTHER_ACCESSIBILITY_ANALYSIS.name
-            ).count(),
-        )
-        AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
-            project=self.SAMPLE_PROJECT,
-            name=self.OTHER_ACCESSIBILITY_ANALYSIS.name,
-        )
-        self.assertEqual(
-            2,
-            AccessibilityAnalysis.objects.filter(
-                name=self.OTHER_ACCESSIBILITY_ANALYSIS.name
-            ).count(),
-        )
-
-    def test_analysis_set_outputs(self):
-        """Test outputs handling, including possible name conflicts"""
-
-        outputs_1 = {
-            "travel_times": "s3://some-bucket/some-dir/travel_times_1.tif",
-            "friction_surface": "s3://some-bucket/some-dir/friction_surface_1.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_1.tif",
-        }
-        self.ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_1)
-
-        outputs_2 = {
-            "travel_times": "s3://some-bucket/some-dir/travel_times_2.tif",
-            "friction_surface": "s3://some-bucket/some-dir/friction_surface_2.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_2.tif",
-        }
-        self.YET_ANOTHER_ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_2)
-
-    def test_analysis_permissions_owner(self):
-        analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
-            project=self.SAMPLE_PROJECT,
-            name="Private accessibility analysis",
-            slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
-        )
-        self.assertEqual(
-            analysis,
-            Analysis.objects.filter_for_user(self.USER_TAYLOR).get_subclass(
-                id=analysis.id
-            ),
-        )
-        with self.assertRaises(ObjectDoesNotExist):
-            Analysis.objects.filter_for_user(AnonymousUser()).get_subclass(
-                id=analysis.id
-            )
-        with self.assertRaises(ObjectDoesNotExist):
-            Analysis.objects.filter_for_user(self.USER_SAM).get_subclass(id=analysis.id)
-
-    def test_analysis_permissions_team(self):
-        analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
-            project=self.SAMPLE_PROJECT,
-            name="Private accessibility analysis",
-            slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
-        )
-        AnalysisPermission.objects.create(analysis=analysis, team=self.TEAM)
-        self.assertEqual(
-            analysis,
-            Analysis.objects.filter_for_user(self.USER_TAYLOR).get_subclass(
-                id=analysis.id
-            ),
-        )
-        self.assertEqual(
-            analysis,
-            Analysis.objects.filter_for_user(self.USER_SAM).get_subclass(
-                id=analysis.id
-            ),
-        )
-        with self.assertRaises(ObjectDoesNotExist):
-            Analysis.objects.filter_for_user(AnonymousUser()).get_subclass(
-                id=analysis.id
-            )
-        with self.assertRaises(ObjectDoesNotExist):
-            Analysis.objects.filter_for_user(self.USER_GRACE).get_subclass(
-                id=analysis.id
-            )
