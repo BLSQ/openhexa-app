@@ -19,22 +19,26 @@ class UserManager(BaseUserManager):
     for authentication instead of usernames.
     """
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email=None, password=None, **extra_fields):
         """
         Create and save a User with the given email and password.
         """
-        if not email:
-            raise ValueError(_("The Email must be set"))
+        if not email or not password:
+            raise ValueError(_("Email and password must be set"))
+
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email=None, password=None, **extra_fields):
         """
         Create and save a SuperUser with the given email and password.
         """
+        if not email or not password:
+            raise ValueError(_("Email and password must be set"))
+
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -102,6 +106,11 @@ class Organization(Base):
     contact_info = models.TextField(blank=True)
 
 
+class MembershipRole(models.TextChoices):
+    ADMIN = "ADMIN", _("Admin")
+    REGULAR = "REGULAR", _("Regular")
+
+
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
@@ -117,11 +126,6 @@ class Team(Base):
     members = models.ManyToManyField("User", through="Membership")
 
     objects = TeamQuerySet.as_manager()
-
-
-class MembershipRole(models.TextChoices):
-    ADMIN = "ADMIN", _("Admin")
-    REGULAR = "REGULAR", _("Regular")
 
 
 class Membership(Base):
