@@ -7,6 +7,10 @@
 anyio==3.5.0
     # via starlette
 ariadne==0.14.1
+    # via
+    #   -r requirements.in
+    #   ariadne-django
+ariadne-django==0.2.0
     # via -r requirements.in
 arrow==1.2.2
     # via jinja2-time
@@ -56,6 +60,7 @@ dhis2.py==2.3.0
 django==4.0.3
     # via
     #   -r requirements.in
+    #   ariadne-django
     #   django-browser-reload
     #   django-cors-headers
     #   django-debug-toolbar

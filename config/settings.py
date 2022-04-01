@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_countries",
     "django_ltree",
-    "ariadne.contrib.django",
+    "ariadne_django",
     "tailwind",
     "hexa.user_management",
     "hexa.metrics",
