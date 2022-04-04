@@ -42,7 +42,7 @@ class ProjectTest(TestCase):
         Membership.objects.create(user=cls.USER_HUNTER, team=cls.TEAM)
 
         cls.PROJECT_SAMPLE = Project.objects.create(
-            name="jimmyple project",
+            name="Jimmy's project",
             country="BE",
             owner=cls.USER_HUNTER,
             spatial_resolution=100,
