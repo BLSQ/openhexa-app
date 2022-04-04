@@ -4,8 +4,9 @@ from logging import getLogger
 from django.core.signing import Signer
 from django.http import HttpRequest
 
-from hexa.plugins.connector_accessmod.authentication import DAGRunUser
 from hexa.plugins.connector_airflow.models import DAGRun
+
+from .authentication import DAGRunUser
 
 logger = getLogger(__name__)
 
