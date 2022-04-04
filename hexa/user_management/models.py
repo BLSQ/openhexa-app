@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import typing
 import uuid
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.postgres.fields import CIEmailField
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +14,7 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.plugins.connector_accessmod.permissions import TeamPermissions
 
 
 class UserManager(BaseUserManager):
@@ -50,7 +54,24 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class User(AbstractUser):
+class UserInterface:
+    is_staff = False
+    is_active = False
+    is_superuser = False
+    is_anonymous = True
+
+    def has_perm(self, perm, obj=None):
+        raise NotImplementedError
+
+    def get_username(self):
+        raise NotImplementedError
+
+    @property
+    def is_authenticated(self):
+        return False
+
+
+class User(AbstractUser, UserInterface):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -111,6 +132,17 @@ class MembershipRole(models.TextChoices):
     REGULAR = "REGULAR", _("Regular")
 
 
+class TeamManager(models.Manager):
+    @staticmethod
+    def add_user_to_team(*, principal: User, user: User, team: Team):
+        if not principal.has_perm(TeamPermissions.add_user_to_team, team):
+            raise PermissionDenied
+
+        return Membership.objects.create(
+            user=user, team=team, role=MembershipRole.REGULAR
+        )
+
+
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
@@ -125,7 +157,7 @@ class Team(Base):
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
 
-    objects = TeamQuerySet.as_manager()
+    objects = TeamManager.from_queryset(TeamQuerySet)()
 
 
 class Membership(Base):

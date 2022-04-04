@@ -148,7 +148,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
-    "hexa.user_management.backends.ObjectPermissionBackend",
+    "hexa.user_management.backends.PermissionsBackend",
 ]
 
 # Additional security settings
