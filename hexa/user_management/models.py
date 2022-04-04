@@ -135,12 +135,21 @@ class MembershipRole(models.TextChoices):
 class TeamManager(models.Manager):
     @staticmethod
     def add_user_to_team(*, principal: User, user: User, team: Team):
-        if not principal.has_perm(TeamPermissions.add_user_to_team, team):
+        if not principal.has_perm(TeamPermissions.add_user_to_team, [user, team]):
             raise PermissionDenied
 
         return Membership.objects.create(
             user=user, team=team, role=MembershipRole.REGULAR
         )
+
+    @staticmethod
+    def remove_user_from_team(*, principal: User, user: User, team: Team):
+        if not principal.has_perm(TeamPermissions.remove_user_from_team, [user, team]):
+            raise PermissionDenied
+
+        return Membership.objects.get(
+            user=user, team=team, role=MembershipRole.REGULAR
+        ).delete()
 
 
 class TeamQuerySet(BaseQuerySet):
