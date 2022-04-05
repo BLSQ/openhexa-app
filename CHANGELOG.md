@@ -8,7 +8,13 @@ April 5, 2022
 
 ### Added
 
-- Teams & permissions API
+- Reset password API
+- Teams & permissions API first steps
+
+### Updated
+
+- Updated all Python dependencies
+- Fine-tune linting
 
 Version 0.30
 ------------
