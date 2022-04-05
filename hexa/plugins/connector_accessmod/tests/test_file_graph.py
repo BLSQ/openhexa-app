@@ -30,14 +30,14 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         cls.SAMPLE_PROJECT_1 = Project.objects.create(
             name="Sample project 1",
             country="BE",
-            owner=cls.USER_1,
+            author=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
         )
         cls.SAMPLE_PROJECT_2 = Project.objects.create(
             name="Sample project 2",
             country="BE",
-            owner=cls.USER_1,
+            author=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
         )
@@ -53,19 +53,19 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             name="A cool fileset",
             role=cls.LAND_COVER_ROLE,
             project=cls.SAMPLE_PROJECT_1,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SAMPLE_FILESET_2 = Fileset.objects.create(
             name="Another nice fileset",
             role=cls.BARRIER_ROLE,
             project=cls.SAMPLE_PROJECT_1,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SAMPLE_FILESET_3 = Fileset.objects.create(
             name="And yet another fileset",
             role=cls.LAND_COVER_ROLE,
             project=cls.SAMPLE_PROJECT_2,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SAMPLE_FILE_1 = File.objects.create(
             fileset=cls.SAMPLE_FILESET_1, uri="afile.csv", mime_type="text/csv"
@@ -81,7 +81,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
 
-    def test_accessmod_fileset_owner(self):
+    def test_accessmod_fileset_author(self):
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
@@ -93,7 +93,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                     role {
                         id
                     }
-                    owner {
+                    author {
                         id
                     }
                     files {
@@ -113,7 +113,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "id": str(self.SAMPLE_FILESET_1.id),
                 "name": self.SAMPLE_FILESET_1.name,
                 "role": {"id": str(self.SAMPLE_FILESET_1.role_id)},
-                "owner": {"id": str(self.SAMPLE_FILESET_1.owner_id)},
+                "author": {"id": str(self.SAMPLE_FILESET_1.author_id)},
                 "files": [
                     {"id": str(f.id), "mimeType": f.mime_type, "uri": f.uri}
                     for f in self.SAMPLE_FILESET_1.file_set.all()
@@ -121,7 +121,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
-    def test_accessmod_fileset_not_owner(self):
+    def test_accessmod_fileset_not_author(self):
         self.client.force_login(self.USER_2)
 
         r = self.run_query(
@@ -526,7 +526,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             name="About to be deleted",
             role=self.LAND_COVER_ROLE,
             project=self.SAMPLE_PROJECT_1,
-            owner=self.USER_1,
+            author=self.USER_1,
         )
 
         r = self.run_query(
@@ -598,7 +598,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             name="About to be deleted",
             role=self.LAND_COVER_ROLE,
             project=self.SAMPLE_PROJECT_1,
-            owner=self.USER_1,
+            author=self.USER_1,
         )
         original_fileset_updated_at = fileset.updated_at
         file = File.objects.create(

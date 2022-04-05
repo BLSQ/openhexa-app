@@ -104,6 +104,12 @@ class User(AbstractUser, UserInterface):
         except Feature.DoesNotExist:
             return self.featureflag_set.filter(feature__code=code).exists()
 
+    def is_member_of(self, team):
+        return self.membership_set.filter(team=team).exists()
+
+    def is_admin_of(self, team):
+        return self.membership_set.filter(team=team, role=MembershipRole.ADMIN).exists()
+
     def __str__(self):
         return self.display_name
 

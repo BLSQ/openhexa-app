@@ -5,7 +5,7 @@ type AccessmodProject {
     spatialResolution: Int!
     crs: Int!
     country: Country!
-    owner: User!
+    author: User!
     createdAt: DateTime!
     updatedAt: DateTime!
     extent: AccessmodFileset
@@ -72,7 +72,7 @@ type AccessmodFileset {
     id: String!
     name: String!
     role: AccessmodFilesetRole
-    owner: User!
+    author: User!
     files: [AccessmodFile!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -216,7 +216,7 @@ interface AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -229,7 +229,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
     createdAt: DateTime!
     updatedAt: DateTime!
     landCover: AccessmodFileset
@@ -257,7 +257,7 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
     createdAt: DateTime!
     updatedAt: DateTime!
     population: AccessmodFileset

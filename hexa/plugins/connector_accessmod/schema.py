@@ -67,7 +67,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
     create_input = kwargs["input"]
     try:
         project = Project.objects.create(
-            owner=request.user,
+            author=request.user,
             name=create_input["name"],
             country=Country(create_input["country"]["code"]),
             spatial_resolution=create_input["spatialResolution"],
@@ -183,7 +183,7 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
     create_input = kwargs["input"]
     try:
         fileset = Fileset.objects.create(
-            owner=request.user,
+            author=request.user,
             name=create_input["name"],
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
@@ -368,7 +368,7 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     create_input = kwargs["input"]
     try:
         analysis = AccessibilityAnalysis.objects.create(
-            owner=request.user,
+            author=request.user,
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
             ),

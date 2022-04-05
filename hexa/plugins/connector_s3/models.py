@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import typing
 from logging import getLogger
@@ -22,7 +24,7 @@ from hexa.plugins.connector_s3.api import (
     list_objects_metadata,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
-from hexa.user_management.models import User
+from hexa.user_management import models as user_management_models
 
 logger = getLogger(__name__)
 
@@ -58,7 +60,9 @@ class BucketPermissionMode(models.IntegerChoices):
 
 class BucketQuerySet(BaseQuerySet):
     def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User], mode: BucketPermissionMode = None
+        self,
+        user: typing.Union[AnonymousUser, user_management_models.User],
+        mode: BucketPermissionMode = None,
     ):
         if not user.is_active:
             return self.none()
@@ -255,7 +259,9 @@ class BucketPermission(Permission):
 
 
 class ObjectQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 

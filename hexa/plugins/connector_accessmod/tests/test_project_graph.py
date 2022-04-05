@@ -32,14 +32,14 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_1,
+            author=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
         )
         cls.OTHER_PROJECT = Project.objects.create(
             name="Other project",
             country="BE",
-            owner=cls.USER_1,
+            author=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
         )
@@ -52,20 +52,20 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             name="A wonderful slope",
             role=cls.SLOPE_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SLOPE_FILE = File.objects.create(
             fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_1,
+            author=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="A random accessibility analysis",
             slope=cls.SLOPE_FILESET,
             priority_land_cover=[1, 2],
         )
 
-    def test_accessmod_project_owner(self):
+    def test_accessmod_project_author(self):
         self.client.force_login(self.USER_1)
 
         r = self.run_query(
@@ -78,7 +78,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                     country {
                         code
                     }
-                    owner {
+                    author {
                         email
                     }
                   }
@@ -94,11 +94,11 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "name": "Sample project",
                 "spatialResolution": 100,
                 "country": {"code": "BE"},
-                "owner": {"email": "jim@bluesquarehub.com"},
+                "author": {"email": "jim@bluesquarehub.com"},
             },
         )
 
-    def test_accessmod_project_not_owner(self):
+    def test_accessmod_project_not_author(self):
         self.client.force_login(self.USER_2)
 
         r = self.run_query(

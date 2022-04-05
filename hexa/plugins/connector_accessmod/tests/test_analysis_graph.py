@@ -54,7 +54,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_1,
+            author=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
         )
@@ -107,31 +107,31 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             name="Extent fileset",
             role=cls.GEOMETRY_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.LAND_COVER_FILESET = Fileset.objects.create(
             name="An impressive land cover",
             role=cls.LAND_COVER_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.DEM_FILESET = Fileset.objects.create(
             name="My favorite DEM",
             role=cls.DEM_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.TRANSPORT_NETWORK_FILESET = Fileset.objects.create(
             name="Worst Transport Network ever",
             role=cls.TRANSPORT_NETWORK_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SLOPE_FILESET = Fileset.objects.create(
             name="A beautiful slope",
             role=cls.SLOPE_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.SLOPE_FILE = File.objects.create(
             fileset=cls.SLOPE_FILESET,
@@ -142,35 +142,35 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             name="I like water",
             role=cls.WATER_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.HEALTH_FACILITIES_FILESET = Fileset.objects.create(
             name="Would you look at those health facilities!",
             role=cls.HEALTH_FACILITIES_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.FRICTION_SURFACE_FILESET = Fileset.objects.create(
             name="Check this friction surface!",
             role=cls.FRICTION_SURFACE_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.POPULATION_FILESET = Fileset.objects.create(
             name="Best population ever",
             role=cls.POPULATION_ROLE,
             project=cls.SAMPLE_PROJECT,
-            owner=cls.USER_1,
+            author=cls.USER_1,
         )
         cls.ACCESSIBILITY_ANALYSIS_1 = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_1,
+            author=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
             priority_land_cover=[1, 2],
         )
         cls.ACCESSIBILITY_ANALYSIS_2 = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_1,
+            author=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="Second accessibility analysis",
             status=AnalysisStatus.READY,  # let's cheat a little
@@ -179,7 +179,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             priority_land_cover=[1, 2, 3],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
-            owner=cls.USER_1,
+            author=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First Geo coverage analysis",
             population=cls.POPULATION_FILESET,
@@ -189,7 +189,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             hf_processing_order="plop",
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_2 = GeographicCoverageAnalysis.objects.create(
-            owner=cls.USER_1,
+            author=cls.USER_1,
             status=AnalysisStatus.RUNNING,
             project=cls.SAMPLE_PROJECT,
             name="Second Geo coverage analysis",

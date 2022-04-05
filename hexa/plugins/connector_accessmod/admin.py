@@ -11,8 +11,8 @@ from hexa.plugins.connector_accessmod.models import (
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ("name", "country", "owner")
-    list_filter = ("owner",)
+    list_display = ("name", "country", "author")
+    list_filter = ("author",)
     search_fields = ("name",)
 
 
@@ -25,8 +25,8 @@ class FilesetRoleAdmin(admin.ModelAdmin):
 
 @admin.register(Fileset)
 class FilesetAdmin(admin.ModelAdmin):
-    list_display = ("name", "project", "role", "owner")
-    list_filter = ("role", "project__name", "owner")
+    list_display = ("name", "project", "role", "author")
+    list_filter = ("role", "project__name", "author")
     search_fields = ("name",)
 
 
@@ -39,6 +39,6 @@ class FileAdmin(admin.ModelAdmin):
 
 @admin.register(AccessibilityAnalysis)
 class AccessibilityAnalysisAdmin(admin.ModelAdmin):
-    list_display = ("name", "status", "project", "owner", "dag_run")
-    list_filter = ("status", "project__name", "owner")
+    list_display = ("name", "status", "project", "author", "dag_run")
+    list_filter = ("status", "project__name", "author")
     search_fields = ("name",)

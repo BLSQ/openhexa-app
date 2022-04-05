@@ -49,14 +49,14 @@ class AnalysisTest(TestCase):
         cls.PROJECT_SAMPLE = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
             spatial_resolution=100,
             crs=4326,
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Other project",
             country="BE",
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
             spatial_resolution=100,
             crs=4326,
         )
@@ -84,33 +84,33 @@ class AnalysisTest(TestCase):
             name="A beautiful slope",
             role=cls.SLOPE_ROLE,
             project=cls.PROJECT_SAMPLE,
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
         )
         cls.SLOPE_FILE = File.objects.create(
             fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
             priority_land_cover=[1, 2],
         )
         cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
             project=cls.PROJECT_OTHER,
             name="Accessibility analysis with a common name",
             priority_land_cover=[1, 2],
         )
         cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_TAYLOR,
+            author=cls.USER_TAYLOR,
             project=cls.PROJECT_SAMPLE,
             name="Yet another accessibility analysis",
         )
 
     def test_analysis_update_status_noop(self):
         analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
+            author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name="Test accessibility analysis",
             status=AnalysisStatus.RUNNING,
@@ -136,7 +136,7 @@ class AnalysisTest(TestCase):
             ).count(),
         )
         AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
+            author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name=self.OTHER_ACCESSIBILITY_ANALYSIS.name,
         )
@@ -166,7 +166,7 @@ class AnalysisTest(TestCase):
 
     def test_analysis_permissions_owner(self):
         analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
+            author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
             slope=self.SLOPE_FILESET,
@@ -187,7 +187,7 @@ class AnalysisTest(TestCase):
 
     def test_analysis_permissions_team(self):
         analysis = AccessibilityAnalysis.objects.create(
-            owner=self.USER_TAYLOR,
+            author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
             slope=self.SLOPE_FILESET,

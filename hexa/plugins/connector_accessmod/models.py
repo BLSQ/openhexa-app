@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import typing
 
@@ -15,17 +17,23 @@ from hexa.core import mimetypes
 from hexa.core.models import Base, Permission
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
-from hexa.plugins.connector_airflow.models import DAG, DAGRunState
+from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.models import Team, User
+from hexa.user_management import models as user_management_models
 
 
 class ProjectQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self._filter_for_user_and_query_object(
             user,
-            Q(owner=user)
-            | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
+            Q(author=user)
+            | Q(
+                projectpermission__team__in=user_management_models.Team.objects.filter_for_user(
+                    user
+                )
+            ),
             return_all_if_superuser=False,
         )
 
@@ -34,12 +42,12 @@ class Project(Datasource):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
+            models.UniqueConstraint("name", "author", name="project_unique_name_owner")
         ]
 
     name = models.TextField(verbose_name="project name")
     country = CountryField()
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     spatial_resolution = models.PositiveIntegerField()
@@ -49,6 +57,12 @@ class Project(Datasource):
     )
 
     objects = ProjectQuerySet.as_manager()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+        return self.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
@@ -82,8 +96,14 @@ class Project(Datasource):
         return self.name
 
 
+class ProjectPermissionMode(models.TextChoices):
+    OWNER = "OWNER"
+    GUEST = "GUEST"
+
+
 class ProjectPermission(Permission):
     project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
+    mode = models.CharField(max_length=200, choices=ProjectPermissionMode.choices)
 
     class Meta:
         unique_together = [("project", "team")]
@@ -96,7 +116,9 @@ class ProjectPermission(Permission):
 
 
 class FilesetQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
 
 
@@ -112,11 +134,17 @@ class Fileset(Entry):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
 
     objects = FilesetQuerySet.as_manager()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+        return self.project.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     def get_permission_set(self):
         return self.project.get_permission_set()
@@ -161,7 +189,9 @@ class FilesetRole(Base):
 
 
 class FileQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
@@ -205,11 +235,17 @@ class AnalysisType(str, enum.Enum):
 
 
 class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self._filter_for_user_and_query_object(
             user,
-            Q(owner=user)
-            | Q(analysispermission__team__in=Team.objects.filter_for_user(user)),
+            Q(author=user)
+            | Q(
+                analysispermission__team__in=user_management_models.Team.objects.filter_for_user(
+                    user
+                )
+            ),
             return_all_if_superuser=False,
         )
 
@@ -221,7 +257,9 @@ class AnalysisManager(InheritanceManager):
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
 
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self.get_queryset().filter_for_user(user)
 
 
@@ -242,13 +280,13 @@ class Analysis(Pipeline):
         ]
 
     DAG_RUN_STATE_MAPPINGS = {
-        DAGRunState.QUEUED: AnalysisStatus.QUEUED,
-        DAGRunState.RUNNING: AnalysisStatus.RUNNING,
-        DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
-        DAGRunState.FAILED: AnalysisStatus.FAILED,
+        airflow_models.DAGRunState.QUEUED: AnalysisStatus.QUEUED,
+        airflow_models.DAGRunState.RUNNING: AnalysisStatus.RUNNING,
+        airflow_models.DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
+        airflow_models.DAGRunState.FAILED: AnalysisStatus.FAILED,
     }
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     status = models.CharField(
@@ -264,6 +302,12 @@ class Analysis(Pipeline):
     )
 
     objects = AnalysisManager()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+        return self.project.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     def populate_index(self, index):
         raise NotImplementedError
@@ -295,7 +339,7 @@ class Analysis(Pipeline):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
-        dag = DAG.objects.get(dag_id=self.dag_id)
+        dag = airflow_models.DAG.objects.get(dag_id=self.dag_id)
 
         # This is a temporary solution until we figure out storage requirements
         if settings.ACCESSMOD_S3_BUCKET_NAME is None:
@@ -351,7 +395,7 @@ class Analysis(Pipeline):
         else:
             raise ValueError(f"Cannot change status from {self.status} to {status}")
 
-    def update_status_from_dag_run_state(self, state: DAGRunState):
+    def update_status_from_dag_run_state(self, state: airflow_models.DAGRunState):
         try:
             new_status_candidate = self.DAG_RUN_STATE_MAPPINGS[state]
             if new_status_candidate != self.status:
@@ -386,7 +430,7 @@ class Analysis(Pipeline):
                 project=self.project,
                 name=f"{output_name} ({self.name})",
                 role=FilesetRole.objects.get(code=output_role_code),
-                owner=self.owner,
+                author=self.author,
             ),
         )
         getattr(self, output_key).file_set.create(

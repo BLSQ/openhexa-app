@@ -47,14 +47,14 @@ class FilesetTest(TestCase):
         cls.PROJECT_SAMPLE = Project.objects.create(
             name="Sample project",
             country="BE",
-            owner=cls.USER_SIMONE,
+            author=cls.USER_SIMONE,
             spatial_resolution=100,
             crs=4326,
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Another project",
             country="BE",
-            owner=cls.USER_SIMONE,
+            author=cls.USER_SIMONE,
             spatial_resolution=100,
             crs=4326,
         )
@@ -67,13 +67,13 @@ class FilesetTest(TestCase):
             name="A beautiful slope",
             role=cls.SLOPE_ROLE,
             project=cls.PROJECT_SAMPLE,
-            owner=cls.USER_SIMONE,
+            author=cls.USER_SIMONE,
         )
         cls.SLOPE_FILE = File.objects.create(
             fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_SIMONE,
+            author=cls.USER_SIMONE,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
@@ -85,7 +85,7 @@ class FilesetTest(TestCase):
             name="A private slope",
             role=self.SLOPE_ROLE,
             project=self.PROJECT_SAMPLE,
-            owner=self.USER_SIMONE,
+            author=self.USER_SIMONE,
         )
         file = File.objects.create(
             fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"
@@ -113,7 +113,7 @@ class FilesetTest(TestCase):
             name="A private slope",
             role=self.SLOPE_ROLE,
             project=self.PROJECT_SAMPLE,
-            owner=self.USER_SIMONE,
+            author=self.USER_SIMONE,
         )
         file = File.objects.create(
             fileset=fileset, uri="aprivatefile.tiff", mime_type="image/tiff"

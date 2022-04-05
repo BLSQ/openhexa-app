@@ -44,32 +44,32 @@ class ProjectTest(TestCase):
         cls.PROJECT_SAMPLE = Project.objects.create(
             name="Jimmy's project",
             country="BE",
-            owner=cls.USER_HUNTER,
+            author=cls.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Other project",
             country="BE",
-            owner=cls.USER_HUNTER,
+            author=cls.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
         )
 
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_HUNTER,
+            author=cls.USER_HUNTER,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             priority_land_cover=[1, 2],
         )
         cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_HANNAH,
+            author=cls.USER_HANNAH,
             project=cls.PROJECT_OTHER,
             name="Accessibility analysis with a common name",
             priority_land_cover=[1, 2],
         )
         cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_HANNAH,
+            author=cls.USER_HANNAH,
             project=cls.PROJECT_SAMPLE,
             name="Yet another accessibility analysis",
         )
@@ -78,7 +78,7 @@ class ProjectTest(TestCase):
         project = Project.objects.create(
             name="Private project",
             country="BE",
-            owner=self.USER_HUNTER,
+            author=self.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
         )
@@ -95,7 +95,7 @@ class ProjectTest(TestCase):
         project = Project.objects.create(
             name="Private project",
             country="BE",
-            owner=self.USER_HUNTER,
+            author=self.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
         )
