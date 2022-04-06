@@ -6,6 +6,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.postgres.fields import CIEmailField
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -137,11 +138,6 @@ class Organization(Base):
     contact_info = models.TextField(blank=True)
 
 
-class MembershipRole(models.TextChoices):
-    ADMIN = "ADMIN", _("Admin")
-    REGULAR = "REGULAR", _("Regular")
-
-
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
@@ -160,6 +156,33 @@ class Team(Base):
     objects = TeamQuerySet.as_manager()
 
 
+class MembershipRole(models.TextChoices):
+    ADMIN = "ADMIN", _("Admin")
+    REGULAR = "REGULAR", _("Regular")
+
+
+class MembershipManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        user: User,
+        team: Team,
+        role: typing.Optional[MembershipRole] = MembershipRole.REGULAR,
+    ):
+        if not principal.has_perm("user_management.create_membership", team):
+            raise PermissionDenied
+
+        return self.create(user=user, team=team, role=role)
+
+
+class MembershipQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User]
+    ) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(user, Q(user=user))
+
+
 class Membership(Base):
     class Meta:
         db_table = "identity.membership"
@@ -171,9 +194,24 @@ class Membership(Base):
         max_length=200, choices=MembershipRole.choices, default=MembershipRole.REGULAR
     )
 
+    objects = MembershipManager.from_queryset(MembershipQuerySet)()
+
     @property
     def display_name(self):
         return f"{self.user.display_name} / {self.team.display_name}"
+
+    def update_if_has_perm(self, principal: User, *, role: MembershipRole):
+        if not principal.has_perm("user_management.update_membership", self):
+            raise PermissionDenied
+
+        self.role = role
+        self.save()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("user_management.delete_membership", self):
+            raise PermissionDenied
+
+        return super().delete()
 
 
 class Feature(Base):

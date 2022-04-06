@@ -1,8 +1,46 @@
+from django.core.exceptions import PermissionDenied
+
 from hexa.core.test import TestCase
-from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Membership,
+    MembershipRole,
+    Team,
+    User,
+)
 
 
 class ModelsTest(TestCase):
+    USER_SERENA = None
+    USER_JOE = None
+    USER_GREG = None
+    TEAM = None
+    MEMBERSHIP_SERENA = None
+    MEMBERSHIP_GREG = None
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_SERENA = User.objects.create_user(
+            "serena@bluesquarehub.com",
+            "serena's password",
+        )
+        cls.USER_JOE = User.objects.create_user(
+            "joe@bluesquarehub.com",
+            "joe's password",
+        )
+        cls.USER_GREG = User.objects.create_user(
+            "greg@bluesquarehub.com",
+            "greg's password",
+        )
+        cls.TEAM = Team.objects.create(name="A team")
+        cls.MEMBERSHIP_SERENA = Membership.objects.create(
+            user=cls.USER_SERENA, team=cls.TEAM, role=MembershipRole.ADMIN
+        )
+        cls.MEMBERSHIP_GREG = Membership.objects.create(
+            user=cls.USER_GREG, team=cls.TEAM, role=MembershipRole.REGULAR
+        )
+
     def test_initials_no_first_and_last_name(self):
         """Users without first/last names should have the first two letters of their username as initials"""
 
@@ -40,3 +78,43 @@ class ModelsTest(TestCase):
 
         self.assertTrue(user.has_feature_flag("feature_2"))
         self.assertFalse(user.has_feature_flag("feature_3"))
+
+    def test_membership_create_if_has_perm(self):
+        # Nice try, Joe
+        with self.assertRaises(PermissionDenied):
+            Membership.objects.create_if_has_perm(
+                self.USER_JOE,
+                user=self.USER_JOE,
+                team=self.TEAM,
+                role=MembershipRole.ADMIN,
+            )
+
+        membership = Membership.objects.create_if_has_perm(
+            self.USER_SERENA, user=self.USER_JOE, team=self.TEAM
+        )
+        self.assertIsInstance(membership, Membership)
+        self.assertEqual(self.USER_JOE, membership.user)
+        self.assertEqual(self.TEAM, membership.team)
+        self.assertEqual(MembershipRole.REGULAR, membership.role)
+
+    def test_membership_update_if_has_perm(self):
+        # Nice try, Greg
+        with self.assertRaises(PermissionDenied):
+            self.MEMBERSHIP_GREG.update_if_has_perm(
+                self.USER_GREG, role=MembershipRole.ADMIN
+            )
+
+        self.MEMBERSHIP_GREG.update_if_has_perm(
+            self.USER_SERENA, role=MembershipRole.ADMIN
+        )
+        self.MEMBERSHIP_GREG.refresh_from_db()
+        self.assertEqual(MembershipRole.ADMIN, self.MEMBERSHIP_GREG.role)
+
+    def test_membership_delete_if_has_perm(self):
+        with self.assertRaises(PermissionDenied):
+            self.MEMBERSHIP_SERENA.delete_if_has_perm(self.USER_GREG)
+
+        self.MEMBERSHIP_GREG.delete_if_has_perm(self.USER_SERENA)
+        self.assertFalse(
+            Membership.objects.filter(user=self.USER_GREG, team=self.TEAM).exists()
+        )
