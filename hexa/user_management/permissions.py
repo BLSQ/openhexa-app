@@ -1,8 +1,14 @@
 from hexa.user_management.models import Membership, Team, User
 
 
-def edit_team(principal: User, team: Team):
-    """Only team admins can edit the team."""
+def create_team(principal: User):
+    """Everyone can create a team."""
+
+    return True
+
+
+def update_team(principal: User, team: Team):
+    """Only team admins can update the team."""
 
     return principal.is_admin_of(team)
 

@@ -40,4 +40,8 @@ class PermissionsBackend(BaseBackend):
         if permission_function is None:
             return False
 
-        return permission_function(user_obj, obj)
+        args = [user_obj]
+        if obj is not None:
+            args.append(obj)
+
+        return permission_function(*args)

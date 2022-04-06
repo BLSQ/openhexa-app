@@ -67,6 +67,24 @@ def resolve_team_memberships(team: Team, *_, **kwargs):
     )
 
 
+@team_object.field("permissions")
+def resolve_team_permissions(team: Team, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+
+    return filter(
+        bool,
+        [
+            "CREATE" if user.has_perm("user_management.create_team") else None,
+            "UPDATE" if user.has_perm("user_management.update_team", team) else None,
+            "DELETE" if user.has_perm("user_management.delete_team", team) else None,
+            "CREATE_MEMBERSHIP"
+            if user.has_perm("user_management.create_membership", team)
+            else None,
+        ],
+    )
+
+
 @identity_query.field("organizations")
 def resolve_organizations(*_):
     return [o for o in Organization.objects.all()]

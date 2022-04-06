@@ -11,10 +11,17 @@ type Avatar {
     initials: String!
     color: String!
 }
+enum TeamPermission {
+    CREATE
+    UPDATE
+    DELETE
+    CREATE_MEMBERSHIP
+}
 type Team {
     id: String!
     name: String!
     memberships(page: Int, perPage: Int): MembershipPage!
+    permissions: [TeamPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
