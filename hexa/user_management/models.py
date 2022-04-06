@@ -6,7 +6,6 @@ import uuid
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.postgres.fields import CIEmailField
-from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -14,7 +13,6 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.plugins.connector_accessmod.permissions import TeamPermissions
 
 
 class UserManager(BaseUserManager):
@@ -138,26 +136,6 @@ class MembershipRole(models.TextChoices):
     REGULAR = "REGULAR", _("Regular")
 
 
-class TeamManager(models.Manager):
-    @staticmethod
-    def add_user_to_team(*, principal: User, user: User, team: Team):
-        if not principal.has_perm(TeamPermissions.add_user_to_team, [user, team]):
-            raise PermissionDenied
-
-        return Membership.objects.create(
-            user=user, team=team, role=MembershipRole.REGULAR
-        )
-
-    @staticmethod
-    def remove_user_from_team(*, principal: User, user: User, team: Team):
-        if not principal.has_perm(TeamPermissions.remove_user_from_team, [user, team]):
-            raise PermissionDenied
-
-        return Membership.objects.get(
-            user=user, team=team, role=MembershipRole.REGULAR
-        ).delete()
-
-
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
@@ -172,7 +150,7 @@ class Team(Base):
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
 
-    objects = TeamManager.from_queryset(TeamQuerySet)()
+    objects = TeamQuerySet.as_manager()
 
 
 class Membership(Base):
