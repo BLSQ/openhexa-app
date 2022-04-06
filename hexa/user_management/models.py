@@ -70,6 +70,9 @@ class UserInterface:
 
 
 class User(AbstractUser, UserInterface):
+    class Meta:
+        db_table = "identity.user"
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
@@ -120,6 +123,9 @@ class OrganizationType(models.TextChoices):
 
 
 class Organization(Base):
+    class Meta:
+        db_table = "identity.organization"
+
     organization_type = models.CharField(
         choices=OrganizationType.choices, max_length=100
     )
@@ -145,6 +151,7 @@ class TeamQuerySet(BaseQuerySet):
 
 class Team(Base):
     class Meta:
+        db_table = "identity.team"
         ordering = ["name"]
 
     name = models.CharField(max_length=200)
@@ -155,6 +162,7 @@ class Team(Base):
 
 class Membership(Base):
     class Meta:
+        db_table = "identity.membership"
         ordering = ["team__name", "user__email"]
 
     user = models.ForeignKey("User", on_delete=models.CASCADE)
@@ -169,6 +177,9 @@ class Membership(Base):
 
 
 class Feature(Base):
+    class Meta:
+        db_table = "identity.feature"
+
     code = models.CharField(max_length=200)
     force_activate = models.BooleanField(default=False)
 
@@ -177,6 +188,9 @@ class Feature(Base):
 
 
 class FeatureFlag(Base):
+    class Meta:
+        db_table = "identity.featureflag"
+
     feature = models.ForeignKey("Feature", on_delete=models.CharField)
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     config = models.JSONField(null=True, blank=True)
