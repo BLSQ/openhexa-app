@@ -4,7 +4,8 @@ from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.contrib.auth import authenticate, login, logout, password_validation
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 from django_countries import countries
@@ -12,7 +13,7 @@ from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
-from hexa.user_management.models import Organization, Team, User
+from hexa.user_management.models import Membership, Organization, Team, User
 
 identity_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -75,7 +76,6 @@ def resolve_team_permissions(team: Team, info, **kwargs):
     return filter(
         bool,
         [
-            "CREATE" if user.has_perm("user_management.create_team") else None,
             "UPDATE" if user.has_perm("user_management.update_team", team) else None,
             "DELETE" if user.has_perm("user_management.delete_team", team) else None,
             "CREATE_MEMBERSHIP"
@@ -185,6 +185,27 @@ organization_object = ObjectType("Organization")
 @organization_object.field("type")
 def resolve_type(obj: Organization, *_):
     return obj.get_organization_type_display()
+
+
+@identity_mutations.field("createMembership")
+@transaction.atomic
+def resolve_create_membership(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        membership = Membership.objects.create_if_has_perm(
+            principal,
+            user=User.objects.get(id=create_input["userId"]),
+            team=Team.objects.get(id=create_input["teamId"]),
+            role=create_input["role"],
+        )
+        return {"success": True, "membership": membership, "errors": []}
+    except (Team.DoesNotExist, User.DoesNotExist):
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
 identity_bindables = [

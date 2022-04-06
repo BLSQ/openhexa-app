@@ -109,6 +109,20 @@ type SetPasswordResult {
     success: Boolean!
     error: SetPasswordError
 }
+input CreateMembershipInput {
+    userId: String!
+    teamId: String!
+    role: MembershipRole!
+}
+type CreateMembershipResult {
+    success: Boolean!
+    membership: Membership
+    errors: [CreateMembershipError!]!
+}
+enum CreateMembershipError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
 extend type Query {
     me: User
     countries: [Country!]!
@@ -121,4 +135,5 @@ extend type Mutation {
     logout: LogoutResult!
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!
+    createMembership(input: CreateMembershipInput!): CreateMembershipResult!
 }
