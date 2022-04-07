@@ -84,6 +84,13 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     )
 
 
+def collections(request: HttpRequest) -> HttpResponse:
+    """
+    Returns an empty page in development when running without the new frontend.
+    """
+    return HttpResponse()
+
+
 def ready(request: HttpRequest) -> HttpResponse:
     try:
         with connection.cursor() as cursor:
