@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
@@ -78,6 +78,33 @@ class ModelsTest(TestCase):
 
         self.assertTrue(user.has_feature_flag("feature_2"))
         self.assertFalse(user.has_feature_flag("feature_3"))
+
+    def test_team_create(self):
+        new_team = Team.objects.create_if_has_perm(self.USER_JOE, name="Joe's team")
+        self.assertIsInstance(new_team, Team)
+        self.assertTrue(
+            Membership.objects.filter(
+                user=self.USER_JOE, team=new_team, role=MembershipRole.ADMIN
+            ).exists()
+        )
+
+    def test_team_update_not_owner(self):
+        with self.assertRaises(PermissionDenied):
+            self.TEAM.update_if_has_perm(self.USER_GREG, name="Yolo team")
+
+    def test_team_update(self):
+        self.TEAM.update_if_has_perm(self.USER_SERENA, name="Updated team")
+        self.TEAM.refresh_from_db()
+        self.assertEqual("Updated team", self.TEAM.name)
+
+    def test_team_delete_not_owner(self):
+        with self.assertRaises(PermissionDenied):
+            self.TEAM.delete_if_has_perm(self.USER_GREG)
+
+    def test_team_delete(self):
+        self.TEAM.delete_if_has_perm(self.USER_SERENA)
+        with self.assertRaises(ObjectDoesNotExist):
+            Team.objects.get(id=self.TEAM.id)
 
     def test_membership_create_if_has_perm(self):
         # Nice try, Joe

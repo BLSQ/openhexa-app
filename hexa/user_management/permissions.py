@@ -23,9 +23,12 @@ def create_membership(
     principal: User,
     team: Team,
 ):
-    """Only team admins can add users to a team."""
+    """We allow the creation of a membership in two cases:
+    1. If the principal is the team admin
+    2. If the team has no admin yet (for newly created teams)
+    """
 
-    return principal.is_admin_of(team)
+    return principal.is_admin_of(team) or team.membership_set.count() == 0
 
 
 def update_membership(

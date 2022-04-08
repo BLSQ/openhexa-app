@@ -138,6 +138,24 @@ class Organization(Base):
     contact_info = models.TextField(blank=True)
 
 
+class TeamManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        name: str,
+    ):
+        if not principal.has_perm("user_management.create_team"):
+            raise PermissionDenied
+
+        team = self.create(name=name)
+        Membership.objects.create_if_has_perm(
+            principal=principal, user=principal, team=team, role=MembershipRole.ADMIN
+        )
+
+        return team
+
+
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
@@ -153,7 +171,20 @@ class Team(Base):
     name = models.CharField(max_length=200)
     members = models.ManyToManyField("User", through="Membership")
 
-    objects = TeamQuerySet.as_manager()
+    objects = TeamManager.from_queryset(TeamQuerySet)()
+
+    def update_if_has_perm(self, principal: User, *, name: str):
+        if not principal.has_perm("user_management.update_team", self):
+            raise PermissionDenied
+
+        self.name = name
+        self.save()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("user_management.delete_team", self):
+            raise PermissionDenied
+
+        return super().delete()
 
 
 class MembershipRole(models.TextChoices):
