@@ -31,7 +31,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
         )
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
-            country="BE",
+            country="FR",
             owner=cls.USER_1,
             spatial_resolution=100,
             crs=4326,
@@ -93,7 +93,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
                 "spatialResolution": 100,
-                "country": {"code": "BE"},
+                "country": {"code": "FR"},
                 "owner": {"email": "jim@bluesquarehub.com"},
             },
         )
@@ -174,6 +174,36 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "totalItems": 1,
                 "items": [
                     {"id": str(self.SAMPLE_PROJECT.id)},
+                ],
+            },
+        )
+
+    def test_accessmod_projects_with_countries(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                query accessmodProjects {
+                  accessmodProjects(countries: ["BE"], page: 1, perPage: 10) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodProjects"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {"id": str(self.OTHER_PROJECT.id)},
                 ],
             },
         )
