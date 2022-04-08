@@ -4,36 +4,59 @@ import enum
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
-from django_countries.fields import CountryField
+from django_countries.fields import Country, CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.core import mimetypes
-from hexa.core.models import Base, Permission
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management import models as user_management_models
+from hexa.user_management.models import Permission, Team
+
+
+class ProjectManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        name: str,
+        country: Country,
+        spatial_resolution: int,
+        crs: int,
+        extent: Fileset,
+    ):
+        if not principal.has_perm("connector_accessmod.create_project"):
+            raise PermissionDenied
+
+        project = self.create(
+            name=name,
+            country=country,
+            spatial_resolution=spatial_resolution,
+            crs=crs,
+            extent=extent,
+        )
+        # ProjectPermission.objects.create_if_has_perm(
+        #     principal=principal, user=principal, team=team, role=MembershipRole.ADMIN
+        # )
+
+        return project
 
 
 class ProjectQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
             Q(author=user)
-            | Q(
-                projectpermission__team__in=user_management_models.Team.objects.filter_for_user(
-                    user
-                )
-            ),
+            | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
             return_all_if_superuser=False,
         )
 
@@ -61,7 +84,7 @@ class Project(Datasource):
     @property
     def owner(
         self,
-    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+    ) -> typing.Union[User, Team]:
         return self.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     @transaction.atomic
@@ -116,9 +139,7 @@ class ProjectPermission(Permission):
 
 
 class FilesetQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
 
 
@@ -143,7 +164,7 @@ class Fileset(Entry):
     @property
     def owner(
         self,
-    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+    ) -> typing.Union[User, Team]:
         return self.project.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     def get_permission_set(self):
@@ -189,9 +210,7 @@ class FilesetRole(Base):
 
 
 class FileQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
@@ -235,17 +254,11 @@ class AnalysisType(str, enum.Enum):
 
 
 class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
             Q(author=user)
-            | Q(
-                analysispermission__team__in=user_management_models.Team.objects.filter_for_user(
-                    user
-                )
-            ),
+            | Q(analysispermission__team__in=Team.objects.filter_for_user(user)),
             return_all_if_superuser=False,
         )
 
@@ -257,9 +270,7 @@ class AnalysisManager(InheritanceManager):
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
 
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
 
@@ -306,7 +317,7 @@ class Analysis(Pipeline):
     @property
     def owner(
         self,
-    ) -> typing.Union[user_management_models.User, user_management_models.Team]:
+    ) -> typing.Union[User, Team]:
         return self.project.projectpermission_set.get(mode=ProjectPermissionMode.OWNER)
 
     def populate_index(self, index):

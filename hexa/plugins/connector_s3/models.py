@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Base, Permission
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
@@ -25,6 +25,7 @@ from hexa.plugins.connector_s3.api import (
 )
 from hexa.plugins.connector_s3.region import AWSRegion
 from hexa.user_management import models as user_management_models
+from hexa.user_management.models import Permission
 
 logger = getLogger(__name__)
 

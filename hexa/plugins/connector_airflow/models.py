@@ -26,7 +26,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource
-from hexa.core.models import Base, Permission, WithStatus
+from hexa.core.models import Base, WithStatus
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
@@ -34,6 +34,7 @@ from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management import models as user_management_models
+from hexa.user_management.models import Permission
 
 logger = getLogger(__name__)
 

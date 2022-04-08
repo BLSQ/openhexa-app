@@ -15,10 +15,9 @@ from psycopg2 import OperationalError, sql
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Permission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, Team, User
 
 
 class ExternalType(Enum):

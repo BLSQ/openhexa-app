@@ -5,6 +5,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -266,3 +267,33 @@ class FeatureFlag(Base):
 
     def __str__(self):
         return f"{self.feature.code} - {self.user.username}"
+
+
+class Permission(Base):
+    class Meta:
+        abstract = True
+        constraints = [
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="permission_user_or_team_not_null",
+            )
+        ]
+
+    team = models.ForeignKey(
+        "user_management.Team", null=True, on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.CASCADE
+    )
+    index_permission = GenericRelation(
+        "catalog.IndexPermission",
+        content_type_field="permission_type_id",
+        object_id_field="permission_id",
+    )
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.index_object()
+
+    def index_object(self):
+        raise NotImplementedError
