@@ -269,6 +269,11 @@ class FeatureFlag(Base):
         return f"{self.feature.code} - {self.user.username}"
 
 
+class PermissionMode(models.TextChoices):
+    OWNER = "OWNER"
+    EDITOR = "EDITOR"
+
+
 class Permission(Base):
     class Meta:
         abstract = True
@@ -289,6 +294,9 @@ class Permission(Base):
         "catalog.IndexPermission",
         content_type_field="permission_type_id",
         object_id_field="permission_id",
+    )
+    mode = models.CharField(
+        max_length=200, choices=PermissionMode.choices, default=PermissionMode.EDITOR
     )
 
     def save(self, *args, **kwargs):
