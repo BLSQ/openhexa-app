@@ -410,7 +410,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             r["data"]["updateAccessmodProject"],
             {
                 "success": False,
-                "project": {"id": str(self.SAMPLE_PROJECT.id)},
+                "project": None,
                 "errors": ["NAME_DUPLICATE"],
             },
         )

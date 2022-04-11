@@ -116,7 +116,7 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             except IntegrityError:
                 return {
                     "success": False,
-                    "project": project,
+                    "project": None,
                     "errors": ["NAME_DUPLICATE"],
                 }
 
