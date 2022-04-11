@@ -47,13 +47,16 @@ def resolve_accessmod_project(_, info, **kwargs):
 
 
 @accessmod_query.field("accessmodProjects")
-def resolve_accessmod_projects(_, info, term=None, **kwargs):
+def resolve_accessmod_projects(_, info, term=None, countries=None, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = Project.objects.filter_for_user(request.user)
 
     if term is not None:
         queryset = queryset.filter(name__icontains=term)
+
+    if countries is not None and len(countries) > 0:
+        queryset = queryset.filter(country__in=countries)
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -113,7 +116,7 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             except IntegrityError:
                 return {
                     "success": False,
-                    "project": project,
+                    "project": None,
                     "errors": ["NAME_DUPLICATE"],
                 }
 
