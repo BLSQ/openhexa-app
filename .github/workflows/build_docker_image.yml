@@ -42,9 +42,11 @@ jobs:
           tags: |
             blsq/openhexa-frontend:${{ steps.version.outputs.number }}
             blsq/openhexa-frontend:latest
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE: ${{ steps.version.outputs.number }}
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
+          build-args:
+            SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+            RELEASE: ${{ steps.version.outputs.number }}
 
       - name: Build and push (manual)
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -56,6 +58,8 @@ jobs:
           tags: |
             blsq/openhexa-frontend:${{ github.event.inputs.tag }}
             blsq/openhexa-frontend:latest
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          RELEASE: ${{ steps.version.outputs.number }}
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
+          build-args:
+            SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+            RELEASE: ${{ steps.version.outputs.number }}
