@@ -5,6 +5,7 @@ import {
   NormalizedCacheObject,
   createHttpLink,
 } from "@apollo/client";
+import getConfig from "next/config";
 import { onError } from "@apollo/link-error";
 import merge from "deepmerge";
 import { IncomingHttpHeaders } from "http";
@@ -18,6 +19,8 @@ const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 export type CustomApolloClient = ApolloClient<NormalizedCacheObject>;
 
 let apolloClient: CustomApolloClient | undefined;
+
+const { publicRuntimeConfig } = getConfig();
 
 const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
   const enhancedFetch = (url: RequestInfo, init: RequestInit) => {
@@ -54,7 +57,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
       }),
 
       createHttpLink({
-        uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT,
+        uri: publicRuntimeConfig.GRAPHQL_ENDPOINT,
         fetch: enhancedFetch,
         credentials: "include",
         fetchOptions: {

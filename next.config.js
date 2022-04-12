@@ -3,11 +3,20 @@
 const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
-const { NEXT_PUBLIC_FALLBACK_URL = "" } = process.env;
+const { FALLBACK_URL = "" } = process.env;
+
 const config = {
+  publicRuntimeConfig: {
+    GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
+  },
+
+  poweredByHeader: false, // Disable 'x-powered-by' header
   reactStrictMode: true,
   trailingSlash: false,
   i18n,
+
   async rewrites() {
     return {
       // After checking all Next.js pages (including dynamic routes)...
@@ -16,11 +25,11 @@ const config = {
         // Proxied static files do not need to have a trailing slash
         {
           source: "/static/:path*",
-          destination: `${NEXT_PUBLIC_FALLBACK_URL}/static/:path*`,
+          destination: `${FALLBACK_URL}/static/:path*`,
         },
         {
           source: "/:path*",
-          destination: `${NEXT_PUBLIC_FALLBACK_URL}/:path*/`,
+          destination: `${FALLBACK_URL}/:path*/`,
         },
       ],
     };

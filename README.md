@@ -100,20 +100,17 @@ Translations are stored in `public/locales/[lang]/[ns].json`.
 
 The project is meant to be deployed in a containerized environment, such as [Kubernetes](https://kubernetes.io/).
 
-The following environment variables should be provided at build time:
+The following environment variables should be provided at build time (for the `docker build` or `npm run build`):
 
 - `RELEASE`: a release identifier, such as a Git tag (used for uploading source maps to Sentry)
 - `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
-- `NEXT_PUBLIC_SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 
 The following environment variables should be provided at run time:
-- `NEXT_PUBLIC_GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
-- `NEXT_PUBLIC_RELEASE`: a release identifier used in-app (should be the same as `SENTRY_RELEASE`)
-- `SENTRY_RELEASE`: a release identifier used for Sentry (such as a Git tag)
-- `NEXT_PUBLIC_SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
-- `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
+- `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
+- `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
+- `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
+- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
 
-If you use the provided `Dockerfile`, `NEXT_PUBLIC_RELEASE` and `SENTRY_RELEASE` are set for you if you provide `RELEASE` at build time and `NEXT_PUBLIC_SENTRY_DSN` is already set.
 
 ## Local development
 
