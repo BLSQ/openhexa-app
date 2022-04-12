@@ -1,10 +1,16 @@
-import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import { gql } from "@apollo/client";
+import * as Apollo from "@apollo/client";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -18,356 +24,356 @@ export type Scalars = {
 };
 
 export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & {
-  __typename?: 'AccessmodAccessibilityAnalysis';
+  __typename?: "AccessmodAccessibilityAnalysis";
   algorithm?: Maybe<AccessmodAccessibilityAnalysisAlgorithm>;
   barrier?: Maybe<AccessmodFileset>;
   catchmentAreas?: Maybe<AccessmodFileset>;
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars["DateTime"];
   dem?: Maybe<AccessmodFileset>;
   frictionSurface?: Maybe<AccessmodFileset>;
   healthFacilities?: Maybe<AccessmodFileset>;
-  id: Scalars['String'];
-  invertDirection?: Maybe<Scalars['Boolean']>;
-  knightMove?: Maybe<Scalars['Boolean']>;
+  id: Scalars["String"];
+  invertDirection?: Maybe<Scalars["Boolean"]>;
+  knightMove?: Maybe<Scalars["Boolean"]>;
   landCover?: Maybe<AccessmodFileset>;
-  maxSlope?: Maybe<Scalars['Float']>;
-  maxTravelTime?: Maybe<Scalars['Int']>;
+  maxSlope?: Maybe<Scalars["Float"]>;
+  maxTravelTime?: Maybe<Scalars["Int"]>;
   movingSpeeds?: Maybe<AccessmodFileset>;
-  name: Scalars['String'];
+  name: Scalars["String"];
   owner: User;
-  priorityLandCover?: Maybe<Array<Scalars['Int']>>;
-  priorityRoads?: Maybe<Scalars['Boolean']>;
+  priorityLandCover?: Maybe<Array<Scalars["Int"]>>;
+  priorityRoads?: Maybe<Scalars["Boolean"]>;
   slope?: Maybe<AccessmodFileset>;
   status: AccessmodAnalysisStatus;
   transportNetwork?: Maybe<AccessmodFileset>;
   travelTimes?: Maybe<AccessmodFileset>;
   type: AccessmodAnalysisType;
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars["DateTime"];
   water?: Maybe<AccessmodFileset>;
-  waterAllTouched?: Maybe<Scalars['Boolean']>;
+  waterAllTouched?: Maybe<Scalars["Boolean"]>;
 };
 
 export enum AccessmodAccessibilityAnalysisAlgorithm {
-  Anisotropic = 'ANISOTROPIC',
-  Isotropic = 'ISOTROPIC'
+  Anisotropic = "ANISOTROPIC",
+  Isotropic = "ISOTROPIC",
 }
 
 export type AccessmodAnalysis = {
-  createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
-  name: Scalars['String'];
+  createdAt: Scalars["DateTime"];
+  id: Scalars["String"];
+  name: Scalars["String"];
   owner: User;
   status: AccessmodAnalysisStatus;
   type: AccessmodAnalysisType;
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars["DateTime"];
 };
 
 export type AccessmodAnalysisPage = {
-  __typename?: 'AccessmodAnalysisPage';
+  __typename?: "AccessmodAnalysisPage";
   items: Array<AccessmodAnalysis>;
-  pageNumber: Scalars['Int'];
-  totalItems: Scalars['Int'];
-  totalPages: Scalars['Int'];
+  pageNumber: Scalars["Int"];
+  totalItems: Scalars["Int"];
+  totalPages: Scalars["Int"];
 };
 
 export enum AccessmodAnalysisStatus {
-  Draft = 'DRAFT',
-  Failed = 'FAILED',
-  Queued = 'QUEUED',
-  Ready = 'READY',
-  Running = 'RUNNING',
-  Success = 'SUCCESS'
+  Draft = "DRAFT",
+  Failed = "FAILED",
+  Queued = "QUEUED",
+  Ready = "READY",
+  Running = "RUNNING",
+  Success = "SUCCESS",
 }
 
 export enum AccessmodAnalysisType {
-  Accessibility = 'ACCESSIBILITY',
-  GeographicCoverage = 'GEOGRAPHIC_COVERAGE'
+  Accessibility = "ACCESSIBILITY",
+  GeographicCoverage = "GEOGRAPHIC_COVERAGE",
 }
 
 export type AccessmodFile = {
-  __typename?: 'AccessmodFile';
-  createdAt: Scalars['DateTime'];
+  __typename?: "AccessmodFile";
+  createdAt: Scalars["DateTime"];
   fileset?: Maybe<AccessmodFileset>;
-  id: Scalars['String'];
-  mimeType: Scalars['String'];
-  name: Scalars['String'];
-  updatedAt: Scalars['DateTime'];
-  uri: Scalars['String'];
+  id: Scalars["String"];
+  mimeType: Scalars["String"];
+  name: Scalars["String"];
+  updatedAt: Scalars["DateTime"];
+  uri: Scalars["String"];
 };
 
 export type AccessmodFileset = {
-  __typename?: 'AccessmodFileset';
-  createdAt: Scalars['DateTime'];
+  __typename?: "AccessmodFileset";
+  createdAt: Scalars["DateTime"];
   files: Array<AccessmodFile>;
-  id: Scalars['String'];
-  name: Scalars['String'];
+  id: Scalars["String"];
+  name: Scalars["String"];
   owner: User;
   role?: Maybe<AccessmodFilesetRole>;
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars["DateTime"];
 };
 
 export enum AccessmodFilesetFormat {
-  Raster = 'RASTER',
-  Tabular = 'TABULAR',
-  Vector = 'VECTOR'
+  Raster = "RASTER",
+  Tabular = "TABULAR",
+  Vector = "VECTOR",
 }
 
 export type AccessmodFilesetPage = {
-  __typename?: 'AccessmodFilesetPage';
+  __typename?: "AccessmodFilesetPage";
   items: Array<AccessmodFileset>;
-  pageNumber: Scalars['Int'];
-  totalItems: Scalars['Int'];
-  totalPages: Scalars['Int'];
+  pageNumber: Scalars["Int"];
+  totalItems: Scalars["Int"];
+  totalPages: Scalars["Int"];
 };
 
 export type AccessmodFilesetRole = {
-  __typename?: 'AccessmodFilesetRole';
+  __typename?: "AccessmodFilesetRole";
   code: AccessmodFilesetRoleCode;
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars["DateTime"];
   format: AccessmodFilesetFormat;
-  id: Scalars['String'];
-  name: Scalars['String'];
-  updatedAt: Scalars['DateTime'];
+  id: Scalars["String"];
+  name: Scalars["String"];
+  updatedAt: Scalars["DateTime"];
 };
 
 export enum AccessmodFilesetRoleCode {
-  Barrier = 'BARRIER',
-  CatchmentAreas = 'CATCHMENT_AREAS',
-  Coverage = 'COVERAGE',
-  Dem = 'DEM',
-  FrictionSurface = 'FRICTION_SURFACE',
-  Geometry = 'GEOMETRY',
-  HealthFacilities = 'HEALTH_FACILITIES',
-  LandCover = 'LAND_COVER',
-  MovingSpeeds = 'MOVING_SPEEDS',
-  Population = 'POPULATION',
-  Slope = 'SLOPE',
-  TransportNetwork = 'TRANSPORT_NETWORK',
-  TravelTimes = 'TRAVEL_TIMES',
-  Water = 'WATER'
+  Barrier = "BARRIER",
+  CatchmentAreas = "CATCHMENT_AREAS",
+  Coverage = "COVERAGE",
+  Dem = "DEM",
+  FrictionSurface = "FRICTION_SURFACE",
+  Geometry = "GEOMETRY",
+  HealthFacilities = "HEALTH_FACILITIES",
+  LandCover = "LAND_COVER",
+  MovingSpeeds = "MOVING_SPEEDS",
+  Population = "POPULATION",
+  Slope = "SLOPE",
+  TransportNetwork = "TRANSPORT_NETWORK",
+  TravelTimes = "TRAVEL_TIMES",
+  Water = "WATER",
 }
 
 export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & {
-  __typename?: 'AccessmodGeographicCoverageAnalysis';
-  anisotropic?: Maybe<Scalars['Boolean']>;
+  __typename?: "AccessmodGeographicCoverageAnalysis";
+  anisotropic?: Maybe<Scalars["Boolean"]>;
   catchmentAreas?: Maybe<AccessmodFileset>;
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars["DateTime"];
   dem?: Maybe<AccessmodFileset>;
   frictionSurface?: Maybe<AccessmodFileset>;
   geographicCoverage?: Maybe<AccessmodFileset>;
   healthFacilities?: Maybe<AccessmodFileset>;
-  hfProcessingOrder?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
-  maxTravelTime?: Maybe<Scalars['Int']>;
-  name: Scalars['String'];
+  hfProcessingOrder?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
+  maxTravelTime?: Maybe<Scalars["Int"]>;
+  name: Scalars["String"];
   owner: User;
   population?: Maybe<AccessmodFileset>;
   status: AccessmodAnalysisStatus;
   type: AccessmodAnalysisType;
-  updatedAt: Scalars['DateTime'];
+  updatedAt: Scalars["DateTime"];
 };
 
 export type AccessmodProject = {
-  __typename?: 'AccessmodProject';
+  __typename?: "AccessmodProject";
   country: Country;
-  createdAt: Scalars['DateTime'];
-  crs: Scalars['Int'];
+  createdAt: Scalars["DateTime"];
+  crs: Scalars["Int"];
   extent?: Maybe<AccessmodFileset>;
-  id: Scalars['String'];
-  name: Scalars['String'];
+  id: Scalars["String"];
+  name: Scalars["String"];
   owner: User;
-  spatialResolution: Scalars['Int'];
-  updatedAt: Scalars['DateTime'];
+  spatialResolution: Scalars["Int"];
+  updatedAt: Scalars["DateTime"];
 };
 
 export type AccessmodProjectPage = {
-  __typename?: 'AccessmodProjectPage';
+  __typename?: "AccessmodProjectPage";
   items: Array<AccessmodProject>;
-  pageNumber: Scalars['Int'];
-  totalItems: Scalars['Int'];
-  totalPages: Scalars['Int'];
+  pageNumber: Scalars["Int"];
+  totalItems: Scalars["Int"];
+  totalPages: Scalars["Int"];
 };
 
 export type Avatar = {
-  __typename?: 'Avatar';
-  color: Scalars['String'];
-  initials: Scalars['String'];
+  __typename?: "Avatar";
+  color: Scalars["String"];
+  initials: Scalars["String"];
 };
 
 export type Country = {
-  __typename?: 'Country';
-  alpha3: Scalars['String'];
-  code: Scalars['String'];
-  flag: Scalars['String'];
-  name: Scalars['String'];
+  __typename?: "Country";
+  alpha3: Scalars["String"];
+  code: Scalars["String"];
+  flag: Scalars["String"];
+  name: Scalars["String"];
 };
 
 export type CountryInput = {
-  alpha3?: InputMaybe<Scalars['String']>;
-  code: Scalars['String'];
-  flag?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
+  alpha3?: InputMaybe<Scalars["String"]>;
+  code: Scalars["String"];
+  flag?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
 };
 
 export enum CreateAccessmodAccessibilityAnalysisError {
-  NameDuplicate = 'NAME_DUPLICATE'
+  NameDuplicate = "NAME_DUPLICATE",
 }
 
 export type CreateAccessmodAccessibilityAnalysisInput = {
-  name: Scalars['String'];
-  projectId: Scalars['String'];
+  name: Scalars["String"];
+  projectId: Scalars["String"];
 };
 
 export type CreateAccessmodAccessibilityAnalysisResult = {
-  __typename?: 'CreateAccessmodAccessibilityAnalysisResult';
+  __typename?: "CreateAccessmodAccessibilityAnalysisResult";
   analysis?: Maybe<AccessmodAccessibilityAnalysis>;
   errors: Array<CreateAccessmodAccessibilityAnalysisError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum CreateAccessmodFileError {
-  UriDuplicate = 'URI_DUPLICATE'
+  UriDuplicate = "URI_DUPLICATE",
 }
 
 export type CreateAccessmodFileInput = {
-  filesetId: Scalars['String'];
-  mimeType: Scalars['String'];
-  uri: Scalars['String'];
+  filesetId: Scalars["String"];
+  mimeType: Scalars["String"];
+  uri: Scalars["String"];
 };
 
 export type CreateAccessmodFileResult = {
-  __typename?: 'CreateAccessmodFileResult';
+  __typename?: "CreateAccessmodFileResult";
   errors: Array<CreateAccessmodFileError>;
   file?: Maybe<AccessmodFile>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum CreateAccessmodFilesetError {
-  NameDuplicate = 'NAME_DUPLICATE'
+  NameDuplicate = "NAME_DUPLICATE",
 }
 
 export type CreateAccessmodFilesetInput = {
-  name: Scalars['String'];
-  projectId: Scalars['String'];
-  roleId: Scalars['String'];
+  name: Scalars["String"];
+  projectId: Scalars["String"];
+  roleId: Scalars["String"];
 };
 
 export type CreateAccessmodFilesetResult = {
-  __typename?: 'CreateAccessmodFilesetResult';
+  __typename?: "CreateAccessmodFilesetResult";
   errors: Array<CreateAccessmodFilesetError>;
   fileset?: Maybe<AccessmodFileset>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum CreateAccessmodProjectError {
-  NameDuplicate = 'NAME_DUPLICATE'
+  NameDuplicate = "NAME_DUPLICATE",
 }
 
 export type CreateAccessmodProjectInput = {
   country: CountryInput;
-  crs: Scalars['Int'];
-  extentId?: InputMaybe<Scalars['String']>;
-  name: Scalars['String'];
-  spatialResolution: Scalars['Int'];
+  crs: Scalars["Int"];
+  extentId?: InputMaybe<Scalars["String"]>;
+  name: Scalars["String"];
+  spatialResolution: Scalars["Int"];
 };
 
 export type CreateAccessmodProjectResult = {
-  __typename?: 'CreateAccessmodProjectResult';
+  __typename?: "CreateAccessmodProjectResult";
   errors: Array<CreateAccessmodProjectError>;
   project?: Maybe<AccessmodProject>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum DeleteAccessmodAnalysisError {
-  DeleteFailed = 'DELETE_FAILED',
-  NotFound = 'NOT_FOUND'
+  DeleteFailed = "DELETE_FAILED",
+  NotFound = "NOT_FOUND",
 }
 
 export type DeleteAccessmodAnalysisInput = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
 
 export type DeleteAccessmodAnalysisResult = {
-  __typename?: 'DeleteAccessmodAnalysisResult';
+  __typename?: "DeleteAccessmodAnalysisResult";
   errors: Array<DeleteAccessmodAnalysisError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum DeleteAccessmodFileError {
-  NotFound = 'NOT_FOUND'
+  NotFound = "NOT_FOUND",
 }
 
 export type DeleteAccessmodFileInput = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
 
 export type DeleteAccessmodFileResult = {
-  __typename?: 'DeleteAccessmodFileResult';
+  __typename?: "DeleteAccessmodFileResult";
   errors: Array<DeleteAccessmodFileError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum DeleteAccessmodFilesetError {
-  NotFound = 'NOT_FOUND'
+  NotFound = "NOT_FOUND",
 }
 
 export type DeleteAccessmodFilesetInput = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
 
 export type DeleteAccessmodFilesetResult = {
-  __typename?: 'DeleteAccessmodFilesetResult';
+  __typename?: "DeleteAccessmodFilesetResult";
   errors: Array<DeleteAccessmodFilesetError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum DeleteAccessmodProjectError {
-  NotFound = 'NOT_FOUND'
+  NotFound = "NOT_FOUND",
 }
 
 export type DeleteAccessmodProjectInput = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
 
 export type DeleteAccessmodProjectResult = {
-  __typename?: 'DeleteAccessmodProjectResult';
+  __typename?: "DeleteAccessmodProjectResult";
   errors: Array<DeleteAccessmodProjectError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum LaunchAccessmodAnalysisError {
-  LaunchFailed = 'LAUNCH_FAILED'
+  LaunchFailed = "LAUNCH_FAILED",
 }
 
 export type LaunchAccessmodAnalysisInput = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
 
 export type LaunchAccessmodAnalysisResult = {
-  __typename?: 'LaunchAccessmodAnalysisResult';
+  __typename?: "LaunchAccessmodAnalysisResult";
   analysis?: Maybe<AccessmodAnalysis>;
   errors: Array<LaunchAccessmodAnalysisError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export type LoginInput = {
-  email: Scalars['String'];
-  password: Scalars['String'];
+  email: Scalars["String"];
+  password: Scalars["String"];
 };
 
 export type LoginResult = {
-  __typename?: 'LoginResult';
+  __typename?: "LoginResult";
   me?: Maybe<User>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export type LogoutResult = {
-  __typename?: 'LogoutResult';
-  success: Scalars['Boolean'];
+  __typename?: "LogoutResult";
+  success: Scalars["Boolean"];
 };
 
 export type Mutation = {
-  __typename?: 'Mutation';
+  __typename?: "Mutation";
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
   createAccessmodFileset: CreateAccessmodFilesetResult;
@@ -387,127 +393,111 @@ export type Mutation = {
   updateAccessmodProject: UpdateAccessmodProjectResult;
 };
 
-
 export type MutationCreateAccessmodAccessibilityAnalysisArgs = {
   input?: InputMaybe<CreateAccessmodAccessibilityAnalysisInput>;
 };
-
 
 export type MutationCreateAccessmodFileArgs = {
   input?: InputMaybe<CreateAccessmodFileInput>;
 };
 
-
 export type MutationCreateAccessmodFilesetArgs = {
   input?: InputMaybe<CreateAccessmodFilesetInput>;
 };
-
 
 export type MutationCreateAccessmodProjectArgs = {
   input?: InputMaybe<CreateAccessmodProjectInput>;
 };
 
-
 export type MutationDeleteAccessmodAnalysisArgs = {
   input?: InputMaybe<DeleteAccessmodAnalysisInput>;
 };
-
 
 export type MutationDeleteAccessmodFileArgs = {
   input?: InputMaybe<DeleteAccessmodFileInput>;
 };
 
-
 export type MutationDeleteAccessmodFilesetArgs = {
   input?: InputMaybe<DeleteAccessmodFilesetInput>;
 };
-
 
 export type MutationDeleteAccessmodProjectArgs = {
   input?: InputMaybe<DeleteAccessmodProjectInput>;
 };
 
-
 export type MutationLaunchAccessmodAnalysisArgs = {
   input?: InputMaybe<LaunchAccessmodAnalysisInput>;
 };
-
 
 export type MutationLoginArgs = {
   input: LoginInput;
 };
 
-
 export type MutationPrepareAccessmodFileDownloadArgs = {
   input?: InputMaybe<PrepareAccessmodFileDownloadInput>;
 };
-
 
 export type MutationPrepareAccessmodFileUploadArgs = {
   input?: InputMaybe<PrepareAccessmodFileUploadInput>;
 };
 
-
 export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
 };
-
 
 export type MutationSetPasswordArgs = {
   input: SetPasswordInput;
 };
 
-
 export type MutationUpdateAccessmodAccessibilityAnalysisArgs = {
   input?: InputMaybe<UpdateAccessmodAccessibilityAnalysisInput>;
 };
-
 
 export type MutationUpdateAccessmodProjectArgs = {
   input?: InputMaybe<UpdateAccessmodProjectInput>;
 };
 
 export type Organization = {
-  __typename?: 'Organization';
-  contactInfo: Scalars['String'];
-  id: Scalars['String'];
-  name: Scalars['String'];
-  type: Scalars['String'];
-  url: Scalars['String'];
+  __typename?: "Organization";
+  contactInfo: Scalars["String"];
+  id: Scalars["String"];
+  name: Scalars["String"];
+  type: Scalars["String"];
+  url: Scalars["String"];
 };
 
 export type OrganizationInput = {
-  contactInfo?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
-  name?: InputMaybe<Scalars['String']>;
-  type?: InputMaybe<Scalars['String']>;
-  url?: InputMaybe<Scalars['String']>;
+  contactInfo?: InputMaybe<Scalars["String"]>;
+  id: Scalars["String"];
+  name?: InputMaybe<Scalars["String"]>;
+  type?: InputMaybe<Scalars["String"]>;
+  url?: InputMaybe<Scalars["String"]>;
 };
 
 export type PrepareAccessmodFileDownloadInput = {
-  fileId: Scalars['String'];
+  fileId: Scalars["String"];
 };
 
 export type PrepareAccessmodFileDownloadResult = {
-  __typename?: 'PrepareAccessmodFileDownloadResult';
-  downloadUrl?: Maybe<Scalars['String']>;
-  success: Scalars['Boolean'];
+  __typename?: "PrepareAccessmodFileDownloadResult";
+  downloadUrl?: Maybe<Scalars["String"]>;
+  success: Scalars["Boolean"];
 };
 
 export type PrepareAccessmodFileUploadInput = {
-  filesetId: Scalars['String'];
-  mimeType: Scalars['String'];
+  filesetId: Scalars["String"];
+  mimeType: Scalars["String"];
 };
 
 export type PrepareAccessmodFileUploadResult = {
-  __typename?: 'PrepareAccessmodFileUploadResult';
-  fileUri?: Maybe<Scalars['String']>;
-  success: Scalars['Boolean'];
-  uploadUrl?: Maybe<Scalars['String']>;
+  __typename?: "PrepareAccessmodFileUploadResult";
+  fileUri?: Maybe<Scalars["String"]>;
+  success: Scalars["Boolean"];
+  uploadUrl?: Maybe<Scalars["String"]>;
 };
 
 export type Query = {
-  __typename?: 'Query';
+  __typename?: "Query";
   accessmodAnalyses: AccessmodAnalysisPage;
   accessmodAnalysis?: Maybe<AccessmodAnalysis>;
   accessmodFileset?: Maybe<AccessmodFileset>;
@@ -521,176 +511,193 @@ export type Query = {
   organizations?: Maybe<Array<Organization>>;
 };
 
-
 export type QueryAccessmodAnalysesArgs = {
-  page?: InputMaybe<Scalars['Int']>;
-  perPage?: InputMaybe<Scalars['Int']>;
-  projectId: Scalars['String'];
+  page?: InputMaybe<Scalars["Int"]>;
+  perPage?: InputMaybe<Scalars["Int"]>;
+  projectId: Scalars["String"];
 };
-
 
 export type QueryAccessmodAnalysisArgs = {
-  id?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars["String"]>;
 };
-
 
 export type QueryAccessmodFilesetArgs = {
-  id?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars["String"]>;
 };
-
 
 export type QueryAccessmodFilesetRoleArgs = {
-  id: Scalars['String'];
+  id: Scalars["String"];
 };
-
 
 export type QueryAccessmodFilesetsArgs = {
-  page?: InputMaybe<Scalars['Int']>;
-  perPage?: InputMaybe<Scalars['Int']>;
-  projectId: Scalars['String'];
-  roleId?: InputMaybe<Scalars['String']>;
-  term?: InputMaybe<Scalars['String']>;
+  page?: InputMaybe<Scalars["Int"]>;
+  perPage?: InputMaybe<Scalars["Int"]>;
+  projectId: Scalars["String"];
+  roleId?: InputMaybe<Scalars["String"]>;
+  term?: InputMaybe<Scalars["String"]>;
 };
-
 
 export type QueryAccessmodProjectArgs = {
-  id?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars["String"]>;
 };
 
-
 export type QueryAccessmodProjectsArgs = {
-  page?: InputMaybe<Scalars['Int']>;
-  perPage?: InputMaybe<Scalars['Int']>;
+  page?: InputMaybe<Scalars["Int"]>;
+  perPage?: InputMaybe<Scalars["Int"]>;
 };
 
 export type ResetPasswordInput = {
-  email: Scalars['String'];
+  email: Scalars["String"];
 };
 
 export type ResetPasswordResult = {
-  __typename?: 'ResetPasswordResult';
-  success: Scalars['Boolean'];
+  __typename?: "ResetPasswordResult";
+  success: Scalars["Boolean"];
 };
 
 export enum SetPasswordError {
-  InvalidPassword = 'INVALID_PASSWORD',
-  InvalidToken = 'INVALID_TOKEN',
-  PasswordMismatch = 'PASSWORD_MISMATCH',
-  UserNotFound = 'USER_NOT_FOUND'
+  InvalidPassword = "INVALID_PASSWORD",
+  InvalidToken = "INVALID_TOKEN",
+  PasswordMismatch = "PASSWORD_MISMATCH",
+  UserNotFound = "USER_NOT_FOUND",
 }
 
 export type SetPasswordInput = {
-  password1: Scalars['String'];
-  password2: Scalars['String'];
-  token: Scalars['String'];
-  uidb64: Scalars['String'];
+  password1: Scalars["String"];
+  password2: Scalars["String"];
+  token: Scalars["String"];
+  uidb64: Scalars["String"];
 };
 
 export type SetPasswordResult = {
-  __typename?: 'SetPasswordResult';
+  __typename?: "SetPasswordResult";
   error?: Maybe<SetPasswordError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum UpdateAccessmodAccessibilityAnalysisError {
-  NameDuplicate = 'NAME_DUPLICATE',
-  NotFound = 'NOT_FOUND'
+  NameDuplicate = "NAME_DUPLICATE",
+  NotFound = "NOT_FOUND",
 }
 
 export type UpdateAccessmodAccessibilityAnalysisInput = {
   algorithm?: InputMaybe<AccessmodAccessibilityAnalysisAlgorithm>;
-  barrierId?: InputMaybe<Scalars['String']>;
-  demId?: InputMaybe<Scalars['String']>;
-  healthFacilitiesId?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
-  invertDirection?: InputMaybe<Scalars['Boolean']>;
-  knightMove?: InputMaybe<Scalars['Boolean']>;
-  landCoverId?: InputMaybe<Scalars['String']>;
-  maxSlope?: InputMaybe<Scalars['Float']>;
-  maxTravelTime?: InputMaybe<Scalars['Int']>;
-  movingSpeedsId?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
-  priorityLandCover?: InputMaybe<Array<Scalars['Int']>>;
-  priorityRoads?: InputMaybe<Scalars['Boolean']>;
-  slopeId?: InputMaybe<Scalars['String']>;
-  transportNetworkId?: InputMaybe<Scalars['String']>;
-  waterAllTouched?: InputMaybe<Scalars['Boolean']>;
-  waterId?: InputMaybe<Scalars['String']>;
+  barrierId?: InputMaybe<Scalars["String"]>;
+  demId?: InputMaybe<Scalars["String"]>;
+  healthFacilitiesId?: InputMaybe<Scalars["String"]>;
+  id: Scalars["String"];
+  invertDirection?: InputMaybe<Scalars["Boolean"]>;
+  knightMove?: InputMaybe<Scalars["Boolean"]>;
+  landCoverId?: InputMaybe<Scalars["String"]>;
+  maxSlope?: InputMaybe<Scalars["Float"]>;
+  maxTravelTime?: InputMaybe<Scalars["Int"]>;
+  movingSpeedsId?: InputMaybe<Scalars["String"]>;
+  name?: InputMaybe<Scalars["String"]>;
+  priorityLandCover?: InputMaybe<Array<Scalars["Int"]>>;
+  priorityRoads?: InputMaybe<Scalars["Boolean"]>;
+  slopeId?: InputMaybe<Scalars["String"]>;
+  transportNetworkId?: InputMaybe<Scalars["String"]>;
+  waterAllTouched?: InputMaybe<Scalars["Boolean"]>;
+  waterId?: InputMaybe<Scalars["String"]>;
 };
 
 export type UpdateAccessmodAccessibilityAnalysisResult = {
-  __typename?: 'UpdateAccessmodAccessibilityAnalysisResult';
+  __typename?: "UpdateAccessmodAccessibilityAnalysisResult";
   analysis?: Maybe<AccessmodAccessibilityAnalysis>;
   errors: Array<UpdateAccessmodAccessibilityAnalysisError>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export enum UpdateAccessmodProjectError {
-  NameDuplicate = 'NAME_DUPLICATE',
-  NotFound = 'NOT_FOUND'
+  NameDuplicate = "NAME_DUPLICATE",
+  NotFound = "NOT_FOUND",
 }
 
 export type UpdateAccessmodProjectInput = {
   country?: InputMaybe<CountryInput>;
-  extentId?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
-  name?: InputMaybe<Scalars['String']>;
-  spatialResolution?: InputMaybe<Scalars['Int']>;
+  extentId?: InputMaybe<Scalars["String"]>;
+  id: Scalars["String"];
+  name?: InputMaybe<Scalars["String"]>;
+  spatialResolution?: InputMaybe<Scalars["Int"]>;
 };
 
 export type UpdateAccessmodProjectResult = {
-  __typename?: 'UpdateAccessmodProjectResult';
+  __typename?: "UpdateAccessmodProjectResult";
   errors: Array<UpdateAccessmodProjectError>;
   project?: Maybe<AccessmodProject>;
-  success: Scalars['Boolean'];
+  success: Scalars["Boolean"];
 };
 
 export type User = {
-  __typename?: 'User';
+  __typename?: "User";
   avatar: Avatar;
-  email: Scalars['String'];
-  firstName?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
-  lastName?: Maybe<Scalars['String']>;
+  email: Scalars["String"];
+  firstName?: Maybe<Scalars["String"]>;
+  id: Scalars["String"];
+  lastName?: Maybe<Scalars["String"]>;
 };
 
-export type MeQueryQueryVariables = Exact<{ [key: string]: never; }>;
+export type UserAvatar_UserFragment = {
+  __typename?: "User";
+  firstName?: string | null;
+  lastName?: string | null;
+  avatar: { __typename?: "Avatar"; initials: string; color: string };
+};
 
+export type MeQueryQueryVariables = Exact<{ [key: string]: never }>;
 
-export type MeQueryQuery = { __typename?: 'Query', me?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null };
+export type MeQueryQuery = {
+  __typename?: "Query";
+  me?: {
+    __typename?: "User";
+    email: string;
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    avatar: { __typename?: "Avatar"; initials: string; color: string };
+  } | null;
+};
 
-export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
+export type LogoutMutationVariables = Exact<{ [key: string]: never }>;
 
-
-export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'LogoutResult', success: boolean } };
+export type LogoutMutation = {
+  __typename?: "Mutation";
+  logout: { __typename?: "LogoutResult"; success: boolean };
+};
 
 export type ResetPasswordMutationVariables = Exact<{
   input: ResetPasswordInput;
 }>;
 
-
-export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'ResetPasswordResult', success: boolean } };
+export type ResetPasswordMutation = {
+  __typename?: "Mutation";
+  resetPassword: { __typename?: "ResetPasswordResult"; success: boolean };
+};
 
 export type SetPasswordMutationVariables = Exact<{
   input: SetPasswordInput;
 }>;
 
-
-export type SetPasswordMutation = { __typename?: 'Mutation', setPassword: { __typename?: 'SetPasswordResult', success: boolean, error?: SetPasswordError | null } };
+export type SetPasswordMutation = {
+  __typename?: "Mutation";
+  setPassword: {
+    __typename?: "SetPasswordResult";
+    success: boolean;
+    error?: SetPasswordError | null;
+  };
+};
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
 }>;
 
+export type LoginMutation = {
+  __typename?: "Mutation";
+  login: { __typename?: "LoginResult"; success: boolean };
+};
 
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResult', success: boolean } };
-
-
-export const MeQueryDocument = gql`
-    query MeQuery {
-  me {
-    email
-    id
+export const UserAvatar_UserFragmentDoc = gql`
+  fragment UserAvatar_user on User {
     firstName
     lastName
     avatar {
@@ -698,8 +705,21 @@ export const MeQueryDocument = gql`
       color
     }
   }
-}
-    `;
+`;
+export const MeQueryDocument = gql`
+  query MeQuery {
+    me {
+      email
+      id
+      firstName
+      lastName
+      avatar {
+        initials
+        color
+      }
+    }
+  }
+`;
 
 /**
  * __useMeQueryQuery__
@@ -716,25 +736,41 @@ export const MeQueryDocument = gql`
  *   },
  * });
  */
-export function useMeQueryQuery(baseOptions?: Apollo.QueryHookOptions<MeQueryQuery, MeQueryQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<MeQueryQuery, MeQueryQueryVariables>(MeQueryDocument, options);
-      }
-export function useMeQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQueryQuery, MeQueryQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<MeQueryQuery, MeQueryQueryVariables>(MeQueryDocument, options);
-        }
+export function useMeQueryQuery(
+  baseOptions?: Apollo.QueryHookOptions<MeQueryQuery, MeQueryQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<MeQueryQuery, MeQueryQueryVariables>(
+    MeQueryDocument,
+    options
+  );
+}
+export function useMeQueryLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<MeQueryQuery, MeQueryQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<MeQueryQuery, MeQueryQueryVariables>(
+    MeQueryDocument,
+    options
+  );
+}
 export type MeQueryQueryHookResult = ReturnType<typeof useMeQueryQuery>;
 export type MeQueryLazyQueryHookResult = ReturnType<typeof useMeQueryLazyQuery>;
-export type MeQueryQueryResult = Apollo.QueryResult<MeQueryQuery, MeQueryQueryVariables>;
+export type MeQueryQueryResult = Apollo.QueryResult<
+  MeQueryQuery,
+  MeQueryQueryVariables
+>;
 export const LogoutDocument = gql`
-    mutation Logout {
-  logout {
-    success
+  mutation Logout {
+    logout {
+      success
+    }
   }
-}
-    `;
-export type LogoutMutationFn = Apollo.MutationFunction<LogoutMutation, LogoutMutationVariables>;
+`;
+export type LogoutMutationFn = Apollo.MutationFunction<
+  LogoutMutation,
+  LogoutMutationVariables
+>;
 
 /**
  * __useLogoutMutation__
@@ -752,21 +788,35 @@ export type LogoutMutationFn = Apollo.MutationFunction<LogoutMutation, LogoutMut
  *   },
  * });
  */
-export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<LogoutMutation, LogoutMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument, options);
-      }
+export function useLogoutMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    LogoutMutation,
+    LogoutMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(
+    LogoutDocument,
+    options
+  );
+}
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
-export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export type LogoutMutationOptions = Apollo.BaseMutationOptions<
+  LogoutMutation,
+  LogoutMutationVariables
+>;
 export const ResetPasswordDocument = gql`
-    mutation ResetPassword($input: ResetPasswordInput!) {
-  resetPassword(input: $input) {
-    success
+  mutation ResetPassword($input: ResetPasswordInput!) {
+    resetPassword(input: $input) {
+      success
+    }
   }
-}
-    `;
-export type ResetPasswordMutationFn = Apollo.MutationFunction<ResetPasswordMutation, ResetPasswordMutationVariables>;
+`;
+export type ResetPasswordMutationFn = Apollo.MutationFunction<
+  ResetPasswordMutation,
+  ResetPasswordMutationVariables
+>;
 
 /**
  * __useResetPasswordMutation__
@@ -785,22 +835,39 @@ export type ResetPasswordMutationFn = Apollo.MutationFunction<ResetPasswordMutat
  *   },
  * });
  */
-export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetPasswordMutation, ResetPasswordMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument, options);
-      }
-export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
-export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
-export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
-export const SetPasswordDocument = gql`
-    mutation SetPassword($input: SetPasswordInput!) {
-  setPassword(input: $input) {
-    success
-    error
-  }
+export function useResetPasswordMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    ResetPasswordMutation,
+    ResetPasswordMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<
+    ResetPasswordMutation,
+    ResetPasswordMutationVariables
+  >(ResetPasswordDocument, options);
 }
-    `;
-export type SetPasswordMutationFn = Apollo.MutationFunction<SetPasswordMutation, SetPasswordMutationVariables>;
+export type ResetPasswordMutationHookResult = ReturnType<
+  typeof useResetPasswordMutation
+>;
+export type ResetPasswordMutationResult =
+  Apollo.MutationResult<ResetPasswordMutation>;
+export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<
+  ResetPasswordMutation,
+  ResetPasswordMutationVariables
+>;
+export const SetPasswordDocument = gql`
+  mutation SetPassword($input: SetPasswordInput!) {
+    setPassword(input: $input) {
+      success
+      error
+    }
+  }
+`;
+export type SetPasswordMutationFn = Apollo.MutationFunction<
+  SetPasswordMutation,
+  SetPasswordMutationVariables
+>;
 
 /**
  * __useSetPasswordMutation__
@@ -819,21 +886,38 @@ export type SetPasswordMutationFn = Apollo.MutationFunction<SetPasswordMutation,
  *   },
  * });
  */
-export function useSetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<SetPasswordMutation, SetPasswordMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SetPasswordMutation, SetPasswordMutationVariables>(SetPasswordDocument, options);
-      }
-export type SetPasswordMutationHookResult = ReturnType<typeof useSetPasswordMutation>;
-export type SetPasswordMutationResult = Apollo.MutationResult<SetPasswordMutation>;
-export type SetPasswordMutationOptions = Apollo.BaseMutationOptions<SetPasswordMutation, SetPasswordMutationVariables>;
-export const LoginDocument = gql`
-    mutation Login($input: LoginInput!) {
-  login(input: $input) {
-    success
-  }
+export function useSetPasswordMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    SetPasswordMutation,
+    SetPasswordMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<SetPasswordMutation, SetPasswordMutationVariables>(
+    SetPasswordDocument,
+    options
+  );
 }
-    `;
-export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+export type SetPasswordMutationHookResult = ReturnType<
+  typeof useSetPasswordMutation
+>;
+export type SetPasswordMutationResult =
+  Apollo.MutationResult<SetPasswordMutation>;
+export type SetPasswordMutationOptions = Apollo.BaseMutationOptions<
+  SetPasswordMutation,
+  SetPasswordMutationVariables
+>;
+export const LoginDocument = gql`
+  mutation Login($input: LoginInput!) {
+    login(input: $input) {
+      success
+    }
+  }
+`;
+export type LoginMutationFn = Apollo.MutationFunction<
+  LoginMutation,
+  LoginMutationVariables
+>;
 
 /**
  * __useLoginMutation__
@@ -852,10 +936,21 @@ export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutati
  *   },
  * });
  */
-export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
-      }
+export function useLoginMutation(
+  baseOptions?: Apollo.MutationHookOptions<
+    LoginMutation,
+    LoginMutationVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useMutation<LoginMutation, LoginMutationVariables>(
+    LoginDocument,
+    options
+  );
+}
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
-export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<
+  LoginMutation,
+  LoginMutationVariables
+>;
