@@ -60,6 +60,4 @@ jobs:
             blsq/openhexa-frontend:latest
           cache-from: type=registry,ref=user/app:latest
           cache-to: type=inline
-          build-args:
-            SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-            RELEASE: ${{ steps.version.outputs.number }}
+          build-args: 'SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}, RELEASE=${{ steps.version.outputs.number }}'
