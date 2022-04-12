@@ -25,10 +25,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Store version number (on release)
-          if: ${{ github.event_name == 'release' }}
-          id: version
-          # GITHUB_REF looks like "refs/tags/0.3.1" - we need to extract the actual version without the v prefix
-          run: echo ::set-output name=number::${GITHUB_REF##*/}
+        if: ${{ github.event_name == 'release' }}
+        id: version
+        # GITHUB_REF looks like "refs/tags/0.3.1" - we need to extract the actual version without the v prefix
+        run: echo ::set-output name=number::${GITHUB_REF##*/}
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
