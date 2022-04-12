@@ -33,8 +33,7 @@ from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
-from hexa.user_management import models as user_management_models
-from hexa.user_management.models import Permission
+from hexa.user_management.models import Permission, Team, User
 
 logger = getLogger(__name__)
 
@@ -45,9 +44,7 @@ class ExternalType(Enum):
 
 
 class ClusterQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         # Clusters are only visible to superusers for now
         return self._filter_for_user_and_query_object(user, Q(pk=None))
 
@@ -266,16 +263,10 @@ class DAGTemplate(Base):
 
 
 class DAGQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(
-                dagpermission__team__in=user_management_models.Team.objects.filter_for_user(
-                    user
-                )
-            ),
+            Q(dagpermission__team__in=Team.objects.filter_for_user(user)),
         )
 
 
@@ -421,15 +412,13 @@ class DAGPermission(Permission):
 
 
 class DAGRunQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
     def filter_for_refresh(self):
         return self.filter(state__in=[DAGRunState.RUNNING, DAGRunState.QUEUED])
 
-    def with_favorite(self, user: user_management_models.User):
+    def with_favorite(self, user: User):
         return self.prefetch_related(
             Prefetch(
                 "dagrunfavorite_set",
@@ -504,20 +493,20 @@ class DAGRun(Base, WithStatus):
             self.save()
 
     def add_to_favorites(
-        self, *, user: user_management_models.User, name: typing.Optional[str]
+        self, *, user: User, name: typing.Optional[str]
     ) -> "DAGRunFavorite":
         if self.is_in_favorites(user):
             raise ValueError("DAGRun is already in favorites")
 
         return DAGRunFavorite.objects.create(user=user, dag_run=self, name=name)
 
-    def remove_from_favorites(self, user: user_management_models.User):
+    def remove_from_favorites(self, user: User):
         if not self.is_in_favorites(user):
             raise ValueError("DAGRun is not in favorites")
 
         DAGRunFavorite.objects.get(user=user, dag_run=self).delete()
 
-    def is_in_favorites(self, user: user_management_models.User):
+    def is_in_favorites(self, user: User):
         try:
             DAGRunFavorite.objects.get(dag_run=self, user=user)
             return True
@@ -533,9 +522,7 @@ class DAGRun(Base, WithStatus):
 
 
 class DAGRunFavoriteQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
             Q(user=user),
