@@ -6,7 +6,13 @@ from hexa.plugins.connector_accessmod.models import (
     Fileset,
     FilesetRole,
     Project,
+    ProjectPermission,
 )
+
+
+class PermissionInline(admin.StackedInline):
+    extra = 1
+    model = ProjectPermission
 
 
 @admin.register(Project)
@@ -14,6 +20,8 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ("name", "country", "author")
     list_filter = ("author",)
     search_fields = ("name",)
+
+    inlines = [PermissionInline]
 
 
 @admin.register(FilesetRole)
@@ -42,3 +50,8 @@ class AccessibilityAnalysisAdmin(admin.ModelAdmin):
     list_display = ("name", "status", "project", "author", "dag_run")
     list_filter = ("status", "project__name", "author")
     search_fields = ("name",)
+
+
+@admin.register(ProjectPermission)
+class ProjectPermissionAdmin(admin.ModelAdmin):
+    list_display = ("project", "team", "user", "mode")

@@ -33,4 +33,4 @@ class TableAdmin(admin.ModelAdmin):
 
 @admin.register(DatabasePermission)
 class DatabasePermissionAdmin(admin.ModelAdmin):
-    list_display = ("database", "team")
+    list_display = ("database", "team", "user", "mode")
