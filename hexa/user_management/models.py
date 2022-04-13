@@ -272,6 +272,7 @@ class FeatureFlag(Base):
 class PermissionMode(models.TextChoices):
     OWNER = "OWNER"
     EDITOR = "EDITOR"
+    VIEWER = "VIEWER"
 
 
 class Permission(Base):

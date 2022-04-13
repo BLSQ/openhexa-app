@@ -25,7 +25,7 @@ from hexa.plugins.connector_s3.api import (
 )
 from hexa.plugins.connector_s3.region import AWSRegion
 from hexa.user_management import models as user_management_models
-from hexa.user_management.models import Permission
+from hexa.user_management.models import Permission, PermissionMode
 
 logger = getLogger(__name__)
 
@@ -54,28 +54,21 @@ class Credentials(Base):
         return self.username
 
 
-class BucketPermissionMode(models.IntegerChoices):
-    READ_ONLY = 1, "Read Only"
-    READ_WRITE = 2, "Read Write"
-
-
 class BucketQuerySet(BaseQuerySet):
     def filter_for_user(
         self,
         user: typing.Union[AnonymousUser, user_management_models.User],
-        mode: BucketPermissionMode = None,
+        mode: PermissionMode = None,
     ):
         if not user.is_active:
             return self.none()
         elif user.is_superuser:
             # For superusers, all buckets are read & write
             # If requested mode is read-only, we don't want to return any bucket
-            return self.none() if mode == BucketPermissionMode.READ_ONLY else self
+            return self.none() if mode == PermissionMode.VIEWER else self
 
         modes = (
-            [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
-            if mode is None
-            else [mode]
+            [PermissionMode.VIEWER, PermissionMode.EDITOR] if mode is None else [mode]
         )
 
         return self.filter(
@@ -229,7 +222,7 @@ class Bucket(Datasource):
             BucketPermission.objects.filter(
                 bucket=self,
                 team_id__in=user.team_set.all().values("id"),
-                mode=BucketPermissionMode.READ_WRITE,
+                mode=PermissionMode.EDITOR,
             ).count()
             > 0
         ):
@@ -245,9 +238,6 @@ class Bucket(Datasource):
 
 class BucketPermission(Permission):
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    mode = models.IntegerField(
-        choices=BucketPermissionMode.choices, default=BucketPermissionMode.READ_WRITE
-    )
 
     class Meta:
         unique_together = [("bucket", "team")]

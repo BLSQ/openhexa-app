@@ -10,23 +10,26 @@ from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.models import (
     Bucket,
     BucketPermission,
-    BucketPermissionMode,
     Credentials,
     Object,
 )
-from hexa.user_management.models import Membership, Team, User
+from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
 class ConnectorS3Test(TestCase):
+    USER_JIM = None
+    BUCKET = None
+    TEAM = None
+
     @classmethod
     def setUpTestData(cls):
-        cls.team = Team.objects.create(name="Test Team")
-        cls.user_jim = User.objects.create_user(
+        cls.TEAM = Team.objects.create(name="Test Team")
+        cls.USER_JIM = User.objects.create_user(
             "jim@bluesquarehub.com",
             "regular",
             is_superuser=True,
         )
-        Membership.objects.create(team=cls.team, user=cls.user_jim)
+        Membership.objects.create(team=cls.TEAM, user=cls.USER_JIM)
         cls.api_credentials = Credentials.objects.create(
             username="app-iam-username",
             access_key_id="FOO",
@@ -35,8 +38,8 @@ class ConnectorS3Test(TestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        cls.bucket = Bucket.objects.create(name="test-bucket")
-        BucketPermission.objects.create(team=cls.team, bucket=cls.bucket)
+        cls.BUCKET = Bucket.objects.create(name="test-bucket")
+        BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
 
     @skip("Deactivated for now - mocks needed")
     def test_credentials_200(self):
@@ -87,27 +90,33 @@ class ConnectorS3Test(TestCase):
 
 
 class PermissionTest(TestCase):
+    USER_REGULAR = None
+    TEAM_1 = None
+    TEAM_2 = None
+    BUCKET_1 = None
+    BUCKET_2 = None
+
     @classmethod
     def setUpTestData(cls):
-        cls.BUCKET1 = Bucket.objects.create(name="aws_bucket1")
-        cls.BUCKET2 = Bucket.objects.create(name="aws_bucket2")
-        cls.TEAM1 = Team.objects.create(name="Test Team 1")
-        cls.TEAM2 = Team.objects.create(name="Test Team 2")
-        BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM1)
-        BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM2)
+        cls.BUCKET_1 = Bucket.objects.create(name="aws_bucket1")
+        cls.BUCKET_2 = Bucket.objects.create(name="aws_bucket2")
+        cls.TEAM_1 = Team.objects.create(name="Test Team 1")
+        cls.TEAM_2 = Team.objects.create(name="Test Team 2")
+        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_1)
+        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_2)
         cls.USER_REGULAR = User.objects.create_user(
             "jimbo@bluesquarehub.com",
             "regular",
         )
-        Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
-        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM_1, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM_2, user=cls.USER_REGULAR)
         cls.USER_SUPER = User.objects.create_user(
             "marylou@bluesquarehub.com",
             "super",
             is_superuser=True,
         )
 
-        for bucket in [cls.BUCKET1, cls.BUCKET2]:
+        for bucket in [cls.BUCKET_1, cls.BUCKET_2]:
             for i in range(2):
                 Object.objects.create(
                     bucket=bucket, key=f"object-{bucket.name}-{i}", size=100
@@ -164,25 +173,31 @@ class PermissionTest(TestCase):
 
 
 class PermissionTestWritableBy(TestCase):
+    USER_REGULAR = None
+    BUCKET_1 = None
+    BUCKET_2 = None
+    TEAM_1 = None
+    TEAM_2 = None
+
     @classmethod
     def setUpTestData(cls):
-        cls.BUCKET1 = Bucket.objects.create(name="aws_bucket1")
-        cls.BUCKET2 = Bucket.objects.create(name="aws_bucket2")
-        cls.TEAM1 = Team.objects.create(name="Test Team1")
-        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        cls.BUCKET_1 = Bucket.objects.create(name="aws_bucket1")
+        cls.BUCKET_2 = Bucket.objects.create(name="aws_bucket2")
+        cls.TEAM_1 = Team.objects.create(name="Test Team1")
+        cls.TEAM_2 = Team.objects.create(name="Test Team2")
         BucketPermission.objects.create(
-            bucket=cls.BUCKET1, team=cls.TEAM1, mode=BucketPermissionMode.READ_ONLY
+            bucket=cls.BUCKET_1, team=cls.TEAM_1, mode=PermissionMode.VIEWER
         )
         BucketPermission.objects.create(
-            bucket=cls.BUCKET2, team=cls.TEAM1, mode=BucketPermissionMode.READ_ONLY
+            bucket=cls.BUCKET_2, team=cls.TEAM_1, mode=PermissionMode.VIEWER
         )
-        BucketPermission.objects.create(bucket=cls.BUCKET1, team=cls.TEAM2)
+        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_2)
         cls.USER_REGULAR = User.objects.create_user(
             "jim@bluesquarehub.com",
             "regular",
         )
-        Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR)
-        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM_1, user=cls.USER_REGULAR)
+        Membership.objects.create(team=cls.TEAM_2, user=cls.USER_REGULAR)
         cls.USER_SUPER = User.objects.create_user(
             "mary@bluesquarehub.com",
             "super",
@@ -195,7 +210,7 @@ class PermissionTestWritableBy(TestCase):
         - user regular can write in bucket 1 (only one RO flag, RW flag via team 2 supersede)
         - user regular can't write in bucket 2
         """
-        self.assertTrue(self.BUCKET1.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET2.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET1.writable_by(self.USER_REGULAR))
-        self.assertFalse(self.BUCKET2.writable_by(self.USER_REGULAR))
+        self.assertTrue(self.BUCKET_1.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET_2.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET_1.writable_by(self.USER_REGULAR))
+        self.assertFalse(self.BUCKET_2.writable_by(self.USER_REGULAR))
