@@ -140,7 +140,11 @@ class ProjectPermission(Permission):
         constraints = [
             models.UniqueConstraint(
                 "user", "team", "project", name="project_unique_user_team"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="project_permission_user_or_team_not_null",
+            ),
         ]
 
     project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)

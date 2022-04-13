@@ -7,6 +7,7 @@ from logging import getLogger
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat, pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -241,7 +242,11 @@ class BucketPermission(Permission):
         constraints = [
             models.UniqueConstraint(
                 "user", "team", "bucket", name="bucket_unique_user_team"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="bucket_permission_user_or_team_not_null",
+            ),
         ]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)

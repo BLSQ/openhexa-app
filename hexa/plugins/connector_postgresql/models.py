@@ -237,7 +237,11 @@ class DatabasePermission(Permission):
         constraints = [
             models.UniqueConstraint(
                 "user", "team", "database", name="databasee_user_team"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="database_permission_user_or_team_not_null",
+            ),
         ]
 
     database = models.ForeignKey(

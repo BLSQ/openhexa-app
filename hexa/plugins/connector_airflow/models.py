@@ -401,7 +401,11 @@ class DAGAuthorizedDatasource(Base):
 class DAGPermission(Permission):
     class Meta(Permission.Meta):
         constraints = [
-            models.UniqueConstraint("user", "team", "dag", name="dag_unique_user_team")
+            models.UniqueConstraint("user", "team", "dag", name="dag_unique_user_team"),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="dag_user_or_team_not_null",
+            ),
         ]
 
     dag = models.ForeignKey("DAG", on_delete=models.CASCADE)

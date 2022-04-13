@@ -278,12 +278,6 @@ class PermissionMode(models.TextChoices):
 class Permission(Base):
     class Meta:
         abstract = True
-        constraints = [
-            models.CheckConstraint(
-                check=Q(team__isnull=False) | Q(user__isnull=False),
-                name="permission_user_or_team_not_null",
-            )
-        ]
 
     team = models.ForeignKey(
         "user_management.Team", null=True, on_delete=models.CASCADE

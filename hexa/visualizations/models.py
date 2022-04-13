@@ -88,7 +88,11 @@ class ExternalDashboardPermission(Permission):
         constraints = [
             models.UniqueConstraint(
                 "user", "team", "external_dashboard", name="dashboard_unique_user_team"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="dashboard_permission_user_or_team_not_null",
+            ),
         ]
 
     external_dashboard = models.ForeignKey(ExternalDashboard, on_delete=models.CASCADE)

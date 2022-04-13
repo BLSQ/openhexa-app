@@ -216,7 +216,11 @@ class InstancePermission(Permission):
         constraints = [
             models.UniqueConstraint(
                 "user", "team", "instance", name="instance_unique_user_team"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="instance_permission_user_or_team_not_null",
+            ),
         ]
 
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
