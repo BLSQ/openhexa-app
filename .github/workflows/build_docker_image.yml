@@ -47,6 +47,7 @@ jobs:
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
+            "FALLBACK_URL=https://app.demo.openhexa.org"
 
       - name: Build and push (manual)
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -63,3 +64,4 @@ jobs:
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
+            "FALLBACK_URL=https://app.demo.openhexa.org"

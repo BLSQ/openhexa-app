@@ -21,6 +21,7 @@ const config = {
     return {
       // After checking all Next.js pages (including dynamic routes)...
       // ...and static files we proxy any other requests
+      beforeFiles: [],
       fallback: [
         // Proxied static files do not need to have a trailing slash
         {
