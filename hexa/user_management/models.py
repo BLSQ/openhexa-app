@@ -280,10 +280,10 @@ class Permission(Base):
         abstract = True
 
     team = models.ForeignKey(
-        "user_management.Team", null=True, on_delete=models.CASCADE
+        "user_management.Team", null=True, on_delete=models.CASCADE, blank=True
     )
     user = models.ForeignKey(
-        "user_management.User", null=True, on_delete=models.CASCADE
+        "user_management.User", null=True, on_delete=models.CASCADE, blank=True
     )
     index_permission = GenericRelation(
         "catalog.IndexPermission",
