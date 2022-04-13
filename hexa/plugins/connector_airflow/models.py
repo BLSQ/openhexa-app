@@ -401,7 +401,18 @@ class DAGAuthorizedDatasource(Base):
 class DAGPermission(Permission):
     class Meta(Permission.Meta):
         constraints = [
-            models.UniqueConstraint("user", "team", "dag", name="dag_unique_user_team"),
+            models.UniqueConstraint(
+                "team",
+                "dag",
+                name="dag_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "dag",
+                name="dag_unique_user",
+                condition=Q(user__isnull=False),
+            ),
             models.CheckConstraint(
                 check=Q(team__isnull=False) | Q(user__isnull=False),
                 name="dag_user_or_team_not_null",

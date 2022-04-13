@@ -87,7 +87,16 @@ class ExternalDashboardPermission(Permission):
     class Meta(Permission.Meta):
         constraints = [
             models.UniqueConstraint(
-                "user", "team", "external_dashboard", name="dashboard_unique_user_team"
+                "team",
+                "external_dashboard",
+                name="dashboard_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "external_dashboard",
+                name="dashboard_unique_user",
+                condition=Q(user__isnull=False),
             ),
             models.CheckConstraint(
                 check=Q(team__isnull=False) | Q(user__isnull=False),

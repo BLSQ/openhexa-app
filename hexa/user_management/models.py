@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import CIEmailField
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -294,7 +294,14 @@ class Permission(Base):
         max_length=200, choices=PermissionMode.choices, default=PermissionMode.EDITOR
     )
 
+    def clean(self):
+        if (self.team is None) == (self.user is None):
+            raise ValidationError("Only one of team or user should be provided")
+
     def save(self, *args, **kwargs):
+        if (self.team is None) == (self.user is None):
+            raise ValueError("Only one of team or user should be provided")
+
         super().save(*args, **kwargs)
         self.index_object()
 

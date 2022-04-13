@@ -236,7 +236,16 @@ class DatabasePermission(Permission):
     class Meta(Permission.Meta):
         constraints = [
             models.UniqueConstraint(
-                "user", "team", "database", name="databasee_user_team"
+                "team",
+                "database",
+                name="database_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "database",
+                name="database_unique_user",
+                condition=Q(user__isnull=False),
             ),
             models.CheckConstraint(
                 check=Q(team__isnull=False) | Q(user__isnull=False),
