@@ -68,8 +68,8 @@ def resolve_team_memberships(team: Team, *_, **kwargs):
     )
 
 
-@team_object.field("permissions")
-def resolve_team_permissions(team: Team, info, **kwargs):
+@team_object.field("authorizedActions")
+def resolve_team_authorized_actions(team: Team, info, **kwargs):
     request: HttpRequest = info.context["request"]
     user = request.user
 

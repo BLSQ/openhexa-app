@@ -42,22 +42,30 @@ accessmod_mutations = MutationType()
 project_object = ObjectType("AccessmodProject")
 
 
-@project_object.field("permissions")
-def resolve_accessmod_project_permissions(project: Project, info, **kwargs):
+@project_object.field("authorizedActions")
+def resolve_accessmod_project_authorized_actions(project: Project, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    user = request.user
+    principal = request.user
 
     return filter(
         bool,
         [
             "UPDATE"
-            if user.has_perm("connector_accessmod.update_project", project)
+            if principal.has_perm("connector_accessmod.update_project", project)
             else None,
             "DELETE"
-            if user.has_perm("connector_accessmod.delete_project", project)
+            if principal.has_perm("connector_accessmod.delete_project", project)
+            else None,
+            "CREATE_FILESET"
+            if principal.has_perm("connector_accessmod.create_fileset", project)
+            else None,
+            "CREATE_ANALYSIS"
+            if principal.has_perm("connector_accessmod.create_analysis", project)
             else None,
             "CREATE_PERMISSION"
-            if user.has_perm("user_management.create_project_permission", project)
+            if principal.has_perm(
+                "connector_accessmod.create_project_permission", project
+            )
             else None,
         ],
     )
@@ -242,9 +250,25 @@ def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
     return [f for f in fileset.file_set.all()]
 
 
-@fileset_object.field("permissions")
-def resolve_accessmod_fileset_permissions(fileset: Fileset, info, **kwargs):
-    return resolve_accessmod_project_permissions(fileset.project, info, **kwargs)
+@fileset_object.field("authorizedActions")
+def resolve_accessmod_fileset_authorized_actions(fileset: Fileset, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    return filter(
+        bool,
+        [
+            "UPDATE"
+            if principal.has_perm("connector_accessmod.update_fileset", fileset)
+            else None,
+            "DELETE"
+            if principal.has_perm("connector_accessmod.delete_fileset", fileset)
+            else None,
+            "CREATE_FILE"
+            if principal.has_perm("user_management.create_file", fileset)
+            else None,
+        ],
+    )
 
 
 @accessmod_query.field("accessmodFileset")
@@ -441,9 +465,25 @@ analysis_interface = InterfaceType("AccessmodAnalysis")
 
 
 # Analysis
-@analysis_interface.field("permissions")
-def resolve_accessmod_analysis_permissions(analysis: Analysis, info, **kwargs):
-    return resolve_accessmod_project_permissions(analysis.project, info, **kwargs)
+@analysis_interface.field("authorizedActions")
+def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    return filter(
+        bool,
+        [
+            "UPDATE"
+            if principal.has_perm("connector_accessmod.update_analysis", analysis)
+            else None,
+            "DELETE"
+            if principal.has_perm("connector_accessmod.delete_analysis", analysis)
+            else None,
+            "RUN"
+            if principal.has_perm("user_management.run_analysis", analysis)
+            else None,
+        ],
+    )
 
 
 @analysis_interface.type_resolver
@@ -615,6 +655,7 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
 accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,
+    project_object,
     fileset_object,
     analysis_interface,
 ]

@@ -89,7 +89,9 @@ class Project(Datasource):
         self,
     ) -> typing.Optional[typing.Union[User, Team]]:
         try:
-            return self.projectpermission_set.get(mode=PermissionMode.OWNER)
+            permission = self.projectpermission_set.get(mode=PermissionMode.OWNER)
+
+            return permission.user if permission.user is not None else permission.team
         except ProjectPermission.DoesNotExist:
             return None
 
