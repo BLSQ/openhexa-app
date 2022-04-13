@@ -237,10 +237,14 @@ class Bucket(Datasource):
 
 
 class BucketPermission(Permission):
-    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "user", "team", "bucket", name="bucket_unique_user_team"
+            )
+        ]
 
-    class Meta:
-        unique_together = [("bucket", "team")]
+    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
 
     def index_object(self):
         self.bucket.build_index()

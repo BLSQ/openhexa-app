@@ -136,10 +136,14 @@ class Project(Datasource):
 
 
 class ProjectPermission(Permission):
-    project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "user", "team", "project", name="project_unique_user_team"
+            )
+        ]
 
-    class Meta:
-        unique_together = [("project", "team")]
+    project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
 
     def index_object(self):
         self.project.build_index()

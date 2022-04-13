@@ -212,13 +212,17 @@ class Instance(Datasource):
 
 
 class InstancePermission(Permission):
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "user", "team", "instance", name="instance_unique_user_team"
+            )
+        ]
+
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
     enable_notebooks_credentials = models.BooleanField(
         default=False, help_text="Should the user have access to the API credentials?"
     )
-
-    class Meta:
-        unique_together = [("instance", "team")]
 
     def index_object(self):
         self.instance.build_index()

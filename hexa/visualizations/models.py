@@ -84,10 +84,14 @@ class ExternalDashboard(IndexableMixin, models.Model):
 
 
 class ExternalDashboardPermission(Permission):
-    external_dashboard = models.ForeignKey(ExternalDashboard, on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "user", "team", "external_dashboard", name="dashboard_unique_user_team"
+            )
+        ]
 
-    class Meta:
-        unique_together = [("external_dashboard", "team")]
+    external_dashboard = models.ForeignKey(ExternalDashboard, on_delete=models.CASCADE)
 
     def index_object(self):
         self.external_dashboard.build_index()

@@ -233,12 +233,16 @@ class Table(Entry):
 
 
 class DatabasePermission(Permission):
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "user", "team", "database", name="databasee_user_team"
+            )
+        ]
+
     database = models.ForeignKey(
         "connector_postgresql.Database", on_delete=models.CASCADE
     )
-
-    class Meta:
-        unique_together = [("database", "team")]
 
     def index_object(self):
         self.database.build_index()

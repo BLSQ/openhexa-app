@@ -399,10 +399,12 @@ class DAGAuthorizedDatasource(Base):
 
 
 class DAGPermission(Permission):
-    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint("user", "team", "dag", name="dag_unique_user_team")
+        ]
 
-    class Meta:
-        unique_together = [("dag", "team")]
+    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
 
     def index_object(self) -> None:
         self.dag.build_index()
