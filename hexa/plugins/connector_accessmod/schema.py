@@ -7,6 +7,7 @@ from ariadne import (
     QueryType,
     load_schema_from_path,
 )
+from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.urls import reverse
@@ -25,15 +26,41 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetRole,
     GeographicCoverageAnalysis,
     Project,
+    ProjectPermission,
 )
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
+from hexa.user_management.models import Team, User
 
 accessmod_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
 accessmod_query = QueryType()
 accessmod_mutations = MutationType()
+
+# Projects
+project_object = ObjectType("AccessmodProject")
+
+
+@project_object.field("permissions")
+def resolve_accessmod_project_permissions(project: Project, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+
+    return filter(
+        bool,
+        [
+            "UPDATE"
+            if user.has_perm("connector_accessmod.update_project", project)
+            else None,
+            "DELETE"
+            if user.has_perm("connector_accessmod.delete_project", project)
+            else None,
+            "CREATE_PERMISSION"
+            if user.has_perm("user_management.create_project_permission", project)
+            else None,
+        ],
+    )
 
 
 @accessmod_query.field("accessmodProject")
@@ -142,12 +169,79 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
+@accessmod_mutations.field("createAccessmodProjectPermission")
+@transaction.atomic
+def resolve_create_accessmod_project_permission(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        permission = ProjectPermission.objects.create_if_has_perm(
+            principal,
+            user=User.objects.get(id=create_input["userId"]),
+            team=Team.objects.get(id=create_input["teamId"]),
+            mode=create_input["mode"],
+        )
+        return {"success": True, "permission": permission, "errors": []}
+    except (Team.DoesNotExist, User.DoesNotExist):
+        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@accessmod_mutations.field("updateAccessmodProjectPermission")
+@transaction.atomic
+def resolve_update_accessmod_project_permission(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        permission = ProjectPermission.objects.filter_for_user(user=principal).get(
+            id=update_input["id"]
+        )
+        permission.update_if_has_perm(principal, mode=update_input["mode"])
+
+        return {"success": True, "permission": permission, "errors": []}
+    except ProjectPermission.DoesNotExist:
+        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@accessmod_mutations.field("deleteAccessmodProjectPermission")
+@transaction.atomic
+def resolve_delete_accessmod_project_permission(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        permission = ProjectPermission.objects.filter_for_user(user=principal).get(
+            id=delete_input["id"]
+        )
+        permission.delete_if_has_perm(principal)
+
+        return {"success": True, "permission": permission, "errors": []}
+    except ProjectPermission.DoesNotExist:
+        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+
+
+# Filesets
 fileset_object = ObjectType("AccessmodFileset")
 
 
 @fileset_object.field("files")
 def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
     return [f for f in fileset.file_set.all()]
+
+
+@fileset_object.field("permissions")
+def resolve_accessmod_fileset_permissions(fileset: Fileset, info, **kwargs):
+    return resolve_accessmod_project_permissions(fileset.project, info, **kwargs)
 
 
 @accessmod_query.field("accessmodFileset")
@@ -324,6 +418,12 @@ def resolve_accessmod_fileset_roles(_, info, **kwargs):
 
 
 analysis_interface = InterfaceType("AccessmodAnalysis")
+
+
+# Analysis
+@analysis_interface.field("permissions")
+def resolve_accessmod_analysis_permissions(analysis: Analysis, info, **kwargs):
+    return resolve_accessmod_project_permissions(analysis.project, info, **kwargs)
 
 
 @analysis_interface.type_resolver

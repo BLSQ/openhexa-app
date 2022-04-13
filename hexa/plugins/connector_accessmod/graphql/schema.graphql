@@ -6,9 +6,10 @@ type AccessmodProject {
     crs: Int!
     country: Country!
     author: User!
+    extent: AccessmodFileset
+    permissions: [AccessmodProjectPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
-    extent: AccessmodFileset
 }
 type AccessmodProjectPage {
     pageNumber: Int!
@@ -58,6 +59,61 @@ type DeleteAccessmodProjectResult {
 enum DeleteAccessmodProjectError {
     NOT_FOUND
 }
+type AccessmodProjectPermissionPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodProjectPermission!]!
+}
+type AccessmodProjectPermission {
+    id: String!
+    user: User!
+    team: Team!
+    project: AccessmodProject!
+    mode: PermissionMode!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+input CreateAccessmodProjectPermissionInput {
+    userId: String
+    teamId: String
+    projectId: String!
+    mode: PermissionMode!
+}
+type CreateAccessmodProjectPermissionResult {
+    success: Boolean!
+    permission: AccessmodProjectPermission
+    errors: [CreateAccessmodProjectPermissionError!]!
+}
+enum CreateAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
+input UpdateAccessmodProjectPermissionInput {
+    id: String!
+    mode: PermissionMode!
+}
+type UpdateAccessmodProjectPermissionResult {
+    success: Boolean!
+    permission: AccessmodProjectPermission
+    errors: [UpdateAccessmodProjectPermissionError!]!
+}
+enum UpdateAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
+input DeleteAccessmodProjectPermissionInput {
+    id: String!
+}
+type DeleteAccessmodProjectPermissionResult {
+    success: Boolean!
+    membership: Membership
+    errors: [DeleteAccessmodProjectPermissionError!]!
+}
+enum DeleteAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
 extend type Query {
     accessmodProject(id: String): AccessmodProject
     accessmodProjects(term: String, countries: [String!], page: Int, perPage: Int): AccessmodProjectPage!
@@ -66,6 +122,9 @@ extend type Mutation {
     createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
+    createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
+    updateAccessmodProjectPermission(input: UpdateAccessmodProjectPermissionInput!): UpdateAccessmodProjectPermissionResult!
+    deleteAccessmodProjectPermission(input: DeleteAccessmodProjectPermissionInput!): DeleteAccessmodProjectPermissionResult!
 }
 
 # Filesets
@@ -75,6 +134,7 @@ type AccessmodFileset {
     role: AccessmodFilesetRole
     author: User!
     files: [AccessmodFile!]!
+    permissions: [AccessmodFilesetPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -184,6 +244,15 @@ type DeleteAccessmodFileResult {
 enum DeleteAccessmodFileError {
     NOT_FOUND
 }
+type AccessmodFilesetPermission {
+    id: String!
+    user: User!
+    team: Team!
+    fileset: AccessmodFileset!
+    mode: PermissionMode!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
     accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
@@ -218,6 +287,7 @@ interface AccessmodAnalysis {
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
+    permissions: [AccessmodAnalysisPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -231,6 +301,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
+    permissions: [AccessmodAnalysisPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
     landCover: AccessmodFileset
@@ -259,6 +330,7 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
+    permissions: [AccessmodAnalysisPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
     population: AccessmodFileset
@@ -339,6 +411,15 @@ type DeleteAccessmodAnalysisResult {
 enum DeleteAccessmodAnalysisError {
     NOT_FOUND
     DELETE_FAILED
+}
+type AccessmodAnalysisPermission {
+    id: String!
+    user: User!
+    team: Team!
+    analysis: AccessmodAnalysis!
+    mode: PermissionMode!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 extend type Query {
     accessmodAnalysis(id: String): AccessmodAnalysis

@@ -49,6 +49,11 @@ type Membership {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+enum PermissionMode {
+    OWNER
+    EDITOR
+    VIEWER
+}
 type Organization {
     id: String!
     name: String!
