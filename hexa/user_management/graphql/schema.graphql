@@ -123,6 +123,31 @@ enum CreateMembershipError {
     PERMISSION_DENIED
     NOT_FOUND
 }
+input UpdateMembershipInput {
+    id: String!
+    role: MembershipRole!
+}
+type UpdateMembershipResult {
+    success: Boolean!
+    membership: Membership
+    errors: [UpdateMembershipError!]!
+}
+enum UpdateMembershipError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
+input DeleteMembershipInput {
+    id: String!
+}
+type DeleteMembershipResult {
+    success: Boolean!
+    membership: Membership
+    errors: [DeleteMembershipError!]!
+}
+enum DeleteMembershipError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
 extend type Query {
     me: User
     countries: [Country!]!
@@ -136,4 +161,6 @@ extend type Mutation {
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!
     createMembership(input: CreateMembershipInput!): CreateMembershipResult!
+    updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
+    deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
 }

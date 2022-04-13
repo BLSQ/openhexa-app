@@ -208,6 +208,46 @@ def resolve_create_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("updateMembership")
+@transaction.atomic
+def resolve_update_membership(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        membership = Membership.objects.filter_for_user(user=principal).get(
+            id=update_input["id"]
+        )
+        membership.update_if_has_perm(principal, role=update_input["role"])
+
+        return {"success": True, "membership": membership, "errors": []}
+    except Membership.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("deleteMembership")
+@transaction.atomic
+def resolve_delete_membership(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        membership = Membership.objects.filter_for_user(user=principal).get(
+            id=delete_input["id"]
+        )
+        membership.delete_if_has_perm(principal)
+
+        return {"success": True, "membership": membership, "errors": []}
+    except Membership.DoesNotExist:
+        return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
+
+
 identity_bindables = [
     identity_query,
     user_object,
