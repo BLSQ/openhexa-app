@@ -31,6 +31,7 @@ type CreateAccessmodProjectResult {
 }
 enum CreateAccessmodProjectError {
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input UpdateAccessmodProjectInput {
     id: String!
@@ -48,6 +49,7 @@ type UpdateAccessmodProjectResult {
 enum UpdateAccessmodProjectError {
     NOT_FOUND
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input DeleteAccessmodProjectInput {
     id: String!
@@ -58,6 +60,7 @@ type DeleteAccessmodProjectResult {
 }
 enum DeleteAccessmodProjectError {
     NOT_FOUND
+    PERMISSION_DENIED
 }
 type AccessmodProjectPermissionPage {
     pageNumber: Int!

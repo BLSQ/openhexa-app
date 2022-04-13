@@ -94,10 +94,12 @@ def resolve_accessmod_projects(_, info, term=None, countries=None, **kwargs):
 @transaction.atomic
 def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     create_input = kwargs["input"]
+
     try:
-        project = Project.objects.create(
-            author=request.user,
+        project = Project.objects.create_if_has_perm(
+            principal,
             name=create_input["name"],
             country=Country(create_input["country"]["code"]),
             spatial_resolution=create_input["spatialResolution"],
@@ -117,34 +119,36 @@ def resolve_create_accessmod_project(_, info, **kwargs):
 @transaction.atomic
 def resolve_update_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     update_input = kwargs["input"]
 
     try:
-        project = Project.objects.filter_for_user(request.user).get(
-            id=update_input["id"]
-        )
-        changed = False
+        project = Project.objects.filter_for_user(principal).get(id=update_input["id"])
+        changes = {}
         for scalar_field in ["name", "spatialResolution", "crs"]:
             if scalar_field in update_input:
-                setattr(project, snakecase(scalar_field), update_input[scalar_field])
-                changed = True
+                changes[snakecase(scalar_field)] = update_input[scalar_field]
         if "extentId" in update_input:
-            fileset = Fileset.objects.filter_for_user(request.user).get(
+            fileset = Fileset.objects.filter_for_user(principal).get(
                 id=update_input["extentId"]
             )
-            project.extent = fileset
-            changed = True
+            changes["extent"] = fileset
         if "country" in update_input:
-            project.country = update_input["country"]["code"]
-            changed = True
-        if changed:
+            changes["country"] = update_input["country"]["code"]
+        if len(changes) > 0:
             try:
-                project.save()
+                project.update_if_has_perm(principal, **changes)
             except IntegrityError:
                 return {
                     "success": False,
                     "project": None,
                     "errors": ["NAME_DUPLICATE"],
+                }
+            except PermissionDenied:
+                return {
+                    "success": False,
+                    "project": None,
+                    "errors": ["PERMISSION_DENIED"],
                 }
 
         return {"success": True, "project": project, "errors": []}
@@ -156,13 +160,12 @@ def resolve_update_accessmod_project(_, info, **kwargs):
 @transaction.atomic
 def resolve_delete_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     update_input = kwargs["input"]
 
     try:
-        project = Project.objects.filter_for_user(request.user).get(
-            id=update_input["id"]
-        )
-        project.delete()
+        project = Project.objects.filter_for_user(principal).get(id=update_input["id"])
+        project.delete_if_has_perm(principal)
 
         return {"success": True, "errors": []}
     except Project.DoesNotExist:
@@ -277,10 +280,12 @@ def resolve_accessmod_filesets(_, info, **kwargs):
 @transaction.atomic
 def resolve_create_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     create_input = kwargs["input"]
+
     try:
-        fileset = Fileset.objects.create(
-            author=request.user,
+        fileset = Fileset.objects.create_if_has_perm(
+            principal,
             name=create_input["name"],
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
@@ -290,29 +295,34 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
         return {"success": True, "fileset": fileset, "errors": []}
     except IntegrityError:
         return {"success": False, "fileset": None, "errors": ["NAME_DUPLICATE"]}
+    except PermissionDenied:
+        return {"success": False, "fileset": None, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("deleteAccessmodFileset")
 @transaction.atomic
 def resolve_delete_accessmod_fileset(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     delete_input = kwargs["input"]
+
     try:
-        fileset = Fileset.objects.filter_for_user(request.user).get(
-            id=delete_input["id"]
-        )
-        fileset.delete()
+        fileset = Fileset.objects.filter_for_user(principal).get(id=delete_input["id"])
+        fileset.delete_if_has_perm(principal)
         return {"success": True, "errors": []}
     except Fileset.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("prepareAccessmodFileUpload")
 @transaction.atomic
 def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     prepare_input = kwargs["input"]
-    fileset = Fileset.objects.filter_for_user(request.user).get(
+    fileset = Fileset.objects.filter_for_user(principal).get(
         id=prepare_input["filesetId"]
     )
 
@@ -344,8 +354,9 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
 @transaction.atomic
 def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     prepare_input = kwargs["input"]
-    file = File.objects.filter_for_user(request.user).get(id=prepare_input["fileId"])
+    file = File.objects.filter_for_user(principal).get(id=prepare_input["fileId"])
 
     # This is a temporary solution until we figure out storage requirements
     if settings.ACCESSMOD_S3_BUCKET_NAME is None:
@@ -373,12 +384,15 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
 @transaction.atomic
 def resolve_create_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     create_input = kwargs["input"]
-    fileset = Fileset.objects.filter_for_user(request.user).get(
+
+    fileset = Fileset.objects.filter_for_user(principal).get(
         id=create_input["filesetId"]
     )
     try:
-        file = File.objects.create(
+        file = File.objects.create_if_has_perm(
+            principal,
             uri=create_input["uri"],
             mime_type=create_input["mimeType"],
             fileset=fileset,
@@ -387,21 +401,27 @@ def resolve_create_accessmod_file(_, info, **kwargs):
         return {"success": True, "file": file, "errors": []}
     except IntegrityError:
         return {"success": False, "file": None, "errors": ["URI_DUPLICATE"]}
+    except PermissionDenied:
+        return {"success": False, "file": None, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("deleteAccessmodFile")
 @transaction.atomic
 def resolve_delete_accessmod_file(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     delete_input = kwargs["input"]
+
     try:
-        file = File.objects.filter_for_user(request.user).get(id=delete_input["id"])
+        file = File.objects.filter_for_user(principal).get(id=delete_input["id"])
         fileset = file.fileset
-        file.delete()
+        file.delete_if_has_perm()
         fileset.save()  # Will update updated_at
         return {"success": True, "errors": []}
     except File.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_query.field("accessmodFilesetRole")
@@ -468,10 +488,12 @@ def resolve_accessmod_analyses(_, info, **kwargs):
 @transaction.atomic
 def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     create_input = kwargs["input"]
+
     try:
-        analysis = AccessibilityAnalysis.objects.create(
-            author=request.user,
+        analysis = AccessibilityAnalysis.objects.create_if_has_perm(
+            principal,
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
             ),
@@ -480,19 +502,22 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
         return {"success": True, "analysis": analysis, "errors": []}
     except IntegrityError:
         return {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]}
+    except PermissionDenied:
+        return {"success": False, "analysis": None, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
 @transaction.atomic
 def resolve_update_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     update_input = kwargs["input"]
 
     try:
-        analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+        analysis = Analysis.objects.filter_for_user(principal).get_subclass(
             id=update_input["id"]
         )
-        changed = False
+        changes = {}
         for scalar_field in [
             "name",
             "invertDirection",
@@ -505,8 +530,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "knightMove",
         ]:
             if scalar_field in update_input:
-                setattr(analysis, snakecase(scalar_field), update_input[scalar_field])
-                changed = True
+                changes[snakecase(scalar_field)] = update_input[scalar_field]
         for fileset_field in [
             "landCoverId",
             "demId",
@@ -518,19 +542,24 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "healthFacilitiesId",
         ]:
             if fileset_field in update_input:
-                fileset = Fileset.objects.filter_for_user(request.user).get(
+                fileset = Fileset.objects.filter_for_user(principal).get(
                     id=update_input[fileset_field]
                 )
-                setattr(analysis, snakecase(fileset_field), fileset.id)
-                changed = True
-        if changed:
+                changes[snakecase(fileset_field)] = fileset.id
+        if len(changes) > 0:
             try:
-                analysis.save()
+                analysis.update_if_has_perm(principal, **changes)
             except IntegrityError:
                 return {
                     "success": False,
                     "analysis": analysis,
                     "errors": ["NAME_DUPLICATE"],
+                }
+            except PermissionDenied:
+                return {
+                    "success": False,
+                    "analysis": analysis,
+                    "errors": ["PERMISSION_DENIED"],
                 }
 
         return {"success": True, "analysis": analysis, "errors": []}
@@ -542,36 +571,45 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
 @transaction.atomic
 def resolve_launch_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     launch_input = kwargs["input"]
-    analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+
+    analysis = Analysis.objects.filter_for_user(principal).get_subclass(
         id=launch_input["id"]
     )
 
     try:
-        analysis.run(
-            request=request, webhook_path=reverse("connector_accessmod:webhook")
+        analysis.run_if_has_perm(
+            principal,
+            request=request,
+            webhook_path=reverse("connector_accessmod:webhook"),
         )
         return {"success": True, "analysis": analysis, "errors": []}
     except ValueError:
         return {"success": False, "analysis": analysis, "errors": ["LAUNCH_FAILED"]}
+    except PermissionDenied:
+        return {"success": False, "analysis": analysis, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("deleteAccessmodAnalysis")
 @transaction.atomic
 def resolve_delete_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    principal = request.user
     delete_input = kwargs["input"]
 
     try:
-        analysis = Analysis.objects.filter_for_user(request.user).get_subclass(
+        analysis = Analysis.objects.filter_for_user(principal).get_subclass(
             id=delete_input["id"]
         )
-        analysis.delete()
+        analysis.delete_if_has_perm(principal)
         return {"success": True, "errors": []}
     except Analysis.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
     except ValueError:
         return {"success": False, "errors": ["DELETE_FAILED"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 accessmod_bindables = [

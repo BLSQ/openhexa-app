@@ -2,7 +2,7 @@ from hexa.plugins.connector_accessmod.models import Analysis, Fileset, Project
 from hexa.user_management.models import User
 
 
-def create_project():
+def create_project(principal: User):
     """Everyone can create a project"""
 
     return True
@@ -23,7 +23,11 @@ def delete_project(principal: User, project: Project):
 def create_project_permission(principal: User, project: Project):
     """Only project owners can create project permissions."""
 
-    return principal == project.owner or principal.is_admin_of(project.owner)
+    return (
+        principal == project.owner
+        or principal.is_admin_of(project.owner)
+        or project.projectpermission_set.count() == 0
+    )
 
 
 def update_project_permission(principal: User, project: Project):

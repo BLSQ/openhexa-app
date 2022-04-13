@@ -14,7 +14,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.user_management.models import Membership, Team, User
+from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
 class FilesetTest(TestCase):
@@ -50,6 +50,9 @@ class FilesetTest(TestCase):
             author=cls.USER_SIMONE,
             spatial_resolution=100,
             crs=4326,
+        )
+        ProjectPermission.objects.create(
+            user=cls.USER_SIMONE, project=cls.PROJECT_SAMPLE, mode=PermissionMode.EDITOR
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Another project",

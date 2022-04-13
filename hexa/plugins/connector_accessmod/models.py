@@ -27,7 +27,7 @@ class ProjectQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(author=user)
+            Q(projectpermission__user=user)
             | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
             return_all_if_superuser=False,
         )
@@ -55,7 +55,10 @@ class ProjectManager(models.Manager):
             extent=extent,
         )
         ProjectPermission.objects.create_if_has_perm(
-            principal=principal, user=principal, mode=PermissionMode.OWNER
+            principal,
+            user=principal,
+            project=project,
+            mode=PermissionMode.OWNER,
         )
 
         return project
@@ -65,7 +68,7 @@ class Project(Datasource):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint("name", "author", name="project_unique_name_owner")
+            models.UniqueConstraint("name", "author", name="project_unique_name_author")
         ]
 
     name = models.TextField(verbose_name="project name")
@@ -84,8 +87,11 @@ class Project(Datasource):
     @property
     def owner(
         self,
-    ) -> typing.Union[User, Team]:
-        return self.projectpermission_set.get(mode=PermissionMode.OWNER)
+    ) -> typing.Optional[typing.Union[User, Team]]:
+        try:
+            return self.projectpermission_set.get(mode=PermissionMode.OWNER)
+        except ProjectPermission.DoesNotExist:
+            return None
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
@@ -135,6 +141,41 @@ class Project(Datasource):
         return self.name
 
 
+class ProjectPermissionManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        user: User = None,
+        team: Team = None,
+        project: Project,
+        mode: PermissionMode,
+    ):
+        if not principal.has_perm(
+            "connector_accessmod.create_project_permission", project
+        ):
+            raise PermissionDenied
+
+        permission = self.create(
+            user=user,
+            team=team,
+            project=project,
+            mode=mode,
+        )
+
+        return permission
+
+
+class ProjectPermissionQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(projectpermission__user=user)
+            | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
+            return_all_if_superuser=False,
+        )
+
+
 class ProjectPermission(Permission):
     class Meta(Permission.Meta):
         constraints = [
@@ -157,6 +198,8 @@ class ProjectPermission(Permission):
         ]
 
     project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
+
+    objects = ProjectPermissionManager.from_queryset(ProjectPermissionQuerySet)()
 
     def index_object(self):
         self.project.build_index()
@@ -221,7 +264,7 @@ class Fileset(Entry):
     def owner(
         self,
     ) -> typing.Union[User, Team]:
-        return self.project.projectpermission_set.get(mode=PermissionMode.OWNER)
+        return self.project.owner
 
     def get_permission_set(self):
         return self.project.get_permission_set()
@@ -324,7 +367,7 @@ class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(author=user)
+            Q(project__projectpermission__user=user)
             | Q(
                 project__projectpermission__team__in=Team.objects.filter_for_user(user)
             ),
@@ -430,7 +473,7 @@ class Analysis(Pipeline):
     def owner(
         self,
     ) -> typing.Union[User, Team]:
-        return self.project.projectpermission_set.get(mode=PermissionMode.OWNER)
+        return self.project.owner
 
     def populate_index(self, index):
         raise NotImplementedError
