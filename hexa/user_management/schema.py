@@ -85,9 +85,78 @@ def resolve_team_authorized_actions(team: Team, info, **kwargs):
     )
 
 
+membership_object = ObjectType("Membership")
+
+
+@membership_object.field("authorizedActions")
+def resolve_membership_authorized_actions(membership: Membership, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    user = request.user
+
+    return filter(
+        bool,
+        [
+            "UPDATE"
+            if user.has_perm("user_management.update_membership", membership)
+            else None,
+            "DELETE"
+            if user.has_perm("user_management.delete_membership", membership)
+            else None,
+        ],
+    )
+
+
 @identity_query.field("organizations")
 def resolve_organizations(*_):
     return [o for o in Organization.objects.all()]
+
+
+@identity_mutations.field("createTeam")
+def resolve_create_team(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        team = Team.objects.create_if_has_perm(
+            principal,
+            name=create_input["name"],
+        )
+        return {"success": True, "team": team, "errors": []}
+    except PermissionDenied:
+        return {"success": False, "team": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("updateTeam")
+def resolve_update_team(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    input = kwargs["input"]
+
+    try:
+        team: Team = Team.objects.get(id=input["id"])
+        team.update_if_has_perm(principal, name=input["name"])
+        return {"success": True, "team": team, "errors": []}
+    except Team.DoesNotExist:
+        return {"success": False, "team": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "team": None, "errors": ["PERMISSION_DENIED"]}
+
+
+@identity_mutations.field("deleteTeam")
+def resolve_delete_team(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    input = kwargs["input"]
+
+    try:
+        team: Team = Team.objects.get(id=input["id"])
+        team.delete_if_has_perm(principal)
+        return {"success": True, "errors": []}
+    except Team.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @identity_mutations.field("login")
@@ -253,6 +322,7 @@ identity_bindables = [
     user_object,
     country_object,
     team_object,
+    membership_object,
     organization_object,
     identity_mutations,
 ]

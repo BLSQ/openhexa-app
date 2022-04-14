@@ -82,7 +82,9 @@ def resolve_accessmod_project(_, info, **kwargs):
 
 
 @accessmod_query.field("accessmodProjects")
-def resolve_accessmod_projects(_, info, term=None, countries=None, **kwargs):
+def resolve_accessmod_projects(
+    _, info, term=None, countries=None, teams=None, **kwargs
+):
     request: HttpRequest = info.context["request"]
 
     queryset = Project.objects.filter_for_user(request.user)
@@ -92,6 +94,9 @@ def resolve_accessmod_projects(_, info, term=None, countries=None, **kwargs):
 
     if countries is not None and len(countries) > 0:
         queryset = queryset.filter(country__in=countries)
+
+    if teams is not None and len(teams) > 0:
+        queryset = queryset.filter(projectpermission__team__id__in=[teams])
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -234,11 +239,11 @@ def resolve_delete_accessmod_project_permission(_, info, **kwargs):
         )
         permission.delete_if_has_perm(principal)
 
-        return {"success": True, "permission": permission, "errors": []}
+        return {"success": True, "errors": []}
     except ProjectPermission.DoesNotExist:
-        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
-        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 # Filesets

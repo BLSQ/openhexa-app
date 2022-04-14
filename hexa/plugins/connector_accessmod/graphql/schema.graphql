@@ -117,7 +117,6 @@ input DeleteAccessmodProjectPermissionInput {
 }
 type DeleteAccessmodProjectPermissionResult {
     success: Boolean!
-    membership: Membership
     errors: [DeleteAccessmodProjectPermissionError!]!
 }
 enum DeleteAccessmodProjectPermissionError {
@@ -126,7 +125,7 @@ enum DeleteAccessmodProjectPermissionError {
 }
 extend type Query {
     accessmodProject(id: String): AccessmodProject
-    accessmodProjects(term: String, countries: [String!], page: Int, perPage: Int): AccessmodProjectPage!
+    accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int): AccessmodProjectPage!
 }
 extend type Mutation {
     createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
@@ -210,6 +209,7 @@ type CreateAccessmodFilesetResult {
 }
 enum CreateAccessmodFilesetError {
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input PrepareAccessmodFileUploadInput {
     filesetId: String!
@@ -299,7 +299,6 @@ interface AccessmodAnalysis {
     updatedAt: DateTime!
 }
 enum AccessmodAnalysisAuthorizedActions {
-    CREATE
     UPDATE
     DELETE
     RUN

@@ -53,6 +53,7 @@ class ProjectManager(models.Manager):
             spatial_resolution=spatial_resolution,
             crs=crs,
             extent=extent,
+            author=principal,
         )
         ProjectPermission.objects.create_if_has_perm(
             principal,

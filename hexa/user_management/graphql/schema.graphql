@@ -44,9 +44,14 @@ type Membership {
     id: String!
     user: User!
     team: Team!
+    authorizedActions: [MembershipAuthorizedActions!]!
     role: MembershipRole!
     createdAt: DateTime!
     updatedAt: DateTime!
+}
+enum MembershipAuthorizedActions {
+    UPDATE
+    DELETE
 }
 enum PermissionMode {
     OWNER
@@ -152,6 +157,47 @@ enum DeleteMembershipError {
     PERMISSION_DENIED
     NOT_FOUND
 }
+
+input CreateTeamInput {
+    name: String!
+}
+type CreateTeamResult {
+    team: Team
+    success: Boolean!
+    errors: [CreateTeamError!]!
+}
+enum CreateTeamError {
+    PERMISSION_DENIED
+    NAME_DUPLICATE
+}
+
+input UpdateTeamInput {
+    id: String!
+    name: String
+}
+type UpdateTeamResult {
+    team: Team
+    success: Boolean!
+    errors: [UpdateTeamError!]!
+}
+enum UpdateTeamError {
+    NOT_FOUND
+    PERMISSION_DENIED
+    NAME_DUPLICATE
+}
+
+input DeleteTeamInput {
+    id: String!
+}
+type DeleteTeamResult {
+    success: Boolean!
+    errors: [DeleteTeamError!]!
+}
+enum DeleteTeamError {
+    NOT_FOUND
+    PERMISSION_DENIED
+}
+
 extend type Query {
     me: User
     countries: [Country!]!
@@ -164,6 +210,9 @@ extend type Mutation {
     logout: LogoutResult!
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!
+    createTeam(input: CreateTeamInput!): CreateTeamResult!
+    updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
+    deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
     createMembership(input: CreateMembershipInput!): CreateMembershipResult!
     updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
     deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
