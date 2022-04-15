@@ -46,11 +46,16 @@ def resolve_team(_, info, **kwargs):
 
 
 @identity_query.field("teams")
-def resolve_teams(_, info, **kwargs):
+def resolve_teams(_, info, term=None, **kwargs):
     request: HttpRequest = info.context["request"]
 
+    queryset = Team.objects.filter_for_user(request.user)
+
+    if term is not None:
+        queryset = queryset.filter(name__icontains=term)
+
     return result_page(
-        queryset=Team.objects.filter_for_user(request.user),
+        queryset=queryset,
         page=kwargs.get("page", 1),
         per_page=kwargs.get("perPage"),
     )

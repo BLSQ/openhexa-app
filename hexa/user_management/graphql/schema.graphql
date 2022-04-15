@@ -203,7 +203,7 @@ extend type Query {
     countries: [Country!]!
     organizations: [Organization!]!
     team(id: String!): Team
-    teams(page: Int, perPage: Int): TeamPage!
+    teams(term: String, page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {
     login(input: LoginInput!): LoginResult!
