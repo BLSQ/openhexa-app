@@ -36,6 +36,10 @@ class UserCreationForm(BaseUserCreationForm):
         return password2
 
 
+class MembershipInline(admin.TabularInline):
+    model = Membership
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = (
@@ -45,10 +49,13 @@ class CustomUserAdmin(UserAdmin):
         "last_login",
         "is_staff",
         "is_superuser",
+        "teams",
     )
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
-
+    inlines = [
+        MembershipInline,
+    ]
     fieldsets = (
         (
             None,
@@ -118,14 +125,26 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
 
+    @staticmethod
+    def teams(user: User):
+        first_teams = list(user.team_set.all()[:2])
+
+        if len(first_teams) == 0:
+            return "-"
+
+        team_count = user.team_set.count()
+        extra = (
+            f" (+{team_count - len(first_teams)})"
+            if team_count > len(first_teams)
+            else ""
+        )
+
+        return f"{', '.join([t.name for t in first_teams])}{extra}"
+
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("name", "short_name", "organization_type", country_list)
-
-
-class MembershipInline(admin.TabularInline):
-    model = Membership
 
 
 @admin.register(Team)
