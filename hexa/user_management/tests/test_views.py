@@ -91,6 +91,8 @@ class InviteUserAdminTest(TestCase):
                 "last_name": "mote",
                 "password1": "",
                 "password2": "",
+                "membership_set-TOTAL_FORMS": 0,
+                "membership_set-INITIAL_FORMS": 0,
                 "_save": "Save",
             },
         )
