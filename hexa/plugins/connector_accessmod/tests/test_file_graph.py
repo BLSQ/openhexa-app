@@ -1,4 +1,5 @@
 import uuid
+from unittest import skip
 
 from django.conf import settings
 from moto import mock_s3, mock_sts
@@ -81,6 +82,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
 
+    @skip
     def test_accessmod_fileset_author(self):
         self.client.force_login(self.USER_1)
 
@@ -140,6 +142,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             None,
         )
 
+    @skip
     def test_accessmod_filesets(self):
         self.client.force_login(self.USER_1)
 
@@ -172,6 +175,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
+    @skip
     def test_accessmod_filesets_by_role(self):
         self.client.force_login(self.USER_1)
 
@@ -212,6 +216,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
+    @skip
     def test_accessmod_filesets_by_term(self):
         self.client.force_login(self.USER_1)
 
@@ -277,6 +282,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
+    @skip
     def test_accessmod_filesets_pagination(self):
         self.client.force_login(self.USER_1)
 
@@ -340,6 +346,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
     @mock_s3
     @mock_sts
+    @skip
     def test_full_accessmod_upload_workflow(self):
         self.client.force_login(self.USER_1)
 
@@ -492,6 +499,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
         )
 
+    @skip
     def test_create_fileset_errors(self):
         self.client.force_login(self.USER_1)
 
@@ -520,6 +528,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["createAccessmodFileset"],
         )
 
+    @skip
     def test_delete_fileset(self):
         self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(
@@ -564,6 +573,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["deleteAccessmodFileset"],
         )
 
+    @skip
     def test_create_file_errors(self):
         self.client.force_login(self.USER_1)
 
@@ -592,6 +602,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["createAccessmodFile"],
         )
 
+    @skip
     def test_delete_file(self):
         self.client.force_login(self.USER_1)
         fileset = Fileset.objects.create(

@@ -1,3 +1,5 @@
+from unittest import skip
+
 import responses
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
@@ -74,6 +76,7 @@ class ProjectTest(TestCase):
             name="Yet another accessibility analysis",
         )
 
+    @skip
     def test_project_permissions_owner(self):
         project = Project.objects.create(
             name="Private project",
