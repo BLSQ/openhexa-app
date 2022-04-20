@@ -9,8 +9,15 @@ export const FAKE_COLLECTIONS = [
     createdAt: "2022-04-21",
     excerpt: "COD Covid data is made by BLSQ and regroups lot of data",
 
-    description:
-      "<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.</p><p>Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.</p><p>Temporibus autem.</p>",
+    description: `### At vero eos
+Accusamus *et iusto odio dignissimos ducimus qui blanditiis* praesentium voluptatum deleniti atque corrupti _quos dolores_ et \`quas molestias\` excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.Et harum quidem rerum facilis est et expedita distinctio.
+      
+> nihil impedit quo minus id quod maxime placeat facere possimus.
+
+1. Nam libero tempore
+2. Cum soluta nobis est eligendi optio [cumque](https://bluesquare.org) 
+
+**Omnis voluptas assumenda** est, omnis dolor repellendus.Temporibus autem.`,
     tags: ["Malaria", "Polio", "Logistics"],
   },
   {
@@ -45,7 +52,7 @@ _Temporibus_ autem.`,
     locationCode: "nl",
     visibility: "Private",
     createdAt: "2022-04-21",
-    description: "",
+    description: "_No description_",
     tags: [],
   },
 ];
