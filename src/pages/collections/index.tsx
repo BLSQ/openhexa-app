@@ -58,7 +58,7 @@ const CollectionsPage = () => {
                       <img
                         alt="Country flag"
                         className="h-3"
-                        src={`http://localhost:8000/static/flags/${collection.locationCode}.gif`}
+                        src={`/static/flags/${collection.locationCode}.gif`}
                       />
                       {collection.location}
                     </div>
