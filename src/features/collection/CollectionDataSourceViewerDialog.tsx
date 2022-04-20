@@ -17,7 +17,7 @@ const CollectionDataSourceViewerDialog = (
   const { t } = useTranslation();
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-3xl">
-      <Dialog.Title onClose={onClose}>{t("Preview data source")}</Dialog.Title>
+      <Dialog.Title onClose={onClose}>{t("Details")}</Dialog.Title>
       <Dialog.Content>
         <table className={TableClasses.table}>
           <thead className={TableClasses.thead}>
@@ -29,64 +29,27 @@ const CollectionDataSourceViewerDialog = (
                 {t("Type")}
               </th>
               <th className={TableClasses.thCondensed} scope="col">
-                {t("Id")}
-              </th>
-              <th className={TableClasses.thCondensed} scope="col">
                 {t("Code")}
-              </th>
-              <th className={TableClasses.thCondensed} scope="col">
-                <span className="sr-only">{t("Actions")}</span>
               </th>
             </tr>
           </thead>
           <tbody className={TableClasses.tbody}>
             <tr>
-              <td className={TableClasses.tdCondensed}>Psychoses</td>
-              <td className={TableClasses.tdCondensed}>-</td>
-              <td className={TableClasses.tdCondensed}>aAzdq921</td>
-              <td className={TableClasses.tdCondensed}>DE_xZAs</td>
-              <td className={TableClasses.tdCondensed}>
-                <div className="flex items-center justify-end gap-6">
-                  <Button
-                    size="sm"
-                    variant="white"
-                    leadingIcon={<DocumentDownloadIcon className="h-4" />}
-                  >
-                    {t("Extract")}
-                  </Button>
-                  <a
-                    href=""
-                    className="inline-flex items-center font-medium text-blue-600 hover:text-blue-900"
-                  >
-                    {t("Preview")}
-                    <ChevronRightIcon className="ml-1 h-4" />
-                  </a>
-                </div>
-              </td>
+              <td className={TableClasses.tdCondensed}>HF Visits</td>
+              <td className={TableClasses.tdCondensed}>Data element</td>
+              <td className={TableClasses.tdCondensed}>data_element_de</td>
             </tr>
             <tr>
-              <td className={TableClasses.tdCondensed}>Psychoses</td>
-              <td className={TableClasses.tdCondensed}>-</td>
-              <td className={TableClasses.tdCondensed}>aAzdq921</td>
-              <td className={TableClasses.tdCondensed}>DE_xZAs</td>
               <td className={TableClasses.tdCondensed}>
-                <div className="flex items-center justify-end gap-6">
-                  <Button
-                    size="sm"
-                    variant="white"
-                    leadingIcon={<DocumentDownloadIcon className="h-4" />}
-                  >
-                    {t("Extract")}
-                  </Button>
-                  <a
-                    href=""
-                    className="inline-flex items-center font-medium text-blue-600 hover:text-blue-900"
-                  >
-                    {t("Preview")}
-                    <ChevronRightIcon className="ml-1 h-4" />
-                  </a>
-                </div>
+                Level of water per month
               </td>
+              <td className={TableClasses.tdCondensed}>Indicator</td>
+              <td className={TableClasses.tdCondensed}>id_indicator_lwpm</td>
+            </tr>
+            <tr>
+              <td className={TableClasses.tdCondensed}>An indicator</td>
+              <td className={TableClasses.tdCondensed}>Indicator</td>
+              <td className={TableClasses.tdCondensed}>id_indicator_xaz</td>
             </tr>
           </tbody>
         </table>

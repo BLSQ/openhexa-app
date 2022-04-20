@@ -52,7 +52,18 @@ const CollectionsPage = () => {
                     <a className="text-gray-900">{collection.name}</a>
                   </Link>
                 </td>
-                <td className={TableClasses.td}>{collection.location}</td>
+                <td className={TableClasses.td}>
+                  <div className="w-fit rounded-xl border">
+                    <div className="flex items-center gap-2 px-2.5 py-1">
+                      <img
+                        alt="Country flag"
+                        className="h-3"
+                        src={`http://localhost:8000/static/flags/${collection.locationCode}.gif`}
+                      />
+                      {collection.location}
+                    </div>
+                  </div>
+                </td>
                 <td className={TableClasses.td}>{collection.visibility}</td>
                 <td className={TableClasses.td}>{collection.createdAt}</td>
                 <td className={TableClasses.td}>
