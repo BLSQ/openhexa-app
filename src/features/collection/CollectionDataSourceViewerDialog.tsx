@@ -29,6 +29,9 @@ const CollectionDataSourceViewerDialog = (
                 {t("Type")}
               </th>
               <th className={TableClasses.thCondensed} scope="col">
+                {t("ID")}
+              </th>
+              <th className={TableClasses.thCondensed} scope="col">
                 {t("Code")}
               </th>
             </tr>
@@ -37,19 +40,22 @@ const CollectionDataSourceViewerDialog = (
             <tr>
               <td className={TableClasses.tdCondensed}>HF Visits</td>
               <td className={TableClasses.tdCondensed}>Data element</td>
-              <td className={TableClasses.tdCondensed}>data_element_de</td>
+              <td className={TableClasses.tdCondensed}>FTRrcoaog83</td>
+              <td className={TableClasses.tdCondensed}>hf_visits</td>
             </tr>
             <tr>
               <td className={TableClasses.tdCondensed}>
                 Level of water per month
               </td>
               <td className={TableClasses.tdCondensed}>Indicator</td>
-              <td className={TableClasses.tdCondensed}>id_indicator_lwpm</td>
+              <td className={TableClasses.tdCondensed}>FTRrcoaog83</td>
+              <td className={TableClasses.tdCondensed}>water_level</td>
             </tr>
             <tr>
               <td className={TableClasses.tdCondensed}>An indicator</td>
               <td className={TableClasses.tdCondensed}>Indicator</td>
-              <td className={TableClasses.tdCondensed}>id_indicator_xaz</td>
+              <td className={TableClasses.tdCondensed}>FTRrcoaog83</td>
+              <td className={TableClasses.tdCondensed}>-</td>
             </tr>
           </tbody>
         </table>

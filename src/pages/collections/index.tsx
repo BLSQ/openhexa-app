@@ -8,6 +8,8 @@ import { FAKE_COLLECTIONS } from "libs/collections";
 import { createGetServerSideProps } from "libs/page";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
+import Badge from "components/Badge";
+import clsx from "clsx";
 
 const CollectionsPage = () => {
   const { t } = useTranslation();
@@ -29,10 +31,16 @@ const CollectionsPage = () => {
                 {t("Location")}
               </th>
               <th scope="col" className={TableClasses.th}>
+                {t("Tags")}
+              </th>
+              <th scope="col" className={TableClasses.th}>
                 {t("Visibility")}
               </th>
               <th scope="col" className={TableClasses.th}>
                 {t("Created")}
+              </th>
+              <th scope="col" className={TableClasses.th}>
+                {t("Author")}
               </th>
               <th scope="col" className={TableClasses.th}>
                 <span className="sr-only">{t("Actions")}</span>
@@ -49,23 +57,54 @@ const CollectionsPage = () => {
                       query: { collectionId: collection.id },
                     }}
                   >
-                    <a className="text-gray-900">{collection.name}</a>
+                    <a className="font-medium text-gray-900">
+                      {collection.name}
+                    </a>
                   </Link>
                 </td>
                 <td className={TableClasses.td}>
-                  <div className="w-fit rounded-xl border">
-                    <div className="flex items-center gap-2 px-2.5 py-1">
-                      <img
-                        alt="Country flag"
-                        className="h-3"
-                        src={`/static/flags/${collection.locationCode}.gif`}
-                      />
-                      {collection.location}
-                    </div>
+                  <Badge
+                    className={
+                      "cursor-pointer border-gray-300 bg-gray-50 hover:bg-opacity-70"
+                    }
+                  >
+                    <img
+                      alt="Country flag"
+                      className="mr-1 h-3"
+                      src={`/static/flags/${collection.locationCode}.gif`}
+                    />
+                    {collection.location}
+                  </Badge>
+                </td>
+                <td className={TableClasses.td}>
+                  <div className="space-x-2">
+                    {collection.tags?.length ? (
+                      collection.tags.slice(0, 1).map((t, i) => (
+                        <Badge
+                          className={clsx(
+                            "cursor-pointer hover:bg-opacity-70",
+                            [
+                              "border-purple-400 bg-purple-100",
+                              "border-amber-400 bg-amber-100",
+                              "border-lime-400 bg-lime-100",
+                            ][i % 3]
+                          )}
+                          key={t}
+                        >
+                          {t}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span>-</span>
+                    )}
+                    {collection.tags.length > 1
+                      ? ` (+${collection.tags.length - 1})`
+                      : ""}
                   </div>
                 </td>
                 <td className={TableClasses.td}>{collection.visibility}</td>
                 <td className={TableClasses.td}>{collection.createdAt}</td>
+                <td className={TableClasses.td}>{collection.createdBy}</td>
                 <td className={TableClasses.td}>
                   <div className="flex justify-end">
                     <Link
