@@ -1,4 +1,5 @@
 import re
+from unittest.mock import patch
 
 from django.core import mail
 from django.utils.http import urlsafe_base64_encode
@@ -598,4 +599,45 @@ class SchemaTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "error": "PASSWORD_MISMATCH"},
             r["data"]["setPassword"],
+        )
+
+    def test_create_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.create_membership"
+        ) as create_membership:
+            r = self.run_query(
+                """
+                  mutation createMembership($input: CreateMembershipInput!) {
+                    createMembership(input: $input) {
+                      success
+                      membership {
+                        user { id }
+                        team { id }
+                        role
+                      }
+                    }
+                  }
+                """,
+                {
+                    "input": {
+                        "userEmail": self.USER_TAYLOR.email,
+                        "teamId": str(self.TEAM_CORE.id),
+                        "role": MembershipRole.REGULAR,
+                    },
+                },
+            )
+
+        create_membership.assert_called_once_with(self.USER_JANE, self.TEAM_CORE)
+        self.assertEqual(
+            {
+                "success": True,
+                "membership": {
+                    "user": {"id": str(self.USER_TAYLOR.id)},
+                    "team": {"id": str(self.TEAM_CORE.id)},
+                    "role": MembershipRole.REGULAR,
+                },
+            },
+            r["data"]["createMembership"],
         )

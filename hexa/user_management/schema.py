@@ -285,7 +285,7 @@ def resolve_create_membership(_, info, **kwargs):
     try:
         membership = Membership.objects.create_if_has_perm(
             principal,
-            user=User.objects.get(id=create_input["userId"]),
+            user=User.objects.get(email=create_input["userEmail"]),
             team=Team.objects.get(id=create_input["teamId"]),
             role=create_input["role"],
         )

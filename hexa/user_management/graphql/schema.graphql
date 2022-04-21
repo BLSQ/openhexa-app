@@ -162,7 +162,7 @@ enum PermissionMode {
     VIEWER
 }
 input CreateMembershipInput {
-    userId: String!
+    userEmail: String!
     teamId: String!
     role: MembershipRole!
 }
