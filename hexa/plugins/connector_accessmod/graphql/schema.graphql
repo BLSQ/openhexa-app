@@ -8,6 +8,7 @@ type AccessmodProject {
     author: User!
     extent: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
+    permissions: [AccessmodProjectPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -77,8 +78,8 @@ type AccessmodProjectPermissionPage {
 }
 type AccessmodProjectPermission {
     id: String!
-    user: User!
-    team: Team!
+    user: User
+    team: Team
     project: AccessmodProject!
     mode: PermissionMode!
     createdAt: DateTime!

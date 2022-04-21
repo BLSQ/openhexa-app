@@ -71,6 +71,14 @@ def resolve_accessmod_project_authorized_actions(project: Project, info, **kwarg
     )
 
 
+@project_object.field("permissions")
+def resolve_accessmod_project_permissions(project: Project, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    return project.projectpermission_set.filter_for_user(principal).all()
+
+
 @accessmod_query.field("accessmodProject")
 def resolve_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

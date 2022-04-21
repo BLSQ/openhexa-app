@@ -173,8 +173,7 @@ class ProjectPermissionQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(projectpermission__user=user)
-            | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
+            Q(user=user) | Q(team__in=Team.objects.filter_for_user(user)),
             return_all_if_superuser=False,
         )
 
