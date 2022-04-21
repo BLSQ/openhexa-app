@@ -1,3 +1,4 @@
+# Users
 type User {
     id: String!
     email: String!
@@ -11,6 +12,58 @@ type Avatar {
     initials: String!
     color: String!
 }
+type Me {
+    user: User
+    authorizedActions: [MeAuthorizedActions!]!
+}
+enum MeAuthorizedActions {
+    CREATE_TEAM
+    CREATE_ACCESSMOD_PROJECT
+}
+type LoginResult {
+    success: Boolean!
+    me: Me
+}
+type LogoutResult {
+    success: Boolean!
+}
+input LoginInput {
+    email: String!
+    password: String!
+}
+input ResetPasswordInput {
+    email: String!
+}
+type ResetPasswordResult {
+    success: Boolean!
+}
+input SetPasswordInput {
+    uidb64: String!
+    token: String!
+    password1: String!
+    password2: String!
+}
+enum SetPasswordError {
+    USER_NOT_FOUND
+    PASSWORD_MISMATCH
+    INVALID_TOKEN
+    INVALID_PASSWORD
+}
+type SetPasswordResult {
+    success: Boolean!
+    error: SetPasswordError
+}
+extend type Query {
+    me: Me!
+}
+extend type Mutation {
+    login(input: LoginInput!): LoginResult!
+    logout: LogoutResult!
+    resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+    setPassword(input: SetPasswordInput!): SetPasswordResult!
+}
+
+# Teams
 enum TeamAuthorizedActions {
     UPDATE
     DELETE
@@ -30,6 +83,56 @@ type TeamPage {
     totalItems: Int!
     items: [Team!]!
 }
+input CreateTeamInput {
+    name: String!
+}
+type CreateTeamResult {
+    team: Team
+    success: Boolean!
+    errors: [CreateTeamError!]!
+}
+enum CreateTeamError {
+    PERMISSION_DENIED
+    NAME_DUPLICATE
+}
+
+input UpdateTeamInput {
+    id: String!
+    name: String
+}
+type UpdateTeamResult {
+    team: Team
+    success: Boolean!
+    errors: [UpdateTeamError!]!
+}
+enum UpdateTeamError {
+    NOT_FOUND
+    PERMISSION_DENIED
+    NAME_DUPLICATE
+}
+
+input DeleteTeamInput {
+    id: String!
+}
+type DeleteTeamResult {
+    success: Boolean!
+    errors: [DeleteTeamError!]!
+}
+enum DeleteTeamError {
+    NOT_FOUND
+    PERMISSION_DENIED
+}
+extend type Query {
+    team(id: String!): Team
+    teams(term: String, page: Int, perPage: Int): TeamPage!
+}
+extend type Mutation {
+    createTeam(input: CreateTeamInput!): CreateTeamResult!
+    updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
+    deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
+}
+
+# Memberships
 enum MembershipRole {
     ADMIN
     REGULAR
@@ -57,66 +160,6 @@ enum PermissionMode {
     OWNER
     EDITOR
     VIEWER
-}
-type Organization {
-    id: String!
-    name: String!
-    type: String!
-    url: String!
-    contactInfo: String!
-}
-input OrganizationInput {
-    id: String!
-    name: String
-    type: String
-    url: String
-    contactInfo: String
-}
-type Country {
-    code: String!
-    alpha3: String!
-    name: String!
-    flag: String!
-}
-input CountryInput {
-    code: String!
-    alpha3: String
-    name: String
-    flag: String
-}
-type LoginResult {
-    success: Boolean!
-    me: User
-}
-type LogoutResult {
-    success: Boolean!
-}
-input LoginInput {
-    email: String!
-    password: String!
-}
-input ResetPasswordInput {
-    email: String!
-}
-type ResetPasswordResult {
-    success: Boolean!
-}
-
-input SetPasswordInput {
-    uidb64: String!
-    token: String!
-    password1: String!
-    password2: String!
-}
-enum SetPasswordError {
-    USER_NOT_FOUND
-    PASSWORD_MISMATCH
-    INVALID_TOKEN
-    INVALID_PASSWORD
-}
-type SetPasswordResult {
-    success: Boolean!
-    error: SetPasswordError
 }
 input CreateMembershipInput {
     userId: String!
@@ -157,63 +200,44 @@ enum DeleteMembershipError {
     PERMISSION_DENIED
     NOT_FOUND
 }
-
-input CreateTeamInput {
-    name: String!
-}
-type CreateTeamResult {
-    team: Team
-    success: Boolean!
-    errors: [CreateTeamError!]!
-}
-enum CreateTeamError {
-    PERMISSION_DENIED
-    NAME_DUPLICATE
-}
-
-input UpdateTeamInput {
-    id: String!
-    name: String
-}
-type UpdateTeamResult {
-    team: Team
-    success: Boolean!
-    errors: [UpdateTeamError!]!
-}
-enum UpdateTeamError {
-    NOT_FOUND
-    PERMISSION_DENIED
-    NAME_DUPLICATE
-}
-
-input DeleteTeamInput {
-    id: String!
-}
-type DeleteTeamResult {
-    success: Boolean!
-    errors: [DeleteTeamError!]!
-}
-enum DeleteTeamError {
-    NOT_FOUND
-    PERMISSION_DENIED
-}
-
-extend type Query {
-    me: User
-    countries: [Country!]!
-    organizations: [Organization!]!
-    team(id: String!): Team
-    teams(term: String, page: Int, perPage: Int): TeamPage!
-}
 extend type Mutation {
-    login(input: LoginInput!): LoginResult!
-    logout: LogoutResult!
-    resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
-    setPassword(input: SetPasswordInput!): SetPasswordResult!
-    createTeam(input: CreateTeamInput!): CreateTeamResult!
-    updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
-    deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
     createMembership(input: CreateMembershipInput!): CreateMembershipResult!
     updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
     deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
+}
+
+# Organizations
+type Organization {
+    id: String!
+    name: String!
+    type: String!
+    url: String!
+    contactInfo: String!
+}
+input OrganizationInput {
+    id: String!
+    name: String
+    type: String
+    url: String
+    contactInfo: String
+}
+extend type Query {
+    organizations: [Organization!]!
+}
+
+# Countries
+type Country {
+    code: String!
+    alpha3: String!
+    name: String!
+    flag: String!
+}
+input CountryInput {
+    code: String!
+    alpha3: String
+    name: String
+    flag: String
+}
+extend type Query {
+    countries: [Country!]!
 }

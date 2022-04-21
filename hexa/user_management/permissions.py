@@ -2,9 +2,9 @@ from hexa.user_management.models import Membership, Team, User
 
 
 def create_team(principal: User):
-    """Everyone can create a team."""
+    """Active user can create a team."""
 
-    return True
+    return principal.is_active
 
 
 def update_team(principal: User, team: Team):

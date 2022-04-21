@@ -3,9 +3,9 @@ from hexa.user_management.models import User
 
 
 def create_project(principal: User):
-    """Everyone can create a project"""
+    """Active users can create a project."""
 
-    return True
+    return principal.is_active
 
 
 def update_project(principal: User, project: Project):

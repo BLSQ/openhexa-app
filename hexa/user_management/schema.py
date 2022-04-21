@@ -26,8 +26,22 @@ identity_mutations = MutationType()
 @identity_query.field("me")
 def resolve_me(_, info):
     request = info.context["request"]
+    principal = request.user
 
-    return request.user if request.user.is_authenticated else None
+    return {
+        "user": principal if principal.is_authenticated else None,
+        "authorized_actions": filter(
+            bool,
+            [
+                "CREATE_TEAM"
+                if principal.has_perm("user_management.create_team")
+                else None,
+                "CREATE_ACCESSMOD_PROJECT"
+                if principal.has_perm("connector_accessmod.create_project")
+                else None,
+            ],
+        ),
+    }
 
 
 @identity_query.field("countries")
@@ -174,9 +188,9 @@ def resolve_login(_, info, **kwargs):
     if user_candidate is not None:
         login(request, user_candidate)
 
-        return {"success": True, "me": user_candidate}
+        return {"success": True, "me": resolve_me(_, info)}
     else:
-        return {"success": False}
+        return {"success": False, "me": resolve_me(_, info)}
 
 
 @identity_mutations.field("logout")
