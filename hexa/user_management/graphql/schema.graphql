@@ -193,7 +193,6 @@ input DeleteMembershipInput {
 }
 type DeleteMembershipResult {
     success: Boolean!
-    membership: Membership
     errors: [DeleteMembershipError!]!
 }
 enum DeleteMembershipError {
