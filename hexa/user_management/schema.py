@@ -283,12 +283,18 @@ def resolve_create_membership(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
-        membership = Membership.objects.create_if_has_perm(
-            principal,
-            user=User.objects.get(email=create_input["userEmail"]),
-            team=Team.objects.get(id=create_input["teamId"]),
-            role=create_input["role"],
-        )
+        user = User.objects.get(email=create_input["userEmail"])
+        team = Team.objects.get(id=create_input["teamId"])
+        try:
+            membership: Membership = Membership.objects.get(user=user, team=team)
+            membership.update_if_has_perm(principal, role=create_input["role"])
+        except Membership.DoesNotExist:
+            membership = Membership.objects.create_if_has_perm(
+                principal,
+                user=user,
+                team=team,
+                role=create_input["role"],
+            )
         return {"success": True, "membership": membership, "errors": []}
     except (Team.DoesNotExist, User.DoesNotExist):
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}

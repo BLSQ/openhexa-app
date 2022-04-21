@@ -212,7 +212,7 @@ class MembershipQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(user, Q(user=user))
+        return self._filter_for_user_and_query_object(user, Q(team__members=user))
 
 
 class Membership(Base):

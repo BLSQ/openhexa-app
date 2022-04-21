@@ -1,4 +1,5 @@
 import pathlib
+import uuid
 
 from ariadne import (
     InterfaceType,
@@ -104,7 +105,9 @@ def resolve_accessmod_projects(
         queryset = queryset.filter(country__in=countries)
 
     if teams is not None and len(teams) > 0:
-        queryset = queryset.filter(projectpermission__team__id__in=[teams])
+        queryset = queryset.filter(
+            projectpermission__team__id__in=[uuid.UUID(teamId) for teamId in teams]
+        )
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
