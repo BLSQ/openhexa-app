@@ -206,6 +206,18 @@ class ProjectPermission(Permission):
     def index_object(self):
         self.project.build_index()
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm(
+            "connector_accessmod.update_project_permission", self.project
+        ):
+            raise PermissionDenied
+
+        for key in ["mode"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
     def __str__(self):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
 

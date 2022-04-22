@@ -204,14 +204,33 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
-        permission = ProjectPermission.objects.create_if_has_perm(
-            principal,
-            user=User.objects.get(id=create_input["userId"]),
-            team=Team.objects.get(id=create_input["teamId"]),
-            mode=create_input["mode"],
+        user = (
+            User.objects.get(id=create_input["userId"])
+            if "userId" in create_input
+            else None
         )
+        team = (
+            Team.objects.get(id=create_input["teamId"])
+            if "teamId" in create_input
+            else None
+        )
+        project = Project.objects.get(pk=create_input["projectId"])
+
+        try:
+            permission: ProjectPermission = ProjectPermission.objects.get(
+                project=project, user=user, team=team
+            )
+            permission.update_if_has_perm(principal, mode=create_input["mode"])
+        except ProjectPermission.DoesNotExist:
+            permission = ProjectPermission.objects.create_if_has_perm(
+                principal,
+                project,
+                user=user,
+                team=team,
+                mode=create_input["mode"],
+            )
         return {"success": True, "permission": permission, "errors": []}
-    except (Team.DoesNotExist, User.DoesNotExist):
+    except (Team.DoesNotExist, User.DoesNotExist, Project.DoesNotExist):
         return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
