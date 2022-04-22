@@ -54,12 +54,30 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             duration=60 * 60 * 12,
         )
 
+        json_config = {
+            "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
+            "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
+            "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+            "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+            "buckets": [
+                {"name": b.name, "region": str(b.region), "mode": "RO"}
+                for b in read_only_buckets
+            ]
+            + [
+                {"name": b.name, "region": str(b.region), "mode": "RW"}
+                for b in read_write_buckets
+            ],
+        }
+
         credentials.update_env(
             {
-                "HEXA_FEATURE_FLAG_S3FS": "false",
                 "AWS_S3_BUCKET_NAMES": ",".join(
                     b.name for b in list(read_only_buckets) + list(read_write_buckets)
                 ),
+                "AWS_S3_FUSE_CONFIG": base64.b64encode(
+                    json.dumps(json_config).encode()
+                ).decode(),
+                # Not used by FUSE, but usefull for others
                 "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
                 "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
                 "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
@@ -69,31 +87,6 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             credentials.update_env(
                 {
                     "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
-                }
-            )
-
-        if credentials.user.has_feature_flag("s3fs"):
-            # use fuse -> _PRIVATE_FUSE_CONFIG used to provide configuration (tokens, buckets)
-            fuse_config = {
-                "access_key_id": sts_credentials["AccessKeyId"],
-                "secret_access_key": sts_credentials["SecretAccessKey"],
-                "session_token": sts_credentials["SessionToken"],
-                "aws_default_region": principal_s3_credentials.default_region,
-                "buckets": [
-                    {"name": b.name, "region": str(b.region), "mode": "RO"}
-                    for b in read_only_buckets
-                ]
-                + [
-                    {"name": b.name, "region": str(b.region), "mode": "RW"}
-                    for b in read_write_buckets
-                ],
-            }
-            credentials.update_env(
-                {
-                    "_PRIVATE_FUSE_CONFIG": base64.b64encode(
-                        json.dumps(fuse_config).encode()
-                    ).decode(),
-                    "HEXA_FEATURE_FLAG_S3FS": "true",
                 }
             )
 

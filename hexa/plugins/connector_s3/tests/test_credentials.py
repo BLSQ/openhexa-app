@@ -19,7 +19,6 @@ from hexa.plugins.connector_s3.credentials import (
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import (
     Feature,
-    FeatureFlag,
     Membership,
     MembershipRole,
     PermissionMode,
@@ -77,7 +76,9 @@ class NotebooksCredentialsTest(TestCase):
         b1 = Bucket.objects.create(name="hexa-test-bucket-1")
         b2 = Bucket.objects.create(name="hexa-test-bucket-2")
         Bucket.objects.create(name="hexa-test-bucket-3")
-        BucketPermission.objects.create(bucket=b1, team=cls.TEAM_HEXA)
+        BucketPermission.objects.create(
+            bucket=b1, team=cls.TEAM_HEXA, mode=PermissionMode.VIEWER
+        )
         BucketPermission.objects.create(bucket=b2, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(
             bucket=b2, team=cls.TEAM_ANNOYING, mode=PermissionMode.VIEWER
@@ -95,10 +96,29 @@ class NotebooksCredentialsTest(TestCase):
 
         credentials = NotebooksCredentials(self.USER_JOHN)
         notebooks_credentials(credentials)
-        self.assertEqual("false", credentials.env["HEXA_FEATURE_FLAG_S3FS"])
+        aws_fuse_config = json.loads(
+            base64.b64decode(credentials.env["AWS_S3_FUSE_CONFIG"])
+        )
         self.assertEqual(
             "hexa-test-bucket-1,hexa-test-bucket-2",
             credentials.env["AWS_S3_BUCKET_NAMES"],
+        )
+
+        self.assertEqual(
+            ["RO"],
+            [
+                b["mode"]
+                for b in aws_fuse_config["buckets"]
+                if b["name"] == "hexa-test-bucket-1"
+            ],
+        )
+        self.assertEqual(
+            ["RW"],
+            [
+                b["mode"]
+                for b in aws_fuse_config["buckets"]
+                if b["name"] == "hexa-test-bucket-2"
+            ],
         )
         for key in [
             "AWS_ACCESS_KEY_ID",
@@ -153,33 +173,6 @@ class NotebooksCredentialsTest(TestCase):
         role_policies_data = iam_client.list_role_policies(RoleName=expected_role_name)
         self.assertEqual(1, len(role_policies_data["PolicyNames"]))
         self.assertEqual("s3-access", role_policies_data["PolicyNames"][0])
-
-    @mock_iam
-    @mock_sts
-    @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
-    def test_credentials_s3fs(self, _):
-        """John is a regular user, should have access to 2 buckets"""
-
-        FeatureFlag.objects.create(feature=self.S3FS, user=self.USER_JOHN)
-        credentials = NotebooksCredentials(self.USER_JOHN)
-        notebooks_credentials(credentials)
-        self.assertEqual(credentials.env["HEXA_FEATURE_FLAG_S3FS"], "true")
-        self.assertEqual("_PRIVATE_FUSE_CONFIG" in credentials.env, True)
-
-        fuse_config = json.loads(
-            base64.b64decode(credentials.env["_PRIVATE_FUSE_CONFIG"])
-        )
-        self.assertEqual("eu-central-1", fuse_config["aws_default_region"])
-        self.assertIsInstance(fuse_config["access_key_id"], str)
-        self.assertGreater(len(fuse_config["access_key_id"]), 0)
-        self.assertIsInstance(fuse_config["secret_access_key"], str)
-        self.assertGreater(len(fuse_config["secret_access_key"]), 0)
-        self.assertIsInstance(fuse_config["session_token"], str)
-        self.assertGreater(len(fuse_config["session_token"]), 0)
-        for bucket_config in fuse_config["buckets"]:
-            self.assertEqual("hexa-test-bucket-", bucket_config["name"][:17])
-            self.assertEqual("eu-central-1", bucket_config["region"])
-            self.assertEqual("RW", bucket_config["mode"])
 
 
 class PipelinesCredentialsTest(BaseCredentialsTestCase):
