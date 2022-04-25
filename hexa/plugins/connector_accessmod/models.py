@@ -230,6 +230,12 @@ class FilesetManager(models.Manager):
         )
 
 
+class FilesetStatus(models.TextChoices):
+    PENDING = "PENDING"
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
 class Fileset(Entry):
     class Meta:
         ordering = ["-created_at"]
@@ -241,10 +247,14 @@ class Fileset(Entry):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
+    status = status = models.CharField(
+        max_length=50, choices=FilesetStatus.choices, default=FilesetStatus.PENDING
+    )
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
     author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
+    metadata = models.JSONField(blank=True, default=dict)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
