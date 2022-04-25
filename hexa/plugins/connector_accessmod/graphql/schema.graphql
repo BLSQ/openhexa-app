@@ -141,13 +141,21 @@ extend type Mutation {
 type AccessmodFileset {
     id: String!
     name: String!
-    role: AccessmodFilesetRole
+    status: AccessmodFilesetStatus!
+    role: AccessmodFilesetRole!
     author: User!
     files: [AccessmodFile!]!
+    metadata: AccessmodFilesetMetadata!
     authorizedActions: [AccessmodFilesetAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+enum AccessmodFilesetStatus {
+    PENDING
+    VALID
+    INVALID
+}
+scalar AccessmodFilesetMetadata
 enum AccessmodFilesetAuthorizedActions {
     CREATE
     UPDATE

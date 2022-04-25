@@ -253,7 +253,7 @@ class DAGTemplate(Base):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     code = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    sample_config = models.JSONField(default=dict, blank=True)
+    sample_config = models.JSONField(blank=True, default=dict)
 
     def build_dag_config(self):
         return [dag.build_dag_config() for dag in self.dag_set.all()]
@@ -279,7 +279,7 @@ class DAG(Pipeline):
     dag_id = models.CharField(max_length=200)
 
     # for scheduled DAG:
-    config = models.JSONField(default=dict, blank=True)
+    config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(
         "user_management.User", null=True, blank=True, on_delete=models.SET_NULL
@@ -479,7 +479,7 @@ class DAGRun(Base, WithStatus):
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
     duration = models.DurationField(null=True)
-    conf = models.JSONField(default=dict, blank=True)
+    conf = models.JSONField(blank=True, default=dict)
     webhook_token = models.CharField(max_length=200, blank=True)
 
     objects = DAGRunQuerySet.as_manager()
