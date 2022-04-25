@@ -11,6 +11,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     Project,
 )
 from hexa.plugins.connector_s3.models import Bucket, Credentials
@@ -23,7 +24,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
     PROJECT_EXCITING = None
     LAND_COVER_ROLE = None
     BARRIER_ROLE = None
-    FILESET = None
+    FILESET_COOL = None
+    FILESET_NICE = None
+    FILESET_ANOTHER = None
 
     @classmethod
     def setUpTestData(cls):
@@ -57,29 +60,31 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         cls.BARRIER_ROLE = FilesetRole.objects.create(
             name="Barriers", code=FilesetRoleCode.BARRIER, format=FilesetFormat.RASTER
         )
-        cls.FILESET = Fileset.objects.create(
+        cls.FILESET_COOL = Fileset.objects.create(
             name="A cool fileset",
+            status=FilesetStatus.VALID,
             role=cls.LAND_COVER_ROLE,
             project=cls.PROJECT_BORING,
             author=cls.USER_GREG,
+            metadata={"foo": "bar"},
         )
-        cls.SAMPLE_FILESET_2 = Fileset.objects.create(
+        cls.FILESET_NICE = Fileset.objects.create(
             name="Another nice fileset",
             role=cls.BARRIER_ROLE,
             project=cls.PROJECT_BORING,
             author=cls.USER_GREG,
         )
-        cls.SAMPLE_FILESET_3 = Fileset.objects.create(
+        cls.FILESET_ANOTHER = Fileset.objects.create(
             name="And yet another fileset",
             role=cls.LAND_COVER_ROLE,
             project=cls.PROJECT_EXCITING,
             author=cls.USER_GREG,
         )
         cls.SAMPLE_FILE_1 = File.objects.create(
-            fileset=cls.FILESET, uri="afile.csv", mime_type="text/csv"
+            fileset=cls.FILESET_COOL, uri="afile.csv", mime_type="text/csv"
         )
         cls.SAMPLE_FILE_2 = File.objects.create(
-            fileset=cls.FILESET, uri="anotherfile.csv", mime_type="text/csv"
+            fileset=cls.FILESET_COOL, uri="anotherfile.csv", mime_type="text/csv"
         )
         cls.CREDENTIALS = Credentials.objects.create(
             username="test-username",
@@ -115,22 +120,22 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.FILESET.id)},
+            {"id": str(self.FILESET_COOL.id)},
         )
 
         self.assertEqual(
             r["data"]["accessmodFileset"],
             {
-                "id": str(self.FILESET.id),
-                "name": self.FILESET.name,
-                "status": self.FILESET.status,
-                "role": {"id": str(self.FILESET.role_id)},
-                "author": {"id": str(self.FILESET.author_id)},
+                "id": str(self.FILESET_COOL.id),
+                "name": self.FILESET_COOL.name,
+                "status": self.FILESET_COOL.status,
+                "role": {"id": str(self.FILESET_COOL.role_id)},
+                "author": {"id": str(self.FILESET_COOL.author_id)},
                 "files": [
                     {"id": str(f.id), "mimeType": f.mime_type, "uri": f.uri}
-                    for f in self.FILESET.file_set.all()
+                    for f in self.FILESET_COOL.file_set.all()
                 ],
-                "metadata": {},
+                "metadata": {"foo": "bar"},
             },
         )
 
@@ -145,7 +150,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   }
                 }
             """,
-            {"id": str(self.FILESET.id)},
+            {"id": str(self.FILESET_COOL.id)},
         )
 
         self.assertEqual(
@@ -166,6 +171,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                     totalItems
                     items {
                       id
+                      status
+                      metadata
                     }
                   }
                 }
@@ -180,8 +187,16 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET_2.id)},
-                    {"id": str(self.FILESET.id)},
+                    {
+                        "id": str(self.FILESET_NICE.id),
+                        "status": self.FILESET_NICE.status,
+                        "metadata": {},
+                    },
+                    {
+                        "id": str(self.FILESET_COOL.id),
+                        "status": self.FILESET_COOL.status,
+                        "metadata": {"foo": "bar"},
+                    },
                 ],
             },
         )
@@ -220,7 +235,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalItems": 1,
                 "items": [
                     {
-                        "id": str(self.SAMPLE_FILESET_2.id),
+                        "id": str(self.FILESET_NICE.id),
                         "role": {"code": self.BARRIER_ROLE.code},
                     },
                 ],
@@ -258,7 +273,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalItems": 1,
                 "items": [
                     {
-                        "id": str(self.FILESET.id),
+                        "id": str(self.FILESET_COOL.id),
                     },
                 ],
             },
@@ -320,8 +335,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.SAMPLE_FILESET_2.id)},
-                    {"id": str(self.FILESET.id)},
+                    {"id": str(self.FILESET_NICE.id)},
+                    {"id": str(self.FILESET_COOL.id)},
                 ],
             },
         )
@@ -528,7 +543,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "name": self.FILESET.name,
+                    "name": self.FILESET_COOL.name,
                     "projectId": str(self.PROJECT_BORING.id),
                     "roleId": str(self.LAND_COVER_ROLE.id),
                 }
@@ -603,7 +618,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             {
                 "input": {
                     "uri": self.SAMPLE_FILE_1.uri,
-                    "filesetId": str(self.FILESET.id),
+                    "filesetId": str(self.FILESET_COOL.id),
                     "mimeType": "text/csv",
                 }
             },
