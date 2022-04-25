@@ -263,7 +263,7 @@ class FeatureFlag(Base):
 
     feature = models.ForeignKey("Feature", on_delete=models.CharField)
     user = models.ForeignKey("User", on_delete=models.CASCADE)
-    config = models.JSONField(null=True, blank=True)
+    config = models.JSONField(blank=True, default=dict)
 
     def __str__(self):
         return f"{self.feature.code} - {self.user.username}"
