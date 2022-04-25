@@ -18,6 +18,8 @@ enum AccessmodProjectAuthorizedActions {
     CREATE_FILESET
     CREATE_ANALYSIS
     CREATE_PERMISSION
+    UPDATE_PERMISSION
+    DELETE_PERMISSION
 }
 type AccessmodProjectPage {
     pageNumber: Int!

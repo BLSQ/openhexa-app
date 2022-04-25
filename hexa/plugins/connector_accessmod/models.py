@@ -218,6 +218,14 @@ class ProjectPermission(Permission):
 
         return self.save()
 
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm(
+            "connector_accessmod.delete_project_permission", self.project
+        ):
+            raise PermissionDenied
+
+        return super().delete()
+
     def __str__(self):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
 

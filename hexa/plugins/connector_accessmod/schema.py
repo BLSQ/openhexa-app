@@ -68,6 +68,16 @@ def resolve_accessmod_project_authorized_actions(project: Project, info, **kwarg
                 "connector_accessmod.create_project_permission", project
             )
             else None,
+            "UPDATE_PERMISSION"
+            if principal.has_perm(
+                "connector_accessmod.update_project_permission", project
+            )
+            else None,
+            "DELETE_PERMISSION"
+            if principal.has_perm(
+                "connector_accessmod.delete_project_permission", project
+            )
+            else None,
         ],
     )
 
@@ -224,7 +234,7 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
         except ProjectPermission.DoesNotExist:
             permission = ProjectPermission.objects.create_if_has_perm(
                 principal,
-                project,
+                project=project,
                 user=user,
                 team=team,
                 mode=create_input["mode"],
