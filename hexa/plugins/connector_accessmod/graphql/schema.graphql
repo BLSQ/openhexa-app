@@ -3,6 +3,7 @@ type AccessmodProject {
     id: String!
     name: String!
     spatialResolution: Int!
+    description: String!
     crs: Int!
     country: Country!
     author: User!
@@ -30,6 +31,7 @@ type AccessmodProjectPage {
 input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
+    description: String!
     crs: Int!
     extentId: String
     country: CountryInput!
@@ -46,6 +48,7 @@ enum CreateAccessmodProjectError {
 input UpdateAccessmodProjectInput {
     id: String!
     name: String
+    description: String
     crs: Int
     spatialResolution: Int
     country: CountryInput

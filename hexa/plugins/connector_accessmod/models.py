@@ -41,6 +41,7 @@ class ProjectManager(models.Manager):
         name: str,
         country: Country,
         spatial_resolution: int,
+        description: str,
         crs: int,
         extent: Fileset,
     ):
@@ -53,6 +54,7 @@ class ProjectManager(models.Manager):
             spatial_resolution=spatial_resolution,
             crs=crs,
             extent=extent,
+            description=description,
             author=principal,
         )
         ProjectPermission.objects.create_if_has_perm(
@@ -76,6 +78,9 @@ class Project(Datasource):
     country = CountryField()
     author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
+    )
+    description = models.TextField(
+        verbose_name="Project description", blank=True, null=True
     )
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
@@ -128,7 +133,14 @@ class Project(Datasource):
         if not principal.has_perm("connector_accessmod.update_project", self):
             raise PermissionDenied
 
-        for key in ["name", "country", "spatial_resolution", "crs", "extent"]:
+        for key in [
+            "name",
+            "country",
+            "spatial_resolution",
+            "crs",
+            "extent",
+            "description",
+        ]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

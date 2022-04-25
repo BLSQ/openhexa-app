@@ -138,6 +138,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             country=Country(create_input["country"]["code"]),
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
+            description=create_input["description"],
             extent=Fileset.objects.filter_for_user(request.user).get(
                 id=create_input["filesetId"]
             )
@@ -159,7 +160,7 @@ def resolve_update_accessmod_project(_, info, **kwargs):
     try:
         project = Project.objects.filter_for_user(principal).get(id=update_input["id"])
         changes = {}
-        for scalar_field in ["name", "spatialResolution", "crs"]:
+        for scalar_field in ["name", "spatialResolution", "crs", "description"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
         if "extentId" in update_input:
