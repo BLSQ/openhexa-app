@@ -3,12 +3,22 @@ type AccessmodProject {
     id: String!
     name: String!
     spatialResolution: Int!
+    description: String!
     crs: Int!
     country: Country!
-    owner: User!
+    author: User!
+    extent: AccessmodFileset
+    authorizedActions: [AccessmodProjectAuthorizedActions!]!
+    permissions: [AccessmodProjectPermission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
-    extent: AccessmodFileset
+}
+enum AccessmodProjectAuthorizedActions {
+    UPDATE
+    DELETE
+    CREATE_FILESET
+    CREATE_ANALYSIS
+    CREATE_PERMISSION
 }
 type AccessmodProjectPage {
     pageNumber: Int!
@@ -19,6 +29,7 @@ type AccessmodProjectPage {
 input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
+    description: String
     crs: Int!
     extentId: String
     country: CountryInput!
@@ -30,10 +41,12 @@ type CreateAccessmodProjectResult {
 }
 enum CreateAccessmodProjectError {
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input UpdateAccessmodProjectInput {
     id: String!
     name: String
+    description: String
     crs: Int
     spatialResolution: Int
     country: CountryInput
@@ -47,6 +60,7 @@ type UpdateAccessmodProjectResult {
 enum UpdateAccessmodProjectError {
     NOT_FOUND
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input DeleteAccessmodProjectInput {
     id: String!
@@ -57,26 +71,103 @@ type DeleteAccessmodProjectResult {
 }
 enum DeleteAccessmodProjectError {
     NOT_FOUND
+    PERMISSION_DENIED
+}
+type AccessmodProjectPermissionPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodProjectPermission!]!
+}
+type AccessmodProjectPermission {
+    id: String!
+    user: User
+    team: Team
+    project: AccessmodProject!
+    mode: PermissionMode!
+    authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+enum AccessmodProjectPermissionAuthorizedActions {
+    UPDATE
+    DELETE
+}
+input CreateAccessmodProjectPermissionInput {
+    userId: String
+    teamId: String
+    projectId: String!
+    mode: PermissionMode!
+}
+type CreateAccessmodProjectPermissionResult {
+    success: Boolean!
+    permission: AccessmodProjectPermission
+    errors: [CreateAccessmodProjectPermissionError!]!
+}
+enum CreateAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
+input UpdateAccessmodProjectPermissionInput {
+    id: String!
+    mode: PermissionMode!
+}
+type UpdateAccessmodProjectPermissionResult {
+    success: Boolean!
+    permission: AccessmodProjectPermission
+    errors: [UpdateAccessmodProjectPermissionError!]!
+}
+enum UpdateAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
+}
+input DeleteAccessmodProjectPermissionInput {
+    id: String!
+}
+type DeleteAccessmodProjectPermissionResult {
+    success: Boolean!
+    errors: [DeleteAccessmodProjectPermissionError!]!
+}
+enum DeleteAccessmodProjectPermissionError {
+    PERMISSION_DENIED
+    NOT_FOUND
 }
 extend type Query {
     accessmodProject(id: String): AccessmodProject
-    accessmodProjects(term: String, countries: [String!], page: Int, perPage: Int): AccessmodProjectPage!
+    accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int): AccessmodProjectPage!
 }
 extend type Mutation {
     createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
+    createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
+    updateAccessmodProjectPermission(input: UpdateAccessmodProjectPermissionInput!): UpdateAccessmodProjectPermissionResult!
+    deleteAccessmodProjectPermission(input: DeleteAccessmodProjectPermissionInput!): DeleteAccessmodProjectPermissionResult!
 }
 
 # Filesets
 type AccessmodFileset {
     id: String!
     name: String!
-    role: AccessmodFilesetRole
-    owner: User!
+    status: AccessmodFilesetStatus!
+    role: AccessmodFilesetRole!
+    author: User!
     files: [AccessmodFile!]!
+    metadata: AccessmodFilesetMetadata!
+    authorizedActions: [AccessmodFilesetAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+}
+enum AccessmodFilesetStatus {
+    PENDING
+    VALID
+    INVALID
+}
+scalar AccessmodFilesetMetadata
+enum AccessmodFilesetAuthorizedActions {
+    UPDATE
+    DELETE
+    CREATE_FILE
 }
 type AccessmodFilesetPage {
     pageNumber: Int!
@@ -134,6 +225,7 @@ type CreateAccessmodFilesetResult {
 }
 enum CreateAccessmodFilesetError {
     NAME_DUPLICATE
+    PERMISSION_DENIED
 }
 input PrepareAccessmodFileUploadInput {
     filesetId: String!
@@ -217,9 +309,15 @@ interface AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+}
+enum AccessmodAnalysisAuthorizedActions {
+    UPDATE
+    DELETE
+    RUN
 }
 enum AccessmodAccessibilityAnalysisAlgorithm {
     ANISOTROPIC
@@ -230,7 +328,8 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
     landCover: AccessmodFileset
@@ -258,7 +357,8 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: User!
+    author: User!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
     population: AccessmodFileset

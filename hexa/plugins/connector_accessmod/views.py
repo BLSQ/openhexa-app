@@ -8,8 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.metrics.decorators import do_not_track
-from hexa.plugins.connector_accessmod.authentication import DAGRunUser
 from hexa.plugins.connector_accessmod.models import Analysis
+from hexa.plugins.connector_airflow.authentication import DAGRunUser
 
 logger = getLogger(__name__)
 

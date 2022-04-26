@@ -15,7 +15,6 @@ from .models import (
 class PermissionInline(admin.StackedInline):
     extra = 1
     model = DAGPermission
-    verbose_name = "Team permission"
 
 
 class DAGAuthorizedDatasourceInline(admin.TabularInline):
@@ -31,11 +30,6 @@ class ClusterAdmin(admin.ModelAdmin):
     @display(ordering="url", description="Url")
     def get_url(self, obj):
         return format_html("<a href='{url}'>{url}</a>", url=obj.url)
-
-
-@admin.register(DAGPermission)
-class DAGPermissionAdmin(admin.ModelAdmin):
-    list_display = ("dag", "team")
 
 
 @admin.register(DAGTemplate)
@@ -72,3 +66,8 @@ class DAGAuthorizedDatasourceAdmin(admin.ModelAdmin):
     )
     def connector(self, instance):
         return instance.datasource_type.app_label
+
+
+@admin.register(DAGPermission)
+class DAGPermissionAdmin(admin.ModelAdmin):
+    list_display = ("dag", "team", "user", "mode")

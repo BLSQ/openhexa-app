@@ -15,10 +15,9 @@ from psycopg2 import OperationalError, sql
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Permission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, Team, User
 
 
 class ExternalType(Enum):
@@ -234,12 +233,29 @@ class Table(Entry):
 
 
 class DatabasePermission(Permission):
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "database",
+                name="database_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "database",
+                name="database_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="database_permission_user_or_team_not_null",
+            ),
+        ]
+
     database = models.ForeignKey(
         "connector_postgresql.Database", on_delete=models.CASCADE
     )
-
-    class Meta:
-        unique_together = [("database", "team")]
 
     def index_object(self):
         self.database.build_index()

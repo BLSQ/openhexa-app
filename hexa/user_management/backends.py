@@ -1,35 +1,51 @@
-from django.contrib.auth.backends import ModelBackend as BaseModelBackend
+import typing
+from functools import cache
+from importlib import import_module
+from types import ModuleType
+
+from django.apps import apps
+from django.contrib.auth.backends import BaseBackend
+
+from hexa.user_management import models as user_management_models
 
 
-class ModelBackend(BaseModelBackend):
+class PermissionsBackend(BaseBackend):
     """Custom permission backend that uses model methods to check for permissions."""
 
-    def get_user_permissions(self, user_obj, obj=None):
-        base_permissions = super().get_user_permissions(user_obj, obj)
+    @staticmethod
+    @cache
+    def _get_permission_module(
+        app_label: str,
+    ) -> typing.Optional[ModuleType]:
+        try:
+            app_config = apps.get_app_config(app_label)
+            import_path = f"{app_config.name}.permissions"
+            permissions_module = import_module(import_path)
+        except LookupError:
+            return None
 
-        return base_permissions
+        return permissions_module
 
-    def get_group_permissions(self, user_obj, obj=None):
-        base_permissions = super().get_group_permissions(user_obj, obj)
+    def has_perm(
+        self,
+        user_obj: user_management_models.User,
+        perm: str,
+        obj: typing.Any = None,
+    ):
+        try:
+            app_label, app_perm = perm.split(".")
+        except ValueError:
+            raise ValueError(
+                f'Invalid permission "{perm}" (Should be "app_label.perm")'
+            )
+        permission_module = self._get_permission_module(app_label)
+        permission_function = getattr(permission_module, app_perm)
 
-        return base_permissions
+        if permission_function is None:
+            return False
 
-    def get_all_permissions(self, user_obj, obj=None):
-        base_permissions = super().get_all_permissions(user_obj, obj)
+        args = [user_obj]
+        if obj is not None:
+            args.append(obj)
 
-        return base_permissions
-
-    def has_perm(self, user_obj, perm, obj=None):
-        base_has_perm = super().has_perm(user_obj, perm, obj)
-
-        return base_has_perm
-
-    def has_module_perms(self, user_obj, app_label):
-        base_has_module_perms = super().has_module_perms(user_obj, app_label)
-
-        return base_has_module_perms
-
-    def with_perm(self, perm, is_active=True, include_superusers=True, obj=None):
-        base_with_perm = super().with_perm(perm, is_active, include_superusers, obj)
-
-        return base_with_perm
+        return permission_function(*args)
