@@ -69,11 +69,18 @@ extend type Mutation {
 }
 
 # Filesets
+enum FilesetStatus {
+    PENDING
+    VALIDATING
+    VALID
+    INVALID
+}
 type AccessmodFileset {
     id: String!
     name: String!
     role: AccessmodFilesetRole
     owner: User!
+    status: FilesetStatus!
     files: [AccessmodFile!]!
     createdAt: DateTime!
     updatedAt: DateTime!

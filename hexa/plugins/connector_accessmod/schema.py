@@ -23,9 +23,11 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
+    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
 )
+from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 
@@ -289,7 +291,16 @@ def resolve_create_accessmod_file(_, info, **kwargs):
             mime_type=create_input["mimeType"],
             fileset=fileset,
         )
+        fileset.status = FilesetStatus.VALIDATING
         fileset.save()  # Will update updated_at
+
+        # start background validation
+        validate_fileset_queue.enqueue(
+            "validate_fileset",
+            {
+                "fileset_id": str(fileset.id),
+            },
+        )
         return {"success": True, "file": file, "errors": []}
     except IntegrityError:
         return {"success": False, "file": None, "errors": ["URI_DUPLICATE"]}

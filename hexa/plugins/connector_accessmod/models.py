@@ -8,6 +8,7 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
 from django_countries.fields import CountryField
+from dpq.models import BaseJob
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.catalog.models import Datasource, Entry
@@ -95,6 +96,18 @@ class ProjectPermission(Permission):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
 
 
+class FilesetStatus(models.TextChoices):
+    # pending: fileset incomplete, upload not started or in progress
+    PENDING = "PENDING"
+
+    # upload finished, validation running
+    VALIDATING = "VALIDATING"
+
+    # validation done, outcome valid or invalid
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
 class FilesetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
@@ -112,6 +125,11 @@ class Fileset(Entry):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
+    status = models.CharField(
+        max_length=50,
+        choices=FilesetStatus.choices,
+        default=FilesetStatus.PENDING,
+    )
     owner = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
@@ -132,6 +150,14 @@ class FilesetFormat(models.TextChoices):
     VECTOR = "VECTOR"
     RASTER = "RASTER"
     TABULAR = "TABULAR"
+
+
+class ValidateFilesetJob(BaseJob):
+    # queue table to hold validation job from django-postgres-queue
+    # Need to redefine this class to specify a custom table name,
+    # to avoid conflicts with other queue in the system
+    class Meta:
+        db_table = "connector_accessmod_validatefilesetjob"
 
 
 class FilesetRoleCode(models.TextChoices):
