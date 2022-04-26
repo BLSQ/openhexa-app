@@ -23,7 +23,6 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
-    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
 )
@@ -291,7 +290,6 @@ def resolve_create_accessmod_file(_, info, **kwargs):
             mime_type=create_input["mimeType"],
             fileset=fileset,
         )
-        fileset.status = FilesetStatus.VALIDATING
         fileset.save()  # Will update updated_at
 
         # start background validation

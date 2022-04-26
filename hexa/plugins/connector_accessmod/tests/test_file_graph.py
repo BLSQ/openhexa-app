@@ -10,6 +10,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     Project,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
@@ -375,7 +376,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r1["data"]["createAccessmodFileset"]["fileset"]["name"],
         )
         self.assertEqual(
-            "PENDING",
+            FilesetStatus.PENDING,
             r1["data"]["createAccessmodFileset"]["fileset"]["status"],
         )
         self.assertEqual(
@@ -458,7 +459,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertTrue(r3["data"]["createAccessmodFile"]["success"])
         self.assertEqual(file_uri, r3["data"]["createAccessmodFile"]["file"]["uri"])
         self.assertEqual(
-            "VALIDATING", r3["data"]["createAccessmodFile"]["file"]["fileset"]["status"]
+            FilesetStatus.PENDING,
+            r3["data"]["createAccessmodFile"]["file"]["fileset"]["status"],
         )
         self.assertEqual(
             "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
@@ -478,7 +480,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         # check status is valid now
         fileset = Fileset.objects.get(id=fileset_id)
-        self.assertEqual(fileset.status, "VALID")
+        self.assertEqual(fileset.status, Fileset.VALID)
 
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)

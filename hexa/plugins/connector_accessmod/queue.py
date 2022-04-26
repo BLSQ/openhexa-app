@@ -11,12 +11,19 @@ logger = getLogger(__name__)
 def validate_fileset_job(queue, job):
     try:
         fileset = Fileset.objects.get(id=job.args["fileset_id"])
+
     except Fileset.DoesNotExist:
         logger.error("fileset %s not found", job.args["fileset_id"])
+
     else:
+        fileset.status = FilesetStatus.VALIDATING
+        fileset.save()
+
+        # a lot of heavy processing...
+        sleep(3)
+
         fileset.status = FilesetStatus.VALID
         fileset.save()
-        sleep(3)
 
 
 class ValidateFilesetQueue(AtLeastOnceQueue):
