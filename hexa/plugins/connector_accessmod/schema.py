@@ -717,6 +717,7 @@ accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,
     project_object,
+    permission_object,
     fileset_object,
     analysis_interface,
 ]
