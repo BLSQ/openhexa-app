@@ -14,21 +14,17 @@ class PermissionsBackend(BaseBackend):
 
     @staticmethod
     @cache
-    def _get_permission_function(perm: str) -> typing.Optional[ModuleType]:
-        try:
-            app_label, app_perm = perm.split(".")
-        except ValueError:
-            raise ValueError(
-                f'Invalid permission "{perm}" (Should be "app_label.perm")'
-            )
-
+    def _get_permission_module(
+        app_label: str,
+    ) -> typing.Optional[ModuleType]:
         try:
             app_config = apps.get_app_config(app_label)
-            permissions_module = import_module(f"{app_config.name}.permissions")
+            import_path = f"{app_config.name}.permissions"
+            permissions_module = import_module(import_path)
         except LookupError:
             return None
 
-        return getattr(permissions_module, app_perm)
+        return permissions_module
 
     def has_perm(
         self,
@@ -36,7 +32,15 @@ class PermissionsBackend(BaseBackend):
         perm: str,
         obj: typing.Any = None,
     ):
-        permission_function = self._get_permission_function(perm)
+        try:
+            app_label, app_perm = perm.split(".")
+        except ValueError:
+            raise ValueError(
+                f'Invalid permission "{perm}" (Should be "app_label.perm")'
+            )
+        permission_module = self._get_permission_module(app_label)
+        permission_function = getattr(permission_module, app_perm)
+
         if permission_function is None:
             return False
 

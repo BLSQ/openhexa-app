@@ -628,8 +628,8 @@ class SchemaTest(GraphQLTestCase):
                     },
                 },
             )
-            create_membership.assert_called_once_with(self.USER_JANE, self.TEAM_CORE)
 
+        create_membership.assert_called_once_with(self.USER_JANE, self.TEAM_CORE)
         self.assertEqual(
             {
                 "success": True,
