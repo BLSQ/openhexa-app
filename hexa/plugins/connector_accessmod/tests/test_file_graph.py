@@ -480,7 +480,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
         # check status is valid now
         fileset = Fileset.objects.get(id=fileset_id)
-        self.assertEqual(fileset.status, Fileset.VALID)
+        self.assertEqual(fileset.status, FilesetStatus.VALID)
 
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)
