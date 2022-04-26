@@ -138,7 +138,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             country=Country(create_input["country"]["code"]),
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
-            description=create_input["description"],
+            description=create_input.get("description", ""),
             extent=Fileset.objects.filter_for_user(request.user).get(
                 id=create_input["filesetId"]
             )

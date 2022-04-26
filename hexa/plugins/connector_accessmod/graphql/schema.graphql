@@ -31,7 +31,7 @@ type AccessmodProjectPage {
 input CreateAccessmodProjectInput {
     name: String!
     spatialResolution: Int!
-    description: String!
+    description: String
     crs: Int!
     extentId: String
     country: CountryInput!

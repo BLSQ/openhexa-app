@@ -79,9 +79,7 @@ class Project(Datasource):
     author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
-    description = models.TextField(
-        verbose_name="Project description", blank=True, null=True
-    )
+    description = models.TextField(verbose_name="Project description", blank=True)
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
     extent = models.ForeignKey(
