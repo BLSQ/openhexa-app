@@ -213,6 +213,12 @@ class ProjectPermission(Permission):
 
     objects = ProjectPermissionManager.from_queryset(ProjectPermissionQuerySet)()
 
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[User, Team]:
+        return self.project.owner
+
     def index_object(self):
         self.project.build_index()
 

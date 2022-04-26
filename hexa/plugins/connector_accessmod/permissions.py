@@ -1,4 +1,9 @@
-from hexa.plugins.connector_accessmod.models import Analysis, Fileset, Project
+from hexa.plugins.connector_accessmod.models import (
+    Analysis,
+    Fileset,
+    Project,
+    ProjectPermission,
+)
 from hexa.user_management.models import User
 
 
@@ -30,16 +35,16 @@ def create_project_permission(principal: User, project: Project):
     )
 
 
-def update_project_permission(principal: User, project: Project):
+def update_project_permission(principal: User, permission: ProjectPermission):
     """Only project owners can update a project permission"""
 
-    return principal == project.owner or principal.is_admin_of(project.owner)
+    return principal == permission.owner or principal.is_admin_of(permission.owner)
 
 
-def delete_project_permission(principal: User, project: Project):
+def delete_project_permission(principal: User, permission: ProjectPermission):
     """Only project owners can delete a project permission"""
 
-    return principal == project.owner or principal.is_admin_of(project.owner)
+    return principal == permission.owner or principal.is_admin_of(permission.owner)
 
 
 def create_fileset(principal: User, project: Project):

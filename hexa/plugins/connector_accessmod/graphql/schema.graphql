@@ -19,8 +19,6 @@ enum AccessmodProjectAuthorizedActions {
     CREATE_FILESET
     CREATE_ANALYSIS
     CREATE_PERMISSION
-    UPDATE_PERMISSION
-    DELETE_PERMISSION
 }
 type AccessmodProjectPage {
     pageNumber: Int!
@@ -87,8 +85,13 @@ type AccessmodProjectPermission {
     team: Team
     project: AccessmodProject!
     mode: PermissionMode!
+    authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+}
+enum AccessmodProjectPermissionAuthorizedActions {
+    UPDATE
+    DELETE
 }
 input CreateAccessmodProjectPermissionInput {
     userId: String
@@ -162,7 +165,6 @@ enum AccessmodFilesetStatus {
 }
 scalar AccessmodFilesetMetadata
 enum AccessmodFilesetAuthorizedActions {
-    CREATE
     UPDATE
     DELETE
     CREATE_FILE

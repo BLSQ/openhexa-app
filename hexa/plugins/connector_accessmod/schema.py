@@ -68,16 +68,6 @@ def resolve_accessmod_project_authorized_actions(project: Project, info, **kwarg
                 "connector_accessmod.create_project_permission", project
             )
             else None,
-            "UPDATE_PERMISSION"
-            if principal.has_perm(
-                "connector_accessmod.update_project_permission", project
-            )
-            else None,
-            "DELETE_PERMISSION"
-            if principal.has_perm(
-                "connector_accessmod.delete_project_permission", project
-            )
-            else None,
         ],
     )
 
@@ -205,6 +195,34 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         return {"success": True, "errors": []}
     except Project.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
+
+
+# Permissions
+permission_object = ObjectType("AccessmodProjectPermission")
+
+
+@permission_object.field("authorizedActions")
+def resolve_accessmod_project_permission_authorized_actions(
+    permission: ProjectPermission, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    return filter(
+        bool,
+        [
+            "UPDATE"
+            if principal.has_perm(
+                "connector_accessmod.update_project_permission", permission
+            )
+            else None,
+            "DELETE"
+            if principal.has_perm(
+                "connector_accessmod.delete_project_permission", permission
+            )
+            else None,
+        ],
+    )
 
 
 @accessmod_mutations.field("createAccessmodProjectPermission")
