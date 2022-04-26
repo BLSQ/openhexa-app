@@ -14,6 +14,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetStatus,
     Project,
 )
+from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 from hexa.user_management.models import User
 
@@ -385,6 +386,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                     fileset {
                         id
                         name
+                        status
                         role {
                             id
                         }
@@ -404,6 +406,10 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             "A scary nâme!!!  😱",
             r1["data"]["createAccessmodFileset"]["fileset"]["name"],
+        )
+        self.assertEqual(
+            FilesetStatus.PENDING,
+            r1["data"]["createAccessmodFileset"]["fileset"]["status"],
         )
         self.assertEqual(
             {"id": str(self.LAND_COVER_ROLE.id)},
@@ -468,6 +474,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                             mimeType
                             fileset {
                                 id
+                                status
                             }
                         }
                     }
@@ -484,6 +491,10 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertTrue(r3["data"]["createAccessmodFile"]["success"])
         self.assertEqual(file_uri, r3["data"]["createAccessmodFile"]["file"]["uri"])
         self.assertEqual(
+            FilesetStatus.PENDING,
+            r3["data"]["createAccessmodFile"]["file"]["fileset"]["status"],
+        )
+        self.assertEqual(
             "text/csv", r3["data"]["createAccessmodFile"]["file"]["mimeType"]
         )
         self.assertIn(
@@ -494,6 +505,14 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             fileset_id, r3["data"]["createAccessmodFile"]["file"]["fileset"]["id"]
         )
         file_id = r3["data"]["createAccessmodFile"]["file"]["id"]
+
+        # validation started (status from fileset say so) -> run the background queue
+        while validate_fileset_queue.run_once():
+            pass
+
+        # check status is valid now
+        fileset = Fileset.objects.get(id=fileset_id)
+        self.assertEqual(fileset.status, FilesetStatus.VALID)
 
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)

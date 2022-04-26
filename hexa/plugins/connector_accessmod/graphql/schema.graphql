@@ -160,6 +160,7 @@ type AccessmodFileset {
 }
 enum AccessmodFilesetStatus {
     PENDING
+    VALIDATING
     VALID
     INVALID
 }
