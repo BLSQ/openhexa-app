@@ -1,6 +1,33 @@
 Changelog
 =========
 
+Version 0.34
+------------
+
+April 26, 2022
+
+### Added
+
+- New image build process for data processing and validation
+
+### Fixed
+
+- Fixed MultiplePermission error in DHIS2 datacard
+
+Version 0.33
+------------
+
+April 19, 2022
+
+Maintenance / AccessMod release
+
+Version 0.32
+------------
+
+April 12, 2022
+
+Maintenance / AccessMod release
+
 Version 0.31
 ------------
 
