@@ -279,7 +279,7 @@ class Fileset(Entry):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
-    status = status = models.CharField(
+    status = models.CharField(
         max_length=50, choices=FilesetStatus.choices, default=FilesetStatus.PENDING
     )
     role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)

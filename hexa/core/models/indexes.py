@@ -296,6 +296,11 @@ class BaseIndexableMixin:
         return indexes[0]
 
     def get_permission_set(self):
+        """Return a queryset of permission objects that needs to be indexed.
+        (We don't only index content but also their permissions, so that the indexes record can be filtered
+        depending on the user permissions).
+        """
+
         raise NotImplementedError
 
     def populate_index(self, index):

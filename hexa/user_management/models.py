@@ -169,7 +169,7 @@ class Team(Base):
         db_table = "identity.team"
         ordering = ["name"]
 
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, unique=True)
     members = models.ManyToManyField("User", through="Membership")
 
     objects = TeamManager.from_queryset(TeamQuerySet)()
@@ -219,6 +219,9 @@ class Membership(Base):
     class Meta:
         db_table = "identity.membership"
         ordering = ["team__name", "user__email"]
+        constraints = [
+            models.UniqueConstraint("user", "team", name="membership_unique_user_team")
+        ]
 
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     team = models.ForeignKey("Team", on_delete=models.CASCADE)
