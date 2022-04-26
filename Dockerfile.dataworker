@@ -2,7 +2,9 @@
 # to do datasciences and geo stats. It's can be usefull if you want some
 # background worker without the web/css part and with more data capabilities.
 
-FROM python:3.9
+FROM ubuntu:focal-20220113
+
+ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y mdbtools \
   wait-for-it \
@@ -16,9 +18,9 @@ RUN apt-get update && apt-get install -y mdbtools \
 RUN mkdir /code
 WORKDIR /code
 
-COPY requirements.txt requirements-ds.txt /code/
+COPY requirements.txt requirements-data-worker.txt /code/
 
-RUN pip install -r requirements.txt && pip install -r requirements-ds.txt
+RUN pip install -r requirements.txt && pip install -r requirements-data-worker.txt
 
 COPY . /code/
 
