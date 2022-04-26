@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import typing
 import uuid
@@ -24,14 +26,14 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource
-from hexa.core.models import Base, Permission, WithStatus
+from hexa.core.models import Base, WithStatus
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.pipelines.models import Environment, Index, Pipeline
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, Team, User
 
 logger = getLogger(__name__)
 
@@ -251,7 +253,7 @@ class DAGTemplate(Base):
     cluster = models.ForeignKey("Cluster", on_delete=models.CASCADE)
     code = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    sample_config = models.JSONField(default=dict, blank=True)
+    sample_config = models.JSONField(blank=True, default=dict)
 
     def build_dag_config(self):
         return [dag.build_dag_config() for dag in self.dag_set.all()]
@@ -277,7 +279,7 @@ class DAG(Pipeline):
     dag_id = models.CharField(max_length=200)
 
     # for scheduled DAG:
-    config = models.JSONField(default=dict, blank=True)
+    config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(
         "user_management.User", null=True, blank=True, on_delete=models.SET_NULL
@@ -353,8 +355,9 @@ class DAG(Pipeline):
         }
 
     @staticmethod
-    def build_webhook_token() -> typing.Tuple[uuid.UUID, str]:
+    def build_webhook_token() -> typing.Tuple[str, typing.Any]:
         unsigned = str(uuid.uuid4())
+
         return unsigned, Signer().sign_object(unsigned)
 
 
@@ -396,10 +399,27 @@ class DAGAuthorizedDatasource(Base):
 
 
 class DAGPermission(Permission):
-    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "dag",
+                name="dag_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "dag",
+                name="dag_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="dag_user_or_team_not_null",
+            ),
+        ]
 
-    class Meta:
-        unique_together = [("dag", "team")]
+    dag = models.ForeignKey("DAG", on_delete=models.CASCADE)
 
     def index_object(self) -> None:
         self.dag.build_index()
@@ -459,7 +479,7 @@ class DAGRun(Base, WithStatus):
     execution_date = models.DateTimeField()
     state = models.CharField(max_length=200, blank=False, choices=DAGRunState.choices)
     duration = models.DurationField(null=True)
-    conf = models.JSONField(default=dict, blank=True)
+    conf = models.JSONField(blank=True, default=dict)
     webhook_token = models.CharField(max_length=200, blank=True)
 
     objects = DAGRunQuerySet.as_manager()

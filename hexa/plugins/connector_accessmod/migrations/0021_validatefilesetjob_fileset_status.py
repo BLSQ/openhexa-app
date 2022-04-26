@@ -41,18 +41,4 @@ class Migration(migrations.Migration):
                 "db_table": "connector_accessmod_validatefilesetjob",
             },
         ),
-        migrations.AddField(
-            model_name="fileset",
-            name="status",
-            field=models.CharField(
-                choices=[
-                    ("PENDING", "Pending"),
-                    ("VALIDATING", "Validating"),
-                    ("VALID", "Valid"),
-                    ("INVALID", "Invalid"),
-                ],
-                default="PENDING",
-                max_length=50,
-            ),
-        ),
     ]

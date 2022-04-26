@@ -5,7 +5,7 @@ from django import test
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpRequest
 
-from hexa.plugins.connector_accessmod.authentication import DAGRunUser
+from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.user_management.models import User
 
 

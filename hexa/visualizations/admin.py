@@ -8,6 +8,11 @@ from .models import (
 )
 
 
+class PermissionInline(admin.TabularInline):
+    extra = 1
+    model = ExternalDashboardPermission
+
+
 @admin.register(Index)
 class IndexAdmin(admin.ModelAdmin):
     list_display = (
@@ -45,4 +50,4 @@ class ExternalDashboardAdmin(admin.ModelAdmin):
 
 @admin.register(ExternalDashboardPermission)
 class ExternalDashboardPermissionAdmin(admin.ModelAdmin):
-    list_display = ("external_dashboard", "team")
+    list_display = ("external_dashboard", "team", "user", "mode")

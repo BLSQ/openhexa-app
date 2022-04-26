@@ -4,7 +4,6 @@ import typing
 import uuid
 
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from hexa.user_management import models as user_management_models
@@ -67,22 +66,3 @@ class Base(models.Model):
 
     def __str__(self):
         return self.display_name
-
-
-class Permission(Base):
-    class Meta:
-        abstract = True
-
-    team = models.ForeignKey("user_management.Team", on_delete=models.CASCADE)
-    index_permission = GenericRelation(
-        "catalog.IndexPermission",
-        content_type_field="permission_type_id",
-        object_id_field="permission_id",
-    )
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.index_object()
-
-    def index_object(self):
-        raise NotImplementedError

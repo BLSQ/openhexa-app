@@ -45,7 +45,7 @@ case "$command" in
   wait-for-it db:5432
   export DEBUG=false
   python manage.py makemigrations --check
-  python manage.py test --parallel $arguments
+  python manage.py test $arguments
   ;;
 "coveraged-test")
   wait-for-it db:5432

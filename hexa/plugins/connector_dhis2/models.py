@@ -15,12 +15,12 @@ from slugify import slugify
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Base, Permission
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, Team, User
 
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
@@ -212,13 +212,30 @@ class Instance(Datasource):
 
 
 class InstancePermission(Permission):
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "instance",
+                name="instance_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "instance",
+                name="instance_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="instance_permission_user_or_team_not_null",
+            ),
+        ]
+
     instance = models.ForeignKey("Instance", on_delete=models.CASCADE)
     enable_notebooks_credentials = models.BooleanField(
         default=False, help_text="Should the user have access to the API credentials?"
     )
-
-    class Meta:
-        unique_together = [("instance", "team")]
 
     def index_object(self):
         self.instance.build_index()

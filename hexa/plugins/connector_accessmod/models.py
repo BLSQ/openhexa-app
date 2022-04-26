@@ -1,55 +1,104 @@
+from __future__ import annotations
+
 import enum
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
-from django_countries.fields import CountryField
+from django_countries.fields import Country, CountryField
 from dpq.models import BaseJob
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.core import mimetypes
-from hexa.core.models import Base, Permission
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
-from hexa.plugins.connector_airflow.models import DAG, DAGRunState
+from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, PermissionMode, Team
 
 
 class ProjectQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(owner=user)
+            Q(projectpermission__user=user)
             | Q(projectpermission__team__in=Team.objects.filter_for_user(user)),
             return_all_if_superuser=False,
         )
+
+
+class ProjectManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        name: str,
+        country: Country,
+        spatial_resolution: int,
+        description: str,
+        crs: int,
+        extent: Fileset,
+    ):
+        if not principal.has_perm("connector_accessmod.create_project"):
+            raise PermissionDenied
+
+        project = self.create(
+            name=name,
+            country=country,
+            spatial_resolution=spatial_resolution,
+            crs=crs,
+            extent=extent,
+            description=description,
+            author=principal,
+        )
+        ProjectPermission.objects.create_if_has_perm(
+            principal,
+            user=principal,
+            project=project,
+            mode=PermissionMode.OWNER,
+        )
+
+        return project
 
 
 class Project(Datasource):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint("name", "owner", name="project_unique_name_owner")
+            models.UniqueConstraint("name", "author", name="project_unique_name_author")
         ]
 
     name = models.TextField(verbose_name="project name")
     country = CountryField()
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
+    description = models.TextField(verbose_name="Project description", blank=True)
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
     extent = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
 
-    objects = ProjectQuerySet.as_manager()
+    objects = ProjectManager.from_queryset(ProjectQuerySet)()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Optional[typing.Union[User, Team]]:
+        try:
+            permission = self.projectpermission_set.get(mode=PermissionMode.OWNER)
+
+            return permission.user if permission.user is not None else permission.team
+        except ProjectPermission.DoesNotExist:
+            return None
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
@@ -79,18 +128,120 @@ class Project(Datasource):
     def get_absolute_url(self):
         raise NotImplementedError
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("connector_accessmod.update_project", self):
+            raise PermissionDenied
+
+        for key in [
+            "name",
+            "country",
+            "spatial_resolution",
+            "crs",
+            "extent",
+            "description",
+        ]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("connector_accessmod.delete_project", self):
+            raise PermissionDenied
+
+        return super().delete()
+
     def __str__(self):
         return self.name
 
 
+class ProjectPermissionManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        user: User = None,
+        team: Team = None,
+        project: Project,
+        mode: PermissionMode,
+    ):
+        if not principal.has_perm(
+            "connector_accessmod.create_project_permission", project
+        ):
+            raise PermissionDenied
+
+        permission = self.create(
+            user=user,
+            team=team,
+            project=project,
+            mode=mode,
+        )
+
+        return permission
+
+
+class ProjectPermissionQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self._filter_for_user_and_query_object(
+            user,
+            Q(user=user) | Q(team__in=Team.objects.filter_for_user(user)),
+            return_all_if_superuser=False,
+        )
+
+
 class ProjectPermission(Permission):
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "project",
+                name="project_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "project",
+                name="project_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="project_permission_user_or_team_not_null",
+            ),
+        ]
+
     project = models.ForeignKey("connector_accessmod.Project", on_delete=models.CASCADE)
 
-    class Meta:
-        unique_together = [("project", "team")]
+    objects = ProjectPermissionManager.from_queryset(ProjectPermissionQuerySet)()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[User, Team]:
+        return self.project.owner
 
     def index_object(self):
         self.project.build_index()
+
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm(
+            "connector_accessmod.update_project_permission", self.project
+        ):
+            raise PermissionDenied
+
+        for key in ["mode"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm(
+            "connector_accessmod.delete_project_permission", self.project
+        ):
+            raise PermissionDenied
+
+        return super().delete()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
@@ -113,6 +264,21 @@ class FilesetQuerySet(BaseQuerySet):
         return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
 
 
+class FilesetManager(models.Manager):
+    def create_if_has_perm(
+        self, principal: User, *, project: Project, name: str, role: FilesetRole
+    ):
+        if not principal.has_perm("connector_accessmod.create_fileset", project):
+            raise PermissionDenied
+
+        return self.create(
+            author=principal,
+            name=name,
+            project=project,
+            role=role,
+        )
+
+
 class Fileset(Entry):
     class Meta:
         ordering = ["-created_at"]
@@ -124,17 +290,36 @@ class Fileset(Entry):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
-    role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
     status = models.CharField(
-        max_length=50,
-        choices=FilesetStatus.choices,
-        default=FilesetStatus.PENDING,
+        max_length=50, choices=FilesetStatus.choices, default=FilesetStatus.PENDING
     )
-    owner = models.ForeignKey(
+    role = models.ForeignKey("FilesetRole", on_delete=models.PROTECT)
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
+    metadata = models.JSONField(blank=True, default=dict)
 
-    objects = FilesetQuerySet.as_manager()
+    objects = FilesetManager.from_queryset(FilesetQuerySet)()
+
+    def update_if_has_perm(self, principal: User, *, name: str):
+        if not principal.has_perm("connector_accessmod.update_fileset", self):
+            raise PermissionDenied
+
+        self.name = name
+
+        return self.save()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("connector_accessmod.delete_fileset", self):
+            raise PermissionDenied
+
+        return super().delete()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[User, Team]:
+        return self.project.owner
 
     def get_permission_set(self):
         return self.project.get_permission_set()
@@ -191,6 +376,16 @@ class FileQuerySet(BaseQuerySet):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
+class FileManager(models.Manager):
+    def create_if_has_perm(
+        self, principal: User, *, fileset: Fileset, uri: str, mime_type: str
+    ):
+        if not principal.has_perm("connector_accessmod.create_file", fileset):
+            raise PermissionDenied
+
+        return self.create(fileset=fileset, uri=uri, mime_type=mime_type)
+
+
 class File(Entry):
     class Meta:
         ordering = ["-created_at"]
@@ -200,7 +395,8 @@ class File(Entry):
     )  # According to the spec https://datatracker.ietf.org/doc/html/rfc4288#section-4.2
     uri = models.TextField(unique=True)
     fileset = models.ForeignKey("Fileset", on_delete=models.CASCADE)
-    objects = FileQuerySet.as_manager()
+
+    objects = FileManager.from_queryset(FileQuerySet)()
 
     def get_permission_set(self):
         return self.fileset.get_permission_set()
@@ -234,8 +430,10 @@ class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
             user,
-            Q(owner=user)
-            | Q(analysispermission__team__in=Team.objects.filter_for_user(user)),
+            Q(project__projectpermission__user=user)
+            | Q(
+                project__projectpermission__team__in=Team.objects.filter_for_user(user)
+            ),
             return_all_if_superuser=False,
         )
 
@@ -249,6 +447,16 @@ class AnalysisManager(InheritanceManager):
 
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
+
+    def create_if_has_perm(self, principal: User, *, project: Project, **kwargs):
+        if not principal.has_perm("connector_accessmod.create_analysis", project):
+            raise PermissionDenied
+
+        for key in kwargs:
+            if not hasattr(self.model, key):
+                raise ValueError(f'Invalid {self.model} attribute "{key}"')
+
+        return self.create(author=principal, project=project, **kwargs)
 
 
 class Analysis(Pipeline):
@@ -268,13 +476,13 @@ class Analysis(Pipeline):
         ]
 
     DAG_RUN_STATE_MAPPINGS = {
-        DAGRunState.QUEUED: AnalysisStatus.QUEUED,
-        DAGRunState.RUNNING: AnalysisStatus.RUNNING,
-        DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
-        DAGRunState.FAILED: AnalysisStatus.FAILED,
+        airflow_models.DAGRunState.QUEUED: AnalysisStatus.QUEUED,
+        airflow_models.DAGRunState.RUNNING: AnalysisStatus.RUNNING,
+        airflow_models.DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
+        airflow_models.DAGRunState.FAILED: AnalysisStatus.FAILED,
     }
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     status = models.CharField(
@@ -291,14 +499,50 @@ class Analysis(Pipeline):
 
     objects = AnalysisManager()
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("connector_accessmod.update_analysis", self):
+            raise PermissionDenied
+
+        for key in kwargs:
+            if not hasattr(self, key):
+                raise ValueError(f'Invalid {self} attribute "{key}"')
+            setattr(self, key, kwargs[key])
+
+        return self.save()
+
+    def run_if_has_perm(
+        self,
+        principal: User,
+        *,
+        request: HttpRequest,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
+        if not principal.has_perm("connector_accessmod.run_analysis", self):
+            raise PermissionDenied
+
+        return self.run(request=request, conf=conf, webhook_path=webhook_path)
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("connector_accessmod.delete_analysis", self):
+            raise PermissionDenied
+
+        return super().delete()
+
+    def get_permission_set(self):
+        return self.project.get_permission_set()
+
+    @property
+    def owner(
+        self,
+    ) -> typing.Union[User, Team]:
+        return self.project.owner
+
     def populate_index(self, index):
         raise NotImplementedError
 
     def get_absolute_url(self):
         raise NotImplementedError
-
-    def get_permission_set(self):
-        return self.analysispermission_set.all()
 
     def save(self, *args, **kwargs):
         if self.status == AnalysisStatus.DRAFT:
@@ -321,7 +565,7 @@ class Analysis(Pipeline):
         if self.status != AnalysisStatus.READY:
             raise ValueError(f"Cannot run analyses in {self.status} state")
 
-        dag = DAG.objects.get(dag_id=self.dag_id)
+        dag = airflow_models.DAG.objects.get(dag_id=self.dag_id)
 
         # This is a temporary solution until we figure out storage requirements
         if settings.ACCESSMOD_S3_BUCKET_NAME is None:
@@ -377,7 +621,7 @@ class Analysis(Pipeline):
         else:
             raise ValueError(f"Cannot change status from {self.status} to {status}")
 
-    def update_status_from_dag_run_state(self, state: DAGRunState):
+    def update_status_from_dag_run_state(self, state: airflow_models.DAGRunState):
         try:
             new_status_candidate = self.DAG_RUN_STATE_MAPPINGS[state]
             if new_status_candidate != self.status:
@@ -412,28 +656,13 @@ class Analysis(Pipeline):
                 project=self.project,
                 name=f"{output_name} ({self.name})",
                 role=FilesetRole.objects.get(code=output_role_code),
-                owner=self.owner,
+                author=self.author,
             ),
         )
         getattr(self, output_key).file_set.create(
             mime_type=mimetypes.guess_type(output_value)[0], uri=output_value
         )
         self.save()
-
-
-class AnalysisPermission(Permission):
-    analysis = models.ForeignKey(
-        "connector_accessmod.Analysis", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = [("analysis", "team")]
-
-    def index_object(self):
-        self.analysis.build_index()
-
-    def __str__(self):
-        return f"Permission for team '{self.team}' on AM analysis '{self.analysis}'"
 
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):

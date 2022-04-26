@@ -3,16 +3,15 @@ from django.contrib import admin
 from .models import Bucket, BucketPermission, Credentials, Object
 
 
+class PermissionInline(admin.TabularInline):
+    extra = 1
+    model = BucketPermission
+
+
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
     list_display = ("username", "app_role_arn")
     search_fields = ("username",)
-
-
-class PermissionInline(admin.TabularInline):
-    extra = 1
-    model = BucketPermission
-    verbose_name = "Team permission"
 
 
 @admin.register(Bucket)
@@ -42,4 +41,4 @@ class ObjectAdmin(admin.ModelAdmin):
 
 @admin.register(BucketPermission)
 class BucketPermissionAdmin(admin.ModelAdmin):
-    list_display = ("bucket", "team", "mode")
+    list_display = ("bucket", "team", "user", "mode")

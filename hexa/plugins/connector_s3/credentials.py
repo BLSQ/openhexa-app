@@ -16,17 +16,18 @@ from hexa.plugins.connector_s3.api import (
     get_or_create_role,
     parse_arn,
 )
-from hexa.plugins.connector_s3.models import Bucket, BucketPermissionMode
+from hexa.plugins.connector_s3.models import Bucket
+from hexa.user_management.models import PermissionMode
 
 
 def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access S3 buckets in the notebooks component."""
 
     ro_buckets = Bucket.objects.filter_for_user(
-        credentials.user, mode=BucketPermissionMode.READ_ONLY
+        credentials.user, mode=PermissionMode.VIEWER
     )
     rw_buckets = Bucket.objects.filter_for_user(
-        credentials.user, mode=BucketPermissionMode.READ_WRITE
+        credentials.user, mode=PermissionMode.EDITOR
     )
 
     # We only need to generate s3 credentials if the user has access to one or more buckets

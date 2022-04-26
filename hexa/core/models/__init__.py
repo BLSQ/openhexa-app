@@ -1,4 +1,4 @@
-from .base import Base, Permission
+from .base import Base
 from .behaviors import WithStatus
 from .choices import DynamicTextChoices
 from .indexes import (
@@ -12,7 +12,6 @@ from .postgres import PostgresTextSearchConfigField
 __all__ = [
     "Base",
     "DynamicTextChoices",
-    "Permission",
     "PostgresTextSearchConfigField",
     "WithStatus",
     "BaseIndex",

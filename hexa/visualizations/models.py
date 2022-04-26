@@ -7,15 +7,10 @@ from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.db import models
 from django.db.models import Q
 
-from hexa.core.models import (
-    BaseIndex,
-    BaseIndexableMixin,
-    BaseIndexPermission,
-    Permission,
-)
+from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.user_management.models import Team, User
+from hexa.user_management.models import Permission, Team, User
 
 
 class Index(BaseIndex):
@@ -89,10 +84,27 @@ class ExternalDashboard(IndexableMixin, models.Model):
 
 
 class ExternalDashboardPermission(Permission):
-    external_dashboard = models.ForeignKey(ExternalDashboard, on_delete=models.CASCADE)
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "external_dashboard",
+                name="dashboard_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "external_dashboard",
+                name="dashboard_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="dashboard_permission_user_or_team_not_null",
+            ),
+        ]
 
-    class Meta:
-        unique_together = [("external_dashboard", "team")]
+    external_dashboard = models.ForeignKey(ExternalDashboard, on_delete=models.CASCADE)
 
     def index_object(self):
         self.external_dashboard.build_index()

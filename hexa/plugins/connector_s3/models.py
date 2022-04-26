@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import typing
 from logging import getLogger
@@ -5,6 +7,7 @@ from logging import getLogger
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Q
 from django.template.defaultfilters import filesizeformat, pluralize
 from django.urls import reverse
 from django.utils import timezone
@@ -12,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Base, Permission
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
@@ -22,7 +25,8 @@ from hexa.plugins.connector_s3.api import (
     list_objects_metadata,
 )
 from hexa.plugins.connector_s3.region import AWSRegion
-from hexa.user_management.models import User
+from hexa.user_management import models as user_management_models
+from hexa.user_management.models import Permission, PermissionMode
 
 logger = getLogger(__name__)
 
@@ -51,26 +55,21 @@ class Credentials(Base):
         return self.username
 
 
-class BucketPermissionMode(models.IntegerChoices):
-    READ_ONLY = 1, "Read Only"
-    READ_WRITE = 2, "Read Write"
-
-
 class BucketQuerySet(BaseQuerySet):
     def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User], mode: BucketPermissionMode = None
+        self,
+        user: typing.Union[AnonymousUser, user_management_models.User],
+        mode: PermissionMode = None,
     ):
         if not user.is_active:
             return self.none()
         elif user.is_superuser:
             # For superusers, all buckets are read & write
             # If requested mode is read-only, we don't want to return any bucket
-            return self.none() if mode == BucketPermissionMode.READ_ONLY else self
+            return self.none() if mode == PermissionMode.VIEWER else self
 
         modes = (
-            [BucketPermissionMode.READ_ONLY, BucketPermissionMode.READ_WRITE]
-            if mode is None
-            else [mode]
+            [PermissionMode.VIEWER, PermissionMode.EDITOR] if mode is None else [mode]
         )
 
         return self.filter(
@@ -224,7 +223,7 @@ class Bucket(Datasource):
             BucketPermission.objects.filter(
                 bucket=self,
                 team_id__in=user.team_set.all().values("id"),
-                mode=BucketPermissionMode.READ_WRITE,
+                mode=PermissionMode.EDITOR,
             ).count()
             > 0
         ):
@@ -239,13 +238,27 @@ class Bucket(Datasource):
 
 
 class BucketPermission(Permission):
-    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-    mode = models.IntegerField(
-        choices=BucketPermissionMode.choices, default=BucketPermissionMode.READ_WRITE
-    )
+    class Meta(Permission.Meta):
+        constraints = [
+            models.UniqueConstraint(
+                "team",
+                "bucket",
+                name="bucket_unique_team",
+                condition=Q(team__isnull=False),
+            ),
+            models.UniqueConstraint(
+                "user",
+                "bucket",
+                name="bucket_unique_user",
+                condition=Q(user__isnull=False),
+            ),
+            models.CheckConstraint(
+                check=Q(team__isnull=False) | Q(user__isnull=False),
+                name="bucket_permission_user_or_team_not_null",
+            ),
+        ]
 
-    class Meta:
-        unique_together = [("bucket", "team")]
+    bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
 
     def index_object(self):
         self.bucket.build_index()
@@ -255,7 +268,9 @@ class BucketPermission(Permission):
 
 
 class ObjectQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, user_management_models.User]
+    ):
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 

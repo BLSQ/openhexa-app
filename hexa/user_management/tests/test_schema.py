@@ -1,4 +1,5 @@
 import re
+from unittest.mock import patch
 
 from django.core import mail
 from django.utils.http import urlsafe_base64_encode
@@ -44,16 +45,19 @@ class SchemaTest(GraphQLTestCase):
     def test_me_anonymous(self):
         r = self.run_query(
             """
-               query {
-                  me {
-                      id
+              query {
+                me {
+                  user {
+                    id
                   }
+                  authorizedActions
                 }
+              }
             """,
         )
 
         self.assertEqual(
-            None,
+            {"user": None, "authorizedActions": []},
             r["data"]["me"],
         )
 
@@ -61,27 +65,33 @@ class SchemaTest(GraphQLTestCase):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
             """
-               query {
-                  me {
-                      id
-                      firstName
-                      lastName
-                      email
-                      dateJoined
-                      lastLogin
+              query {
+                me {
+                  user {
+                    id
+                    firstName
+                    lastName
+                    email
+                    dateJoined
+                    lastLogin
                   }
+                  authorizedActions
                 }
+              }
             """,
         )
 
         self.assertEqual(
             {
-                "id": str(self.USER_JIM.id),
-                "firstName": self.USER_JIM.first_name,
-                "lastName": self.USER_JIM.last_name,
-                "email": self.USER_JIM.email,
-                "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
-                "lastLogin": graphql_datetime_format(self.USER_JIM.last_login),
+                "user": {
+                    "id": str(self.USER_JIM.id),
+                    "firstName": self.USER_JIM.first_name,
+                    "lastName": self.USER_JIM.last_name,
+                    "email": self.USER_JIM.email,
+                    "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
+                    "lastLogin": graphql_datetime_format(self.USER_JIM.last_login),
+                },
+                "authorizedActions": ["CREATE_TEAM", "CREATE_ACCESSMOD_PROJECT"],
             },
             r["data"]["me"],
         )
@@ -285,31 +295,50 @@ class SchemaTest(GraphQLTestCase):
     def test_login(self):
         r = self.run_query(
             """
-                mutation login($input: LoginInput!) {
-                  login(input: $input) {
-                    success
-                    me {
+              mutation login($input: LoginInput!) {
+                login(input: $input) {
+                  success
+                  me {
+                    user {
                       id
                     }
                   }
                 }
+              }
             """,
             {"input": {"email": "jim@bluesquarehub.com", "password": "jimspassword"}},
         )
 
         self.assertEqual(
-            {"success": True, "me": {"id": str(self.USER_JIM.id)}},
+            {"success": True, "me": {"user": {"id": str(self.USER_JIM.id)}}},
             r["data"]["login"],
         )
 
     def test_logout(self):
+        self.client.force_login(self.USER_JIM)
         r = self.run_query(
             """
-                mutation {
-                  logout {
-                    success
+              query {
+                me {
+                  user {
+                    id
                   }
                 }
+              }
+            """,
+        )
+        self.assertEqual(
+            {"user": {"id": str(self.USER_JIM.id)}},
+            r["data"]["me"],
+        )
+
+        r = self.run_query(
+            """
+              mutation {
+                logout {
+                  success
+                }
+              }
             """,
         )
 
@@ -322,27 +351,28 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-               query {
-                  me {
-                      id
+              query {
+                me {
+                  user {
+                    id
                   }
                 }
+              }
             """,
         )
-
         self.assertEqual(
-            None,
+            {"user": None},
             r["data"]["me"],
         )
 
     def test_reset_password(self):
         r = self.run_query(
             """
-                mutation resetPassword($input: ResetPasswordInput!) {
-                  resetPassword(input: $input) {
-                    success
-                  }
+              mutation resetPassword($input: ResetPasswordInput!) {
+                resetPassword(input: $input) {
+                  success
                 }
+              }
             """,
             {"input": {"email": self.USER_JIM.email}},
         )
@@ -358,11 +388,11 @@ class SchemaTest(GraphQLTestCase):
     def test_reset_password_wrong_email(self):
         r = self.run_query(
             """
-                mutation resetPassword($input: ResetPasswordInput!) {
-                  resetPassword(input: $input) {
-                    success
-                  }
+              mutation resetPassword($input: ResetPasswordInput!) {
+                resetPassword(input: $input) {
+                  success
                 }
+              }
             """,
             {"input": {"email": "unkonwn@bluesquarehub.com"}},
         )
@@ -378,11 +408,11 @@ class SchemaTest(GraphQLTestCase):
         # Start by creating the email
         self.run_query(
             """
-                mutation resetPassword($input: ResetPasswordInput!) {
-                  resetPassword(input: $input) {
-                    success
-                  }
+              mutation resetPassword($input: ResetPasswordInput!) {
+                resetPassword(input: $input) {
+                  success
                 }
+              }
             """,
             {"input": {"email": self.USER_JIM.email}},
         )
@@ -402,12 +432,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -433,12 +463,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -462,12 +492,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -491,12 +521,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -520,12 +550,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -549,12 +579,12 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation setPassword($input: SetPasswordInput!) {
-                  setPassword(input: $input) {
-                    error
-                    success
-                  }
+              mutation setPassword($input: SetPasswordInput!) {
+                setPassword(input: $input) {
+                  error
+                  success
                 }
+              }
             """,
             {
                 "input": {
@@ -569,4 +599,45 @@ class SchemaTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "error": "PASSWORD_MISMATCH"},
             r["data"]["setPassword"],
+        )
+
+    def test_create_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.create_membership"
+        ) as create_membership:
+            r = self.run_query(
+                """
+                  mutation createMembership($input: CreateMembershipInput!) {
+                    createMembership(input: $input) {
+                      success
+                      membership {
+                        user { id }
+                        team { id }
+                        role
+                      }
+                    }
+                  }
+                """,
+                {
+                    "input": {
+                        "userEmail": self.USER_TAYLOR.email,
+                        "teamId": str(self.TEAM_CORE.id),
+                        "role": MembershipRole.REGULAR,
+                    },
+                },
+            )
+
+        create_membership.assert_called_once_with(self.USER_JANE, self.TEAM_CORE)
+        self.assertEqual(
+            {
+                "success": True,
+                "membership": {
+                    "user": {"id": str(self.USER_TAYLOR.id)},
+                    "team": {"id": str(self.TEAM_CORE.id)},
+                    "role": MembershipRole.REGULAR,
+                },
+            },
+            r["data"]["createMembership"],
         )

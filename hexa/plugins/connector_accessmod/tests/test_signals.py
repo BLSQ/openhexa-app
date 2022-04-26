@@ -48,12 +48,12 @@ class AccessmodSignalsTest(TestCase):
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Marla's first project",
             country="BE",
-            owner=cls.USER_MARLA,
+            author=cls.USER_MARLA,
             spatial_resolution=100,
             crs=4326,
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
-            owner=cls.USER_MARLA,
+            author=cls.USER_MARLA,
             project=cls.SAMPLE_PROJECT,
             name="Test accessibility analysis",
             dag_run=cls.DAG_RUN,
