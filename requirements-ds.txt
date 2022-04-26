@@ -1,0 +1,8 @@
+pandas
+geopandas
+shapely
+rasterio
+gdal==3.2.2
+s3fs==2022.01.0
+gcsfs==2022.01.0
+fsspec==2022.01.0
