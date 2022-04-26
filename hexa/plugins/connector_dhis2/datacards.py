@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Subquery
 from django.http import HttpRequest
 from django.templatetags.static import static
 from django.urls import reverse
@@ -38,7 +39,13 @@ class UsageSection(Section):
         if request.user.is_active and request.user.is_superuser:
             return True
 
-        return model.instancepermission_set.get().enable_notebooks_credentials
+        return (
+            model.instancepermission_set.filter(
+                team_id__in=Subquery(request.user.team_set.all().values("id")),
+                enable_notebooks_credentials=True,
+            ).count()
+            > 0
+        )
 
     def get_python_usage(self, item: Instance):
         return """

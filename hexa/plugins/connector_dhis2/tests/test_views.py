@@ -420,11 +420,21 @@ class ConnectorDhis2Test(TestCase):
         self.assertNotContains(response, "Usage in Python")
 
     def test_instance_code_sample_with_permission(self):
-        """As a normal user, Bjorn can see the code sample if given the permission"""
+        """As a normal user, Bjorn can see the code sample if given the permission
+        Test with another team to add complexity"""
 
         self.TEAM.members.add(self.USER_BJORN)
         self.PERMISSION.enable_notebooks_credentials = True
         self.PERMISSION.save()
+
+        # noisy team without permission
+        team2 = Team.objects.create(name="Test Team II")
+        team2.members.add(self.USER_BJORN)
+        InstancePermission.objects.create(
+            instance=self.DHIS2_INSTANCE_PLAY,
+            enable_notebooks_credentials=False,
+            team=team2,
+        )
 
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
