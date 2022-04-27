@@ -60,7 +60,11 @@ class BucketQuerySet(BaseQuerySet):
         self,
         user: typing.Union[AnonymousUser, user_management_models.User],
         mode: PermissionMode = None,
+        mode__in: typing.Sequence[PermissionMode] = None,
     ):
+        if mode is not None and mode__in is not None:
+            raise ValueError('Please provide either "mode" or "mode_in" - not both')
+
         if not user.is_active:
             return self.none()
         elif user.is_superuser:
@@ -68,14 +72,16 @@ class BucketQuerySet(BaseQuerySet):
             # If requested mode is read-only, we don't want to return any bucket
             return self.none() if mode == PermissionMode.VIEWER else self
 
-        modes = (
-            [PermissionMode.VIEWER, PermissionMode.EDITOR] if mode is None else [mode]
-        )
-
-        return self.filter(
+        queryset = self.filter(
             bucketpermission__team__in=[t.pk for t in user.team_set.all()],
-            bucketpermission__mode__in=modes,
         ).distinct()
+
+        if mode is not None:
+            queryset = queryset.filter(bucketpermission__mode=mode)
+        elif mode__in is not None:
+            queryset = queryset.filter(bucketpermission__mode__in=mode__in)
+
+        return queryset
 
 
 class Bucket(Datasource):

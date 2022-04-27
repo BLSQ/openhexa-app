@@ -62,6 +62,9 @@ class Environment(IndexableMixin, models.Model):
 
 
 class Pipeline(IndexableMixin, models.Model):
+    class Meta:
+        abstract = True
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -69,9 +72,6 @@ class Pipeline(IndexableMixin, models.Model):
     indexes = GenericRelation("pipelines.Index")
 
     objects = BaseQuerySet.as_manager()
-
-    class Meta:
-        abstract = True
 
     def get_permission_set(self):
         raise NotImplementedError
