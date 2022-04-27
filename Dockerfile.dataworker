@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y mdbtools \
   proj-bin \
   libgdal-dev \
   && rm -rf /var/lib/apt/lists/* \
-  && pip install --upgrade pip
+  && pip install --upgrade pip \
+  && ln -s /usr/bin/python3 /usr/bin/python
 
 RUN mkdir /code
 WORKDIR /code
