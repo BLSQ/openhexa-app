@@ -20,20 +20,22 @@ export async function getUser(
     query: gql`
       query MeQuery {
         me {
-          email
-          id
-          firstName
-          lastName
-          avatar {
-            initials
-            color
+          user {
+            email
+            id
+            firstName
+            lastName
+            avatar {
+              initials
+              color
+            }
           }
         }
       }
     `,
   });
 
-  const user = payload?.data.me;
+  const user = payload?.data.me?.user;
   if (!user) {
     return null;
   }
