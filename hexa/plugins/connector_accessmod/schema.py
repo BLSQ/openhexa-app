@@ -550,7 +550,7 @@ def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kw
             if principal.has_perm("connector_accessmod.delete_analysis", analysis)
             else None,
             "RUN"
-            if principal.has_perm("user_management.run_analysis", analysis)
+            if principal.has_perm("connector_accessmod.run_analysis", analysis)
             else None,
         ],
     )
