@@ -327,7 +327,7 @@ def resolve_accessmod_fileset_authorized_actions(fileset: Fileset, info, **kwarg
             if principal.has_perm("connector_accessmod.delete_fileset", fileset)
             else None,
             "CREATE_FILE"
-            if principal.has_perm("user_management.create_file", fileset)
+            if principal.has_perm("connector_accessmod.create_file", fileset)
             else None,
         ],
     )

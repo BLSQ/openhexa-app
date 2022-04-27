@@ -35,9 +35,8 @@ class PermissionsBackend(BaseBackend):
         try:
             app_label, app_perm = perm.split(".")
         except ValueError:
-            raise ValueError(
-                f'Invalid permission "{perm}" (Should be "app_label.perm")'
-            )
+            return False  # No dot? Not an OpenHexa permission, this backend can't handle it
+
         permission_module = self._get_permission_module(app_label)
         permission_function = getattr(permission_module, app_perm)
 
