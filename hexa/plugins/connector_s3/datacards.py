@@ -1,5 +1,4 @@
 from django.templatetags.static import static
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
@@ -55,7 +54,4 @@ class ObjectCard(Datacard):
         return static("connector_s3/img/symbol.svg")
 
     def get_download_url(self, s3_object: Object):
-        return reverse(
-            "connector_s3:object_download",
-            kwargs={"bucket_id": s3_object.bucket.id, "path": s3_object.key},
-        )
+        return s3_object.download_url

@@ -214,3 +214,21 @@ class PermissionTestWritableBy(TestCase):
         self.assertTrue(self.BUCKET_2.writable_by(self.USER_SUPER))
         self.assertTrue(self.BUCKET_1.writable_by(self.USER_REGULAR))
         self.assertFalse(self.BUCKET_2.writable_by(self.USER_REGULAR))
+
+
+class ConnectorS3PublicBucketTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.bucket_priv = Bucket.objects.create(name="test-bucket-priv")
+        cls.bucket_pub = Bucket.objects.create(name="test-bucket-pub", public=True)
+
+    def test_objects_url(self):
+        obj_priv = Object.objects.create(bucket=self.bucket_priv, key="hello", size=0)
+        self.assertEqual(
+            obj_priv.download_url, f"/s3/{self.bucket_priv.id}/object_download/hello/"
+        )
+        obj_pub = Object.objects.create(bucket=self.bucket_pub, key="hello", size=0)
+        self.assertEqual(
+            obj_pub.download_url,
+            "https://test-bucket-pub.s3.eu-central-1.amazonaws.com/hello",
+        )
