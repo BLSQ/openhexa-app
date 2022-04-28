@@ -36,7 +36,7 @@ class UsageSection(Section):
     )
 
     def is_enabled(self, request: HttpRequest, model):
-        if request.user.is_active and request.user.is_superuser:
+        if request.user.is_authenticated and request.user.is_superuser:
             return True
 
         return (

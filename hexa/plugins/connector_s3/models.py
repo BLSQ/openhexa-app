@@ -65,7 +65,7 @@ class BucketQuerySet(BaseQuerySet):
         if mode is not None and mode__in is not None:
             raise ValueError('Please provide either "mode" or "mode_in" - not both')
 
-        if not user.is_active:
+        if not user.is_authenticated:
             return self.none()
         elif user.is_superuser:
             # For superusers, all buckets are read & write
@@ -221,7 +221,7 @@ class Bucket(Datasource):
         return self.display_name
 
     def writable_by(self, user):
-        if not user.is_active:
+        if not user.is_authenticated:
             return False
         elif user.is_superuser:
             return True

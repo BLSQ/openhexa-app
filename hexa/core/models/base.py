@@ -31,7 +31,7 @@ class BaseQuerySet(models.QuerySet):
         3. Regular, authenticated users will get the queryset filtered using the query_object argument
         """
 
-        if not user.is_active:
+        if not user.is_authenticated:
             return self.none()
         elif return_all_if_superuser and user.is_superuser:
             return self.all()

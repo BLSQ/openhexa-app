@@ -36,7 +36,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     """
 
     instances = Instance.objects.filter_for_user(credentials.user)
-    if not (credentials.user.is_active and credentials.user.is_superuser):
+    if not (credentials.user.is_authenticated and credentials.user.is_superuser):
         instances = instances.filter(
             instancepermission__enable_notebooks_credentials=True
         )
