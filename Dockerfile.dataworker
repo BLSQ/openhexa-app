@@ -2,7 +2,7 @@
 # to do datasciences and geo stats. It's can be usefull if you want some
 # background worker without the web/css part and with more data capabilities.
 
-FROM ubuntu:focal-20220113
+FROM python:3.9
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y mdbtools \
   proj-bin \
   libgdal-dev \
   && rm -rf /var/lib/apt/lists/* \
-  && pip install --upgrade pip \
-  && ln -s /usr/bin/python3 /usr/bin/python
+  && pip install setuptools==57.5.0
 
 RUN mkdir /code
 WORKDIR /code
