@@ -1,6 +1,7 @@
+import typing
 import uuid
-from typing import List
 
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -13,6 +14,7 @@ from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
+from hexa.user_management import models as user_management_models
 
 
 class CatalogIndexQuerySet(BaseIndexQuerySet):
@@ -42,7 +44,7 @@ class CatalogIndexQuerySet(BaseIndexQuerySet):
 
         return results
 
-    def filter_for_datasources(self, ds_ids: List[uuid.UUID]):
+    def filter_for_datasources(self, ds_ids: typing.List[uuid.UUID]):
         # sub select only those types
         q_predicats = Q()
         for ds_id in ds_ids:
@@ -101,6 +103,23 @@ class IndexableMixin(BaseIndexableMixin):
         return Index
 
 
+class DatasourceQuerySet(BaseQuerySet):
+    def _filter_for_user_and_query_object(
+        self,
+        user: typing.Union[AnonymousUser, user_management_models.User],
+        query_object: models.Q,
+        *,
+        return_all_if_superuser: bool = True,
+    ) -> models.QuerySet:
+        # override default base filtering system, support public flag for
+        # all datasources
+        return super()._filter_for_user_and_query_object(
+            user,
+            query_object | Q(public=True),
+            return_all_if_superuser=return_all_if_superuser,
+        )
+
+
 class Datasource(IndexableMixin, models.Model):
     class Meta:
         abstract = True
@@ -110,10 +129,11 @@ class Datasource(IndexableMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     auto_sync = models.BooleanField(default=True)
     last_synced_at = models.DateTimeField(null=True, blank=True)
+    public = models.BooleanField(default=False)
 
     indexes = GenericRelation("catalog.Index")
 
-    objects = BaseQuerySet.as_manager()
+    objects = DatasourceQuerySet.as_manager()
 
     def get_permission_set(self):
         raise NotImplementedError

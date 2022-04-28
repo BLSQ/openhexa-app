@@ -366,6 +366,16 @@ class Object(Entry):
         else:
             return None
 
+    @property
+    def download_url(self):
+        if self.bucket.public:
+            return f"https://{self.bucket.name}.s3.{self.bucket.region}.amazonaws.com/{self.key}"
+        else:
+            return reverse(
+                "connector_s3:object_download",
+                kwargs={"bucket_id": self.bucket.id, "path": self.key},
+            )
+
     def update_from_metadata(self, metadata):
         self.key = metadata["Key"]
         self.parent_key = self.compute_parent_key(metadata["Key"])

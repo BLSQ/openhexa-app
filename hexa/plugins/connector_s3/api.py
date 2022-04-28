@@ -322,7 +322,11 @@ def generate_upload_url(
 
     return s3_client.generate_presigned_url(
         "put_object",
-        Params={"Bucket": bucket.name, "Key": target_key},
+        Params={
+            "Bucket": bucket.name,
+            "Key": target_key,
+            "ACL": "public-read" if bucket.public else "private",
+        },
         ExpiresIn=60 * 60,
     )
 
