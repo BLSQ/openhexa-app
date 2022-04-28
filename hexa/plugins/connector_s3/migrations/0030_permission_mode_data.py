@@ -2,13 +2,11 @@
 
 from django.db import migrations
 
-from hexa.user_management.models import PermissionMode
-
 
 def update_bucket_permissions(apps, schema_editor):
     BucketPermission = apps.get_model("connector_s3", "BucketPermission")
-    BucketPermission.objects.filter(mode="RW").update(mode=PermissionMode.EDITOR)
-    BucketPermission.objects.filter(mode="RO").update(mode=PermissionMode.VIEWER)
+    BucketPermission.objects.filter(mode="RW").update("EDITOR")
+    BucketPermission.objects.filter(mode="RO").update("VIEWER")
 
 
 class Migration(migrations.Migration):
