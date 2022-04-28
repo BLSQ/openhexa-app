@@ -5,8 +5,8 @@ from django.db import migrations
 
 def update_bucket_permissions(apps, schema_editor):
     BucketPermission = apps.get_model("connector_s3", "BucketPermission")
-    BucketPermission.objects.filter(mode="RW").update("EDITOR")
-    BucketPermission.objects.filter(mode="RO").update("VIEWER")
+    BucketPermission.objects.filter(mode="RW").update(mode="EDITOR")
+    BucketPermission.objects.filter(mode="RO").update(mode="VIEWER")
 
 
 class Migration(migrations.Migration):
