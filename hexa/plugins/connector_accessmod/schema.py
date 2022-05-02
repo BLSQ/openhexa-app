@@ -1,6 +1,7 @@
 import pathlib
 
 from ariadne import (
+    EnumType,
     InterfaceType,
     MutationType,
     ObjectType,
@@ -41,6 +42,16 @@ accessmod_mutations = MutationType()
 
 # Projects
 project_object = ObjectType("AccessmodProject")
+
+project_order_by = EnumType(
+    "AccessmodProjectOrder",
+    {
+        "UPDATED_AT_DESC": "-updated_at",
+        "UPDATED_AT_ASC": "updated_at",
+        "NAME_DESC": "-name",
+        "NAME_ASC": "name",
+    },
+)
 
 
 @project_object.field("authorizedActions")
@@ -106,6 +117,10 @@ def resolve_accessmod_projects(
 
     if teams is not None and len(teams) > 0:
         queryset = queryset.filter(projectpermission__team__id__in=teams)
+
+    order_by = kwargs.get("orderBy", None)
+    if order_by is not None:
+        queryset = queryset.order_by(order_by)
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -726,6 +741,7 @@ accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,
     project_object,
+    project_order_by,
     permission_object,
     fileset_object,
     analysis_interface,

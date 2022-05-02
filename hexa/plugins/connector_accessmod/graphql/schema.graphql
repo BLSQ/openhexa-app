@@ -132,9 +132,17 @@ enum DeleteAccessmodProjectPermissionError {
     PERMISSION_DENIED
     NOT_FOUND
 }
+
+enum AccessmodProjectOrder {
+    UPDATED_AT_DESC
+    UPDATED_AT_ASC
+    NAME_DESC
+    NAME_ASC
+}
+
 extend type Query {
     accessmodProject(id: String): AccessmodProject
-    accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int): AccessmodProjectPage!
+    accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
     createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
