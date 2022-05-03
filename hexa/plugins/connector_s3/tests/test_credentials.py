@@ -33,7 +33,8 @@ class NotebooksCredentialsTest(TestCase):
     USER_JOHN = None
     USER_WADE = None
     TEAM_HEXA = None
-    TEAM_EXTERNAL = None
+    TEAM_SECRET = None
+    TEAM_ANNOYING = None
     CREDENTIALS = None
 
     @classmethod
@@ -54,12 +55,16 @@ class NotebooksCredentialsTest(TestCase):
             is_superuser=False,
         )
         cls.TEAM_HEXA = Team.objects.create(name="Hexa Team!")
-        cls.TEAM_EXTERNAL = Team.objects.create(name="External Team!")
+        cls.TEAM_ANNOYING = Team.objects.create(name="External Team!")
+        cls.TEAM_SECRET = Team.objects.create(name="Annoying Team!")
         Membership.objects.create(
             user=cls.USER_JOHN, team=cls.TEAM_HEXA, role=MembershipRole.ADMIN
         )
         Membership.objects.create(
-            user=cls.USER_WADE, team=cls.TEAM_EXTERNAL, role=MembershipRole.REGULAR
+            user=cls.USER_JOHN, team=cls.TEAM_SECRET, role=MembershipRole.REGULAR
+        )
+        Membership.objects.create(
+            user=cls.USER_WADE, team=cls.TEAM_ANNOYING, role=MembershipRole.REGULAR
         )
         cls.CREDENTIALS = Credentials.objects.create(
             username="hexa-app-test",
@@ -75,7 +80,10 @@ class NotebooksCredentialsTest(TestCase):
         BucketPermission.objects.create(bucket=b1, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(bucket=b2, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(
-            bucket=b2, team=cls.TEAM_EXTERNAL, mode=PermissionMode.VIEWER
+            bucket=b2, team=cls.TEAM_ANNOYING, mode=PermissionMode.VIEWER
+        )
+        BucketPermission.objects.create(
+            bucket=b2, team=cls.TEAM_SECRET, mode=PermissionMode.VIEWER
         )
         cls.S3FS = Feature.objects.create(code="s3fs")
 
@@ -109,7 +117,10 @@ class NotebooksCredentialsTest(TestCase):
         roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
         team_hash = hashlib.blake2s(
-            str(self.TEAM_HEXA.id).encode("utf-8"), digest_size=16
+            ",".join(
+                [str(t.id) for t in self.USER_JOHN.team_set.order_by("id")]
+            ).encode("utf-8"),
+            digest_size=16,
         ).hexdigest()
         expected_role_name = f"hexa-app-test-s3-{team_hash}"
         self.assertEqual(expected_role_name, roles_data["Roles"][0]["RoleName"])

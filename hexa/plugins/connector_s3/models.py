@@ -72,13 +72,28 @@ class BucketQuerySet(BaseQuerySet):
             # If requested mode is read-only, we don't want to return any bucket
             return self.none() if mode == PermissionMode.VIEWER else self
 
+        # Note about the join happening behind the scenes: we need to filter on team AND mode in the same filter call
+        # (see https://docs.djangoproject.com/en/4.0/topics/db/queries/#spanning-multi-valued-relationships)
         filter_kwargs = {"bucketpermission__team__in": user.team_set.all()}
         if mode is not None:
             filter_kwargs["bucketpermission__mode"] = mode
         elif mode__in is not None:
             filter_kwargs["bucketpermission__mode__in"] = mode__in
+        queryset = self.filter(**filter_kwargs)
 
-        return self.filter(**filter_kwargs).distinct()
+        # When querying for buckets with "VIEWER" permission mode, we want to exclude buckets for which the user has
+        # higher privileges - otherwise the VIEWER mode will supersede EDITOR / OWNER modes in generated permissions
+        if mode == PermissionMode.VIEWER:
+            queryset = queryset.exclude(
+                id__in=[
+                    b.id
+                    for b in self.filter_for_user(
+                        user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
+                    )
+                ]
+            )
+
+        return queryset.distinct()
 
 
 class Bucket(Datasource):
