@@ -17,10 +17,25 @@ from hexa.plugins.connector_s3.credentials import (
     pipelines_credentials,
 )
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
-from hexa.user_management.models import Feature, FeatureFlag, Team, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Membership,
+    MembershipRole,
+    PermissionMode,
+    Team,
+    User,
+)
 
 
 class NotebooksCredentialsTest(TestCase):
+    USER_JANE = None
+    USER_JOHN = None
+    USER_WADE = None
+    TEAM_HEXA = None
+    TEAM_EXTERNAL = None
+    CREDENTIALS = None
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
@@ -33,8 +48,19 @@ class NotebooksCredentialsTest(TestCase):
             "johnrocks999",
             is_superuser=False,
         )
+        cls.USER_WADE = User.objects.create_user(
+            "wade@bluesquarehub.com",
+            "waderocks999",
+            is_superuser=False,
+        )
         cls.TEAM_HEXA = Team.objects.create(name="Hexa Team!")
-        cls.USER_JOHN.team_set.add(cls.TEAM_HEXA)
+        cls.TEAM_EXTERNAL = Team.objects.create(name="External Team!")
+        Membership.objects.create(
+            user=cls.USER_JOHN, team=cls.TEAM_HEXA, role=MembershipRole.ADMIN
+        )
+        Membership.objects.create(
+            user=cls.USER_WADE, team=cls.TEAM_EXTERNAL, role=MembershipRole.REGULAR
+        )
         cls.CREDENTIALS = Credentials.objects.create(
             username="hexa-app-test",
             access_key_id="foo",
@@ -48,6 +74,9 @@ class NotebooksCredentialsTest(TestCase):
         Bucket.objects.create(name="hexa-test-bucket-3")
         BucketPermission.objects.create(bucket=b1, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(bucket=b2, team=cls.TEAM_HEXA)
+        BucketPermission.objects.create(
+            bucket=b2, team=cls.TEAM_EXTERNAL, mode=PermissionMode.VIEWER
+        )
         cls.S3FS = Feature.objects.create(code="s3fs")
 
     @mock_iam

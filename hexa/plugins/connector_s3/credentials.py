@@ -23,15 +23,15 @@ from hexa.user_management.models import PermissionMode
 def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access S3 buckets in the notebooks component."""
 
-    viewer_buckets = Bucket.objects.filter_for_user(
+    read_only_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode=PermissionMode.VIEWER
     )
-    editor_or_owner_buckets = Bucket.objects.filter_for_user(
+    read_write_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
     )
 
     # We only need to generate s3 credentials if the user has access to one or more buckets
-    if viewer_buckets or editor_or_owner_buckets:
+    if read_only_buckets or read_write_buckets:
         principal_s3_credentials = _get_credentials()
 
         session_identifier = str(credentials.user.id)
@@ -47,8 +47,8 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
         sts_credentials = generate_sts_user_s3_credentials(
             principal_credentials=principal_s3_credentials,
-            read_only_buckets=viewer_buckets,
-            read_write_buckets=editor_or_owner_buckets,
+            read_only_buckets=read_only_buckets,
+            read_write_buckets=read_write_buckets,
             role_identifier=role_identifier,
             session_identifier=session_identifier,
             duration=60 * 60 * 12,
@@ -58,7 +58,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
             {
                 "HEXA_FEATURE_FLAG_S3FS": "false",
                 "AWS_S3_BUCKET_NAMES": ",".join(
-                    b.name for b in list(viewer_buckets) + list(editor_or_owner_buckets)
+                    b.name for b in list(read_only_buckets) + list(read_write_buckets)
                 ),
                 "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
                 "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
@@ -81,11 +81,11 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "aws_default_region": principal_s3_credentials.default_region,
                 "buckets": [
                     {"name": b.name, "region": str(b.region), "mode": "RO"}
-                    for b in viewer_buckets
+                    for b in read_only_buckets
                 ]
                 + [
                     {"name": b.name, "region": str(b.region), "mode": "RW"}
-                    for b in editor_or_owner_buckets
+                    for b in read_write_buckets
                 ],
             }
             credentials.update_env(

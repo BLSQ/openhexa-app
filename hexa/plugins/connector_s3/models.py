@@ -72,16 +72,13 @@ class BucketQuerySet(BaseQuerySet):
             # If requested mode is read-only, we don't want to return any bucket
             return self.none() if mode == PermissionMode.VIEWER else self
 
-        queryset = self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
-        ).distinct()
-
+        filter_kwargs = {"bucketpermission__team__in": user.team_set.all()}
         if mode is not None:
-            queryset = queryset.filter(bucketpermission__mode=mode)
+            filter_kwargs["bucketpermission__mode"] = mode
         elif mode__in is not None:
-            queryset = queryset.filter(bucketpermission__mode__in=mode__in)
+            filter_kwargs["bucketpermission__mode__in"] = mode__in
 
-        return queryset
+        return self.filter(**filter_kwargs).distinct()
 
 
 class Bucket(Datasource):
