@@ -84,14 +84,10 @@ class BucketQuerySet(BaseQuerySet):
         # When querying for buckets with "VIEWER" permission mode, we want to exclude buckets for which the user has
         # higher privileges - otherwise the VIEWER mode will supersede EDITOR / OWNER modes in generated permissions
         if mode == PermissionMode.VIEWER:
-            queryset = queryset.exclude(
-                id__in=[
-                    b.id
-                    for b in self.filter_for_user(
-                        user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
-                    )
-                ]
+            editor_or_owner_buckets = self.filter_for_user(
+                user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
             )
+            queryset = queryset.exclude(id__in=[b.id for b in editor_or_owner_buckets])
 
         return queryset.distinct()
 
