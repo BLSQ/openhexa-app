@@ -1,5 +1,11 @@
+union AccessmodOwner = User | Team
+
+interface AccessmodOwnership {
+    owner: AccessmodOwner
+}
+
 # Projects
-type AccessmodProject {
+type AccessmodProject implements AccessmodOwnership {
     id: String!
     name: String!
     spatialResolution: Int!
@@ -7,6 +13,7 @@ type AccessmodProject {
     crs: Int!
     country: Country!
     author: User!
+    owner: AccessmodOwner
     extent: AccessmodFileset
     dem: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
@@ -14,6 +21,7 @@ type AccessmodProject {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
 enum AccessmodProjectAuthorizedActions {
     UPDATE
     DELETE
@@ -156,12 +164,13 @@ extend type Mutation {
 }
 
 # Filesets
-type AccessmodFileset {
+type AccessmodFileset implements AccessmodOwnership {
     id: String!
     name: String!
     status: AccessmodFilesetStatus!
     role: AccessmodFilesetRole!
     author: User!
+    owner: AccessmodOwner
     files: [AccessmodFile!]!
     metadata: AccessmodFilesetMetadata!
     authorizedActions: [AccessmodFilesetAuthorizedActions!]!
@@ -315,6 +324,7 @@ enum AccessmodAnalysisStatus {
     SUCCESS
     FAILED
 }
+
 interface AccessmodAnalysis {
     id: String!
     type: AccessmodAnalysisType!
@@ -334,11 +344,12 @@ enum AccessmodAccessibilityAnalysisAlgorithm {
     ANISOTROPIC
     ISOTROPIC
 }
-type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
+type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwnership {
     id: String!
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
+    owner: AccessmodOwner
     author: User!
     authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
@@ -363,12 +374,13 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
     frictionSurface: AccessmodFileset
     catchmentAreas: AccessmodFileset
 }
-type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & AccessmodOwnership {
     id: String!
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
+    owner: AccessmodOwner
     authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!

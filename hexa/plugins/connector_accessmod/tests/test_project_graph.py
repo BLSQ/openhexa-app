@@ -83,6 +83,12 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                   country {
                     code
                   }
+                  owner {
+                      __typename
+                      ...on User {
+                          id
+                      }
+                  }
                   author {
                     email
                   }
@@ -106,6 +112,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "spatialResolution": 100,
                 "country": {"code": "FR"},
                 "author": {"email": "jim@bluesquarehub.com"},
+                "owner": {"__typename": "User", "id": str(self.USER_JIM.id)},
                 "permissions": [
                     {
                         "user": {"id": str(self.USER_JIM.id)},
