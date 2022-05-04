@@ -86,6 +86,9 @@ class Project(Datasource):
     extent = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
+    dem = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
 
     objects = ProjectManager.from_queryset(ProjectQuerySet)()
 
@@ -138,6 +141,7 @@ class Project(Datasource):
             "spatial_resolution",
             "crs",
             "extent",
+            "dem",
             "description",
         ]:
             if key in kwargs:

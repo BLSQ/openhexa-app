@@ -8,6 +8,7 @@ type AccessmodProject {
     country: Country!
     author: User!
     extent: AccessmodFileset
+    dem: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
     permissions: [AccessmodProjectPermission!]!
     createdAt: DateTime!
@@ -51,6 +52,7 @@ input UpdateAccessmodProjectInput {
     spatialResolution: Int
     country: CountryInput
     extentId: String
+    demId: String
 }
 type UpdateAccessmodProjectResult {
     success: Boolean!
