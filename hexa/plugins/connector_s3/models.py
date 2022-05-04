@@ -68,20 +68,31 @@ class BucketQuerySet(BaseQuerySet):
         if not user.is_authenticated:
             return self.none()
         elif user.is_superuser:
-            # For superusers, all buckets are read & write
-            # If requested mode is read-only, we don't want to return any bucket
-            return self.none() if mode == PermissionMode.VIEWER else self
-
-        queryset = self.filter(
-            bucketpermission__team__in=[t.pk for t in user.team_set.all()],
-        ).distinct()
-
-        if mode is not None:
-            queryset = queryset.filter(bucketpermission__mode=mode)
+            queryset = self.all()
+        # Note about the join happening behind the scenes: we need to filter on team AND mode in the same filter call
+        # (see https://docs.djangoproject.com/en/4.0/topics/db/queries/#spanning-multi-valued-relationships)
+        elif mode is not None:
+            queryset = self.filter(
+                bucketpermission__team__in=user.team_set.all(),
+                bucketpermission__mode=mode,
+            )
         elif mode__in is not None:
-            queryset = queryset.filter(bucketpermission__mode__in=mode__in)
+            queryset = self.filter(
+                bucketpermission__team__in=user.team_set.all(),
+                bucketpermission__mode__in=mode__in,
+            )
+        else:
+            queryset = self.filter(bucketpermission__team__in=user.team_set.all())
 
-        return queryset
+        # When querying for buckets with "VIEWER" permission mode, we want to exclude buckets for which the user has
+        # higher privileges - otherwise the VIEWER mode will supersede EDITOR / OWNER modes in generated permissions
+        if mode == PermissionMode.VIEWER or mode__in == [PermissionMode.VIEWER]:
+            editor_or_owner_buckets = self.filter_for_user(
+                user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
+            )
+            queryset = queryset.exclude(id__in=[b.id for b in editor_or_owner_buckets])
+
+        return queryset.distinct()
 
 
 class Bucket(Datasource):
