@@ -152,5 +152,16 @@
       "code": "WATER",
       "format": "VECTOR"
     }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "ff00dc44-8502-4d97-b4bd-848c4ea37e22",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Stack",
+      "code": "STACK",
+      "format": "RASTER"
+    }
   }
 ]

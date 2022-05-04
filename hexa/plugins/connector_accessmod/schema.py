@@ -692,6 +692,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
         for fileset_field in [
             "landCoverId",
             "demId",
+            "stackId",
             "transportNetworkId",
             "slopeId",
             "waterId",

@@ -357,9 +357,10 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     landCover: AccessmodFileset
     dem: AccessmodFileset
     transportNetwork: AccessmodFileset
-    slope: AccessmodFileset
     water: AccessmodFileset
     barrier: AccessmodFileset
+    stack: AccessmodFileset
+    slope: AccessmodFileset
     movingSpeeds: AccessmodFileset
     healthFacilities: AccessmodFileset
     invertDirection: Boolean
@@ -417,6 +418,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     name: String
     landCoverId: String
     demId: String
+    stackId: String
     transportNetworkId: String
     slopeId: String
     waterId: String

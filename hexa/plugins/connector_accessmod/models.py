@@ -364,6 +364,7 @@ class FilesetRoleCode(models.TextChoices):
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
+    STACK = "STACK"
 
 
 class FilesetRole(Base):
@@ -702,6 +703,9 @@ class AccessibilityAnalysis(Analysis):
     health_facilities = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
+    stack = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
     max_slope = models.FloatField(null=True, blank=True)
@@ -751,7 +755,11 @@ class AccessibilityAnalysis(Analysis):
 
     @transaction.atomic
     def set_outputs(
-        self, travel_times: str, friction_surface: str, catchment_areas: str
+        self,
+        travel_times: str,
+        friction_surface: str,
+        catchment_areas: str,
+        stack: str = None,
     ):
         self.set_output(
             output_key="travel_times",
@@ -771,6 +779,13 @@ class AccessibilityAnalysis(Analysis):
             output_name="Catchment areas",
             output_value=catchment_areas,
         )
+        if stack is not None:
+            self.set_output(
+                output_key="stack",
+                output_role_code=FilesetRoleCode.STACK,
+                output_name="Stack",
+                output_value=stack,
+            )
 
     @property
     def type(self) -> AnalysisType:
@@ -786,7 +801,7 @@ class AccessibilityAnalysis(Analysis):
             "algorithm": self.algorithm,
             # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
-            "priority_roads": self.priority_roads,
+            "priority_roads": self.priority_roads,  # TODO: No longer used in the new pipeline
             "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
@@ -802,6 +817,7 @@ class AccessibilityAnalysis(Analysis):
             "barrier",
             "water",
             "moving_speeds",
+            "stack",
         ]:
             field_value = getattr(self, fileset_field)
             if field_value is not None:
@@ -809,6 +825,8 @@ class AccessibilityAnalysis(Analysis):
 
         if self.max_slope is not None:
             dag_conf["max_slope"] = self.max_slope
+
+        # TODO: No longer used in the new pipeline
         if len(self.priority_land_cover) > 0:
             dag_conf["priority_land_cover"] = ",".join(
                 [str(p) for p in self.priority_land_cover]

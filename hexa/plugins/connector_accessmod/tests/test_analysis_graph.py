@@ -104,6 +104,9 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             code=FilesetRoleCode.POPULATION,
             format=FilesetFormat.RASTER,
         )
+        cls.STACK_ROLE = FilesetRole.objects.create(
+            name="Stack", code=FilesetRoleCode.STACK, format=FilesetFormat.RASTER
+        )
         cls.EXTENT_FILESET = Fileset.objects.create(
             name="Extent fileset",
             role=cls.GEOMETRY_ROLE,
@@ -157,6 +160,12 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
         )
+        cls.STACK_FILESET = Fileset.objects.create(
+            name="Stack file",
+            role=cls.STACK_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            author=cls.USER_1,
+        )
         cls.POPULATION_FILESET = Fileset.objects.create(
             name="Best population ever",
             role=cls.POPULATION_ROLE,
@@ -168,6 +177,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
+            dem=cls.STACK_FILESET,
             priority_land_cover=[1, 2],
         )
         cls.ACCESSIBILITY_ANALYSIS_2 = AccessibilityAnalysis.objects.create(
@@ -246,6 +256,9 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     waterAllTouched
                     algorithm
                     knightMove
+                    stack {
+                        id
+                    }
                     travelTimes {
                       id
                     }
@@ -268,6 +281,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "type": self.ACCESSIBILITY_ANALYSIS_1.type,
                 "status": self.ACCESSIBILITY_ANALYSIS_1.status,
                 "name": self.ACCESSIBILITY_ANALYSIS_1.name,
+                "stack": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.stack.id)},
                 "landCover": None,
                 "dem": None,
                 "transportNetwork": None,
