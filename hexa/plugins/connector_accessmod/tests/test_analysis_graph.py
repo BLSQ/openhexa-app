@@ -265,9 +265,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     frictionSurface {
                       id
                     }
-                    catchmentAreas {
-                      id
-                    }
                   }
                 }
               }
@@ -300,7 +297,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "knightMove": False,
                 "travelTimes": None,
                 "frictionSurface": None,
-                "catchmentAreas": None,
             },
             r["data"]["accessmodAnalysis"],
         )

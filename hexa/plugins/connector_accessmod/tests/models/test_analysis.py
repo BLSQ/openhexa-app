@@ -158,14 +158,12 @@ class AnalysisTest(TestCase):
         outputs_1 = {
             "travel_times": "s3://some-bucket/some-dir/travel_times_1.tif",
             "friction_surface": "s3://some-bucket/some-dir/friction_surface_1.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_1.tif",
         }
         self.ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_1)
 
         outputs_2 = {
             "travel_times": "s3://some-bucket/some-dir/travel_times_2.tif",
             "friction_surface": "s3://some-bucket/some-dir/friction_surface_2.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_2.tif",
         }
         self.YET_ANOTHER_ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_2)
 

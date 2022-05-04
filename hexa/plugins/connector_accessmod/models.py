@@ -726,9 +726,6 @@ class AccessibilityAnalysis(Analysis):
     friction_surface = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
-    catchment_areas = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
-    )
 
     def populate_index(self, index):
         raise NotImplementedError
@@ -758,7 +755,6 @@ class AccessibilityAnalysis(Analysis):
         self,
         travel_times: str,
         friction_surface: str,
-        catchment_areas: str,
         stack: str = None,
     ):
         self.set_output(
@@ -772,12 +768,6 @@ class AccessibilityAnalysis(Analysis):
             output_role_code=FilesetRoleCode.FRICTION_SURFACE,
             output_name="Friction surface",
             output_value=friction_surface,
-        )
-        self.set_output(
-            output_key="catchment_areas",
-            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
-            output_name="Catchment areas",
-            output_value=catchment_areas,
         )
         if stack is not None:
             self.set_output(

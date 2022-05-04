@@ -373,7 +373,6 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     knightMove: Boolean
     travelTimes: AccessmodFileset
     frictionSurface: AccessmodFileset
-    catchmentAreas: AccessmodFileset
 }
 type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & AccessmodOwnership {
     id: String!
