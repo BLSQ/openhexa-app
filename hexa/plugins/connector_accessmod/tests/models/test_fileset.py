@@ -80,7 +80,6 @@ class FilesetTest(TestCase):
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
         )
 
     def test_fileset_and_files_permissions_owner(self):

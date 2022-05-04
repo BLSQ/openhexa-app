@@ -178,7 +178,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
             dem=cls.STACK_FILESET,
-            priority_land_cover=[1, 2],
         )
         cls.ACCESSIBILITY_ANALYSIS_2 = AccessibilityAnalysis.objects.create(
             author=cls.USER_1,
@@ -187,7 +186,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             status=AnalysisStatus.READY,  # let's cheat a little
             slope=cls.SLOPE_FILESET,
             max_travel_time=42,
-            priority_land_cover=[1, 2, 3],
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
             author=cls.USER_1,
@@ -723,8 +721,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                             "algorithm": "ANISOTROPIC",
                             # "category_column": "???",   # TODO: add
                             "max_travel_time": 42,
-                            "priority_roads": True,
-                            "priority_land_cover": "1,2,3",
                             "water_all_touched": True,
                             "knight_move": False,
                             "invert_direction": False,

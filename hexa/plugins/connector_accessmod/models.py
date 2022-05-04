@@ -5,7 +5,6 @@ import typing
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
@@ -709,8 +708,6 @@ class AccessibilityAnalysis(Analysis):
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
     max_slope = models.FloatField(null=True, blank=True)
-    priority_roads = models.BooleanField(default=True)
-    priority_land_cover = ArrayField(models.PositiveSmallIntegerField(), default=list)
 
     water_all_touched = models.BooleanField(default=True)
     algorithm = models.CharField(
@@ -791,7 +788,6 @@ class AccessibilityAnalysis(Analysis):
             "algorithm": self.algorithm,
             # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
-            "priority_roads": self.priority_roads,  # TODO: No longer used in the new pipeline
             "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
@@ -815,12 +811,6 @@ class AccessibilityAnalysis(Analysis):
 
         if self.max_slope is not None:
             dag_conf["max_slope"] = self.max_slope
-
-        # TODO: No longer used in the new pipeline
-        if len(self.priority_land_cover) > 0:
-            dag_conf["priority_land_cover"] = ",".join(
-                [str(p) for p in self.priority_land_cover]
-            )
 
         return dag_conf
 

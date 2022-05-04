@@ -67,7 +67,6 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="A random accessibility analysis",
             slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
         )
 
     def test_accessmod_project_owner(self):

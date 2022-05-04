@@ -99,13 +99,11 @@ class AnalysisTest(TestCase):
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
             slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
         )
         cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_TAYLOR,
             project=cls.PROJECT_OTHER,
             name="Accessibility analysis with a common name",
-            priority_land_cover=[1, 2],
         )
         cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_TAYLOR,
@@ -173,7 +171,6 @@ class AnalysisTest(TestCase):
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
             slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
         )
         self.assertEqual(
             analysis,
@@ -195,7 +192,6 @@ class AnalysisTest(TestCase):
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
             slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
         )
         self.assertEqual(
             analysis,
