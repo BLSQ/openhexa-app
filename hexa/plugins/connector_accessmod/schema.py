@@ -689,6 +689,10 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
         ]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
+
+        if "priorities" in update_input:
+            changes["stack_priorities"] = update_input["priorities"]
+
         for fileset_field in [
             "landCoverId",
             "demId",

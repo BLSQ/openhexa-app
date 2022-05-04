@@ -218,6 +218,7 @@ enum AccessmodFilesetRoleCode {
     TRANSPORT_NETWORK
     TRAVEL_TIMES
     WATER
+    STACK
 }
 enum AccessmodFilesetFormat {
     VECTOR
@@ -344,6 +345,8 @@ enum AccessmodAccessibilityAnalysisAlgorithm {
     ANISOTROPIC
     ISOTROPIC
 }
+
+scalar StackPriorities
 type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwnership {
     id: String!
     type: AccessmodAnalysisType!
@@ -360,6 +363,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     water: AccessmodFileset
     barrier: AccessmodFileset
     stack: AccessmodFileset
+    priorities: StackPriorities
     slope: AccessmodFileset
     movingSpeeds: AccessmodFileset
     healthFacilities: AccessmodFileset
@@ -418,6 +422,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     landCoverId: String
     demId: String
     stackId: String
+    priorities: StackPriorities
     transportNetworkId: String
     slopeId: String
     waterId: String

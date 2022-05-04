@@ -708,6 +708,7 @@ class AccessibilityAnalysis(Analysis):
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
     max_slope = models.FloatField(null=True, blank=True)
+    stack_priorities = models.JSONField(null=True, blank=True, default=dict)
 
     water_all_touched = models.BooleanField(default=True)
     algorithm = models.CharField(
