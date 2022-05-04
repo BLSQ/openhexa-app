@@ -681,8 +681,6 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "invertDirection",
             "maxTravelTime",
             "maxSlope",
-            "priorityRoads",
-            "priorityLandCover",
             "waterAllTouched",
             "algorithm",
             "knightMove",

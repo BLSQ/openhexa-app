@@ -787,31 +787,100 @@ class AccessibilityAnalysis(Analysis):
         dag_conf = {
             **base_config,
             "algorithm": self.algorithm,
-            # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
-            "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
-            "overwrite": False,
+            "max_slope": self.max_slope,
+            # Overwrite existing files
+            "overwrite": True,
         }
 
-        for fileset_field in [
-            "health_facilities",
-            "dem",
-            "slope",
-            "land_cover",
-            "transport_network",
-            "barrier",
-            "water",
-            "moving_speeds",
-            "stack",
-        ]:
-            field_value = getattr(self, fileset_field)
-            if field_value is not None:
-                dag_conf[fileset_field] = self.input_path(field_value)
+        if self.dem:
+            dag_conf["dem"] = {
+                "auto": False,
+                "name": self.dem.name,
+                "input_path": self.input_path(self.dem),
+            }
+        else:
+            dag_conf["dem"] = {"auto": True}
 
-        if self.max_slope is not None:
-            dag_conf["max_slope"] = self.max_slope
+        if self.health_facilities:
+            dag_conf["health_facilities"] = {
+                "auto": False,
+                "name": self.health_facilities.name,
+                "input_path": self.input_path(self.health_facilities),
+            }
+        else:
+            dag_conf["health_facilities"] = {"auto": True}
+
+        if self.slope:
+            dag_conf["slope"] = {
+                "auto": False,
+                "name": self.slope.name,
+                "input_path": self.input_path(self.slope),
+            }
+        else:
+            dag_conf["slope"] = {"auto": True}
+
+        # This should be a JSON object instead of a fileset
+        dag_conf["moving_speeds"] = {
+            "name": self.moving_speeds.name,
+            "input_path": self.input_path(self.moving_speeds),
+        }
+
+        # Do we have a stack to use or do we need to build it?
+        if self.stack:
+            dag_conf["stack"] = {
+                "name": self.stack.name,
+                "auto": False,
+                "input_path": self.input_path(self.stack),
+                "labels": self.stack.metadata.get("labels", None),
+            }
+        else:
+            dag_conf["priorities"] = self.stack_priorities
+            dag_conf["barriers"] = [
+                {
+                    "name": self.barrier.name,
+                    "input_path": self.input_path(self.barrier),
+                    "labels": self.barrier.metadata.get("labels", None),
+                    # "all_touched": #FIXME: Not sure if we need to add this
+                }
+            ]
+
+            if self.land_cover:
+                dag_conf["land_cover"] = {
+                    "auto": False,
+                    "name": self.land_cover.name,
+                    "input_path": self.input_path(self.land_cover),
+                    "labels": self.land_cover.metadata.get("labels", None),
+                }
+            else:
+                dag_conf["land_cover"] = {"auto": True}
+
+            if self.transport_network:
+                dag_conf["transport_network"] = {
+                    "auto": False,
+                    "name": self.transport_network.name,
+                    "input_path": self.input_path(self.transport_network),
+                    "category_column": self.transport_network.metadata.get(
+                        "category_column", None
+                    ),
+                }
+            else:
+                dag_conf["transport_network"] = {"auto": True}
+
+            if self.water:
+                dag_conf["water"] = {
+                    "auto": False,
+                    "name": self.water.name,
+                    "input_path": self.input_path(self.water),
+                    "all_touched": self.water_all_touched,
+                }
+            else:
+                dag_conf["water"] = {
+                    "auto": True,
+                    "all_touched": self.water_all_touched,
+                }
 
         return dag_conf
 
