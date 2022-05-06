@@ -681,6 +681,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "invertDirection",
             "maxTravelTime",
             "maxSlope",
+            "movingSpeeds",
             "waterAllTouched",
             "algorithm",
             "knightMove",
@@ -699,7 +700,6 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "slopeId",
             "waterId",
             "barrierId",
-            "movingSpeedsId",
             "healthFacilitiesId",
         ]:
             if fileset_field in update_input:

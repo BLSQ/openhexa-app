@@ -240,9 +240,7 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     barrier {
                       id
                     }
-                    movingSpeeds {
-                      id
-                    }
+                    movingSpeeds
                     healthFacilities {
                       id
                     }

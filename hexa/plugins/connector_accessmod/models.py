@@ -696,9 +696,7 @@ class AccessibilityAnalysis(Analysis):
     barrier = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    moving_speeds = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
-    )
+    moving_speeds = models.JSONField(blank=True, default=dict)
     health_facilities = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
@@ -822,11 +820,7 @@ class AccessibilityAnalysis(Analysis):
         else:
             dag_conf["slope"] = {"auto": True}
 
-        # This should be a JSON object instead of a fileset
-        dag_conf["moving_speeds"] = {
-            "name": self.moving_speeds.name,
-            "input_path": self.input_path(self.moving_speeds),
-        }
+        dag_conf["moving_speeds"] = self.moving_speeds
 
         # Do we have a stack to use or do we need to build it?
         if self.stack:

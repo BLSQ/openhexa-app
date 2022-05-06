@@ -347,6 +347,7 @@ enum AccessmodAccessibilityAnalysisAlgorithm {
 }
 
 scalar StackPriorities
+scalar MovingSpeeds
 type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwnership {
     id: String!
     type: AccessmodAnalysisType!
@@ -365,7 +366,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     stack: AccessmodFileset
     priorities: StackPriorities
     slope: AccessmodFileset
-    movingSpeeds: AccessmodFileset
+    movingSpeeds: MovingSpeeds
     healthFacilities: AccessmodFileset
     invertDirection: Boolean
     maxTravelTime: Int
@@ -427,7 +428,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     slopeId: String
     waterId: String
     barrierId: String
-    movingSpeedsId: String
+    movingSpeeds: MovingSpeeds
     healthFacilitiesId: String
     invertDirection: Boolean
     maxTravelTime: Int
