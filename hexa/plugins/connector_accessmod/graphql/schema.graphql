@@ -371,8 +371,6 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     invertDirection: Boolean
     maxTravelTime: Int
     maxSlope: Float
-    priorityRoads: Boolean
-    priorityLandCover: [Int!]
     waterAllTouched: Boolean
     algorithm: AccessmodAccessibilityAnalysisAlgorithm
     knightMove: Boolean
