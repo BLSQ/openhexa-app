@@ -15,6 +15,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     Project,
 )
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGTemplate
@@ -67,6 +68,18 @@ class AccessmodViewsTest(TestCase):
             project=cls.SAMPLE_PROJECT,
             name="Test accessibility analysis",
             dag_run=cls.DAG_RUN,
+        )
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water network",
+            code=FilesetRoleCode.WATER,
+            format=FilesetFormat.VECTOR,
+        )
+        cls.ACCESSIBILITY_ANALYSIS.water = Fileset.objects.create(
+            project=cls.SAMPLE_PROJECT,
+            name="water network",
+            status=FilesetStatus.TO_ACQUIRE,
+            role=cls.WATER_ROLE,
+            author=cls.USER_TAYLOR,
         )
         cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
             name="Friction surface",
@@ -174,3 +187,40 @@ class AccessmodViewsTest(TestCase):
         )
         file = self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.first()
         self.assertEqual("image/tiff", file.mime_type)
+
+    def test_webhook_acquisition_update(self):
+        self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.RUNNING
+        self.ACCESSIBILITY_ANALYSIS.save()
+
+        response = self.client.post(
+            reverse(
+                "connector_accessmod:webhook",
+            ),
+            {
+                "id": str(uuid.uuid4()),
+                "object": "event",
+                "created": datetime.timestamp(timezone.now()),
+                "type": "acquisition_completed",
+                "data": {
+                    "acquisition_type": "water",
+                    "mime_type": "application/geopckg",
+                    "uri": "s3://some-bucket/some-dir/transport_network.gpkg",
+                },
+            },
+            **{
+                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {"success": True},
+        )
+        self.ACCESSIBILITY_ANALYSIS.refresh_from_db()
+        self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.water, Fileset)
+        self.assertEqual(self.ACCESSIBILITY_ANALYSIS.water.status, FilesetStatus.VALID)
+        self.assertEqual(self.ACCESSIBILITY_ANALYSIS.water.file_set.count(), 1)
+        file = self.ACCESSIBILITY_ANALYSIS.water.file_set.first()
+        self.assertEqual(file.uri, "s3://some-bucket/some-dir/transport_network.gpkg")
+        self.assertEqual(file.mime_type, "application/geopckg")

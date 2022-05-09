@@ -248,6 +248,9 @@ class ProjectPermission(Permission):
 
 
 class FilesetStatus(models.TextChoices):
+    # We need to run the data acquisition first
+    TO_ACQUIRE = "TO ACQUIRE"
+
     # pending: fileset incomplete, upload not started or in progress
     PENDING = "PENDING"
 
@@ -638,6 +641,9 @@ class Analysis(Pipeline):
             input_fileset.file_set.first().uri
         )  # TODO: handle exceptions and multi-files filesets
 
+    def set_input(self, **kwargs):
+        raise NotImplementedError
+
     def set_outputs(self, **kwargs):
         raise NotImplementedError
 
@@ -746,6 +752,33 @@ class AccessibilityAnalysis(Analysis):
             self.status = AnalysisStatus.READY
 
     @transaction.atomic
+    def set_input(self, input: str, uri: str, mime_type: str):
+        if input not in (
+            "land_cover",
+            "dem",
+            "transport_network",
+            "water",
+            "health_facilities",
+        ):
+            raise Exception("invalid input")
+
+        fileset = getattr(self, input)
+        if fileset.status != FilesetStatus.TO_ACQUIRE:
+            raise Exception("invalid fileset status")
+
+        # assume that output of acquisition is valid
+        # if udpate to status PENDING, add task in validation queue
+        fileset.status = FilesetStatus.VALID
+        fileset.save()
+
+        # add data to that fileset
+        File.objects.create(
+            mime_type=mime_type,
+            uri=uri,
+            fileset=fileset,
+        )
+
+    @transaction.atomic
     def set_outputs(
         self, travel_times: str, friction_surface: str, catchment_areas: str
     ):
@@ -787,6 +820,10 @@ class AccessibilityAnalysis(Analysis):
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
             "overwrite": False,
+            "acquisition_healthsites": False,
+            "acquisition_coppernicus": False,
+            "acquisition_osm": False,
+            "acquisition_srtm": False,
         }
 
         for fileset_field in [
@@ -802,6 +839,21 @@ class AccessibilityAnalysis(Analysis):
             field_value = getattr(self, fileset_field)
             if field_value is not None:
                 dag_conf[fileset_field] = self.input_path(field_value)
+
+        if self.health_facilities.status == FilesetStatus.TO_ACQUIRE:
+            dag_conf["acquisition_healthsites"] = True
+        if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
+            dag_conf["acquisition_coppernicus"] = True
+        if (
+            self.water.status == FilesetStatus.TO_ACQUIRE
+            or self.transport_network == FilesetStatus.TO_ACQUIRE
+        ):
+            dag_conf["acquisition_osm"] = True
+        if (
+            self.dem.status == FilesetStatus.TO_ACQUIRE
+            or self.slope == FilesetStatus.TO_ACQUIRE
+        ):
+            dag_conf["acquisition_srtm"] = True
 
         if self.max_slope is not None:
             dag_conf["max_slope"] = self.max_slope
