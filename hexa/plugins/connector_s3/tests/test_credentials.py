@@ -17,10 +17,26 @@ from hexa.plugins.connector_s3.credentials import (
     pipelines_credentials,
 )
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
-from hexa.user_management.models import Feature, FeatureFlag, Team, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Membership,
+    MembershipRole,
+    PermissionMode,
+    Team,
+    User,
+)
 
 
 class NotebooksCredentialsTest(TestCase):
+    USER_JANE = None
+    USER_JOHN = None
+    USER_WADE = None
+    TEAM_HEXA = None
+    TEAM_SECRET = None
+    TEAM_ANNOYING = None
+    CREDENTIALS = None
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_JANE = User.objects.create_user(
@@ -33,8 +49,23 @@ class NotebooksCredentialsTest(TestCase):
             "johnrocks999",
             is_superuser=False,
         )
+        cls.USER_WADE = User.objects.create_user(
+            "wade@bluesquarehub.com",
+            "waderocks999",
+            is_superuser=False,
+        )
         cls.TEAM_HEXA = Team.objects.create(name="Hexa Team!")
-        cls.USER_JOHN.team_set.add(cls.TEAM_HEXA)
+        cls.TEAM_ANNOYING = Team.objects.create(name="External Team!")
+        cls.TEAM_SECRET = Team.objects.create(name="Annoying Team!")
+        Membership.objects.create(
+            user=cls.USER_JOHN, team=cls.TEAM_HEXA, role=MembershipRole.ADMIN
+        )
+        Membership.objects.create(
+            user=cls.USER_JOHN, team=cls.TEAM_SECRET, role=MembershipRole.REGULAR
+        )
+        Membership.objects.create(
+            user=cls.USER_WADE, team=cls.TEAM_ANNOYING, role=MembershipRole.REGULAR
+        )
         cls.CREDENTIALS = Credentials.objects.create(
             username="hexa-app-test",
             access_key_id="foo",
@@ -48,6 +79,12 @@ class NotebooksCredentialsTest(TestCase):
         Bucket.objects.create(name="hexa-test-bucket-3")
         BucketPermission.objects.create(bucket=b1, team=cls.TEAM_HEXA)
         BucketPermission.objects.create(bucket=b2, team=cls.TEAM_HEXA)
+        BucketPermission.objects.create(
+            bucket=b2, team=cls.TEAM_ANNOYING, mode=PermissionMode.VIEWER
+        )
+        BucketPermission.objects.create(
+            bucket=b2, team=cls.TEAM_SECRET, mode=PermissionMode.VIEWER
+        )
         cls.S3FS = Feature.objects.create(code="s3fs")
 
     @mock_iam
@@ -80,7 +117,10 @@ class NotebooksCredentialsTest(TestCase):
         roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
         team_hash = hashlib.blake2s(
-            str(self.TEAM_HEXA.id).encode("utf-8"), digest_size=16
+            ",".join(
+                [str(t.id) for t in self.USER_JOHN.team_set.order_by("id")]
+            ).encode("utf-8"),
+            digest_size=16,
         ).hexdigest()
         expected_role_name = f"hexa-app-test-s3-{team_hash}"
         self.assertEqual(expected_role_name, roles_data["Roles"][0]["RoleName"])

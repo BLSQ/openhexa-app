@@ -1,8 +1,5 @@
-from unittest import skip
-
 import boto3
 from django.core.exceptions import ValidationError
-from django.urls import reverse
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
@@ -16,9 +13,11 @@ from hexa.plugins.connector_s3.models import (
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
-class ConnectorS3Test(TestCase):
+class BucketTest(TestCase):
     USER_JIM = None
-    BUCKET = None
+    USER_JANE = None
+    BUCKET_1 = None
+    BUCKET_2 = None
     TEAM = None
 
     @classmethod
@@ -26,10 +25,15 @@ class ConnectorS3Test(TestCase):
         cls.TEAM = Team.objects.create(name="Test Team")
         cls.USER_JIM = User.objects.create_user(
             "jim@bluesquarehub.com",
-            "regular",
+            "jimmytyjim",
             is_superuser=True,
         )
-        Membership.objects.create(team=cls.TEAM, user=cls.USER_JIM)
+        cls.USER_JANE = User.objects.create_user(
+            "jane@bluesquarehub.com",
+            "janityjane",
+            is_superuser=False,
+        )
+        Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
         cls.api_credentials = Credentials.objects.create(
             username="app-iam-username",
             access_key_id="FOO",
@@ -38,26 +42,107 @@ class ConnectorS3Test(TestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        cls.BUCKET = Bucket.objects.create(name="test-bucket")
-        BucketPermission.objects.create(team=cls.TEAM, bucket=cls.BUCKET)
+        cls.BUCKET_1 = Bucket.objects.create(name="test-bucket-1")
+        BucketPermission.objects.create(
+            team=cls.TEAM, bucket=cls.BUCKET_1, mode=PermissionMode.EDITOR
+        )
+        cls.BUCKET_2 = Bucket.objects.create(name="test-bucket-2")
+        BucketPermission.objects.create(
+            team=cls.TEAM, bucket=cls.BUCKET_2, mode=PermissionMode.VIEWER
+        )
 
-    @skip("Deactivated for now - mocks needed")
-    def test_credentials_200(self):
-        self.client.login(email="jim@bluesquarehub.com", password="regular")
-        response = self.client.post(reverse("notebooks:credentials"))
-
-        self.assertEqual(response.status_code, 200)
-        response_data = response.json()
-        self.assertIn("username", response_data)
-        self.assertEqual("jim@bluesquarehub.com", response_data["username"])
-        self.assertIn("env", response_data)
+    def test_filter_for_user_regular(self):
         self.assertEqual(
-            {
-                "S3_TEST_bucket_bucket_NAME": "test-bucket",
-                "S3_TEST_bucket_ACCESS_KEY_ID": "FOO",
-                "S3_TEST_bucket_SECRET_ACCESS_KEY": "BAR",
-            },
-            response_data["env"],
+            [self.BUCKET_1, self.BUCKET_2],
+            list(Bucket.objects.filter_for_user(self.USER_JANE)),
+        )
+        self.assertEqual(
+            [self.BUCKET_1, self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JANE,
+                    mode__in=[PermissionMode.EDITOR, PermissionMode.VIEWER],
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_1],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JANE, mode=PermissionMode.EDITOR
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JANE, mode=PermissionMode.VIEWER
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_1],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JANE, mode__in=[PermissionMode.EDITOR]
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JANE, mode__in=[PermissionMode.VIEWER]
+                )
+            ),
+        )
+
+    def test_filter_for_user_superuser(self):
+        self.assertEqual(
+            [self.BUCKET_1, self.BUCKET_2],
+            list(Bucket.objects.filter_for_user(self.USER_JIM)),
+        )
+        self.assertEqual(
+            [self.BUCKET_1, self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JIM,
+                    mode__in=[PermissionMode.EDITOR, PermissionMode.VIEWER],
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_1, self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JIM, mode=PermissionMode.EDITOR
+                )
+            ),
+        )
+        self.assertEqual(
+            [],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JIM, mode=PermissionMode.VIEWER
+                )
+            ),
+        )
+        self.assertEqual(
+            [self.BUCKET_1, self.BUCKET_2],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JIM, mode__in=[PermissionMode.EDITOR]
+                )
+            ),
+        )
+        self.assertEqual(
+            [],
+            list(
+                Bucket.objects.filter_for_user(
+                    self.USER_JIM, mode__in=[PermissionMode.VIEWER]
+                )
+            ),
         )
 
     def test_bucket_delete(self):
@@ -98,12 +183,12 @@ class PermissionTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.BUCKET_1 = Bucket.objects.create(name="aws_bucket1")
-        cls.BUCKET_2 = Bucket.objects.create(name="aws_bucket2")
+        cls.BUCKET_1_1 = Bucket.objects.create(name="aws_bucket1")
+        cls.BUCKET_1_2 = Bucket.objects.create(name="aws_bucket2")
         cls.TEAM_1 = Team.objects.create(name="Test Team 1")
         cls.TEAM_2 = Team.objects.create(name="Test Team 2")
-        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_1)
-        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_2)
+        BucketPermission.objects.create(bucket=cls.BUCKET_1_1, team=cls.TEAM_1)
+        BucketPermission.objects.create(bucket=cls.BUCKET_1_1, team=cls.TEAM_2)
         cls.USER_REGULAR = User.objects.create_user(
             "jimbo@bluesquarehub.com",
             "regular",
@@ -116,7 +201,7 @@ class PermissionTest(TestCase):
             is_superuser=True,
         )
 
-        for bucket in [cls.BUCKET_1, cls.BUCKET_2]:
+        for bucket in [cls.BUCKET_1_1, cls.BUCKET_1_2]:
             for i in range(2):
                 Object.objects.create(
                     bucket=bucket, key=f"object-{bucket.name}-{i}", size=100
@@ -181,17 +266,17 @@ class PermissionTestWritableBy(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.BUCKET_1 = Bucket.objects.create(name="aws_bucket1")
-        cls.BUCKET_2 = Bucket.objects.create(name="aws_bucket2")
+        cls.BUCKET_1_1 = Bucket.objects.create(name="aws_bucket1")
+        cls.BUCKET_1_2 = Bucket.objects.create(name="aws_bucket2")
         cls.TEAM_1 = Team.objects.create(name="Test Team1")
         cls.TEAM_2 = Team.objects.create(name="Test Team2")
         BucketPermission.objects.create(
-            bucket=cls.BUCKET_1, team=cls.TEAM_1, mode=PermissionMode.VIEWER
+            bucket=cls.BUCKET_1_1, team=cls.TEAM_1, mode=PermissionMode.VIEWER
         )
         BucketPermission.objects.create(
-            bucket=cls.BUCKET_2, team=cls.TEAM_1, mode=PermissionMode.VIEWER
+            bucket=cls.BUCKET_1_2, team=cls.TEAM_1, mode=PermissionMode.VIEWER
         )
-        BucketPermission.objects.create(bucket=cls.BUCKET_1, team=cls.TEAM_2)
+        BucketPermission.objects.create(bucket=cls.BUCKET_1_1, team=cls.TEAM_2)
         cls.USER_REGULAR = User.objects.create_user(
             "jim@bluesquarehub.com",
             "regular",
@@ -210,10 +295,10 @@ class PermissionTestWritableBy(TestCase):
         - user regular can write in bucket 1 (only one RO flag, RW flag via team 2 supersede)
         - user regular can't write in bucket 2
         """
-        self.assertTrue(self.BUCKET_1.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET_2.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET_1.writable_by(self.USER_REGULAR))
-        self.assertFalse(self.BUCKET_2.writable_by(self.USER_REGULAR))
+        self.assertTrue(self.BUCKET_1_1.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET_1_2.writable_by(self.USER_SUPER))
+        self.assertTrue(self.BUCKET_1_1.writable_by(self.USER_REGULAR))
+        self.assertFalse(self.BUCKET_1_2.writable_by(self.USER_REGULAR))
 
 
 class ConnectorS3PublicBucketTest(TestCase):

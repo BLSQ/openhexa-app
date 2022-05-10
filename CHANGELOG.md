@@ -1,6 +1,21 @@
 Changelog
 =========
 
+Version 0.35
+------------
+
+May 3, 2022
+
+### Added
+
+- New, more flexible permission system
+- Validation / processing background worker
+- Support for public buckets
+
+### Updated
+
+- Fine-tuned AccessMod graph
+
 Version 0.34
 ------------
 
