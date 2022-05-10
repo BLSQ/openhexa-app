@@ -364,7 +364,7 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     water: AccessmodFileset
     barrier: AccessmodFileset
     stack: AccessmodFileset
-    priorities: StackPriorities
+    stackPriorities: StackPriorities
     slope: AccessmodFileset
     movingSpeeds: MovingSpeeds
     healthFacilities: AccessmodFileset
@@ -421,7 +421,7 @@ input UpdateAccessmodAccessibilityAnalysisInput {
     landCoverId: String
     demId: String
     stackId: String
-    priorities: StackPriorities
+    stackPriorities: StackPriorities
     transportNetworkId: String
     slopeId: String
     waterId: String
