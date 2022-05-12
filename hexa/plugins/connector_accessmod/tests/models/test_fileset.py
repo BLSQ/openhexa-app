@@ -23,8 +23,8 @@ class FilesetTest(TestCase):
     USER_DONALD = None
     TEAM = None
     PROJECT_SAMPLE = None
-    SLOPE_ROLE = None
-    SLOPE_FILESET = None
+    WATER_ROLE = None
+    WATER_FILESET = None
 
     @classmethod
     @responses.activate
@@ -61,32 +61,31 @@ class FilesetTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.SLOPE_ROLE = FilesetRole.objects.create(
-            name="Slope",
-            code=FilesetRoleCode.SLOPE,
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water",
+            code=FilesetRoleCode.WATER,
             format=FilesetFormat.RASTER,
         )
-        cls.SLOPE_FILESET = Fileset.objects.create(
-            name="A beautiful slope",
-            role=cls.SLOPE_ROLE,
+        cls.WATER_FILESET = Fileset.objects.create(
+            name="A beautiful water",
+            role=cls.WATER_ROLE,
             project=cls.PROJECT_SAMPLE,
             author=cls.USER_SIMONE,
         )
-        cls.SLOPE_FILE = File.objects.create(
-            fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
+        cls.WATER_FILE = File.objects.create(
+            fileset=cls.WATER_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_SIMONE,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
-            slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
+            water=cls.WATER_FILESET,
         )
 
     def test_fileset_and_files_permissions_owner(self):
         fileset = Fileset.objects.create(
-            name="A private slope",
-            role=self.SLOPE_ROLE,
+            name="A private water",
+            role=self.WATER_ROLE,
             project=self.PROJECT_SAMPLE,
             author=self.USER_SIMONE,
         )
@@ -113,8 +112,8 @@ class FilesetTest(TestCase):
     def test_fileset_and_files_permissions_team(self):
         ProjectPermission.objects.create(project=self.PROJECT_SAMPLE, team=self.TEAM)
         fileset = Fileset.objects.create(
-            name="A private slope",
-            role=self.SLOPE_ROLE,
+            name="A private water",
+            role=self.WATER_ROLE,
             project=self.PROJECT_SAMPLE,
             author=self.USER_SIMONE,
         )
@@ -150,9 +149,9 @@ class FilesetTest(TestCase):
         with self.assertRaises(
             ProtectedError
         ):  # Can't delete filesets if used in an analysis
-            self.SLOPE_FILESET.delete()
+            self.WATER_FILESET.delete()
 
-        self.ACCESSIBILITY_ANALYSIS.slope = None
+        self.ACCESSIBILITY_ANALYSIS.water = None
         self.ACCESSIBILITY_ANALYSIS.save()
-        self.SLOPE_FILESET.delete()
+        self.WATER_FILESET.delete()
         self.assertEqual(0, File.objects.count())

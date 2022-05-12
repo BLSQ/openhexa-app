@@ -5,7 +5,6 @@ import typing
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
@@ -86,6 +85,9 @@ class Project(Datasource):
     extent = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
+    dem = models.ForeignKey(
+        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
 
     objects = ProjectManager.from_queryset(ProjectQuerySet)()
 
@@ -138,6 +140,7 @@ class Project(Datasource):
             "spatial_resolution",
             "crs",
             "extent",
+            "dem",
             "description",
         ]:
             if key in kwargs:
@@ -356,10 +359,10 @@ class FilesetRoleCode(models.TextChoices):
     LAND_COVER = "LAND_COVER"
     MOVING_SPEEDS = "MOVING_SPEEDS"
     POPULATION = "POPULATION"
-    SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
+    STACK = "STACK"
 
 
 class FilesetRole(Base):
@@ -683,26 +686,22 @@ class AccessibilityAnalysis(Analysis):
     transport_network = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    slope = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
-    )
     water = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     barrier = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    moving_speeds = models.ForeignKey(
+    moving_speeds = models.JSONField(blank=True, default=dict)
+    health_facilities = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    health_facilities = models.ForeignKey(
+    stack = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
-    max_slope = models.FloatField(null=True, blank=True)
-    priority_roads = models.BooleanField(default=True)
-    priority_land_cover = ArrayField(models.PositiveSmallIntegerField(), default=list)
+    stack_priorities = models.JSONField(null=True, blank=True, default=dict)
 
     water_all_touched = models.BooleanField(default=True)
     algorithm = models.CharField(
@@ -716,9 +715,6 @@ class AccessibilityAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
     friction_surface = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
-    )
-    catchment_areas = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
     )
 
@@ -737,7 +733,6 @@ class AccessibilityAnalysis(Analysis):
                     "name",
                     "land_cover",
                     "transport_network",
-                    "slope",
                     "water",
                     "health_facilities",
                 ]
@@ -747,7 +742,10 @@ class AccessibilityAnalysis(Analysis):
 
     @transaction.atomic
     def set_outputs(
-        self, travel_times: str, friction_surface: str, catchment_areas: str
+        self,
+        travel_times: str,
+        friction_surface: str,
+        stack: str = None,
     ):
         self.set_output(
             output_key="travel_times",
@@ -761,12 +759,13 @@ class AccessibilityAnalysis(Analysis):
             output_name="Friction surface",
             output_value=friction_surface,
         )
-        self.set_output(
-            output_key="catchment_areas",
-            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
-            output_name="Catchment areas",
-            output_value=catchment_areas,
-        )
+        if stack is not None:
+            self.set_output(
+                output_key="stack",
+                output_role_code=FilesetRoleCode.STACK,
+                output_name="Stack",
+                output_value=stack,
+            )
 
     @property
     def type(self) -> AnalysisType:
@@ -780,35 +779,86 @@ class AccessibilityAnalysis(Analysis):
         dag_conf = {
             **base_config,
             "algorithm": self.algorithm,
-            # "category_column": "???",   # TODO: add
             "max_travel_time": self.max_travel_time,
-            "priority_roads": self.priority_roads,
-            "water_all_touched": self.water_all_touched,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
+            # Overwrite existing files
             "overwrite": False,
         }
 
-        for fileset_field in [
-            "health_facilities",
-            "dem",
-            "slope",
-            "land_cover",
-            "transport_network",
-            "barrier",
-            "water",
-            "moving_speeds",
-        ]:
-            field_value = getattr(self, fileset_field)
-            if field_value is not None:
-                dag_conf[fileset_field] = self.input_path(field_value)
+        if self.dem:
+            dag_conf["dem"] = {
+                "auto": False,
+                "name": self.dem.name,
+                "input_path": self.input_path(self.dem),
+            }
+        else:
+            dag_conf["dem"] = {"auto": True}
 
-        if self.max_slope is not None:
-            dag_conf["max_slope"] = self.max_slope
-        if len(self.priority_land_cover) > 0:
-            dag_conf["priority_land_cover"] = ",".join(
-                [str(p) for p in self.priority_land_cover]
-            )
+        if self.health_facilities:
+            dag_conf["health_facilities"] = {
+                "auto": False,
+                "name": self.health_facilities.name,
+                "input_path": self.input_path(self.health_facilities),
+            }
+        else:
+            dag_conf["health_facilities"] = {"auto": True}
+
+        dag_conf["moving_speeds"] = self.moving_speeds
+
+        # Do we have a stack to use or do we need to build it?
+        if self.stack:
+            dag_conf["stack"] = {
+                "name": self.stack.name,
+                "auto": False,
+                "input_path": self.input_path(self.stack),
+                "labels": self.stack.metadata.get("labels", None),
+            }
+        else:
+            dag_conf["priorities"] = self.stack_priorities
+            dag_conf["barriers"] = [
+                {
+                    "name": self.barrier.name,
+                    "input_path": self.input_path(self.barrier),
+                    "labels": self.barrier.metadata.get("labels", None),
+                    # "all_touched": #FIXME: Not sure if we need to add this
+                }
+            ]
+
+            if self.land_cover:
+                dag_conf["land_cover"] = {
+                    "auto": False,
+                    "name": self.land_cover.name,
+                    "input_path": self.input_path(self.land_cover),
+                    "labels": self.land_cover.metadata.get("labels", None),
+                }
+            else:
+                dag_conf["land_cover"] = {"auto": True}
+
+            if self.transport_network:
+                dag_conf["transport_network"] = {
+                    "auto": False,
+                    "name": self.transport_network.name,
+                    "input_path": self.input_path(self.transport_network),
+                    "category_column": self.transport_network.metadata.get(
+                        "category_column", None
+                    ),
+                }
+            else:
+                dag_conf["transport_network"] = {"auto": True}
+
+            if self.water:
+                dag_conf["water"] = {
+                    "auto": False,
+                    "name": self.water.name,
+                    "input_path": self.input_path(self.water),
+                    "all_touched": self.water_all_touched,
+                }
+            else:
+                dag_conf["water"] = {
+                    "auto": True,
+                    "all_touched": self.water_all_touched,
+                }
 
         return dag_conf
 

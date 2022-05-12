@@ -146,7 +146,6 @@ class AccessmodViewsTest(TestCase):
                     "outputs": {
                         "travel_times": "s3://some-bucket/some-dir/travel_times.tif",
                         "friction_surface": "s3://some-bucket/some-dir/friction_surface.tif",
-                        "catchment_areas": "s3://some-bucket/some-dir/catchment_areas.tif",
                     },
                 },
             },
@@ -168,9 +167,3 @@ class AccessmodViewsTest(TestCase):
         self.assertEqual(
             1, self.ACCESSIBILITY_ANALYSIS.friction_surface.file_set.count()
         )
-        self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.catchment_areas, Fileset)
-        self.assertEqual(
-            1, self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.count()
-        )
-        file = self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.first()
-        self.assertEqual("image/tiff", file.mime_type)
