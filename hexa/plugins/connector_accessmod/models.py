@@ -833,7 +833,11 @@ class AccessibilityAnalysis(Analysis):
             "moving_speeds": self.moving_speeds,
             "extent": self.project.extent,
             "crs": self.project.crs,
-            "country": self.project.country.name,
+            "country": {
+                "name": self.project.country.name,
+                "iso-a2": self.project.country.code,
+                "iso-a3": self.project.country.alpha3,
+            },
             "spatial_resolution": self.project.spatial_resolution,
             # Overwrite existing files -> easier to debug (temporary)
             "overwrite": True,
