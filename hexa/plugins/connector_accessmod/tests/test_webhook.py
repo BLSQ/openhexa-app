@@ -180,12 +180,6 @@ class AccessmodViewsTest(TestCase):
         self.assertEqual(
             1, self.ACCESSIBILITY_ANALYSIS.friction_surface.file_set.count()
         )
-        self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.catchment_areas, Fileset)
-        self.assertEqual(
-            1, self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.count()
-        )
-        file = self.ACCESSIBILITY_ANALYSIS.catchment_areas.file_set.first()
-        self.assertEqual("image/tiff", file.mime_type)
 
     def test_webhook_acquisition_update(self):
         self.ACCESSIBILITY_ANALYSIS.status = AnalysisStatus.RUNNING
