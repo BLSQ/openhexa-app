@@ -286,7 +286,7 @@ class AnalysisBuildConfTest(TestCase):
 
         am_config = json.loads(base64.b64decode(config["am_config"]))
         self.assertEqual(am_config["crs"], 6933)
-        self.assertEqual(am_config["country"], "Belgium")
+        self.assertEqual(am_config["country"]["name"], "Belgium")
         self.assertEqual(am_config["spatial_resolution"], 100)
         self.assertEqual(am_config["dem"]["auto"], False)
 
@@ -302,6 +302,6 @@ class AnalysisBuildConfTest(TestCase):
 
         am_config = json.loads(base64.b64decode(config["am_config"]))
         self.assertEqual(am_config["crs"], 6933)
-        self.assertEqual(am_config["country"], "Belgium")
+        self.assertEqual(am_config["country"]["name"], "Belgium")
         self.assertEqual(am_config["spatial_resolution"], 100)
         self.assertEqual(am_config["dem"]["auto"], True)
