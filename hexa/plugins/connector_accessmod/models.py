@@ -309,6 +309,13 @@ class Fileset(Entry):
 
         return self.save()
 
+    def set_invalid(self, error):
+        if self.metadata is None:
+            self.metadata = {}
+        self.metadata["validation_error"] = error
+        self.status = FilesetStatus.INVALID
+        self.save()
+
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("connector_accessmod.delete_fileset", self):
             raise PermissionDenied
