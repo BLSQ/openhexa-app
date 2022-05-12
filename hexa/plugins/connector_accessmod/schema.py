@@ -168,11 +168,8 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=Fileset.objects.filter_for_user(request.user).get(
-                id=create_input["filesetId"]
-            )
-            if "extentId" in create_input
-            else None,
+            # FIXME: specify extend from country
+            extent="[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]",
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:

@@ -1,3 +1,5 @@
+import base64
+import json
 from unittest import skip
 
 import responses
@@ -14,6 +16,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     Project,
     ProjectPermission,
 )
@@ -213,3 +216,92 @@ class AnalysisTest(TestCase):
             Analysis.objects.filter_for_user(self.USER_GRACE).get_subclass(
                 id=analysis.id
             )
+
+
+class AnalysisBuildConfTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.PROJECT = Project.objects.create(
+            name="Jimmy's project",
+            country="BE",
+            author=None,
+            spatial_resolution=100,
+            crs=6933,
+        )
+
+        def make_file(project, role, status):
+            fsr = FilesetRole.objects.create(
+                name=role,
+                code=getattr(FilesetRoleCode, role),
+                format=FilesetFormat.RASTER,
+            )
+            fs = Fileset.objects.create(
+                project=project,
+                name=f"{fsr.id}_{role}",
+                status=getattr(FilesetStatus, status),
+                role=fsr,
+                author=None,
+            )
+            file = File.objects.create(
+                mime_type="image/geotiff",
+                uri=f"s3://some-bucket/{fs.id}/some-file",
+                fileset=fs,
+            )
+            setattr(cls, role + "_ROLE", fsr)
+            setattr(cls, role + "_FS", fs)
+            setattr(cls, role + "_FILE", file)
+            return fs
+
+        cls.ANALYSIS_NOACQ = AccessibilityAnalysis.objects.create(
+            author=None,
+            project=cls.PROJECT,
+            name="analysis no acquisition",
+            water=make_file(cls.PROJECT, "WATER", "PENDING"),
+            transport_network=make_file(cls.PROJECT, "TRANSPORT_NETWORK", "PENDING"),
+            land_cover=make_file(cls.PROJECT, "LAND_COVER", "PENDING"),
+            dem=make_file(cls.PROJECT, "DEM", "PENDING"),
+            health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "PENDING"),
+        )
+
+        cls.ANALYSIS_FULLACQ = AccessibilityAnalysis.objects.create(
+            author=None,
+            project=cls.PROJECT,
+            name="analysis full acquisition",
+            water=make_file(cls.PROJECT, "WATER", "TO_ACQUIRE"),
+            transport_network=make_file(cls.PROJECT, "TRANSPORT_NETWORK", "TO_ACQUIRE"),
+            land_cover=make_file(cls.PROJECT, "LAND_COVER", "TO_ACQUIRE"),
+            dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
+            health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
+        )
+
+    def test_build_dag_noacq(self):
+        config = self.ANALYSIS_NOACQ.build_dag_conf("s3://S/")
+        for acquisition in (
+            "acquisition_healthsites",
+            "acquisition_copernicus",
+            "acquisition_osm",
+            "acquisition_srtm",
+        ):
+            self.assertEqual(config[acquisition], False)
+
+        am_config = json.loads(base64.b64decode(config["am_config"]))
+        self.assertEqual(am_config["crs"], 6933)
+        self.assertEqual(am_config["country"]["name"], "Belgium")
+        self.assertEqual(am_config["spatial_resolution"], 100)
+        self.assertEqual(am_config["dem"]["auto"], False)
+
+    def test_build_dag_fullacq(self):
+        config = self.ANALYSIS_FULLACQ.build_dag_conf("s3://S/")
+        for acquisition in (
+            "acquisition_healthsites",
+            "acquisition_copernicus",
+            "acquisition_osm",
+            "acquisition_srtm",
+        ):
+            self.assertEqual(config[acquisition], True)
+
+        am_config = json.loads(base64.b64decode(config["am_config"]))
+        self.assertEqual(am_config["crs"], 6933)
+        self.assertEqual(am_config["country"]["name"], "Belgium")
+        self.assertEqual(am_config["spatial_resolution"], 100)
+        self.assertEqual(am_config["dem"]["auto"], True)
