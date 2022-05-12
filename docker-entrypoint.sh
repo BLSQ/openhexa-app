@@ -15,15 +15,16 @@ show_help() {
   echo """
   Available commands:
 
-  start            : start django server using gunicorn
-  makemigrations   : generate a django migration
-  migrate          : run django migrations
-  test             : launch django tests
-  manage           : run django manage.py
-  fixtures         : migrate, create superuser, load fixtures and reindex
-  bash             : run bash
-  tailwind         : run tailwind browser-sync
-  coveraged-test   : launch django tests and show a coverage report
+  start             : start django server using gunicorn
+  makemigrations    : generate a django migration
+  migrate           : run django migrations
+  test              : launch django tests
+  manage            : run django manage.py
+  fixtures          : migrate, create superuser, load fixtures and reindex
+  bash              : run bash
+  tailwind          : run tailwind browser-sync
+  coveraged-test    : launch django tests and show a coverage report
+  datasciences-test : launch datasciences tests
 
   Any arguments passed will be forwarded to the executed command
   """
@@ -45,14 +46,20 @@ case "$command" in
   wait-for-it db:5432
   export DEBUG=false
   python manage.py makemigrations --check
-  python manage.py test $arguments
+  python manage.py test --exclude-tag=datasciences $arguments
   ;;
 "coveraged-test")
   wait-for-it db:5432
   export DEBUG=false
   python manage.py makemigrations --check
-  coverage run manage.py test $arguments
+  coverage run manage.py test --exclude-tag=datasciences $arguments
   coverage report --skip-empty --fail-under=80
+  ;;
+"datasciences-test")
+  wait-for-it db:5432
+  export DEBUG=false
+  python manage.py makemigrations --check
+  python manage.py test --tag=datasciences $arguments
   ;;
 "manage")
   wait-for-it db:5432

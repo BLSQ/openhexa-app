@@ -58,5 +58,15 @@ services:
     ports:
       - "8383:8383"
 
+  dataworker:
+    <<: *default-app
+    build:
+      context: .
+      dockerfile: Dockerfile.dataworker
+    command: "manage validate_fileset_worker"
+    restart: unless-stopped
+    depends_on:
+      - db
+
 volumes:
   pgdata-12.5:

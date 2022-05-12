@@ -347,6 +347,11 @@ def get_object_metadata(
     }
 
 
+def download_file(*, bucket: models.Bucket, object_key: str, target: str):
+    client = _build_app_s3_client(principal_credentials=bucket.principal_credentials)
+    return client.download_file(Bucket=bucket.name, Key=object_key, Filename=target)
+
+
 def list_objects_metadata(
     *, principal_credentials: models.Credentials, bucket: models.Bucket
 ):
