@@ -16,6 +16,7 @@ logger = getLogger(__name__)
 
 class EventType(str, enum.Enum):
     STATUS_UPDATE = "status_update"
+    ACQUISITION_FINISHED = "acquisition_completed"
 
 
 @require_POST
@@ -32,6 +33,12 @@ def webhook(request: HttpRequest) -> HttpResponse:
         )
 
     payload = json.loads(request.body.decode("utf-8"))
+    if "type" not in payload or "data" not in payload:
+        return JsonResponse(
+            {"success": False, "message": "Malformed JSON"},
+            status=500,
+        )
+
     event_type = payload["type"]
     event_data = payload["data"]
 
@@ -48,6 +55,28 @@ def webhook(request: HttpRequest) -> HttpResponse:
             analysis.update_status(event_data["status"])
             if "outputs" in event_data:
                 analysis.set_outputs(**event_data["outputs"])
+
+    if event_type == EventType.ACQUISITION_FINISHED:
+        try:
+            analysis = Analysis.objects.get_subclass(dag_run=request.user.dag_run.id)
+        except Analysis.DoesNotExist:
+            return JsonResponse(
+                {"success": False},
+                status=401,
+            )
+
+        try:
+            analysis.set_input(
+                input=event_data["acquisition_type"],
+                uri=event_data["uri"],
+                mime_type=event_data["mime_type"],
+            )
+        except Exception as e:
+            logger.exception("webhook update acquisition")
+            return JsonResponse(
+                {"success": False},
+                status=500,
+            )
 
     return JsonResponse(
         {"success": True},
