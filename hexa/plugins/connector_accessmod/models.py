@@ -359,7 +359,6 @@ class FilesetRoleCode(models.TextChoices):
     LAND_COVER = "LAND_COVER"
     MOVING_SPEEDS = "MOVING_SPEEDS"
     POPULATION = "POPULATION"
-    SLOPE = "SLOPE"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
@@ -687,9 +686,6 @@ class AccessibilityAnalysis(Analysis):
     transport_network = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
-    slope = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
-    )
     water = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
@@ -705,7 +701,6 @@ class AccessibilityAnalysis(Analysis):
     )
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
-    max_slope = models.FloatField(null=True, blank=True)
     stack_priorities = models.JSONField(null=True, blank=True, default=dict)
 
     water_all_touched = models.BooleanField(default=True)
@@ -738,7 +733,6 @@ class AccessibilityAnalysis(Analysis):
                     "name",
                     "land_cover",
                     "transport_network",
-                    "slope",
                     "water",
                     "health_facilities",
                 ]
@@ -788,9 +782,8 @@ class AccessibilityAnalysis(Analysis):
             "max_travel_time": self.max_travel_time,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
-            "max_slope": self.max_slope,
             # Overwrite existing files
-            "overwrite": True,
+            "overwrite": False,
         }
 
         if self.dem:
@@ -810,15 +803,6 @@ class AccessibilityAnalysis(Analysis):
             }
         else:
             dag_conf["health_facilities"] = {"auto": True}
-
-        if self.slope:
-            dag_conf["slope"] = {
-                "auto": False,
-                "name": self.slope.name,
-                "input_path": self.input_path(self.slope),
-            }
-        else:
-            dag_conf["slope"] = {"auto": True}
 
         dag_conf["moving_speeds"] = self.moving_speeds
 

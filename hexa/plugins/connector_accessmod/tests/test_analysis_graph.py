@@ -14,7 +14,6 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     AccessibilityAnalysisAlgorithm,
     AnalysisStatus,
-    File,
     Fileset,
     FilesetFormat,
     FilesetRole,
@@ -79,11 +78,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             code=FilesetRoleCode.TRANSPORT_NETWORK,
             format=FilesetFormat.VECTOR,
         )
-        cls.SLOPE_ROLE = FilesetRole.objects.create(
-            name="Slope",
-            code=FilesetRoleCode.SLOPE,
-            format=FilesetFormat.RASTER,
-        )
         cls.WATER_ROLE = FilesetRole.objects.create(
             name="Water",
             code=FilesetRoleCode.WATER,
@@ -131,17 +125,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
         )
-        cls.SLOPE_FILESET = Fileset.objects.create(
-            name="A beautiful slope",
-            role=cls.SLOPE_ROLE,
-            project=cls.SAMPLE_PROJECT,
-            author=cls.USER_1,
-        )
-        cls.SLOPE_FILE = File.objects.create(
-            fileset=cls.SLOPE_FILESET,
-            uri=f"s3://{cls.BUCKET.name}/{cls.SAMPLE_PROJECT.id}/file_1.csv/",
-            mime_type="text/csv",
-        )
         cls.WATER_FILESET = Fileset.objects.create(
             name="I like water",
             role=cls.WATER_ROLE,
@@ -176,7 +159,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             author=cls.USER_1,
             project=cls.SAMPLE_PROJECT,
             name="First accessibility analysis",
-            slope=cls.SLOPE_FILESET,
             dem=cls.STACK_FILESET,
         )
         cls.ACCESSIBILITY_ANALYSIS_2 = AccessibilityAnalysis.objects.create(
@@ -184,7 +166,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             project=cls.SAMPLE_PROJECT,
             name="Second accessibility analysis",
             status=AnalysisStatus.READY,  # let's cheat a little
-            slope=cls.SLOPE_FILESET,
             max_travel_time=42,
         )
         cls.GEOGRAPHIC_COVERAGE_ANALYSIS_1 = GeographicCoverageAnalysis.objects.create(
@@ -231,9 +212,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     transportNetwork {
                       id
                     }
-                    slope {
-                      id
-                    }
                     water {
                       id
                     }
@@ -246,7 +224,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     }
                     invertDirection
                     maxTravelTime
-                    maxSlope
                     priorityRoads
                     priorityLandCover
                     waterAllTouched
@@ -278,14 +255,12 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "landCover": None,
                 "dem": None,
                 "transportNetwork": None,
-                "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.slope.id)},
                 "water": None,
                 "barrier": None,
                 "movingSpeeds": None,
                 "healthFacilities": None,
                 "invertDirection": False,
                 "maxTravelTime": 360,
-                "maxSlope": None,
                 "priorityRoads": True,
                 "priorityLandCover": [1, 2],
                 "waterAllTouched": True,
@@ -330,11 +305,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                         items {
                             id
                             type
-                            ... on AccessmodAccessibilityAnalysis {
-                                slope {
-                                    id
-                                }
-                            }
                             ... on AccessmodGeographicCoverageAnalysis {
                                 frictionSurface {
                                     id
@@ -375,12 +345,10 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     {
                         "id": str(self.ACCESSIBILITY_ANALYSIS_2.id),
                         "type": self.ACCESSIBILITY_ANALYSIS_2.type,
-                        "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS_2.slope.id)},
                     },
                     {
                         "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                         "type": self.ACCESSIBILITY_ANALYSIS_1.type,
-                        "slope": {"id": str(self.ACCESSIBILITY_ANALYSIS_1.slope.id)},
                     },
                 ],
             },
@@ -579,7 +547,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
                     "name": "Updated accessibility analysis!",
-                    "slopeId": str(self.SLOPE_FILESET.id),
                 }
             },
         )
@@ -616,7 +583,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     "landCoverId": str(self.LAND_COVER_FILESET.id),
                     "demId": str(self.DEM_FILESET.id),
                     "transportNetworkId": str(self.TRANSPORT_NETWORK_FILESET.id),
-                    "slopeId": str(self.SLOPE_FILESET.id),
                     "waterId": str(self.WATER_FILESET.id),
                     "healthFacilitiesId": str(self.HEALTH_FACILITIES_FILESET.id),
                 }
@@ -715,7 +681,6 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
                     {
                         "conf": {
                             "output_dir": output_dir,
-                            "slope": self.SLOPE_FILESET.file_set.first().uri,
                             "algorithm": "ANISOTROPIC",
                             # "category_column": "???",   # TODO: add
                             "max_travel_time": 42,
