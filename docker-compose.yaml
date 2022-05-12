@@ -61,7 +61,7 @@ services:
   dataworker:
     <<: *default-app
     build:
-      context: dataworker
+      context: .
       dockerfile: Dockerfile.dataworker
     command: "manage validate_fileset_worker"
     restart: unless-stopped
