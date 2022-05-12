@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Version 0.36
+
+May 12, 2022
+
+### Added
+
+- AccessMod: input validation
+
+### Updated
+
+- AccessMod: configuration format for new analysis version
+
 Version 0.35
 ------------
 
