@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("connector_accessmod", "0037_merge_20220512_1019"),
+        ("connector_accessmod", "0038_alter_project_extent"),
     ]
 
     operations = [
         migrations.AlterField(
             model_name="project",
             name="extent",
-            field=models.TextField(default="", null=True),
+            field=models.TextField(default=""),
             preserve_default=False,
         ),
     ]
