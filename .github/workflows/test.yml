@@ -13,10 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build docker images
+      - name: Build docker app image
         env:
           DOCKER_BUILDKIT: 1
         run: docker-compose build
 
       - name: Run Django tests
         run: docker-compose run -e DEBUG=false app coveraged-test
+
+      - name: Run dataworker tests
+        run: docker-compose run -e DEBUG=false dataworker datasciences-test

@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from django.test import tag
 from moto import mock_s3, mock_sts
 
 from hexa.core.test import TestCase
@@ -144,6 +145,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_no_file(self):
         validate_fileset_job(
             None, MockJob(args={"fileset_id": str(self.dem_empty_fs.id)})
@@ -153,6 +155,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_dem(self):
         dem_file = os.path.dirname(__file__) + "/data/dem.tif"
         dem_data = open(dem_file, "rb").read()
@@ -167,6 +170,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_facilities(self):
         facilities_file = os.path.dirname(__file__) + "/data/facilities.gpkg"
         facilities_data = open(facilities_file, "rb").read()
@@ -185,6 +189,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_water(self):
         water_file = os.path.dirname(__file__) + "/data/water.gpkg"
         water_data = open(water_file, "rb").read()
@@ -199,6 +204,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_transport(self):
         transport_file = os.path.dirname(__file__) + "/data/transport.gpkg"
         transport_data = open(transport_file, "rb").read()
@@ -220,6 +226,7 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    @tag("datasciences")
     def test_validate_landcover(self):
         landcover_file = os.path.dirname(__file__) + "/data/landcover.tif"
         landcover_data = open(landcover_file, "rb").read()

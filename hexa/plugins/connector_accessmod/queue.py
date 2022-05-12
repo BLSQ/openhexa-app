@@ -2,9 +2,17 @@ import os
 import typing
 from logging import getLogger
 
-import geopandas as gpd
-import numpy as np
-import rasterio
+# Try to load datasciences dependencies
+# if not present, deactivate validation
+try:
+    import geopandas as gpd
+    import numpy as np
+    import rasterio
+
+    missing_dependencies = False
+except ImportError:
+    missing_dependencies = True
+
 from dpq.queue import AtLeastOnceQueue
 
 import hexa.plugins.connector_s3.api as s3_api
@@ -16,7 +24,7 @@ logger = getLogger(__name__)
 
 
 def validate_geopkg(
-    gdf: gpd.GeoDataFrame, fileset: Fileset, geom_type: typing.List[str]
+    gdf: "gpd.GeoDataFrame", fileset: Fileset, geom_type: typing.List[str]
 ):
     # validate CRS
     if gdf.crs.to_epsg() != fileset.project.crs:
@@ -182,6 +190,10 @@ def validate_data_and_download(fileset: Fileset) -> str:
 
 
 def validate_fileset_job(queue, job) -> None:
+    if missing_dependencies:
+        logger.error("Validation deactivated, missing dependencies")
+        return
+
     try:
         fileset = Fileset.objects.get(id=job.args["fileset_id"])
 
