@@ -220,7 +220,7 @@ class AccessmodDataWorkerTest(TestCase):
         self.transport_fs.refresh_from_db()
         self.assertEqual(
             self.transport_fs.metadata,
-            {"highways": ["primary", "secondary", "trunk_link"]},
+            {"category_column": ["primary", "secondary", "trunk_link"]},
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
 

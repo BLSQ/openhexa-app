@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import base64
 import enum
+import json
 import typing
 
 from django.conf import settings
@@ -82,9 +84,8 @@ class Project(Datasource):
     description = models.TextField(verbose_name="Project description", blank=True)
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
-    extent = models.ForeignKey(
-        "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
-    )
+    extent = models.TextField()
+    # FIXME: probably not useful, project can have several DEM
     dem = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
     )
@@ -327,6 +328,14 @@ class Fileset(Entry):
             raise PermissionDenied
 
         return super().delete()
+
+    @property
+    def primary_uri(self) -> typing.Optional[str]:
+        # FIXME: manage shapefile multiple related file
+        if self.file_set.first():
+            return self.file_set.first().uri
+        else:
+            return None
 
     @property
     def owner(
@@ -593,9 +602,7 @@ class Analysis(Pipeline):
         self.dag_run = dag.run(
             request=request,
             conf=self.build_dag_conf(
-                {
-                    "output_dir": f"s3://{bucket.name}/{self.project.id}/{self.id}/",
-                }
+                output_dir=f"s3://{bucket.name}/{self.project.id}/{self.id}/"
             ),
             webhook_path=webhook_path,
         )
@@ -611,7 +618,7 @@ class Analysis(Pipeline):
     def dag_id(self):
         raise NotImplementedError
 
-    def build_dag_conf(self, conf: typing.Mapping[str, typing.Any]):
+    def build_dag_conf(self, output_dir: str):
         raise NotImplementedError
 
     def update_status_if_draft(self):
@@ -641,15 +648,6 @@ class Analysis(Pipeline):
                 self.update_status(self.DAG_RUN_STATE_MAPPINGS[state])
         except KeyError:
             raise ValueError(f"Cannot map DAGRunState {state}")
-
-    @staticmethod
-    def input_path(input_fileset: typing.Optional[Fileset] = None):
-        if input_fileset is None:
-            return None
-
-        return (
-            input_fileset.file_set.first().uri
-        )  # TODO: handle exceptions and multi-files filesets
 
     def set_input(self, **kwargs):
         raise NotImplementedError
@@ -738,6 +736,7 @@ class AccessibilityAnalysis(Analysis):
         raise NotImplementedError
 
     def update_status_if_draft(self):
+        # FIXME: check that all fileset status is VALID or TO_ACQUIRE
         if all(
             value is not None
             for value in [
@@ -748,6 +747,7 @@ class AccessibilityAnalysis(Analysis):
                     "transport_network",
                     "water",
                     "health_facilities",
+                    "dem",
                 ]
             ]
         ):
@@ -813,120 +813,141 @@ class AccessibilityAnalysis(Analysis):
 
     @property
     def dag_id(self):
-        return "am_accessibility"
+        return "am_accessibility_full"
 
-    def build_dag_conf(self, base_config: typing.Mapping[str, typing.Any]):
-        dag_conf = {
-            **base_config,
+    def build_dag_conf(self, output_dir: str):
+        # if build_dag_conf -> status is ready. so assume:
+        # name, land_cover, transport_network, water, health_facilities, dem
+        # as non null
+
+        # force output_dir to end with a "/"
+        if not output_dir.endswith("/"):
+            output_dir += "/"
+
+        am_conf = {
+            "output_dir": output_dir,
             "algorithm": self.algorithm,
             "max_travel_time": self.max_travel_time,
             "knight_move": self.knight_move,
             "invert_direction": self.invert_direction,
-            # Overwrite existing files
-            "overwrite": False,
-            "acquisition_healthsites": False,
-            "acquisition_coppernicus": False,
-            "acquisition_osm": False,
-            "acquisition_srtm": False,
+            "moving_speeds": self.moving_speeds,
+            "extent": self.project.extent,
+            "crs": self.project.crs,
+            "country": self.project.country.name,
+            "spatial_resolution": self.project.spatial_resolution,
+            # Overwrite existing files -> easier to debug (temporary)
+            "overwrite": True,
         }
 
-        if self.dem:
-            dag_conf["dem"] = {
+        if self.dem.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["dem"] = {
+                "auto": True,
+                "name": self.dem.name,
+                "path": output_dir + f"{str(self.dem.id)}_dem.tif",
+            }
+        else:
+            am_conf["dem"] = {
                 "auto": False,
                 "name": self.dem.name,
-                "input_path": self.input_path(self.dem),
+                "path": self.dem.primary_uri,
+            }
+
+        if self.health_facilities.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["health_facilities"] = {
+                "auto": True,
+                "name": self.health_facilities.name,
+                "path": output_dir
+                + f"{str(self.health_facilities.id)}_facilities.gpkg",
             }
         else:
-            dag_conf["dem"] = {"auto": True}
-
-        # FIXME: activate acquisition pipelines based on fileset status
-
-        #        if self.health_facilities.status == FilesetStatus.TO_ACQUIRE:
-        #            dag_conf["acquisition_healthsites"] = True
-        #        if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
-        #            dag_conf["acquisition_coppernicus"] = True
-        #        if (
-        #            self.water.status == FilesetStatus.TO_ACQUIRE
-        #            or self.transport_network == FilesetStatus.TO_ACQUIRE
-        #        ):
-        #            dag_conf["acquisition_osm"] = True
-        #        if (
-        #            self.dem.status == FilesetStatus.TO_ACQUIRE
-        #            or self.slope == FilesetStatus.TO_ACQUIRE
-        #        ):
-        #            dag_conf["acquisition_srtm"] = True
-        #
-        #        if self.max_slope is not None:
-        #            dag_conf["max_slope"] = self.max_slope
-        #        if len(self.priority_land_cover) > 0:
-        #            dag_conf["priority_land_cover"] = ",".join(
-        #                [str(p) for p in self.priority_land_cover]
-        #            )
-
-        if self.health_facilities:
-            dag_conf["health_facilities"] = {
+            am_conf["health_facilities"] = {
                 "auto": False,
                 "name": self.health_facilities.name,
-                "input_path": self.input_path(self.health_facilities),
+                "path": self.health_facilities.primary_uri,
+            }
+
+        if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["land_cover"] = {
+                "auto": True,
+                "name": self.land_cover.name,
+                "path": output_dir + f"{str(self.land_cover.id)}_land_cover.tif",
+                "labels": self.land_cover.metadata.get("labels", None),
             }
         else:
-            dag_conf["health_facilities"] = {"auto": True}
+            am_conf["land_cover"] = {
+                "auto": False,
+                "name": self.land_cover.name,
+                "path": self.land_cover.primary_uri,
+                "labels": self.land_cover.metadata.get("labels", None),
+            }
 
-        dag_conf["moving_speeds"] = self.moving_speeds
+        if self.transport_network.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["transport_network"] = {
+                "auto": True,
+                "name": self.transport_network.name,
+                "path": output_dir + f"{str(self.transport_network.id)}_transport.gpkg",
+                "category_column": self.transport_network.metadata.get(
+                    "category_column", None
+                ),
+            }
+        else:
+            am_conf["transport_network"] = {
+                "auto": False,
+                "name": self.transport_network.name,
+                "path": self.transport_network.primary_uri,
+                "category_column": self.transport_network.metadata.get(
+                    "category_column", None
+                ),
+            }
+
+        if self.water.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["water"] = {
+                "auto": True,
+                "name": self.water.name,
+                "path": output_dir + f"{str(self.water.id)}_water.gpkg",
+                "all_touched": self.water_all_touched,
+            }
+        else:
+            am_conf["water"] = {
+                "auto": False,
+                "name": self.water.name,
+                "path": self.water.primary_uri,
+                "all_touched": self.water_all_touched,
+            }
 
         # Do we have a stack to use or do we need to build it?
         if self.stack:
-            dag_conf["stack"] = {
+            am_conf["stack"] = {
                 "name": self.stack.name,
-                "auto": False,
-                "input_path": self.input_path(self.stack),
+                "path": self.stack.primary_uri,
                 "labels": self.stack.metadata.get("labels", None),
             }
         else:
-            dag_conf["priorities"] = self.stack_priorities
-            dag_conf["barriers"] = [
-                {
-                    "name": self.barrier.name,
-                    "input_path": self.input_path(self.barrier),
-                    "labels": self.barrier.metadata.get("labels", None),
-                    # "all_touched": #FIXME: Not sure if we need to add this
-                }
-            ]
+            am_conf["priorities"] = self.stack_priorities
+            if self.barrier:
+                am_conf["barriers"] = [
+                    {
+                        "name": self.barrier.name,
+                        "path": self.barrier.primary_uri,
+                        "labels": self.barrier.metadata.get("labels", None),
+                        # "all_touched": #FIXME: Not sure if we need to add this
+                    }
+                ]
 
-            if self.land_cover:
-                dag_conf["land_cover"] = {
-                    "auto": False,
-                    "name": self.land_cover.name,
-                    "input_path": self.input_path(self.land_cover),
-                    "labels": self.land_cover.metadata.get("labels", None),
-                }
-            else:
-                dag_conf["land_cover"] = {"auto": True}
-
-            if self.transport_network:
-                dag_conf["transport_network"] = {
-                    "auto": False,
-                    "name": self.transport_network.name,
-                    "input_path": self.input_path(self.transport_network),
-                    "category_column": self.transport_network.metadata.get(
-                        "category_column", None
-                    ),
-                }
-            else:
-                dag_conf["transport_network"] = {"auto": True}
-
-            if self.water:
-                dag_conf["water"] = {
-                    "auto": False,
-                    "name": self.water.name,
-                    "input_path": self.input_path(self.water),
-                    "all_touched": self.water_all_touched,
-                }
-            else:
-                dag_conf["water"] = {
-                    "auto": True,
-                    "all_touched": self.water_all_touched,
-                }
+        dag_conf = {
+            "acquisition_healthsites": self.health_facilities.status
+            == FilesetStatus.TO_ACQUIRE,
+            "acquisition_coppernicus": self.land_cover.status
+            == FilesetStatus.TO_ACQUIRE,
+            "acquisition_osm": (
+                self.transport_network.status == FilesetStatus.TO_ACQUIRE
+                or self.water.status == FilesetStatus.TO_ACQUIRE
+            ),
+            "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
+            # Overwrite existing files -> easier to debug (temporary)
+            "overwrite": True,
+            "am_config": base64.b64encode(json.dumps(am_conf).encode()),
+        }
 
         return dag_conf
 

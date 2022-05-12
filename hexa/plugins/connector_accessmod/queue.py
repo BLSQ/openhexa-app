@@ -102,7 +102,7 @@ def validate_transport(fileset: Fileset, filename: str):
     # extract roads categories & validate
     if fileset.metadata is None:
         fileset.meadata = {}
-    fileset.metadata["highways"] = sorted(transport.highway.unique())
+    fileset.metadata["category_column"] = sorted(transport.highway.unique())
     fileset.status = FilesetStatus.VALID
     fileset.save()
 
