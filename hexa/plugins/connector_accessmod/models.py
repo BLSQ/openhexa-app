@@ -45,7 +45,7 @@ class ProjectManager(models.Manager):
         spatial_resolution: int,
         description: str,
         crs: int,
-        extent: Fileset,
+        extent: typing.List,
     ):
         if not principal.has_perm("connector_accessmod.create_project"):
             raise PermissionDenied
@@ -84,7 +84,7 @@ class Project(Datasource):
     description = models.TextField(verbose_name="Project description", blank=True)
     spatial_resolution = models.PositiveIntegerField()
     crs = models.PositiveIntegerField()
-    extent = models.TextField()
+    extent = models.JSONField(default=list)
     # FIXME: probably not useful, project can have several DEM
     dem = models.ForeignKey(
         "Fileset", on_delete=models.PROTECT, null=True, blank=True, related_name="+"
@@ -868,6 +868,8 @@ class AccessibilityAnalysis(Analysis):
                 "auto": False,
                 "name": self.health_facilities.name,
                 "path": self.health_facilities.primary_uri,
+                # FIXME: filter by amenity todo
+                "amenity": None,
             }
 
         if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
@@ -876,6 +878,8 @@ class AccessibilityAnalysis(Analysis):
                 "name": self.land_cover.name,
                 "path": output_dir + f"{str(self.land_cover.id)}_land_cover.tif",
                 "labels": self.land_cover.metadata.get("labels", None),
+                # FIXME: you can use 2015 -> 2019 as year for data source
+                "year": 2019,
             }
         else:
             am_conf["land_cover"] = {
@@ -939,6 +943,7 @@ class AccessibilityAnalysis(Analysis):
                 ]
 
         dag_conf = {
+            # flag interpreted by airflow for starting acquisition pipelines
             "acquisition_healthsites": self.health_facilities.status
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_copernicus": self.land_cover.status
@@ -948,9 +953,12 @@ class AccessibilityAnalysis(Analysis):
                 or self.water.status == FilesetStatus.TO_ACQUIRE
             ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
-            # Overwrite existing files -> easier to debug (temporary)
+            # Overwrite and output_dir repeated: for create report, which
+            # doesnt parse am_config
             "overwrite": True,
-            "am_config": base64.b64encode(json.dumps(am_conf).encode()),
+            "output_dir": output_dir,
+            # config for accessibility pipeline
+            "am_config": base64.b64encode(json.dumps(am_conf).encode()).decode(),
         }
 
         return dag_conf
