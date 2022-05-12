@@ -52,7 +52,7 @@ case "$command" in
   wait-for-it db:5432
   export DEBUG=false
   python manage.py makemigrations --check
-  coverage run manage.py test $arguments
+  coverage run manage.py test --exclude-tag=datasciences $arguments
   coverage report --skip-empty --fail-under=80
   ;;
 "datasciences-test")
