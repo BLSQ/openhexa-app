@@ -278,7 +278,7 @@ class AnalysisBuildConfTest(TestCase):
         config = self.ANALYSIS_NOACQ.build_dag_conf("s3://S/")
         for acquisition in (
             "acquisition_healthsites",
-            "acquisition_coppernicus",
+            "acquisition_copernicus",
             "acquisition_osm",
             "acquisition_srtm",
         ):
@@ -294,7 +294,7 @@ class AnalysisBuildConfTest(TestCase):
         config = self.ANALYSIS_FULLACQ.build_dag_conf("s3://S/")
         for acquisition in (
             "acquisition_healthsites",
-            "acquisition_coppernicus",
+            "acquisition_copernicus",
             "acquisition_osm",
             "acquisition_srtm",
         ):

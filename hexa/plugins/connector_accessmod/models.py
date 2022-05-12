@@ -941,7 +941,7 @@ class AccessibilityAnalysis(Analysis):
         dag_conf = {
             "acquisition_healthsites": self.health_facilities.status
             == FilesetStatus.TO_ACQUIRE,
-            "acquisition_coppernicus": self.land_cover.status
+            "acquisition_copernicus": self.land_cover.status
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_osm": (
                 self.transport_network.status == FilesetStatus.TO_ACQUIRE
