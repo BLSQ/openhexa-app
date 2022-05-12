@@ -6,6 +6,7 @@ from ariadne import (
     MutationType,
     ObjectType,
     QueryType,
+    UnionType,
     load_schema_from_path,
 )
 from django.core.exceptions import PermissionDenied
@@ -52,6 +53,31 @@ project_order_by = EnumType(
         "NAME_ASC": "name",
     },
 )
+
+owner_union = UnionType("AccessmodOwner")
+
+
+@owner_union.type_resolver
+def resolve_accessmod_owner_type(obj, *_):
+    if isinstance(obj, Team):
+        return "Team"
+    elif isinstance(obj, User):
+        return "User"
+
+
+ownership_interface = InterfaceType("AccessmodOwnership")
+
+
+@ownership_interface.type_resolver
+def resolve_ownership_type(obj, *_):
+    if isinstance(obj, AccessibilityAnalysis):
+        return "AccessmodAccessibilityAnalysis"
+    elif isinstance(obj, GeographicCoverageAnalysis):
+        return "AccessmodGeographicCoverageAnalysis"
+    elif isinstance(obj, Project):
+        return "AccessmodProject"
+    elif isinstance(obj, Fileset):
+        return "AccessmodFileset"
 
 
 @project_object.field("authorizedActions")
@@ -161,7 +187,9 @@ def resolve_update_accessmod_project(_, info, **kwargs):
     update_input = kwargs["input"]
 
     try:
-        project = Project.objects.filter_for_user(principal).get(id=update_input["id"])
+        project: Project = Project.objects.filter_for_user(principal).get(
+            id=update_input["id"]
+        )
         changes = {}
         for scalar_field in ["name", "spatialResolution", "crs", "description"]:
             if scalar_field in update_input:
@@ -171,6 +199,11 @@ def resolve_update_accessmod_project(_, info, **kwargs):
                 id=update_input["extentId"]
             )
             changes["extent"] = fileset
+        if "demId" in update_input:
+            dem = Fileset.objects.filter_for_user(principal).get(
+                id=update_input["demId"]
+            )
+            changes["dem"] = dem
         if "country" in update_input:
             changes["country"] = update_input["country"]["code"]
         if len(changes) > 0:
@@ -647,23 +680,22 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "name",
             "invertDirection",
             "maxTravelTime",
-            "maxSlope",
-            "priorityRoads",
-            "priorityLandCover",
+            "movingSpeeds",
             "waterAllTouched",
             "algorithm",
             "knightMove",
+            "stackPriorities",
         ]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
+
         for fileset_field in [
             "landCoverId",
             "demId",
+            "stackId",
             "transportNetworkId",
-            "slopeId",
             "waterId",
             "barrierId",
-            "movingSpeedsId",
             "healthFacilitiesId",
         ]:
             if fileset_field in update_input:
@@ -742,6 +774,8 @@ accessmod_bindables = [
     accessmod_mutations,
     project_object,
     project_order_by,
+    owner_union,
+    ownership_interface,
     permission_object,
     fileset_object,
     analysis_interface,

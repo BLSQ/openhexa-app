@@ -27,8 +27,8 @@ class AnalysisTest(TestCase):
     TEAM = None
     PROJECT_SAMPLE = None
     PROJECT_OTHER = None
-    SLOPE_ROLE = None
-    SLOPE_FILESET = None
+    WATER_ROLE = None
+    WATER_FILESET = None
 
     @classmethod
     @responses.activate
@@ -65,10 +65,10 @@ class AnalysisTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.SLOPE_ROLE = FilesetRole.objects.create(
-            name="Slope",
-            code=FilesetRoleCode.SLOPE,
-            format=FilesetFormat.RASTER,
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water",
+            code=FilesetRoleCode.WATER,
+            format=FilesetFormat.VECTOR,
         )
         cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
             name="Friction surface",
@@ -85,27 +85,25 @@ class AnalysisTest(TestCase):
             code=FilesetRoleCode.CATCHMENT_AREAS,
             format=FilesetFormat.RASTER,
         )
-        cls.SLOPE_FILESET = Fileset.objects.create(
-            name="A beautiful slope",
-            role=cls.SLOPE_ROLE,
+        cls.WATER_FILESET = Fileset.objects.create(
+            name="A beautiful water fileset",
+            role=cls.WATER_ROLE,
             project=cls.PROJECT_SAMPLE,
             author=cls.USER_TAYLOR,
         )
-        cls.SLOPE_FILE = File.objects.create(
-            fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
+        cls.WATER_FILE = File.objects.create(
+            fileset=cls.WATER_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_TAYLOR,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
-            slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
+            water=cls.WATER_FILESET,
         )
         cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_TAYLOR,
             project=cls.PROJECT_OTHER,
             name="Accessibility analysis with a common name",
-            priority_land_cover=[1, 2],
         )
         cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_TAYLOR,
@@ -158,14 +156,12 @@ class AnalysisTest(TestCase):
         outputs_1 = {
             "travel_times": "s3://some-bucket/some-dir/travel_times_1.tif",
             "friction_surface": "s3://some-bucket/some-dir/friction_surface_1.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_1.tif",
         }
         self.ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_1)
 
         outputs_2 = {
             "travel_times": "s3://some-bucket/some-dir/travel_times_2.tif",
             "friction_surface": "s3://some-bucket/some-dir/friction_surface_2.tif",
-            "catchment_areas": "s3://some-bucket/some-dir/catchment_areas_2.tif",
         }
         self.YET_ANOTHER_ACCESSIBILITY_ANALYSIS.set_outputs(**outputs_2)
 
@@ -174,8 +170,7 @@ class AnalysisTest(TestCase):
             author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
-            slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
+            water=self.WATER_FILESET,
         )
         self.assertEqual(
             analysis,
@@ -196,8 +191,7 @@ class AnalysisTest(TestCase):
             author=self.USER_TAYLOR,
             project=self.PROJECT_SAMPLE,
             name="Private accessibility analysis",
-            slope=self.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
+            water=self.WATER_FILESET,
         )
         self.assertEqual(
             analysis,

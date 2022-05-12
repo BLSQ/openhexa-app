@@ -111,17 +111,6 @@
   },
   {
     "model": "connector_accessmod.filesetrole",
-    "pk": "c4dd6193-2ddd-4093-b68c-72672ba74b9f",
-    "fields": {
-      "created_at": "2022-03-01T10:00:00Z",
-      "updated_at": "2022-03-01T10:00:00Z",
-      "name": "Slope",
-      "code": "SLOPE",
-      "format": "RASTER"
-    }
-  },
-  {
-    "model": "connector_accessmod.filesetrole",
     "pk": "e8167b9f-34d6-411f-a9b8-caece7e59df3",
     "fields": {
       "created_at": "2022-03-01T10:00:00Z",
@@ -151,6 +140,17 @@
       "name": "Water",
       "code": "WATER",
       "format": "VECTOR"
+    }
+  },
+  {
+    "model": "connector_accessmod.filesetrole",
+    "pk": "ff00dc44-8502-4d97-b4bd-848c4ea37e22",
+    "fields": {
+      "created_at": "2022-03-01T10:00:00Z",
+      "updated_at": "2022-03-01T10:00:00Z",
+      "name": "Stack",
+      "code": "STACK",
+      "format": "RASTER"
     }
   }
 ]

@@ -25,7 +25,6 @@ class PermissionsTest(TestCase):
     TEAM = None
     PROJECT_1 = None
     PROJECT_2 = None
-    SLOPE_ROLE = None
 
     @classmethod
     @responses.activate
@@ -69,16 +68,16 @@ class PermissionsTest(TestCase):
         ProjectPermission.objects.create(
             team=cls.TEAM, project=cls.PROJECT_2, mode=PermissionMode.OWNER
         )
-        cls.SLOPE_ROLE = FilesetRole.objects.create(
-            name="Slope",
-            code=FilesetRoleCode.SLOPE,
-            format=FilesetFormat.RASTER,
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water",
+            code=FilesetRoleCode.WATER,
+            format=FilesetFormat.VECTOR,
         )
 
     def test_create_file_permission_individual(self):
         fileset = Fileset.objects.create(
-            name="A beautiful slope",
-            role=self.SLOPE_ROLE,
+            name="A beautiful water",
+            role=self.WATER_ROLE,
             project=self.PROJECT_1,
             author=self.USER_MIRANDA,
         )
@@ -94,8 +93,8 @@ class PermissionsTest(TestCase):
 
     def test_create_file_permission_team(self):
         fileset = Fileset.objects.create(
-            name="An amazing slope",
-            role=self.SLOPE_ROLE,
+            name="An amazing water",
+            role=self.WATER_ROLE,
             project=self.PROJECT_2,
             author=self.USER_MIRANDA,
         )

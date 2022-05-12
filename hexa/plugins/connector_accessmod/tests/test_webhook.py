@@ -159,7 +159,6 @@ class AccessmodViewsTest(TestCase):
                     "outputs": {
                         "travel_times": "s3://some-bucket/some-dir/travel_times.tif",
                         "friction_surface": "s3://some-bucket/some-dir/friction_surface.tif",
-                        "catchment_areas": "s3://some-bucket/some-dir/catchment_areas.tif",
                     },
                 },
             },

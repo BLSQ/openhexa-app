@@ -16,9 +16,9 @@ from hexa.user_management.models import PermissionMode, User
 
 
 class AccessmodProjectGraphTest(GraphQLTestCase):
-    SLOPE_FILESET = None
+    WATER_FILESET = None
     SAMPLE_PROJECT = None
-    SLOPE_ROLE = None
+    WATER_ROLE = None
     USER_JIM = None
 
     @classmethod
@@ -48,26 +48,25 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.SLOPE_ROLE = FilesetRole.objects.create(
-            name="Slope",
-            code=FilesetRoleCode.SLOPE,
-            format=FilesetFormat.RASTER,
+        cls.WATER_ROLE = FilesetRole.objects.create(
+            name="Water",
+            code=FilesetRoleCode.WATER,
+            format=FilesetFormat.VECTOR,
         )
-        cls.SLOPE_FILESET = Fileset.objects.create(
-            name="A wonderful slope",
-            role=cls.SLOPE_ROLE,
+        cls.WATER_FILESET = Fileset.objects.create(
+            name="A wonderful water",
+            role=cls.WATER_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_JIM,
         )
-        cls.SLOPE_FILE = File.objects.create(
-            fileset=cls.SLOPE_FILESET, uri="afile.tiff", mime_type="image/tiff"
+        cls.WATER_FILE = File.objects.create(
+            fileset=cls.WATER_FILESET, uri="afile.tiff", mime_type="image/tiff"
         )
         cls.ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_JIM,
             project=cls.SAMPLE_PROJECT,
             name="A random accessibility analysis",
-            slope=cls.SLOPE_FILESET,
-            priority_land_cover=[1, 2],
+            water=cls.WATER_FILESET,
         )
 
     def test_accessmod_project_owner(self):
@@ -82,6 +81,12 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                   spatialResolution
                   country {
                     code
+                  }
+                  owner {
+                      __typename
+                      ...on User {
+                          id
+                      }
                   }
                   author {
                     email
@@ -106,6 +111,7 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
                 "spatialResolution": 100,
                 "country": {"code": "FR"},
                 "author": {"email": "jim@bluesquarehub.com"},
+                "owner": {"__typename": "User", "id": str(self.USER_JIM.id)},
                 "permissions": [
                     {
                         "user": {"id": str(self.USER_JIM.id)},

@@ -62,13 +62,11 @@ class ProjectTest(TestCase):
             author=cls.USER_HUNTER,
             project=cls.PROJECT_SAMPLE,
             name="First accessibility analysis",
-            priority_land_cover=[1, 2],
         )
         cls.OTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_HANNAH,
             project=cls.PROJECT_OTHER,
             name="Accessibility analysis with a common name",
-            priority_land_cover=[1, 2],
         )
         cls.YET_ANOTHER_ACCESSIBILITY_ANALYSIS = AccessibilityAnalysis.objects.create(
             author=cls.USER_HANNAH,
