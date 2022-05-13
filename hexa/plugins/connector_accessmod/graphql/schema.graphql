@@ -238,7 +238,7 @@ input CreateAccessmodFilesetInput {
     name: String!
     projectId: String!
     roleId: String!
-    status: AccessmodFilesetStatus
+    automatic: Boolean
 }
 type CreateAccessmodFilesetResult {
     success: Boolean!
