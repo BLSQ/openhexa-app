@@ -253,7 +253,7 @@ class ProjectPermission(Permission):
 
 class FilesetStatus(models.TextChoices):
     # We need to run the data acquisition first
-    TO_ACQUIRE = "TO ACQUIRE"
+    TO_ACQUIRE = "TO_ACQUIRE"
 
     # pending: fileset incomplete, upload not started or in progress
     PENDING = "PENDING"

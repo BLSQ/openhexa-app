@@ -182,6 +182,7 @@ enum AccessmodFilesetStatus {
     VALIDATING
     VALID
     INVALID
+    TO_ACQUIRE
 }
 scalar AccessmodFilesetMetadata
 enum AccessmodFilesetAuthorizedActions {
@@ -237,6 +238,7 @@ input CreateAccessmodFilesetInput {
     name: String!
     projectId: String!
     roleId: String!
+    status: AccessmodFilesetStatus
 }
 type CreateAccessmodFilesetResult {
     success: Boolean!
