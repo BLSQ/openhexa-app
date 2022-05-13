@@ -422,6 +422,7 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
                 id=create_input["projectId"]
             ),
             role=FilesetRole.objects.get(id=create_input["roleId"]),
+            status=create_input["status"] if "status" in create_input else None,
         )
         return {"success": True, "fileset": fileset, "errors": []}
     except IntegrityError:
