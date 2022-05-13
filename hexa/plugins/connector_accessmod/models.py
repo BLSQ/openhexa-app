@@ -861,6 +861,7 @@ class AccessibilityAnalysis(Analysis):
         if self.health_facilities.status == FilesetStatus.TO_ACQUIRE:
             am_conf["health_facilities"] = {
                 "auto": True,
+                "amenity": None,
                 "name": self.health_facilities.name,
                 "path": output_dir
                 + f"{str(self.health_facilities.id)}_facilities.gpkg",
@@ -871,7 +872,6 @@ class AccessibilityAnalysis(Analysis):
                 "name": self.health_facilities.name,
                 "path": self.health_facilities.primary_uri,
                 # FIXME: filter by amenity todo
-                "amenity": None,
             }
 
         if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
