@@ -25,9 +25,9 @@ class DatagridTest(TestCase):
             category = TextColumn(text="category")
             characteristics = TextColumn(text="suspension", secondary_text="group_set")
             created_at = DateColumn(
-                date="created_at", date_format="%Y-%m-%d %H:%M:%S %Z"
+                date="created_at", date_format="%Y-%m-%d %H:%i"
             )
-            launch_in = DateColumn(date="launch_in", date_format="timesince")
+            launch_in = DateColumn(date="launch_in", date_format="%Y-%m-%d %H:%i")
             view = LinkColumn(url="get_url", text=_("View"))
 
         return BikeDatagrid

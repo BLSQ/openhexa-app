@@ -1,8 +1,7 @@
 from django.utils.translation import gettext_lazy as _
-
+import re
 from hexa.plugins.connector_airflow.models import DAGRun
 from hexa.ui.datagrid import (
-    BooleanColumn,
     CountryColumn,
     Datagrid,
     DateColumn,
@@ -39,11 +38,10 @@ class DAGRunGrid(Datagrid):
         text="get_label",
         icon="get_icon",
     )
-    favorite = BooleanColumn(value="is_favorite")
     execution_date = DateColumn(date="execution_date", label="Execution date")
-    user = TextColumn(text="user.display_name")
     state = StatusColumn(value="status")
     duration = DurationColumn(duration="duration", short_form=True)
+    user = TextColumn(text="user.display_name")
 
     view = LinkColumn(text="View")
 
@@ -51,12 +49,19 @@ class DAGRunGrid(Datagrid):
     def get_label(run: DAGRun) -> str:
         if hasattr(run, "favorite") and getattr(run, "favorite") is not None:
             return getattr(run, "favorite")
-
-        return run.run_id
+        elif hasattr(run, "run_id") and re.match(r"^manua\w", getattr(run, "run_id")):
+            return 'manual'
+        elif hasattr(run, "run_id") and re.match(r"^schedul\w", getattr(run, "run_id")):
+            return 'scheduled'
 
     @staticmethod
     def is_favorite(run: DAGRun) -> str:
         return hasattr(run, "favorite") and getattr(run, "favorite") is not None
 
-    def get_icon(self, _):
-        return "ui/icons/play.html"
+    def get_icon(self, run: DAGRun):
+        if hasattr(run, "favorite") and getattr(run, "favorite") is not None:
+            return "ui/icons/star.html"
+        elif hasattr(run, "run_id") and re.match(r"^manua\w", getattr(run, "run_id")):
+            return "ui/icons/play.html"
+        elif hasattr(run, "run_id") and re.match(r"^schedul\w", getattr(run, "run_id")):
+            return "ui/icons/calendar.html"

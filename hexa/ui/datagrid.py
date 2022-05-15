@@ -309,29 +309,11 @@ class TextColumn(Column):
         return data
 
 
-class BooleanColumn(Column):
-    """Simple boolean column"""
-
-    def __init__(self, *, value=None, **kwargs):
-        super().__init__(**kwargs)
-
-        self.value = value
-
-    @property
-    def template(self):
-        return "ui/datagrid/column_boolean.html"
-
-    def context(self, model: DjangoModel, grid: Datagrid):
-        return {
-            "value": self.get_value(model, self.value, container=grid),
-        }
-
-
 class DateColumn(Column):
     """Date column, with one or two rows"""
 
     def __init__(
-        self, *, date=None, date_format="timesince", secondary_text=None, **kwargs
+        self, *, date=None, date_format="%Y-%m-%d %H:%i", secondary_text=None, **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -347,11 +329,6 @@ class DateColumn(Column):
         if date is None:
             return date
 
-        if self.date_format == "timesince":
-            if (timezone.now() - date).seconds < 60:
-                return _("Just now")
-
-            return f"{timesince(date)} {_('ago')}"
         else:
             return date.strftime(self.date_format)
 
