@@ -14,7 +14,7 @@ type AccessmodProject implements AccessmodOwnership {
     country: Country!
     author: User!
     owner: AccessmodOwner
-    extent: AccessmodFileset
+    extent: String
     dem: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
     permissions: [AccessmodProjectPermission!]!
@@ -40,7 +40,7 @@ input CreateAccessmodProjectInput {
     spatialResolution: Int!
     description: String
     crs: Int!
-    extentId: String
+    extent: String
     country: CountryInput!
 }
 type CreateAccessmodProjectResult {
@@ -56,10 +56,7 @@ input UpdateAccessmodProjectInput {
     id: String!
     name: String
     description: String
-    crs: Int
-    spatialResolution: Int
-    country: CountryInput
-    extentId: String
+    extent: String
     demId: String
 }
 type UpdateAccessmodProjectResult {

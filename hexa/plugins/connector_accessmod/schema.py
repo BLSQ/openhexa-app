@@ -169,8 +169,8 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            # FIXME: specify extend from country
-            extent="[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]",
+            # FIXME: specify the extent polygon from country
+            extent=create_input.get("extent", None),
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
@@ -189,14 +189,9 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             id=update_input["id"]
         )
         changes = {}
-        for scalar_field in ["name", "spatialResolution", "crs", "description"]:
+        for scalar_field in ["name", "description", "extent"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
-        if "extentId" in update_input:
-            fileset = Fileset.objects.filter_for_user(principal).get(
-                id=update_input["extentId"]
-            )
-            changes["extent"] = fileset
         if "demId" in update_input:
             dem = Fileset.objects.filter_for_user(principal).get(
                 id=update_input["demId"]
