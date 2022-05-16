@@ -170,7 +170,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             crs=create_input["crs"],
             description=create_input.get("description", ""),
             # FIXME: specify the extent polygon from country
-            extent=create_input.get("extent", None),
+            extent=create_input.get("extent", ""),
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
