@@ -101,7 +101,7 @@ def validate_transport(fileset: Fileset, filename: str):
 
     # extract roads categories & validate
     if fileset.metadata is None:
-        fileset.meadata = {}
+        fileset.metadata = {}
     fileset.metadata["category_column"] = sorted(transport.highway.unique())
     fileset.status = FilesetStatus.VALID
     fileset.save()
@@ -148,7 +148,7 @@ def validate_land_cover(fileset: Fileset, filename: str):
 
     # extract land cover classes for frontend
     if fileset.metadata is None:
-        fileset.meadata = {}
+        fileset.metadata = {}
     fileset.metadata["classes"] = sorted([int(i) for i in lc_classes])
     fileset.status = FilesetStatus.VALID
     fileset.save()
