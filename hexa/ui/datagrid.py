@@ -7,9 +7,7 @@ from django.core.paginator import Paginator
 from django.db import models
 from django.http import HttpRequest
 from django.template import loader
-from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.utils.timesince import timesince
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.date_utils import duration_format

@@ -1,5 +1,7 @@
-from django.utils.translation import gettext_lazy as _
 import re
+
+from django.utils.translation import gettext_lazy as _
+
 from hexa.plugins.connector_airflow.models import DAGRun
 from hexa.ui.datagrid import (
     CountryColumn,
@@ -50,9 +52,9 @@ class DAGRunGrid(Datagrid):
         if hasattr(run, "favorite") and getattr(run, "favorite") is not None:
             return getattr(run, "favorite")
         elif hasattr(run, "run_id") and re.match(r"^manua\w", getattr(run, "run_id")):
-            return 'manual'
+            return "manual"
         elif hasattr(run, "run_id") and re.match(r"^schedul\w", getattr(run, "run_id")):
-            return 'scheduled'
+            return "scheduled"
 
     @staticmethod
     def is_favorite(run: DAGRun) -> str:
