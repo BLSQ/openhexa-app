@@ -101,7 +101,7 @@ def validate_transport(fileset: Fileset, filename: str):
 
     # extract roads categories & validate
     if fileset.metadata is None:
-        fileset.meadata = {}
+        fileset.metadata = {}
     fileset.metadata["category_column"] = sorted(transport.highway.unique())
     fileset.status = FilesetStatus.VALID
     fileset.save()
@@ -148,7 +148,7 @@ def validate_land_cover(fileset: Fileset, filename: str):
 
     # extract land cover classes for frontend
     if fileset.metadata is None:
-        fileset.meadata = {}
+        fileset.metadata = {}
     fileset.metadata["classes"] = sorted([int(i) for i in lc_classes])
     fileset.status = FilesetStatus.VALID
     fileset.save()
@@ -202,12 +202,18 @@ def validate_fileset_job(queue, job) -> None:
         return
 
     # start processing
+    logger.info("Starting validation fileset %s", job.args["fileset_id"])
     fileset.status = FilesetStatus.VALIDATING
     fileset.save()
 
     filename = validate_data_and_download(fileset)
     if not filename:
         # previous error, abort processing
+        logger.error(
+            "fileset %s : %s",
+            job.args["fileset_id"],
+            fileset.metadata["validation_error"],
+        )
         return
 
     # TODO: should we validate the mime type?
@@ -223,10 +229,12 @@ def validate_fileset_job(queue, job) -> None:
         # no validator for that role -> validate the FS
         fileset.status = FilesetStatus.VALID
         fileset.save()
+        logger.info("No validator for fileset %s", job.args["fileset_id"])
         return
 
     # custom validation by role
     fileset_role_validator[fileset.role.code](fileset, filename)
+    logger.info("Completed validation fileset %s", job.args["fileset_id"])
 
 
 class ValidateFilesetQueue(AtLeastOnceQueue):
