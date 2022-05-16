@@ -933,6 +933,7 @@ class AccessibilityAnalysis(Analysis):
                 "labels": self.stack.metadata.get("labels", None),
             }
         else:
+            am_conf["stack"] = None
             am_conf["priorities"] = self.stack_priorities
             if self.barrier:
                 am_conf["barriers"] = [
