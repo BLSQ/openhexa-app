@@ -311,7 +311,7 @@ class DateColumn(Column):
     """Date column, with one or two rows"""
 
     def __init__(
-        self, *, date=None, date_format="%Y-%m-%d %H:%i", secondary_text=None, **kwargs
+        self, *, date=None, date_format="%Y-%m-%d %H:%M", secondary_text=None, **kwargs
     ):
         super().__init__(**kwargs)
 

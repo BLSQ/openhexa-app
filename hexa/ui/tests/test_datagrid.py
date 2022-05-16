@@ -24,8 +24,8 @@ class DatagridTest(TestCase):
             )
             category = TextColumn(text="category")
             characteristics = TextColumn(text="suspension", secondary_text="group_set")
-            created_at = DateColumn(date="created_at", date_format="%Y-%m-%d %H:%i")
-            launch_in = DateColumn(date="launch_in", date_format="%Y-%m-%d %H:%i")
+            created_at = DateColumn(date="created_at", date_format="%Y-%m-%d %H:%M")
+            launch_in = DateColumn(date="launch_in", date_format="%Y-%m-%d %H:%M")
             view = LinkColumn(url="get_url", text=_("View"))
 
         return BikeDatagrid
@@ -47,8 +47,8 @@ class DatagridTest(TestCase):
             created_at: datetime.datetime
             launch_in: datetime.datetime
 
-        created_at = parse_datetime("2022-01-02T03:04:05Z")
-        launch_in = parse_datetime("2022-02-01T10:00:00Z")
+        created_at = parse_datetime("2022-01-02 03:04")
+        launch_in = parse_datetime("2022-02-01 10:00")
 
         queryset = [
             Item(
@@ -76,5 +76,4 @@ class DatagridTest(TestCase):
         )
         rendered = str(datagrid)
         self.assertGreater(len(rendered), 0)
-        self.assertIn("ago", rendered)
-        self.assertIn("2022-01-02 03:04:05 UTC", rendered)
+        self.assertIn("2022-01-02 03:04", rendered)
