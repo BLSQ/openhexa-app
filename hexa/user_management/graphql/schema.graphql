@@ -230,6 +230,7 @@ type Country {
     alpha3: String!
     name: String!
     flag: String!
+    defaultCRS: Int!
 }
 input CountryInput {
     code: String!

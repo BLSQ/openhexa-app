@@ -641,3 +641,23 @@ class SchemaTest(GraphQLTestCase):
             },
             r["data"]["createMembership"],
         )
+
+    def test_countries(self):
+        self.client.force_login(self.USER_JIM)
+        r = self.run_query(
+            """
+              query {
+                countries {
+                  code
+                  name
+                  alpha3
+                  defaultCRS
+                }
+              }
+            """,
+        )
+
+        self.assertEqual(
+            {"name": "Burkina Faso", "code": "BF", "alpha3": "BFA", "defaultCRS": 6933},
+            next(c for c in r["data"]["countries"] if c["alpha3"] == "BFA"),
+        )

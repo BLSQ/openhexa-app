@@ -256,15 +256,23 @@ country_object = ObjectType("Country")
 
 
 @country_object.field("alpha3")
-def resolve_alpha3(obj: Country, *_):
+def resolve_country_alpha3(obj: Country, *_):
     return obj.alpha3
 
 
 @country_object.field("flag")
-def resolve_flag(obj: Country, info):
+def resolve_country_flag(obj: Country, info):
     request: HttpRequest = info.context["request"]
 
     return request.build_absolute_uri(obj.flag)
+
+
+@country_object.field("defaultCRS")
+def resolve_country_default_crs(obj: Country, info):
+    if obj.alpha3 == "BFA":
+        return 6933
+
+    return 4326
 
 
 organization_object = ObjectType("Organization")
