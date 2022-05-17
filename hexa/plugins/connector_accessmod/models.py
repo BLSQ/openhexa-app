@@ -742,21 +742,23 @@ class AccessibilityAnalysis(Analysis):
 
     def update_status_if_draft(self):
         # FIXME: check that all fileset status is VALID or TO_ACQUIRE
-        if all(
-            value is not None
-            for value in [
-                getattr(self, field)
-                for field in [
-                    "name",
-                    "land_cover",
-                    "transport_network",
-                    "water",
-                    "health_facilities",
-                    "dem",
-                ]
-            ]
+        if (
+            not self.name
+            or not self.health_facilities
+            or not self.dem
+            or not self.moving_speeds
         ):
-            self.status = AnalysisStatus.READY
+            return
+
+        if not self.stack and (
+            self.land_cover is None
+            or self.transport_network is None
+            or self.water is None
+            or not self.stack_priorities
+        ):
+            return
+
+        self.status = AnalysisStatus.READY
 
     @transaction.atomic
     def set_input(self, input: str, uri: str, mime_type: str):
