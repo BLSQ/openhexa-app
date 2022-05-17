@@ -253,7 +253,7 @@ class ProjectPermission(Permission):
 
 class FilesetStatus(models.TextChoices):
     # We need to run the data acquisition first
-    TO_ACQUIRE = "TO ACQUIRE"
+    TO_ACQUIRE = "TO_ACQUIRE"
 
     # pending: fileset incomplete, upload not started or in progress
     PENDING = "PENDING"
@@ -273,16 +273,19 @@ class FilesetQuerySet(BaseQuerySet):
 
 class FilesetManager(models.Manager):
     def create_if_has_perm(
-        self, principal: User, *, project: Project, name: str, role: FilesetRole
+        self,
+        principal: User,
+        *,
+        project: Project,
+        **kwargs,
     ):
         if not principal.has_perm("connector_accessmod.create_fileset", project):
             raise PermissionDenied
 
         return self.create(
             author=principal,
-            name=name,
             project=project,
-            role=role,
+            **kwargs,
         )
 
 

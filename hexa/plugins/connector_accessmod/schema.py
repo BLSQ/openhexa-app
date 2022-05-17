@@ -26,6 +26,7 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
+    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
@@ -168,8 +169,8 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            # FIXME: specify extend from country
-            extent="[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]",
+            # FIXME: specify the extent polygon from country
+            extent=create_input.get("extent", ""),
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
@@ -188,14 +189,9 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             id=update_input["id"]
         )
         changes = {}
-        for scalar_field in ["name", "spatialResolution", "crs", "description"]:
+        for scalar_field in ["name", "description", "extent"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
-        if "extentId" in update_input:
-            fileset = Fileset.objects.filter_for_user(principal).get(
-                id=update_input["extentId"]
-            )
-            changes["extent"] = fileset
         if "demId" in update_input:
             dem = Fileset.objects.filter_for_user(principal).get(
                 id=update_input["demId"]
@@ -415,13 +411,18 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
+        kwargs = {
+            "name": create_input["name"],
+            "role": FilesetRole.objects.get(id=create_input["roleId"]),
+        }
+        if create_input.get("automatic", False):
+            kwargs["status"] = FilesetStatus.TO_ACQUIRE
         fileset = Fileset.objects.create_if_has_perm(
             principal,
-            name=create_input["name"],
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
             ),
-            role=FilesetRole.objects.get(id=create_input["roleId"]),
+            **kwargs,
         )
         return {"success": True, "fileset": fileset, "errors": []}
     except IntegrityError:
