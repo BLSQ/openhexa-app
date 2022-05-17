@@ -33,10 +33,11 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "The GCS connector plugin should have a single credentials entry"
             )
 
+        # TODO: generate short-lived credentials
         json_cred = {
             "type": "service_account",
             "project_id": gcs_credentials.project_id,
-            "private_key_id": gcs_credentials.project_id,
+            "private_key_id": gcs_credentials.private_key_id,
             "private_key": gcs_credentials.private_key,
             "client_email": gcs_credentials.client_email,
             "client_id": gcs_credentials.client_id,

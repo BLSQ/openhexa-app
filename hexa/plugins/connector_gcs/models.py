@@ -20,9 +20,10 @@ logger = getLogger(__name__)
 
 
 class Credentials(Base):
-    """We actually only need one set of credentials. These "principal" credentials will be then used to generate
-    short-lived credentials with a tailored policy giving access only to the buckets that the user team can
-    access"""
+    """We actually only want one set of credentials.
+    In the futur (= soon), these "principal" credentials will be then used
+    to generate short-lived credentials with a tailored policy giving access
+    only to the buckets that the user team can access"""
 
     class Meta:
         verbose_name = "GCS Credentials"
@@ -62,7 +63,7 @@ class BucketQuerySet(BaseQuerySet):
         if mode is not None and mode__in is not None:
             raise ValueError('Please provide either "mode" or "mode_in" - not both')
 
-        if user.is_superuser or user.has_feature_flag("gcs"):
+        if user.is_superuser:
             return self
         else:
             return self.none()
