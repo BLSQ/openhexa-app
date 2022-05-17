@@ -26,7 +26,6 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
-    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
@@ -415,13 +414,12 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
             "name": create_input["name"],
             "role": FilesetRole.objects.get(id=create_input["roleId"]),
         }
-        if create_input.get("automatic", False):
-            kwargs["status"] = FilesetStatus.TO_ACQUIRE
         fileset = Fileset.objects.create_if_has_perm(
             principal,
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
             ),
+            automatic_acquisition=create_input.get("automatic", False),
             **kwargs,
         )
         return {"success": True, "fileset": fileset, "errors": []}

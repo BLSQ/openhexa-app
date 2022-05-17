@@ -251,17 +251,25 @@ class ProjectPermission(Permission):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
 
 
+class FilesetMode(models.TextChoices):
+    # File(s) uploaded by the user while using a client app
+    USER_INPUT = "USER_INPUT"
+
+    # File(s) will be downloaded by an automatic acquisition pipeline
+    AUTOMATIC_ACQUISITION = "AUTOMATIC_ACQUISITION"
+
+
 class FilesetStatus(models.TextChoices):
     # We need to run the data acquisition first
     TO_ACQUIRE = "TO_ACQUIRE"
 
-    # pending: fileset incomplete, upload not started or in progress
+    # Pending: fileset incomplete, upload not started or in progress
     PENDING = "PENDING"
 
-    # upload finished, validation running
+    # Upload finished, validation running
     VALIDATING = "VALIDATING"
 
-    # validation done, outcome valid or invalid
+    # Validation done, outcome valid or invalid
     VALID = "VALID"
     INVALID = "INVALID"
 
@@ -277,14 +285,26 @@ class FilesetManager(models.Manager):
         principal: User,
         *,
         project: Project,
+        automatic_acquisition: bool = False,
         **kwargs,
     ):
         if not principal.has_perm("connector_accessmod.create_fileset", project):
             raise PermissionDenied
 
+        mode = (
+            FilesetMode.AUTOMATIC_ACQUISITION
+            if automatic_acquisition
+            else FilesetMode.USER_INPUT
+        )
+        status = (
+            FilesetStatus.TO_ACQUIRE if automatic_acquisition else FilesetStatus.PENDING
+        )
+
         return self.create(
             author=principal,
             project=project,
+            mode=mode,
+            status=status,
             **kwargs,
         )
 
@@ -300,6 +320,9 @@ class Fileset(Entry):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     name = models.TextField()
+    mode = models.CharField(
+        max_length=50, choices=FilesetMode.choices, default=FilesetMode.USER_INPUT
+    )
     status = models.CharField(
         max_length=50, choices=FilesetStatus.choices, default=FilesetStatus.PENDING
     )

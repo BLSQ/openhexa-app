@@ -8,8 +8,10 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     File,
     Fileset,
+    FilesetMode,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     Project,
     ProjectPermission,
 )
@@ -51,7 +53,7 @@ class FilesetTest(TestCase):
             crs=4326,
         )
         ProjectPermission.objects.create(
-            user=cls.USER_SIMONE, project=cls.PROJECT_SAMPLE, mode=PermissionMode.EDITOR
+            user=cls.USER_SIMONE, project=cls.PROJECT_SAMPLE, mode=PermissionMode.OWNER
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Another project",
@@ -152,3 +154,36 @@ class FilesetTest(TestCase):
         self.ACCESSIBILITY_ANALYSIS.save()
         self.WATER_FILESET.delete()
         self.assertEqual(0, File.objects.count())
+
+    def test_fileset_create_if_has_perm(self):
+        fileset = Fileset.objects.create_if_has_perm(
+            principal=self.USER_SIMONE,
+            name="Look it's a sea",
+            role=self.WATER_ROLE,
+            project=self.PROJECT_SAMPLE,
+            author=self.USER_SIMONE,
+        )
+        self.assertEqual(FilesetStatus.PENDING, fileset.status)
+        self.assertEqual(FilesetMode.USER_INPUT, fileset.mode)
+
+        fileset = Fileset.objects.create_if_has_perm(
+            principal=self.USER_SIMONE,
+            name="What a beautiful lake",
+            role=self.WATER_ROLE,
+            project=self.PROJECT_SAMPLE,
+            author=self.USER_SIMONE,
+            automatic_acquisition=False,
+        )
+        self.assertEqual(FilesetStatus.PENDING, fileset.status)
+        self.assertEqual(FilesetMode.USER_INPUT, fileset.mode)
+
+        fileset = Fileset.objects.create_if_has_perm(
+            principal=self.USER_SIMONE,
+            name="Just a small pond...",
+            role=self.WATER_ROLE,
+            project=self.PROJECT_SAMPLE,
+            author=self.USER_SIMONE,
+            automatic_acquisition=True,
+        )
+        self.assertEqual(FilesetStatus.TO_ACQUIRE, fileset.status)
+        self.assertEqual(FilesetMode.AUTOMATIC_ACQUISITION, fileset.mode)
