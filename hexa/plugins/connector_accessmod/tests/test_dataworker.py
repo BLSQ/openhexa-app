@@ -8,7 +8,6 @@ from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     FilesetStatus,
@@ -41,30 +40,20 @@ class AccessmodDataWorkerTest(TestCase):
             spatial_resolution=1000,
             crs=6933,
         )
-        cls.DEM_ROLE = FilesetRole.objects.create(
-            name="DEM",
+        cls.DEM_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.DEM,
-            format=FilesetFormat.RASTER,
         )
-        cls.HEALTH_FACILITIES_ROLE = FilesetRole.objects.create(
-            name="HEALTH_FACILITIES",
+        cls.HEALTH_FACILITIES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.HEALTH_FACILITIES,
-            format=FilesetFormat.VECTOR,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="WATER",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.VECTOR,
         )
-        cls.TRANSPORT_ROLE = FilesetRole.objects.create(
-            name="TRANSPORT",
+        cls.TRANSPORT_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRANSPORT_NETWORK,
-            format=FilesetFormat.VECTOR,
         )
-        cls.LAND_COVER_ROLE = FilesetRole.objects.create(
-            name="LAND_COVER",
+        cls.LAND_COVER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.LAND_COVER,
-            format=FilesetFormat.VECTOR,
         )
         cls.dem_empty_fs = Fileset.objects.create(
             project=cls.PROJECT,

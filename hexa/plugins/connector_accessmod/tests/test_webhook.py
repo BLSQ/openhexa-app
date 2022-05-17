@@ -12,7 +12,6 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     AnalysisStatus,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     FilesetStatus,
@@ -69,10 +68,8 @@ class AccessmodViewsTest(TestCase):
             name="Test accessibility analysis",
             dag_run=cls.DAG_RUN,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water network",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.VECTOR,
         )
         cls.ACCESSIBILITY_ANALYSIS.water = Fileset.objects.create(
             project=cls.SAMPLE_PROJECT,
@@ -81,20 +78,14 @@ class AccessmodViewsTest(TestCase):
             role=cls.WATER_ROLE,
             author=cls.USER_TAYLOR,
         )
-        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
+        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.FRICTION_SURFACE,
-            format=FilesetFormat.RASTER,
         )
-        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
+        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRAVEL_TIMES,
-            format=FilesetFormat.RASTER,
         )
-        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.create(
-            name="Catchment areas",
+        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.CATCHMENT_AREAS,
-            format=FilesetFormat.RASTER,
         )
 
     def test_webhook_not_authenticated_401(self):

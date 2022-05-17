@@ -3,7 +3,6 @@ import responses
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     Project,
@@ -68,10 +67,8 @@ class PermissionsTest(TestCase):
         ProjectPermission.objects.create(
             team=cls.TEAM, project=cls.PROJECT_2, mode=PermissionMode.OWNER
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.VECTOR,
         )
 
     def test_create_file_permission_individual(self):
