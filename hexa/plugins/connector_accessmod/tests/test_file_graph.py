@@ -8,7 +8,6 @@ from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     FilesetStatus,
@@ -53,14 +52,10 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.LAND_COVER_ROLE = FilesetRole.objects.create(
-            name="Land Cover",
+        cls.LAND_COVER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.LAND_COVER,
-            format=FilesetFormat.RASTER,
         )
-        cls.BARRIER_ROLE = FilesetRole.objects.create(
-            name="Barriers", code=FilesetRoleCode.BARRIER, format=FilesetFormat.RASTER
-        )
+        cls.BARRIER_ROLE = FilesetRole.objects.get(code=FilesetRoleCode.BARRIER)
         cls.FILESET_COOL = Fileset.objects.create(
             name="A cool fileset",
             status=FilesetStatus.VALID,
@@ -737,11 +732,8 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                 }
             """,
         )
-
+        self.assertEqual(14, len(r["data"]["accessmodFilesetRoles"]))
         self.assertEqual(
-            r["data"]["accessmodFilesetRoles"],
-            [
-                {"id": str(self.BARRIER_ROLE.id)},
-                {"id": str(self.LAND_COVER_ROLE.id)},
-            ],
+            {"id": str(self.BARRIER_ROLE.id)},
+            r["data"]["accessmodFilesetRoles"][0],
         )

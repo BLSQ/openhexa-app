@@ -15,7 +15,6 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysisAlgorithm,
     AnalysisStatus,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     GeographicCoverageAnalysis,
@@ -27,6 +26,25 @@ from hexa.user_management.models import User
 
 
 class AccessmodAnalysisGraphTest(GraphQLTestCase):
+    CLUSTER = None
+    USER_1 = None
+    DAG_TEMPLATE = None
+    DEM_ROLE = None
+    FRICTION_SURFACE_ROLE = None
+    GEOMETRY_ROLE = None
+    HEALTH_FACILITIES_ROLE = None
+    LAND_COVER_ROLE = None
+    POPULATION_ROLE = None
+    STACK_ROLE = None
+    TRANSPORT_NETWORK_ROLE = None
+    WATER_ROLE = None
+    DEM_FILESET = None
+    FRICTION_SURFACE_FILESET = None
+    HEALTH_FACILITIES_FILESET = None
+    POPULATION_FILESET = None
+    STACK_FILESET = None
+    SAMPLE_PROJECT = None
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_1 = User.objects.create_user(
@@ -58,49 +76,31 @@ class AccessmodAnalysisGraphTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.GEOMETRY_ROLE = FilesetRole.objects.create(
-            name="Geometry",
+        cls.GEOMETRY_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.GEOMETRY,
-            format=FilesetFormat.VECTOR,
         )
-        cls.LAND_COVER_ROLE = FilesetRole.objects.create(
-            name="Land Cover",
+        cls.LAND_COVER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.LAND_COVER,
-            format=FilesetFormat.RASTER,
         )
-        cls.DEM_ROLE = FilesetRole.objects.create(
-            name="Digital Elevation Model",
+        cls.DEM_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.DEM,
-            format=FilesetFormat.RASTER,
         )
-        cls.TRANSPORT_NETWORK_ROLE = FilesetRole.objects.create(
-            name="Transport Network",
+        cls.TRANSPORT_NETWORK_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRANSPORT_NETWORK,
-            format=FilesetFormat.VECTOR,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.RASTER,
         )
-        cls.HEALTH_FACILITIES_ROLE = FilesetRole.objects.create(
-            name="Health Facilities",
+        cls.HEALTH_FACILITIES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.HEALTH_FACILITIES,
-            format=FilesetFormat.VECTOR,
         )
-        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
+        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.FRICTION_SURFACE,
-            format=FilesetFormat.RASTER,
         )
-        cls.POPULATION_ROLE = FilesetRole.objects.create(
-            name="Population",
+        cls.POPULATION_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.POPULATION,
-            format=FilesetFormat.RASTER,
         )
-        cls.STACK_ROLE = FilesetRole.objects.create(
-            name="Stack", code=FilesetRoleCode.STACK, format=FilesetFormat.RASTER
-        )
+        cls.STACK_ROLE = FilesetRole.objects.get(code=FilesetRoleCode.STACK)
         cls.EXTENT_FILESET = Fileset.objects.create(
             name="Extent fileset",
             role=cls.GEOMETRY_ROLE,

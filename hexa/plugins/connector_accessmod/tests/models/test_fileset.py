@@ -8,7 +8,6 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     File,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     Project,
@@ -61,10 +60,8 @@ class FilesetTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.RASTER,
         )
         cls.WATER_FILESET = Fileset.objects.create(
             name="A beautiful water",

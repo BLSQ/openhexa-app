@@ -68,25 +68,17 @@ class AnalysisTest(TestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.VECTOR,
         )
-        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
+        cls.FRICTION_SURFACE_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.FRICTION_SURFACE,
-            format=FilesetFormat.RASTER,
         )
-        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.create(
-            name="Friction surface",
+        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRAVEL_TIMES,
-            format=FilesetFormat.RASTER,
         )
-        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.create(
-            name="Catchment areas",
+        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.CATCHMENT_AREAS,
-            format=FilesetFormat.RASTER,
         )
         cls.WATER_FILESET = Fileset.objects.create(
             name="A beautiful water fileset",

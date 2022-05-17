@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="project",
             name="extent",
-            field=models.TextField(default=""),
+            field=models.TextField(default="[]"),
             preserve_default=False,
         ),
     ]

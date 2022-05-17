@@ -6,7 +6,6 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     File,
     Fileset,
-    FilesetFormat,
     FilesetRole,
     FilesetRoleCode,
     Project,
@@ -48,10 +47,8 @@ class AccessmodProjectGraphTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        cls.WATER_ROLE = FilesetRole.objects.create(
-            name="Water",
+        cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
-            format=FilesetFormat.VECTOR,
         )
         cls.WATER_FILESET = Fileset.objects.create(
             name="A wonderful water",
