@@ -396,6 +396,8 @@ def resolve_accessmod_filesets(_, info, **kwargs):
         queryset = queryset.filter(role__id=kwargs["roleId"])
     if "term" in kwargs:
         queryset = queryset.filter(name__icontains=kwargs["term"])
+    if "mode" in kwargs:
+        queryset = queryset.filter(mode=kwargs["mode"])
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")

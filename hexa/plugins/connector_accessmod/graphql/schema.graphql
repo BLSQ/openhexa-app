@@ -292,7 +292,7 @@ enum DeleteAccessmodFilesetError {
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
-    accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesets(projectId: String!, roleId: String, term: String, mode: AccessmodFilesetMode, page: Int, perPage: Int): AccessmodFilesetPage!
     accessmodFilesetRole(id: String!): AccessmodFilesetRole
     accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }

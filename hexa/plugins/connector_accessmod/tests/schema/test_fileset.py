@@ -7,6 +7,7 @@ from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
+    FilesetMode,
     FilesetRole,
     FilesetRoleCode,
     FilesetStatus,
@@ -68,10 +69,11 @@ class FilesetTest(GraphQLTestCase):
             metadata={"foo": "bar"},
         )
         cls.FILESET_NICE = Fileset.objects.create(
-            name="Another nice fileset",
+            name="A nice automatic fileset",
             role=cls.BARRIER_ROLE,
             project=cls.PROJECT_BORING,
             author=cls.USER_GREG,
+            mode=FilesetMode.AUTOMATIC_ACQUISITION,
         )
         cls.FILESET_ANOTHER = Fileset.objects.create(
             name="And yet another fileset",
@@ -272,6 +274,71 @@ class FilesetTest(GraphQLTestCase):
                     {
                         "id": str(self.FILESET_COOL.id),
                     },
+                ],
+            },
+        )
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $term: String!) {
+                  accessmodFilesets(projectId: $projectId, term: $term) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.PROJECT_BORING.id),
+                "term": "awesome",
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
+            },
+        )
+
+    def test_accessmod_filesets_by_mode(self):
+        self.client.force_login(self.USER_GREG)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $mode: AccessmodFilesetMode!) {
+                  accessmodFilesets(projectId: $projectId, mode: $mode) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.PROJECT_BORING.id),
+                "mode": FilesetMode.AUTOMATIC_ACQUISITION,
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {
+                        "id": str(self.FILESET_NICE.id),
+                    }
                 ],
             },
         )

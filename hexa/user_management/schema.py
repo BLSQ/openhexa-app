@@ -270,10 +270,7 @@ def resolve_country_flag(obj: Country, info):
 
 @country_object.field("defaultCRS")
 def resolve_country_default_crs(obj: Country, info):
-    if obj.alpha3 == "BFA":
-        return 6933
-
-    return 4326
+    return 6933
 
 
 @country_object.field("whoRegion")
