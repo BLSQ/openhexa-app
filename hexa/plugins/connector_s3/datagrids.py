@@ -24,7 +24,9 @@ class UploadAction(Action):
     def context(self, grid: Datagrid):
         return {
             **super().context(grid),
-            "read_only": not grid.parent_model.writable_by(grid.request.user),
+            "read_only": not grid.request.user.has_perm(
+                "connector_s3.write", grid.parent_model
+            ),
         }
 
 

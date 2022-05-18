@@ -120,23 +120,6 @@ class Bucket(Datasource):
     def __str__(self):
         return self.display_name
 
-    def writable_by(self, user):
-        if not user.is_authenticated:
-            return False
-        elif user.is_superuser:
-            return True
-        elif (
-            GCSBucketPermission.objects.filter(
-                bucket=self,
-                team_id__in=user.team_set.all().values("id"),
-                mode=PermissionMode.EDITOR,
-            ).count()
-            > 0
-        ):
-            return True
-        else:
-            return False
-
     def get_absolute_url(self):
         return reverse(
             "connector_gcs:datasource_detail", kwargs={"datasource_id": self.id}
