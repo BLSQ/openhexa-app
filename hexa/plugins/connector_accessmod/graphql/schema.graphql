@@ -290,16 +290,6 @@ type DeleteAccessmodFilesetResult {
 enum DeleteAccessmodFilesetError {
     NOT_FOUND
 }
-input DeleteAccessmodFileInput {
-    id: String!
-}
-type DeleteAccessmodFileResult {
-    success: Boolean!
-    errors: [DeleteAccessmodFileError!]!
-}
-enum DeleteAccessmodFileError {
-    NOT_FOUND
-}
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
     accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
@@ -312,7 +302,6 @@ extend type Mutation {
     prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult!
     prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult!
     createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult!
-    deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult!
 }
 
 # Analysis

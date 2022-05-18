@@ -1,5 +1,4 @@
 import uuid
-from unittest import skip
 
 from django.conf import settings
 from moto import mock_s3, mock_sts
@@ -638,58 +637,6 @@ class FilesetTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "file": None, "errors": ["URI_DUPLICATE"]},
             r["data"]["createAccessmodFile"],
-        )
-
-    @skip
-    def test_delete_file(self):
-        self.client.force_login(self.USER_GREG)
-        fileset = Fileset.objects.create(
-            name="About to be deleted",
-            role=self.LAND_COVER_ROLE,
-            project=self.PROJECT_BORING,
-            author=self.USER_GREG,
-        )
-        original_fileset_updated_at = fileset.updated_at
-        file = File.objects.create(
-            fileset=fileset, uri="notreallyanuri.csv", mime_type="text_csv"
-        )
-
-        r = self.run_query(
-            """
-                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
-                  deleteAccessmodFile(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {"input": {"id": str(file.id)}},
-        )
-        self.assertEqual(
-            {"success": True, "errors": []}, r["data"]["deleteAccessmodFile"]
-        )
-        self.assertFalse(File.objects.filter(id=file.id).exists())
-        fileset.refresh_from_db()
-        self.assertGreater(fileset.updated_at, original_fileset_updated_at)
-
-    @skip
-    def test_delete_file_errors(self):
-        self.client.force_login(self.USER_GREG)
-
-        r = self.run_query(
-            """
-                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
-                  deleteAccessmodFile(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {"input": {"id": str(uuid.uuid4())}},
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["NOT_FOUND"]},
-            r["data"]["deleteAccessmodFile"],
         )
 
     def test_accessmod_fileset_role(self):

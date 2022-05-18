@@ -543,25 +543,6 @@ def resolve_create_accessmod_file(_, info, **kwargs):
         return {"success": False, "file": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@accessmod_mutations.field("deleteAccessmodFile")
-@transaction.atomic
-def resolve_delete_accessmod_file(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-    delete_input = kwargs["input"]
-
-    try:
-        file = File.objects.filter_for_user(principal).get(id=delete_input["id"])
-        fileset = file.fileset
-        file.delete_if_has_perm()
-        fileset.save()  # Will update updated_at
-        return {"success": True, "errors": []}
-    except File.DoesNotExist:
-        return {"success": False, "errors": ["NOT_FOUND"]}
-    except PermissionDenied:
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
-
 @accessmod_query.field("accessmodFilesetRole")
 def resolve_accessmod_fileset_role(_, info, **kwargs):
     try:
