@@ -13,6 +13,7 @@ from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
+from hexa.user_management.countries import COUNTRIES_WITH_WHO_REGION, WHO_REGIONS
 from hexa.user_management.models import Membership, Organization, Team, User
 
 identity_type_defs = load_schema_from_path(
@@ -273,6 +274,17 @@ def resolve_country_default_crs(obj: Country, info):
         return 6933
 
     return 4326
+
+
+@country_object.field("whoRegion")
+def resolve_country_who_region(obj: Country, info):
+    try:
+        country_info = next(
+            c for c in COUNTRIES_WITH_WHO_REGION if c["alpha3"] == obj.alpha3
+        )
+        return next(r for r in WHO_REGIONS if r["code"] == country_info["region"])
+    except StopIteration:
+        return None
 
 
 organization_object = ObjectType("Organization")

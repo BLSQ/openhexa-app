@@ -652,12 +652,22 @@ class SchemaTest(GraphQLTestCase):
                   name
                   alpha3
                   defaultCRS
+                  whoRegion {
+                    code
+                    name
+                  }
                 }
               }
             """,
         )
 
         self.assertEqual(
-            {"name": "Burkina Faso", "code": "BF", "alpha3": "BFA", "defaultCRS": 6933},
+            {
+                "name": "Burkina Faso",
+                "code": "BF",
+                "alpha3": "BFA",
+                "defaultCRS": 6933,
+                "whoRegion": {"code": "AFR", "name": "African Region"},
+            },
             next(c for c in r["data"]["countries"] if c["alpha3"] == "BFA"),
         )

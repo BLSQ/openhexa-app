@@ -224,19 +224,24 @@ extend type Query {
     organizations: [Organization!]!
 }
 
-# Countries
+# Countries & regions
 type Country {
     code: String!
     alpha3: String!
     name: String!
     flag: String!
     defaultCRS: Int!
+    whoRegion: WHORegion
 }
 input CountryInput {
     code: String!
     alpha3: String
     name: String
     flag: String
+}
+type WHORegion {
+    code: String!
+    name: String!
 }
 extend type Query {
     countries: [Country!]!
