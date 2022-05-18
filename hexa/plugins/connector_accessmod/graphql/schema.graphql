@@ -164,6 +164,7 @@ extend type Mutation {
 type AccessmodFileset implements AccessmodOwnership {
     id: String!
     name: String!
+    mode: AccessmodFilesetMode!
     status: AccessmodFilesetStatus!
     role: AccessmodFilesetRole!
     author: User!
@@ -173,6 +174,10 @@ type AccessmodFileset implements AccessmodOwnership {
     authorizedActions: [AccessmodFilesetAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
+}
+enum AccessmodFilesetMode {
+    USER_INPUT
+    AUTOMATIC_ACQUISITION
 }
 enum AccessmodFilesetStatus {
     PENDING
