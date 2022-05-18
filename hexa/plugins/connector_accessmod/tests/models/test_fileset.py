@@ -161,7 +161,6 @@ class FilesetTest(TestCase):
             name="Look it's a sea",
             role=self.WATER_ROLE,
             project=self.PROJECT_SAMPLE,
-            author=self.USER_SIMONE,
         )
         self.assertEqual(FilesetStatus.PENDING, fileset.status)
         self.assertEqual(FilesetMode.USER_INPUT, fileset.mode)
@@ -171,7 +170,6 @@ class FilesetTest(TestCase):
             name="What a beautiful lake",
             role=self.WATER_ROLE,
             project=self.PROJECT_SAMPLE,
-            author=self.USER_SIMONE,
             automatic_acquisition=False,
         )
         self.assertEqual(FilesetStatus.PENDING, fileset.status)
@@ -182,7 +180,6 @@ class FilesetTest(TestCase):
             name="Just a small pond...",
             role=self.WATER_ROLE,
             project=self.PROJECT_SAMPLE,
-            author=self.USER_SIMONE,
             automatic_acquisition=True,
         )
         self.assertEqual(FilesetStatus.TO_ACQUIRE, fileset.status)

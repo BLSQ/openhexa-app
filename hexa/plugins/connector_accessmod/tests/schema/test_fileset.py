@@ -18,7 +18,7 @@ from hexa.plugins.connector_s3.models import Bucket, Credentials
 from hexa.user_management.models import User
 
 
-class AccessmodFileGraphTest(GraphQLTestCase):
+class FilesetTest(GraphQLTestCase):
     USER_GREG = None
     PROJECT_BORING = None
     PROJECT_EXCITING = None
