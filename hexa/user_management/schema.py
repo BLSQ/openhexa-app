@@ -279,7 +279,9 @@ def resolve_country_who_region(obj: Country, info):
         country_info = next(
             c for c in COUNTRIES_WITH_WHO_REGION if c["alpha3"] == obj.alpha3
         )
-        return next(r for r in WHO_REGIONS if r["code"] == country_info["region"])
+        if "region" in country_info:
+            return next(r for r in WHO_REGIONS if r["code"] == country_info["region"])
+
     except StopIteration:
         return None
 
