@@ -14,7 +14,7 @@ from hexa.plugins.connector_accessmod.models import (
 from hexa.user_management.models import PermissionMode, User
 
 
-class AccessmodProjectGraphTest(GraphQLTestCase):
+class ProjectTest(GraphQLTestCase):
     WATER_FILESET = None
     SAMPLE_PROJECT = None
     WATER_ROLE = None

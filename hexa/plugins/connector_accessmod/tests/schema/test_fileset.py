@@ -1,5 +1,4 @@
 import uuid
-from unittest import skip
 
 from django.conf import settings
 from moto import mock_s3, mock_sts
@@ -8,17 +7,18 @@ from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
+    FilesetMode,
     FilesetRole,
     FilesetRoleCode,
     FilesetStatus,
     Project,
+    ProjectPermission,
 )
-from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.models import Bucket, Credentials
-from hexa.user_management.models import User
+from hexa.user_management.models import PermissionMode, User
 
 
-class AccessmodFileGraphTest(GraphQLTestCase):
+class FilesetTest(GraphQLTestCase):
     USER_GREG = None
     PROJECT_BORING = None
     PROJECT_EXCITING = None
@@ -45,6 +45,9 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
+        ProjectPermission.objects.create(
+            project=cls.PROJECT_BORING, user=cls.USER_GREG, mode=PermissionMode.OWNER
+        )
         cls.PROJECT_EXCITING = Project.objects.create(
             name="Sample project 2",
             country="BE",
@@ -65,10 +68,11 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             metadata={"foo": "bar"},
         )
         cls.FILESET_NICE = Fileset.objects.create(
-            name="Another nice fileset",
+            name="A nice automatic fileset",
             role=cls.BARRIER_ROLE,
             project=cls.PROJECT_BORING,
             author=cls.USER_GREG,
+            mode=FilesetMode.AUTOMATIC_ACQUISITION,
         )
         cls.FILESET_ANOTHER = Fileset.objects.create(
             name="And yet another fileset",
@@ -90,7 +94,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
 
-    @skip
     def test_accessmod_fileset_author(self):
         self.client.force_login(self.USER_GREG)
 
@@ -100,6 +103,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
                   accessmodFileset(id: $id) {
                     id
                     name
+                    mode
                     status
                     role {
                         id
@@ -124,6 +128,7 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             {
                 "id": str(self.FILESET_COOL.id),
                 "name": self.FILESET_COOL.name,
+                "mode": self.FILESET_COOL.mode,
                 "status": self.FILESET_COOL.status,
                 "role": {"id": str(self.FILESET_COOL.role_id)},
                 "author": {"id": str(self.FILESET_COOL.author_id)},
@@ -154,7 +159,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             None,
         )
 
-    @skip
     def test_accessmod_filesets(self):
         self.client.force_login(self.USER_GREG)
 
@@ -197,7 +201,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
-    @skip
     def test_accessmod_filesets_by_role(self):
         self.client.force_login(self.USER_GREG)
 
@@ -238,7 +241,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
-    @skip
     def test_accessmod_filesets_by_term(self):
         self.client.force_login(self.USER_GREG)
 
@@ -304,7 +306,71 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             },
         )
 
-    @skip
+    def test_accessmod_filesets_by_mode(self):
+        self.client.force_login(self.USER_GREG)
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $mode: AccessmodFilesetMode!) {
+                  accessmodFilesets(projectId: $projectId, mode: $mode) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.PROJECT_BORING.id),
+                "mode": FilesetMode.AUTOMATIC_ACQUISITION,
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 1,
+                "items": [
+                    {
+                        "id": str(self.FILESET_NICE.id),
+                    }
+                ],
+            },
+        )
+
+        r = self.run_query(
+            """
+                query accessmodFilesets($projectId: String!, $term: String!) {
+                  accessmodFilesets(projectId: $projectId, term: $term) {
+                    pageNumber
+                    totalPages
+                    totalItems
+                    items {
+                      id
+                    }
+                  }
+                }
+            """,
+            {
+                "projectId": str(self.PROJECT_BORING.id),
+                "term": "awesome",
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["accessmodFilesets"],
+            {
+                "pageNumber": 1,
+                "totalPages": 1,
+                "totalItems": 0,
+                "items": [],
+            },
+        )
+
     def test_accessmod_filesets_pagination(self):
         self.client.force_login(self.USER_GREG)
 
@@ -368,7 +434,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
 
     @mock_s3
     @mock_sts
-    @skip
     def test_full_accessmod_upload_workflow(self):
         self.client.force_login(self.USER_GREG)
 
@@ -501,14 +566,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         )
         file_id = r3["data"]["createAccessmodFile"]["file"]["id"]
 
-        # validation started (status from fileset say so) -> run the background queue
-        while validate_fileset_queue.run_once():
-            pass
-
-        # check status is valid now
-        fileset = Fileset.objects.get(id=fileset_id)
-        self.assertEqual(fileset.status, FilesetStatus.VALID)
-
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)
         file = File.objects.get(id=file_id)
@@ -539,7 +596,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r4["data"]["prepareAccessmodFileDownload"]["downloadUrl"],
         )
 
-    @skip
     def test_create_fileset_errors(self):
         self.client.force_login(self.USER_GREG)
 
@@ -568,7 +624,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["createAccessmodFileset"],
         )
 
-    @skip
     def test_delete_fileset(self):
         self.client.force_login(self.USER_GREG)
         fileset = Fileset.objects.create(
@@ -613,7 +668,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
             r["data"]["deleteAccessmodFileset"],
         )
 
-    @skip
     def test_create_file_errors(self):
         self.client.force_login(self.USER_GREG)
 
@@ -640,57 +694,6 @@ class AccessmodFileGraphTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "file": None, "errors": ["URI_DUPLICATE"]},
             r["data"]["createAccessmodFile"],
-        )
-
-    @skip
-    def test_delete_file(self):
-        self.client.force_login(self.USER_GREG)
-        fileset = Fileset.objects.create(
-            name="About to be deleted",
-            role=self.LAND_COVER_ROLE,
-            project=self.PROJECT_BORING,
-            author=self.USER_GREG,
-        )
-        original_fileset_updated_at = fileset.updated_at
-        file = File.objects.create(
-            fileset=fileset, uri="notreallyanuri.csv", mime_type="text_csv"
-        )
-
-        r = self.run_query(
-            """
-                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
-                  deleteAccessmodFile(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {"input": {"id": str(file.id)}},
-        )
-        self.assertEqual(
-            {"success": True, "errors": []}, r["data"]["deleteAccessmodFile"]
-        )
-        self.assertFalse(File.objects.filter(id=file.id).exists())
-        fileset.refresh_from_db()
-        self.assertGreater(fileset.updated_at, original_fileset_updated_at)
-
-    def test_delete_file_errors(self):
-        self.client.force_login(self.USER_GREG)
-
-        r = self.run_query(
-            """
-                mutation deleteAccessmodFile($input: DeleteAccessmodFileInput) {
-                  deleteAccessmodFile(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {"input": {"id": str(uuid.uuid4())}},
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["NOT_FOUND"]},
-            r["data"]["deleteAccessmodFile"],
         )
 
     def test_accessmod_fileset_role(self):

@@ -25,7 +25,7 @@ from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import User
 
 
-class AccessmodAnalysisGraphTest(GraphQLTestCase):
+class AnalysisTest(GraphQLTestCase):
     CLUSTER = None
     USER_1 = None
     DAG_TEMPLATE = None

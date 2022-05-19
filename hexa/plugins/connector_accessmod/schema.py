@@ -26,7 +26,6 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
-    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
@@ -397,6 +396,8 @@ def resolve_accessmod_filesets(_, info, **kwargs):
         queryset = queryset.filter(role__id=kwargs["roleId"])
     if "term" in kwargs:
         queryset = queryset.filter(name__icontains=kwargs["term"])
+    if "mode" in kwargs:
+        queryset = queryset.filter(mode=kwargs["mode"])
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -415,13 +416,12 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
             "name": create_input["name"],
             "role": FilesetRole.objects.get(id=create_input["roleId"]),
         }
-        if create_input.get("automatic", False):
-            kwargs["status"] = FilesetStatus.TO_ACQUIRE
         fileset = Fileset.objects.create_if_has_perm(
             principal,
             project=Project.objects.filter_for_user(request.user).get(
                 id=create_input["projectId"]
             ),
+            automatic_acquisition=create_input.get("automatic", False),
             **kwargs,
         )
         return {"success": True, "fileset": fileset, "errors": []}
@@ -543,25 +543,6 @@ def resolve_create_accessmod_file(_, info, **kwargs):
         return {"success": False, "file": None, "errors": ["URI_DUPLICATE"]}
     except PermissionDenied:
         return {"success": False, "file": None, "errors": ["PERMISSION_DENIED"]}
-
-
-@accessmod_mutations.field("deleteAccessmodFile")
-@transaction.atomic
-def resolve_delete_accessmod_file(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-    delete_input = kwargs["input"]
-
-    try:
-        file = File.objects.filter_for_user(principal).get(id=delete_input["id"])
-        fileset = file.fileset
-        file.delete_if_has_perm()
-        fileset.save()  # Will update updated_at
-        return {"success": True, "errors": []}
-    except File.DoesNotExist:
-        return {"success": False, "errors": ["NOT_FOUND"]}
-    except PermissionDenied:
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_query.field("accessmodFilesetRole")
