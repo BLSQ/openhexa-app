@@ -14,7 +14,6 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.models import Bucket, Credentials
 from hexa.user_management.models import PermissionMode, User
 
@@ -566,15 +565,6 @@ class FilesetTest(GraphQLTestCase):
             fileset_id, r3["data"]["createAccessmodFile"]["file"]["fileset"]["id"]
         )
         file_id = r3["data"]["createAccessmodFile"]["file"]["id"]
-
-        # validation started (status from fileset say so) -> run the background queue
-        while validate_fileset_queue.run_once():
-            pass
-
-        # check status is valid now
-        # FIXME: seems that the status remains PENDING
-        # fileset = Fileset.objects.get(id=fileset_id)
-        # self.assertEqual(fileset.status, FilesetStatus.VALID)
 
         # The fileset updated_at value should be equal to the created_at of the most recent file
         fileset = Fileset.objects.get(id=fileset_id)
