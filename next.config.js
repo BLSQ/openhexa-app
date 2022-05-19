@@ -3,8 +3,6 @@
 const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
-const { FALLBACK_URL = "" } = process.env;
-
 const config = {
   publicRuntimeConfig: {
     GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT,
@@ -18,6 +16,8 @@ const config = {
   i18n,
 
   async rewrites() {
+    const { FALLBACK_URL = "" } = process.env;
+
     return {
       // After checking all Next.js pages (including dynamic routes)...
       // ...and static files we proxy any other requests
