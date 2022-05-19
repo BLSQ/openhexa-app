@@ -104,9 +104,9 @@ The following environment variables should be provided at build time (for the `d
 
 - `RELEASE`: a release identifier, such as a Git tag (used for uploading source maps to Sentry)
 - `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
-- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
 
 The following environment variables should be provided at run time:
+- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
 - `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
