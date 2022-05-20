@@ -230,7 +230,7 @@ type Country {
     alpha3: String!
     name: String!
     flag: String!
-    whoInfo: WHOInfo!
+    whoInfo: WHOInfo
 }
 input CountryInput {
     code: String!
