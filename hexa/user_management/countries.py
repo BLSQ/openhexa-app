@@ -1,3 +1,8 @@
+from pathlib import Path
+
+import geopandas as gpd
+from shapely.geometry import mapping
+
 WHO_REGIONS = [
     {"code": "AMR", "name": "Region of the Americas"},
     {"code": "AFR", "name": "African Region"},
@@ -1523,3 +1528,27 @@ COUNTRIES_WITH_WHO_REGION = [
         "code": "TF",
     },
 ]
+
+
+def get_who_region(alpha3):
+    try:
+        country_info = next(
+            c for c in COUNTRIES_WITH_WHO_REGION if c["alpha3"] == alpha3
+        )
+        if "region" in country_info:
+            return next(r for r in WHO_REGIONS if r["code"] == country_info["region"])
+    except StopIteration:
+        pass
+
+    return None
+
+
+def get_extent(alpha3):
+    path_to_file = Path(__file__).resolve().parent / "data/WHO_ADM0_SIMPLIFIED.geojson"
+    gdf = gpd.read_file(path_to_file)
+    try:
+        country_data = gdf.loc[gdf.ISO_3_CODE == alpha3].iloc[0]
+
+        return mapping(country_data["geometry"])["coordinates"][0]
+    except IndexError:
+        return None
