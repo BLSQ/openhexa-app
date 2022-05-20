@@ -1,0 +1,14 @@
+query GetUser {
+  me {
+    user {
+      email
+      id
+      firstName
+      lastName
+      avatar {
+        initials
+        color
+      }
+    }
+  }
+}

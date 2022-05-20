@@ -1,11 +1,10 @@
-import { gql } from "@apollo/client";
-import Button from "components/Button";
-import Input from "components/forms/Input";
-import Spinner from "components/Spinner";
-import useForm from "hooks/useForm";
-import { useLoginMutation } from "libs/graphql";
-import { createGetServerSideProps } from "libs/page";
-import { NextPageWithLayout } from "libs/types";
+import Input from "core/components/forms/Input";
+import Spinner from "core/components/Spinner";
+import Button from "core/components/Button";
+import { useLoginMutation } from "core/graphql/mutations.generated";
+import { createGetServerSideProps } from "core/helpers/page";
+import { NextPageWithLayout } from "core/helpers/types";
+import useForm from "core/hooks/useForm";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -15,14 +14,6 @@ interface LoginForm {
   email: string;
   password: string;
 }
-
-const LOGIN_MUTATION = gql`
-  mutation Login($input: LoginInput!) {
-    login(input: $input) {
-      success
-    }
-  }
-`;
 
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -53,15 +44,15 @@ const LoginPage: NextPageWithLayout = () => {
   });
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen">
-      <form className="flex-1 max-w-md space-y-6" onSubmit={form.handleSubmit}>
+    <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <form className="max-w-md flex-1 space-y-6" onSubmit={form.handleSubmit}>
         <div>
-          <div className="h-16 w-auto relative">
+          <div className="relative h-16 w-auto">
             <Image
               priority
               src="/images/logo.svg"
               layout="fill"
-              className="block mx-auto h-16 w-auto"
+              className="mx-auto block h-16 w-auto"
               alt="OpenHexa logo"
             />
           </div>

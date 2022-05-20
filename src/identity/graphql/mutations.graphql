@@ -1,0 +1,18 @@
+mutation ResetPassword($input: ResetPasswordInput!) {
+  resetPassword(input: $input) {
+    success
+  }
+}
+
+mutation SetPassword($input: SetPasswordInput!) {
+  setPassword(input: $input) {
+    success
+    error
+  }
+}
+
+mutation Logout {
+  logout {
+    success
+  }
+}

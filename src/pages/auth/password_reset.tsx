@@ -1,10 +1,9 @@
-import { gql } from "@apollo/client";
-import Button from "components/Button";
-import Field from "components/forms/Field";
-import useForm from "hooks/useForm";
-import { useResetPasswordMutation } from "libs/graphql";
-import { createGetServerSideProps } from "libs/page";
-import { NextPageWithLayout } from "libs/types";
+import Field from "core/components/forms/Field";
+import Button from "core/components/Button";
+import { createGetServerSideProps } from "core/helpers/page";
+import { NextPageWithLayout } from "core/helpers/types";
+import useForm from "core/hooks/useForm";
+import { useResetPasswordMutation } from "identity/graphql/mutations.generated";
 import Image from "next/image";
 import Link from "next/link";
 import { ReactElement, useState } from "react";
@@ -12,14 +11,6 @@ import { ReactElement, useState } from "react";
 interface ResetPasswordForm {
   email: string;
 }
-
-const RESET_PASSWORD_MUTATION = gql`
-  mutation ResetPassword($input: ResetPasswordInput!) {
-    resetPassword(input: $input) {
-      success
-    }
-  }
-`;
 
 const PasswordResetPage: NextPageWithLayout = () => {
   const [resetPassword] = useResetPasswordMutation();
@@ -45,14 +36,14 @@ const PasswordResetPage: NextPageWithLayout = () => {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md">
-        <div className="h-16 w-auto relative mb-6">
+        <div className="relative mb-6 h-16 w-auto">
           <Image
             priority
             src="/images/logo.svg"
             layout="fill"
-            className="block mx-auto h-16 w-auto"
+            className="mx-auto block h-16 w-auto"
             alt="OpenHexa logo"
           />
         </div>

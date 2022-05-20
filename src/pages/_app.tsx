@@ -1,8 +1,8 @@
 import Head from "next/head";
 import { ApolloProvider } from "@apollo/client";
-import { useApollo } from "libs/apollo";
-import Layout from "components/Layout";
-import { AppPropsWithLayout } from "libs/types";
+import { useApollo } from "core/helpers/apollo";
+import Layout from "core/components/Layout";
+import { AppPropsWithLayout } from "core/helpers/types";
 import { appWithTranslation } from "next-i18next";
 import NavigationProgress from "nextjs-progressbar";
 import "../styles/globals.css";

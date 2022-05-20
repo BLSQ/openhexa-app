@@ -5,21 +5,21 @@ import {
 } from "@heroicons/react/outline";
 import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
-import Badge from "components/Badge";
-import Block from "components/Block";
-import Breadcrumbs from "components/Breadcrumbs";
-import Button from "components/Button";
-import DescriptionList from "components/DescriptionList";
-import { PageContent } from "components/Layout/PageContent";
-import { TableClasses } from "components/Table";
-import Time from "components/Time";
-import CollectionDataSourceViewerDialog from "features/collection/CollectionDataSourceViewerDialog";
-import useToggle from "hooks/useToggle";
-import { FAKE_COLLECTIONS } from "libs/collections";
-import { createGetServerSideProps } from "libs/page";
+import Badge from "core/components/Badge";
+import Block from "core/components/Block";
+import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
+import DescriptionList from "core/components/DescriptionList";
+import { PageContent } from "core/components/Layout/PageContent";
+import { TableClasses } from "core/components/Table";
+import Time from "core/components/Time";
+import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
+import useToggle from "core/hooks/useToggle";
+import { FAKE_COLLECTIONS } from "collections/helpers/collections";
+import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import Comments from "components/Comments";
+import Comments from "core/components/Comments";
 
 const CollectionPage = () => {
   const router = useRouter();

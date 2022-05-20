@@ -1,14 +1,14 @@
 import { ChevronRightIcon } from "@heroicons/react/solid";
-import Block from "components/Block";
-import Breadcrumbs from "components/Breadcrumbs";
-import { PageContent } from "components/Layout/PageContent";
-import Pagination from "components/Pagination";
-import { TableClasses } from "components/Table";
-import { FAKE_COLLECTIONS } from "libs/collections";
-import { createGetServerSideProps } from "libs/page";
+import Block from "core/components/Block";
+import Breadcrumbs from "core/components/Breadcrumbs";
+import { PageContent } from "core/components/Layout/PageContent";
+import Pagination from "core/components/Pagination";
+import { TableClasses } from "core/components/Table";
+import { FAKE_COLLECTIONS } from "collections/helpers/collections";
+import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
-import Badge from "components/Badge";
+import Badge from "core/components/Badge";
 import clsx from "clsx";
 
 const CollectionsPage = () => {

@@ -15,6 +15,8 @@ const config = {
   trailingSlash: false,
   i18n,
 
+  swcMinify: true,
+
   async rewrites() {
     const { FALLBACK_URL = "" } = process.env;
 
