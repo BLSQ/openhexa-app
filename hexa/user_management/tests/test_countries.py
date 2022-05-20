@@ -1,5 +1,5 @@
 from hexa.core.test import TestCase
-from hexa.user_management.countries import get_extent, get_who_region
+from hexa.user_management.countries import get_simplified_extent, get_who_region
 
 
 class CountriesTest(TestCase):
@@ -14,7 +14,7 @@ class CountriesTest(TestCase):
         self.assertEqual(None, get_who_region("SGS"))
         self.assertEqual(None, get_who_region("LOL"))
 
-    def test_get_extent(self):
+    def test_get_simplified_extent(self):
         self.assertEqual(
             (
                 (-5.512325279938124, 10.429284152722984),
@@ -255,7 +255,7 @@ class CountriesTest(TestCase):
                 (-5.460679873056939, 10.34631875313215),
                 (-5.512325279938124, 10.429284152722984),
             ),
-            get_extent("BFA"),
+            get_simplified_extent("BFA"),
         )
-        self.assertEqual(None, get_extent("SGS"))
-        self.assertEqual(None, get_extent("LOL"))
+        self.assertEqual(None, get_simplified_extent("SGS"))
+        self.assertEqual(None, get_simplified_extent("LOL"))

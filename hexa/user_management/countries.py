@@ -1543,12 +1543,15 @@ def get_who_region(alpha3):
     return None
 
 
-def get_extent(alpha3):
+def get_simplified_extent(alpha3):
+    """Get a simplified extent for the country corresponding to the provided alpha3.
+    The simplified extends comes from the official WHO contours API."""
+
     path_to_file = Path(__file__).resolve().parent / "data/WHO_ADM0_SIMPLIFIED.geojson"
     gdf = gpd.read_file(path_to_file)
+
     try:
         country_data = gdf.loc[gdf.ISO_3_CODE == alpha3].iloc[0]
-
         return mapping(country_data["geometry"])["coordinates"][0]
     except IndexError:
         return None
