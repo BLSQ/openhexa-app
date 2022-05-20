@@ -151,7 +151,7 @@ extend type Query {
     accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
-    createAccessmodProject(input: CreateAccessmodProjectByCountryInput): CreateAccessmodProjectResult!
+    createAccessmodProjectByCountry(input: CreateAccessmodProjectByCountryInput): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
     createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!

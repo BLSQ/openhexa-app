@@ -1,18 +1,29 @@
 from pathlib import Path
 
 import geopandas as gpd
-from django_countries.fields import Country
 from geopandas import GeoDataFrame
 from shapely.geometry import mapping
 
+WHO_REGION_NAMES = {
+    "AMRO": "Region of the Americas",
+    "AFRO": "African Region",
+    "EMRO": "Eastern Mediterranean Region",
+    "EURO": "European Region",
+    "WPRO": "Western Pacific Region",
+    "SEARO": "South-East Asian Region",
+}
+
 
 class WHOInfo:
-    def __init__(self, country: Country, data: GeoDataFrame):
+    def __init__(self, data: GeoDataFrame):
         self.data = data
 
     @property
     def region(self):
-        return self.data["WHO_REGION"]
+        return {
+            "code": self.data["WHO_REGION"],
+            "name": WHO_REGION_NAMES[self.data["WHO_REGION"]],
+        }
 
     @property
     def default_crs(self):
@@ -31,6 +42,6 @@ def get_who_info(alpha3):
 
     try:
         country_data = gdf.loc[gdf.ISO_3_CODE == alpha3].iloc[0]
-        return WHOInfo(alpha3, country_data)
+        return WHOInfo(country_data)
     except IndexError:
         return None

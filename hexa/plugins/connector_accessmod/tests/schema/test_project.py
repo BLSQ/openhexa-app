@@ -293,13 +293,13 @@ class ProjectTest(GraphQLTestCase):
             },
         )
 
-    def test_create_accessmod_project(self):
+    def test_create_accessmod_project_by_country(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation createAccessmodProject($input: CreateAccessmodProjectInput) {
-                  createAccessmodProject(input: $input) {
+                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput) {
+                  createAccessmodProjectByCountry(input: $input) {
                     success
                     project {
                         name
@@ -324,7 +324,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["createAccessmodProject"],
+            r["data"]["createAccessmodProjectByCountry"],
             {
                 "success": True,
                 "project": {
@@ -337,13 +337,13 @@ class ProjectTest(GraphQLTestCase):
             },
         )
 
-    def test_create_accessmod_project_errors(self):
+    def test_create_accessmod_project_by_country_errors(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation createAccessmodProject($input: CreateAccessmodProjectInput) {
-                  createAccessmodProject(input: $input) {
+                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput) {
+                  createAccessmodProjectByCountry(input: $input) {
                     success
                     project {
                         id
@@ -363,7 +363,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["createAccessmodProject"],
+            r["data"]["createAccessmodProjectByCountry"],
             {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]},
         )
 

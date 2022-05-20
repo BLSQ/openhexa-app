@@ -33,6 +33,7 @@ from hexa.plugins.connector_accessmod.models import (
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
+from hexa.user_management.countries import get_who_info
 from hexa.user_management.models import Team, User
 
 accessmod_type_defs = load_schema_from_path(
@@ -153,12 +154,15 @@ def resolve_accessmod_projects(
     )
 
 
-@accessmod_mutations.field("createAccessmodProject")
+@accessmod_mutations.field("createAccessmodProjectByCountry")
 @transaction.atomic
-def resolve_create_accessmod_project(_, info, **kwargs):
+def resolve_create_accessmod_project_by_country(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
+
+    country = Country(create_input["country"]["code"])
+    who_info = get_who_info(country.alpha3)
 
     try:
         project = Project.objects.create_if_has_perm(
@@ -168,7 +172,7 @@ def resolve_create_accessmod_project(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=None,  # FIXME please
+            extent=who_info.simplified_extent,
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:

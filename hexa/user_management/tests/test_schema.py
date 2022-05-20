@@ -671,7 +671,7 @@ class SchemaTest(GraphQLTestCase):
                 "code": "BF",
                 "alpha3": "BFA",
                 "whoInfo": {
-                    "region": {"code": "AFR", "name": "African Region"},
+                    "region": {"code": "AFRO", "name": "African Region"},
                     "defaultCRS": 32630,
                     "simplifiedExtent": [[x, y] for x, y in SIMPLIFIED_BFA_EXTENT],
                 },
