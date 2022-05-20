@@ -1125,3 +1125,132 @@ class GeographicCoverageAnalysis(Analysis):
 
     def set_input(self, **kwargs):
         raise NotImplementedError
+
+
+class ZonalStatisticsAnalysis(Analysis):
+    class Meta:
+        verbose_name_plural = "Zonal statistics"
+
+    population = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    travel_times = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    boundaries = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    time_thresholds = models.JSONField(default=[60, 120, 180, 240, 300, 360])
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def update_status_if_draft(self):
+        if (
+            not self.name
+            or not self.time_thresholds
+            or not self.boundaries
+            or not self.population
+        ):
+            return
+
+        self.status = AnalysisStatus.READY
+
+    @transaction.atomic
+    def set_input(self, input: str, uri: str, mime_type: str):
+        if input not in ("population", "travel_times", "boundaries"):
+            raise Exception("invalid input")
+
+        fileset = getattr(self, input)
+        if fileset.status != FilesetStatus.TO_ACQUIRE:
+            raise Exception("invalid fileset status")
+
+        # assume that output of acquisition is valid
+        # if udpate to status PENDING, add task in validation queue
+        fileset.status = FilesetStatus.VALID
+        fileset.save()
+
+        # add data to that fileset
+        File.objects.create(
+            mime_type=mime_type,
+            uri=uri,
+            fileset=fileset,
+        )
+
+    @transaction.atomic
+    def set_outputs(self, zonal_statistics_table: str, zonal_statistics_geo: str):
+        self.set_output(
+            output_key="zonal_statistics_table",
+            output_role_code=FilesetFormat.TABULAR,
+            output_name="Zonal statistics table",
+            output_value=zonal_statistics_table,
+        )
+        self.set_output(
+            output_key="zonal_statistics_geo",
+            output_role_code=FilesetRoleCode.ZONAL_STATISTICS,
+            output_name="Zonal statistics",
+            output_value=zonal_statistics_geo,
+        )
+
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.ZONAL_STATISTICS
+
+    @property
+    def dag_id(self):
+        return "am_zonal_statistics"
+
+    def build_dag_conf(self, output_dir: str):
+
+        # force output_dir to end with a "/"
+        if not output_dir.endswith("/"):
+            output_dir += "/"
+
+        am_conf = {"output_dir": output_dir, "time_thresholds": self.time_thresholds}
+
+        if self.population.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["population"] = {
+                "auto": True,
+                "name": self.population.name,
+                "path": output_dir + f"{str(self.population.id)}_population.tif",
+            }
+        else:
+            am_conf["population"] = {
+                "auto": False,
+                "name": self.population.name,
+                "path": self.population.primary_uri,
+            }
+
+        if self.boundaries.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["boundaries"] = {
+                "auto": True,
+                "amenity": None,
+                "name": self.boundaries.name,
+                "path": output_dir + f"{str(self.boundaries.id)}_boundaries.gpkg",
+            }
+        else:
+            am_conf["boundaries"] = {
+                "auto": False,
+                "name": self.boundaries.name,
+                "path": self.boundaries.primary_uri,
+            }
+
+        am_conf["travel_times"] = {
+            "name": self.travel_times.name,
+            "path": self.travel_times.primary_uri,
+        }
+
+        dag_conf = {
+            # flag interpreted by airflow for starting acquisition pipelines
+            "acquisition_population": self.population.status
+            == FilesetStatus.TO_ACQUIRE,
+            "acquisition_boundaries": self.boundaries.status
+            == FilesetStatus.TO_ACQUIRE,
+            "output_dir": output_dir,
+            "am_config": base64.b64encode(json.dumps(am_conf).encode()).decode(),
+        }
+
+        return dag_conf
