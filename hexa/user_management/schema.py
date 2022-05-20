@@ -13,7 +13,7 @@ from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
-from hexa.user_management.countries import get_who_region
+from hexa.user_management.countries import get_simplified_extent, get_who_region
 from hexa.user_management.models import Membership, Organization, Team, User
 
 identity_type_defs = load_schema_from_path(
@@ -43,6 +43,16 @@ def resolve_me(_, info):
             ],
         ),
     }
+
+
+@identity_query.field("country")
+def resolve_country(_, info, **kwargs):
+    code = kwargs.get("code")
+    alpha3 = kwargs.get("alpha3")
+    if (code is None) == (alpha3 is None):
+        raise ValueError("Please provide either code or alpha3")
+
+    return Country(code if code is not None else alpha3)
 
 
 @identity_query.field("countries")
@@ -268,14 +278,27 @@ def resolve_country_flag(obj: Country, info):
     return request.build_absolute_uri(obj.flag)
 
 
-@country_object.field("defaultCRS")
+@country_object.field("whoInfo")
+def resolve_country_who_info(obj: Country, info):
+    return obj  # will be used by whoInfo field resolvers
+
+
+who_info_object = ObjectType("WHOInfo")
+
+
+@who_info_object.field("defaultCRS")
 def resolve_country_default_crs(obj: Country, info):
     return 6933
 
 
-@country_object.field("whoRegion")
+@who_info_object.field("region")
 def resolve_country_who_region(obj: Country, info):
     return get_who_region(obj.alpha3)
+
+
+@who_info_object.field("simplifiedExtent")
+def resolve_country_simplified_extent(obj: Country, info):
+    return get_simplified_extent(obj.alpha3)
 
 
 organization_object = ObjectType("Organization")
@@ -357,6 +380,7 @@ identity_bindables = [
     identity_query,
     user_object,
     country_object,
+    who_info_object,
     team_object,
     membership_object,
     organization_object,

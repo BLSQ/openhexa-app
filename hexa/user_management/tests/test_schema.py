@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode
 from hexa.core.test import GraphQLTestCase
 from hexa.core.test.utils import graphql_datetime_format
 from hexa.user_management.models import Membership, MembershipRole, Team, User
+from hexa.user_management.tests import SIMPLIFIED_BFA_EXTENT
 
 
 class SchemaTest(GraphQLTestCase):
@@ -642,19 +643,22 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["createMembership"],
         )
 
-    def test_countries(self):
+    def test_country(self):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
             """
               query {
-                countries {
+                country(code: "BF") {
                   code
                   name
                   alpha3
-                  defaultCRS
-                  whoRegion {
-                    code
-                    name
+                  whoInfo {
+                    region {
+                      code
+                      name
+                    }
+                    defaultCRS
+                    simplifiedExtent
                   }
                 }
               }
@@ -666,8 +670,34 @@ class SchemaTest(GraphQLTestCase):
                 "name": "Burkina Faso",
                 "code": "BF",
                 "alpha3": "BFA",
-                "defaultCRS": 6933,
-                "whoRegion": {"code": "AFR", "name": "African Region"},
+                "whoInfo": {
+                    "region": {"code": "AFR", "name": "African Region"},
+                    "defaultCRS": 6933,
+                    "simplifiedExtent": [[x, y] for x, y in SIMPLIFIED_BFA_EXTENT],
+                },
+            },
+            r["data"]["country"],
+        )
+
+    def test_countries(self):
+        self.client.force_login(self.USER_JIM)
+        r = self.run_query(
+            """
+                  query {
+                    countries {
+                      code
+                      name
+                      alpha3
+                    }
+                  }
+                """,
+        )
+
+        self.assertEqual(
+            {
+                "name": "Burkina Faso",
+                "code": "BF",
+                "alpha3": "BFA",
             },
             next(c for c in r["data"]["countries"] if c["alpha3"] == "BFA"),
         )
