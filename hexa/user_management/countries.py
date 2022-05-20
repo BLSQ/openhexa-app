@@ -1,3 +1,4 @@
+from functools import cache
 from pathlib import Path
 
 import geopandas as gpd
@@ -34,14 +35,19 @@ class WHOInfo:
         return mapping(self.data["geometry"])["coordinates"][0]
 
 
+@cache
+def get_who_countries_gdf():
+    path_to_file = Path(__file__).resolve().parent / "data/WHO_ADM0_SIMPLIFIED.geojson"
+    return gpd.read_file(path_to_file)
+
+
 def get_who_info(alpha3):
     """Get miscellaneous WHO-provided info for the country corresponding to the provided alpha3."""
 
-    path_to_file = Path(__file__).resolve().parent / "data/WHO_ADM0_SIMPLIFIED.geojson"
-    gdf = gpd.read_file(path_to_file)
+    countries_gdf = get_who_countries_gdf()
 
     try:
-        country_data = gdf.loc[gdf.ISO_3_CODE == alpha3].iloc[0]
+        country_data = countries_gdf.loc[countries_gdf.ISO_3_CODE == alpha3].iloc[0]
         return WHOInfo(country_data)
     except IndexError:
         return None
