@@ -35,12 +35,11 @@ type AccessmodProjectPage {
     totalItems: Int!
     items: [AccessmodProject!]!
 }
-input CreateAccessmodProjectInput {
+input CreateAccessmodProjectByCountryInput {
     name: String!
-    spatialResolution: Int!
     description: String
+    spatialResolution: Int!
     crs: Int!
-    extent: String
     country: CountryInput!
 }
 type CreateAccessmodProjectResult {
@@ -152,7 +151,7 @@ extend type Query {
     accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
-    createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
+    createAccessmodProject(input: CreateAccessmodProjectByCountryInput): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
     createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
