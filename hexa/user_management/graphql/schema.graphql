@@ -4,6 +4,7 @@ type User {
     email: String!
     firstName: String
     lastName: String
+    displayName: String!
     avatar: Avatar!
     dateJoined: DateTime!
     lastLogin: DateTime
