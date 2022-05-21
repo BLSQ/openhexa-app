@@ -20,6 +20,7 @@ from hexa.core import mimetypes
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
+from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import Permission, PermissionMode, Team
@@ -764,27 +765,45 @@ class AccessibilityAnalysis(Analysis):
         raise NotImplementedError
 
     def update_status_if_draft(self):
-        # FIXME: check that all fileset status is VALID or TO_ACQUIRE
+        # all of these info must be set & valid
         if (
             not self.name
-            or not self.health_facilities
-            or not self.dem
+            or self.health_facilities is None
+            or self.health_facilities.status != FilesetStatus.VALID
+            or self.dem is None
+            or self.dem.statys != FilesetStatus.VALID
             or not self.moving_speeds
         ):
             return
 
-        if not self.stack and (
-            self.land_cover is None
-            or self.transport_network is None
-            or self.water is None
-            or not self.stack_priorities
-        ):
-            return
+        # two mode: 1/ use a stack, 2/ give transport/water/land cover
+        if self.stack:
+            if self.stack.status != FilesetStatus.VALID:
+                # invalid stack -> not ready
+                return
+        else:
+            if (
+                self.land_cover is None
+                or self.land_cover.status != FilesetStatus.VALID
+                or self.transport_network is None
+                or self.transport_network.status != FilesetStatus.VALID
+                or self.water is None
+                or self.water.status != FilesetStatus.VALID
+                or not self.stack_priorities
+            ):
+                # not enough fileset/invalid filesets for stackless mode
+                return
 
         self.status = AnalysisStatus.READY
 
     @transaction.atomic
-    def set_input(self, input: str, uri: str, mime_type: str):
+    def set_input(
+        self,
+        input: str,
+        uri: str,
+        mime_type: str,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+    ):
         if input not in (
             "land_cover",
             "dem",
@@ -798,16 +817,25 @@ class AccessibilityAnalysis(Analysis):
         if fileset.status != FilesetStatus.TO_ACQUIRE:
             raise Exception("invalid fileset status")
 
-        # assume that output of acquisition is valid
-        # if udpate to status PENDING, add task in validation queue
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
-
         # add data to that fileset
         File.objects.create(
             mime_type=mime_type,
             uri=uri,
             fileset=fileset,
+        )
+
+        # probably the acquisition is valid, use the data worker for
+        # metadata extraction
+        fileset.status = FilesetStatus.PENDING
+        if metadata is not None:
+            fileset.metadata.update(metadata)
+        fileset.save()
+
+        validate_fileset_queue.enqueue(
+            "validate_fileset",
+            {
+                "fileset_id": str(fileset.id),
+            },
         )
 
     @transaction.atomic

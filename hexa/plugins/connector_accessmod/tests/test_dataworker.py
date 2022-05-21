@@ -71,7 +71,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         cls.dem_file = File.objects.create(
             mime_type="image/geotiff",
-            uri="s3://test-bucket/dem.tif",
+            uri="s3://test-bucket/analysis/dem.tif",
             fileset=cls.dem_fs,
         )
         cls.facilities_fs = Fileset.objects.create(
@@ -119,7 +119,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         cls.landcover_file = File.objects.create(
             mime_type="image/geotiff",
-            uri="s3://test-bucket/landcover.tif",
+            uri="s3://test-bucket/analysis/landcover.tif",
             fileset=cls.landcover_fs,
         )
 
@@ -150,11 +150,25 @@ class AccessmodDataWorkerTest(TestCase):
         dem_data = open(dem_file, "rb").read()
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
-        s3_client.put_object(Bucket="test-bucket", Key="dem.tif", Body=dem_data)
+        s3_client.put_object(
+            Bucket="test-bucket", Key="analysis/dem.tif", Body=dem_data
+        )
 
         validate_fileset_job(None, MockJob(args={"fileset_id": str(self.dem_fs.id)}))
         self.dem_fs.refresh_from_db()
-        self.assertEqual(self.dem_fs.metadata, {})
+        self.assertEqual(
+            self.dem_fs.metadata,
+            {
+                "1p": 188.0,
+                "2p": 203.0,
+                "98p": 445.0,
+                "99p": 498.0,
+                "max": 691,
+                "min": 143,
+                "nodata": 32767.0,
+                "cog_raster_uri": "s3://test-bucket/analysis/dem.cog.tif",
+            },
+        )
         self.assertEqual(self.dem_fs.status, FilesetStatus.VALID)
 
     @mock_s3
@@ -209,7 +223,15 @@ class AccessmodDataWorkerTest(TestCase):
         self.transport_fs.refresh_from_db()
         self.assertEqual(
             self.transport_fs.metadata,
-            {"category_column": ["primary", "secondary", "trunk_link"]},
+            {
+                "columns": ["highway", "smoothness", "surface", "tracktype"],
+                "values": {
+                    "highway": ["primary", "secondary", "trunk_link"],
+                    "smoothness": [None],
+                    "surface": ["asphalt"],
+                    "tracktype": [None],
+                },
+            },
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
 
@@ -222,7 +244,7 @@ class AccessmodDataWorkerTest(TestCase):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(
-            Bucket="test-bucket", Key="landcover.tif", Body=landcover_data
+            Bucket="test-bucket", Key="analysis/landcover.tif", Body=landcover_data
         )
 
         validate_fileset_job(
@@ -230,6 +252,11 @@ class AccessmodDataWorkerTest(TestCase):
         )
         self.landcover_fs.refresh_from_db()
         self.assertEqual(
-            self.landcover_fs.metadata, {"classes": [0, 1, 2, 3, 4, 6, 7, 8, 10]}
+            self.landcover_fs.metadata,
+            {
+                "unique_values": [0, 1, 2, 3, 4, 6, 7, 8, 10],
+                "nodata": 0.0,
+                "cog_raster_uri": "s3://test-bucket/analysis/landcover.cog.tif",
+            },
         )
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)

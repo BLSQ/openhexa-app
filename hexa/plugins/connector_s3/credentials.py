@@ -121,7 +121,7 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     pipeline_app = credentials.pipeline._meta.app_label
     pipeline_role_path = f"/{principal_role_path}/pipelines/{pipeline_app}/"
 
-    role_data = get_or_create_role(
+    role_data, created_role = get_or_create_role(
         principal_credentials=principal_s3_credentials,
         role_path=pipeline_role_path,
         role_name=f"{principal_s3_credentials.username}-p-{str(credentials.pipeline.id)}",
@@ -155,6 +155,7 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     env["AWS_ACCESS_KEY_ID"] = sts_credentials["AccessKeyId"]
     env["AWS_SECRET_ACCESS_KEY"] = sts_credentials["SecretAccessKey"]
     env["AWS_SESSION_TOKEN"] = sts_credentials["SessionToken"]
+    env["AWS_FRESH_ROLE"] = "TRUE" if created_role else "FALSE"
 
     # Set some environment variables to help the user
     if principal_s3_credentials.default_region != "":
