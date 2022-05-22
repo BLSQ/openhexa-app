@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
+    "hexa.countries",
     "hexa.visualizations",
     "hexa.notebooks",
     "hexa.pipelines",
@@ -109,7 +110,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "HOST": os.environ.get("DATABASE_HOST"),
         "PORT": os.environ.get("DATABASE_PORT"),
         "NAME": os.environ.get("DATABASE_NAME"),

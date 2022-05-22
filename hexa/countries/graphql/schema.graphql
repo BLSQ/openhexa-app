@@ -1,0 +1,27 @@
+# Countries & regions
+type Country {
+    code: String!
+    alpha3: String!
+    name: String!
+    flag: String!
+    whoInfo: WHOInfo
+}
+input CountryInput {
+    code: String!
+    alpha3: String
+    name: String
+    flag: String
+}
+type WHOInfo {
+    region: WHORegion
+    defaultCRS: Int!
+    simplifiedExtent: [[Float!]!]
+}
+type WHORegion {
+    code: String!
+    name: String!
+}
+extend type Query {
+    country(code: String, alpha3: String): Country
+    countries: [Country!]!
+}
