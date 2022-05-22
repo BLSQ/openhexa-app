@@ -17,6 +17,7 @@ from hexa.user_management.models import PermissionMode, User
 class ProjectTest(GraphQLTestCase):
     WATER_FILESET = None
     SAMPLE_PROJECT = None
+    OTHER_PROJECT = None
     WATER_ROLE = None
     USER_JIM = None
 
@@ -46,6 +47,9 @@ class ProjectTest(GraphQLTestCase):
             author=cls.USER_JIM,
             spatial_resolution=100,
             crs=4326,
+        )
+        ProjectPermission.objects.create(
+            user=cls.USER_JIM, project=cls.OTHER_PROJECT, mode=PermissionMode.OWNER
         )
         cls.WATER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.WATER,
@@ -139,7 +143,6 @@ class ProjectTest(GraphQLTestCase):
             None,
         )
 
-    @skip
     def test_accessmod_projects(self):
         self.client.force_login(self.USER_JIM)
 
@@ -159,7 +162,6 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessmodProjects"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -169,9 +171,9 @@ class ProjectTest(GraphQLTestCase):
                     {"id": str(self.SAMPLE_PROJECT.id)},
                 ],
             },
+            r["data"]["accessmodProjects"],
         )
 
-    @skip
     def test_accessmod_projects_with_term(self):
         self.client.force_login(self.USER_JIM)
 
@@ -202,7 +204,6 @@ class ProjectTest(GraphQLTestCase):
             },
         )
 
-    @skip
     def test_accessmod_projects_with_countries(self):
         self.client.force_login(self.USER_JIM)
 
@@ -222,7 +223,6 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessmodProjects"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -231,9 +231,9 @@ class ProjectTest(GraphQLTestCase):
                     {"id": str(self.OTHER_PROJECT.id)},
                 ],
             },
+            r["data"]["accessmodProjects"],
         )
 
-    @skip
     def test_accessmod_projects_with_pagination(self):
         self.client.force_login(self.USER_JIM)
 
@@ -253,7 +253,6 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["accessmodProjects"],
             {
                 "pageNumber": 1,
                 "totalPages": 1,
@@ -263,6 +262,7 @@ class ProjectTest(GraphQLTestCase):
                     {"id": str(self.SAMPLE_PROJECT.id)},
                 ],
             },
+            r["data"]["accessmodProjects"],
         )
 
     def test_accessmod_projects_empty(self):
@@ -367,7 +367,6 @@ class ProjectTest(GraphQLTestCase):
             {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]},
         )
 
-    @skip
     def test_update_accessmod_project(self):
         self.client.force_login(self.USER_JIM)
 
@@ -379,9 +378,6 @@ class ProjectTest(GraphQLTestCase):
                     project {
                         id
                         name
-                        country {
-                            code
-                        }
                     }
                     errors
                   }
@@ -391,7 +387,6 @@ class ProjectTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.SAMPLE_PROJECT.id),
                     "name": "Updated project!",
-                    "country": {"code": "CD"},
                 }
             },
         )
@@ -403,13 +398,11 @@ class ProjectTest(GraphQLTestCase):
                 "project": {
                     "id": str(self.SAMPLE_PROJECT.id),
                     "name": "Updated project!",
-                    "country": {"code": "CD"},
                 },
                 "errors": [],
             },
         )
 
-    @skip
     def test_update_accessmod_project_errors(self):
         self.client.force_login(self.USER_JIM)
 
@@ -429,7 +422,6 @@ class ProjectTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.SAMPLE_PROJECT.id),
                     "name": self.OTHER_PROJECT.name,
-                    "country": {"code": "CD"},
                 }
             },
         )
@@ -459,7 +451,6 @@ class ProjectTest(GraphQLTestCase):
                 "input": {
                     "id": str(uuid.uuid4()),
                     "name": "YOLO",
-                    "country": {"code": "CD"},
                 }
             },
         )
