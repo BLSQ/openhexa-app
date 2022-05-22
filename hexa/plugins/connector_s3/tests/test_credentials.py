@@ -274,6 +274,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             {
                 "AWS_DEFAULT_REGION": "eu-central-1",
                 "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
+                "AWS_FRESH_ROLE": "TRUE",
             },
             credentials.env,
         )
@@ -368,6 +369,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
                 "AWS_DEFAULT_REGION": "eu-central-1",
                 "AWS_S3_BUCKET_NAMES": "hexa-test-bucket-1",
                 "AWS_BUCKET_SLUG1_NAME": "hexa-test-bucket-1",
+                "AWS_FRESH_ROLE": "TRUE",
             },
             credentials.env,
         )

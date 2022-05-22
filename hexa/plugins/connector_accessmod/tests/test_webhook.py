@@ -189,6 +189,9 @@ class AccessmodViewsTest(TestCase):
                     "acquisition_type": "water",
                     "mime_type": "application/geopckg",
                     "uri": "s3://some-bucket/some-dir/transport_network.gpkg",
+                    "metadata": {
+                        "values": [1, 2],
+                    },
                 },
             },
             **{
@@ -203,7 +206,10 @@ class AccessmodViewsTest(TestCase):
         )
         self.ACCESSIBILITY_ANALYSIS.refresh_from_db()
         self.assertIsInstance(self.ACCESSIBILITY_ANALYSIS.water, Fileset)
-        self.assertEqual(self.ACCESSIBILITY_ANALYSIS.water.status, FilesetStatus.VALID)
+        self.assertEqual(
+            self.ACCESSIBILITY_ANALYSIS.water.status, FilesetStatus.PENDING
+        )
+        self.assertEqual(self.ACCESSIBILITY_ANALYSIS.water.metadata, {"values": [1, 2]})
         self.assertEqual(self.ACCESSIBILITY_ANALYSIS.water.file_set.count(), 1)
         file = self.ACCESSIBILITY_ANALYSIS.water.file_set.first()
         self.assertEqual(file.uri, "s3://some-bucket/some-dir/transport_network.gpkg")
