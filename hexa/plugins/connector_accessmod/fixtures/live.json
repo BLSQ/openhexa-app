@@ -12,17 +12,6 @@
   },
   {
     "model": "connector_accessmod.filesetrole",
-    "pk": "f5ed4886-c26f-41b8-9d2c-78c1a4c5b8a4",
-    "fields": {
-      "created_at": "2022-03-01T10:00:00Z",
-      "updated_at": "2022-03-01T10:00:00Z",
-      "name": "Catchment Areas",
-      "code": "CATCHMENT_AREAS",
-      "format": "VECTOR"
-    }
-  },
-  {
-    "model": "connector_accessmod.filesetrole",
     "pk": "f2d7acc7-d826-4450-b14d-36ce4c0bf84d",
     "fields": {
       "created_at": "2022-03-01T10:00:00Z",
@@ -85,17 +74,6 @@
       "name": "Land cover",
       "code": "LAND_COVER",
       "format": "RASTER"
-    }
-  },
-  {
-    "model": "connector_accessmod.filesetrole",
-    "pk": "2219f9d7-af83-43f5-ab8e-868d447fec7a",
-    "fields": {
-      "created_at": "2022-03-01T10:00:00Z",
-      "updated_at": "2022-03-01T10:00:00Z",
-      "name": "Moving speeds",
-      "code": "MOVING_SPEEDS",
-      "format": "TABULAR"
     }
   },
   {

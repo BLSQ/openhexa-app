@@ -395,14 +395,12 @@ class ValidateFilesetJob(BaseJob):
 
 class FilesetRoleCode(models.TextChoices):
     BARRIER = "BARRIER"
-    CATCHMENT_AREAS = "CATCHMENT_AREAS"
     COVERAGE = "COVERAGE"
     DEM = "DEM"
     FRICTION_SURFACE = "FRICTION_SURFACE"
     GEOMETRY = "GEOMETRY"
     HEALTH_FACILITIES = "HEALTH_FACILITIES"
     LAND_COVER = "LAND_COVER"
-    MOVING_SPEEDS = "MOVING_SPEEDS"
     POPULATION = "POPULATION"
     TRANSPORT_NETWORK = "TRANSPORT_NETWORK"
     TRAVEL_TIMES = "TRAVEL_TIMES"
@@ -1049,12 +1047,6 @@ class GeographicCoverageAnalysis(Analysis):
             output_role_code=FilesetRoleCode.COVERAGE,
             output_name="Geographic coverage",
             output_value=geographic_coverage,
-        )
-        self.set_output(
-            output_key="catchment_areas",
-            output_role_code=FilesetRoleCode.CATCHMENT_AREAS,
-            output_name="Catchment areas",
-            output_value=catchment_areas,
         )
 
     @property

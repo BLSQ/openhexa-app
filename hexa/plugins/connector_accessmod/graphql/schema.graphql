@@ -207,14 +207,12 @@ type AccessmodFilesetRole {
 }
 enum AccessmodFilesetRoleCode {
     BARRIER
-    CATCHMENT_AREAS
     COVERAGE
     DEM
     FRICTION_SURFACE
     GEOMETRY
     HEALTH_FACILITIES
     LAND_COVER
-    MOVING_SPEEDS
     POPULATION
     TRANSPORT_NETWORK
     TRAVEL_TIMES

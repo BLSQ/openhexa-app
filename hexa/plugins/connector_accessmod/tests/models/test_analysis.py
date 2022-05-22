@@ -77,9 +77,6 @@ class AnalysisTest(TestCase):
         cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRAVEL_TIMES,
         )
-        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.get(
-            code=FilesetRoleCode.CATCHMENT_AREAS,
-        )
         cls.WATER_FILESET = Fileset.objects.create(
             name="A beautiful water fileset",
             role=cls.WATER_ROLE,
