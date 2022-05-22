@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 
 from hexa.metrics.decorators import do_not_track
 from hexa.plugins.connector_accessmod.models import Analysis
+from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
 
 logger = getLogger(__name__)
@@ -66,10 +67,11 @@ def webhook(request: HttpRequest) -> HttpResponse:
             )
 
         try:
-            analysis.set_input(
+            fileset = analysis.set_input(
                 input=event_data["acquisition_type"],
                 uri=event_data["uri"],
                 mime_type=event_data["mime_type"],
+                metadata=event_data.get("metadata"),
             )
         except Exception as e:
             logger.exception("webhook update acquisition")
@@ -77,6 +79,13 @@ def webhook(request: HttpRequest) -> HttpResponse:
                 {"success": False},
                 status=500,
             )
+
+        validate_fileset_queue.enqueue(
+            "validate_fileset",
+            {
+                "fileset_id": str(fileset.id),
+            },
+        )
 
     return JsonResponse(
         {"success": True},

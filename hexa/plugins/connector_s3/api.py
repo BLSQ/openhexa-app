@@ -92,6 +92,7 @@ def get_or_create_role(
     )
     try:
         role_data = iam_client.get_role(RoleName=role_name)
+        created = False
     except iam_client.exceptions.NoSuchEntityException:
         role_data = iam_client.create_role(
             RoleName=role_name,
@@ -102,8 +103,9 @@ def get_or_create_role(
         )
         # Very unfortunate, but the assume role policy effect is not immediate
         sleep(10)
+        created = True
 
-    return role_data
+    return role_data, created
 
 
 def attach_policy(iam_client, role_name: str, policy_name: str, document: typing.Dict):
@@ -155,7 +157,7 @@ def generate_sts_user_s3_credentials(
     # role_name max length 64 chars.
     role_name = f"{principal_credentials.username}-s3-{role_identifier}"
 
-    role_data = get_or_create_role(
+    role_data, _ = get_or_create_role(
         principal_credentials=principal_credentials, role_name=role_name
     )
 
@@ -350,6 +352,11 @@ def get_object_metadata(
 def download_file(*, bucket: models.Bucket, object_key: str, target: str):
     client = _build_app_s3_client(principal_credentials=bucket.principal_credentials)
     return client.download_file(Bucket=bucket.name, Key=object_key, Filename=target)
+
+
+def upload_file(*, bucket: models.Bucket, object_key: str, src_path: str):
+    client = _build_app_s3_client(principal_credentials=bucket.principal_credentials)
+    return client.upload_file(Bucket=bucket.name, Key=object_key, Filename=src_path)
 
 
 def list_objects_metadata(

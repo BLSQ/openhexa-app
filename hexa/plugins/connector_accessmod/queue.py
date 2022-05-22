@@ -8,6 +8,11 @@ try:
     import geopandas as gpd
     import numpy as np
     import rasterio
+    from rasterio.enums import Resampling
+    from rasterio.io import MemoryFile
+    from rasterio.warp import calculate_default_transform, reproject
+    from rio_cogeo.cogeo import cog_translate
+    from rio_cogeo.profiles import cog_profiles
 
     missing_dependencies = False
 except ImportError:
@@ -21,6 +26,38 @@ from hexa.plugins.connector_s3.models import Bucket
 from .models import Fileset, FilesetRoleCode, FilesetStatus, ValidateFilesetJob
 
 logger = getLogger(__name__)
+
+
+def get_bucket_name(uri: str) -> str:
+    # extract bucketname, assume a s3://path/file URI
+    bucket_name, *key_parts = uri[5:].split("/")
+    return bucket_name
+
+
+def get_object_key(uri: str) -> str:
+    # extract object key, assume a s3://path/file URI
+    bucket_name, *key_parts = uri[5:].split("/")
+    return "/".join(key_parts)
+
+
+def get_base_dir(uri: str) -> str:
+    # extract what could be the base dirname of a filename
+    if "/" in uri:
+        uri = "/".join(uri.split("/")[:-1])
+    return uri.rstrip("/")
+
+
+def get_main_filename(uri: str) -> str:
+    # extract what could be the main part of a filename
+    # split by '/' and keep the last part
+    # split by '.' and drop what could be the extension
+    if "/" in uri:
+        filename = uri.split("/")[-1]
+    else:
+        filename = uri
+    if "." in filename:
+        filename = ".".join(filename.split(".")[:-1])
+    return filename
 
 
 def validate_geopkg(
@@ -102,8 +139,85 @@ def validate_transport(fileset: Fileset, filename: str):
     # extract roads categories & validate
     if fileset.metadata is None:
         fileset.metadata = {}
-    fileset.metadata["category_column"] = sorted(transport.highway.unique())
+
+    cols = sorted(transport.columns.to_list())
+    cols.remove("geometry")
+    fileset.metadata["columns"] = cols
+    fileset.metadata["values"] = {}
+    for col in cols:
+        # save some unique values for all columns, front can choose what it wants
+        # truncate to max 20 elements
+        fileset.metadata["values"][col] = sorted(transport.get(col).unique())[0:20]
+
     fileset.status = FilesetStatus.VALID
+    fileset.save()
+
+
+def generate_cog_raster(fileset: Fileset, filename: str, **options):
+    # 1) Open file & reproject to epsg 4326 in memory
+    src = rasterio.open(filename)
+    src_crs = src.crs
+    crs = rasterio.crs.CRS({"init": "epsg:4326"})
+    transform, width, height = calculate_default_transform(
+        src_crs, crs, src.width, src.height, *src.bounds
+    )
+    kwargs = src.meta.copy()
+    kwargs.update(
+        {"crs": crs, "transform": transform, "width": width, "height": height}
+    )
+
+    memfile = MemoryFile()
+    with memfile.open(**kwargs) as mem:
+        for i in range(1, src.count + 1):
+            reproject(
+                source=rasterio.band(src, i),
+                destination=rasterio.band(mem, i),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform,
+                dst_crs=crs,
+                resampling=Resampling.nearest,
+            )
+
+    # 2) Convert image to COG
+    # Format creation option (see gdalwarp `-co` option)
+    output_profile = cog_profiles.get("deflate")
+    output_profile.update(dict(BIGTIFF="IF_SAFER"))
+
+    # Dataset Open option (see gdalwarp `-oo` option)
+    config = dict(
+        GDAL_NUM_THREADS="ALL_CPUS",
+        GDAL_TIFF_INTERNAL_MASK=True,
+        GDAL_TIFF_OVR_BLOCKSIZE="128",
+    )
+
+    cog_filename = "/tmp/current_work_file.cog.tif"
+    with memfile.open() as src_mem:
+        cog_translate(
+            src_mem,
+            cog_filename,
+            output_profile,
+            config=config,
+            in_memory=True,
+            quiet=True,
+            use_cog_driver=True,
+            # web_optimized=True, # TODO: understand why this param hardcode epsg:3857 into the resulting file
+            **options,
+        )
+
+    # 3) Lookup where to save the new COG file
+    # Not doing any check, they where already done in validate_data_and_download()
+    # assume s3 bucket
+    src_filename = fileset.file_set.first().uri
+    dst_path = (
+        get_object_key(get_base_dir(src_filename))
+        + "/"
+        + get_main_filename(src_filename)
+        + ".cog.tif"
+    )
+    bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
+    s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
+    fileset.metadata["cog_raster_uri"] = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
 
 
@@ -126,8 +240,23 @@ def validate_dem(fileset: Fileset, filename: str):
         fileset.set_invalid("file content outside of reality")
         return
 
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["min"] = int(dem_content.min())
+    fileset.metadata["max"] = int(dem_content.max())
+    fileset.metadata["nodata"] = dem.nodata
+
+    percentile = np.percentile(a=dem_content.compressed(), q=[1, 2, 98, 99])
+    fileset.metadata["1p"] = float(percentile[0])
+    fileset.metadata["2p"] = float(percentile[1])
+    fileset.metadata["98p"] = float(percentile[2])
+    fileset.metadata["99p"] = float(percentile[3])
+
     fileset.status = FilesetStatus.VALID
     fileset.save()
+
+    generate_cog_raster(fileset, filename)
 
 
 def validate_land_cover(fileset: Fileset, filename: str):
@@ -149,9 +278,12 @@ def validate_land_cover(fileset: Fileset, filename: str):
     # extract land cover classes for frontend
     if fileset.metadata is None:
         fileset.metadata = {}
-    fileset.metadata["classes"] = sorted([int(i) for i in lc_classes])
+    fileset.metadata["unique_values"] = sorted([int(i) for i in lc_classes])
+    fileset.metadata["nodata"] = landcover.nodata
     fileset.status = FilesetStatus.VALID
     fileset.save()
+
+    generate_cog_raster(fileset, filename)
 
 
 def validate_data_and_download(fileset: Fileset) -> str:
@@ -169,17 +301,17 @@ def validate_data_and_download(fileset: Fileset) -> str:
         fileset.set_invalid("wrong uri")
         return None
 
-    bucket_name, *key_parts = file.uri[5:].split("/")
     try:
-        bucket = Bucket.objects.get(name=bucket_name)
+        bucket = Bucket.objects.get(name=get_bucket_name(file.uri))
     except Bucket.DoesNotExist:
         fileset.set_invalid("bucket not found")
         return None
 
-    object_key = "/".join(key_parts)
     # erase always the same file, make sure we don't consume too much ram
     local_name = "/tmp/current_work_file"
-    s3_api.download_file(bucket=bucket, object_key=object_key, target=local_name)
+    s3_api.download_file(
+        bucket=bucket, object_key=get_object_key(file.uri), target=local_name
+    )
 
     # is there data inside?
     if os.stat(local_name).st_size == 0:
