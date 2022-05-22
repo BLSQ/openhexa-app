@@ -20,7 +20,6 @@ from hexa.core import mimetypes
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
-from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import Permission, PermissionMode, Team
@@ -830,13 +829,7 @@ class AccessibilityAnalysis(Analysis):
         if metadata is not None:
             fileset.metadata.update(metadata)
         fileset.save()
-
-        validate_fileset_queue.enqueue(
-            "validate_fileset",
-            {
-                "fileset_id": str(fileset.id),
-            },
-        )
+        return fileset
 
     @transaction.atomic
     def set_outputs(
