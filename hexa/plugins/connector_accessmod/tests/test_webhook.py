@@ -84,9 +84,6 @@ class AccessmodViewsTest(TestCase):
         cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRAVEL_TIMES,
         )
-        cls.CATCHMENT_AREAS_ROLE = FilesetRole.objects.get(
-            code=FilesetRoleCode.CATCHMENT_AREAS,
-        )
 
     def test_webhook_not_authenticated_401(self):
         response = self.client.post(
