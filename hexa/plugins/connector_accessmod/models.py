@@ -784,15 +784,28 @@ class AccessibilityAnalysis(Analysis):
         else:
             if (
                 self.land_cover is None
-                or self.land_cover.status != FilesetStatus.VALID
-                or self.transport_network is None
-                or self.transport_network.status != FilesetStatus.VALID
-                or self.water is None
-                or self.water.status != FilesetStatus.VALID
+                or self.land_cover.status
+                not in (FilesetStatus.VALID, FilesetStatus.TO_ACQUIRE)
                 or not self.stack_priorities
             ):
                 # not enough fileset/invalid filesets for stackless mode
                 return
+
+            if self.transport_network is not None:
+                if self.transport_network.status not in (
+                    FilesetStatus.VALID,
+                    FilesetStatus.TO_ACQUIRE,
+                ):
+                    # transport network used but not in a good state
+                    return
+
+            if self.water is not None:
+                if self.water.status not in (
+                    FilesetStatus.VALID,
+                    FilesetStatus.TO_ACQUIRE,
+                ):
+                    # water used but not in a good state
+                    return
 
         self.status = AnalysisStatus.READY
 
