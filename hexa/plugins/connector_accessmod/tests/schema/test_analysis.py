@@ -15,6 +15,7 @@ from hexa.plugins.connector_accessmod.models import (
     Fileset,
     FilesetRole,
     FilesetRoleCode,
+    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
@@ -119,41 +120,40 @@ class AnalysisTest(GraphQLTestCase):
             code=FilesetRoleCode.POPULATION,
         )
         cls.STACK_ROLE = FilesetRole.objects.get(code=FilesetRoleCode.STACK)
-        cls.EXTENT_FILESET = Fileset.objects.create(
-            name="Extent fileset",
-            role=cls.GEOMETRY_ROLE,
-            project=cls.SAMPLE_PROJECT,
-            author=cls.USER_1,
-        )
         cls.LAND_COVER_FILESET = Fileset.objects.create(
             name="An impressive land cover",
             role=cls.LAND_COVER_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.DEM_FILESET = Fileset.objects.create(
             name="My favorite DEM",
             role=cls.DEM_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.TRANSPORT_NETWORK_FILESET = Fileset.objects.create(
             name="Worst Transport Network ever",
             role=cls.TRANSPORT_NETWORK_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.WATER_FILESET = Fileset.objects.create(
             name="I like water",
             role=cls.WATER_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.HEALTH_FACILITIES_FILESET = Fileset.objects.create(
             name="Would you look at those health facilities!",
             role=cls.HEALTH_FACILITIES_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.FRICTION_SURFACE_FILESET = Fileset.objects.create(
             name="Check this friction surface!",
@@ -166,6 +166,7 @@ class AnalysisTest(GraphQLTestCase):
             role=cls.STACK_ROLE,
             project=cls.SAMPLE_PROJECT,
             author=cls.USER_1,
+            status=FilesetStatus.VALID,
         )
         cls.POPULATION_FILESET = Fileset.objects.create(
             name="Best population ever",

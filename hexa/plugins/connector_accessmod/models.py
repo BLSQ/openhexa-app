@@ -771,7 +771,7 @@ class AccessibilityAnalysis(Analysis):
             or self.health_facilities is None
             or self.health_facilities.status != FilesetStatus.VALID
             or self.dem is None
-            or self.dem.statys != FilesetStatus.VALID
+            or self.dem.status != FilesetStatus.VALID
             or not self.moving_speeds
         ):
             return
