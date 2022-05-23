@@ -111,8 +111,10 @@ type CreateAccessmodProjectPermissionResult {
     errors: [CreateAccessmodProjectPermissionError!]!
 }
 enum CreateAccessmodProjectPermissionError {
+    ALREADY_EXISTS
     PERMISSION_DENIED
     NOT_FOUND
+    NOT_IMPLEMENTED
 }
 input UpdateAccessmodProjectPermissionInput {
     id: String!
@@ -126,6 +128,7 @@ type UpdateAccessmodProjectPermissionResult {
 enum UpdateAccessmodProjectPermissionError {
     PERMISSION_DENIED
     NOT_FOUND
+    NOT_IMPLEMENTED
 }
 input DeleteAccessmodProjectPermissionInput {
     id: String!
@@ -137,6 +140,7 @@ type DeleteAccessmodProjectPermissionResult {
 enum DeleteAccessmodProjectPermissionError {
     PERMISSION_DENIED
     NOT_FOUND
+    NOT_IMPLEMENTED
 }
 
 enum AccessmodProjectOrder {

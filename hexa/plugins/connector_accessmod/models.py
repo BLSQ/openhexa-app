@@ -169,10 +169,17 @@ class ProjectPermissionManager(models.Manager):
         project: Project,
         mode: PermissionMode,
     ):
+        if mode != PermissionMode.OWNER:
+            raise NotImplementedError(
+                "Only OWNER permissions are implemented for AccessMod projects"
+            )
+
         if not principal.has_perm(
-            "connector_accessmod.create_project_permission", project
+            "connector_accessmod.create_project_permission", [project, user, team]
         ):
             raise PermissionDenied
+
+        self.filter(project=project).delete()
 
         permission = self.create(
             user=user,
@@ -228,24 +235,30 @@ class ProjectPermission(Permission):
         self.project.build_index()
 
     def update_if_has_perm(self, principal: User, **kwargs):
-        if not principal.has_perm(
-            "connector_accessmod.update_project_permission", self.project
-        ):
-            raise PermissionDenied
-
-        for key in ["mode"]:
-            if key in kwargs:
-                setattr(self, key, kwargs[key])
-
-        return self.save()
+        raise NotImplementedError(
+            "Permissions updates are not implemented yet on AccessMod projects"
+        )
+        # if not principal.has_perm(
+        #     "connector_accessmod.update_project_permission", self.project
+        # ):
+        #     raise PermissionDenied
+        #
+        # for key in ["mode"]:
+        #     if key in kwargs:
+        #         setattr(self, key, kwargs[key])
+        #
+        # return self.save()
 
     def delete_if_has_perm(self, principal: User):
-        if not principal.has_perm(
-            "connector_accessmod.delete_project_permission", self.project
-        ):
-            raise PermissionDenied
-
-        return super().delete()
+        raise NotImplementedError(
+            "Permissions deletions are not implemented yet on AccessMod projects"
+        )
+        # if not principal.has_perm(
+        #     "connector_accessmod.delete_project_permission", self.project
+        # ):
+        #     raise PermissionDenied
+        #
+        # return super().delete()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on AM project '{self.project}'"
