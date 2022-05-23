@@ -576,6 +576,9 @@ class Analysis(Pipeline):
         if not principal.has_perm("connector_accessmod.delete_analysis", self):
             raise PermissionDenied
 
+        if self.status in [AnalysisStatus.QUEUED, AnalysisStatus.RUNNING]:
+            raise ValueError(f"Cannot delete analyses in {self.status} state")
+
         return super().delete()
 
     def get_permission_set(self):

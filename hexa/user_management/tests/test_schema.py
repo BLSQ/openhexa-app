@@ -72,6 +72,7 @@ class SchemaTest(GraphQLTestCase):
                     id
                     firstName
                     lastName
+                    displayName
                     email
                     dateJoined
                     lastLogin
@@ -88,6 +89,7 @@ class SchemaTest(GraphQLTestCase):
                     "id": str(self.USER_JIM.id),
                     "firstName": self.USER_JIM.first_name,
                     "lastName": self.USER_JIM.last_name,
+                    "displayName": self.USER_JIM.display_name,
                     "email": self.USER_JIM.email,
                     "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
                     "lastLogin": graphql_datetime_format(self.USER_JIM.last_login),
