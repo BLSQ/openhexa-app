@@ -1,7 +1,22 @@
 Changelog
 =========
 
+Version 0.38
+------------
+
+May 24, 2022
+
+Mostly AccessMod-related development prior to production release.
+
+Version 0.37
+------------
+
+May 17, 2022
+
+Mostly AccessMod-related development prior to production release.
+
 Version 0.36
+------------
 
 May 12, 2022
 
