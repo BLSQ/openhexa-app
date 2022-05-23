@@ -11,15 +11,24 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.user_management.models import PermissionMode, User
+from hexa.user_management.models import (
+    Membership,
+    MembershipRole,
+    PermissionMode,
+    Team,
+    User,
+)
 
 
 class ProjectTest(GraphQLTestCase):
+    TEAM = None
     WATER_FILESET = None
     SAMPLE_PROJECT = None
     OTHER_PROJECT = None
     WATER_ROLE = None
     USER_JIM = None
+    USER_JANE = None
+    PERMISSION = None
 
     @classmethod
     def setUpTestData(cls):
@@ -27,9 +36,14 @@ class ProjectTest(GraphQLTestCase):
             "jim@bluesquarehub.com",
             "jimrocks",
         )
-        cls.USER_2 = User.objects.create_user(
+        cls.USER_JANE = User.objects.create_user(
             "jane@bluesquarehub.com",
             "janesthebest",
+        )
+        cls.TEAM = Team.objects.create(name="A team")
+        cls.OTHER_TEAM = Team.objects.create(name="A different team")
+        Membership.objects.create(
+            user=cls.USER_JIM, team=cls.TEAM, role=MembershipRole.ADMIN
         )
         cls.SAMPLE_PROJECT = Project.objects.create(
             name="Sample project",
@@ -38,7 +52,7 @@ class ProjectTest(GraphQLTestCase):
             spatial_resolution=100,
             crs=4326,
         )
-        ProjectPermission.objects.create(
+        cls.PERMISSION = ProjectPermission.objects.create(
             user=cls.USER_JIM, project=cls.SAMPLE_PROJECT, mode=PermissionMode.OWNER
         )
         cls.OTHER_PROJECT = Project.objects.create(
@@ -125,7 +139,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
     def test_accessmod_project_not_author(self):
-        self.client.force_login(self.USER_2)
+        self.client.force_login(self.USER_JANE)
 
         r = self.run_query(
             """
@@ -266,7 +280,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
     def test_accessmod_projects_empty(self):
-        self.client.force_login(self.USER_2)
+        self.client.force_login(self.USER_JANE)
 
         r = self.run_query(
             """
@@ -510,3 +524,171 @@ class ProjectTest(GraphQLTestCase):
             {"success": False, "errors": ["NOT_FOUND"]},
         )
         self.assertIsNotNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
+
+    def test_create_accessmod_project_permission(self):
+        self.client.force_login(self.USER_JIM)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
+                  createAccessmodProjectPermission(input: $input) {
+                    success
+                    permission {
+                      project {
+                        id
+                      }
+                      user {
+                        id
+                      }
+                      team {
+                        id
+                      }
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "teamId": str(self.TEAM.id),
+                    "mode": PermissionMode.OWNER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "permission": {
+                    "project": {"id": str(self.SAMPLE_PROJECT.id)},
+                    "user": None,
+                    "team": {"id": str(self.TEAM.id)},
+                },
+                "errors": [],
+            },
+            r["data"]["createAccessmodProjectPermission"],
+        )
+        # We should end with a single "OWNER" permission
+        permission = ProjectPermission.objects.get(project=self.SAMPLE_PROJECT)
+        self.assertEqual(self.SAMPLE_PROJECT, permission.project)
+        self.assertEqual(self.TEAM, permission.team)
+        self.assertEqual(PermissionMode.OWNER, permission.mode)
+        self.assertIsNone(permission.user)
+
+    def test_create_accessmod_project_permission_errors(self):
+        self.client.force_login(self.USER_JIM)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
+                  createAccessmodProjectPermission(input: $input) {
+                    success
+                    permission {
+                    id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "teamId": str(self.OTHER_TEAM.id),
+                    "mode": PermissionMode.OWNER,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "permission": None,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["createAccessmodProjectPermission"],
+        )
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
+                  createAccessmodProjectPermission(input: $input) {
+                    success
+                    permission {
+                    id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "teamId": str(self.TEAM.id),
+                    "mode": PermissionMode.EDITOR,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": False,
+                "permission": None,
+                "errors": ["NOT_IMPLEMENTED"],
+            },
+            r["data"]["createAccessmodProjectPermission"],
+        )
+
+    def test_update_accessmod_project_permission(self):
+        self.client.force_login(self.USER_JIM)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodProjectPermission($input: UpdateAccessmodProjectPermissionInput!) {
+                  updateAccessmodProjectPermission(input: $input) {
+                    success
+                    permission {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(self.PERMISSION.id), "mode": PermissionMode.EDITOR}},
+        )
+
+        self.assertEqual(
+            r["data"]["updateAccessmodProjectPermission"],
+            {
+                "success": False,
+                "permission": None,
+                "errors": ["NOT_IMPLEMENTED"],
+            },
+        )
+
+    def test_delete_accessmod_project_permission(self):
+        self.client.force_login(self.USER_JIM)
+
+        r = self.run_query(
+            """
+                mutation deleteAccessmodProjectPermission($input: DeleteAccessmodProjectPermissionInput!) {
+                  deleteAccessmodProjectPermission(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.PERMISSION.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["deleteAccessmodProjectPermission"],
+            {
+                "success": False,
+                "errors": ["NOT_IMPLEMENTED"],
+            },
+        )

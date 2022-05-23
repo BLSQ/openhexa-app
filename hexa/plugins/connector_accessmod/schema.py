@@ -103,7 +103,8 @@ def resolve_accessmod_project_authorized_actions(project: Project, info, **kwarg
             else None,
             "CREATE_PERMISSION"
             if principal.has_perm(
-                "connector_accessmod.create_project_permission", project
+                "connector_accessmod.create_project_permission",
+                [project, principal, None],
             )
             else None,
         ],
@@ -285,25 +286,21 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
             else None
         )
         project = Project.objects.get(pk=create_input["projectId"])
+        permission = ProjectPermission.objects.create_if_has_perm(
+            principal,
+            project=project,
+            user=user,
+            team=team,
+            mode=create_input["mode"],
+        )
 
-        try:
-            permission: ProjectPermission = ProjectPermission.objects.get(
-                project=project, user=user, team=team
-            )
-            permission.update_if_has_perm(principal, mode=create_input["mode"])
-        except ProjectPermission.DoesNotExist:
-            permission = ProjectPermission.objects.create_if_has_perm(
-                principal,
-                project=project,
-                user=user,
-                team=team,
-                mode=create_input["mode"],
-            )
         return {"success": True, "permission": permission, "errors": []}
+    except NotImplementedError:
+        return {"success": False, "errors": ["NOT_IMPLEMENTED"]}
     except (Team.DoesNotExist, User.DoesNotExist, Project.DoesNotExist):
-        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
-        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @accessmod_mutations.field("updateAccessmodProjectPermission")
@@ -320,6 +317,8 @@ def resolve_update_accessmod_project_permission(_, info, **kwargs):
         permission.update_if_has_perm(principal, mode=update_input["mode"])
 
         return {"success": True, "permission": permission, "errors": []}
+    except NotImplementedError:
+        return {"success": False, "errors": ["NOT_IMPLEMENTED"]}
     except ProjectPermission.DoesNotExist:
         return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
@@ -340,6 +339,8 @@ def resolve_delete_accessmod_project_permission(_, info, **kwargs):
         permission.delete_if_has_perm(principal)
 
         return {"success": True, "errors": []}
+    except NotImplementedError:
+        return {"success": False, "errors": ["NOT_IMPLEMENTED"]}
     except ProjectPermission.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:

@@ -1,3 +1,5 @@
+import typing
+
 from hexa.plugins.connector_accessmod.models import (
     Analysis,
     Fileset,
@@ -37,18 +39,35 @@ def delete_project(principal: User, project: Project):
     )
 
 
-def create_project_permission(principal: User, project: Project):
+def create_project_permission(
+    principal: User,
+    project_user_and_team: typing.Optional[
+        typing.Tuple[Project, typing.Optional[User], typing.Optional[Team]]
+    ] = None,
+):
     """Project permissions can be created:
     - Within team projects, by the admins of the team owning the project
     - Within personal projects, by their owner
     - For projects that haven't any permission yet, by the author
     """
 
-    return (
+    project, user, team = project_user_and_team
+
+    if (user is None) == (team is None):
+        raise ValueError("Please provider either a user or a team - not both")
+
+    owns_project = (
         principal.is_admin_of(project.owner)
         if isinstance(project.owner, Team)
         else principal == project.owner
-    ) or (project.projectpermission_set.count() == 0 and principal == project.author)
+    )
+    is_or_belong_to_new_grantee = (
+        principal.is_member_of(team) if team is not None else principal == user
+    )
+
+    return (owns_project and is_or_belong_to_new_grantee) or (
+        project.projectpermission_set.count() == 0 and principal == project.author
+    )
 
 
 def update_project_permission(principal: User, permission: ProjectPermission):
