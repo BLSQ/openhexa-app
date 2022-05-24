@@ -83,7 +83,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         cls.facilities_file = File.objects.create(
             mime_type="application/geopackage+sqlite3",
-            uri="s3://test-bucket/clinics.gpkg",
+            uri="s3://test-bucket/analysis/clinics.gpkg",
             fileset=cls.facilities_fs,
         )
         cls.water_fs = Fileset.objects.create(
@@ -95,7 +95,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         cls.water_file = File.objects.create(
             mime_type="application/geopackage+sqlite3",
-            uri="s3://test-bucket/water.gpkg",
+            uri="s3://test-bucket/analysis/water.gpkg",
             fileset=cls.water_fs,
         )
         cls.transport_fs = Fileset.objects.create(
@@ -107,7 +107,7 @@ class AccessmodDataWorkerTest(TestCase):
         )
         cls.transport_file = File.objects.create(
             mime_type="application/geopackage+sqlite3",
-            uri="s3://test-bucket/transport.gpkg",
+            uri="s3://test-bucket/analysis/transport.gpkg",
             fileset=cls.transport_fs,
         )
         cls.landcover_fs = Fileset.objects.create(
@@ -180,14 +180,19 @@ class AccessmodDataWorkerTest(TestCase):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(
-            Bucket="test-bucket", Key="clinics.gpkg", Body=facilities_data
+            Bucket="test-bucket", Key="analysis/clinics.gpkg", Body=facilities_data
         )
 
         validate_fileset_job(
             None, MockJob(args={"fileset_id": str(self.facilities_fs.id)})
         )
         self.facilities_fs.refresh_from_db()
-        self.assertEqual(self.facilities_fs.metadata, {})
+        self.assertEqual(
+            self.facilities_fs.metadata,
+            {
+                "geojson_uri": "s3://test-bucket/analysis/clinics_viz.geojson",
+            },
+        )
         self.assertEqual(self.facilities_fs.status, FilesetStatus.VALID)
 
     @mock_s3
@@ -198,11 +203,18 @@ class AccessmodDataWorkerTest(TestCase):
         water_data = open(water_file, "rb").read()
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
-        s3_client.put_object(Bucket="test-bucket", Key="water.gpkg", Body=water_data)
+        s3_client.put_object(
+            Bucket="test-bucket", Key="analysis/water.gpkg", Body=water_data
+        )
 
         validate_fileset_job(None, MockJob(args={"fileset_id": str(self.water_fs.id)}))
         self.water_fs.refresh_from_db()
-        self.assertEqual(self.water_fs.metadata, {})
+        self.assertEqual(
+            self.water_fs.metadata,
+            {
+                "geojson_uri": "s3://test-bucket/analysis/water_viz.geojson",
+            },
+        )
         self.assertEqual(self.water_fs.status, FilesetStatus.VALID)
 
     @mock_s3
@@ -214,7 +226,7 @@ class AccessmodDataWorkerTest(TestCase):
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(
-            Bucket="test-bucket", Key="transport.gpkg", Body=transport_data
+            Bucket="test-bucket", Key="analysis/transport.gpkg", Body=transport_data
         )
 
         validate_fileset_job(
@@ -231,6 +243,7 @@ class AccessmodDataWorkerTest(TestCase):
                     "surface": ["asphalt"],
                     "tracktype": [None],
                 },
+                "geojson_uri": "s3://test-bucket/analysis/transport_viz.geojson",
             },
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
