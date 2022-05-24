@@ -419,6 +419,7 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
         kwargs = {
             "name": create_input["name"],
             "role": FilesetRole.objects.get(id=create_input["roleId"]),
+            "metadata": create_input.get("metadata", {}),
         }
         fileset = Fileset.objects.create_if_has_perm(
             principal,
