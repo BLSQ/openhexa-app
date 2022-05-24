@@ -1,5 +1,3 @@
-from unittest import skip
-
 import responses
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,7 +11,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.user_management.models import Membership, Team, User
+from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
 class ProjectTest(TestCase):
@@ -74,7 +72,6 @@ class ProjectTest(TestCase):
             name="Yet another accessibility analysis",
         )
 
-    @skip
     def test_project_permissions_owner(self):
         project = Project.objects.create(
             name="Private project",
@@ -82,6 +79,9 @@ class ProjectTest(TestCase):
             author=self.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
+        )
+        ProjectPermission.objects.create(
+            user=self.USER_HUNTER, project=project, mode=PermissionMode.OWNER
         )
         self.assertEqual(
             project,

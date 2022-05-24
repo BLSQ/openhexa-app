@@ -1,5 +1,4 @@
 import uuid
-from unittest import skip
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
@@ -312,7 +311,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput) {
+                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput!) {
                   createAccessmodProjectByCountry(input: $input) {
                     success
                     project {
@@ -356,7 +355,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput) {
+                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput!) {
                   createAccessmodProjectByCountry(input: $input) {
                     success
                     project {
@@ -386,7 +385,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput!) {
                   updateAccessmodProject(input: $input) {
                     success
                     project {
@@ -422,7 +421,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput!) {
                   updateAccessmodProject(input: $input) {
                     success
                     project {
@@ -451,7 +450,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput) {
+                mutation updateAccessmodProject($input: UpdateAccessmodProjectInput!) {
                   updateAccessmodProject(input: $input) {
                     success
                     project {
@@ -474,13 +473,12 @@ class ProjectTest(GraphQLTestCase):
             r["data"]["updateAccessmodProject"],
         )
 
-    @skip
     def test_delete_accessmod_project(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
+                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput!) {
                   deleteAccessmodProject(input: $input) {
                     success
                     errors
@@ -499,31 +497,6 @@ class ProjectTest(GraphQLTestCase):
             {"success": True, "errors": []},
         )
         self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
-
-    def test_delete_accessmod_project_errors(self):
-        self.client.force_login(self.USER_JIM)
-
-        r = self.run_query(
-            """
-                mutation deleteAccessmodProject($input: DeleteAccessmodProjectInput) {
-                  deleteAccessmodProject(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {
-                "input": {
-                    "id": str(uuid.uuid4()),
-                }
-            },
-        )
-
-        self.assertEqual(
-            r["data"]["deleteAccessmodProject"],
-            {"success": False, "errors": ["NOT_FOUND"]},
-        )
-        self.assertIsNotNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
 
     def test_create_accessmod_project_permission(self):
         self.client.force_login(self.USER_JIM)
