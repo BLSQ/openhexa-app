@@ -113,10 +113,15 @@ def validate_health_facilities(fileset: Fileset, filename: str):
     facilities = gpd.read_file(filename)
     validate_geopkg(facilities, fileset, ("Point",))
 
-    if fileset.status == FilesetStatus.VALIDATING:
-        # not invalid by previous checks
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
+    if fileset.status == FilesetStatus.INVALID:
+        # invalid by previous checks
+        return
+
+    generate_geojson(fileset, filename)
+
+    # end of processing -> validated
+    fileset.status = FilesetStatus.VALID
+    fileset.save()
 
 
 def validate_water(fileset: Fileset, filename: str):
