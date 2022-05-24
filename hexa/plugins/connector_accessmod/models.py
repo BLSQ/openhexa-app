@@ -778,9 +778,10 @@ class AccessibilityAnalysis(Analysis):
         if (
             not self.name
             or self.health_facilities is None
-            or self.health_facilities.status != FilesetStatus.VALID
+            or self.health_facilities.status
+            not in (FilesetStatus.VALID, FilesetStatus.TO_ACQUIRE)
             or self.dem is None
-            or self.dem.status != FilesetStatus.VALID
+            or self.dem.status not in (FilesetStatus.VALID, FilesetStatus.TO_ACQUIRE)
             or not self.moving_speeds
         ):
             return
