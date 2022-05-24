@@ -7,6 +7,7 @@ from logging import getLogger
 try:
     import geopandas as gpd
     import numpy as np
+    import pyproj
     import rasterio
     from rasterio.enums import Resampling
     from rasterio.io import MemoryFile
@@ -122,10 +123,15 @@ def validate_water(fileset: Fileset, filename: str):
     water = gpd.read_file(filename)
     validate_geopkg(water, fileset, ("LineString", "MultiPolygon"))
 
-    if fileset.status == FilesetStatus.VALIDATING:
-        # not invalid by previous checks
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
+    if fileset.status == FilesetStatus.INVALID:
+        # invalid by previous checks
+        return
+
+    generate_geojson(fileset, filename)
+
+    # end of processing -> validated
+    fileset.status = FilesetStatus.VALID
+    fileset.save()
 
 
 def validate_transport(fileset: Fileset, filename: str):
@@ -135,6 +141,8 @@ def validate_transport(fileset: Fileset, filename: str):
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
         return
+
+    generate_geojson(fileset, filename)
 
     # extract roads categories & validate
     if fileset.metadata is None:
@@ -150,6 +158,43 @@ def validate_transport(fileset: Fileset, filename: str):
         fileset.metadata["values"][col] = sorted(transport.get(col).unique())[0:20]
 
     fileset.status = FilesetStatus.VALID
+    fileset.save()
+
+
+def generate_geojson(fileset: Fileset, filename: str, **options):
+    # Generate a GeoJSON copy from a fileset. change CRS if needed
+    # used by frontend
+
+    # target crs is epsg:4326 in dataviz
+    viz_crs = pyproj.CRS.from_epsg(4326)
+    gdf = gpd.read_file(filename)
+
+    # set default crs
+    if not gdf.crs:
+        gdf.crs = viz_crs
+
+    # reproject if needed
+    if gdf.crs != viz_crs:
+        _gdf = gdf.to_crs(viz_crs)
+        del gdf  # liberate memory asap
+        gdf = _gdf
+
+    # rewrite to file in all case to force use geojson
+    # usually input are in gpkg
+    json_filename = "/tmp/current_work_file.geojson"
+    gdf.to_file(json_filename, driver="GeoJSON")
+
+    # upload to target!
+    src_filename = fileset.file_set.first().uri
+    dst_path = (
+        get_object_key(get_base_dir(src_filename))
+        + "/"
+        + get_main_filename(src_filename)
+        + "_viz.geojson"
+    )
+    bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
+    s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
+    fileset.metadata["geojson_uri"] = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
 
 
