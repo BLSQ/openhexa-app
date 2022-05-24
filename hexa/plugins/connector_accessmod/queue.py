@@ -126,7 +126,7 @@ def validate_health_facilities(fileset: Fileset, filename: str):
 
 def validate_water(fileset: Fileset, filename: str):
     water = gpd.read_file(filename)
-    validate_geopkg(water, fileset, ("LineString", "MultiPolygon"))
+    validate_geopkg(water, fileset, ("LineString", "MultiLineString", "MultiPolygon"))
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
@@ -141,7 +141,7 @@ def validate_water(fileset: Fileset, filename: str):
 
 def validate_transport(fileset: Fileset, filename: str):
     transport = gpd.read_file(filename)
-    validate_geopkg(transport, fileset, ("LineString",))
+    validate_geopkg(transport, fileset, ("LineString", "MultiLineString"))
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
