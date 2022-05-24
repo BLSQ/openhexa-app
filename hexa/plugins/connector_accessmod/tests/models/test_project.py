@@ -11,7 +11,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.user_management.models import Membership, Team, User
+from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
 class ProjectTest(TestCase):
@@ -79,6 +79,9 @@ class ProjectTest(TestCase):
             author=self.USER_HUNTER,
             spatial_resolution=100,
             crs=4326,
+        )
+        ProjectPermission.objects.create(
+            user=self.USER_HUNTER, project=project, mode=PermissionMode.OWNER
         )
         self.assertEqual(
             project,
