@@ -1,6 +1,5 @@
 import base64
 import json
-from unittest import skip
 
 import responses
 from django.contrib.auth.models import AnonymousUser
@@ -59,7 +58,7 @@ class AnalysisTest(TestCase):
             crs=4326,
         )
         ProjectPermission.objects.create(
-            user=cls.USER_TAYLOR, project=cls.PROJECT_SAMPLE, mode=PermissionMode.OWNER
+            team=cls.TEAM, project=cls.PROJECT_SAMPLE, mode=PermissionMode.OWNER
         )
         cls.PROJECT_OTHER = Project.objects.create(
             name="Other project",
@@ -175,9 +174,10 @@ class AnalysisTest(TestCase):
                 id=analysis.id
             )
         with self.assertRaises(ObjectDoesNotExist):
-            Analysis.objects.filter_for_user(self.USER_SAM).get_subclass(id=analysis.id)
+            Analysis.objects.filter_for_user(self.USER_GRACE).get_subclass(
+                id=analysis.id
+            )
 
-    @skip
     def test_analysis_permissions_team(self):
         analysis = AccessibilityAnalysis.objects.create(
             author=self.USER_TAYLOR,

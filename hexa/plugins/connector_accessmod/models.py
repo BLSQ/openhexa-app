@@ -103,15 +103,6 @@ class Project(Datasource):
         except ProjectPermission.DoesNotExist:
             return None
 
-    @transaction.atomic
-    def delete(self, *args, **kwargs):
-        """We override delete() here because we can't control Django CASCADE order. Foreign keys from Analysis to
-        Fileset are PROTECTED, which prevents a simple CASCADE delete at the project level."""
-
-        self.analysis_set.all().delete()
-
-        return super().delete(*args, **kwargs)
-
     @property
     def display_name(self):
         return self.name
@@ -149,9 +140,14 @@ class Project(Datasource):
 
         return self.save()
 
+    @transaction.atomic
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("connector_accessmod.delete_project", self):
             raise PermissionDenied
+
+        # We can't control Django CASCADE order. Foreign keys from Analysis to Fileset are PROTECTED,
+        # which prevents a simple CASCADE delete at the project level."""
+        self.analysis_set.all().delete()
 
         return super().delete()
 
@@ -1108,4 +1104,7 @@ class GeographicCoverageAnalysis(Analysis):
         return "am_geographic_coverage"
 
     def build_dag_conf(self, output_dir: str):
+        raise NotImplementedError
+
+    def set_input(self, **kwargs):
         raise NotImplementedError
