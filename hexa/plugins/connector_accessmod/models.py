@@ -750,7 +750,7 @@ class AccessibilityAnalysis(Analysis):
     )
     invert_direction = models.BooleanField(default=False)
     max_travel_time = models.IntegerField(default=360)
-    stack_priorities = models.JSONField(null=True, blank=True, default=dict)
+    stack_priorities = models.JSONField(null=True, blank=True, default=list)
 
     water_all_touched = models.BooleanField(default=True)
     algorithm = models.CharField(
@@ -1006,7 +1006,10 @@ class AccessibilityAnalysis(Analysis):
             }
         else:
             am_conf["stack"] = None
-            am_conf["priorities"] = self.stack_priorities
+            am_conf["priorities"] = [
+                {"name": Fileset.objects.get(id=p["id"]).role.name, "class": p["class"]}
+                for p in self.stack_priorities
+            ]
             if self.barrier:
                 am_conf["barriers"] = [
                     {
