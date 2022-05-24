@@ -242,6 +242,7 @@ input CreateAccessmodFilesetInput {
     projectId: String!
     roleId: String!
     automatic: Boolean
+    metadata: AccessmodFilesetMetadata
 }
 type CreateAccessmodFilesetResult {
     success: Boolean!
