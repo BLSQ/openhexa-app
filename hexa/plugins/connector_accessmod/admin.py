@@ -33,8 +33,8 @@ class FilesetRoleAdmin(admin.ModelAdmin):
 
 @admin.register(Fileset)
 class FilesetAdmin(admin.ModelAdmin):
-    list_display = ("name", "project", "role", "author")
-    list_filter = ("role", "project__name", "author")
+    list_display = ("name", "project", "status", "role", "author")
+    list_filter = ("status", "role", "project__name", "author")
     search_fields = ("name",)
 
 

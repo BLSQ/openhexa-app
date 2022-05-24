@@ -761,10 +761,10 @@ class AccessibilityAnalysis(Analysis):
     knight_move = models.BooleanField(default=False)
 
     travel_times = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, blank=True, on_delete=models.PROTECT, related_name="+"
     )
     friction_surface = models.ForeignKey(
-        "Fileset", null=True, on_delete=models.PROTECT, related_name="+"
+        "Fileset", null=True, blank=True, on_delete=models.PROTECT, related_name="+"
     )
 
     def populate_index(self, index):
