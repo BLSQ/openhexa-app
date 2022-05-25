@@ -162,8 +162,8 @@ def validate_transport(fileset: Fileset, filename: str):
         # truncate to max 20 elements
         # FIXME: will fail for weird python scalar like datetime, timedelta etc
         # which are not json encodable
-        values = sorted(transport.get(col).unique())
-        fileset.metadata["values"][col] = values[:20].tolist()
+        values = transport.get(col).unique().tolist()
+        fileset.metadata["values"][col] = sorted(values)[:20]
 
     fileset.status = FilesetStatus.VALID
     fileset.save()
