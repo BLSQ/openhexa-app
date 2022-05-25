@@ -782,7 +782,6 @@ class AccessibilityAnalysis(Analysis):
             not in (FilesetStatus.VALID, FilesetStatus.TO_ACQUIRE)
             or self.dem is None
             or self.dem.status not in (FilesetStatus.VALID, FilesetStatus.TO_ACQUIRE)
-            or not self.moving_speeds
         ):
             return
 
