@@ -701,13 +701,11 @@ class Analysis(Pipeline):
         output_name: str,
         output_value: str,
     ):
-        fileset = (
-            Fileset.objects.create(
-                project=self.project,
-                name=f"{output_name} ({self.name})",
-                role=FilesetRole.objects.get(code=output_role_code),
-                author=self.author,
-            ),
+        fileset = Fileset.objects.create(
+            project=self.project,
+            name=f"{output_name} ({self.name})",
+            role=FilesetRole.objects.get(code=output_role_code),
+            author=self.author,
         )
         setattr(self, output_key, fileset)
         getattr(self, output_key).file_set.create(
