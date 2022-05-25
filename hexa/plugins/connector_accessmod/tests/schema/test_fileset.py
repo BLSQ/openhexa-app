@@ -441,7 +441,7 @@ class FilesetTest(GraphQLTestCase):
         # Step 1: create fileset
         r1 = self.run_query(
             """
-                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput) {
+                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput!) {
                   createAccessmodFileset(input: $input) {
                     success
                     fileset {
@@ -480,7 +480,7 @@ class FilesetTest(GraphQLTestCase):
 
         r2 = self.run_query(
             """
-                mutation prepareAccessmodFileUpload($input: PrepareAccessmodFileUploadInput) {
+                mutation prepareAccessmodFileUpload($input: PrepareAccessmodFileUploadInput!) {
                   prepareAccessmodFileUpload(input: $input) {
                     success
                     uploadUrl
@@ -525,7 +525,7 @@ class FilesetTest(GraphQLTestCase):
 
         r3 = self.run_query(
             """
-                mutation createAccessmodFile($input: CreateAccessmodFileInput) {
+                mutation createAccessmodFile($input: CreateAccessmodFileInput!) {
                     createAccessmodFile(input: $input) {
                         success
                         file {
@@ -574,7 +574,7 @@ class FilesetTest(GraphQLTestCase):
 
         r4 = self.run_query(
             """
-              mutation prepareAccessmodFileDownload($input: PrepareAccessmodFileDownloadInput) {
+              mutation prepareAccessmodFileDownload($input: PrepareAccessmodFileDownloadInput!) {
                 prepareAccessmodFileDownload(input: $input) {
                   success
                   downloadUrl
@@ -602,7 +602,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput) {
+                mutation createAccessmodFileset($input: CreateAccessmodFilesetInput!) {
                   createAccessmodFileset(input: $input) {
                     success
                     fileset {
@@ -625,6 +625,94 @@ class FilesetTest(GraphQLTestCase):
             r["data"]["createAccessmodFileset"],
         )
 
+    def test_update_fileset(self):
+        self.client.force_login(self.USER_GREG)
+        fileset = Fileset.objects.create(
+            name="About to be deleted",
+            role=self.LAND_COVER_ROLE,
+            project=self.PROJECT_BORING,
+            author=self.USER_GREG,
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodFileset($input: UpdateAccessmodFilesetInput!) {
+                  updateAccessmodFileset(input: $input) {
+                    success
+                    fileset {
+                        name
+                        role {
+                            id
+                        }
+                        metadata
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(fileset.id),
+                    "name": "Updated name",
+                    "roleId": str(self.BARRIER_ROLE.id),
+                    "metadata": {"yo": "lo"},
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "fileset": {
+                    "name": "Updated name",
+                    "role": {"id": str(self.BARRIER_ROLE.id)},
+                    "metadata": {"yo": "lo"},
+                },
+            },
+            r["data"]["updateAccessmodFileset"],
+        )
+
+    def test_update_fileset_errors(self):
+        self.client.force_login(self.USER_GREG)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodFileset($input: UpdateAccessmodFilesetInput!) {
+                  updateAccessmodFileset(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["updateAccessmodFileset"],
+        )
+
+        fileset = Fileset.objects.create(
+            name="Won't be updated because name is duplicated",
+            role=self.LAND_COVER_ROLE,
+            project=self.PROJECT_BORING,
+            author=self.USER_GREG,
+        )
+        r = self.run_query(
+            """
+                mutation updateAccessmodFileset($input: UpdateAccessmodFilesetInput!) {
+                  updateAccessmodFileset(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(fileset.id), "name": self.FILESET_COOL.name}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["NAME_DUPLICATE"]},
+            r["data"]["updateAccessmodFileset"],
+        )
+
     def test_delete_fileset(self):
         self.client.force_login(self.USER_GREG)
         fileset = Fileset.objects.create(
@@ -636,7 +724,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput!) {
                   deleteAccessmodFileset(input: $input) {
                     success
                     errors
@@ -655,7 +743,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput!) {
                   deleteAccessmodFileset(input: $input) {
                     success
                     errors
@@ -683,7 +771,7 @@ class FilesetTest(GraphQLTestCase):
         )
         r = self.run_query(
             """
-                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput!) {
                   deleteAccessmodFileset(input: $input) {
                     success
                     errors
@@ -702,7 +790,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createAccessmodFile($input: CreateAccessmodFileInput) {
+                mutation createAccessmodFile($input: CreateAccessmodFileInput!) {
                   createAccessmodFile(input: $input) {
                     success
                     file {

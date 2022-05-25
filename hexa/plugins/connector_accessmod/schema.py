@@ -436,6 +436,48 @@ def resolve_create_accessmod_fileset(_, info, **kwargs):
         return {"success": False, "fileset": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@accessmod_mutations.field("updateAccessmodFileset")
+@transaction.atomic
+def resolve_update_accessmod_fileset(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        fileset = Fileset.objects.filter_for_user(principal).get(id=update_input["id"])
+
+        changes = {}
+        for scalar_field in [
+            "name",
+            "metadata",
+        ]:
+            if scalar_field in update_input:
+                changes[snakecase(scalar_field)] = update_input[scalar_field]
+
+        if "roleId" in update_input:
+            changes["role"] = FilesetRole.objects.get(id=update_input["roleId"])
+
+        if len(changes) > 0:
+            try:
+                fileset.update_if_has_perm(principal, **changes)
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "fileset": fileset,
+                    "errors": ["NAME_DUPLICATE"],
+                }
+            except PermissionDenied:
+                return {
+                    "success": False,
+                    "fileset": fileset,
+                    "errors": ["PERMISSION_DENIED"],
+                }
+
+        return {"success": True, "fileset": fileset, "errors": []}
+    except Fileset.DoesNotExist:
+        return {"success": False, "fileset": None, "errors": ["NOT_FOUND"]}
+
+
 @accessmod_mutations.field("deleteAccessmodFileset")
 @transaction.atomic
 def resolve_delete_accessmod_fileset(_, info, **kwargs):

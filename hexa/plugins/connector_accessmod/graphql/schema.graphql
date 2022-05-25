@@ -253,6 +253,22 @@ enum CreateAccessmodFilesetError {
     NAME_DUPLICATE
     PERMISSION_DENIED
 }
+input UpdateAccessmodFilesetInput {
+    id: String!
+    name: String
+    roleId: String
+    metadata: AccessmodFilesetMetadata
+}
+type UpdateAccessmodFilesetResult {
+    success: Boolean!
+    fileset: AccessmodFileset
+    errors: [UpdateAccessmodFilesetError!]!
+}
+enum UpdateAccessmodFilesetError {
+    NOT_FOUND
+    NAME_DUPLICATE
+    PERMISSION_DENIED
+}
 input PrepareAccessmodFileUploadInput {
     filesetId: String!
     mimeType: String!
@@ -300,11 +316,12 @@ extend type Query {
     accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }
 extend type Mutation {
-    createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult!
-    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult!
-    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult!
-    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult!
-    createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult!
+    createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult!
+    updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult!
+    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
+    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult!
+    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult!
+    createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
 }
 
 # Analysis
