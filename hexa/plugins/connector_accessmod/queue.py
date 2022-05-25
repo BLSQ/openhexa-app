@@ -160,7 +160,10 @@ def validate_transport(fileset: Fileset, filename: str):
     for col in cols:
         # save some unique values for all columns, front can choose what it wants
         # truncate to max 20 elements
-        fileset.metadata["values"][col] = sorted(transport.get(col).unique())[0:20]
+        # FIXME: will fail for weird python scalar like datetime, timedelta etc
+        # which are not json encodable
+        values = sorted(transport.get(col).unique())
+        fileset.metadata["values"][col] = values[:20].tolist()
 
     fileset.status = FilesetStatus.VALID
     fileset.save()
@@ -295,7 +298,7 @@ def validate_dem(fileset: Fileset, filename: str):
 
     fileset.metadata["min"] = int(dem_content.min())
     fileset.metadata["max"] = int(dem_content.max())
-    fileset.metadata["nodata"] = dem.nodata
+    fileset.metadata["nodata"] = int(dem.nodata)
 
     percentile = np.percentile(a=dem_content.compressed(), q=[1, 2, 98, 99])
     fileset.metadata["1p"] = float(percentile[0])
