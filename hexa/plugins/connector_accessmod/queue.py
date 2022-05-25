@@ -298,7 +298,10 @@ def validate_dem(fileset: Fileset, filename: str):
 
     fileset.metadata["min"] = int(dem_content.min())
     fileset.metadata["max"] = int(dem_content.max())
-    fileset.metadata["nodata"] = int(dem.nodata)
+    if dem.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = int(dem.nodata)
 
     percentile = np.percentile(a=dem_content.compressed(), q=[1, 2, 98, 99])
     fileset.metadata["1p"] = float(percentile[0])
@@ -332,7 +335,10 @@ def validate_land_cover(fileset: Fileset, filename: str):
     if fileset.metadata is None:
         fileset.metadata = {}
     fileset.metadata["unique_values"] = sorted([int(i) for i in lc_classes])
-    fileset.metadata["nodata"] = landcover.nodata
+    if landcover.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = landcover.nodata
     fileset.status = FilesetStatus.VALID
     fileset.save()
 
