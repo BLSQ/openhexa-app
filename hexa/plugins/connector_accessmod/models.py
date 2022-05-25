@@ -1008,7 +1008,7 @@ class AccessibilityAnalysis(Analysis):
         else:
             am_conf["stack"] = None
             am_conf["priorities"] = [
-                {"name": Fileset.objects.get(id=p["id"]).role.name, "class": p["class"]}
+                {"name": Fileset.objects.get(id=p["id"]).name, "class": p["class"]}
                 for p in self.stack_priorities
             ]
             if self.barrier:
