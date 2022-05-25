@@ -701,20 +701,18 @@ class Analysis(Pipeline):
         output_name: str,
         output_value: str,
     ):
-        setattr(
-            self,
-            output_key,
-            Fileset.objects.create(
-                project=self.project,
-                name=f"{output_name} ({self.name})",
-                role=FilesetRole.objects.get(code=output_role_code),
-                author=self.author,
-            ),
+        fileset = Fileset.objects.create(
+            project=self.project,
+            name=f"{output_name} ({self.name})",
+            role=FilesetRole.objects.get(code=output_role_code),
+            author=self.author,
         )
+        setattr(self, output_key, fileset)
         getattr(self, output_key).file_set.create(
             mime_type=mimetypes.guess_type(output_value)[0], uri=output_value
         )
         self.save()
+        return fileset
 
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
@@ -860,26 +858,39 @@ class AccessibilityAnalysis(Analysis):
         travel_times: str,
         friction_surface: str,
         stack: str = None,
+        stack_labels: typing.Optional[typing.Dict[str, int]] = None,
     ):
-        self.set_output(
-            output_key="travel_times",
-            output_role_code=FilesetRoleCode.TRAVEL_TIMES,
-            output_name="Travel times",
-            output_value=travel_times,
+        new_filesets = []
+        new_filesets.append(
+            self.set_output(
+                output_key="travel_times",
+                output_role_code=FilesetRoleCode.TRAVEL_TIMES,
+                output_name="Travel times",
+                output_value=travel_times,
+            )
         )
-        self.set_output(
-            output_key="friction_surface",
-            output_role_code=FilesetRoleCode.FRICTION_SURFACE,
-            output_name="Friction surface",
-            output_value=friction_surface,
+        new_filesets.append(
+            self.set_output(
+                output_key="friction_surface",
+                output_role_code=FilesetRoleCode.FRICTION_SURFACE,
+                output_name="Friction surface",
+                output_value=friction_surface,
+            )
         )
         if stack is not None:
-            self.set_output(
+            fileset = self.set_output(
                 output_key="stack",
                 output_role_code=FilesetRoleCode.STACK,
                 output_name="Stack",
                 output_value=stack,
             )
+            if stack_labels is not None:
+                fileset.metadata = {
+                    "labels": stack_labels,
+                }
+                fileset.save()
+            new_filesets.append(fileset)
+        return new_filesets
 
     @property
     def type(self) -> AnalysisType:
