@@ -671,6 +671,8 @@ class FilesetTest(GraphQLTestCase):
             },
             r["data"]["updateAccessmodFileset"],
         )
+        fileset.refresh_from_db()
+        self.assertEqual(FilesetStatus.PENDING, fileset.status)
 
     def test_update_fileset_errors(self):
         self.client.force_login(self.USER_GREG)
