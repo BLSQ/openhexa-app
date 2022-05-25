@@ -5,6 +5,7 @@ from moto import mock_s3, mock_sts
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_accessmod.models import (
+    AccessibilityAnalysis,
     File,
     Fileset,
     FilesetMode,
@@ -665,6 +666,34 @@ class FilesetTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["NOT_FOUND"]},
+            r["data"]["deleteAccessmodFileset"],
+        )
+
+        fileset = Fileset.objects.create(
+            name="Won't be delete because used in analysis",
+            role=self.LAND_COVER_ROLE,
+            project=self.PROJECT_BORING,
+            author=self.USER_GREG,
+        )
+        AccessibilityAnalysis.objects.create(
+            author=self.USER_GREG,
+            project=self.PROJECT_EXCITING,
+            name="Annoying accessibility analysis",
+            land_cover=fileset,
+        )
+        r = self.run_query(
+            """
+                mutation deleteAccessmodFileset($input: DeleteAccessmodFilesetInput) {
+                  deleteAccessmodFileset(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(fileset.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["FILESET_IN_USE"]},
             r["data"]["deleteAccessmodFileset"],
         )
 

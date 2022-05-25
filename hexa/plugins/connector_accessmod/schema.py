@@ -447,6 +447,8 @@ def resolve_delete_accessmod_fileset(_, info, **kwargs):
         fileset = Fileset.objects.filter_for_user(principal).get(id=delete_input["id"])
         fileset.delete_if_has_perm(principal)
         return {"success": True, "errors": []}
+    except IntegrityError:
+        return {"success": False, "errors": ["FILESET_IN_USE"]}
     except Fileset.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:

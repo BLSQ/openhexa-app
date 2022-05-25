@@ -291,6 +291,7 @@ type DeleteAccessmodFilesetResult {
 }
 enum DeleteAccessmodFilesetError {
     NOT_FOUND
+    FILESET_IN_USE
 }
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
