@@ -1,6 +1,19 @@
 Changelog
 =========
 
+Version 0.39
+------------
+
+May 31, 2022
+
+### Added
+
+- Basic support for Google Cloud Storage
+
+### Updated
+
+- Allow update of AccessMod filesets
+
 Version 0.38
 ------------
 
