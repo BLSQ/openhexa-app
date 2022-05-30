@@ -55,7 +55,16 @@ def webhook(request: HttpRequest) -> HttpResponse:
         with transaction.atomic():
             analysis.update_status(event_data["status"])
             if "outputs" in event_data:
-                analysis.set_outputs(**event_data["outputs"])
+                filesets = analysis.set_outputs(**event_data["outputs"])
+            else:
+                filesets = []
+        for fileset in filesets:
+            validate_fileset_queue.enqueue(
+                "validate_fileset",
+                {
+                    "fileset_id": str(fileset.id),
+                },
+            )
 
     if event_type == EventType.ACQUISITION_FINISHED:
         try:

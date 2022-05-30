@@ -607,7 +607,6 @@ class AnalysisTest(GraphQLTestCase):
                     "waterId": str(self.WATER_FILESET.id),
                     "stackId": str(self.STACK_FILESET.id),
                     "stackPriorities": [],
-                    "movingSpeeds": {"foo": 10},
                     "healthFacilitiesId": str(self.HEALTH_FACILITIES_FILESET.id),
                 }
             },

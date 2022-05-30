@@ -295,10 +295,14 @@ class PermissionTestWritableBy(TestCase):
         - user regular can write in bucket 1 (only one RO flag, RW flag via team 2 supersede)
         - user regular can't write in bucket 2
         """
-        self.assertTrue(self.BUCKET_1_1.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET_1_2.writable_by(self.USER_SUPER))
-        self.assertTrue(self.BUCKET_1_1.writable_by(self.USER_REGULAR))
-        self.assertFalse(self.BUCKET_1_2.writable_by(self.USER_REGULAR))
+        self.assertTrue(self.USER_SUPER.has_perm("connector_s3.write", self.BUCKET_1_1))
+        self.assertTrue(self.USER_SUPER.has_perm("connector_s3.write", self.BUCKET_1_2))
+        self.assertTrue(
+            self.USER_REGULAR.has_perm("connector_s3.write", self.BUCKET_1_1)
+        )
+        self.assertFalse(
+            self.USER_REGULAR.has_perm("connector_s3.write", self.BUCKET_1_2)
+        )
 
 
 class ConnectorS3PublicBucketTest(TestCase):
