@@ -91,6 +91,9 @@ class Bucket(Datasource):
                 "The GCS connector plugin should be configured with a single Credentials entry"
             )
 
+    def sync(self):
+        pass  # TODO: implement sync (ignore without raising an error for now)
+
     @property
     def content_summary(self):
         count = 0
@@ -113,17 +116,17 @@ class Bucket(Datasource):
         index.datasource_name = self.name
         index.datasource_id = self.id
 
+    def get_absolute_url(self):
+        return reverse(
+            "connector_gcs:datasource_detail", kwargs={"datasource_id": self.id}
+        )
+
     @property
     def display_name(self):
         return self.name
 
     def __str__(self):
         return self.display_name
-
-    def get_absolute_url(self):
-        return reverse(
-            "connector_gcs:datasource_detail", kwargs={"datasource_id": self.id}
-        )
 
 
 class GCSBucketPermission(Permission):
