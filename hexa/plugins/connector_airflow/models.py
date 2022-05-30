@@ -506,7 +506,7 @@ class DAGRun(Base, WithStatus):
             self.last_refreshed_at = timezone.now()
             self.state = state
             if success_or_failed:
-                self.duration = timezone.now() - self.execution_date
+                self.duration = self.end_date - self.execution_date
             self.save()
 
     def add_to_favorites(
