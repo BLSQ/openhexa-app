@@ -343,11 +343,14 @@ class Fileset(Entry):
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
-    def update_if_has_perm(self, principal: User, *, name: str):
+    def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("connector_accessmod.update_fileset", self):
             raise PermissionDenied
 
-        self.name = name
+        for key in kwargs:
+            if not hasattr(self, key):
+                raise ValueError(f'Invalid {self} attribute "{key}"')
+            setattr(self, key, kwargs[key])
 
         return self.save()
 
