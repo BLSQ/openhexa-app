@@ -267,6 +267,7 @@ type UpdateAccessmodFilesetResult {
 enum UpdateAccessmodFilesetError {
     NOT_FOUND
     NAME_DUPLICATE
+    INVALID
     PERMISSION_DENIED
 }
 input PrepareAccessmodFileUploadInput {

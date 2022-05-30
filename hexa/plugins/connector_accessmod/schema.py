@@ -26,7 +26,6 @@ from hexa.plugins.connector_accessmod.models import (
     File,
     Fileset,
     FilesetRole,
-    FilesetStatus,
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
@@ -445,32 +444,27 @@ def resolve_update_accessmod_fileset(_, info, **kwargs):
     update_input = kwargs["input"]
 
     try:
-        fileset = Fileset.objects.filter_for_user(principal).get(id=update_input["id"])
-
+        fileset = Fileset.objects.filter_for_user(principal).get(
+            id=update_input.pop("id")
+        )
         changes = {}
+
         for scalar_field in [
             "name",
             "metadata",
         ]:
-            if scalar_field in update_input:
-                changes[snakecase(scalar_field)] = update_input[scalar_field]
+            try:
+                scalar_value = update_input.pop(scalar_field)
+                changes[snakecase(scalar_field)] = scalar_value
+            except KeyError:
+                pass
 
-        if "roleId" in update_input:
-            changes["role"] = FilesetRole.objects.get(id=update_input["roleId"])
+        if len(update_input) > 0:
+            return {"success": False, "fileset": fileset, "errors": ["INVALID"]}
 
         if len(changes) > 0:
             try:
                 fileset.update_if_has_perm(principal, **changes)
-                # reset status and start background validation
-                if "roleId" in update_input or "metadata" in update_input:
-                    fileset.status = FilesetStatus.PENDING
-                    fileset.save()
-                    validate_fileset_queue.enqueue(
-                        "validate_fileset",
-                        {
-                            "fileset_id": str(fileset.id),
-                        },
-                    )
             except IntegrityError:
                 return {
                     "success": False,

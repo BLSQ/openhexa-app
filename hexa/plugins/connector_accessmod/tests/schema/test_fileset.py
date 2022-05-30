@@ -641,9 +641,6 @@ class FilesetTest(GraphQLTestCase):
                     success
                     fileset {
                         name
-                        role {
-                            id
-                        }
                         metadata
                     }
                     errors
@@ -654,7 +651,6 @@ class FilesetTest(GraphQLTestCase):
                 "input": {
                     "id": str(fileset.id),
                     "name": "Updated name",
-                    "roleId": str(self.BARRIER_ROLE.id),
                     "metadata": {"yo": "lo"},
                 }
             },
@@ -665,7 +661,6 @@ class FilesetTest(GraphQLTestCase):
                 "errors": [],
                 "fileset": {
                     "name": "Updated name",
-                    "role": {"id": str(self.BARRIER_ROLE.id)},
                     "metadata": {"yo": "lo"},
                 },
             },
@@ -712,6 +707,22 @@ class FilesetTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["NAME_DUPLICATE"]},
+            r["data"]["updateAccessmodFileset"],
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodFileset($input: UpdateAccessmodFilesetInput!) {
+                  updateAccessmodFileset(input: $input) {
+                    success
+                    errors
+                  }
+                }
+            """,
+            {"input": {"id": str(fileset.id), "roleId": str(self.BARRIER_ROLE.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
             r["data"]["updateAccessmodFileset"],
         )
 
