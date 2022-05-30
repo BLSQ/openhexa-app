@@ -256,7 +256,6 @@ enum CreateAccessmodFilesetError {
 input UpdateAccessmodFilesetInput {
     id: String!
     name: String
-    roleId: String
     metadata: AccessmodFilesetMetadata
 }
 type UpdateAccessmodFilesetResult {
@@ -267,7 +266,6 @@ type UpdateAccessmodFilesetResult {
 enum UpdateAccessmodFilesetError {
     NOT_FOUND
     NAME_DUPLICATE
-    INVALID
     PERMISSION_DENIED
 }
 input PrepareAccessmodFileUploadInput {

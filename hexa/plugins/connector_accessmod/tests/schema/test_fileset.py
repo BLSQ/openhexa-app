@@ -710,22 +710,6 @@ class FilesetTest(GraphQLTestCase):
             r["data"]["updateAccessmodFileset"],
         )
 
-        r = self.run_query(
-            """
-                mutation updateAccessmodFileset($input: UpdateAccessmodFilesetInput!) {
-                  updateAccessmodFileset(input: $input) {
-                    success
-                    errors
-                  }
-                }
-            """,
-            {"input": {"id": str(fileset.id), "roleId": str(self.BARRIER_ROLE.id)}},
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["INVALID"]},
-            r["data"]["updateAccessmodFileset"],
-        )
-
     def test_delete_fileset(self):
         self.client.force_login(self.USER_GREG)
         fileset = Fileset.objects.create(

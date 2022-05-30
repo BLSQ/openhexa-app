@@ -459,9 +459,6 @@ def resolve_update_accessmod_fileset(_, info, **kwargs):
             except KeyError:
                 pass
 
-        if len(update_input) > 0:
-            return {"success": False, "fileset": fileset, "errors": ["INVALID"]}
-
         if len(changes) > 0:
             try:
                 fileset.update_if_has_perm(principal, **changes)
