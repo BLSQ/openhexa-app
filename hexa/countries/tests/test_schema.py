@@ -1,5 +1,6 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
+from hexa.user_management.tests import SIMPLIFIED_BFA_EXTENT
 
 
 class SchemaTest(GraphQLTestCase):
@@ -42,7 +43,7 @@ class SchemaTest(GraphQLTestCase):
                 "whoInfo": {
                     "region": {"code": "AFRO", "name": "African Region"},
                     "defaultCRS": 32630,
-                    "simplifiedExtent": [],  # FIXME [[x, y] for x, y in SIMPLIFIED_BFA_EXTENT],
+                    "simplifiedExtent": [[x, y] for x, y in SIMPLIFIED_BFA_EXTENT],
                 },
             },
             r["data"]["country"],

@@ -170,7 +170,7 @@ def resolve_create_accessmod_project_by_country(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=country.simplified_extent,
+            extent=country.simplified_extent.tuple[0],
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:

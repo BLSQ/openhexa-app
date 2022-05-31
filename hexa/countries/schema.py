@@ -27,7 +27,7 @@ def resolve_country(_, info, **kwargs):
 
 @countries_query.field("countries")
 def resolve_countries(_, info, **kwargs):
-    # FIXME: todo
+    return Country.objects.all().order_by("code")
     return []
 
 
@@ -42,7 +42,6 @@ def resolve_country_flag(obj: Country, info):
 
 @country_object.field("whoInfo")
 def resolve_country_who_info(obj: Country, info):
-    # FIXME doesnt seem to work
     return obj.get_who_info()
 
 

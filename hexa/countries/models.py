@@ -38,8 +38,8 @@ class Country(Base):
                 "code": self.region,
                 "name": WHO_REGION_NAMES[self.region],
             },
-            "defaultCRS": self.default_crs,
-            "simplifiedExtent": self.simplified_extent,
+            "default_crs": self.default_crs,
+            "simplified_extent": [[x, y] for x, y in self.simplified_extent.tuple[0]],
         }
 
     def flag(self):

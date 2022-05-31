@@ -11,6 +11,7 @@ django-model-utils
 django-postgres-queue
 django-storages[google]
 django-tailwind
+geopandas
 markdown
 pandas
 psycopg2-binary
@@ -41,3 +42,11 @@ pip-tools
 
 # development
 coverage[toml]
+
+# data-worker
+rasterio
+rio-cogeo
+gdal==3.2.2
+s3fs==2022.01.0
+gcsfs==2022.01.0
+fsspec==2022.01.0

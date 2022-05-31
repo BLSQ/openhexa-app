@@ -1,7 +1,8 @@
 FROM python:3.9
 
 RUN apt-get update
-RUN apt-get install -y mdbtools wait-for-it
+RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin
+
 RUN pip install --upgrade pip
 
 # Needed for TailwindCSS
@@ -15,7 +16,8 @@ COPY requirements.txt /code/
 
 # Mount a tmp folder inside the container to keep a cache for pip
 # see https://pythonspeed.com/articles/docker-cache-pip-downloads/
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install -r requirements.txt
+# Force setuptools version to build pygdal
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install setuptools==57.5.0 && pip install -r requirements.txt
 
 COPY . /code/
 
