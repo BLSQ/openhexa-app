@@ -173,6 +173,7 @@ type CreateMembershipResult {
     errors: [CreateMembershipError!]!
 }
 enum CreateMembershipError {
+    ALREADY_EXISTS
     PERMISSION_DENIED
     NOT_FOUND
 }

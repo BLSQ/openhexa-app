@@ -645,6 +645,34 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["createMembership"],
         )
 
+    def test_create_membership_already_exists(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation createMembership($input: CreateMembershipInput!) {
+                createMembership(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "userEmail": self.USER_JANE.email,
+                    "teamId": str(self.TEAM_CORE.id),
+                    "role": MembershipRole.REGULAR,
+                },
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["ALREADY_EXISTS"],
+            },
+            r["data"]["createMembership"],
+        )
+
     def test_country(self):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
