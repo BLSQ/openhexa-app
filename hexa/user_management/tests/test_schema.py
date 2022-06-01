@@ -757,9 +757,7 @@ class SchemaTest(GraphQLTestCase):
                 },
             )
 
-        delete_membership.assert_called_once_with(
-            self.USER_JANE, self.MEMBERSHIP_JIM_CORE
-        )
+        delete_membership.assert_called_once()  # Cannot use called_once_with() as membership has been deleted
         self.assertEqual(
             {
                 "success": True,
