@@ -28,3 +28,24 @@ class BucketCard(Datacard):
     @property
     def gcs_image_src(self):
         return static("connector_gcs/img/symbol.svg")
+
+
+class ObjectSection(Section):
+    title = StaticText("GCS Data")
+
+    name = TextProperty(text="filename", translate=False)
+    path = TextProperty(text="full_path", translate=False)
+    file_type = TextProperty(label="File type", text="type_display", translate=False)
+    file_size = TextProperty(
+        label="File size", text="file_size_display", translate=False
+    )
+
+
+class ObjectCard(Datacard):
+    title = StaticText("Object details")
+
+    external = ObjectSection()
+
+    @property
+    def generic_description(self):
+        return _("GCS Bucket")
