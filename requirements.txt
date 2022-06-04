@@ -148,6 +148,7 @@ google-api-core[grpc]==2.7.1
     # via
     #   google-cloud-appengine-logging
     #   google-cloud-core
+    #   google-cloud-iam
     #   google-cloud-logging
     #   google-cloud-storage
 google-auth==2.6.3
@@ -168,6 +169,8 @@ google-cloud-core==2.3.0
     # via
     #   google-cloud-logging
     #   google-cloud-storage
+google-cloud-iam==2.6.1
+    # via -r requirements.in
 google-cloud-logging==3.0.0
     # via -r requirements.in
 google-cloud-storage==2.2.1
@@ -257,6 +260,7 @@ poyo==0.5.0
 proto-plus==1.20.3
     # via
     #   google-cloud-appengine-logging
+    #   google-cloud-iam
     #   google-cloud-logging
 protobuf==3.20.0
     # via
