@@ -8,12 +8,9 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
-from django_countries import countries
-from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
-from hexa.user_management.countries import get_who_info
 from hexa.user_management.models import Membership, Organization, Team, User
 
 identity_type_defs = load_schema_from_path(
@@ -43,21 +40,6 @@ def resolve_me(_, info):
             ],
         ),
     }
-
-
-@identity_query.field("country")
-def resolve_country(_, info, **kwargs):
-    code = kwargs.get("code")
-    alpha3 = kwargs.get("alpha3")
-    if (code is None) == (alpha3 is None):
-        raise ValueError("Please provide either code or alpha3")
-
-    return Country(code if code is not None else alpha3)
-
-
-@identity_query.field("countries")
-def resolve_countries(*_):
-    return [Country(c) for c, _ in countries]
 
 
 @identity_query.field("team")
@@ -263,26 +245,6 @@ def resolve_avatar(obj: User, *_):
     return {"initials": obj.initials, "color": hash_color(obj.email)}
 
 
-country_object = ObjectType("Country")
-
-
-@country_object.field("alpha3")
-def resolve_country_alpha3(obj: Country, *_):
-    return obj.alpha3
-
-
-@country_object.field("flag")
-def resolve_country_flag(obj: Country, info):
-    request: HttpRequest = info.context["request"]
-
-    return request.build_absolute_uri(obj.flag)
-
-
-@country_object.field("whoInfo")
-def resolve_country_who_info(obj: Country, info):
-    return get_who_info(obj.alpha3)
-
-
 organization_object = ObjectType("Organization")
 
 
@@ -361,7 +323,6 @@ def resolve_delete_membership(_, info, **kwargs):
 identity_bindables = [
     identity_query,
     user_object,
-    country_object,
     team_object,
     membership_object,
     organization_object,

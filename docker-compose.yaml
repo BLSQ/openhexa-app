@@ -26,7 +26,9 @@ x-app: &default-app
 
 services:
   db:
-    image: postgres:12.5
+    build:
+      context: .
+      dockerfile: Dockerfile.db
     volumes:
       - pgdata-12.5:/var/lib/postgresql/data
     environment:
@@ -60,9 +62,6 @@ services:
 
   dataworker:
     <<: *default-app
-    build:
-      context: .
-      dockerfile: Dockerfile.dataworker
     command: "manage validate_fileset_worker"
     restart: unless-stopped
     depends_on:

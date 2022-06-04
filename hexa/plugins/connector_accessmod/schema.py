@@ -13,13 +13,13 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.urls import reverse
-from django_countries.fields import Country
 from slugify import slugify
 from stringcase import snakecase
 
 from config import settings
 from hexa.core import mimetypes
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     Analysis,
@@ -33,7 +33,6 @@ from hexa.plugins.connector_accessmod.models import (
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.countries import get_who_info
 from hexa.user_management.models import Team, User
 
 accessmod_type_defs = load_schema_from_path(
@@ -162,18 +161,17 @@ def resolve_create_accessmod_project_by_country(_, info, **kwargs):
     principal = request.user
     create_input = kwargs["input"]
 
-    country = Country(create_input["country"]["code"])
-    who_info = get_who_info(country.alpha3)
+    country = Country.objects.get(code=create_input["country"]["code"])
 
     try:
         project = Project.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
-            country=Country(create_input["country"]["code"]),
+            country=country.code,
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=who_info.simplified_extent,
+            extent=country.simplified_extent.tuple[0],
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
