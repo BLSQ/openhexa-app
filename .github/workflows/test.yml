@@ -20,6 +20,3 @@ jobs:
 
       - name: Run Django tests
         run: docker-compose run -e DEBUG=false app coveraged-test
-
-      - name: Run dataworker tests
-        run: docker-compose run -e DEBUG=false app datasciences-test
