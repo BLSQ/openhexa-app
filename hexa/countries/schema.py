@@ -28,7 +28,6 @@ def resolve_country(_, info, **kwargs):
 @countries_query.field("countries")
 def resolve_countries(_, info, **kwargs):
     return Country.objects.all().order_by("code")
-    return []
 
 
 country_object = ObjectType("Country")
