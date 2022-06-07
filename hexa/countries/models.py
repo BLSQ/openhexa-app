@@ -42,5 +42,6 @@ class Country(Base):
             "simplified_extent": [[x, y] for x, y in self.simplified_extent.tuple[0]],
         }
 
+    @property
     def flag(self):
         return DjangoCountry(self.code).flag

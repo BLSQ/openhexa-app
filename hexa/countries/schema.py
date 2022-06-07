@@ -36,7 +36,7 @@ country_object = ObjectType("Country")
 @country_object.field("flag")
 def resolve_country_flag(obj: Country, info):
     request: HttpRequest = info.context["request"]
-    return request.build_absolute_uri(obj.flag())
+    return request.build_absolute_uri(obj.flag)
 
 
 @country_object.field("whoInfo")
