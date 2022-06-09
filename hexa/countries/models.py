@@ -39,7 +39,7 @@ class Country(Base):
                 "name": WHO_REGION_NAMES[self.region],
             },
             "default_crs": self.default_crs,
-            "simplified_extent": [[x, y] for x, y in self.simplified_extent.tuple[0]],
+            "simplified_extent": self.simplified_extent.tuple,
         }
 
     @property
