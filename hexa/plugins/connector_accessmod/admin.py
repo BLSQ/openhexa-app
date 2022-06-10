@@ -7,6 +7,7 @@ from hexa.plugins.connector_accessmod.models import (
     FilesetRole,
     Project,
     ProjectPermission,
+    ZonalStatisticsAnalysis,
 )
 
 
@@ -47,6 +48,13 @@ class FileAdmin(admin.ModelAdmin):
 
 @admin.register(AccessibilityAnalysis)
 class AccessibilityAnalysisAdmin(admin.ModelAdmin):
+    list_display = ("name", "status", "project", "author", "dag_run")
+    list_filter = ("status", "project__name", "author")
+    search_fields = ("name",)
+
+
+@admin.register(ZonalStatisticsAnalysis)
+class ZonalStatisticsAnalysisAdmin(admin.ModelAdmin):
     list_display = ("name", "status", "project", "author", "dag_run")
     list_filter = ("status", "project__name", "author")
     search_fields = ("name",)

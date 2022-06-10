@@ -418,6 +418,9 @@ class FilesetRoleCode(models.TextChoices):
     TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
     STACK = "STACK"
+    BOUNDARIES = "BOUNDARIES"
+    ZONAL_STATISTICS = "ZONAL_STATISTICS"
+    ZONAL_STATISTICS_TABLE = "ZONAL_STATISTICS_TABLE"
 
 
 class FilesetRole(Base):
@@ -482,6 +485,7 @@ class AnalysisStatus(models.TextChoices):
 class AnalysisType(str, enum.Enum):
     ACCESSIBILITY = "ACCESSIBILITY"
     GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
+    ZONAL_STATISTICS = "ZONAL_STATISTICS"
 
 
 class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
@@ -1127,6 +1131,11 @@ class GeographicCoverageAnalysis(Analysis):
         raise NotImplementedError
 
 
+# JSONField default should be a callable instead of an instance so that it's not shared between all field instances.
+def get_default_time_thresholds():
+    return [60, 120, 180, 240, 300, 360]
+
+
 class ZonalStatisticsAnalysis(Analysis):
     class Meta:
         verbose_name_plural = "Zonal statistics"
@@ -1140,7 +1149,7 @@ class ZonalStatisticsAnalysis(Analysis):
     boundaries = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
     )
-    time_thresholds = models.JSONField(default=[60, 120, 180, 240, 300, 360])
+    time_thresholds = models.JSONField(default=get_default_time_thresholds)
 
     def populate_index(self, index):
         raise NotImplementedError
@@ -1182,18 +1191,24 @@ class ZonalStatisticsAnalysis(Analysis):
 
     @transaction.atomic
     def set_outputs(self, zonal_statistics_table: str, zonal_statistics_geo: str):
-        self.set_output(
-            output_key="zonal_statistics_table",
-            output_role_code=FilesetFormat.TABULAR,
-            output_name="Zonal statistics table",
-            output_value=zonal_statistics_table,
+        new_filesets = []
+        new_filesets.append(
+            self.set_output(
+                output_key="zonal_statistics_table",
+                output_role_code=FilesetRoleCode.ZONAL_STATISTICS_TABLE,
+                output_name="Zonal statistics table",
+                output_value=zonal_statistics_table,
+            )
         )
-        self.set_output(
-            output_key="zonal_statistics_geo",
-            output_role_code=FilesetRoleCode.ZONAL_STATISTICS,
-            output_name="Zonal statistics",
-            output_value=zonal_statistics_geo,
+        new_filesets.append(
+            self.set_output(
+                output_key="zonal_statistics_geo",
+                output_role_code=FilesetRoleCode.ZONAL_STATISTICS,
+                output_name="Zonal statistics",
+                output_value=zonal_statistics_geo,
+            )
         )
+        return new_filesets
 
     @property
     def type(self) -> AnalysisType:
