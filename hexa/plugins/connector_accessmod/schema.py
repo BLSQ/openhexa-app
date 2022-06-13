@@ -29,6 +29,7 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
+    ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
@@ -638,6 +639,8 @@ def resolve_analysis_type(analysis: Analysis, *_):
         return "AccessmodAccessibilityAnalysis"
     elif isinstance(analysis, GeographicCoverageAnalysis):
         return "AccessmodGeographicCoverageAnalysis"
+    elif isinstance(analysis, ZonalStatisticsAnalysis):
+        return "AccessmodZonalStatistics"
 
     return None
 
@@ -692,7 +695,30 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
         return {"success": False, "analysis": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@accessmod_mutations.field("createAccessmodZonalStatistics")
+@transaction.atomic
+def resolve_create_accessmod_zonal_statistics(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        analysis = ZonalStatisticsAnalysis.objects.create_if_has_perm(
+            principal,
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            name=create_input["name"],
+        )
+        return {"success": True, "analysis": analysis, "errors": []}
+    except IntegrityError:
+        return {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]}
+    except PermissionDenied:
+        return {"success": False, "analysis": None, "errors": ["PERMISSION_DENIED"]}
+
+
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
+@accessmod_mutations.field("updateAccessmodZonalStatistics")
 @transaction.atomic
 def resolve_update_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -713,6 +739,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "algorithm",
             "knightMove",
             "stackPriorities",
+            "timeThresholds",
         ]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
@@ -725,6 +752,9 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "waterId",
             "barrierId",
             "healthFacilitiesId",
+            "populationId",
+            "travelTimesId",
+            "boundariesId",
         ]:
             if fileset_field in update_input:
                 fileset = Fileset.objects.filter_for_user(principal).get(

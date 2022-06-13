@@ -849,7 +849,7 @@ class FilesetTest(GraphQLTestCase):
                 }
             """,
         )
-        self.assertEqual(12, len(r["data"]["accessmodFilesetRoles"]))
+        self.assertEqual(15, len(r["data"]["accessmodFilesetRoles"]))
         self.assertEqual(
             {"id": str(self.BARRIER_ROLE.id)},
             r["data"]["accessmodFilesetRoles"][0],
