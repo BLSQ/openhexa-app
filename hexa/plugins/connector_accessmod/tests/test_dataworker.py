@@ -233,9 +233,9 @@ class AccessmodDataWorkerTest(TestCase):
                 "columns": ["highway", "smoothness", "surface", "tracktype"],
                 "values": {
                     "highway": ["primary", "secondary", "trunk_link"],
-                    "smoothness": [None],
+                    "smoothness": [],
                     "surface": ["asphalt"],
-                    "tracktype": [None],
+                    "tracktype": [],
                 },
                 "geojson_uri": "s3://test-bucket/analysis/transport_viz.geojson",
             },
