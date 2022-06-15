@@ -13,10 +13,9 @@ from hexa.user_management.models import PermissionMode
 def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access GCS buckets in the notebooks component."""
 
-    read_only_buckets = []
-    #    read_only_buckets = Bucket.objects.filter_for_user(
-    #        credentials.user, mode=PermissionMode.VIEWER
-    #    )
+    read_only_buckets = Bucket.objects.filter_for_user(
+        credentials.user, mode=PermissionMode.VIEWER
+    )
     read_write_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode__in=[PermissionMode.EDITOR, PermissionMode.OWNER]
     )
