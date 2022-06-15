@@ -7,6 +7,7 @@ from logging import getLogger
 try:
     import geopandas as gpd
     import numpy as np
+    import pandas as pd
     import pyproj
     import rasterio
     from rasterio.enums import Resampling
@@ -162,8 +163,10 @@ def validate_transport(fileset: Fileset, filename: str):
         # truncate to max 20 elements
         # FIXME: will fail for weird python scalar like datetime, timedelta etc
         # which are not json encodable
-        values = transport.get(col).unique().tolist()
-        fileset.metadata["values"][col] = sorted(values)[:20]
+        values = transport.get(col).unique()[:20].tolist()
+        fileset.metadata["values"][col] = sorted(
+            filter(lambda v: not pd.isna(v), values)
+        )
 
     fileset.status = FilesetStatus.VALID
     fileset.save()
@@ -390,6 +393,13 @@ def validate_fileset_job(queue, job) -> None:
 
     except Fileset.DoesNotExist:
         logger.error("fileset %s not found", job.args["fileset_id"])
+        return
+
+    # quick exit to force stop processing
+    if fileset.status != FilesetStatus.PENDING:
+        logger.info(
+            "Ignore validation fileset %s, already done", job.args["fileset_id"]
+        )
         return
 
     # start processing
