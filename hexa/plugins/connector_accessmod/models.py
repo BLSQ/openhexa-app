@@ -1000,20 +1000,23 @@ class AccessibilityAnalysis(Analysis):
                 ),
             }
 
-        if self.water.status == FilesetStatus.TO_ACQUIRE:
-            am_conf["water"] = {
-                "auto": True,
-                "name": self.water.name,
-                "path": output_dir + f"{str(self.water.id)}_water.gpkg",
-                "all_touched": self.water_all_touched,
-            }
+        if self.water:
+            if self.water.status == FilesetStatus.TO_ACQUIRE:
+                am_conf["water"] = {
+                    "auto": True,
+                    "name": self.water.name,
+                    "path": output_dir + f"{str(self.water.id)}_water.gpkg",
+                    "all_touched": self.water_all_touched,
+                }
+            else:
+                am_conf["water"] = {
+                    "auto": False,
+                    "name": self.water.name,
+                    "path": self.water.primary_uri,
+                    "all_touched": self.water_all_touched,
+                }
         else:
-            am_conf["water"] = {
-                "auto": False,
-                "name": self.water.name,
-                "path": self.water.primary_uri,
-                "all_touched": self.water_all_touched,
-            }
+            am_conf["water"] = None
 
         # Do we have a stack to use or do we need to build it?
         if self.stack:
