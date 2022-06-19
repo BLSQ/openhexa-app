@@ -20,12 +20,20 @@ try:
 except ImportError:
     missing_dependencies = True
 
+from django.db import models
 from dpq.queue import AtLeastOnceQueue
 
 import hexa.plugins.connector_s3.api as s3_api
 from hexa.plugins.connector_s3.models import Bucket
 
-from .models import Fileset, FilesetRoleCode, FilesetStatus, ValidateFilesetJob
+from .models import (
+    Analysis,
+    AnalysisStatus,
+    Fileset,
+    FilesetRoleCode,
+    FilesetStatus,
+    ValidateFilesetJob,
+)
 
 logger = getLogger(__name__)
 
@@ -383,6 +391,24 @@ def validate_data_and_download(fileset: Fileset) -> str:
     return local_name
 
 
+def get_all_fileset_fields():
+    for analysis_model in Analysis.get_analysis_models():
+        for field in analysis_model._meta.get_fields():
+            if isinstance(field, models.ForeignKey) and field.related_model == Fileset:
+                yield (analysis_model, field.name)
+
+
+def refresh_all_analysis(fileset: Fileset):
+    for analysis_model, field_name in get_all_fileset_fields():
+        for analysis in analysis_model.objects.filter(
+            status=AnalysisStatus.DRAFT, **{field_name: fileset}
+        ):
+            try:
+                analysis.update_status_if_draft()
+            except Exception:
+                logger.exception("refresh draft analysis post data validation")
+
+
 def validate_fileset_job(queue, job) -> None:
     if missing_dependencies:
         logger.error("Validation deactivated, missing dependencies")
@@ -435,6 +461,9 @@ def validate_fileset_job(queue, job) -> None:
 
     # custom validation by role
     fileset_role_validator[fileset.role.code](fileset, filename)
+
+    # refresh all related analysis, if any
+    refresh_all_analysis(fileset)
     logger.info("Completed validation fileset %s", job.args["fileset_id"])
 
 

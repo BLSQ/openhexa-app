@@ -721,6 +721,10 @@ class Analysis(Pipeline):
         self.save()
         return fileset
 
+    @staticmethod
+    def get_analysis_models():
+        return Analysis.__subclasses__()
+
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
     ANISOTROPIC = "ANISOTROPIC"
@@ -822,6 +826,7 @@ class AccessibilityAnalysis(Analysis):
                     return
 
         self.status = AnalysisStatus.READY
+        self.save()
 
     @transaction.atomic
     def set_input(
