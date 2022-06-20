@@ -1,24 +1,9 @@
-"""hexa URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/3.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
+from hexa.core.graphql.view import SecureGraphQLView
 from hexa.plugins.app import get_connector_app_configs
 
 from .schema import schema
@@ -44,7 +29,7 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     path(
         "graphql/",
-        GraphQLView.as_view(
+        SecureGraphQLView.as_view(
             schema=schema, playground_options={"request.credentials": "include"}
         )
         if settings.ENABLE_GRAPHQL is True
