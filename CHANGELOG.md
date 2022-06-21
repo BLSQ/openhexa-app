@@ -1,6 +1,37 @@
 Changelog
 =========
 
+Version 0.40
+------------
+
+June 19, 2022
+
+### Added
+
+- Country module support sub zone by countries
+
+### Updated
+
+- After validating a AccessMod fileset, update related analysis status
+
+Version 0.39
+------------
+
+May 31, 2022
+
+### Added
+
+- Support for Google Cloud Storage for notebooks
+- Country module for storing list of countries, boundaries, flags...
+- AccessMod: new analysis: zonal statistics
+
+### Updated
+
+- Allow update of AccessMod filesets
+- Accessibility analysis improved configuration, parameters
+- Generate only one image for openhexa-app and AccessMod data worker
+- DHIS2 Sync is not atomic anymore, it was causing a lot of SQL load
+
 Version 0.38
 ------------
 

@@ -95,6 +95,7 @@ class ProjectTest(GraphQLTestCase):
                   spatialResolution
                   country {
                     code
+                    flag
                   }
                   owner {
                       __typename
@@ -123,7 +124,10 @@ class ProjectTest(GraphQLTestCase):
                 "id": str(self.SAMPLE_PROJECT.id),
                 "name": "Sample project",
                 "spatialResolution": 100,
-                "country": {"code": "FR"},
+                "country": {
+                    "code": "FR",
+                    "flag": "http://app.openhexa.test/static/flags/fr.gif",
+                },
                 "author": {"email": "jim@bluesquarehub.com"},
                 "owner": {"__typename": "User", "id": str(self.USER_JIM.id)},
                 "permissions": [

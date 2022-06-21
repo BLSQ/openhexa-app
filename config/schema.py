@@ -6,6 +6,8 @@ from ariadne import (
     snake_case_fallback_resolvers,
 )
 
+from hexa.countries.schema import countries_bindables, countries_type_defs
+
 # from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 # from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 # from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
@@ -26,6 +28,7 @@ schema = make_executable_schema(
         # dhis2_type_defs,
         # s3_type_defs,
         accessmod_type_defs,
+        countries_type_defs,
     ],
     [
         # *catalog_bindables,
@@ -33,6 +36,7 @@ schema = make_executable_schema(
         # *dhis2_bindables,
         # *s3_bindables,
         *accessmod_bindables,
+        *countries_bindables,
         snake_case_fallback_resolvers,
     ],
 )
