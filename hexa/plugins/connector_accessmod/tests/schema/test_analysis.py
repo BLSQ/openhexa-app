@@ -259,9 +259,11 @@ class AnalysisTest(GraphQLTestCase):
                   type
                   status
                   name
-                  owner {
-                    ... on User {
-                      email
+                  ...on AccessmodOwnership {
+                    owner {
+                        ... on User {
+                        email
+                        }
                     }
                   }
                   ... on AccessmodAccessibilityAnalysis {
