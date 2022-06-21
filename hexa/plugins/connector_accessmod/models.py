@@ -1153,6 +1153,12 @@ class ZonalStatisticsAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
     )
     time_thresholds = models.JSONField(default=get_default_time_thresholds)
+    zonal_statistics_table = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    zonal_statistics_geo = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
 
     def populate_index(self, index):
         raise NotImplementedError

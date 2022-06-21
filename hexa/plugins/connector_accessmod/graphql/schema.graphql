@@ -471,6 +471,8 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
     travelTimes: AccessmodFileset
     boundaries: AccessmodFileset
     timeThresholds: TimeThresholds
+    statisticsTable: AccessmodFileset
+    statisticsGeo: AccessmodFileset
 }
 input CreateAccessmodZonalStatisticsInput {
     projectId: String!
