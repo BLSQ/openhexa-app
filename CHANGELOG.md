@@ -4,7 +4,7 @@ Changelog
 Version 0.40
 ------------
 
-June 19, 2022
+June 21, 2022
 
 ### Added
 
