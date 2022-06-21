@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.conf import settings
 from google.cloud import storage
 from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.oauth2 import service_account
@@ -25,12 +26,15 @@ def _build_app_gcs_credentials(*, credentials: models.Credentials):
 
 
 def _build_app_short_lived_credentials(*, credentials: models.Credentials):
+    token_lifetime = 3600
+    if settings.GCS_TOKEN_LIFETIME is not None:
+        token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
     gcs_credentials = _build_app_gcs_credentials(credentials=credentials)
     iam_credentials = IAMCredentialsClient(credentials=gcs_credentials)
     token = iam_credentials.generate_access_token(
         name=f"projects/-/serviceAccounts/{gcs_credentials._service_account_email}",
-        scope=["https://www.googleapis.com/auth/devstorage.read_write"],
-        lifetime=duration_pb2.Duration(seconds=3600),
+        scope=["https://www.googleapis.com/auth/devstorage.full_control"],
+        lifetime=duration_pb2.Duration(seconds=token_lifetime),
     )
     return token
 

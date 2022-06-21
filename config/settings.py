@@ -349,6 +349,8 @@ TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
 
+GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
+
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")

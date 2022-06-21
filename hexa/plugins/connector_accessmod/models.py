@@ -721,6 +721,10 @@ class Analysis(Pipeline):
         self.save()
         return fileset
 
+    @staticmethod
+    def get_analysis_models():
+        return Analysis.__subclasses__()
+
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
     ANISOTROPIC = "ANISOTROPIC"
@@ -822,6 +826,7 @@ class AccessibilityAnalysis(Analysis):
                     return
 
         self.status = AnalysisStatus.READY
+        self.save()
 
     @transaction.atomic
     def set_input(
@@ -1000,20 +1005,23 @@ class AccessibilityAnalysis(Analysis):
                 ),
             }
 
-        if self.water.status == FilesetStatus.TO_ACQUIRE:
-            am_conf["water"] = {
-                "auto": True,
-                "name": self.water.name,
-                "path": output_dir + f"{str(self.water.id)}_water.gpkg",
-                "all_touched": self.water_all_touched,
-            }
+        if self.water:
+            if self.water.status == FilesetStatus.TO_ACQUIRE:
+                am_conf["water"] = {
+                    "auto": True,
+                    "name": self.water.name,
+                    "path": output_dir + f"{str(self.water.id)}_water.gpkg",
+                    "all_touched": self.water_all_touched,
+                }
+            else:
+                am_conf["water"] = {
+                    "auto": False,
+                    "name": self.water.name,
+                    "path": self.water.primary_uri,
+                    "all_touched": self.water_all_touched,
+                }
         else:
-            am_conf["water"] = {
-                "auto": False,
-                "name": self.water.name,
-                "path": self.water.primary_uri,
-                "all_touched": self.water_all_touched,
-            }
+            am_conf["water"] = None
 
         # Do we have a stack to use or do we need to build it?
         if self.stack:
@@ -1150,6 +1158,12 @@ class ZonalStatisticsAnalysis(Analysis):
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
     )
     time_thresholds = models.JSONField(default=get_default_time_thresholds)
+    zonal_statistics_table = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    zonal_statistics_geo = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
 
     def populate_index(self, index):
         raise NotImplementedError

@@ -45,3 +45,13 @@ class Country(Base):
     @property
     def flag(self):
         return DjangoCountry(self.code).flag
+
+
+class WHOBoundary(Base):
+    name = models.TextField()
+    country = models.ForeignKey(Country, related_name="zones", on_delete=models.CASCADE)
+    parent = models.ForeignKey(
+        "WHOBoundary", related_name="childrens", on_delete=models.SET_NULL, null=True
+    )
+    administrative_level = models.IntegerField()
+    extent = models.GeometryField()
