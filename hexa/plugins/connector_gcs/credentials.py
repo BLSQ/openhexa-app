@@ -5,6 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 import hexa.plugins.connector_gcs.models as models
 from hexa.notebooks.credentials import NotebooksCredentials
+from hexa.plugins.connector_gcs.api import _build_app_short_lived_credentials
 from hexa.plugins.connector_gcs.models import Bucket
 from hexa.user_management.models import PermissionMode
 
@@ -33,19 +34,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "The GCS connector plugin should have a single credentials entry"
             )
 
-        # TODO: generate short-lived credentials
-        json_cred = {
-            "type": "service_account",
-            "project_id": gcs_credentials.project_id,
-            "private_key_id": gcs_credentials.private_key_id,
-            "private_key": gcs_credentials.private_key,
-            "client_email": gcs_credentials.client_email,
-            "client_id": gcs_credentials.client_id,
-            "auth_uri": gcs_credentials.auth_uri,
-            "token_uri": gcs_credentials.token_uri,
-            "auth_provider_x509_cert_url": gcs_credentials.auth_provider_x509_cert_url,
-            "client_x509_cert_url": gcs_credentials.client_x509_cert_url,
-        }
+        token = _build_app_short_lived_credentials(credentials=gcs_credentials)
 
         json_buckets = {
             "buckets": [{"name": b.name, "mode": "RO"} for b in read_only_buckets]
@@ -57,8 +46,6 @@ def notebooks_credentials(credentials: NotebooksCredentials):
                 "GCS_BUCKETS": base64.b64encode(
                     json.dumps(json_buckets).encode()
                 ).decode(),
-                "GCS_CREDENTIALS": base64.b64encode(
-                    json.dumps(json_cred).encode()
-                ).decode(),
+                "GCS_TOKEN": token.access_token,
             }
         )

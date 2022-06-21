@@ -19,6 +19,7 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
+    ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRunState, DAGTemplate
 from hexa.plugins.connector_s3.models import Bucket
@@ -41,6 +42,8 @@ class AnalysisTest(GraphQLTestCase):
     STACK_ROLE = None
     TRANSPORT_NETWORK_ROLE = None
     WATER_ROLE = None
+    BOUNDARIES_ROLE = None
+    TRAVEL_TIMES_ROLE = None
     DEM_FILESET = None
     FRICTION_SURFACE_FILESET = None
     HEALTH_FACILITIES_FILESET = None
@@ -49,6 +52,8 @@ class AnalysisTest(GraphQLTestCase):
     WATER_FILESET = None
     POPULATION_FILESET = None
     STACK_FILESET = None
+    BOUNDARIES_FILESET = None
+    TRAVEL_TIMES_FILESET = None
     SAMPLE_PROJECT = None
 
     @classmethod
@@ -215,6 +220,33 @@ class AnalysisTest(GraphQLTestCase):
             health_facilities=cls.HEALTH_FACILITIES_FILESET,
             hf_processing_order="yolo",
         )
+        cls.BOUNDARIES_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.BOUNDARIES,
+        )
+        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.TRAVEL_TIMES,
+        )
+        cls.BOUNDARIES_FILESET = Fileset.objects.create(
+            name="A boundaries fileset",
+            role=cls.BOUNDARIES_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            author=cls.USER_1,
+            status=FilesetStatus.VALID,
+        )
+        cls.TRAVEL_TIMES_FILESET = Fileset.objects.create(
+            name="A traveltime fileset",
+            role=cls.TRAVEL_TIMES_ROLE,
+            project=cls.SAMPLE_PROJECT,
+            author=cls.USER_1,
+            status=FilesetStatus.VALID,
+        )
+        cls.ZONAL_STATISTICS_ANALYSIS_1 = ZonalStatisticsAnalysis.objects.create(
+            author=cls.USER_1,
+            project=cls.SAMPLE_PROJECT,
+            name="First Zonal Statistics analysis",
+            travel_times=cls.TRAVEL_TIMES_FILESET,
+            boundaries=cls.BOUNDARIES_FILESET,
+        )
 
     def test_accessmod_analysis_owner(self):
         self.client.force_login(self.USER_1)
@@ -348,11 +380,15 @@ class AnalysisTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 4,
+                "totalItems": 5,
                 "items": [
                     {
+                        "id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id),
+                        "type": self.ZONAL_STATISTICS_ANALYSIS_1.type.value,
+                    },
+                    {
                         "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id),
-                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.type,
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.type.value,
                         "frictionSurface": {
                             "id": str(
                                 self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.friction_surface.id
@@ -361,7 +397,7 @@ class AnalysisTest(GraphQLTestCase):
                     },
                     {
                         "id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id),
-                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.type,
+                        "type": self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.type.value,
                         "frictionSurface": {
                             "id": str(
                                 self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.friction_surface.id
@@ -370,11 +406,11 @@ class AnalysisTest(GraphQLTestCase):
                     },
                     {
                         "id": str(self.ACCESSIBILITY_ANALYSIS_2.id),
-                        "type": self.ACCESSIBILITY_ANALYSIS_2.type,
+                        "type": self.ACCESSIBILITY_ANALYSIS_2.type.value,
                     },
                     {
                         "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
-                        "type": self.ACCESSIBILITY_ANALYSIS_1.type,
+                        "type": self.ACCESSIBILITY_ANALYSIS_1.type.value,
                     },
                 ],
             },
@@ -404,8 +440,9 @@ class AnalysisTest(GraphQLTestCase):
             {
                 "pageNumber": 1,
                 "totalPages": 1,
-                "totalItems": 4,
+                "totalItems": 5,
                 "items": [
+                    {"id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id)},
                     {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.id)},
                     {"id": str(self.GEOGRAPHIC_COVERAGE_ANALYSIS_1.id)},
                     {"id": str(self.ACCESSIBILITY_ANALYSIS_2.id)},
@@ -463,8 +500,11 @@ class AnalysisTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalyses"],
             {
-                "totalItems": 4,
+                "totalItems": 5,
                 "items": [
+                    {
+                        "name": self.ZONAL_STATISTICS_ANALYSIS_1.name,
+                    },
                     {
                         "name": self.GEOGRAPHIC_COVERAGE_ANALYSIS_2.name,
                     },
@@ -676,6 +716,136 @@ class AnalysisTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "analysis": None, "errors": ["NOT_FOUND"]},
             r["data"]["updateAccessmodAccessibilityAnalysis"],
+        )
+
+    def test_create_accessmod_zonal_statistics_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodZonalStatistics($input: CreateAccessmodZonalStatisticsInput) {
+                  createAccessmodZonalStatistics(input: $input) {
+                    success
+                    analysis {
+                        id
+                        name
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "name": "A new ZonalStatistics analysis",
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["createAccessmodZonalStatistics"]["success"], True)
+        self.assertEqual(
+            r["data"]["createAccessmodZonalStatistics"]["analysis"]["name"],
+            "A new ZonalStatistics analysis",
+        )
+        self.assertIsInstance(
+            r["data"]["createAccessmodZonalStatistics"]["analysis"]["name"], str
+        )
+        self.assertEqual([], r["data"]["createAccessmodZonalStatistics"]["errors"])
+
+    def test_create_accessmod_zonal_statistics_analysis_errors(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodZonalStatistics($input: CreateAccessmodZonalStatisticsInput) {
+                  createAccessmodZonalStatistics(input: $input) {
+                    success
+                    analysis {
+                        id
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "projectId": str(self.SAMPLE_PROJECT.id),
+                    "name": self.ZONAL_STATISTICS_ANALYSIS_1.name,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]},
+            r["data"]["createAccessmodZonalStatistics"],
+        )
+
+    def test_update_accessmod_zonal_statistics_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodZonalStatistics($input: UpdateAccessmodZonalStatisticsInput) {
+                  updateAccessmodZonalStatistics(input: $input) {
+                    success
+                    analysis {
+                        id
+                        name
+                        status
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id),
+                    "name": "Updated analysis!",
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "analysis": {
+                    "id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id),
+                    "name": "Updated analysis!",
+                    "status": AnalysisStatus.DRAFT,
+                },
+                "errors": [],
+            },
+            r["data"]["updateAccessmodZonalStatistics"],
+        )
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodZonalStatistics($input: UpdateAccessmodZonalStatisticsInput) {
+                  updateAccessmodZonalStatistics(input: $input) {
+                    success
+                    analysis {
+                        status
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id),
+                    "name": "Updated analysis!",
+                    "populationId": str(self.POPULATION_FILESET.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "analysis": {"status": AnalysisStatus.READY},
+                "errors": [],
+            },
+            r["data"]["updateAccessmodZonalStatistics"],
         )
 
     @responses.activate
