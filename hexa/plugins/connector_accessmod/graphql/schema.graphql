@@ -341,12 +341,11 @@ enum AccessmodAnalysisStatus {
     FAILED
 }
 
-interface AccessmodAnalysis implements AccessmodOwnership{
+interface AccessmodAnalysis {
     id: String!
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: AccessmodOwner
     author: User!
     authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
