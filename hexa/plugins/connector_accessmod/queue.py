@@ -120,7 +120,7 @@ def validate_raster(raster, fileset: Fileset):
 
 def validate_health_facilities(fileset: Fileset, filename: str):
     facilities = gpd.read_file(filename)
-    validate_geopkg(facilities, fileset, ("Point",))
+    validate_geopkg(facilities, fileset, ("Point", "MultiPoint"))
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
@@ -135,7 +135,7 @@ def validate_health_facilities(fileset: Fileset, filename: str):
 
 def validate_water(fileset: Fileset, filename: str):
     water = gpd.read_file(filename)
-    validate_geopkg(water, fileset, ("LineString", "MultiLineString", "MultiPolygon"))
+    validate_geopkg(water, fileset, ("LineString", "MultiLineString", "MultiPolygon", "Polygon"))
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
