@@ -186,6 +186,24 @@ def resolve_login(_, info, **kwargs):
         return {"success": False, "me": resolve_me(_, info)}
 
 
+@identity_mutations.field("signUp")
+def resolve_signup(_, info, **kwargs):
+    signup_input = kwargs["input"]
+
+    # TODO: validate acceptTos
+
+    # TODO: validate email (incl. uniqueness) / password
+
+    User.objects.create_user(
+        first_name=signup_input["firstName"],
+        last_name=signup_input["lastName"],
+        email=signup_input["email"],
+        password=signup_input["password"],
+    )
+
+    return {"success": True}
+
+
 @identity_mutations.field("logout")
 def resolve_logout(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
