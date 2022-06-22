@@ -14,7 +14,7 @@ type AccessmodProject implements AccessmodOwnership {
     country: Country!
     author: User!
     owner: AccessmodOwner
-    extent: [[Float!]]
+    extent: [[Float!]!]
     dem: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
     permissions: [AccessmodProjectPermission!]!
