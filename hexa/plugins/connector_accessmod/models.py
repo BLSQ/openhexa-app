@@ -765,7 +765,7 @@ class AccessibilityAnalysis(Analysis):
     algorithm = models.CharField(
         max_length=50,
         choices=AccessibilityAnalysisAlgorithm.choices,
-        default=AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+        default=AccessibilityAnalysisAlgorithm.ISOTROPIC,
     )
     knight_move = models.BooleanField(default=False)
 
