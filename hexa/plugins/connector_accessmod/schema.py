@@ -155,14 +155,18 @@ def resolve_accessmod_projects(
     )
 
 
-@accessmod_mutations.field("createAccessmodProjectByCountry")
+@accessmod_mutations.field("createAccessmodProject")
 @transaction.atomic
-def resolve_create_accessmod_project_by_country(_, info, **kwargs):
+def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
 
     country = Country.objects.get(code=create_input["country"]["code"])
+    if "extent" in create_input:
+        extent = create_input["extent"]
+    else:
+        extent = country.simplified_extent.tuple[0]
 
     try:
         project = Project.objects.create_if_has_perm(
@@ -172,7 +176,7 @@ def resolve_create_accessmod_project_by_country(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=country.simplified_extent.tuple[0],
+            extent=extent,
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
@@ -191,16 +195,10 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             id=update_input["id"]
         )
         changes = {}
-        for scalar_field in ["name", "description", "extent"]:
+        for scalar_field in ["name", "description"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
-        if "demId" in update_input:
-            dem = Fileset.objects.filter_for_user(principal).get(
-                id=update_input["demId"]
-            )
-            changes["dem"] = dem
-        if "country" in update_input:
-            changes["country"] = update_input["country"]["code"]
+
         if len(changes) > 0:
             try:
                 project.update_if_has_perm(principal, **changes)
