@@ -305,6 +305,31 @@ class DAGSyncTest(TestCase):
             status=200,
         )
         responses.add(
+            responses.PATCH,
+            urljoin(cluster.api_url, "dags/prj1_update"),
+            json={
+                "dags": [
+                    {
+                        "dag_id": "prj1_update",
+                        "description": "test dag from factory",
+                        "file_token": "Ii9vcHQvYWlyZmxvdy9kYWdzL3JlcG8vZGFncy1kZW1vL2hleGFfZmFjdG9yeS5weSI.zP80SU0fjSFxAeXsKHOTAZ3Gs50",
+                        "fileloc": "/opt/airflow/dags/repo/dags-demo/hexa_factory.py",
+                        "is_active": True,
+                        "is_paused": False,
+                        "is_subdag": False,
+                        "owners": ["airflow"],
+                        "root_dag_id": None,
+                        "schedule_interval": {
+                            "__type": "CronExpression",
+                            "value": "10 10 * * 1",
+                        },
+                        "tags": [],
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
             responses.GET,
             urljoin(
                 cluster.api_url, "dags/prj1_update/dagRuns?order_by=-end_date&limit=100"

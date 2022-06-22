@@ -14,7 +14,7 @@ type AccessmodProject implements AccessmodOwnership {
     country: Country!
     author: User!
     owner: AccessmodOwner
-    extent: String
+    extent: [[Float!]!]
     dem: AccessmodFileset
     authorizedActions: [AccessmodProjectAuthorizedActions!]!
     permissions: [AccessmodProjectPermission!]!
@@ -35,12 +35,13 @@ type AccessmodProjectPage {
     totalItems: Int!
     items: [AccessmodProject!]!
 }
-input CreateAccessmodProjectByCountryInput {
+input CreateAccessmodProjectInput {
     name: String!
     description: String
     spatialResolution: Int!
     crs: Int!
     country: CountryInput!
+    extent: [[Float!]!]
 }
 type CreateAccessmodProjectResult {
     success: Boolean!
@@ -55,8 +56,6 @@ input UpdateAccessmodProjectInput {
     id: String!
     name: String
     description: String
-    extent: String
-    demId: String
 }
 type UpdateAccessmodProjectResult {
     success: Boolean!
@@ -155,7 +154,7 @@ extend type Query {
     accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
-    createAccessmodProjectByCountry(input: CreateAccessmodProjectByCountryInput!): CreateAccessmodProjectResult!
+    createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
     createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
@@ -222,6 +221,9 @@ enum AccessmodFilesetRoleCode {
     TRAVEL_TIMES
     WATER
     STACK
+    BOUNDARIES
+    ZONAL_STATISTICS
+    ZONAL_STATISTICS_TABLE
 }
 enum AccessmodFilesetFormat {
     VECTOR
@@ -327,6 +329,7 @@ extend type Mutation {
 enum AccessmodAnalysisType {
     ACCESSIBILITY
     GEOGRAPHIC_COVERAGE
+    ZONAL_STATISTICS
 }
 enum AccessmodAnalysisStatus {
     DRAFT
@@ -337,12 +340,11 @@ enum AccessmodAnalysisStatus {
     FAILED
 }
 
-interface AccessmodAnalysis implements AccessmodOwnership{
+interface AccessmodAnalysis {
     id: String!
     type: AccessmodAnalysisType!
     status: AccessmodAnalysisStatus!
     name: String!
-    owner: AccessmodOwner
     author: User!
     authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
     createdAt: DateTime!
@@ -452,6 +454,53 @@ enum UpdateAccessmodAccessibilityAnalysisError {
     NOT_FOUND
     NAME_DUPLICATE
 }
+scalar TimeThresholds
+type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership {
+    id: String!
+    type: AccessmodAnalysisType!
+    status: AccessmodAnalysisStatus!
+    name: String!
+    owner: AccessmodOwner
+    author: User!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    population: AccessmodFileset
+    travelTimes: AccessmodFileset
+    boundaries: AccessmodFileset
+    timeThresholds: TimeThresholds
+    zonalStatisticsTable: AccessmodFileset
+    zonalStatisticsGeo: AccessmodFileset
+}
+input CreateAccessmodZonalStatisticsInput {
+    projectId: String!
+    name: String!
+}
+type CreateAccessmodZonalStatisticsResult {
+    success: Boolean!
+    analysis: AccessmodZonalStatistics
+    errors: [CreateAccessmodZonalStatisticsError!]!
+}
+enum CreateAccessmodZonalStatisticsError {
+    NAME_DUPLICATE
+}
+input UpdateAccessmodZonalStatisticsInput {
+    id: String!
+    name: String
+    populationId: String
+    travelTimesId: String
+    boundariesId: String
+    timeThresholds: TimeThresholds
+}
+type UpdateAccessmodZonalStatisticsResult {
+    success: Boolean!
+    analysis: AccessmodZonalStatistics
+    errors: [UpdateAccessmodZonalStatisticsError!]!
+}
+enum UpdateAccessmodZonalStatisticsError {
+    NOT_FOUND
+    NAME_DUPLICATE
+}
 input LaunchAccessmodAnalysisInput {
     id: String!
 }
@@ -480,7 +529,9 @@ extend type Query {
 }
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
+    createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
     updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
+    updateAccessmodZonalStatistics(input: UpdateAccessmodZonalStatisticsInput): UpdateAccessmodZonalStatisticsResult!
     launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
     deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
 }
