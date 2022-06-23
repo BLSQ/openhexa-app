@@ -512,7 +512,7 @@ class DAGRun(Base, WithStatus):
         if should_update:
             self.last_refreshed_at = timezone.now()
             self.state = run_data["state"]
-            if success_or_failed:
+            if run_data["end_date"]:
                 self.duration = (
                     parse_datetime(run_data["end_date"]) - self.execution_date
                 )
