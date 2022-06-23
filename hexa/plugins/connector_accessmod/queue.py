@@ -120,32 +120,34 @@ def validate_raster(raster, fileset: Fileset):
 
 def validate_health_facilities(fileset: Fileset, filename: str):
     facilities = gpd.read_file(filename)
-    validate_geopkg(facilities, fileset, ("Point",))
+    validate_geopkg(facilities, fileset, ("Point", "MultiPoint"))
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
         return
 
-    generate_geojson(fileset, filename)
-
     # end of processing -> validated
     fileset.status = FilesetStatus.VALID
     fileset.save()
+
+    generate_geojson(fileset, filename)
 
 
 def validate_water(fileset: Fileset, filename: str):
     water = gpd.read_file(filename)
-    validate_geopkg(water, fileset, ("LineString", "MultiLineString", "MultiPolygon"))
+    validate_geopkg(
+        water, fileset, ("LineString", "Polygon", "MultiLineString", "MultiPolygon")
+    )
 
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
         return
 
-    generate_geojson(fileset, filename)
-
     # end of processing -> validated
     fileset.status = FilesetStatus.VALID
     fileset.save()
+
+    generate_geojson(fileset, filename)
 
 
 def validate_transport(fileset: Fileset, filename: str):
@@ -155,8 +157,6 @@ def validate_transport(fileset: Fileset, filename: str):
     if fileset.status == FilesetStatus.INVALID:
         # invalid by previous checks
         return
-
-    generate_geojson(fileset, filename)
 
     # extract roads categories & validate
     if fileset.metadata is None:
@@ -178,6 +178,8 @@ def validate_transport(fileset: Fileset, filename: str):
 
     fileset.status = FilesetStatus.VALID
     fileset.save()
+
+    generate_geojson(fileset, filename)
 
 
 def generate_geojson(fileset: Fileset, filename: str, **options):
