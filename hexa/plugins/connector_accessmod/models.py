@@ -340,6 +340,7 @@ class Fileset(Entry):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     metadata = models.JSONField(blank=True, default=dict)
+    vizualisation_uri = models.CharField(max_length=250, null=True)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
@@ -355,6 +356,7 @@ class Fileset(Entry):
         return self.save()
 
     def set_invalid(self, error):
+        self.refresh_from_db()
         if self.metadata is None:
             self.metadata = {}
         self.metadata["validation_error"] = error
