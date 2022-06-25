@@ -27,7 +27,17 @@ type WHORegion {
     name: String!
 }
 
+type WHOBoundary {
+    id: String!
+    name: String!
+    country: Country!
+    administrative_level: Int!
+    parent: String
+    extent: String!
+}
+
 extend type Query {
     country(code: String, alpha3: String): Country
+    boundaries(country_code: String!, level: String!): [WHOBoundary!]!
     countries: [Country!]!
 }

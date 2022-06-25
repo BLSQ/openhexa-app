@@ -3,7 +3,7 @@ import pathlib
 from ariadne import ObjectType, QueryType, load_schema_from_path
 from django.http import HttpRequest
 
-from .models import Country
+from .models import Country, WHOBoundary
 
 countries_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -28,6 +28,15 @@ def resolve_country(_, info, **kwargs):
 @countries_query.field("countries")
 def resolve_countries(_, info, **kwargs):
     return Country.objects.all().order_by("code")
+
+
+@countries_query.field("boundaries")
+def resolve_boundaries(_, info, **kwargs):
+    country_code = kwargs.get("country_code")
+    level = kwargs.get("level")
+    return WHOBoundary.objects.filter(
+        country__code=country_code, administrative_level=level
+    ).order_by("name")
 
 
 country_object = ObjectType("Country")
