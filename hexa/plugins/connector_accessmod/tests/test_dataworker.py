@@ -165,8 +165,10 @@ class AccessmodDataWorkerTest(TestCase):
                 "max": 691,
                 "min": 143,
                 "nodata": 32767.0,
-                "cog_raster_uri": "s3://test-bucket/analysis/dem.cog.tif",
             },
+        )
+        self.assertEqual(
+            self.dem_fs.vizualisation_uri, "s3://test-bucket/analysis/dem.cog.tif"
         )
         self.assertEqual(self.dem_fs.status, FilesetStatus.VALID)
 
@@ -185,11 +187,10 @@ class AccessmodDataWorkerTest(TestCase):
             None, MockJob(args={"fileset_id": str(self.facilities_fs.id)})
         )
         self.facilities_fs.refresh_from_db()
+        self.assertEqual(self.facilities_fs.metadata, {"length": 3})
         self.assertEqual(
-            self.facilities_fs.metadata,
-            {
-                "geojson_uri": "s3://test-bucket/analysis/clinics_viz.geojson",
-            },
+            self.facilities_fs.vizualisation_uri,
+            "s3://test-bucket/analysis/clinics_viz.geojson",
         )
         self.assertEqual(self.facilities_fs.status, FilesetStatus.VALID)
 
@@ -207,11 +208,10 @@ class AccessmodDataWorkerTest(TestCase):
         validate_fileset_job(None, MockJob(args={"fileset_id": str(self.water_fs.id)}))
         self.water_fs.refresh_from_db()
         self.assertEqual(
-            self.water_fs.metadata,
-            {
-                "geojson_uri": "s3://test-bucket/analysis/water_viz.geojson",
-            },
+            self.water_fs.vizualisation_uri,
+            "s3://test-bucket/analysis/water_viz.geojson",
         )
+        self.assertEqual(self.water_fs.metadata, {"length": 3})
         self.assertEqual(self.water_fs.status, FilesetStatus.VALID)
 
     @mock_s3
@@ -239,8 +239,12 @@ class AccessmodDataWorkerTest(TestCase):
                     "surface": ["asphalt"],
                     "tracktype": [],
                 },
-                "geojson_uri": "s3://test-bucket/analysis/transport_viz.geojson",
+                "length": 3,
             },
+        )
+        self.assertEqual(
+            self.transport_fs.vizualisation_uri,
+            "s3://test-bucket/analysis/transport_viz.geojson",
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
 
@@ -264,8 +268,11 @@ class AccessmodDataWorkerTest(TestCase):
             {
                 "unique_values": [0, 1, 2, 3, 4, 6, 7, 8, 10],
                 "nodata": 0.0,
-                "cog_raster_uri": "s3://test-bucket/analysis/landcover.cog.tif",
             },
+        )
+        self.assertEqual(
+            self.landcover_fs.vizualisation_uri,
+            "s3://test-bucket/analysis/landcover.cog.tif",
         )
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)
 
