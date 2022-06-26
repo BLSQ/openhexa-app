@@ -833,7 +833,10 @@ def resolve_signup_for_accessmod(_, info, **kwargs):
     if not signup_input["acceptTos"]:
         return {"success": False, "errors": ["MUST_ACCEPT_TOS"]}
 
-    # TODO: validate email (incl. uniqueness) / password
+    if User.objects.filter(email=signup_input["email"]).exists():
+        return {"success": False, "errors": ["ALREADY_EXISTS"]}
+
+    # TODO: validate email & password
 
     User.objects.create_user(
         first_name=signup_input["firstName"],

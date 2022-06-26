@@ -14,7 +14,10 @@ class ProjectTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        pass
+        cls.USER_SABRINA = User.objects.create_user(
+            "sabrina@bluesquarehub.com",
+            "standardpassword",
+        )
 
     def test_signup_for_accessmod(self):
         r = self.run_query(
@@ -67,5 +70,30 @@ class ProjectTest(GraphQLTestCase):
 
         self.assertEqual(
             {"success": False, "errors": ["MUST_ACCEPT_TOS"]},
+            r["data"]["signUpForAccessmod"],
+        )
+
+        r = self.run_query(
+            """
+              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
+                signUpForAccessmod(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": "sabrina@bluesquarehub.com",
+                    "password": "sabrinasabrina",
+                    "firstName": "Sabrina",
+                    "lastName": "Muller",
+                    "acceptTos": True,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["ALREADY_EXISTS"]},
             r["data"]["signUpForAccessmod"],
         )
