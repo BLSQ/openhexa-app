@@ -535,3 +535,19 @@ extend type Mutation {
     launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
     deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
 }
+
+# Identity
+input SignUpForAccessmodInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    password: String!
+    acceptTos: Boolean!
+}
+type SignUpForAccessmodResult {
+    success: Boolean!
+}
+
+extend type Mutation {
+    signUpForAccessmod(input: SignUpForAccessmodInput!): SignUpForAccessmodResult!
+}

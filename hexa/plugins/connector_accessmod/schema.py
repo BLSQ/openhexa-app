@@ -825,6 +825,26 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@accessmod_mutations.field("signUpForAccessmod")
+@transaction.atomic
+def resolve_signup_for_accessmod(_, info, **kwargs):
+    signup_input = kwargs["input"]
+
+    # TODO: validate acceptTos
+
+    # TODO: validate email (incl. uniqueness) / password
+
+    User.objects.create_user(
+        first_name=signup_input["firstName"],
+        last_name=signup_input["lastName"],
+        email=signup_input["email"],
+        password=signup_input["password"],
+        is_active=False,
+    )
+
+    return {"success": True}
+
+
 accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,

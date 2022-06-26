@@ -32,16 +32,6 @@ type LoginResult {
 type LogoutResult {
     success: Boolean!
 }
-input SignUpInput {
-    firstName: String!
-    lastName: String!
-    email: String!
-    password: String!
-    acceptTos: Boolean!
-}
-type SignUpResult {
-    success: Boolean!
-}
 input ResetPasswordInput {
     email: String!
 }
@@ -70,7 +60,6 @@ extend type Query {
 extend type Mutation {
     login(input: LoginInput!): LoginResult!
     logout: LogoutResult!
-    signUp(input: SignUpInput!): SignUpResult!
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!
 }

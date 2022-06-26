@@ -82,6 +82,9 @@ class User(AbstractUser, UserInterface):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = CIEmailField(_("email address"), unique=True)
     accepted_tos = models.BooleanField(default=False)
+    signed_up_from = models.URLField(
+        blank=True, help_text="The URL of the page the user has used to sign up"
+    )
 
     objects = UserManager()
 

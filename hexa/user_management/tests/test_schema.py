@@ -316,31 +316,6 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["login"],
         )
 
-    def test_signup(self):
-        r = self.run_query(
-            """
-              mutation signUp($input: SignUpInput!) {
-                signUp(input: $input) {
-                  success
-                }
-              }
-            """,
-            {
-                "input": {
-                    "email": "wolfgang@bluesquarehub.com",
-                    "password": "wolfgangistnett",
-                    "firstName": "Wolfgang",
-                    "lastName": "Müller",
-                    "acceptTos": True,
-                }
-            },
-        )
-
-        self.assertEqual(
-            {"success": True},
-            r["data"]["signUp"],
-        )
-
     def test_logout(self):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
