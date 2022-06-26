@@ -544,10 +544,13 @@ input SignUpForAccessmodInput {
     password: String!
     acceptTos: Boolean!
 }
+enum SignUpForAccessmodError {
+    MUST_ACCEPT_TOS
+}
 type SignUpForAccessmodResult {
     success: Boolean!
+    errors: [SignUpForAccessmodError!]!
 }
-
 extend type Mutation {
     signUpForAccessmod(input: SignUpForAccessmodInput!): SignUpForAccessmodResult!
 }

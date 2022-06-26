@@ -43,3 +43,29 @@ class ProjectTest(GraphQLTestCase):
         self.assertEqual(
             False, User.objects.get(email="wolfgang@bluesquarehub.com").is_active
         )
+
+    def test_signup_for_accessmod_errors(self):
+        r = self.run_query(
+            """
+              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
+                signUpForAccessmod(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": "gunther@bluesquarehub.com",
+                    "password": "gunthergunther",
+                    "firstName": "Gunther",
+                    "lastName": "Grass",
+                    "acceptTos": False,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["MUST_ACCEPT_TOS"]},
+            r["data"]["signUpForAccessmod"],
+        )

@@ -830,7 +830,8 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
 def resolve_signup_for_accessmod(_, info, **kwargs):
     signup_input = kwargs["input"]
 
-    # TODO: validate acceptTos
+    if not signup_input["acceptTos"]:
+        return {"success": False, "errors": ["MUST_ACCEPT_TOS"]}
 
     # TODO: validate email (incl. uniqueness) / password
 
