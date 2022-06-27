@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 from ariadne import (
@@ -35,6 +36,8 @@ from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import Team, User
+
+logger = logging.getLogger(__name__)
 
 accessmod_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -506,7 +509,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         id=prepare_input["filesetId"]
     )
 
-    # This is a temporary solution until we figure out storage requirements
+    # TODO This is a temporary solution until we figure out storage requirements
     if settings.ACCESSMOD_S3_BUCKET_NAME is None:
         raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
     try:
@@ -550,13 +553,55 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     download_url = generate_download_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
-        # Ugly workaround, TBD when we know more about storage
+        # TODO Ugly workaround, TBD when we know more about storage
         target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
     )
 
     return {
         "success": True,
         "download_url": download_url,
+    }
+
+
+@accessmod_mutations.field("prepareAccessmodFilesetVisualizationDownload")
+@transaction.atomic
+def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    prepare_input = kwargs["input"]
+    try:
+        fileset: Fileset = Fileset.objects.filter_for_user(principal).get(
+            id=prepare_input["id"]
+        )
+    except Fileset.DoesNotExist:
+        return {"success": False}
+
+    if not fileset.visualization_uri:
+        return {"success": False}
+
+    # TODO This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+    try:
+        url = generate_download_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            # TODO Ugly workaround, TBD when we know more about storage
+            target_key=fileset.visualization_uri.replace(f"s3://{bucket.name}/", ""),
+        )
+    except Exception as err:
+        logger.exception(err)
+        return {"success": False}
+
+    return {
+        "success": True,
+        "url": url,
     }
 
 
