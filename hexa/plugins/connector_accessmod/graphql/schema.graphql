@@ -547,6 +547,7 @@ input SignUpForAccessmodInput {
 enum SignUpForAccessmodError {
     ALREADY_EXISTS
     MUST_ACCEPT_TOS
+    INVALID
 }
 type SignUpForAccessmodResult {
     success: Boolean!

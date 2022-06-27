@@ -9,7 +9,8 @@ from ariadne import (
     UnionType,
     load_schema_from_path,
 )
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.urls import reverse
@@ -832,21 +833,24 @@ def resolve_signup_for_accessmod(_, info, **kwargs):
 
     if not signup_input["acceptTos"]:
         return {"success": False, "errors": ["MUST_ACCEPT_TOS"]}
-
-    if User.objects.filter(email=signup_input["email"]).exists():
+    elif User.objects.filter(email=signup_input["email"]).exists():
         return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
-    # TODO: validate email & password
+    try:
+        user = User(
+            first_name=signup_input["firstName"],
+            last_name=signup_input["lastName"],
+            email=signup_input["email"],
+            password=signup_input["password"],
+            is_active=False,
+        )
+        user.full_clean()
+        validate_password(signup_input["password"], user)
+        user.save()
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID"]}
 
-    User.objects.create_user(
-        first_name=signup_input["firstName"],
-        last_name=signup_input["lastName"],
-        email=signup_input["email"],
-        password=signup_input["password"],
-        is_active=False,
-    )
-
-    return {"success": True}
+    return {"success": True, "errors": []}
 
 
 accessmod_bindables = [

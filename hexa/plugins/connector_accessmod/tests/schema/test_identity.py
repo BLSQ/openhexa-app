@@ -48,6 +48,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
     def test_signup_for_accessmod_errors(self):
+        # User hasn't accepted TOS
         r = self.run_query(
             """
               mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
@@ -67,12 +68,12 @@ class ProjectTest(GraphQLTestCase):
                 }
             },
         )
-
         self.assertEqual(
             {"success": False, "errors": ["MUST_ACCEPT_TOS"]},
             r["data"]["signUpForAccessmod"],
         )
 
+        # Email is already used
         r = self.run_query(
             """
               mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
@@ -92,8 +93,57 @@ class ProjectTest(GraphQLTestCase):
                 }
             },
         )
-
         self.assertEqual(
             {"success": False, "errors": ["ALREADY_EXISTS"]},
+            r["data"]["signUpForAccessmod"],
+        )
+
+        # Invalid email
+        r = self.run_query(
+            """
+              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
+                signUpForAccessmod(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": "notanemail",
+                    "password": "sabrinasabrina",
+                    "firstName": "Sabrina",
+                    "lastName": "Muller",
+                    "acceptTos": True,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
+            r["data"]["signUpForAccessmod"],
+        )
+
+        # Invalid password
+        r = self.run_query(
+            """
+              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
+                signUpForAccessmod(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": "peter@bluesquarehub.com",
+                    "password": "123",
+                    "firstName": "Peter",
+                    "lastName": "Muller",
+                    "acceptTos": True,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
             r["data"]["signUpForAccessmod"],
         )
