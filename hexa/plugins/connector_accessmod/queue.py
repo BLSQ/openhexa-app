@@ -260,7 +260,7 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
     fileset.refresh_from_db()
-    fileset.vizualisation_uri = f"s3://{bucket.name}/{dst_path}"
+    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
 
 
@@ -329,7 +329,7 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
     fileset.refresh_from_db()
-    fileset.vizualisation_uri = f"s3://{bucket.name}/{dst_path}"
+    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
 
 

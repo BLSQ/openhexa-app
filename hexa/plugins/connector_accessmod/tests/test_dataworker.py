@@ -168,7 +168,7 @@ class AccessmodDataWorkerTest(TestCase):
             },
         )
         self.assertEqual(
-            self.dem_fs.vizualisation_uri, "s3://test-bucket/analysis/dem.cog.tif"
+            self.dem_fs.visualization_uri, "s3://test-bucket/analysis/dem.cog.tif"
         )
         self.assertEqual(self.dem_fs.status, FilesetStatus.VALID)
 
@@ -189,7 +189,7 @@ class AccessmodDataWorkerTest(TestCase):
         self.facilities_fs.refresh_from_db()
         self.assertEqual(self.facilities_fs.metadata, {"length": 3})
         self.assertEqual(
-            self.facilities_fs.vizualisation_uri,
+            self.facilities_fs.visualization_uri,
             "s3://test-bucket/analysis/clinics_viz.geojson",
         )
         self.assertEqual(self.facilities_fs.status, FilesetStatus.VALID)
@@ -208,7 +208,7 @@ class AccessmodDataWorkerTest(TestCase):
         validate_fileset_job(None, MockJob(args={"fileset_id": str(self.water_fs.id)}))
         self.water_fs.refresh_from_db()
         self.assertEqual(
-            self.water_fs.vizualisation_uri,
+            self.water_fs.visualization_uri,
             "s3://test-bucket/analysis/water_viz.geojson",
         )
         self.assertEqual(self.water_fs.metadata, {"length": 3})
@@ -243,7 +243,7 @@ class AccessmodDataWorkerTest(TestCase):
             },
         )
         self.assertEqual(
-            self.transport_fs.vizualisation_uri,
+            self.transport_fs.visualization_uri,
             "s3://test-bucket/analysis/transport_viz.geojson",
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
@@ -271,7 +271,7 @@ class AccessmodDataWorkerTest(TestCase):
             },
         )
         self.assertEqual(
-            self.landcover_fs.vizualisation_uri,
+            self.landcover_fs.visualization_uri,
             "s3://test-bucket/analysis/landcover.cog.tif",
         )
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)
