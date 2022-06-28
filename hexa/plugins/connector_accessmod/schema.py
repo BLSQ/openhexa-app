@@ -9,7 +9,6 @@ from ariadne import (
     UnionType,
     load_schema_from_path,
 )
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
@@ -23,6 +22,7 @@ from hexa.core.graphql import result_page
 from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessRequest,
     Analysis,
     File,
     Fileset,
@@ -826,27 +826,28 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@accessmod_mutations.field("signUpForAccessmod")
+@accessmod_mutations.field("requestAccessmodAccess")
 @transaction.atomic
-def resolve_signup_for_accessmod(_, info, **kwargs):
-    signup_input = kwargs["input"]
+def resolve_request_accessmod_access(_, info, **kwargs):
+    request_input = kwargs["input"]
 
-    if not signup_input["acceptTos"]:
+    if not request_input["acceptTos"]:
         return {"success": False, "errors": ["MUST_ACCEPT_TOS"]}
-    elif User.objects.filter(email=signup_input["email"]).exists():
+    elif (
+        User.objects.filter(email=request_input["email"]).exists()
+        or AccessRequest.objects.filter(email=request_input["email"]).exists()
+    ):
         return {"success": False, "errors": ["ALREADY_EXISTS"]}
 
     try:
-        user = User(
-            first_name=signup_input["firstName"],
-            last_name=signup_input["lastName"],
-            email=signup_input["email"],
-            password=signup_input["password"],
-            is_active=False,
+        access_request = AccessRequest(
+            first_name=request_input["firstName"],
+            last_name=request_input["lastName"],
+            email=request_input["email"],
+            accepted_tos=request_input["acceptTos"],
         )
-        user.full_clean()
-        validate_password(signup_input["password"], user)
-        user.save()
+        access_request.full_clean()
+        access_request.save()
     except ValidationError:
         return {"success": False, "errors": ["INVALID"]}
 

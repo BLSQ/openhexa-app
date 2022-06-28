@@ -536,23 +536,22 @@ extend type Mutation {
     deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
 }
 
-# Identity
-input SignUpForAccessmodInput {
+# Access request
+input RequestAccessmodAccessInput {
     firstName: String!
     lastName: String!
     email: String!
-    password: String!
     acceptTos: Boolean!
 }
-enum SignUpForAccessmodError {
+enum RequestAccessmodAccessInputError {
     ALREADY_EXISTS
     MUST_ACCEPT_TOS
     INVALID
 }
-type SignUpForAccessmodResult {
+type RequestAccessmodAccessInputResult {
     success: Boolean!
-    errors: [SignUpForAccessmodError!]!
+    errors: [RequestAccessmodAccessInputError!]!
 }
 extend type Mutation {
-    signUpForAccessmod(input: SignUpForAccessmodInput!): SignUpForAccessmodResult!
+    requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
 }

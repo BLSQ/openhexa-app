@@ -1,8 +1,9 @@
 from hexa.core.test import GraphQLTestCase
+from hexa.plugins.connector_accessmod.models import AccessRequest
 from hexa.user_management.models import User
 
 
-class ProjectTest(GraphQLTestCase):
+class AccessRequestTest(GraphQLTestCase):
     TEAM = None
     WATER_FILESET = None
     SAMPLE_PROJECT = None
@@ -22,8 +23,8 @@ class ProjectTest(GraphQLTestCase):
     def test_signup_for_accessmod(self):
         r = self.run_query(
             """
-              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
-                signUpForAccessmod(input: $input) {
+              mutation requestAccessmodAccess($input: RequestAccessmodAccessInput!) {
+                requestAccessmodAccess(input: $input) {
                   success
                 }
               }
@@ -31,7 +32,6 @@ class ProjectTest(GraphQLTestCase):
             {
                 "input": {
                     "email": "wolfgang@bluesquarehub.com",
-                    "password": "wolfgangistnett",
                     "firstName": "Wolfgang",
                     "lastName": "Müller",
                     "acceptTos": True,
@@ -41,18 +41,18 @@ class ProjectTest(GraphQLTestCase):
 
         self.assertEqual(
             {"success": True},
-            r["data"]["signUpForAccessmod"],
+            r["data"]["requestAccessmodAccess"],
         )
-        self.assertEqual(
-            False, User.objects.get(email="wolfgang@bluesquarehub.com").is_active
+        self.assertTrue(
+            AccessRequest.objects.filter(email="wolfgang@bluesquarehub.com").exists()
         )
 
     def test_signup_for_accessmod_errors(self):
         # User hasn't accepted TOS
         r = self.run_query(
             """
-              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
-                signUpForAccessmod(input: $input) {
+              mutation requestAccessmodAccess($input: RequestAccessmodAccessInput!) {
+                requestAccessmodAccess(input: $input) {
                   success
                   errors
                 }
@@ -61,7 +61,6 @@ class ProjectTest(GraphQLTestCase):
             {
                 "input": {
                     "email": "gunther@bluesquarehub.com",
-                    "password": "gunthergunther",
                     "firstName": "Gunther",
                     "lastName": "Grass",
                     "acceptTos": False,
@@ -70,14 +69,14 @@ class ProjectTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["MUST_ACCEPT_TOS"]},
-            r["data"]["signUpForAccessmod"],
+            r["data"]["requestAccessmodAccess"],
         )
 
         # Email is already used
         r = self.run_query(
             """
-              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
-                signUpForAccessmod(input: $input) {
+              mutation requestAccessmodAccess($input: RequestAccessmodAccessInput!) {
+                requestAccessmodAccess(input: $input) {
                   success
                   errors
                 }
@@ -86,7 +85,6 @@ class ProjectTest(GraphQLTestCase):
             {
                 "input": {
                     "email": "sabrina@bluesquarehub.com",
-                    "password": "sabrinasabrina",
                     "firstName": "Sabrina",
                     "lastName": "Muller",
                     "acceptTos": True,
@@ -95,14 +93,14 @@ class ProjectTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["ALREADY_EXISTS"]},
-            r["data"]["signUpForAccessmod"],
+            r["data"]["requestAccessmodAccess"],
         )
 
         # Invalid email
         r = self.run_query(
             """
-              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
-                signUpForAccessmod(input: $input) {
+              mutation requestAccessmodAccess($input: RequestAccessmodAccessInput!) {
+                requestAccessmodAccess(input: $input) {
                   success
                   errors
                 }
@@ -111,7 +109,6 @@ class ProjectTest(GraphQLTestCase):
             {
                 "input": {
                     "email": "notanemail",
-                    "password": "sabrinasabrina",
                     "firstName": "Sabrina",
                     "lastName": "Muller",
                     "acceptTos": True,
@@ -120,30 +117,5 @@ class ProjectTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["INVALID"]},
-            r["data"]["signUpForAccessmod"],
-        )
-
-        # Invalid password
-        r = self.run_query(
-            """
-              mutation signUpForAccessmod($input: SignUpForAccessmodInput!) {
-                signUpForAccessmod(input: $input) {
-                  success
-                  errors
-                }
-              }
-            """,
-            {
-                "input": {
-                    "email": "peter@bluesquarehub.com",
-                    "password": "123",
-                    "firstName": "Peter",
-                    "lastName": "Muller",
-                    "acceptTos": True,
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["INVALID"]},
-            r["data"]["signUpForAccessmod"],
+            r["data"]["requestAccessmodAccess"],
         )

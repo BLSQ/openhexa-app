@@ -7,10 +7,12 @@ import typing
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
+from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
 from dpq.models import BaseJob
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -1283,3 +1285,36 @@ class ZonalStatisticsAnalysis(Analysis):
         }
 
         return dag_conf
+
+
+class AccessRequestStatus(models.TextChoices):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    DENIED = "DENIED"
+
+
+class AccessRequest(Base):
+    email = CIEmailField(unique=True)
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    accepted_tos = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=50,
+        choices=AccessRequestStatus.choices,
+        default=AccessRequestStatus.PENDING,
+    )
+
+
+class AdminProfile(Base):
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.CASCADE, blank=True
+    )
+    is_accessmod_superuser = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Designates that this user has all AccessMod-related permissions without explicitly assigning them."
+        ),
+    )
+
+    def __str__(self):
+        return f"Accessmod admin profile for user '{self.user}'"
