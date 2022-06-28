@@ -2,6 +2,7 @@ import responses
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
+    AdminProfile,
     Fileset,
     FilesetRole,
     FilesetRoleCode,
@@ -21,6 +22,8 @@ class PermissionsTest(TestCase):
     USER_MIRANDA = None
     USER_JENNY = None
     USER_GERALD = None
+    USER_NANCY = None
+    USER_ALEXANDRA = None
     TEAM = None
     PROJECT_1 = None
     PROJECT_2 = None
@@ -40,6 +43,17 @@ class PermissionsTest(TestCase):
             "gerald@bluesquarehub.com",
             "gerald2000",
         )
+        cls.USER_NANCY = User.objects.create_superuser(
+            "nancy@bluesquarehub.com",
+            "nancy2000",
+        )
+        cls.USER_ALEXANDRA = User.objects.create_user(
+            "alexandra@bluesquarehub.com",
+            "alexandra2000",
+        )
+        AdminProfile.objects.create(
+            user=cls.USER_ALEXANDRA, is_accessmod_superuser=True
+        )
         cls.TEAM = Team.objects.create(name="Test Team")
         Membership.objects.create(
             user=cls.USER_MIRANDA, team=cls.TEAM, role=MembershipRole.ADMIN
@@ -47,6 +61,7 @@ class PermissionsTest(TestCase):
         Membership.objects.create(
             user=cls.USER_JENNY, team=cls.TEAM, role=MembershipRole.REGULAR
         )
+
         cls.PROJECT_1 = Project.objects.create(
             name="First project",
             country="BE",
@@ -103,4 +118,12 @@ class PermissionsTest(TestCase):
         )
         self.assertFalse(
             self.USER_GERALD.has_perm("connector_accessmod.create_file", fileset)
+        )
+
+    def test_approve_user_permission(self):
+        self.assertTrue(
+            self.USER_NANCY.has_perm("connector_accessmod.approve_access_request")
+        )
+        self.assertFalse(
+            self.USER_GERALD.has_perm("connector_accessmod.approve_access_request")
         )

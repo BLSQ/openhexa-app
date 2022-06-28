@@ -1306,8 +1306,12 @@ class AccessRequest(Base):
 
 
 class AdminProfile(Base):
-    user = models.ForeignKey(
-        "user_management.User", null=True, on_delete=models.CASCADE, blank=True
+    user = models.OneToOneField(
+        "user_management.User",
+        null=True,
+        on_delete=models.CASCADE,
+        blank=True,
+        related_name="accessmod_admin_profile",
     )
     is_accessmod_superuser = models.BooleanField(
         default=False,

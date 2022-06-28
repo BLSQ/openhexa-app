@@ -38,10 +38,17 @@ class PermissionsBackend(BaseBackend):
             return False  # No dot? Not an OpenHexa permission, this backend can't handle it
 
         permission_module = self._get_permission_module(app_label)
-        permission_function = getattr(permission_module, app_perm)
+        if permission_module is None:
+            raise ValueError(
+                f'Could not find a permission module for the "{app_label}" app'
+            )
 
-        if permission_function is None:
-            return False
+        try:
+            permission_function = getattr(permission_module, app_perm)
+        except AttributeError:
+            raise AttributeError(
+                f'The "{app_label}" app has no "{app_perm}" permission'
+            )
 
         args = [user_obj]
         if obj is not None:
