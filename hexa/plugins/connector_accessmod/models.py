@@ -1293,6 +1293,14 @@ class AccessRequestStatus(models.TextChoices):
     DENIED = "DENIED"
 
 
+class AccessRequestQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.has_perm("connector_accessmod.approve_access_request"):
+            return self.none()
+
+        return self.all()
+
+
 class AccessRequest(Base):
     email = CIEmailField(unique=True)
     first_name = models.CharField(max_length=150, blank=True)
@@ -1303,6 +1311,8 @@ class AccessRequest(Base):
         choices=AccessRequestStatus.choices,
         default=AccessRequestStatus.PENDING,
     )
+
+    objects = AccessRequestQuerySet.as_manager()
 
 
 class AdminProfile(Base):

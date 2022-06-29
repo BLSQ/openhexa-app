@@ -537,6 +537,24 @@ extend type Mutation {
 }
 
 # Access request
+enum AccessmodAccessRequestStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+type AccessmodAccessRequest {
+    firstName: String!
+    lastName: String!
+    email: String!
+    acceptTos: Boolean!
+    status: AccessmodAccessRequestStatus!
+}
+type AccessmodAccessRequestPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [AccessmodAccessRequest!]!
+}
 input RequestAccessmodAccessInput {
     firstName: String!
     lastName: String!
@@ -551,6 +569,9 @@ enum RequestAccessmodAccessInputError {
 type RequestAccessmodAccessInputResult {
     success: Boolean!
     errors: [RequestAccessmodAccessInputError!]!
+}
+extend type Query {
+    accessmodAccessRequests(page: Int, perPage: Int): AccessmodAnalysisPage!
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
