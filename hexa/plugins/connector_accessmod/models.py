@@ -1252,13 +1252,15 @@ class ZonalStatisticsAnalysis(Analysis):
 
         am_conf = {
             "output_dir": output_dir,
-            "time_thresholds": self.time_thresholds,
+            "extent": self.project.extent,
             "crs": self.project.crs,
             "country": {
                 "name": self.project.country.name,
                 "iso-a2": self.project.country.code,
                 "iso-a3": self.project.country.alpha3,
             },
+            "spatial_resolution": self.project.spatial_resolution,
+            "time_thresholds": self.time_thresholds,
         }
 
         if self.population.status == FilesetStatus.TO_ACQUIRE:
