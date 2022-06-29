@@ -325,7 +325,7 @@ class AnalysisTest(GraphQLTestCase):
                 "invertDirection": False,
                 "maxTravelTime": 360,
                 "waterAllTouched": True,
-                "algorithm": AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+                "algorithm": AccessibilityAnalysisAlgorithm.ISOTROPIC,
                 "knightMove": False,
                 "travelTimes": None,
                 "frictionSurface": None,
