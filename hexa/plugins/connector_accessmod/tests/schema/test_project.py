@@ -1,6 +1,7 @@
 import uuid
 
 from hexa.core.test import GraphQLTestCase
+from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     File,
@@ -315,8 +316,8 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput!) {
-                  createAccessmodProjectByCountry(input: $input) {
+                mutation createAccessmodProject($input: CreateAccessmodProjectInput!) {
+                  createAccessmodProject(input: $input) {
                     success
                     project {
                         name
@@ -325,6 +326,7 @@ class ProjectTest(GraphQLTestCase):
                         country {
                             code
                         }
+                        extent
                     }
                     errors
                   }
@@ -341,7 +343,6 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["createAccessmodProjectByCountry"],
             {
                 "success": True,
                 "project": {
@@ -349,18 +350,72 @@ class ProjectTest(GraphQLTestCase):
                     "spatialResolution": 42,
                     "crs": 4326,
                     "country": {"code": "CD"},
+                    "extent": [
+                        [x, y]
+                        for x, y in Country.objects.get(
+                            code="CD"
+                        ).simplified_extent.tuple[0]
+                    ],
                 },
                 "errors": [],
             },
+            r["data"]["createAccessmodProject"],
         )
 
-    def test_create_accessmod_project_by_country_errors(self):
+    def test_create_accessmod_project_by_raster(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectByCountry($input: CreateAccessmodProjectByCountryInput!) {
-                  createAccessmodProjectByCountry(input: $input) {
+                mutation createAccessmodProject($input: CreateAccessmodProjectInput!) {
+                  createAccessmodProject(input: $input) {
+                    success
+                    project {
+                        name
+                        spatialResolution
+                        crs
+                        country {
+                            code
+                        }
+                        extent
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "name": "My new project",
+                    "spatialResolution": 42,
+                    "crs": 4326,
+                    "country": {"code": "CD"},
+                    "extent": [[1.0, 2.0], [3.0, 4.0]],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "project": {
+                    "name": "My new project",
+                    "spatialResolution": 42,
+                    "crs": 4326,
+                    "country": {"code": "CD"},
+                    "extent": [[1.0, 2.0], [3.0, 4.0]],
+                },
+                "errors": [],
+            },
+            r["data"]["createAccessmodProject"],
+        )
+
+    def test_create_accessmod_project_errors(self):
+        self.client.force_login(self.USER_JIM)
+
+        r = self.run_query(
+            """
+                mutation createAccessmodProject($input: CreateAccessmodProjectInput!) {
+                  createAccessmodProject(input: $input) {
                     success
                     project {
                         id
@@ -380,7 +435,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["createAccessmodProjectByCountry"],
+            r["data"]["createAccessmodProject"],
             {"success": False, "project": None, "errors": ["NAME_DUPLICATE"]},
         )
 
