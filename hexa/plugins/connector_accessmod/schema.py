@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 from ariadne import (
@@ -35,6 +36,8 @@ from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
 from hexa.user_management.models import Team, User
+
+logger = logging.getLogger(__name__)
 
 accessmod_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -155,14 +158,18 @@ def resolve_accessmod_projects(
     )
 
 
-@accessmod_mutations.field("createAccessmodProjectByCountry")
+@accessmod_mutations.field("createAccessmodProject")
 @transaction.atomic
-def resolve_create_accessmod_project_by_country(_, info, **kwargs):
+def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
 
     country = Country.objects.get(code=create_input["country"]["code"])
+    if "extent" in create_input:
+        extent = create_input["extent"]
+    else:
+        extent = country.simplified_extent.tuple[0]
 
     try:
         project = Project.objects.create_if_has_perm(
@@ -172,7 +179,7 @@ def resolve_create_accessmod_project_by_country(_, info, **kwargs):
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=country.simplified_extent.tuple[0],
+            extent=extent,
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
@@ -191,16 +198,10 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             id=update_input["id"]
         )
         changes = {}
-        for scalar_field in ["name", "description", "extent"]:
+        for scalar_field in ["name", "description"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
-        if "demId" in update_input:
-            dem = Fileset.objects.filter_for_user(principal).get(
-                id=update_input["demId"]
-            )
-            changes["dem"] = dem
-        if "country" in update_input:
-            changes["country"] = update_input["country"]["code"]
+
         if len(changes) > 0:
             try:
                 project.update_if_has_perm(principal, **changes)
@@ -508,7 +509,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         id=prepare_input["filesetId"]
     )
 
-    # This is a temporary solution until we figure out storage requirements
+    # TODO This is a temporary solution until we figure out storage requirements
     if settings.ACCESSMOD_S3_BUCKET_NAME is None:
         raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
     try:
@@ -552,13 +553,55 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     download_url = generate_download_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
-        # Ugly workaround, TBD when we know more about storage
+        # TODO Ugly workaround, TBD when we know more about storage
         target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
     )
 
     return {
         "success": True,
         "download_url": download_url,
+    }
+
+
+@accessmod_mutations.field("prepareAccessmodFilesetVisualizationDownload")
+@transaction.atomic
+def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    prepare_input = kwargs["input"]
+    try:
+        fileset: Fileset = Fileset.objects.filter_for_user(principal).get(
+            id=prepare_input["id"]
+        )
+    except Fileset.DoesNotExist:
+        return {"success": False}
+
+    if not fileset.visualization_uri:
+        return {"success": False}
+
+    # TODO This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+    try:
+        url = generate_download_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            # TODO Ugly workaround, TBD when we know more about storage
+            target_key=fileset.visualization_uri.replace(f"s3://{bucket.name}/", ""),
+        )
+    except Exception as err:
+        logger.exception(err)
+        return {"success": False}
+
+    return {
+        "success": True,
+        "url": url,
     }
 
 

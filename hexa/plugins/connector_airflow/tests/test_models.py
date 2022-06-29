@@ -473,7 +473,12 @@ class ModelsTest(TestCase):
             return_value=parse_datetime(dag_run_same_old_2["execution_date"])
             + datetime.timedelta(hours=1),
         ):
-            self.DAG_RUN.update_state(DAGRunState.SUCCESS)
+            end_date = parse_datetime(
+                dag_run_same_old_2["execution_date"]
+            ) + datetime.timedelta(hours=1)
+            self.DAG_RUN.update_state(
+                {"state": DAGRunState.SUCCESS, "end_date": end_date.isoformat()}
+            )
 
         self.assertEqual(datetime.timedelta(hours=1), self.DAG_RUN.duration)
 
