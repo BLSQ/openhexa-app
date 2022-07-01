@@ -186,6 +186,33 @@ def validate_dem(fileset: Fileset, dem):
     fileset.save()
 
 
+def validate_travel_times(fileset: Fileset, travel_times):
+    # validate min/max/mean altitude. assume band 1
+    # use masked because otherwise invalid value may occure
+    travel_times_content = travel_times.read(1, masked=True)
+    if travel_times_content.min() < -1:
+        fileset.set_invalid("file content outside of reality")
+        return
+
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["min"] = int(travel_times_content.min())
+    fileset.metadata["max"] = int(travel_times_content.max())
+    if travel_times.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = int(travel_times.nodata)
+
+    percentile = np.percentile(a=travel_times_content.compressed(), q=[1, 2, 98, 99])
+    fileset.metadata["1p"] = float(percentile[0])
+    fileset.metadata["2p"] = float(percentile[1])
+    fileset.metadata["98p"] = float(percentile[2])
+    fileset.metadata["99p"] = float(percentile[3])
+    fileset.save()
+
+
 def validate_facilities(fileset: Fileset, facilities: gpd.GeoDataFrame):
     fileset.refresh_from_db()
     if fileset.metadata is None:
@@ -222,6 +249,27 @@ def validate_land_cover(fileset: Fileset, landcover):
         fileset.metadata["nodata"] = None
     else:
         fileset.metadata["nodata"] = landcover.nodata
+    fileset.save()
+
+
+def validate_stack(fileset: Fileset, stack):
+    # validate number of class. assume band 1
+    # use masked because otherwise invalid value may occure
+    stack_content = stack.read(1, masked=True)
+    stack_classes = np.unique(stack_content.data)
+    if len(stack_classes) > 50 or stack_content.min() < 0:
+        fileset.set_invalid("file content outside of reality")
+        return
+
+    # extract stack classes for frontend
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+    fileset.metadata["unique_values"] = sorted([int(i) for i in stack_classes])
+    if stack.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = stack.nodata
     fileset.save()
 
 
@@ -412,6 +460,8 @@ def process_fileset(fileset: Fileset):
         FilesetRoleCode.WATER: validate_water,
         FilesetRoleCode.LAND_COVER: validate_land_cover,
         FilesetRoleCode.HEALTH_FACILITIES: validate_facilities,
+        FilesetRoleCode.TRAVEL_TIMES: validate_travel_times,
+        FilesetRoleCode.STACK: validate_stack,
     }
     if fileset.role.code in fileset_role_validator:
         # custom validation by role
