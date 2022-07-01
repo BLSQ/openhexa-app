@@ -1056,7 +1056,10 @@ class AccessibilityAnalysis(Analysis):
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_osm": (
                 self.transport_network.status == FilesetStatus.TO_ACQUIRE
-                or self.water.status == FilesetStatus.TO_ACQUIRE
+                or (
+                    self.water is not None
+                    and self.water.status == FilesetStatus.TO_ACQUIRE
+                )
             ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
             # Overwrite and output_dir repeated: for create report, which
@@ -1148,7 +1151,7 @@ def get_default_time_thresholds():
 
 class ZonalStatisticsAnalysis(Analysis):
     class Meta:
-        verbose_name_plural = "Zonal statistics"
+        verbose_name_plural = "Zonal stats analyses"
 
     population = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
