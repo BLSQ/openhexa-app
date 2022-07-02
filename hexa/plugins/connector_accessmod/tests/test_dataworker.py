@@ -62,6 +62,9 @@ class AccessmodDataWorkerTest(TestCase):
         cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.TRAVEL_TIMES,
         )
+        cls.POPULATION_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.POPULATION,
+        )
         cls.dem_empty_fs = Fileset.objects.create(
             project=cls.PROJECT,
             name="empty dem",
@@ -152,6 +155,18 @@ class AccessmodDataWorkerTest(TestCase):
             mime_type="image/geotiff",
             uri="s3://test-bucket/analysis/travel_times.tif",
             fileset=cls.travel_times_fs,
+        )
+        cls.population_fs = Fileset.objects.create(
+            project=cls.PROJECT,
+            name="population",
+            status=FilesetStatus.PENDING,
+            role=cls.POPULATION_ROLE,
+            author=cls.AUTHOR,
+        )
+        cls.population_file = File.objects.create(
+            mime_type="image/geotiff",
+            uri="s3://test-bucket/analysis/population.tif",
+            fileset=cls.population_fs,
         )
 
         # S3 setup
@@ -366,6 +381,41 @@ class AccessmodDataWorkerTest(TestCase):
             "s3://test-bucket/analysis/travel_times.cog.tif",
         )
         self.assertEqual(self.travel_times_fs.status, FilesetStatus.VALID)
+
+    @mock_s3
+    @mock_sts
+    def test_validate_population(self):
+        population_file = os.path.dirname(__file__) + "/data/population.tif"
+        population_data = open(population_file, "rb").read()
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(
+            Bucket="test-bucket",
+            Key="analysis/population.tif",
+            Body=population_data,
+        )
+
+        validate_fileset_job(
+            None, MockJob(args={"fileset_id": str(self.population_fs.id)})
+        )
+        self.population_fs.refresh_from_db()
+        self.assertEqual(
+            self.population_fs.metadata,
+            {
+                "1p": 188.0,
+                "2p": 203.0,
+                "98p": 445.0,
+                "99p": 498.0,
+                "max": 691,
+                "min": 143,
+                "nodata": 32767.0,
+            },
+        )
+        self.assertEqual(
+            self.population_fs.visualization_uri,
+            "s3://test-bucket/analysis/population.cog.tif",
+        )
+        self.assertEqual(self.population_fs.status, FilesetStatus.VALID)
 
 
 class AccessmodAnalysisUpdateTest(TestCase):

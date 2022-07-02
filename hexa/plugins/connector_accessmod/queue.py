@@ -111,13 +111,15 @@ def validate_raster(fileset: Fileset, filename: str):
 
     # validate CRS -> must be the same
     # NOTE: we should validate that CRS is in (m) in project
-    if not raster.crs.is_epsg_code:
-        fileset.set_invalid("wrong CRS, not epsg")
-        return
+    if fileset.role.code != FilesetRoleCode.POPULATION:
+        # population can have any CRS, reprojected anyway
+        if not raster.crs.is_epsg_code:
+            fileset.set_invalid("wrong CRS, not epsg")
+            return
 
-    if int(raster.crs.to_epsg()) != fileset.project.crs:
-        fileset.set_invalid("wrong CRS")
-        return
+        if int(raster.crs.to_epsg()) != fileset.project.crs:
+            fileset.set_invalid("wrong CRS")
+            return
 
     # validate spatial resolution
     if int(raster.transform.a) != fileset.project.spatial_resolution:
@@ -155,62 +157,54 @@ def validate_transport(fileset: Fileset, transport: gpd.GeoDataFrame):
     fileset.save()
 
 
+def validate_continous_raster(fileset: Fileset, raster, extra_validation=None):
+    # validate min/max/mean altitude. assume band 1
+    # use masked because otherwise invalid value may occure
+    raster_content = raster.read(1, masked=True)
+    if extra_validation:
+        extra_validation(fileset, raster, raster_content)
+        if fileset.status == FilesetStatus.INVALID:
+            return
+
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["min"] = int(raster_content.min())
+    fileset.metadata["max"] = int(raster_content.max())
+    if raster.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = int(raster.nodata)
+
+    percentile = np.percentile(a=raster_content.compressed(), q=[1, 2, 98, 99])
+    fileset.metadata["1p"] = float(percentile[0])
+    fileset.metadata["2p"] = float(percentile[1])
+    fileset.metadata["98p"] = float(percentile[2])
+    fileset.metadata["99p"] = float(percentile[3])
+    fileset.save()
+
+
 def validate_dem(fileset: Fileset, dem):
-    # validate min/max/mean altitude. assume band 1
-    # use masked because otherwise invalid value may occure
-    dem_content = dem.read(1, masked=True)
-    if (
-        dem_content.min() < -500
-        or dem_content.max() > 8900
-        or dem_content.mean() > 5000
-    ):
-        fileset.set_invalid("file content outside of reality")
-        return
+    def validate_altitude(fileset, dem, dem_content):
+        if (
+            dem_content.min() < -500
+            or dem_content.max() > 8900
+            or dem_content.mean() > 5000
+        ):
+            fileset.set_invalid("file content outside of reality")
+            return
 
-    fileset.refresh_from_db()
-    if fileset.metadata is None:
-        fileset.metadata = {}
-
-    fileset.metadata["min"] = int(dem_content.min())
-    fileset.metadata["max"] = int(dem_content.max())
-    if dem.nodata is None:
-        fileset.metadata["nodata"] = None
-    else:
-        fileset.metadata["nodata"] = int(dem.nodata)
-
-    percentile = np.percentile(a=dem_content.compressed(), q=[1, 2, 98, 99])
-    fileset.metadata["1p"] = float(percentile[0])
-    fileset.metadata["2p"] = float(percentile[1])
-    fileset.metadata["98p"] = float(percentile[2])
-    fileset.metadata["99p"] = float(percentile[3])
-    fileset.save()
+    return validate_continous_raster(fileset, dem, validate_altitude)
 
 
-def validate_travel_times(fileset: Fileset, travel_times):
-    # validate min/max/mean altitude. assume band 1
-    # use masked because otherwise invalid value may occure
-    travel_times_content = travel_times.read(1, masked=True)
-    if travel_times_content.min() < -1:
-        fileset.set_invalid("file content outside of reality")
-        return
+def validate_positive_raster(fileset, raster):
+    def validate_values(fileset, raster, raster_content):
+        if raster_content.min() < -1:
+            fileset.set_invalid("file content outside of reality")
+            return
 
-    fileset.refresh_from_db()
-    if fileset.metadata is None:
-        fileset.metadata = {}
-
-    fileset.metadata["min"] = int(travel_times_content.min())
-    fileset.metadata["max"] = int(travel_times_content.max())
-    if travel_times.nodata is None:
-        fileset.metadata["nodata"] = None
-    else:
-        fileset.metadata["nodata"] = int(travel_times.nodata)
-
-    percentile = np.percentile(a=travel_times_content.compressed(), q=[1, 2, 98, 99])
-    fileset.metadata["1p"] = float(percentile[0])
-    fileset.metadata["2p"] = float(percentile[1])
-    fileset.metadata["98p"] = float(percentile[2])
-    fileset.metadata["99p"] = float(percentile[3])
-    fileset.save()
+    return validate_continous_raster(fileset, raster, validate_values)
 
 
 def validate_facilities(fileset: Fileset, facilities: gpd.GeoDataFrame):
@@ -460,7 +454,8 @@ def process_fileset(fileset: Fileset):
         FilesetRoleCode.WATER: validate_water,
         FilesetRoleCode.LAND_COVER: validate_land_cover,
         FilesetRoleCode.HEALTH_FACILITIES: validate_facilities,
-        FilesetRoleCode.TRAVEL_TIMES: validate_travel_times,
+        FilesetRoleCode.TRAVEL_TIMES: validate_positive_raster,
+        FilesetRoleCode.POPULATION: validate_positive_raster,
         FilesetRoleCode.STACK: validate_stack,
     }
     if fileset.role.code in fileset_role_validator:
