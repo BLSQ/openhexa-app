@@ -93,7 +93,8 @@ class FilesetTest(GraphQLTestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
+        cls.BUCKET = Bucket.objects.create(name=bucket_name)
 
     def test_accessmod_fileset_author(self):
         self.client.force_login(self.USER_GREG)

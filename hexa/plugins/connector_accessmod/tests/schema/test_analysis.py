@@ -65,7 +65,8 @@ class AnalysisTest(GraphQLTestCase):
             "jane@bluesquarehub.com",
             "janerocks",
         )
-        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
+        cls.BUCKET = Bucket.objects.create(name=bucket_name)
         cls.CLUSTER = Cluster.objects.create(
             name="test_cluster", url="https://lookimacluster.com/api"
         )

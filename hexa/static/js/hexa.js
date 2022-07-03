@@ -300,7 +300,7 @@ function TomSelectable(multiple = true) {
 }
 
 // TODO: should be placed in s3 app
-function S3Upload(getUploadUrl, refreshUrl, prefix = "") {
+function CloudUpload(getUploadUrl, refreshUrl, prefix = "") {
     return {
         refreshedHtml: null,
         uploading: false,
