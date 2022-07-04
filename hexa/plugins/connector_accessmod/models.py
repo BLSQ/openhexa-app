@@ -1285,7 +1285,7 @@ class ZonalStatisticsAnalysis(Analysis):
                 "amenity": None,
                 "name": self.boundaries.name,
                 "administrative_level": self.boundaries.metadata.get(
-                    "administrative_level", 0
+                    "administrative_level", 2
                 ),
                 "path": output_dir + f"{str(self.boundaries.id)}_boundaries.gpkg",
             }
