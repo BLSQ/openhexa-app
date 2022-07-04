@@ -20,7 +20,7 @@ except ImportError:
     missing_dependencies = True
 
 from django.db import models
-from dpq.queue import AtLeastOnceQueue
+from dpq.queue import AtMostOnceQueue
 
 import hexa.plugins.connector_s3.api as s3_api
 from hexa.plugins.connector_s3.models import Bucket
@@ -523,7 +523,14 @@ def validate_fileset_job(queue, job) -> None:
     logger.info("Completed validation fileset %s", job.args["fileset_id"])
 
 
-class ValidateFilesetQueue(AtLeastOnceQueue):
+def validate_fileset_job_wrapped(*args, **kwargs) -> None:
+    try:
+        return validate_fileset_job(*args, **kwargs)
+    except Exception:
+        logger.exception("validate_fileset_job failed")
+
+
+class ValidateFilesetQueue(AtMostOnceQueue):
     # override the default job model; our job model has a specific table name
     job_model = ValidateFilesetJob
 
@@ -532,7 +539,7 @@ class ValidateFilesetQueue(AtLeastOnceQueue):
 # AtLeastOnceQueue + try/except: if the worker fail, restart the task. if the task fail, drop it + log
 validate_fileset_queue = ValidateFilesetQueue(
     tasks={
-        "validate_fileset": validate_fileset_job,
+        "validate_fileset": validate_fileset_job_wrapped,
     },
     notify_channel="validate_fileset_queue",
 )
