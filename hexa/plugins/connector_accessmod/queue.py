@@ -121,10 +121,10 @@ def validate_raster(fileset: Fileset, filename: str):
             fileset.set_invalid("wrong CRS")
             return
 
-    # validate spatial resolution
-    if int(raster.transform.a) != fileset.project.spatial_resolution:
-        fileset.set_invalid("wrong spatial resolution")
-        return
+        # validate spatial resolution
+        if int(raster.transform.a) != fileset.project.spatial_resolution:
+            fileset.set_invalid("wrong spatial resolution")
+            return
 
     # TODO: validate bounds
     # if raster.bounds != fileset.project.extend.metadata: i guess
