@@ -340,7 +340,7 @@ class Fileset(Entry):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     metadata = models.JSONField(blank=True, default=dict)
-    visualization_uri = models.CharField(max_length=250, null=True)
+    visualization_uri = models.CharField(max_length=250, null=True, blank=True)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
