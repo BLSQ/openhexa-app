@@ -1,6 +1,6 @@
+import math
 import os
 from logging import getLogger
-import math
 
 # Try to load datasciences dependencies
 # if not present, deactivate validation
