@@ -193,6 +193,22 @@ class MembershipRole(models.TextChoices):
     REGULAR = "REGULAR", _("Regular")
 
 
+class MembershipError(Exception):
+    pass
+
+
+class AlreadyExists(MembershipError):
+    pass
+
+
+class CannotDowngradeRole(MembershipError):
+    pass
+
+
+class CannotDelete(MembershipError):
+    pass
+
+
 class MembershipManager(models.Manager):
     def create_if_has_perm(
         self,
@@ -204,6 +220,11 @@ class MembershipManager(models.Manager):
     ):
         if not principal.has_perm("user_management.create_membership", team):
             raise PermissionDenied
+
+        if Membership.objects.filter(user=user, team=team).exists():
+            raise AlreadyExists(
+                f"Already got a membership for user {user.id} and team {team.name}"
+            )
 
         return self.create(user=user, team=team, role=role)
 
@@ -239,12 +260,18 @@ class Membership(Base):
         if not principal.has_perm("user_management.update_membership", self):
             raise PermissionDenied
 
+        if self.user == principal and self.role == MembershipRole.ADMIN:
+            raise CannotDowngradeRole(f"User {principal} cannot downgrade its role")
+
         self.role = role
         self.save()
 
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("user_management.delete_membership", self):
             raise PermissionDenied
+
+        if self.user == principal:
+            raise CannotDelete(f"User {principal.id} cannot delete herself")
 
         return super().delete()
 

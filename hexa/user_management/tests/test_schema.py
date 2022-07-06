@@ -643,3 +643,147 @@ class SchemaTest(GraphQLTestCase):
             },
             r["data"]["createMembership"],
         )
+
+    def test_create_membership_already_exists(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation createMembership($input: CreateMembershipInput!) {
+                createMembership(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "userEmail": self.USER_JANE.email,
+                    "teamId": str(self.TEAM_CORE.id),
+                    "role": MembershipRole.REGULAR,
+                },
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["ALREADY_EXISTS"],
+            },
+            r["data"]["createMembership"],
+        )
+
+    def test_update_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.update_membership"
+        ) as update_membership:
+            r = self.run_query(
+                """
+                  mutation updateMembership($input: UpdateMembershipInput!) {
+                    updateMembership(input: $input) {
+                      success
+                      membership {
+                        role
+                      }
+                    }
+                  }
+                """,
+                {
+                    "input": {
+                        "id": str(self.MEMBERSHIP_JIM_CORE.id),
+                        "role": MembershipRole.ADMIN,
+                    },
+                },
+            )
+
+        update_membership.assert_called_once_with(
+            self.USER_JANE, self.MEMBERSHIP_JIM_CORE
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "membership": {
+                    "role": MembershipRole.ADMIN,
+                },
+            },
+            r["data"]["updateMembership"],
+        )
+
+    def test_update_membership_error(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation updateMembership($input: UpdateMembershipInput!) {
+                updateMembership(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.MEMBERSHIP_JANE_CORE.id),
+                    "role": MembershipRole.REGULAR,
+                },
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_ROLE"]},
+            r["data"]["updateMembership"],
+        )
+
+    def test_delete_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.delete_membership"
+        ) as delete_membership:
+            r = self.run_query(
+                """
+                  mutation deleteMembership($input: DeleteMembershipInput!) {
+                    deleteMembership(input: $input) {
+                      success
+                    }
+                  }
+                """,
+                {
+                    "input": {
+                        "id": str(self.MEMBERSHIP_JIM_CORE.id),
+                    },
+                },
+            )
+
+        delete_membership.assert_called_once()  # Cannot use called_once_with() as membership has been deleted
+        self.assertEqual(
+            {
+                "success": True,
+            },
+            r["data"]["deleteMembership"],
+        )
+
+    def test_delete_membership_error(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation deleteMembership($input: DeleteMembershipInput!) {
+                deleteMembership(input: $input) {
+                  success
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.MEMBERSHIP_JANE_CORE.id),
+                },
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+            },
+            r["data"]["deleteMembership"],
+        )

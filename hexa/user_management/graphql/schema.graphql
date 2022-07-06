@@ -173,6 +173,7 @@ type CreateMembershipResult {
     errors: [CreateMembershipError!]!
 }
 enum CreateMembershipError {
+    ALREADY_EXISTS
     PERMISSION_DENIED
     NOT_FOUND
 }
@@ -188,6 +189,7 @@ type UpdateMembershipResult {
 enum UpdateMembershipError {
     PERMISSION_DENIED
     NOT_FOUND
+    INVALID_ROLE
 }
 input DeleteMembershipInput {
     id: String!
