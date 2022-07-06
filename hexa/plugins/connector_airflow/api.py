@@ -99,3 +99,15 @@ class AirflowAPIClient:
             raise AirflowAPIError(f"POST {url}: got {response.status_code}")
 
         return response.json()
+
+    def unpause_dag(self, dag_id):
+        url = urljoin(self._url, "/".join(["dags", dag_id]))
+        response = self._session.patch(
+            url,
+            json={"is_paused": False},
+            allow_redirects=False,
+        )
+        if response.status_code != 200:
+            raise AirflowAPIError(f"PATCH {url}: got {response.status_code}")
+
+        return response.json()

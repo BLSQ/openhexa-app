@@ -8,13 +8,18 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
-from django_countries import countries
-from django_countries.fields import Country
 
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
-from hexa.user_management.countries import get_who_info
-from hexa.user_management.models import Membership, Organization, Team, User
+from hexa.user_management.models import (
+    AlreadyExists,
+    CannotDelete,
+    CannotDowngradeRole,
+    Membership,
+    Organization,
+    Team,
+    User,
+)
 
 identity_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -43,21 +48,6 @@ def resolve_me(_, info):
             ],
         ),
     }
-
-
-@identity_query.field("country")
-def resolve_country(_, info, **kwargs):
-    code = kwargs.get("code")
-    alpha3 = kwargs.get("alpha3")
-    if (code is None) == (alpha3 is None):
-        raise ValueError("Please provide either code or alpha3")
-
-    return Country(code if code is not None else alpha3)
-
-
-@identity_query.field("countries")
-def resolve_countries(*_):
-    return [Country(c) for c, _ in countries]
 
 
 @identity_query.field("team")
@@ -263,26 +253,6 @@ def resolve_avatar(obj: User, *_):
     return {"initials": obj.initials, "color": hash_color(obj.email)}
 
 
-country_object = ObjectType("Country")
-
-
-@country_object.field("alpha3")
-def resolve_country_alpha3(obj: Country, *_):
-    return obj.alpha3
-
-
-@country_object.field("flag")
-def resolve_country_flag(obj: Country, info):
-    request: HttpRequest = info.context["request"]
-
-    return request.build_absolute_uri(obj.flag)
-
-
-@country_object.field("whoInfo")
-def resolve_country_who_info(obj: Country, info):
-    return get_who_info(obj.alpha3)
-
-
 organization_object = ObjectType("Organization")
 
 
@@ -301,17 +271,18 @@ def resolve_create_membership(_, info, **kwargs):
     try:
         user = User.objects.get(email=create_input["userEmail"])
         team = Team.objects.get(id=create_input["teamId"])
+
         try:
-            membership: Membership = Membership.objects.get(user=user, team=team)
-            membership.update_if_has_perm(principal, role=create_input["role"])
-        except Membership.DoesNotExist:
             membership = Membership.objects.create_if_has_perm(
                 principal,
                 user=user,
                 team=team,
                 role=create_input["role"],
             )
-        return {"success": True, "membership": membership, "errors": []}
+            return {"success": True, "membership": membership, "errors": []}
+        except AlreadyExists:
+            return {"success": False, "membership": None, "errors": ["ALREADY_EXISTS"]}
+
     except (Team.DoesNotExist, User.DoesNotExist):
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
@@ -329,9 +300,17 @@ def resolve_update_membership(_, info, **kwargs):
         membership = Membership.objects.filter_for_user(user=principal).get(
             id=update_input["id"]
         )
-        membership.update_if_has_perm(principal, role=update_input["role"])
+        try:
+            membership.update_if_has_perm(principal, role=update_input["role"])
+        except CannotDowngradeRole:
+            return {
+                "success": False,
+                "membership": membership,
+                "errors": ["INVALID_ROLE"],
+            }
 
         return {"success": True, "membership": membership, "errors": []}
+
     except Membership.DoesNotExist:
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
@@ -349,9 +328,17 @@ def resolve_delete_membership(_, info, **kwargs):
         membership = Membership.objects.filter_for_user(user=principal).get(
             id=delete_input["id"]
         )
-        membership.delete_if_has_perm(principal)
+        try:
+            membership.delete_if_has_perm(principal)
 
-        return {"success": True, "membership": membership, "errors": []}
+            return {"success": True, "membership": membership, "errors": []}
+        except CannotDelete:
+            return {
+                "success": True,
+                "membership": membership,
+                "errors": ["CANNOT_DELETE"],
+            }
+
     except Membership.DoesNotExist:
         return {"success": False, "membership": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
@@ -361,7 +348,6 @@ def resolve_delete_membership(_, info, **kwargs):
 identity_bindables = [
     identity_query,
     user_object,
-    country_object,
     team_object,
     membership_object,
     organization_object,

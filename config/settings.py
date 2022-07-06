@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.gis",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.postgres",
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
+    "hexa.countries",
     "hexa.visualizations",
     "hexa.notebooks",
     "hexa.pipelines",
@@ -110,7 +112,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
         "HOST": os.environ.get("DATABASE_HOST"),
         "PORT": os.environ.get("DATABASE_PORT"),
         "NAME": os.environ.get("DATABASE_NAME"),
@@ -347,6 +349,8 @@ TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
+
+GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash

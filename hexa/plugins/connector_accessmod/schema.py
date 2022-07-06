@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 from ariadne import (
@@ -13,13 +14,13 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.urls import reverse
-from django_countries.fields import Country
 from slugify import slugify
 from stringcase import snakecase
 
 from config import settings
 from hexa.core import mimetypes
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     Analysis,
@@ -29,12 +30,14 @@ from hexa.plugins.connector_accessmod.models import (
     GeographicCoverageAnalysis,
     Project,
     ProjectPermission,
+    ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
 from hexa.plugins.connector_s3.models import Bucket
-from hexa.user_management.countries import get_who_info
 from hexa.user_management.models import Team, User
+
+logger = logging.getLogger(__name__)
 
 accessmod_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -155,25 +158,28 @@ def resolve_accessmod_projects(
     )
 
 
-@accessmod_mutations.field("createAccessmodProjectByCountry")
+@accessmod_mutations.field("createAccessmodProject")
 @transaction.atomic
-def resolve_create_accessmod_project_by_country(_, info, **kwargs):
+def resolve_create_accessmod_project(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
 
-    country = Country(create_input["country"]["code"])
-    who_info = get_who_info(country.alpha3)
+    country = Country.objects.get(code=create_input["country"]["code"])
+    if "extent" in create_input:
+        extent = create_input["extent"]
+    else:
+        extent = country.simplified_extent.tuple[0]
 
     try:
         project = Project.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
-            country=Country(create_input["country"]["code"]),
+            country=country.code,
             spatial_resolution=create_input["spatialResolution"],
             crs=create_input["crs"],
             description=create_input.get("description", ""),
-            extent=who_info.simplified_extent,
+            extent=extent,
         )
         return {"success": True, "project": project, "errors": []}
     except IntegrityError:
@@ -192,16 +198,10 @@ def resolve_update_accessmod_project(_, info, **kwargs):
             id=update_input["id"]
         )
         changes = {}
-        for scalar_field in ["name", "description", "extent"]:
+        for scalar_field in ["name", "description"]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
-        if "demId" in update_input:
-            dem = Fileset.objects.filter_for_user(principal).get(
-                id=update_input["demId"]
-            )
-            changes["dem"] = dem
-        if "country" in update_input:
-            changes["country"] = update_input["country"]["code"]
+
         if len(changes) > 0:
             try:
                 project.update_if_has_perm(principal, **changes)
@@ -509,7 +509,7 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         id=prepare_input["filesetId"]
     )
 
-    # This is a temporary solution until we figure out storage requirements
+    # TODO This is a temporary solution until we figure out storage requirements
     if settings.ACCESSMOD_S3_BUCKET_NAME is None:
         raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
     try:
@@ -553,13 +553,55 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     download_url = generate_download_url(
         principal_credentials=bucket.principal_credentials,
         bucket=bucket,
-        # Ugly workaround, TBD when we know more about storage
+        # TODO Ugly workaround, TBD when we know more about storage
         target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
     )
 
     return {
         "success": True,
         "download_url": download_url,
+    }
+
+
+@accessmod_mutations.field("prepareAccessmodFilesetVisualizationDownload")
+@transaction.atomic
+def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    prepare_input = kwargs["input"]
+    try:
+        fileset: Fileset = Fileset.objects.filter_for_user(principal).get(
+            id=prepare_input["id"]
+        )
+    except Fileset.DoesNotExist:
+        return {"success": False}
+
+    if not fileset.visualization_uri:
+        return {"success": False}
+
+    # TODO This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    try:
+        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+    except Bucket.DoesNotExist:
+        raise ValueError(
+            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        )
+    try:
+        url = generate_download_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            # TODO Ugly workaround, TBD when we know more about storage
+            target_key=fileset.visualization_uri.replace(f"s3://{bucket.name}/", ""),
+        )
+    except Exception as err:
+        logger.exception(err)
+        return {"success": False}
+
+    return {
+        "success": True,
+        "url": url,
     }
 
 
@@ -640,6 +682,8 @@ def resolve_analysis_type(analysis: Analysis, *_):
         return "AccessmodAccessibilityAnalysis"
     elif isinstance(analysis, GeographicCoverageAnalysis):
         return "AccessmodGeographicCoverageAnalysis"
+    elif isinstance(analysis, ZonalStatisticsAnalysis):
+        return "AccessmodZonalStatistics"
 
     return None
 
@@ -694,7 +738,30 @@ def resolve_create_accessmod_accessibility_analysis(_, info, **kwargs):
         return {"success": False, "analysis": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@accessmod_mutations.field("createAccessmodZonalStatistics")
+@transaction.atomic
+def resolve_create_accessmod_zonal_statistics(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        analysis = ZonalStatisticsAnalysis.objects.create_if_has_perm(
+            principal,
+            project=Project.objects.filter_for_user(request.user).get(
+                id=create_input["projectId"]
+            ),
+            name=create_input["name"],
+        )
+        return {"success": True, "analysis": analysis, "errors": []}
+    except IntegrityError:
+        return {"success": False, "analysis": None, "errors": ["NAME_DUPLICATE"]}
+    except PermissionDenied:
+        return {"success": False, "analysis": None, "errors": ["PERMISSION_DENIED"]}
+
+
 @accessmod_mutations.field("updateAccessmodAccessibilityAnalysis")
+@accessmod_mutations.field("updateAccessmodZonalStatistics")
 @transaction.atomic
 def resolve_update_accessmod_analysis(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -715,6 +782,7 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "algorithm",
             "knightMove",
             "stackPriorities",
+            "timeThresholds",
         ]:
             if scalar_field in update_input:
                 changes[snakecase(scalar_field)] = update_input[scalar_field]
@@ -727,6 +795,9 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "waterId",
             "barrierId",
             "healthFacilitiesId",
+            "populationId",
+            "travelTimesId",
+            "boundariesId",
         ]:
             if fileset_field in update_input:
                 fileset = Fileset.objects.filter_for_user(principal).get(

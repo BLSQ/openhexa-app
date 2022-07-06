@@ -31,14 +31,25 @@ gunicorn
 dhis2.py
 
 # connector_s3
-boto3
+boto3==1.20.24
 moto[s3]
 
 # connector_airflow
 google-auth
+
+# connector_gcs
+google-cloud-iam
 
 # meta
 pip-tools
 
 # development
 coverage[toml]
+
+# data-worker
+rasterio
+rio-cogeo
+gdal==3.2.2
+s3fs==2022.01.0
+gcsfs==2022.01.0
+fsspec==2022.01.0

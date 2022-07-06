@@ -340,6 +340,7 @@ class Fileset(Entry):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     metadata = models.JSONField(blank=True, default=dict)
+    visualization_uri = models.CharField(max_length=250, null=True, blank=True)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
@@ -355,6 +356,7 @@ class Fileset(Entry):
         return self.save()
 
     def set_invalid(self, error):
+        self.refresh_from_db()
         if self.metadata is None:
             self.metadata = {}
         self.metadata["validation_error"] = error
@@ -418,6 +420,9 @@ class FilesetRoleCode(models.TextChoices):
     TRAVEL_TIMES = "TRAVEL_TIMES"
     WATER = "WATER"
     STACK = "STACK"
+    BOUNDARIES = "BOUNDARIES"
+    ZONAL_STATISTICS = "ZONAL_STATISTICS"
+    ZONAL_STATISTICS_TABLE = "ZONAL_STATISTICS_TABLE"
 
 
 class FilesetRole(Base):
@@ -482,6 +487,7 @@ class AnalysisStatus(models.TextChoices):
 class AnalysisType(str, enum.Enum):
     ACCESSIBILITY = "ACCESSIBILITY"
     GEOGRAPHIC_COVERAGE = "GEOGRAPHIC_COVERAGE"
+    ZONAL_STATISTICS = "ZONAL_STATISTICS"
 
 
 class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
@@ -717,6 +723,10 @@ class Analysis(Pipeline):
         self.save()
         return fileset
 
+    @staticmethod
+    def get_analysis_models():
+        return Analysis.__subclasses__()
+
 
 class AccessibilityAnalysisAlgorithm(models.TextChoices):
     ANISOTROPIC = "ANISOTROPIC"
@@ -757,7 +767,7 @@ class AccessibilityAnalysis(Analysis):
     algorithm = models.CharField(
         max_length=50,
         choices=AccessibilityAnalysisAlgorithm.choices,
-        default=AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+        default=AccessibilityAnalysisAlgorithm.ISOTROPIC,
     )
     knight_move = models.BooleanField(default=False)
 
@@ -818,6 +828,7 @@ class AccessibilityAnalysis(Analysis):
                     return
 
         self.status = AnalysisStatus.READY
+        self.save()
 
     @transaction.atomic
     def set_input(
@@ -996,20 +1007,23 @@ class AccessibilityAnalysis(Analysis):
                 ),
             }
 
-        if self.water.status == FilesetStatus.TO_ACQUIRE:
-            am_conf["water"] = {
-                "auto": True,
-                "name": self.water.name,
-                "path": output_dir + f"{str(self.water.id)}_water.gpkg",
-                "all_touched": self.water_all_touched,
-            }
+        if self.water:
+            if self.water.status == FilesetStatus.TO_ACQUIRE:
+                am_conf["water"] = {
+                    "auto": True,
+                    "name": self.water.name,
+                    "path": output_dir + f"{str(self.water.id)}_water.gpkg",
+                    "all_touched": self.water_all_touched,
+                }
+            else:
+                am_conf["water"] = {
+                    "auto": False,
+                    "name": self.water.name,
+                    "path": self.water.primary_uri,
+                    "all_touched": self.water_all_touched,
+                }
         else:
-            am_conf["water"] = {
-                "auto": False,
-                "name": self.water.name,
-                "path": self.water.primary_uri,
-                "all_touched": self.water_all_touched,
-            }
+            am_conf["water"] = None
 
         # Do we have a stack to use or do we need to build it?
         if self.stack:
@@ -1042,7 +1056,10 @@ class AccessibilityAnalysis(Analysis):
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_osm": (
                 self.transport_network.status == FilesetStatus.TO_ACQUIRE
-                or self.water.status == FilesetStatus.TO_ACQUIRE
+                or (
+                    self.water is not None
+                    and self.water.status == FilesetStatus.TO_ACQUIRE
+                )
             ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
             # Overwrite and output_dir repeated: for create report, which
@@ -1125,3 +1142,173 @@ class GeographicCoverageAnalysis(Analysis):
 
     def set_input(self, **kwargs):
         raise NotImplementedError
+
+
+# JSONField default should be a callable instead of an instance so that it's not shared between all field instances.
+def get_default_time_thresholds():
+    return [60, 120, 180, 240, 300, 360]
+
+
+class ZonalStatisticsAnalysis(Analysis):
+    class Meta:
+        verbose_name_plural = "Zonal stats analyses"
+
+    population = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    travel_times = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    boundaries = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    time_thresholds = models.JSONField(default=get_default_time_thresholds)
+    zonal_statistics_table = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+    zonal_statistics_geo = models.ForeignKey(
+        "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
+    )
+
+    def populate_index(self, index):
+        raise NotImplementedError
+
+    def get_absolute_url(self):
+        raise NotImplementedError
+
+    def update_status_if_draft(self):
+        if (
+            not self.name
+            or not self.time_thresholds
+            or not self.boundaries
+            or not self.population
+        ):
+            return
+
+        self.status = AnalysisStatus.READY
+
+    @transaction.atomic
+    def set_input(
+        self,
+        input: str,
+        uri: str,
+        mime_type: str,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+    ):
+
+        if input not in ("population", "travel_times", "boundaries"):
+            raise Exception("invalid input")
+
+        fileset = getattr(self, input)
+        if fileset.status != FilesetStatus.TO_ACQUIRE:
+            raise Exception("invalid fileset status")
+
+        # add data to that fileset
+        File.objects.create(
+            mime_type=mime_type,
+            uri=uri,
+            fileset=fileset,
+        )
+
+        # probably the acquisition is valid, use the data worker for
+        # metadata extraction
+        fileset.status = FilesetStatus.PENDING
+        if metadata is not None:
+            fileset.metadata.update(metadata)
+        fileset.save()
+        return fileset
+
+    @transaction.atomic
+    def set_outputs(self, zonal_statistics_table: str, zonal_statistics_geo: str):
+        new_filesets = []
+        new_filesets.append(
+            self.set_output(
+                output_key="zonal_statistics_table",
+                output_role_code=FilesetRoleCode.ZONAL_STATISTICS_TABLE,
+                output_name="Zonal statistics table",
+                output_value=zonal_statistics_table,
+            )
+        )
+        new_filesets.append(
+            self.set_output(
+                output_key="zonal_statistics_geo",
+                output_role_code=FilesetRoleCode.ZONAL_STATISTICS,
+                output_name="Zonal statistics",
+                output_value=zonal_statistics_geo,
+            )
+        )
+        return new_filesets
+
+    @property
+    def type(self) -> AnalysisType:
+        return AnalysisType.ZONAL_STATISTICS
+
+    @property
+    def dag_id(self):
+        return "am_zonal_statistics"
+
+    def build_dag_conf(self, output_dir: str):
+
+        # force output_dir to end with a "/"
+        if not output_dir.endswith("/"):
+            output_dir += "/"
+
+        am_conf = {
+            "output_dir": output_dir,
+            "extent": self.project.extent,
+            "crs": self.project.crs,
+            "country": {
+                "name": self.project.country.name,
+                "iso-a2": self.project.country.code,
+                "iso-a3": self.project.country.alpha3,
+            },
+            "spatial_resolution": self.project.spatial_resolution,
+            "time_thresholds": self.time_thresholds,
+        }
+
+        if self.population.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["population"] = {
+                "auto": True,
+                "name": self.population.name,
+                "path": output_dir + f"{str(self.population.id)}_population.tif",
+            }
+        else:
+            am_conf["population"] = {
+                "auto": False,
+                "name": self.population.name,
+                "path": self.population.primary_uri,
+            }
+
+        if self.boundaries.status == FilesetStatus.TO_ACQUIRE:
+            am_conf["boundaries"] = {
+                "auto": True,
+                "amenity": None,
+                "name": self.boundaries.name,
+                "administrative_level": self.boundaries.metadata.get(
+                    "administrative_level", 2
+                ),
+                "path": output_dir + f"{str(self.boundaries.id)}_boundaries.gpkg",
+            }
+        else:
+            am_conf["boundaries"] = {
+                "auto": False,
+                "name": self.boundaries.name,
+                "path": self.boundaries.primary_uri,
+            }
+
+        am_conf["travel_times"] = {
+            "name": self.travel_times.name,
+            "path": self.travel_times.primary_uri,
+        }
+
+        dag_conf = {
+            # flag interpreted by airflow for starting acquisition pipelines
+            "acquisition_population": self.population.status
+            == FilesetStatus.TO_ACQUIRE,
+            "acquisition_boundaries": self.boundaries.status
+            == FilesetStatus.TO_ACQUIRE,
+            "output_dir": output_dir,
+            "am_config": base64.b64encode(json.dumps(am_conf).encode()).decode(),
+        }
+
+        return dag_conf

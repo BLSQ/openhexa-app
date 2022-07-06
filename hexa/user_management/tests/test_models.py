@@ -15,7 +15,9 @@ class ModelsTest(TestCase):
     USER_SERENA = None
     USER_JOE = None
     USER_GREG = None
-    TEAM = None
+    USER_PETE = None
+    TEAM_1 = None
+    TEAM_2 = None
     MEMBERSHIP_SERENA = None
     MEMBERSHIP_GREG = None
 
@@ -33,13 +35,17 @@ class ModelsTest(TestCase):
             "greg@bluesquarehub.com",
             "greg's password",
         )
-        cls.TEAM = Team.objects.create(name="A team")
+        cls.USER_PETE = User.objects.create_user(
+            "pete@bluesquarehub.com", "pete's password", is_superuser=True
+        )
+        cls.TEAM_1 = Team.objects.create(name="A team")
         cls.MEMBERSHIP_SERENA = Membership.objects.create(
-            user=cls.USER_SERENA, team=cls.TEAM, role=MembershipRole.ADMIN
+            user=cls.USER_SERENA, team=cls.TEAM_1, role=MembershipRole.ADMIN
         )
         cls.MEMBERSHIP_GREG = Membership.objects.create(
-            user=cls.USER_GREG, team=cls.TEAM, role=MembershipRole.REGULAR
+            user=cls.USER_GREG, team=cls.TEAM_1, role=MembershipRole.REGULAR
         )
+        cls.TEAM_2 = Team.objects.create(name="Another team")
 
     def test_initials_no_first_and_last_name(self):
         """Users without first/last names should have the first two letters of their username as initials"""
@@ -90,21 +96,21 @@ class ModelsTest(TestCase):
 
     def test_team_update_not_owner(self):
         with self.assertRaises(PermissionDenied):
-            self.TEAM.update_if_has_perm(self.USER_GREG, name="Yolo team")
+            self.TEAM_1.update_if_has_perm(self.USER_GREG, name="Yolo team")
 
     def test_team_update(self):
-        self.TEAM.update_if_has_perm(self.USER_SERENA, name="Updated team")
-        self.TEAM.refresh_from_db()
-        self.assertEqual("Updated team", self.TEAM.name)
+        self.TEAM_1.update_if_has_perm(self.USER_SERENA, name="Updated team")
+        self.TEAM_1.refresh_from_db()
+        self.assertEqual("Updated team", self.TEAM_1.name)
 
     def test_team_delete_not_owner(self):
         with self.assertRaises(PermissionDenied):
-            self.TEAM.delete_if_has_perm(self.USER_GREG)
+            self.TEAM_1.delete_if_has_perm(self.USER_GREG)
 
     def test_team_delete(self):
-        self.TEAM.delete_if_has_perm(self.USER_SERENA)
+        self.TEAM_1.delete_if_has_perm(self.USER_SERENA)
         with self.assertRaises(ObjectDoesNotExist):
-            Team.objects.get(id=self.TEAM.id)
+            Team.objects.get(id=self.TEAM_1.id)
 
     def test_membership_create_if_has_perm(self):
         # Nice try, Joe
@@ -112,16 +118,16 @@ class ModelsTest(TestCase):
             Membership.objects.create_if_has_perm(
                 self.USER_JOE,
                 user=self.USER_JOE,
-                team=self.TEAM,
+                team=self.TEAM_1,
                 role=MembershipRole.ADMIN,
             )
 
         membership = Membership.objects.create_if_has_perm(
-            self.USER_SERENA, user=self.USER_JOE, team=self.TEAM
+            self.USER_SERENA, user=self.USER_JOE, team=self.TEAM_1
         )
         self.assertIsInstance(membership, Membership)
         self.assertEqual(self.USER_JOE, membership.user)
-        self.assertEqual(self.TEAM, membership.team)
+        self.assertEqual(self.TEAM_1, membership.team)
         self.assertEqual(MembershipRole.REGULAR, membership.role)
 
     def test_membership_update_if_has_perm(self):
@@ -143,5 +149,16 @@ class ModelsTest(TestCase):
 
         self.MEMBERSHIP_GREG.delete_if_has_perm(self.USER_SERENA)
         self.assertFalse(
-            Membership.objects.filter(user=self.USER_GREG, team=self.TEAM).exists()
+            Membership.objects.filter(user=self.USER_GREG, team=self.TEAM_1).exists()
         )
+
+    def test_filter_for_user(self):
+        teams = Team.objects.filter_for_user(self.USER_SERENA)
+        self.assertEqual(1, len(teams))
+        self.assertIn(self.TEAM_1, teams)
+
+    def test_filter_for_superuser(self):
+        teams = Team.objects.filter_for_user(self.USER_PETE)
+        self.assertEqual(2, len(teams))
+        self.assertIn(self.TEAM_1, teams)
+        self.assertIn(self.TEAM_2, teams)

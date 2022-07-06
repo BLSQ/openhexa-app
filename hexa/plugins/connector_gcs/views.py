@@ -3,11 +3,13 @@ from logging import getLogger
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from .datacards import BucketCard
+from hexa.metrics.decorators import do_not_track
 
-# from .datagrids import ObjectGrid
+from .datacards import BucketCard, ObjectCard
+from .datagrids import ObjectGrid
 from .models import Bucket
 
 logger = getLogger(__name__)
@@ -28,16 +30,16 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
         (bucket.display_name, "connector_gcs:datasource_detail", datasource_id),
     ]
 
-    #    object_grid = ObjectGrid(
-    #        bucket.object_set.prefetch_indexes()
-    #        .filter(parent_key="/")
-    #        .select_related("bucket"),
-    #        parent_model=bucket,
-    #        prefix="",
-    #        per_page=20,
-    #        page=int(request.GET.get("page", "1")),
-    #        request=request,
-    #    )
+    object_grid = ObjectGrid(
+        bucket.object_set.prefetch_indexes()
+        .filter(parent_key="/")
+        .select_related("bucket"),
+        parent_model=bucket,
+        prefix="",
+        per_page=20,
+        page=int(request.GET.get("page", "1")),
+        request=request,
+    )
 
     return render(
         request,
@@ -46,6 +48,83 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
             "datasource": bucket,
             "breadcrumbs": breadcrumbs,
             "bucket_card": bucket_card,
-            #            "object_grid": object_grid,
+            "object_grid": object_grid,
         },
+    )
+
+
+def object_detail(
+    request: HttpRequest, bucket_id: uuid.UUID, path: str
+) -> HttpResponse:
+    bucket = get_object_or_404(
+        Bucket.objects.prefetch_indexes().filter_for_user(request.user), pk=bucket_id
+    )
+    gcs_object = get_object_or_404(bucket.object_set.prefetch_indexes(), key=path)
+    object_card = ObjectCard(model=gcs_object, request=request)
+    if request.method == "POST" and object_card.save():
+        return redirect(request.META["HTTP_REFERER"])
+
+    breadcrumbs = [
+        (_("Catalog"), "catalog:index"),
+        (bucket.name, "connector_gcs:datasource_detail", bucket_id),
+    ]
+
+    acc = []
+    for i, part in enumerate(gcs_object.key.split("/")):
+        acc.append(part)
+        path = "/".join(acc)
+        if i != len(gcs_object.key.split("/")) - 1:
+            path += "/"
+        breadcrumbs.append(
+            (part, "connector_gcs:object_detail", bucket_id, path),
+        )
+
+    if gcs_object.type == "directory":
+        object_grid = ObjectGrid(
+            bucket.object_set.prefetch_indexes().filter(parent_key=path),
+            parent_model=bucket,
+            prefix=gcs_object.key,
+            per_page=20,
+            page=int(request.GET.get("page", "1")),
+            request=request,
+        )
+    else:
+        object_grid = None
+
+    return render(
+        request,
+        "connector_gcs/object_detail.html",
+        {
+            "datasource": bucket,
+            "object": gcs_object,
+            "object_card": object_card,
+            "breadcrumbs": breadcrumbs,
+            "object_grid": object_grid,
+            "default_tab": "content" if gcs_object.type == "directory" else "details",
+            #            "download_url": reverse(
+            #                "connector_s3:object_download",
+            #                kwargs={"bucket_id": bucket_id, "path": path},
+            #            )
+            #            if gcs_object.type == "file"
+            #            else None,
+        },
+    )
+
+
+@do_not_track
+def bucket_refresh(request, bucket_id):
+    bucket = get_object_or_404(
+        Bucket.objects.filter_for_user(request.user), pk=bucket_id
+    )
+
+    object_key = request.GET.get("object_key")
+    bucket.refresh(object_key)
+    return redirect(
+        request.META.get(
+            "HTTP_REFERER",
+            reverse(
+                "connector_gcs:object_detail",
+                kwargs={"bucket_id": bucket_id, "path": object_key},
+            ),
+        )
     )

@@ -1,7 +1,6 @@
 from logging import getLogger
 
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from hexa.catalog.models import Datasource
 from hexa.plugins.app import ConnectorAppConfig
@@ -37,7 +36,6 @@ class Command(BaseCommand):
                         logger.info(
                             "sync datasource %s:%s", model, instance.display_name
                         )
-                        with transaction.atomic():
-                            instance.sync()
+                        instance.sync()
                     except Exception:
                         logger.exception("sync error")

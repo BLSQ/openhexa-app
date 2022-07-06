@@ -23,10 +23,13 @@ x-app: &default-app
       - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
       - ACCESSMOD_S3_BUCKET_NAME=hexa-demo-accessmod
       - CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - GCS_TOKEN_LIFETIME=3600
 
 services:
   db:
-    image: postgres:12.5
+    build:
+      context: .
+      dockerfile: Dockerfile.db
     volumes:
       - pgdata-12.5:/var/lib/postgresql/data
     environment:
@@ -60,9 +63,6 @@ services:
 
   dataworker:
     <<: *default-app
-    build:
-      context: .
-      dockerfile: Dockerfile.dataworker
     command: "manage validate_fileset_worker"
     restart: unless-stopped
     depends_on:

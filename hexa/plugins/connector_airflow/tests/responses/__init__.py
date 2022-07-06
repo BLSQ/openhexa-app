@@ -6,7 +6,7 @@ dags = {
             "file_token": "Ii9vcHQvYWlyZmxvdy9kYWdzL3JlcG8vZGFncy9oZWxsb3dvcmxkLnB5Ig.x6F3mxeBdDLzg9-dB34gk-iOU2o",
             "fileloc": "/opt/airflow/dags/repo/dags/helloworld.py",
             "is_active": True,
-            "is_paused": True,
+            "is_paused": False,
             "is_subdag": False,
             "owners": ["airflow"],
             "root_dag_id": None,

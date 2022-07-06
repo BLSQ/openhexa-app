@@ -5,7 +5,7 @@ from dhis2 import ClientException, RequestException
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
@@ -128,55 +128,54 @@ class Instance(Datasource):
         results = DatasourceSyncResult(datasource=self)
 
         # Sync data elements
-        with transaction.atomic():
-            self.last_synced_at = timezone.now()
-            info = client.fetch_info()
-            self.sync_log("fetch info done: %s", info)
-            self.name = info["systemName"]
+        self.last_synced_at = timezone.now()
+        info = client.fetch_info()
+        self.sync_log("fetch info done: %s", info)
+        self.name = info["systemName"]
 
-            self.sync_log("start fetch data_elements")
+        self.sync_log("start fetch data_elements")
 
-            results += sync_from_dhis2_results(
-                model_class=DataElement,
-                instance=self,
-                results=client.fetch_data_elements(),
-            )
+        results += sync_from_dhis2_results(
+            model_class=DataElement,
+            instance=self,
+            results=client.fetch_data_elements(),
+        )
 
-            # Sync indicator types
-            self.sync_log("start fetch indicator_types")
-            results += sync_from_dhis2_results(
-                model_class=IndicatorType,
-                instance=self,
-                results=client.fetch_indicator_types(),
-            )
+        # Sync indicator types
+        self.sync_log("start fetch indicator_types")
+        results += sync_from_dhis2_results(
+            model_class=IndicatorType,
+            instance=self,
+            results=client.fetch_indicator_types(),
+        )
 
-            # Sync indicators
-            self.sync_log("start fetch indicators")
-            results += sync_from_dhis2_results(
-                model_class=Indicator,
-                instance=self,
-                results=client.fetch_indicators(),
-            )
+        # Sync indicators
+        self.sync_log("start fetch indicators")
+        results += sync_from_dhis2_results(
+            model_class=Indicator,
+            instance=self,
+            results=client.fetch_indicators(),
+        )
 
-            # Sync datasets
-            self.sync_log("start fetch datasets")
-            results += sync_from_dhis2_results(
-                model_class=DataSet,
-                instance=self,
-                results=client.fetch_datasets(),
-            )
+        # Sync datasets
+        self.sync_log("start fetch datasets")
+        results += sync_from_dhis2_results(
+            model_class=DataSet,
+            instance=self,
+            results=client.fetch_datasets(),
+        )
 
-            # Sync organisation units
-            self.sync_log("start fetch organisation_units")
-            results += sync_from_dhis2_results(
-                model_class=OrganisationUnit,
-                instance=self,
-                results=client.fetch_organisation_units(),
-            )
+        # Sync organisation units
+        self.sync_log("start fetch organisation_units")
+        results += sync_from_dhis2_results(
+            model_class=OrganisationUnit,
+            instance=self,
+            results=client.fetch_organisation_units(),
+        )
 
-            # Flag the datasource as synced
-            self.sync_log("end of fetching resources")
-            self.save()
+        # Flag the datasource as synced
+        self.sync_log("end of fetching resources")
+        self.save()
 
         self.sync_log("end of syncing")
         return results

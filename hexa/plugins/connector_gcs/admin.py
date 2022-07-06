@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Bucket, Credentials, GCSBucketPermission
+from .models import Bucket, Credentials, GCSBucketPermission, Object
 
 
 @admin.register(Credentials)
@@ -14,6 +14,20 @@ class BucketAdmin(admin.ModelAdmin):
     list_display = ("name", "last_synced_at", "auto_sync")
     list_filter = ("name",)
     search_fields = ("name",)
+
+
+@admin.register(Object)
+class ObjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "display_name",
+        "bucket",
+        "key",
+        "type",
+        "size",
+        "etag",
+    )
+    list_filter = ("type", "bucket")
+    search_fields = ("key", "bucket")
 
 
 @admin.register(GCSBucketPermission)

@@ -1,0 +1,43 @@
+# Countries & regions
+type Country {
+    code: String!
+    alpha3: String!
+    name: String!
+    flag: String!
+    whoInfo: WHOInfo!
+}
+
+input CountryInput {
+    code: String!
+    alpha3: String
+    name: String
+    flag: String
+}
+
+scalar SimplifiedExtentType
+
+type WHOInfo {
+    region: WHORegion
+    defaultCRS: Int!
+    simplifiedExtent: SimplifiedExtentType
+}
+
+type WHORegion {
+    code: String!
+    name: String!
+}
+
+type WHOBoundary {
+    id: String!
+    name: String!
+    country: Country!
+    administrative_level: Int!
+    parent: String
+    extent: String!
+}
+
+extend type Query {
+    country(code: String, alpha3: String): Country
+    boundaries(country_code: String!, level: String!): [WHOBoundary!]!
+    countries: [Country!]!
+}

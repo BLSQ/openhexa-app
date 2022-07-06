@@ -7,7 +7,6 @@ from django.utils.http import urlsafe_base64_encode
 from hexa.core.test import GraphQLTestCase
 from hexa.core.test.utils import graphql_datetime_format
 from hexa.user_management.models import Membership, MembershipRole, Team, User
-from hexa.user_management.tests import SIMPLIFIED_BFA_EXTENT
 
 
 class SchemaTest(GraphQLTestCase):
@@ -645,61 +644,146 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["createMembership"],
         )
 
-    def test_country(self):
-        self.client.force_login(self.USER_JIM)
+    def test_create_membership_already_exists(self):
+        self.client.force_login(self.USER_JANE)
+
         r = self.run_query(
             """
-              query {
-                country(code: "BF") {
-                  code
-                  name
-                  alpha3
-                  whoInfo {
-                    region {
-                      code
-                      name
-                    }
-                    defaultCRS
-                    simplifiedExtent
-                  }
+              mutation createMembership($input: CreateMembershipInput!) {
+                createMembership(input: $input) {
+                  success
+                  errors
                 }
               }
             """,
-        )
-
-        self.assertEqual(
             {
-                "name": "Burkina Faso",
-                "code": "BF",
-                "alpha3": "BFA",
-                "whoInfo": {
-                    "region": {"code": "AFRO", "name": "African Region"},
-                    "defaultCRS": 32630,
-                    "simplifiedExtent": [[x, y] for x, y in SIMPLIFIED_BFA_EXTENT],
+                "input": {
+                    "userEmail": self.USER_JANE.email,
+                    "teamId": str(self.TEAM_CORE.id),
+                    "role": MembershipRole.REGULAR,
                 },
             },
-            r["data"]["country"],
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["ALREADY_EXISTS"],
+            },
+            r["data"]["createMembership"],
         )
 
-    def test_countries(self):
-        self.client.force_login(self.USER_JIM)
-        r = self.run_query(
-            """
-                  query {
-                    countries {
-                      code
-                      name
-                      alpha3
+    def test_update_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.update_membership"
+        ) as update_membership:
+            r = self.run_query(
+                """
+                  mutation updateMembership($input: UpdateMembershipInput!) {
+                    updateMembership(input: $input) {
+                      success
+                      membership {
+                        role
+                      }
                     }
                   }
                 """,
+                {
+                    "input": {
+                        "id": str(self.MEMBERSHIP_JIM_CORE.id),
+                        "role": MembershipRole.ADMIN,
+                    },
+                },
+            )
+
+        update_membership.assert_called_once_with(
+            self.USER_JANE, self.MEMBERSHIP_JIM_CORE
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "membership": {
+                    "role": MembershipRole.ADMIN,
+                },
+            },
+            r["data"]["updateMembership"],
+        )
+
+    def test_update_membership_error(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation updateMembership($input: UpdateMembershipInput!) {
+                updateMembership(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.MEMBERSHIP_JANE_CORE.id),
+                    "role": MembershipRole.REGULAR,
+                },
+            },
         )
 
         self.assertEqual(
+            {"success": False, "errors": ["INVALID_ROLE"]},
+            r["data"]["updateMembership"],
+        )
+
+    def test_delete_membership(self):
+        self.client.force_login(self.USER_JANE)
+
+        with patch(
+            "hexa.user_management.permissions.delete_membership"
+        ) as delete_membership:
+            r = self.run_query(
+                """
+                  mutation deleteMembership($input: DeleteMembershipInput!) {
+                    deleteMembership(input: $input) {
+                      success
+                    }
+                  }
+                """,
+                {
+                    "input": {
+                        "id": str(self.MEMBERSHIP_JIM_CORE.id),
+                    },
+                },
+            )
+
+        delete_membership.assert_called_once()  # Cannot use called_once_with() as membership has been deleted
+        self.assertEqual(
             {
-                "name": "Burkina Faso",
-                "code": "BF",
-                "alpha3": "BFA",
+                "success": True,
             },
-            next(c for c in r["data"]["countries"] if c["alpha3"] == "BFA"),
+            r["data"]["deleteMembership"],
+        )
+
+    def test_delete_membership_error(self):
+        self.client.force_login(self.USER_JANE)
+
+        r = self.run_query(
+            """
+              mutation deleteMembership($input: DeleteMembershipInput!) {
+                deleteMembership(input: $input) {
+                  success
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.MEMBERSHIP_JANE_CORE.id),
+                },
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+            },
+            r["data"]["deleteMembership"],
         )
