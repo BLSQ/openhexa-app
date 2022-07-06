@@ -1,9 +1,11 @@
+from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
+from graphql import MiddlewareManager
 
-from hexa.core.graphql.view import SecureGraphQLView
+from hexa.core.graphql.middleware import authentication_middleware
 from hexa.plugins.app import get_connector_app_configs
 
 from .schema import schema
@@ -29,8 +31,10 @@ urlpatterns = [
     path("auth/", include("django.contrib.auth.urls")),
     path(
         "graphql/",
-        SecureGraphQLView.as_view(
-            schema=schema, playground_options={"request.credentials": "include"}
+        GraphQLView.as_view(
+            schema=schema,
+            middleware=MiddlewareManager(authentication_middleware),
+            playground_options={"request.credentials": "include"},
         )
         if settings.ENABLE_GRAPHQL is True
         else TemplateView.as_view(template_name="404.html"),

@@ -3,3 +3,5 @@ scalar DateTime
 
 type Query
 type Mutation
+
+directive @authNotRequired on FIELD_DEFINITION
