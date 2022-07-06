@@ -1,5 +1,4 @@
 import os
-import typing
 from logging import getLogger
 
 # Try to load datasciences dependencies
@@ -21,7 +20,7 @@ except ImportError:
     missing_dependencies = True
 
 from django.db import models
-from dpq.queue import AtLeastOnceQueue
+from dpq.queue import AtMostOnceQueue
 
 import hexa.plugins.connector_s3.api as s3_api
 from hexa.plugins.connector_s3.models import Bucket
@@ -30,6 +29,7 @@ from .models import (
     Analysis,
     AnalysisStatus,
     Fileset,
+    FilesetFormat,
     FilesetRoleCode,
     FilesetStatus,
     ValidateFilesetJob,
@@ -70,9 +70,10 @@ def get_main_filename(uri: str) -> str:
     return filename
 
 
-def validate_geopkg(
-    gdf: "gpd.GeoDataFrame", fileset: Fileset, geom_type: typing.List[str]
-):
+def validate_geopkg(fileset: Fileset, filename: str):
+    # open the content
+    gdf = gpd.read_file(filename)
+
     # validate CRS
     if gdf.crs.to_epsg() != fileset.project.crs:
         fileset.set_invalid("wrong CRS")
@@ -88,95 +89,181 @@ def validate_geopkg(
         fileset.set_invalid("data containing invalid geometry")
         return
 
-    # are all element inside df type Point, LineString, ...
-    if not (gdf.geom_type.isin(geom_type)).all():
-        fileset.set_invalid("data containing invalid geometry type")
-        return
+    geom_types = {
+        FilesetRoleCode.HEALTH_FACILITIES: ("Point",),
+        FilesetRoleCode.WATER: ("LineString", "MultiLineString", "MultiPolygon"),
+        FilesetRoleCode.TRANSPORT_NETWORK: ("LineString", "MultiLineString"),
+    }
+
+    if fileset.role in geom_types:
+        # are all element inside df type Point, LineString, ...
+        if not (gdf.geom_type.isin(geom_types[fileset.role])).all():
+            fileset.set_invalid("data containing invalid geometry type")
+            return
 
     # TODO: validate that each point inside project extend
+    return gdf
 
 
-def validate_raster(raster, fileset: Fileset):
+def validate_raster(fileset: Fileset, filename: str):
+    # open content
+    raster = rasterio.open(filename)
+
     # validate CRS -> must be the same
     # NOTE: we should validate that CRS is in (m) in project
-    if not raster.crs.is_epsg_code:
-        fileset.set_invalid("wrong CRS, not epsg")
-        return
+    if fileset.role.code != FilesetRoleCode.POPULATION:
+        # population can have any CRS, reprojected anyway
+        if not raster.crs.is_epsg_code:
+            fileset.set_invalid("wrong CRS, not epsg")
+            return
 
-    if int(raster.crs.to_epsg()) != fileset.project.crs:
-        fileset.set_invalid("wrong CRS")
-        return
+        if int(raster.crs.to_epsg()) != fileset.project.crs:
+            fileset.set_invalid("wrong CRS")
+            return
 
-    # validate spatial resolution
-    if int(raster.transform.a) != fileset.project.spatial_resolution:
-        fileset.set_invalid("wrong spatial resolution")
-        return
+        # validate spatial resolution
+        if int(raster.transform.a) != fileset.project.spatial_resolution:
+            fileset.set_invalid("wrong spatial resolution")
+            return
 
     # TODO: validate bounds
     # if raster.bounds != fileset.project.extend.metadata: i guess
     #     fileset.set_invalid("wrong extend")
     #     return
+    return raster
 
 
-def validate_health_facilities(fileset: Fileset, filename: str):
-    facilities = gpd.read_file(filename)
-    validate_geopkg(facilities, fileset, ("Point",))
-
-    if fileset.status == FilesetStatus.INVALID:
-        # invalid by previous checks
-        return
-
-    generate_geojson(fileset, filename)
-
-    # end of processing -> validated
-    fileset.status = FilesetStatus.VALID
-    fileset.save()
-
-
-def validate_water(fileset: Fileset, filename: str):
-    water = gpd.read_file(filename)
-    validate_geopkg(water, fileset, ("LineString", "MultiLineString", "MultiPolygon"))
-
-    if fileset.status == FilesetStatus.INVALID:
-        # invalid by previous checks
-        return
-
-    generate_geojson(fileset, filename)
-
-    # end of processing -> validated
-    fileset.status = FilesetStatus.VALID
-    fileset.save()
-
-
-def validate_transport(fileset: Fileset, filename: str):
-    transport = gpd.read_file(filename)
-    validate_geopkg(transport, fileset, ("LineString", "MultiLineString"))
-
-    if fileset.status == FilesetStatus.INVALID:
-        # invalid by previous checks
-        return
-
-    generate_geojson(fileset, filename)
-
-    # extract roads categories & validate
-    if fileset.metadata is None:
-        fileset.metadata = {}
-
+def validate_transport(fileset: Fileset, transport: gpd.GeoDataFrame):
+    # also extract metadata
     cols = sorted(transport.columns.to_list())
     cols.remove("geometry")
-    fileset.metadata["columns"] = cols
-    fileset.metadata["values"] = {}
+    col_values = {}
     for col in cols:
         # save some unique values for all columns, front can choose what it wants
         # truncate to max 20 elements
         # FIXME: will fail for weird python scalar like datetime, timedelta etc
         # which are not json encodable
         values = transport.get(col).unique()[:20].tolist()
-        fileset.metadata["values"][col] = sorted(
-            filter(lambda v: not pd.isna(v), values)
-        )
+        col_values[col] = sorted(filter(lambda v: not pd.isna(v), values))
 
-    fileset.status = FilesetStatus.VALID
+    # extract roads categories & validate
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["columns"] = cols
+    fileset.metadata["values"] = col_values
+    fileset.metadata["length"] = len(transport)
+    fileset.save()
+
+
+def validate_continous_raster(fileset: Fileset, raster, extra_validation=None):
+    # validate min/max/mean altitude. assume band 1
+    # use masked because otherwise invalid value may occure
+    raster_content = raster.read(1, masked=True)
+    if extra_validation:
+        extra_validation(fileset, raster, raster_content)
+        if fileset.status == FilesetStatus.INVALID:
+            return
+
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["min"] = int(raster_content.min())
+    fileset.metadata["max"] = int(raster_content.max())
+    if raster.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = int(raster.nodata)
+
+    percentile = np.percentile(a=raster_content.compressed(), q=[1, 2, 98, 99])
+    fileset.metadata["1p"] = float(percentile[0])
+    fileset.metadata["2p"] = float(percentile[1])
+    fileset.metadata["98p"] = float(percentile[2])
+    fileset.metadata["99p"] = float(percentile[3])
+    fileset.save()
+
+
+def validate_dem(fileset: Fileset, dem):
+    def validate_altitude(fileset, dem, dem_content):
+        if (
+            dem_content.min() < -500
+            or dem_content.max() > 8900
+            or dem_content.mean() > 5000
+        ):
+            fileset.set_invalid("file content outside of reality")
+            return
+
+    return validate_continous_raster(fileset, dem, validate_altitude)
+
+
+def validate_positive_raster(fileset, raster):
+    def validate_values(fileset, raster, raster_content):
+        if raster_content.min() < -1:
+            fileset.set_invalid("file content outside of reality")
+            return
+
+    return validate_continous_raster(fileset, raster, validate_values)
+
+
+def validate_facilities(fileset: Fileset, facilities: gpd.GeoDataFrame):
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["length"] = len(facilities)
+    fileset.save()
+
+
+def validate_water(fileset: Fileset, water: gpd.GeoDataFrame):
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+
+    fileset.metadata["length"] = len(water)
+    fileset.save()
+
+
+def validate_land_cover(fileset: Fileset, landcover):
+    # validate number of class. assume band 1
+    # use masked because otherwise invalid value may occure
+    lc_content = landcover.read(1, masked=True)
+    lc_classes = np.unique(lc_content.data)
+    if len(lc_classes) > 50 or lc_content.min() < 0:
+        fileset.set_invalid("file content outside of reality")
+        return
+
+    # extract land cover classes for frontend
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+    fileset.metadata["unique_values"] = sorted([int(i) for i in lc_classes])
+    if landcover.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = landcover.nodata
+    fileset.save()
+
+
+def validate_stack(fileset: Fileset, stack):
+    # validate number of class. assume band 1
+    # use masked because otherwise invalid value may occure
+    stack_content = stack.read(1, masked=True)
+    stack_classes = np.unique(stack_content.data)
+    if len(stack_classes) > 50 or stack_content.min() < 0:
+        fileset.set_invalid("file content outside of reality")
+        return
+
+    # extract stack classes for frontend
+    fileset.refresh_from_db()
+    if fileset.metadata is None:
+        fileset.metadata = {}
+    fileset.metadata["unique_values"] = sorted([int(i) for i in stack_classes])
+    if stack.nodata is None:
+        fileset.metadata["nodata"] = None
+    else:
+        fileset.metadata["nodata"] = stack.nodata
     fileset.save()
 
 
@@ -184,6 +271,7 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
     # Generate a GeoJSON copy from a fileset. change CRS if needed
     # used by frontend
 
+    # maybe we need to copy the file? somehow it seems to lock the GPKG
     # target crs is epsg:4326 in dataviz
     viz_crs = pyproj.CRS.from_epsg(4326)
     gdf = gpd.read_file(filename)
@@ -213,7 +301,8 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
     )
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
-    fileset.metadata["geojson_uri"] = f"s3://{bucket.name}/{dst_path}"
+    fileset.refresh_from_db()
+    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
 
 
@@ -281,79 +370,9 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
     )
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
-    fileset.metadata["cog_raster_uri"] = f"s3://{bucket.name}/{dst_path}"
+    fileset.refresh_from_db()
+    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
     fileset.save()
-
-
-def validate_dem(fileset: Fileset, filename: str):
-    dem = rasterio.open(filename)
-    validate_raster(dem, fileset)
-
-    if fileset.status == FilesetStatus.INVALID:
-        # invalid by previous checks
-        return
-
-    # validate min/max/mean altitude. assume band 1
-    # use masked because otherwise invalid value may occure
-    dem_content = dem.read(1, masked=True)
-    if (
-        dem_content.min() < -500
-        or dem_content.max() > 8900
-        or dem_content.mean() > 5000
-    ):
-        fileset.set_invalid("file content outside of reality")
-        return
-
-    if fileset.metadata is None:
-        fileset.metadata = {}
-
-    fileset.metadata["min"] = int(dem_content.min())
-    fileset.metadata["max"] = int(dem_content.max())
-    if dem.nodata is None:
-        fileset.metadata["nodata"] = None
-    else:
-        fileset.metadata["nodata"] = int(dem.nodata)
-
-    percentile = np.percentile(a=dem_content.compressed(), q=[1, 2, 98, 99])
-    fileset.metadata["1p"] = float(percentile[0])
-    fileset.metadata["2p"] = float(percentile[1])
-    fileset.metadata["98p"] = float(percentile[2])
-    fileset.metadata["99p"] = float(percentile[3])
-
-    fileset.status = FilesetStatus.VALID
-    fileset.save()
-
-    generate_cog_raster(fileset, filename)
-
-
-def validate_land_cover(fileset: Fileset, filename: str):
-    landcover = rasterio.open(filename)
-    validate_raster(landcover, fileset)
-
-    if fileset.status == FilesetStatus.INVALID:
-        # invalid by previous checks
-        return
-
-    # validate number of class. assume band 1
-    # use masked because otherwise invalid value may occure
-    lc_content = landcover.read(1, masked=True)
-    lc_classes = np.unique(lc_content.data)
-    if len(lc_classes) > 50 or lc_content.min() < 0:
-        fileset.set_invalid("file content outside of reality")
-        return
-
-    # extract land cover classes for frontend
-    if fileset.metadata is None:
-        fileset.metadata = {}
-    fileset.metadata["unique_values"] = sorted([int(i) for i in lc_classes])
-    if landcover.nodata is None:
-        fileset.metadata["nodata"] = None
-    else:
-        fileset.metadata["nodata"] = landcover.nodata
-    fileset.status = FilesetStatus.VALID
-    fileset.save()
-
-    generate_cog_raster(fileset, filename)
 
 
 def validate_data_and_download(fileset: Fileset) -> str:
@@ -389,6 +408,70 @@ def validate_data_and_download(fileset: Fileset) -> str:
         return None
 
     return local_name
+
+
+def process_fileset(fileset: Fileset):
+    filename = validate_data_and_download(fileset)
+    if not filename:
+        # previous error, abort processing
+        logger.error(
+            "fileset %s : %s",
+            fileset.id,
+            fileset.metadata["validation_error"],
+        )
+        return
+
+    # raster, vector validation
+    if fileset.role.format == FilesetFormat.VECTOR:
+        content = validate_geopkg(fileset, filename)
+
+    elif fileset.role.format == FilesetFormat.RASTER:
+        content = validate_raster(fileset, filename)
+
+    else:
+        # tabular or other, so no validation rule for now -> return
+        fileset.status = FilesetStatus.VALID
+        fileset.save()
+        return
+
+    if content is None:
+        fileset.refresh_from_db()
+        if fileset.status != FilesetStatus.INVALID:
+            # BUG! should be invalided by validate_raster or gpkg
+            logger.error(
+                "incoherence between content None and FilesetStatus (%s)",
+                fileset.status,
+            )
+            fileset.status = FilesetStatus.INVALID
+            fileset.save()
+        return
+
+    # TODO: should we validate the mime type?
+
+    fileset_role_validator = {
+        FilesetRoleCode.DEM: validate_dem,
+        FilesetRoleCode.TRANSPORT_NETWORK: validate_transport,
+        FilesetRoleCode.WATER: validate_water,
+        FilesetRoleCode.LAND_COVER: validate_land_cover,
+        FilesetRoleCode.HEALTH_FACILITIES: validate_facilities,
+        FilesetRoleCode.TRAVEL_TIMES: validate_positive_raster,
+        FilesetRoleCode.POPULATION: validate_positive_raster,
+        FilesetRoleCode.STACK: validate_stack,
+    }
+    if fileset.role.code in fileset_role_validator:
+        # custom validation by role
+        fileset_role_validator[fileset.role.code](fileset, content)
+
+    # end of validation -> it's valid
+    fileset.status = FilesetStatus.VALID
+    fileset.save()
+
+    # generate viz stuff
+    if fileset.role.format == FilesetFormat.VECTOR:
+        generate_geojson(fileset, filename)
+
+    if fileset.role.format == FilesetFormat.RASTER:
+        generate_cog_raster(fileset, filename)
 
 
 def get_all_fileset_fields():
@@ -433,41 +516,21 @@ def validate_fileset_job(queue, job) -> None:
     fileset.status = FilesetStatus.VALIDATING
     fileset.save()
 
-    filename = validate_data_and_download(fileset)
-    if not filename:
-        # previous error, abort processing
-        logger.error(
-            "fileset %s : %s",
-            job.args["fileset_id"],
-            fileset.metadata["validation_error"],
-        )
-        return
-
-    # TODO: should we validate the mime type?
-
-    fileset_role_validator = {
-        FilesetRoleCode.DEM: validate_dem,
-        FilesetRoleCode.HEALTH_FACILITIES: validate_health_facilities,
-        FilesetRoleCode.WATER: validate_water,
-        FilesetRoleCode.TRANSPORT_NETWORK: validate_transport,
-        FilesetRoleCode.LAND_COVER: validate_land_cover,
-    }
-    if fileset.role.code not in fileset_role_validator:
-        # no validator for that role -> validate the FS
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
-        logger.info("No validator for fileset %s", job.args["fileset_id"])
-        return
-
-    # custom validation by role
-    fileset_role_validator[fileset.role.code](fileset, filename)
+    process_fileset(fileset)
 
     # refresh all related analysis, if any
     refresh_all_analysis(fileset)
     logger.info("Completed validation fileset %s", job.args["fileset_id"])
 
 
-class ValidateFilesetQueue(AtLeastOnceQueue):
+def validate_fileset_job_wrapped(*args, **kwargs) -> None:
+    try:
+        return validate_fileset_job(*args, **kwargs)
+    except Exception:
+        logger.exception("validate_fileset_job failed")
+
+
+class ValidateFilesetQueue(AtMostOnceQueue):
     # override the default job model; our job model has a specific table name
     job_model = ValidateFilesetJob
 
@@ -476,7 +539,7 @@ class ValidateFilesetQueue(AtLeastOnceQueue):
 # AtLeastOnceQueue + try/except: if the worker fail, restart the task. if the task fail, drop it + log
 validate_fileset_queue = ValidateFilesetQueue(
     tasks={
-        "validate_fileset": validate_fileset_job,
+        "validate_fileset": validate_fileset_job_wrapped,
     },
     notify_channel="validate_fileset_queue",
 )

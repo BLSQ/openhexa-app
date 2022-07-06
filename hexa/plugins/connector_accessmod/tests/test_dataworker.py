@@ -56,6 +56,15 @@ class AccessmodDataWorkerTest(TestCase):
         cls.LAND_COVER_ROLE = FilesetRole.objects.get(
             code=FilesetRoleCode.LAND_COVER,
         )
+        cls.STACK_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.STACK,
+        )
+        cls.TRAVEL_TIMES_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.TRAVEL_TIMES,
+        )
+        cls.POPULATION_ROLE = FilesetRole.objects.get(
+            code=FilesetRoleCode.POPULATION,
+        )
         cls.dem_empty_fs = Fileset.objects.create(
             project=cls.PROJECT,
             name="empty dem",
@@ -123,6 +132,42 @@ class AccessmodDataWorkerTest(TestCase):
             uri="s3://test-bucket/analysis/landcover.tif",
             fileset=cls.landcover_fs,
         )
+        cls.stack_fs = Fileset.objects.create(
+            project=cls.PROJECT,
+            name="stack",
+            status=FilesetStatus.PENDING,
+            role=cls.STACK_ROLE,
+            author=cls.AUTHOR,
+        )
+        cls.stack_file = File.objects.create(
+            mime_type="image/geotiff",
+            uri="s3://test-bucket/analysis/stack.tif",
+            fileset=cls.stack_fs,
+        )
+        cls.travel_times_fs = Fileset.objects.create(
+            project=cls.PROJECT,
+            name="travel times",
+            status=FilesetStatus.PENDING,
+            role=cls.TRAVEL_TIMES_ROLE,
+            author=cls.AUTHOR,
+        )
+        cls.travel_times_file = File.objects.create(
+            mime_type="image/geotiff",
+            uri="s3://test-bucket/analysis/travel_times.tif",
+            fileset=cls.travel_times_fs,
+        )
+        cls.population_fs = Fileset.objects.create(
+            project=cls.PROJECT,
+            name="population",
+            status=FilesetStatus.PENDING,
+            role=cls.POPULATION_ROLE,
+            author=cls.AUTHOR,
+        )
+        cls.population_file = File.objects.create(
+            mime_type="image/geotiff",
+            uri="s3://test-bucket/analysis/population.tif",
+            fileset=cls.population_fs,
+        )
 
         # S3 setup
         cls.CREDENTIALS = Credentials.objects.create(
@@ -165,8 +210,10 @@ class AccessmodDataWorkerTest(TestCase):
                 "max": 691,
                 "min": 143,
                 "nodata": 32767.0,
-                "cog_raster_uri": "s3://test-bucket/analysis/dem.cog.tif",
             },
+        )
+        self.assertEqual(
+            self.dem_fs.visualization_uri, "s3://test-bucket/analysis/dem.cog.tif"
         )
         self.assertEqual(self.dem_fs.status, FilesetStatus.VALID)
 
@@ -185,11 +232,10 @@ class AccessmodDataWorkerTest(TestCase):
             None, MockJob(args={"fileset_id": str(self.facilities_fs.id)})
         )
         self.facilities_fs.refresh_from_db()
+        self.assertEqual(self.facilities_fs.metadata, {"length": 3})
         self.assertEqual(
-            self.facilities_fs.metadata,
-            {
-                "geojson_uri": "s3://test-bucket/analysis/clinics_viz.geojson",
-            },
+            self.facilities_fs.visualization_uri,
+            "s3://test-bucket/analysis/clinics_viz.geojson",
         )
         self.assertEqual(self.facilities_fs.status, FilesetStatus.VALID)
 
@@ -207,11 +253,10 @@ class AccessmodDataWorkerTest(TestCase):
         validate_fileset_job(None, MockJob(args={"fileset_id": str(self.water_fs.id)}))
         self.water_fs.refresh_from_db()
         self.assertEqual(
-            self.water_fs.metadata,
-            {
-                "geojson_uri": "s3://test-bucket/analysis/water_viz.geojson",
-            },
+            self.water_fs.visualization_uri,
+            "s3://test-bucket/analysis/water_viz.geojson",
         )
+        self.assertEqual(self.water_fs.metadata, {"length": 3})
         self.assertEqual(self.water_fs.status, FilesetStatus.VALID)
 
     @mock_s3
@@ -239,8 +284,12 @@ class AccessmodDataWorkerTest(TestCase):
                     "surface": ["asphalt"],
                     "tracktype": [],
                 },
-                "geojson_uri": "s3://test-bucket/analysis/transport_viz.geojson",
+                "length": 3,
             },
+        )
+        self.assertEqual(
+            self.transport_fs.visualization_uri,
+            "s3://test-bucket/analysis/transport_viz.geojson",
         )
         self.assertEqual(self.transport_fs.status, FilesetStatus.VALID)
 
@@ -264,10 +313,109 @@ class AccessmodDataWorkerTest(TestCase):
             {
                 "unique_values": [0, 1, 2, 3, 4, 6, 7, 8, 10],
                 "nodata": 0.0,
-                "cog_raster_uri": "s3://test-bucket/analysis/landcover.cog.tif",
             },
         )
+        self.assertEqual(
+            self.landcover_fs.visualization_uri,
+            "s3://test-bucket/analysis/landcover.cog.tif",
+        )
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)
+
+    @mock_s3
+    @mock_sts
+    def test_validate_stack(self):
+        stack_file = os.path.dirname(__file__) + "/data/stack.tif"
+        stack_data = open(stack_file, "rb").read()
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="analysis/stack.tif", Body=stack_data
+        )
+
+        validate_fileset_job(None, MockJob(args={"fileset_id": str(self.stack_fs.id)}))
+        self.stack_fs.refresh_from_db()
+        self.assertEqual(
+            self.stack_fs.metadata,
+            {
+                "unique_values": [0, 1, 2, 3, 4, 6, 7, 8, 10],
+                "nodata": 0.0,
+            },
+        )
+        self.assertEqual(
+            self.stack_fs.visualization_uri,
+            "s3://test-bucket/analysis/stack.cog.tif",
+        )
+        self.assertEqual(self.stack_fs.status, FilesetStatus.VALID)
+
+    @mock_s3
+    @mock_sts
+    def test_validate_travel_times(self):
+        travel_times_file = os.path.dirname(__file__) + "/data/travel.tif"
+        travel_times_data = open(travel_times_file, "rb").read()
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(
+            Bucket="test-bucket",
+            Key="analysis/travel_times.tif",
+            Body=travel_times_data,
+        )
+
+        validate_fileset_job(
+            None, MockJob(args={"fileset_id": str(self.travel_times_fs.id)})
+        )
+        self.travel_times_fs.refresh_from_db()
+        self.assertEqual(
+            self.travel_times_fs.metadata,
+            {
+                "1p": 188.0,
+                "2p": 203.0,
+                "98p": 445.0,
+                "99p": 498.0,
+                "max": 691,
+                "min": 143,
+                "nodata": 32767.0,
+            },
+        )
+        self.assertEqual(
+            self.travel_times_fs.visualization_uri,
+            "s3://test-bucket/analysis/travel_times.cog.tif",
+        )
+        self.assertEqual(self.travel_times_fs.status, FilesetStatus.VALID)
+
+    @mock_s3
+    @mock_sts
+    def test_validate_population(self):
+        population_file = os.path.dirname(__file__) + "/data/population.tif"
+        population_data = open(population_file, "rb").read()
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(
+            Bucket="test-bucket",
+            Key="analysis/population.tif",
+            Body=population_data,
+        )
+
+        validate_fileset_job(
+            None, MockJob(args={"fileset_id": str(self.population_fs.id)})
+        )
+        self.population_fs.refresh_from_db()
+        self.assertEqual(
+            self.population_fs.metadata,
+            {
+                "1p": 188.0,
+                "2p": 203.0,
+                "98p": 445.0,
+                "99p": 498.0,
+                "max": 691,
+                "min": 143,
+                "nodata": 32767.0,
+            },
+        )
+        self.assertEqual(
+            self.population_fs.visualization_uri,
+            "s3://test-bucket/analysis/population.cog.tif",
+        )
+        self.assertEqual(self.population_fs.status, FilesetStatus.VALID)
 
 
 class AccessmodAnalysisUpdateTest(TestCase):

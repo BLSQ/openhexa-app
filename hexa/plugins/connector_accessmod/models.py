@@ -340,6 +340,7 @@ class Fileset(Entry):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     metadata = models.JSONField(blank=True, default=dict)
+    visualization_uri = models.CharField(max_length=250, null=True, blank=True)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
@@ -355,6 +356,7 @@ class Fileset(Entry):
         return self.save()
 
     def set_invalid(self, error):
+        self.refresh_from_db()
         if self.metadata is None:
             self.metadata = {}
         self.metadata["validation_error"] = error
@@ -765,7 +767,7 @@ class AccessibilityAnalysis(Analysis):
     algorithm = models.CharField(
         max_length=50,
         choices=AccessibilityAnalysisAlgorithm.choices,
-        default=AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+        default=AccessibilityAnalysisAlgorithm.ISOTROPIC,
     )
     knight_move = models.BooleanField(default=False)
 
@@ -1054,7 +1056,10 @@ class AccessibilityAnalysis(Analysis):
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_osm": (
                 self.transport_network.status == FilesetStatus.TO_ACQUIRE
-                or self.water.status == FilesetStatus.TO_ACQUIRE
+                or (
+                    self.water is not None
+                    and self.water.status == FilesetStatus.TO_ACQUIRE
+                )
             ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
             # Overwrite and output_dir repeated: for create report, which
@@ -1146,7 +1151,7 @@ def get_default_time_thresholds():
 
 class ZonalStatisticsAnalysis(Analysis):
     class Meta:
-        verbose_name_plural = "Zonal statistics"
+        verbose_name_plural = "Zonal stats analyses"
 
     population = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
@@ -1183,7 +1188,14 @@ class ZonalStatisticsAnalysis(Analysis):
         self.status = AnalysisStatus.READY
 
     @transaction.atomic
-    def set_input(self, input: str, uri: str, mime_type: str):
+    def set_input(
+        self,
+        input: str,
+        uri: str,
+        mime_type: str,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+    ):
+
         if input not in ("population", "travel_times", "boundaries"):
             raise Exception("invalid input")
 
@@ -1191,17 +1203,20 @@ class ZonalStatisticsAnalysis(Analysis):
         if fileset.status != FilesetStatus.TO_ACQUIRE:
             raise Exception("invalid fileset status")
 
-        # assume that output of acquisition is valid
-        # if udpate to status PENDING, add task in validation queue
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
-
         # add data to that fileset
         File.objects.create(
             mime_type=mime_type,
             uri=uri,
             fileset=fileset,
         )
+
+        # probably the acquisition is valid, use the data worker for
+        # metadata extraction
+        fileset.status = FilesetStatus.PENDING
+        if metadata is not None:
+            fileset.metadata.update(metadata)
+        fileset.save()
+        return fileset
 
     @transaction.atomic
     def set_outputs(self, zonal_statistics_table: str, zonal_statistics_geo: str):
@@ -1238,7 +1253,18 @@ class ZonalStatisticsAnalysis(Analysis):
         if not output_dir.endswith("/"):
             output_dir += "/"
 
-        am_conf = {"output_dir": output_dir, "time_thresholds": self.time_thresholds}
+        am_conf = {
+            "output_dir": output_dir,
+            "extent": self.project.extent,
+            "crs": self.project.crs,
+            "country": {
+                "name": self.project.country.name,
+                "iso-a2": self.project.country.code,
+                "iso-a3": self.project.country.alpha3,
+            },
+            "spatial_resolution": self.project.spatial_resolution,
+            "time_thresholds": self.time_thresholds,
+        }
 
         if self.population.status == FilesetStatus.TO_ACQUIRE:
             am_conf["population"] = {
@@ -1258,6 +1284,9 @@ class ZonalStatisticsAnalysis(Analysis):
                 "auto": True,
                 "amenity": None,
                 "name": self.boundaries.name,
+                "administrative_level": self.boundaries.metadata.get(
+                    "administrative_level", 2
+                ),
                 "path": output_dir + f"{str(self.boundaries.id)}_boundaries.gpkg",
             }
         else:

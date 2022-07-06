@@ -120,7 +120,7 @@ class Cluster(Environment):
             except DAGRun.DoesNotExist:
                 continue
 
-            dag_run.update_state(run_info["state"])
+            dag_run.update_state(run_info)
 
     def sync(self):
         created_count = 0
@@ -222,7 +222,7 @@ class Cluster(Environment):
                             "execution_date": parse_datetime(run_info["execution_date"])
                         },
                     )
-                    run.update_state(run_info["state"])
+                    run.update_state(run_info)
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -498,19 +498,24 @@ class DAGRun(Base, WithStatus):
         client = self.dag.template.cluster.get_api_client()
         run_data = client.get_dag_run(self.dag.dag_id, self.run_id)
 
-        self.update_state(run_data["state"])
+        self.update_state(run_data)
 
-    def update_state(self, state: DAGRunState):
-        should_update = self.state != state or self.state in [
+    def update_state(self, run_data):
+        should_update = self.state != run_data["state"] or self.state in [
             DAGRunState.RUNNING,
             DAGRunState.QUEUED,
         ]
-        success_or_failed = state in [DAGRunState.SUCCESS, DAGRunState.FAILED]
+        success_or_failed = run_data["state"] in [
+            DAGRunState.SUCCESS,
+            DAGRunState.FAILED,
+        ]
         if should_update:
             self.last_refreshed_at = timezone.now()
-            self.state = state
-            if success_or_failed:
-                self.duration = timezone.now() - self.execution_date
+            self.state = run_data["state"]
+            if run_data["end_date"]:
+                self.duration = (
+                    parse_datetime(run_data["end_date"]) - self.execution_date
+                )
             self.save()
 
     def add_to_favorites(
