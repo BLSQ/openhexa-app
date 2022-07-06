@@ -401,8 +401,8 @@ class Object(Entry):
     def get_absolute_url(self):
         if self.type == "directory" and self.key.endswith("/"):
             return reverse(
-              "connector_s3:object_detail",
-              kwargs={"bucket_id": self.bucket.id, "path": self.key[:-1]},
+                "connector_s3:object_detail",
+                kwargs={"bucket_id": self.bucket.id, "path": self.key[:-1]},
             )
         else:
             return reverse(
