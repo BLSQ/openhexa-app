@@ -641,8 +641,8 @@ class Analysis(Pipeline):
         if settings.ACCESSMOD_BUCKET_NAME is None:
             raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
 
-        uri_protocol = settings.ACCESSMOD_BUCKET_NAME.split("://")[0]
-        bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
+        uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://", 1)
+        bucket_name = bucket_name.rstrip("/")
 
         if uri_protocol == "s3":
             Bucket = S3Bucket

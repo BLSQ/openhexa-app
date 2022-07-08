@@ -521,6 +521,8 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         Bucket = S3Bucket
     elif uri_protocol == "gcs":
         Bucket = GCSBucket
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     try:
         bucket = Bucket.objects.get(name=bucket_name)
@@ -540,6 +542,8 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
             bucket=bucket,
             target_key=target_key,
         )
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     return {
         "success": True,
@@ -566,6 +570,8 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
         Bucket = S3Bucket
     elif uri_protocol == "gcs":
         Bucket = GCSBucket
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     try:
         bucket = Bucket.objects.get(name=bucket_name)
@@ -585,6 +591,8 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
             # Ugly workaround, TBD when we know more about storage
             target_key=file.uri.replace(f"gcs://{bucket.name}/", ""),
         )
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     return {
         "success": True,
@@ -639,6 +647,9 @@ def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
                 # Ugly workaround, TBD when we know more about storage
                 target_key=uri.replace(f"gcs://{bucket.name}/", ""),
             )
+        else:
+            raise ValueError(f"Protocol {uri_protocol} not supported.")
+
     except Exception as err:
         logger.exception(err)
         return {"success": False}
