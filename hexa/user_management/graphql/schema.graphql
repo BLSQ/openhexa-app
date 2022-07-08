@@ -58,7 +58,7 @@ extend type Query {
     me: Me!
 }
 extend type Mutation {
-    login(input: LoginInput!): LoginResult!
+    login(input: LoginInput!): LoginResult! @authNotRequired
     logout: LogoutResult!
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!

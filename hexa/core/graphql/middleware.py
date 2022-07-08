@@ -1,7 +1,14 @@
+from ariadne.contrib.federation.utils import includes_directive
+from ariadne.contrib.tracing.utils import is_introspection_field
+from graphql import GraphQLError
+
+
 def authentication_middleware(resolver, obj, info, **args):
     if (
-        info.field_name != "schema"
-        and not info.context["request"].user.is_authenticated
+        is_introspection_field(info)
+        or info.context["request"].user.is_authenticated
+        or includes_directive(info, "authNotRequired")
     ):
-        return None
-    return resolver(obj, info, **args)
+        return resolver(obj, info, **args)
+
+    raise GraphQLError("This operation is not allowed.")
