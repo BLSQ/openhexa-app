@@ -1,7 +1,7 @@
 {% extends "ui/datagrid/datagrid.html" %}
 
 {% block extra_wrapper_attrs %}
-    x-data="S3Upload('{{ upload_url }}', '{{ refresh_url }}', '{{ prefix }}')"
+    x-data="CloudUpload('{{ upload_url }}', '{{ refresh_url }}', '{{ prefix }}')"
     x-init="init($el)"
     x-html="refreshedHtml"
     x-swap="objects_grid"

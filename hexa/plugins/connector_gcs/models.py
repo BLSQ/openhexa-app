@@ -16,7 +16,7 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.plugins.connector_gcs.api import list_objects_metadata
+from hexa.plugins.connector_gcs.api import get_object_metadata, list_objects_metadata
 from hexa.user_management import models as user_management_models
 from hexa.user_management.models import Permission, PermissionMode
 
@@ -118,6 +118,24 @@ class Bucket(Datasource):
             raise ValidationError(
                 "The GCS connector plugin should be configured with a single Credentials entry"
             )
+
+    def refresh(self, path):
+        metadata = get_object_metadata(
+            bucket=self,
+            object_key=path,
+        )
+
+        try:
+            gcs_object = Object.objects.get(bucket=self, key=path)
+        except Object.DoesNotExist:
+            Object.create_from_metadata(self, metadata)
+        except Object.MultipleObjectsReturned:
+            logger.warning(
+                "Bucket.refresh(): incoherent object list for bucket %s", self.id
+            )
+        else:
+            gcs_object.update_from_metadata(metadata)
+            gcs_object.save()
 
     def sync(self):
         """Sync the bucket by querying the GoogleCloudStorage API"""

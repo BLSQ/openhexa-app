@@ -21,7 +21,8 @@ from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
-from hexa.plugins.connector_s3.models import Bucket
+from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
+from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Permission, PermissionMode, Team
 
 
@@ -637,19 +638,30 @@ class Analysis(Pipeline):
         dag = airflow_models.DAG.objects.get(dag_id=self.dag_id)
 
         # This is a temporary solution until we figure out storage requirements
-        if settings.ACCESSMOD_S3_BUCKET_NAME is None:
-            raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+        if settings.ACCESSMOD_BUCKET_NAME is None:
+            raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
+
+        uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://", 1)
+        bucket_name = bucket_name.rstrip("/")
+
+        if uri_protocol == "s3":
+            Bucket = S3Bucket
+        elif uri_protocol == "gcs":
+            Bucket = GCSBucket
+        else:
+            raise ValueError(f"Protocol {uri_protocol} not supported.")
+
         try:
-            bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+            bucket = Bucket.objects.get(name=bucket_name)
         except Bucket.DoesNotExist:
             raise ValueError(
-                f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+                f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist"
             )
 
         self.dag_run = dag.run(
             request=request,
             conf=self.build_dag_conf(
-                output_dir=f"s3://{bucket.name}/{self.project.id}/{self.id}/"
+                output_dir="f{settings.ACCESSMOD_BUCKET_NAME}/{self.project.id}/{self.id}/"
             ),
             webhook_path=webhook_path,
         )

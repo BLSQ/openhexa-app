@@ -22,8 +22,10 @@ except ImportError:
 from django.db import models
 from dpq.queue import AtMostOnceQueue
 
+import hexa.plugins.connector_gcs.api as gcs_api
 import hexa.plugins.connector_s3.api as s3_api
-from hexa.plugins.connector_s3.models import Bucket
+from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
+from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
 from .models import (
     Analysis,
@@ -40,13 +42,13 @@ logger = getLogger(__name__)
 
 def get_bucket_name(uri: str) -> str:
     # extract bucketname, assume a s3://path/file URI
-    bucket_name, *key_parts = uri[5:].split("/")
+    bucket_name, *key_parts = uri.split("://")[1].split("/")
     return bucket_name
 
 
 def get_object_key(uri: str) -> str:
     # extract object key, assume a s3://path/file URI
-    bucket_name, *key_parts = uri[5:].split("/")
+    bucket_name, *key_parts = uri.split("://")[1].split("/")
     return "/".join(key_parts)
 
 
@@ -299,10 +301,19 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
         + get_main_filename(src_filename)
         + "_viz.geojson"
     )
+
+    uri_protocol = src_filename.split("://")[0]
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+        upload_file = s3_api.upload_file
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+        upload_file = gcs_api.upload_file
+
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
-    s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
+    upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
     fileset.refresh_from_db()
-    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
+    fileset.visualization_uri = f"{uri_protocol}://{bucket.name}/{dst_path}"
     fileset.save()
 
 
@@ -360,7 +371,6 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
 
     # 3) Lookup where to save the new COG file
     # Not doing any check, they where already done in validate_data_and_download()
-    # assume s3 bucket
     src_filename = fileset.file_set.first().uri
     dst_path = (
         get_object_key(get_base_dir(src_filename))
@@ -368,10 +378,18 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
         + get_main_filename(src_filename)
         + ".cog.tif"
     )
+    uri_protocol = src_filename.split("://")[0]
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+        upload_file = s3_api.upload_file
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+        upload_file = gcs_api.upload_file
+
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
-    s3_api.upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
+    upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
     fileset.refresh_from_db()
-    fileset.visualization_uri = f"s3://{bucket.name}/{dst_path}"
+    fileset.visualization_uri = f"{uri_protocol}://{bucket.name}/{dst_path}"
     fileset.save()
 
 
@@ -384,9 +402,14 @@ def validate_data_and_download(fileset: Fileset) -> str:
         return None
     file = fileset.file_set.first()
 
-    # retreive content
-    if not file.uri.startswith("s3://") and len(file.uri) > 6:
-        # support only S3 for now
+    uri_protocol = file.uri.split("://")[0]
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+        download_file = s3_api.download_file
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+        download_file = gcs_api.download_file
+    else:
         fileset.set_invalid("wrong uri")
         return None
 
@@ -398,9 +421,8 @@ def validate_data_and_download(fileset: Fileset) -> str:
 
     # erase always the same file, make sure we don't consume too much ram
     local_name = "/tmp/current_work_file"
-    s3_api.download_file(
-        bucket=bucket, object_key=get_object_key(file.uri), target=local_name
-    )
+
+    download_file(bucket=bucket, object_key=get_object_key(file.uri), target=local_name)
 
     # is there data inside?
     if os.stat(local_name).st_size == 0:

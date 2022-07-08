@@ -340,7 +340,7 @@ else:
     MEDIA_ROOT = BASE_DIR / "static" / "uploads"
 
 # Accessmod settings
-ACCESSMOD_S3_BUCKET_NAME = os.environ.get("ACCESSMOD_S3_BUCKET_NAME")
+ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"

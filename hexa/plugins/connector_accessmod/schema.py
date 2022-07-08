@@ -17,6 +17,8 @@ from django.urls import reverse
 from slugify import slugify
 from stringcase import snakecase
 
+import hexa.plugins.connector_gcs.api as gcs_api
+import hexa.plugins.connector_s3.api as s3_api
 from config import settings
 from hexa.core import mimetypes
 from hexa.core.graphql import result_page
@@ -33,8 +35,8 @@ from hexa.plugins.connector_accessmod.models import (
     ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
-from hexa.plugins.connector_s3.api import generate_download_url, generate_upload_url
-from hexa.plugins.connector_s3.models import Bucket
+from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
+from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
 
 logger = logging.getLogger(__name__)
@@ -509,27 +511,44 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
         id=prepare_input["filesetId"]
     )
 
-    # TODO This is a temporary solution until we figure out storage requirements
-    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
-        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    # This is a temporary solution until we figure out storage requirements
+    if settings.ACCESSMOD_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
+
+    uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")
+    bucket_name = bucket_name.rstrip("/")
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
+
     try:
-        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket = Bucket.objects.get(name=bucket_name)
     except Bucket.DoesNotExist:
-        raise ValueError(
-            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
-        )
+        raise ValueError(f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist")
     target_slug = slugify(fileset.name, separator="_")
     target_key = f"{fileset.project.id}/{target_slug}{mimetypes.guess_extension(prepare_input['mimeType'])}"
-    upload_url = generate_upload_url(
-        principal_credentials=bucket.principal_credentials,
-        bucket=bucket,
-        target_key=target_key,
-    )
+
+    if uri_protocol == "s3":
+        upload_url = s3_api.generate_upload_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            target_key=target_key,
+        )
+    elif uri_protocol == "gcs":
+        upload_url = gcs_api.generate_upload_url(
+            bucket=bucket,
+            target_key=target_key,
+        )
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     return {
         "success": True,
         "upload_url": upload_url,
-        "file_uri": f"s3://{bucket.name}/{target_key}",
+        "file_uri": f"{uri_protocol}://{bucket.name}/{target_key}",
     }
 
 
@@ -542,20 +561,38 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     file = File.objects.filter_for_user(principal).get(id=prepare_input["fileId"])
 
     # This is a temporary solution until we figure out storage requirements
-    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
-        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    if settings.ACCESSMOD_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
+
+    uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")
+    bucket_name = bucket_name.rstrip("/")
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
+
     try:
-        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket = Bucket.objects.get(name=bucket_name)
     except Bucket.DoesNotExist:
-        raise ValueError(
-            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+        raise ValueError(f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist")
+
+    if uri_protocol == "s3":
+        download_url = s3_api.generate_download_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            # Ugly workaround, TBD when we know more about storage
+            target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
         )
-    download_url = generate_download_url(
-        principal_credentials=bucket.principal_credentials,
-        bucket=bucket,
-        # TODO Ugly workaround, TBD when we know more about storage
-        target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
-    )
+    elif uri_protocol == "gcs":
+        download_url = gcs_api.generate_download_url(
+            bucket=bucket,
+            # Ugly workaround, TBD when we know more about storage
+            target_key=file.uri.replace(f"gcs://{bucket.name}/", ""),
+        )
+    else:
+        raise ValueError(f"Protocol {uri_protocol} not supported.")
 
     return {
         "success": True,
@@ -578,30 +615,48 @@ def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
 
     if not fileset.visualization_uri:
         return {"success": False}
+    uri = fileset.visualization_uri
 
     # TODO This is a temporary solution until we figure out storage requirements
-    if settings.ACCESSMOD_S3_BUCKET_NAME is None:
-        raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+    if settings.ACCESSMOD_BUCKET_NAME is None:
+        raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
+
+    uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")
+    bucket_name = bucket_name.rstrip("/")
+    if uri_protocol == "s3":
+        Bucket = S3Bucket
+    elif uri_protocol == "gcs":
+        Bucket = GCSBucket
+
     try:
-        bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket = Bucket.objects.get(name=bucket_name)
     except Bucket.DoesNotExist:
-        raise ValueError(
-            f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
-        )
+        raise ValueError(f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist")
+
     try:
-        url = generate_download_url(
-            principal_credentials=bucket.principal_credentials,
-            bucket=bucket,
-            # TODO Ugly workaround, TBD when we know more about storage
-            target_key=fileset.visualization_uri.replace(f"s3://{bucket.name}/", ""),
-        )
+        if uri_protocol == "s3":
+            download_url = s3_api.generate_download_url(
+                principal_credentials=bucket.principal_credentials,
+                bucket=bucket,
+                # Ugly workaround, TBD when we know more about storage
+                target_key=uri.replace(f"s3://{bucket.name}/", ""),
+            )
+        elif uri_protocol == "gcs":
+            download_url = gcs_api.generate_download_url(
+                bucket=bucket,
+                # Ugly workaround, TBD when we know more about storage
+                target_key=uri.replace(f"gcs://{bucket.name}/", ""),
+            )
+        else:
+            raise ValueError(f"Protocol {uri_protocol} not supported.")
+
     except Exception as err:
         logger.exception(err)
         return {"success": False}
 
     return {
         "success": True,
-        "url": url,
+        "url": download_url,
     }
 
 
