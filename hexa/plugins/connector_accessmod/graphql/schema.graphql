@@ -310,6 +310,13 @@ enum DeleteAccessmodFilesetError {
     NOT_FOUND
     FILESET_IN_USE
 }
+input PrepareAccessmodFilesetVisualizationDownloadInput {
+    id: String!
+}
+type PrepareAccessmodFilesetVisualizationDownloadResult {
+    success: Boolean!
+    url: String
+}
 extend type Query {
     accessmodFileset(id: String): AccessmodFileset
     accessmodFilesets(projectId: String!, roleId: String, term: String, mode: AccessmodFilesetMode, page: Int, perPage: Int): AccessmodFilesetPage!
@@ -322,6 +329,7 @@ extend type Mutation {
     deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
     prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult!
     prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult!
+    prepareAccessmodFilesetVisualizationDownload(input: PrepareAccessmodFilesetVisualizationDownloadInput!): PrepareAccessmodFilesetVisualizationDownloadResult!
     createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
 }
 

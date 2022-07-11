@@ -9,7 +9,7 @@ def forward(apps, schema_editor):
 
     for (name, code, format) in [
         ("Boundaries", "BOUNDARIES", "VECTOR"),
-        ("Zonal Statistics", "ZONAL_STATISTICS", "RASTER"),
+        ("Zonal Statistics", "ZONAL_STATISTICS", "VECTOR"),
         ("Zonal Statistics Table", "ZONAL_STATISTICS_TABLE", "TABULAR"),
     ]:
         FilesetRole.objects.get_or_create(

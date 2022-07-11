@@ -2,6 +2,7 @@ from django.urls import reverse
 
 from hexa.plugins.connector_gcs.models import Object
 from hexa.ui.datagrid import (
+    Action,
     Datagrid,
     DateColumn,
     LeadingColumn,
@@ -10,6 +11,23 @@ from hexa.ui.datagrid import (
     TextColumn,
 )
 from hexa.ui.utils import StaticText
+
+
+class UploadAction(Action):
+    def __init__(self):
+        super().__init__(label="Upload", icon="upload", url="None")
+
+    @property
+    def template(self):
+        return "connector_gcs/components/action_upload.html"
+
+    def context(self, grid: Datagrid):
+        return {
+            **super().context(grid),
+            "read_only": not grid.request.user.has_perm(
+                "connector_gcs.write", grid.parent_model
+            ),
+        }
 
 
 class ObjectGrid(Datagrid):
@@ -27,6 +45,8 @@ class ObjectGrid(Datagrid):
     type = TextColumn(text="type_display")
     last_modified = DateColumn(date="last_modified", date_format="%Y-%m-%d %H:%M:%S %Z")
     link = LinkColumn(text="View")
+
+    upload = UploadAction()
 
     def __init__(self, queryset, *, prefix: str, **kwargs):
         self.prefix = prefix
@@ -47,6 +67,9 @@ class ObjectGrid(Datagrid):
             **super().context(),
             "refresh_url": reverse(
                 "connector_gcs:bucket_refresh", args=[self.parent_model.id]
+            ),
+            "upload_url": reverse(
+                "connector_gcs:object_upload", args=[self.parent_model.id]
             ),
             "prefix": self.prefix,
         }

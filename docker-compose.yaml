@@ -1,10 +1,8 @@
 version: "3.8"
 
 # Defines a service that can be reused multiple times later
-x-app: &default-app
+x-app: &common
     build: .
-    volumes:
-      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
     environment:
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR
@@ -21,17 +19,17 @@ x-app: &default-app
       - DATABASE_PASSWORD=hexa-app
       - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
       - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
-      - ACCESSMOD_S3_BUCKET_NAME=hexa-demo-accessmod
+      - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - CORS_ALLOWED_ORIGINS=http://localhost:3000
       - GCS_TOKEN_LIFETIME=3600
+    volumes:  # only used for Github Codespaces
+      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
 
 services:
   db:
-    build:
-      context: .
-      dockerfile: Dockerfile.db
+    image: postgis/postgis:12-3.2
     volumes:
-      - pgdata-12.5:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=hexa-app
       - POSTGRES_USER=hexa-app
@@ -41,32 +39,20 @@ services:
 
   app:
     # Inherit from the block defined on top and override some fields
-    <<: *default-app
+    <<: *common
     command: "manage runserver 0:8000"
     restart: unless-stopped
     ports:
       - "8000:8000"
     depends_on:
       - db
-      - tailwind
-
-  tailwind:
-    # Inherit from the block defined on top and override some fields
-    <<: *default-app
-    command: "tailwind"
-    restart: unless-stopped
-    # Without tty, no stdin, and tailwind watcher aborts
-    # https://github.com/tailwindlabs/tailwindcss/issues/5324
-    tty: true
-    ports:
-      - "8383:8383"
 
   dataworker:
-    <<: *default-app
+    <<: *common
     command: "manage validate_fileset_worker"
     restart: unless-stopped
     depends_on:
       - db
 
 volumes:
-  pgdata-12.5:
+  pgdata:

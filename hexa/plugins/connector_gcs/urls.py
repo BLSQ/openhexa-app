@@ -12,6 +12,16 @@ urlpatterns = [
         name="object_detail",
     ),
     path(
+        "<uuid:bucket_id>/object_download/<path:path>/",
+        views.object_download,
+        name="object_download",
+    ),
+    path(
+        "<str:bucket_id>/object_upload/",
+        views.object_upload,
+        name="object_upload",
+    ),
+    path(
         "<str:bucket_id>/bucket_refresh/",
         views.bucket_refresh,
         name="bucket_refresh",

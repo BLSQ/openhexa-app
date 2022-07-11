@@ -93,7 +93,8 @@ class FilesetTest(GraphQLTestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
+        cls.BUCKET = Bucket.objects.create(name=bucket_name)
 
     def test_accessmod_fileset_author(self):
         self.client.force_login(self.USER_GREG)
@@ -853,4 +854,56 @@ class FilesetTest(GraphQLTestCase):
         self.assertEqual(
             {"id": str(self.BARRIER_ROLE.id)},
             r["data"]["accessmodFilesetRoles"][0],
+        )
+
+    @mock_s3
+    @mock_sts
+    def test_prepare_fileset_visualization(self):
+        self.client.force_login(self.USER_GREG)
+
+        r1 = self.run_query(
+            """
+                mutation prepareFilesetVisualization($input: PrepareAccessmodFilesetVisualizationDownloadInput!) {
+                  prepareAccessmodFilesetVisualizationDownload(input: $input) {
+                    success
+                    url
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.FILESET_COOL.id),
+                }
+            },
+        )
+        self.assertFalse(
+            r1["data"]["prepareAccessmodFilesetVisualizationDownload"]["success"]
+        )
+
+        self.FILESET_COOL.visualization_uri = self.SAMPLE_FILE_1.uri
+        self.FILESET_COOL.save()
+
+        r2 = self.run_query(
+            """
+                mutation prepareFilesetVisualization($input: PrepareAccessmodFilesetVisualizationDownloadInput!) {
+                  prepareAccessmodFilesetVisualizationDownload(input: $input) {
+                    success
+                    url
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.FILESET_COOL.id),
+                }
+            },
+        )
+
+        self.assertTrue(
+            r2["data"]["prepareAccessmodFilesetVisualizationDownload"]["success"]
+        )
+        self.assertTrue(
+            r2["data"]["prepareAccessmodFilesetVisualizationDownload"][
+                "url"
+            ].startswith("https://")
         )

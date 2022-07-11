@@ -11,6 +11,10 @@ class GCSConnectorConfig(ConnectorAppConfig):
         "hexa.plugins.connector_gcs.credentials.notebooks_credentials"
     ]
 
+    PIPELINES_CREDENTIALS = [
+        "hexa.plugins.connector_gcs.credentials.pipelines_credentials"
+    ]
+
     @property
     def route_prefix(self):
         return "gcs"

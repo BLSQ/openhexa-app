@@ -23,7 +23,8 @@ from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
-from hexa.plugins.connector_s3.models import Bucket
+from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
+from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Permission, PermissionMode, Team
 
 
@@ -342,6 +343,7 @@ class Fileset(Entry):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     metadata = models.JSONField(blank=True, default=dict)
+    visualization_uri = models.CharField(max_length=250, null=True, blank=True)
 
     objects = FilesetManager.from_queryset(FilesetQuerySet)()
 
@@ -357,6 +359,7 @@ class Fileset(Entry):
         return self.save()
 
     def set_invalid(self, error):
+        self.refresh_from_db()
         if self.metadata is None:
             self.metadata = {}
         self.metadata["validation_error"] = error
@@ -637,19 +640,30 @@ class Analysis(Pipeline):
         dag = airflow_models.DAG.objects.get(dag_id=self.dag_id)
 
         # This is a temporary solution until we figure out storage requirements
-        if settings.ACCESSMOD_S3_BUCKET_NAME is None:
-            raise ValueError("ACCESSMOD_S3_BUCKET_NAME is not set")
+        if settings.ACCESSMOD_BUCKET_NAME is None:
+            raise ValueError("ACCESSMOD_BUCKET_NAME is not set")
+
+        uri_protocol, bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://", 1)
+        bucket_name = bucket_name.rstrip("/")
+
+        if uri_protocol == "s3":
+            Bucket = S3Bucket
+        elif uri_protocol == "gcs":
+            Bucket = GCSBucket
+        else:
+            raise ValueError(f"Protocol {uri_protocol} not supported.")
+
         try:
-            bucket = Bucket.objects.get(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+            bucket = Bucket.objects.get(name=bucket_name)
         except Bucket.DoesNotExist:
             raise ValueError(
-                f"The {settings.ACCESSMOD_S3_BUCKET_NAME} bucket does not exist"
+                f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist"
             )
 
         self.dag_run = dag.run(
             request=request,
             conf=self.build_dag_conf(
-                output_dir=f"s3://{bucket.name}/{self.project.id}/{self.id}/"
+                output_dir="f{settings.ACCESSMOD_BUCKET_NAME}/{self.project.id}/{self.id}/"
             ),
             webhook_path=webhook_path,
         )
@@ -767,7 +781,7 @@ class AccessibilityAnalysis(Analysis):
     algorithm = models.CharField(
         max_length=50,
         choices=AccessibilityAnalysisAlgorithm.choices,
-        default=AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+        default=AccessibilityAnalysisAlgorithm.ISOTROPIC,
     )
     knight_move = models.BooleanField(default=False)
 
@@ -1056,7 +1070,10 @@ class AccessibilityAnalysis(Analysis):
             == FilesetStatus.TO_ACQUIRE,
             "acquisition_osm": (
                 self.transport_network.status == FilesetStatus.TO_ACQUIRE
-                or self.water.status == FilesetStatus.TO_ACQUIRE
+                or (
+                    self.water is not None
+                    and self.water.status == FilesetStatus.TO_ACQUIRE
+                )
             ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
             # Overwrite and output_dir repeated: for create report, which
@@ -1148,7 +1165,7 @@ def get_default_time_thresholds():
 
 class ZonalStatisticsAnalysis(Analysis):
     class Meta:
-        verbose_name_plural = "Zonal statistics"
+        verbose_name_plural = "Zonal stats analyses"
 
     population = models.ForeignKey(
         "Fileset", null=True, on_delete=models.PROTECT, blank=True, related_name="+"
@@ -1185,7 +1202,14 @@ class ZonalStatisticsAnalysis(Analysis):
         self.status = AnalysisStatus.READY
 
     @transaction.atomic
-    def set_input(self, input: str, uri: str, mime_type: str):
+    def set_input(
+        self,
+        input: str,
+        uri: str,
+        mime_type: str,
+        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+    ):
+
         if input not in ("population", "travel_times", "boundaries"):
             raise Exception("invalid input")
 
@@ -1193,17 +1217,20 @@ class ZonalStatisticsAnalysis(Analysis):
         if fileset.status != FilesetStatus.TO_ACQUIRE:
             raise Exception("invalid fileset status")
 
-        # assume that output of acquisition is valid
-        # if udpate to status PENDING, add task in validation queue
-        fileset.status = FilesetStatus.VALID
-        fileset.save()
-
         # add data to that fileset
         File.objects.create(
             mime_type=mime_type,
             uri=uri,
             fileset=fileset,
         )
+
+        # probably the acquisition is valid, use the data worker for
+        # metadata extraction
+        fileset.status = FilesetStatus.PENDING
+        if metadata is not None:
+            fileset.metadata.update(metadata)
+        fileset.save()
+        return fileset
 
     @transaction.atomic
     def set_outputs(self, zonal_statistics_table: str, zonal_statistics_geo: str):
@@ -1240,7 +1267,18 @@ class ZonalStatisticsAnalysis(Analysis):
         if not output_dir.endswith("/"):
             output_dir += "/"
 
-        am_conf = {"output_dir": output_dir, "time_thresholds": self.time_thresholds}
+        am_conf = {
+            "output_dir": output_dir,
+            "extent": self.project.extent,
+            "crs": self.project.crs,
+            "country": {
+                "name": self.project.country.name,
+                "iso-a2": self.project.country.code,
+                "iso-a3": self.project.country.alpha3,
+            },
+            "spatial_resolution": self.project.spatial_resolution,
+            "time_thresholds": self.time_thresholds,
+        }
 
         if self.population.status == FilesetStatus.TO_ACQUIRE:
             am_conf["population"] = {
@@ -1260,6 +1298,9 @@ class ZonalStatisticsAnalysis(Analysis):
                 "auto": True,
                 "amenity": None,
                 "name": self.boundaries.name,
+                "administrative_level": self.boundaries.metadata.get(
+                    "administrative_level", 2
+                ),
                 "path": output_dir + f"{str(self.boundaries.id)}_boundaries.gpkg",
             }
         else:

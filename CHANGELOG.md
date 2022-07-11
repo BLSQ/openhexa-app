@@ -1,6 +1,23 @@
 Changelog
 =========
 
+Version 0.41
+------------
+
+July 11, 2022
+
+### Added
+
+- Added upload/download feature for GCS objects in the catalog
+
+### Updated
+
+- Most Python dependencies have been updated
+
+### Fixed
+
+- Fixed double-slash issue for S3 directories links in the catalog
+
 Version 0.40
 ------------
 

@@ -65,7 +65,8 @@ class AnalysisTest(GraphQLTestCase):
             "jane@bluesquarehub.com",
             "janerocks",
         )
-        cls.BUCKET = Bucket.objects.create(name=settings.ACCESSMOD_S3_BUCKET_NAME)
+        bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
+        cls.BUCKET = Bucket.objects.create(name=bucket_name)
         cls.CLUSTER = Cluster.objects.create(
             name="test_cluster", url="https://lookimacluster.com/api"
         )
@@ -325,7 +326,7 @@ class AnalysisTest(GraphQLTestCase):
                 "invertDirection": False,
                 "maxTravelTime": 360,
                 "waterAllTouched": True,
-                "algorithm": AccessibilityAnalysisAlgorithm.ANISOTROPIC,
+                "algorithm": AccessibilityAnalysisAlgorithm.ISOTROPIC,
                 "knightMove": False,
                 "travelTimes": None,
                 "frictionSurface": None,
@@ -350,6 +351,65 @@ class AnalysisTest(GraphQLTestCase):
         self.assertEqual(
             r["data"]["accessmodAnalysis"],
             None,
+        )
+
+    def test_struct_accessmod_zonal_statistics_analysis(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+              query accessmodAnalysis($id: String!) {
+                accessmodAnalysis(id: $id) {
+                  id
+                  type
+                  status
+                  name
+                  ...on AccessmodOwnership {
+                    owner {
+                        ... on User {
+                        email
+                        }
+                    }
+                  }
+                  ... on AccessmodZonalStatistics {
+                    population {
+                      id
+                    }
+                    travelTimes {
+                      id
+                    }
+                    boundaries {
+                      id
+                    }
+                    timeThresholds
+                    zonalStatisticsTable {
+                      id
+                    }
+                    zonalStatisticsGeo {
+                      id
+                    }
+                  }
+                }
+              }
+            """,
+            {"id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id)},
+        )
+
+        self.assertEqual(
+            {
+                "id": str(self.ZONAL_STATISTICS_ANALYSIS_1.id),
+                "type": self.ZONAL_STATISTICS_ANALYSIS_1.type.value,
+                "status": str(self.ZONAL_STATISTICS_ANALYSIS_1.status),
+                "name": self.ZONAL_STATISTICS_ANALYSIS_1.name,
+                "owner": {"email": self.USER_1.email},
+                "population": None,
+                "travelTimes": {"id": str(self.TRAVEL_TIMES_FILESET.id)},
+                "boundaries": {"id": str(self.BOUNDARIES_FILESET.id)},
+                "timeThresholds": [60, 120, 180, 240, 300, 360],
+                "zonalStatisticsTable": None,
+                "zonalStatisticsGeo": None,
+            },
+            r["data"]["accessmodAnalysis"],
         )
 
     def test_accessmod_analyses(self):
