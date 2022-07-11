@@ -1,3 +1,4 @@
+import math
 import os
 from logging import getLogger
 
@@ -176,6 +177,9 @@ def validate_continous_raster(fileset: Fileset, raster, extra_validation=None):
     fileset.metadata["max"] = int(raster_content.max())
     if raster.nodata is None:
         fileset.metadata["nodata"] = None
+    elif math.isnan(raster.nodata):
+        fileset.set_invalid("Raster no data value cannot be NaN.")
+        return
     else:
         fileset.metadata["nodata"] = int(raster.nodata)
 
