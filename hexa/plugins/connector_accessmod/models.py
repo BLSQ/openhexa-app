@@ -1343,6 +1343,9 @@ class AccessRequestQuerySet(BaseQuerySet):
 
 
 class AccessRequest(Base):
+    class Meta:
+        ordering = ["created_at"]
+
     email = CIEmailField(unique=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)

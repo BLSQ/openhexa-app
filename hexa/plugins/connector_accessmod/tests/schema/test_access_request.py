@@ -6,6 +6,8 @@ from hexa.user_management.models import User
 class AccessRequestTest(GraphQLTestCase):
     USER_SABRINA = None
     USER_REBECCA = None
+    ACCESS_REQUEST_JULIA = None
+    ACCESS_REQUEST_NINA = None
 
     @classmethod
     def setUpTestData(cls):
@@ -19,13 +21,13 @@ class AccessRequestTest(GraphQLTestCase):
             "standardpassword",
         )
 
-        AccessRequest.objects.create(
+        cls.ACCESS_REQUEST_JULIA = AccessRequest.objects.create(
             first_name="Julia",
             last_name="Muller",
             email="julia@bluesquarehub.com",
             accepted_tos=True,
         )
-        AccessRequest.objects.create(
+        cls.ACCESS_REQUEST_NINA = AccessRequest.objects.create(
             first_name="Nina",
             last_name="Muller",
             email="nina@bluesquarehub.com",
@@ -56,7 +58,10 @@ class AccessRequestTest(GraphQLTestCase):
                 "pageNumber": 1,
                 "totalPages": 1,
                 "totalItems": 2,
-                "items": [{"id": 1}, {"id": 2}],
+                "items": [
+                    {"id": str(self.ACCESS_REQUEST_JULIA.id)},
+                    {"id": str(self.ACCESS_REQUEST_NINA.id)},
+                ],
             },
             r["data"]["accessmodAccessRequests"],
         )

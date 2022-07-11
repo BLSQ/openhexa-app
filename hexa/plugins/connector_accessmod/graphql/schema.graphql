@@ -551,6 +551,7 @@ enum AccessmodAccessRequestStatus {
     REJECTED
 }
 type AccessmodAccessRequest {
+    id: String!
     firstName: String!
     lastName: String!
     email: String!
@@ -579,7 +580,7 @@ type RequestAccessmodAccessInputResult {
     errors: [RequestAccessmodAccessInputError!]!
 }
 extend type Query {
-    accessmodAccessRequests(page: Int, perPage: Int): AccessmodAnalysisPage!
+    accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
