@@ -43,6 +43,9 @@ urlpatterns = [
     path("metrics/", include("hexa.metrics.urls", namespace="metrics")),
     path("comments/", include("hexa.comments.urls")),
     # Order matters, we override the default logout view defined later
+    # We do this to logout the user from jupyterhub at the end of the openhexa
+    # session. the jupyterhub will redirect to the openhexa login after it
+    # TODO: use API (https://github.com/jupyterhub/jupyterhub/issues/3688)
     path(
         "auth/logout/",
         auth_views.LogoutView.as_view(next_page=f"{settings.NOTEBOOKS_URL}/hub/logout"),
