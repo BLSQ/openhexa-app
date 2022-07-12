@@ -1358,6 +1358,13 @@ class AccessRequest(Base):
 
     objects = AccessRequestQuerySet.as_manager()
 
+    @property
+    def display_name(self):
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+
+        return self.email
+
 
 class AdminProfile(Base):
     user = models.OneToOneField(

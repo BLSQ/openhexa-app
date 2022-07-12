@@ -313,6 +313,9 @@ if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
+RAW_ADMINS = os.environ.get("ADMINS", "").split(",")
+ADMINS = [ra.split(":") for ra in RAW_ADMINS]
+
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 

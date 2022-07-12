@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessRequest,
     File,
     Fileset,
     FilesetRole,
@@ -63,3 +64,17 @@ class ZonalStatisticsAnalysisAdmin(admin.ModelAdmin):
 @admin.register(ProjectPermission)
 class ProjectPermissionAdmin(admin.ModelAdmin):
     list_display = ("project", "team", "user", "mode", "created_at")
+
+
+@admin.register(AccessRequest)
+class AccessRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "accepted_tos",
+        "status",
+        "created_at",
+    )
+    list_filter = ("status",)
+    search_fields = ("first_name", "last_name", "email")

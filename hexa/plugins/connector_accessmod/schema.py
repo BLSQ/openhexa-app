@@ -11,8 +11,10 @@ from ariadne import (
     load_schema_from_path,
 )
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.mail import mail_admins
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
+from django.template.loader import render_to_string
 from django.urls import reverse
 from slugify import slugify
 from stringcase import snakecase
@@ -939,6 +941,9 @@ def resolve_accessmod_access_requests(_, info, **kwargs):
 @accessmod_mutations.field("requestAccessmodAccess")
 @transaction.atomic
 def resolve_request_accessmod_access(_, info, **kwargs):
+    if info.context["request"].user.is_authenticated:
+        return {"success": False, "errors": ["INVALID"]}
+
     request_input = kwargs["input"]
 
     if not request_input["acceptTos"]:
@@ -958,6 +963,19 @@ def resolve_request_accessmod_access(_, info, **kwargs):
         )
         access_request.full_clean()
         access_request.save()
+
+        # Send mail
+        html_message = render_to_string(
+            "connector_accessmod/request_access_email.html",
+            {"access_request": access_request},
+        )
+        text_message = render_to_string(
+            "connector_accessmod/request_access_email.txt",
+            {"access_request": access_request},
+        )
+        mail_admins(
+            "New AccessMod access request", text_message, html_message=html_message
+        )
     except ValidationError:
         return {"success": False, "errors": ["INVALID"]}
 
