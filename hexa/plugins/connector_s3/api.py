@@ -327,7 +327,6 @@ def generate_upload_url(
         Params={
             "Bucket": bucket.name,
             "Key": target_key,
-            "ACL": "public-read" if bucket.public else "private",
         },
         ExpiresIn=60 * 60,
     )
