@@ -661,7 +661,7 @@ class Analysis(Pipeline):
         self.dag_run = dag.run(
             request=request,
             conf=self.build_dag_conf(
-                output_dir=f"{bucket_name}/{self.project.id}/{self.id}/"
+                output_dir=f"{settings.ACCESSMOD_BUCKET_NAME}/{self.project.id}/{self.id}/"
             ),
             webhook_path=webhook_path,
         )
