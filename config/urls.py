@@ -16,6 +16,7 @@ Including another URLconf
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.generic import TemplateView
 
@@ -41,6 +42,15 @@ urlpatterns = [
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("metrics/", include("hexa.metrics.urls", namespace="metrics")),
     path("comments/", include("hexa.comments.urls")),
+    # Order matters, we override the default logout view defined later
+    # We do this to logout the user from jupyterhub at the end of the openhexa
+    # session. the jupyterhub will redirect to the openhexa login after it
+    # TODO: use API (https://github.com/jupyterhub/jupyterhub/issues/3688)
+    path(
+        "auth/logout/",
+        auth_views.LogoutView.as_view(next_page=f"{settings.NOTEBOOKS_URL}/hub/logout"),
+        name="logout",
+    ),
     path("auth/", include("django.contrib.auth.urls")),
     path(
         "graphql/",

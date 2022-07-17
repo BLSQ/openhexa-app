@@ -1,7 +1,9 @@
 import os
 
 import boto3
+import rasterio
 from moto import mock_s3, mock_sts
+from rasterio import DatasetReader
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
@@ -519,3 +521,11 @@ class AccessmodAnalysisUpdateTest(TestCase):
         self.assertEqual(self.landcover_fs.status, FilesetStatus.VALID)
         self.waiting_analysis.refresh_from_db()
         self.assertEqual(self.waiting_analysis.status, AnalysisStatus.READY)
+
+    def test_cog(self):
+        """Reading Geotiffs can be a tricky business - sometimes, updating deps such as rio-cogeo or rasterio
+        will break compression support"""
+
+        cog_path = os.path.dirname(__file__) + "/data/cumulative_cost.tif"
+        cog = rasterio.open(cog_path)
+        self.assertIsInstance(cog, DatasetReader)

@@ -1,4 +1,5 @@
 from django import test
+from django.conf import settings
 from django.urls import reverse
 
 from hexa.core.test import TestCase
@@ -31,9 +32,9 @@ class ViewsTest(TestCase):
         self.client.login(email="john@bluesquarehub.com", password="regular")
         response = self.client.get(reverse("logout"))
 
-        # Check that the response is temporary redirection to /login.
+        # Check that the response is temporary redirection to JupyterHub logout.
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/")
+        self.assertEqual(response.url, f"{settings.NOTEBOOKS_URL}/hub/logout")
 
     def test_account_200(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
