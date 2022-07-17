@@ -297,7 +297,7 @@ pytz==2022.1
     #   pandas
 pyyaml==6.0
     # via moto
-rasterio==1.3.0
+rasterio==1.2.10
     # via
     #   -r requirements.in
     #   rio-cogeo
@@ -316,7 +316,7 @@ responses==0.21.0
     # via
     #   -r requirements.in
     #   moto
-rio-cogeo==3.3.0
+rio-cogeo==3.2.0
     # via -r requirements.in
 rsa==4.8
     # via google-auth
