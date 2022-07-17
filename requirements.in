@@ -46,9 +46,10 @@ pip-tools
 # development
 coverage[toml]
 
-# data-worker
-rasterio
-rio-cogeo
+# Data worker
+# (unpin or update with great caution, subtle issues can arise with new versions)
+rasterio==1.2.10
+rio-cogeo==3.2.0
 gdal==3.2.2
 s3fs==2022.01.0
 gcsfs==2022.01.0
