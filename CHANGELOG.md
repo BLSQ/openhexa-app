@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.42
+------------
+
+July 19, 2022
+
+### Fixed
+
+- Pinned rasterio / rio-cogeo to avoid compression issues in latest versions
+
 Version 0.41
 ------------
 
