@@ -6,6 +6,10 @@ Version 0.42
 
 July 19, 2022
 
+### Added
+
+- Support for public S3 buckets
+
 ### Fixed
 
 - Pinned rasterio / rio-cogeo to avoid compression issues in latest versions

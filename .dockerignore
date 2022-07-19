@@ -2,6 +2,7 @@
 .git
 .idea
 .devcontainer
+.env
 
 Dockerfile
 docker-compose.yml
