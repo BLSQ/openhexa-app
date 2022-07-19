@@ -124,12 +124,14 @@ def object_download(
     )
     target_object = get_object_or_404(bucket.object_set.all(), key=path)
 
-    download_url = generate_download_url(
-        principal_credentials=bucket.principal_credentials,
-        bucket=bucket,
-        target_key=target_object.key,
-    )
-
+    if bucket.public:
+        download_url = f"https://{bucket.name}.s3.{bucket.region}.amazonaws.com/{target_object.key}"
+    else:
+        download_url = generate_download_url(
+            principal_credentials=bucket.principal_credentials,
+            bucket=bucket,
+            target_key=target_object.key,
+        )
     return redirect(download_url)
 
 
