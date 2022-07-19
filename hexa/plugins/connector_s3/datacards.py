@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_s3.models import Object
-from hexa.ui.datacard import Datacard, Section, TextProperty
+from hexa.ui.datacard import Datacard, Section, TextProperty, URLProperty
 from hexa.ui.utils import StaticText
 
 
@@ -34,6 +34,13 @@ class ObjectSection(Section):
 
     name = TextProperty(text="filename", translate=False)
     path = TextProperty(text="full_path", translate=False)
+    download_url = URLProperty(
+        url="download_url",
+        label="Download URL",
+        text=StaticText("Download URL"),
+        external=True,
+        track=False,
+    )
     file_type = TextProperty(label="File type", text="type_display", translate=False)
     file_size = TextProperty(
         label="File size", text="file_size_display", translate=False
