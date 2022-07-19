@@ -1194,6 +1194,7 @@ class ZonalStatisticsAnalysis(Analysis):
             or not self.time_thresholds
             or not self.boundaries
             or not self.population
+            or not self.travel_times
         ):
             return
 
