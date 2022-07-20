@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import typing
+import uuid
 from logging import getLogger
 from time import sleep
 
@@ -195,6 +196,71 @@ def generate_sts_user_s3_credentials(
         )
 
     return response["Credentials"]
+
+
+def generate_sts_pipeline_s3_credentials(
+    *,
+    principal_credentials: models.Credentials,
+    pipeline_app: str,
+    pipeline_name: str,
+    pipeline_id: uuid.UUID,
+    buckets: typing.Sequence[models.Bucket],
+    duration: int = 60 * 60,
+) -> (typing.Dict[str, str], bool):
+    """Generate temporary S3 credentials for a specific team and for specific buckets.
+
+    The process can be summarized like this:
+
+        1. We first check if we already have a IAM role for the team
+        2. If we don't, create the role
+        3. Ensure that the app IAM pipeline can assume the team role
+        4. Generates a fresh S3 policy for the team role and sets it on the role (replacing the existing one)
+        5. Assume the team role
+    """
+
+    if principal_credentials.app_role_arn == "":
+        raise S3ApiError(
+            f'Credentials "{principal_credentials.display_name}" have no app role ARN'
+        )
+    iam_client = _build_iam_client(principal_credentials=principal_credentials)
+
+    principal_role_path = parse_arn(principal_credentials.app_role_arn)["resource"]
+    pipeline_role_path = f"/{principal_role_path}/pipelines/{pipeline_app}/"
+
+    role_data, created_role = get_or_create_role(
+        principal_credentials=principal_credentials,
+        role_path=pipeline_role_path,
+        role_name=f"{principal_credentials.username}-p-{str(pipeline_id)}",
+        description=f'Role used to run the pipeline "{pipeline_name}" ({pipeline_app})',
+    )
+
+    attach_policy(
+        iam_client=iam_client,
+        role_name=role_data["Role"]["RoleName"],
+        policy_name="s3-access",
+        document=generate_s3_policy(
+            read_write_bucket_names=[b.name for b in buckets], read_only_bucket_names=[]
+        ),
+    )
+
+    # Ask new temporary credentials
+    sts_client = boto3.client(
+        "sts",
+        aws_access_key_id=principal_credentials.access_key_id,
+        aws_secret_access_key=principal_credentials.secret_access_key,
+    )
+
+    # wait a little bit before creating the role
+    if created_role:
+        sleep(5)
+
+    sts_response = sts_client.assume_role(
+        RoleArn=role_data["Role"]["Arn"],
+        RoleSessionName="dag-run",
+        DurationSeconds=12 * 60 * 60,
+    )
+
+    return sts_response["Credentials"], created_role
 
 
 def generate_s3_policy(
