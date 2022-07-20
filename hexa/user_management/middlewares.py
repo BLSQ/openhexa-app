@@ -8,7 +8,9 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-ANONYMOUS_URLS = [
+from hexa.plugins.app import get_hexa_app_configs
+
+ANONYMOUS_URLS = [  # TODO: move to app configs
     "logout",
     "core:index",
     "core:ready",
@@ -18,7 +20,9 @@ ANONYMOUS_URLS = [
     "password_reset_done",
     "user:accept_tos",
 ]
-for app_config in apps.get_app_configs():
+
+# TODO: document
+for app_config in get_hexa_app_configs():
     ANONYMOUS_URLS += getattr(app_config, "ANONYMOUS_URLS", [])
 REVERSED_ANONYMOUS_URLS = [reverse(url) for url in ANONYMOUS_URLS]
 

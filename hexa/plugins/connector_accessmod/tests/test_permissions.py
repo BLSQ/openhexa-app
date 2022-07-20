@@ -122,8 +122,8 @@ class PermissionsTest(TestCase):
 
     def test_approve_user_permission(self):
         self.assertTrue(
-            self.USER_NANCY.has_perm("connector_accessmod.approve_access_request")
+            self.USER_NANCY.has_perm("connector_accessmod.manage_access_requests")
         )
         self.assertFalse(
-            self.USER_GERALD.has_perm("connector_accessmod.approve_access_request")
+            self.USER_GERALD.has_perm("connector_accessmod.manage_access_requests")
         )

@@ -1337,7 +1337,7 @@ class AccessRequestStatus(models.TextChoices):
 
 class AccessRequestQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        if not user.has_perm("connector_accessmod.approve_access_request"):
+        if not user.has_perm("connector_accessmod.manage_access_requests"):
             return self.none()
 
         return self.all()

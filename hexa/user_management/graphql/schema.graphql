@@ -19,7 +19,6 @@ type Me {
 }
 enum MeAuthorizedActions {
     CREATE_TEAM
-    CREATE_ACCESSMOD_PROJECT
 }
 input LoginInput {
     email: String!

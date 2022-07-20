@@ -5,7 +5,17 @@ from django.db.models.base import ModelBase
 from django.http import HttpRequest
 
 
-class ConnectorAppConfig(AppConfig):
+class CoreAppConfig:
+    ANONYMOUS_URLS = []
+    ANONYMOUS_PREFIXES = []
+
+
+class ConnectorAppConfig(CoreAppConfig):
+    NOTEBOOKS_CREDENTIALS = []
+    PIPELINES_CREDENTIALS = []
+    LAST_ACTIVITIES = None
+    EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER = None
+
     @property
     def route_prefix(self):
         """Returns the string prefix to use when including the connector app URLs.
@@ -60,6 +70,7 @@ class ConnectorAppConfig(AppConfig):
             module = import_module(module_name)
             return getattr(module, function_name)(request)
 
+        # Cannot import this module beforehand - Django will complain about apps not being initialized yet
         from hexa.core.activities import ActivityList
 
         return ActivityList()
@@ -77,10 +88,35 @@ class ConnectorAppConfig(AppConfig):
                         models_by_app[app].append(model)
         return models_by_app
 
+    def get_extra_graphql_me_authorized_actions_resolver(self):
+        """Check if this app has an extra resolver for the "authorizedActions" field on the "Me" type.
+        The base resolver will loop through all plugins and extend the authorized actions list with any extra
+        resolver found.
+        """
 
-def get_connector_app_configs():
+        if self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER is None:
+            return None
+
+        (
+            module_name,
+            function_name,
+        ) = self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER.rsplit(".", 1)
+        schema_module = import_module(module_name)
+        extra_resolver = getattr(schema_module, function_name)
+
+        if not callable(extra_resolver):
+            raise TypeError(
+                f"{self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER} is not callable"
+            )
+
+        return extra_resolver
+
+
+def get_hexa_app_configs(connector_only=False):
     """Return the list of Django app configs that corresponds to connector apps"""
 
     return [
-        app for app in apps.get_app_configs() if isinstance(app, ConnectorAppConfig)
+        app
+        for app in apps.get_app_configs()
+        if isinstance(app, ConnectorAppConfig if connector_only else CoreAppConfig)
     ]

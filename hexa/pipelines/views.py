@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
 from hexa.pipelines.models import Environment, Index
 
-from ..plugins.app import get_connector_app_configs
+from ..plugins.app import get_hexa_app_configs
 from .credentials import PipelinesCredentials
 from .queue import environment_sync_queue
 
@@ -99,7 +99,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
 
     pipeline_credentials = PipelinesCredentials(pipeline)
 
-    for app_config in get_connector_app_configs():
+    for app_config in get_hexa_app_configs(connector_only=True):
         credentials_functions = app_config.get_pipelines_credentials()
         for credentials_function in credentials_functions:
             credentials_function(pipeline_credentials)

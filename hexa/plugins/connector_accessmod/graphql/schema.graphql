@@ -585,3 +585,9 @@ extend type Query {
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
 }
+
+# Connector-specific permissions
+extend enum MeAuthorizedActions {
+    CREATE_ACCESSMOD_PROJECT
+    MANAGE_ACCESSMOD_ACCESS_REQUESTS
+}

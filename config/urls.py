@@ -20,7 +20,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from django.views.generic import TemplateView
 
-from hexa.plugins.app import get_connector_app_configs
+from hexa.plugins.app import get_hexa_app_configs
 
 from .schema import schema
 
@@ -64,7 +64,7 @@ urlpatterns = [
 ]
 
 # Connector apps URLs
-for app_config in get_connector_app_configs():
+for app_config in get_hexa_app_configs(connector_only=True):
     urlpatterns.append(
         path(
             app_config.route_prefix + "/",

@@ -982,6 +982,23 @@ def resolve_request_accessmod_access(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+def extra_resolve_me_authorized_actions(_, info):
+    """Extra resolver for the "authorizedActions" field on the "Me" type
+    (see base resolver in identity module)
+    """
+
+    request = info.context["request"]
+    principal = request.user
+
+    authorized_actions = []
+    if principal.has_perm("connector_accessmod.create_project"):
+        authorized_actions.append("CREATE_ACCESSMOD_PROJECT")
+    if principal.has_perm("connector_accessmod.manage_access_requests"):
+        authorized_actions.append("MANAGE_ACCESSMOD_ACCESS_REQUESTS")
+
+    return authorized_actions
+
+
 accessmod_bindables = [
     accessmod_query,
     accessmod_mutations,
