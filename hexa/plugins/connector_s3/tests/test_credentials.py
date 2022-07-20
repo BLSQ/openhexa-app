@@ -263,6 +263,20 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             self.assertGreater(len(credentials.env[key]), 0)
             del credentials.env[key]
 
+        # opaque content in base64
+        self.assertTrue("AWS_S3_FUSE_CONFIG" in credentials.env)
+        aws_fuse_config = json.loads(
+            base64.b64decode(credentials.env["AWS_S3_FUSE_CONFIG"])
+        )
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(aws_fuse_config[key], str)
+            self.assertGreater(len(aws_fuse_config[key]), 0)
+        del credentials.env["AWS_S3_FUSE_CONFIG"]
+
         self.assertEqual(
             {
                 "AWS_DEFAULT_REGION": "eu-central-1",
@@ -356,6 +370,20 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             self.assertIsInstance(credentials.env[key], str)
             self.assertGreater(len(credentials.env[key]), 0)
             del credentials.env[key]
+
+        # opaque content in base64
+        self.assertTrue("AWS_S3_FUSE_CONFIG" in credentials.env)
+        aws_fuse_config = json.loads(
+            base64.b64decode(credentials.env["AWS_S3_FUSE_CONFIG"])
+        )
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(aws_fuse_config[key], str)
+            self.assertGreater(len(aws_fuse_config[key]), 0)
+        del credentials.env["AWS_S3_FUSE_CONFIG"]
 
         self.assertEqual(
             {
