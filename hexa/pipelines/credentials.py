@@ -13,6 +13,9 @@ class PipelinesCredentials:
         self.env: dict[str, str] = {}
         self.files: dict[str, bytes] = {}
 
+    def update_env(self, env_dict):
+        self.env.update(**env_dict)
+
     def to_dict(self):
         return {
             "env": self.env,
