@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import typing
 import urllib.parse
 
 from django import forms
@@ -15,7 +16,7 @@ import hexa.ui.datacard
 from hexa.core.date_utils import date_format as do_date_format
 from hexa.core.models.behaviors import Status
 from hexa.core.models.locale import Locale
-from hexa.ui.utils import get_item_value
+from hexa.ui.utils import StaticText, get_item_value
 
 from .base import DatacardComponent
 
@@ -238,11 +239,20 @@ class CountryProperty(TagProperty):
 
 
 class URLProperty(Property):
-    def __init__(self, *, url: str, text: str = None, external: bool = True, **kwargs):
+    def __init__(
+        self,
+        *,
+        url: str,
+        text: typing.Union[str, StaticText] = None,
+        external: bool = True,
+        track=True,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.text = text
         self.url = url
         self.external = external
+        self.track = track
 
     @property
     def template(self):
@@ -256,7 +266,7 @@ class URLProperty(Property):
             else url_value
         )
 
-        if url_value and url_value.startswith("http"):
+        if self.track and url_value is not None and url_value.startswith("http"):
             # external url -> track it
             url_value = (
                 reverse("metrics:save_redirect")
