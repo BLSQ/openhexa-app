@@ -1,5 +1,5 @@
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_accessmod.models import AccessRequest, AdminProfile
+from hexa.plugins.connector_accessmod.models import AccessmodProfile, AccessRequest
 from hexa.user_management.models import User
 
 
@@ -15,7 +15,9 @@ class AccessRequestTest(GraphQLTestCase):
             "sabrina@bluesquarehub.com",
             "standardpassword",
         )
-        AdminProfile.objects.create(user=cls.USER_SABRINA, is_accessmod_superuser=True)
+        AccessmodProfile.objects.create(
+            user=cls.USER_SABRINA, is_accessmod_superuser=True
+        )
         cls.USER_REBECCA = User.objects.create_user(
             "rebecca@bluesquarehub.com",
             "standardpassword",

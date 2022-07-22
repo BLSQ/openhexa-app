@@ -2,7 +2,7 @@ import responses
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
-    AdminProfile,
+    AccessmodProfile,
     Fileset,
     FilesetRole,
     FilesetRoleCode,
@@ -51,7 +51,7 @@ class PermissionsTest(TestCase):
             "alexandra@bluesquarehub.com",
             "alexandra2000",
         )
-        AdminProfile.objects.create(
+        AccessmodProfile.objects.create(
             user=cls.USER_ALEXANDRA, is_accessmod_superuser=True
         )
         cls.TEAM = Team.objects.create(name="Test Team")

@@ -3,7 +3,7 @@ import typing
 from django.contrib.auth.models import AnonymousUser
 
 from hexa.plugins.connector_accessmod.models import (
-    AdminProfile,
+    AccessmodProfile,
     Analysis,
     Fileset,
     Project,
@@ -216,5 +216,5 @@ def manage_access_requests(principal: typing.Union[User, AnonymousUser]) -> bool
         admin_profile = principal.accessmod_admin_profile
 
         return admin_profile.is_accessmod_superuser
-    except AdminProfile.DoesNotExist:
+    except AccessmodProfile.DoesNotExist:
         return False

@@ -1367,7 +1367,7 @@ class AccessRequest(Base):
         return self.email
 
 
-class AdminProfile(Base):
+class AccessmodProfile(Base):
     user = models.OneToOneField(
         "user_management.User",
         null=True,
