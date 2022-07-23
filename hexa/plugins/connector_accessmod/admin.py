@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessmodProfile,
     AccessRequest,
     File,
     Fileset,
@@ -78,3 +79,12 @@ class AccessRequestAdmin(admin.ModelAdmin):
     )
     list_filter = ("status",)
     search_fields = ("first_name", "last_name", "email")
+
+
+@admin.register(AccessmodProfile)
+class AccessmodProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "is_accessmod_superuser",
+        "created_at",
+    )

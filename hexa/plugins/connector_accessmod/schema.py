@@ -11,7 +11,7 @@ from ariadne import (
     load_schema_from_path,
 )
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.mail import mail_admins
+from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.template.loader import render_to_string
@@ -27,6 +27,7 @@ from hexa.core.graphql import result_page
 from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessmodProfile,
     AccessRequest,
     Analysis,
     File,
@@ -941,7 +942,8 @@ def resolve_accessmod_access_requests(_, info, **kwargs):
 @accessmod_mutations.field("requestAccessmodAccess")
 @transaction.atomic
 def resolve_request_accessmod_access(_, info, **kwargs):
-    if info.context["request"].user.is_authenticated:
+    request = info.context["request"]
+    if request.user.is_authenticated:
         return {"success": False, "errors": ["INVALID"]}
 
     request_input = kwargs["input"]
@@ -965,16 +967,30 @@ def resolve_request_accessmod_access(_, info, **kwargs):
         access_request.save()
 
         # Send mail
+        template_variables = {
+            "access_request": access_request,
+            "manage_url": settings.ACCESSMOD_MANAGE_REQUESTS_URL,
+        }
         html_message = render_to_string(
             "connector_accessmod/request_access_email.html",
-            {"access_request": access_request},
+            template_variables,
         )
         text_message = render_to_string(
             "connector_accessmod/request_access_email.txt",
-            {"access_request": access_request},
+            template_variables,
         )
-        mail_admins(
-            "New AccessMod access request", text_message, html_message=html_message
+
+        accessmod_admin_emails = [
+            p.user.email
+            for p in AccessmodProfile.objects.filter(is_accessmod_superuser=True)
+        ]
+
+        send_mail(
+            f"AcccessMod : { access_request.display_name } has requested an access to AccessMod.",
+            message=text_message,
+            html_message=html_message,
+            recipient_list=accessmod_admin_emails,
+            from_email=None,
         )
     except ValidationError:
         return {"success": False, "errors": ["INVALID"]}

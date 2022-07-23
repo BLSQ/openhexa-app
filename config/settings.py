@@ -347,6 +347,7 @@ else:
 
 # Accessmod settings
 ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
+ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"

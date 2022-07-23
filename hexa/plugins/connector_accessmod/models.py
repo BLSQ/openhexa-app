@@ -1351,6 +1351,13 @@ class AccessRequest(Base):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     accepted_tos = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        "user_management.User",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
     status = models.CharField(
         max_length=50,
         choices=AccessRequestStatus.choices,
