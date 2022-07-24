@@ -1,3 +1,5 @@
+from unittest import skip
+
 from django.conf import settings
 from django.core import mail
 
@@ -202,3 +204,12 @@ class AccessRequestTest(GraphQLTestCase):
             {"success": False, "errors": ["INVALID"]},
             r["data"]["requestAccessmodAccess"],
         )
+
+    @skip
+    def test_approve_accessmod_access_request(self):
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(
+            "Your AccessMod access request has been approved", mail.outbox[0].subject
+        )
+        self.assertIn(self.ACCESS_REQUEST_JULIA.email, mail.outbox[0].recipients)
+        self.assertIn(settings.ACCESSMOD_SET_PASSWORD_URL, mail.outbox[0].body)

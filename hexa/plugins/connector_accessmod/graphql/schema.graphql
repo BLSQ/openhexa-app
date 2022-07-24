@@ -570,20 +570,31 @@ input RequestAccessmodAccessInput {
     email: String!
     acceptTos: Boolean!
 }
-enum RequestAccessmodAccessInputError {
+enum RequestAccessmodAccessError {
     ALREADY_EXISTS
     MUST_ACCEPT_TOS
     INVALID
 }
 type RequestAccessmodAccessInputResult {
     success: Boolean!
-    errors: [RequestAccessmodAccessInputError!]!
+    errors: [RequestAccessmodAccessError!]!
+}
+input ApproveAccessmodAccessRequest {
+    id: String!
+}
+enum ApproveAccessmodAccessRequestError {
+    INVALID
+}
+type ApproveAccessmodAccessRequestResult {
+    success: Boolean!
+    errors: [ApproveAccessmodAccessRequestError!]!
 }
 extend type Query {
     accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
+    approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequest!): ApproveAccessmodAccessRequestResult!
 }
 
 # Connector-specific permissions
