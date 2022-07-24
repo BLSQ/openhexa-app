@@ -151,7 +151,7 @@ class AccessRequestTest(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["MUST_ACCEPT_TOS"]},
+            {"success": False, "errors": ["INVALID"]},
             r["data"]["requestAccessmodAccess"],
         )
 
@@ -175,7 +175,7 @@ class AccessRequestTest(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["ALREADY_EXISTS"]},
+            {"success": False, "errors": ["INVALID"]},
             r["data"]["requestAccessmodAccess"],
         )
 

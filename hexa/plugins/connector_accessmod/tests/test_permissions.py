@@ -1,5 +1,3 @@
-import responses
-
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessmodProfile,
@@ -29,7 +27,6 @@ class PermissionsTest(TestCase):
     PROJECT_2 = None
 
     @classmethod
-    @responses.activate
     def setUpTestData(cls):
         cls.USER_MIRANDA = User.objects.create_user(
             "miranda@bluesquarehub.com",

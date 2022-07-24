@@ -11,10 +11,8 @@ from ariadne import (
     load_schema_from_path,
 )
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
-from django.template.loader import render_to_string
 from django.urls import reverse
 from slugify import slugify
 from stringcase import snakecase
@@ -27,7 +25,6 @@ from hexa.core.graphql import result_page
 from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
-    AccessmodProfile,
     AccessRequest,
     Analysis,
     File,
@@ -39,6 +36,7 @@ from hexa.plugins.connector_accessmod.models import (
     ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
+from hexa.plugins.connector_accessmod.utils import send_mail_to_accessmod_superusers
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
@@ -943,57 +941,27 @@ def resolve_accessmod_access_requests(_, info, **kwargs):
 @transaction.atomic
 def resolve_request_accessmod_access(_, info, **kwargs):
     request = info.context["request"]
-    if request.user.is_authenticated:
-        return {"success": False, "errors": ["INVALID"]}
-
     request_input = kwargs["input"]
 
-    if not request_input["acceptTos"]:
-        return {"success": False, "errors": ["MUST_ACCEPT_TOS"]}
-    elif (
-        User.objects.filter(email=request_input["email"]).exists()
-        or AccessRequest.objects.filter(email=request_input["email"]).exists()
-    ):
-        return {"success": False, "errors": ["ALREADY_EXISTS"]}
-
     try:
-        access_request = AccessRequest(
+        access_request = AccessRequest.objects.create_if_has_perm(
+            request.user,
             first_name=request_input["firstName"],
             last_name=request_input["lastName"],
             email=request_input["email"],
             accepted_tos=request_input["acceptTos"],
         )
-        access_request.full_clean()
-        access_request.save()
+    except (ValidationError, PermissionDenied):
+        return {"success": False, "errors": ["INVALID"]}
 
-        # Send mail
-        template_variables = {
+    send_mail_to_accessmod_superusers(
+        title=f"AcccessMod : {access_request.display_name} has requested an access to AccessMod.",
+        template_name="connector_accessmod/request_access_email",
+        template_variables={
             "access_request": access_request,
             "manage_url": settings.ACCESSMOD_MANAGE_REQUESTS_URL,
-        }
-        html_message = render_to_string(
-            "connector_accessmod/request_access_email.html",
-            template_variables,
-        )
-        text_message = render_to_string(
-            "connector_accessmod/request_access_email.txt",
-            template_variables,
-        )
-
-        accessmod_admin_emails = [
-            p.user.email
-            for p in AccessmodProfile.objects.filter(is_accessmod_superuser=True)
-        ]
-
-        send_mail(
-            f"AcccessMod : { access_request.display_name } has requested an access to AccessMod.",
-            message=text_message,
-            html_message=html_message,
-            recipient_list=accessmod_admin_emails,
-            from_email=None,
-        )
-    except ValidationError:
-        return {"success": False, "errors": ["INVALID"]}
+        },
+    )
 
     return {"success": True, "errors": []}
 

@@ -203,6 +203,12 @@ def delete_analysis(principal: User, analysis: Analysis):
     )
 
 
+def create_access_request(principal: typing.Union[User, AnonymousUser]) -> bool:
+    """Access requests can be only be created by anonymous users."""
+
+    return isinstance(principal, AnonymousUser)
+
+
 def manage_access_requests(principal: typing.Union[User, AnonymousUser]) -> bool:
     """Access requests can be approved either by global superusers or by AccessMod superusers"""
 

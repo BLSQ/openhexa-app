@@ -6,9 +6,9 @@ import json
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import CIEmailField
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
@@ -25,7 +25,7 @@ from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
-from hexa.user_management.models import Permission, PermissionMode, Team
+from hexa.user_management.models import Permission, PermissionMode, Team, User
 
 
 class ProjectQuerySet(BaseQuerySet):
@@ -1335,6 +1335,39 @@ class AccessRequestStatus(models.TextChoices):
     DENIED = "DENIED"
 
 
+class AccessRequestManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        accepted_tos: bool,
+    ) -> AccessRequest:
+        if not principal.has_perm("connector_accessmod.create_access_request"):
+            raise PermissionDenied
+        if (
+            User.objects.filter(email=email).exists()
+            or AccessRequest.objects.filter(email=email).exists()
+        ):
+            raise ValidationError("Already exists")
+        if not accepted_tos:
+            raise ValidationError("Must accept TOS")
+
+        access_request = AccessRequest(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            accepted_tos=accepted_tos,
+            status=AccessRequestStatus.PENDING,
+        )
+        access_request.full_clean()
+        access_request.save()
+
+        return access_request
+
+
 class AccessRequestQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         if not user.has_perm("connector_accessmod.manage_access_requests"):
@@ -1364,7 +1397,7 @@ class AccessRequest(Base):
         default=AccessRequestStatus.PENDING,
     )
 
-    objects = AccessRequestQuerySet.as_manager()
+    objects = AccessRequestManager.from_queryset(AccessRequestQuerySet)()
 
     @property
     def display_name(self):

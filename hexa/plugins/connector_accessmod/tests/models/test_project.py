@@ -1,4 +1,3 @@
-import responses
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -23,7 +22,6 @@ class ProjectTest(TestCase):
     PROJECT_OTHER = None
 
     @classmethod
-    @responses.activate
     def setUpTestData(cls):
         cls.USER_HUNTER = User.objects.create_user(
             "hunter@bluesquarehub.com",
