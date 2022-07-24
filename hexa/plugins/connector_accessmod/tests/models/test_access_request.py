@@ -13,6 +13,9 @@ from hexa.user_management.models import User
 class AccessRequestTest(TestCase):
     USER_SABRINA = None
     USER_MAX = None
+    ACCESS_REQUEST_KIM = None
+    ACCESS_REQUEST_JIM = None
+    ACCESS_REQUEST_MARY = None
 
     @classmethod
     def setUpTestData(cls):
@@ -27,6 +30,28 @@ class AccessRequestTest(TestCase):
         cls.USER_MAX = User.objects.create_user(
             "max@bluesquarehub.com",
             "standardpassword",
+        )
+
+        cls.ACCESS_REQUEST_KIM = AccessRequest.objects.create(
+            first_name="Kim",
+            last_name="Jones",
+            email="kimjones@bluesquarehub.com",
+            accepted_tos=False,
+            status=AccessRequestStatus.PENDING,
+        )
+        cls.ACCESS_REQUEST_JIM = AccessRequest.objects.create(
+            first_name="Jim",
+            last_name="Johnson",
+            email="jimjohnson@bluesquarehub.com",
+            accepted_tos=True,
+            status=AccessRequestStatus.APPROVED,
+        )
+        cls.ACCESS_REQUEST_MARY = AccessRequest.objects.create(
+            first_name="Mary",
+            last_name="Jones",
+            email="maryjones@bluesquarehub.com",
+            accepted_tos=True,
+            status=AccessRequestStatus.PENDING,
         )
 
     def test_create_access_request(self):
@@ -56,3 +81,15 @@ class AccessRequestTest(TestCase):
         )
         self.assertIsInstance(access_request, AccessRequest)
         self.assertEqual(AccessRequestStatus.PENDING, access_request.status)
+
+    def test_approve_access_request(self):
+        with self.assertRaises(PermissionDenied):
+            self.ACCESS_REQUEST_MARY.approve_if_has_perm(self.USER_MAX)
+        with self.assertRaises(ValidationError):
+            self.ACCESS_REQUEST_JIM.approve_if_has_perm(self.USER_SABRINA)
+        with self.assertRaises(ValidationError):
+            self.ACCESS_REQUEST_KIM.approve_if_has_perm(self.USER_SABRINA)
+
+        self.ACCESS_REQUEST_MARY.approve_if_has_perm(self.USER_SABRINA)
+        self.ACCESS_REQUEST_MARY.refresh_from_db()
+        self.assertEqual(AccessRequestStatus.APPROVED, self.ACCESS_REQUEST_MARY.status)

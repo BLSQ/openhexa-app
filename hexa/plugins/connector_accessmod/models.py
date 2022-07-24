@@ -25,7 +25,13 @@ from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
-from hexa.user_management.models import Permission, PermissionMode, Team, User
+from hexa.user_management.models import (
+    Permission,
+    PermissionMode,
+    Team,
+    User,
+    UserInterface,
+)
 
 
 class ProjectQuerySet(BaseQuerySet):
@@ -1336,8 +1342,8 @@ class AccessRequestStatus(models.TextChoices):
 
 
 class AccessRequestManager(models.Manager):
+    @staticmethod
     def create_if_has_perm(
-        self,
         principal: User,
         *,
         first_name: str,
@@ -1349,7 +1355,9 @@ class AccessRequestManager(models.Manager):
             raise PermissionDenied
         if (
             User.objects.filter(email=email).exists()
-            or AccessRequest.objects.filter(email=email).exists()
+            or AccessRequest.objects.filter(
+                email=email, status=AccessRequestStatus.PENDING
+            ).exists()
         ):
             raise ValidationError("Already exists")
         if not accepted_tos:
@@ -1398,6 +1406,17 @@ class AccessRequest(Base):
     )
 
     objects = AccessRequestManager.from_queryset(AccessRequestQuerySet)()
+
+    def approve_if_has_perm(self, principal: UserInterface):
+        if not principal.has_perm("connector_accessmod.manage_access_requests"):
+            raise PermissionDenied
+        if self.status != AccessRequestStatus.PENDING:
+            raise ValidationError("Can only approve pending requests")
+        if not self.accepted_tos:
+            raise ValidationError("User has not accepted TOS")
+
+        self.status = AccessRequestStatus.APPROVED
+        self.save()
 
     @property
     def display_name(self):
