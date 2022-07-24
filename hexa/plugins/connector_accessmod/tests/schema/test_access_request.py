@@ -1,5 +1,12 @@
+from django.conf import settings
+from django.core import mail
+
 from hexa.core.test import GraphQLTestCase
-from hexa.plugins.connector_accessmod.models import AccessmodProfile, AccessRequest
+from hexa.plugins.connector_accessmod.models import (
+    AccessmodProfile,
+    AccessRequest,
+    AccessRequestStatus,
+)
 from hexa.user_management.models import User
 
 
@@ -115,8 +122,13 @@ class AccessRequestTest(GraphQLTestCase):
             r["data"]["requestAccessmodAccess"],
         )
         self.assertTrue(
-            AccessRequest.objects.filter(email="wolfgang@bluesquarehub.com").exists()
+            AccessRequest.objects.filter(
+                email="wolfgang@bluesquarehub.com", status=AccessRequestStatus.PENDING
+            ).exists()
         )
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("has requested an access to AccessMod", mail.outbox[0].subject)
+        self.assertIn(settings.ACCESSMOD_MANAGE_REQUESTS_URL, mail.outbox[0].body)
 
     def test_request_accessmod_access_errors(self):
         # User hasn't accepted TOS
