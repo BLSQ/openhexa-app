@@ -1,5 +1,3 @@
-from unittest import skip
-
 from django.conf import settings
 from django.core import mail
 
@@ -43,6 +41,7 @@ class AccessRequestTest(GraphQLTestCase):
             last_name="Muller",
             email="nina@bluesquarehub.com",
             accepted_tos=True,
+            status=AccessRequestStatus.APPROVED,
         )
 
     def test_accessmod_access_request(self):
@@ -58,6 +57,7 @@ class AccessRequestTest(GraphQLTestCase):
                   totalItems
                   items {
                     id
+                    status
                   }
                 }
               }
@@ -70,8 +70,14 @@ class AccessRequestTest(GraphQLTestCase):
                 "totalPages": 1,
                 "totalItems": 2,
                 "items": [
-                    {"id": str(self.ACCESS_REQUEST_JULIA.id)},
-                    {"id": str(self.ACCESS_REQUEST_NINA.id)},
+                    {
+                        "id": str(self.ACCESS_REQUEST_JULIA.id),
+                        "status": self.ACCESS_REQUEST_JULIA.status,
+                    },
+                    {
+                        "id": str(self.ACCESS_REQUEST_NINA.id),
+                        "status": self.ACCESS_REQUEST_NINA.status,
+                    },
                 ],
             },
             r["data"]["accessmodAccessRequests"],
@@ -205,11 +211,79 @@ class AccessRequestTest(GraphQLTestCase):
             r["data"]["requestAccessmodAccess"],
         )
 
-    @skip
     def test_approve_accessmod_access_request(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+              mutation approveAccessmodAccessRequest($input: ApproveAccessmodAccessRequestInput!) {
+                approveAccessmodAccessRequest(input: $input) {
+                  success
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_JULIA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True},
+            r["data"]["approveAccessmodAccessRequest"],
+        )
+        self.ACCESS_REQUEST_JULIA.refresh_from_db()
+        self.assertEqual(AccessRequestStatus.APPROVED, self.ACCESS_REQUEST_JULIA.status)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(
             "Your AccessMod access request has been approved", mail.outbox[0].subject
         )
-        self.assertIn(self.ACCESS_REQUEST_JULIA.email, mail.outbox[0].recipients)
-        self.assertIn(settings.ACCESSMOD_SET_PASSWORD_URL, mail.outbox[0].body)
+        self.assertIn(self.ACCESS_REQUEST_JULIA.email, mail.outbox[0].recipients())
+        self.assertIn("/auth/reset/", mail.outbox[0].body)
+
+    def test_approve_accessmod_access_request_errors(self):
+        # Rebecca is not an AccessMod superuser
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+              mutation approveAccessmodAccessRequest($input: ApproveAccessmodAccessRequestInput!) {
+                approveAccessmodAccessRequest(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_NINA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
+            r["data"]["approveAccessmodAccessRequest"],
+        )
+
+        # Sabrina is an AccessMod superuser
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+              mutation approveAccessmodAccessRequest($input: ApproveAccessmodAccessRequestInput!) {
+                approveAccessmodAccessRequest(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_NINA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
+            r["data"]["approveAccessmodAccessRequest"],
+        )

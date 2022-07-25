@@ -10,6 +10,7 @@ from ariadne import (
     UnionType,
     load_schema_from_path,
 )
+from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
@@ -956,10 +957,42 @@ def resolve_request_accessmod_access(_, info, **kwargs):
 
     send_mail_to_accessmod_superusers(
         title=f"AcccessMod : {access_request.display_name} has requested an access to AccessMod.",
-        template_name="connector_accessmod/request_access_email",
+        template_name="connector_accessmod/mails/request_access",
         template_variables={
             "access_request": access_request,
             "manage_url": settings.ACCESSMOD_MANAGE_REQUESTS_URL,
+        },
+    )
+
+    return {"success": True, "errors": []}
+
+
+@accessmod_mutations.field("approveAccessmodAccessRequest")
+@transaction.atomic
+def resolve_approve_accessmod_access_request(_, info, **kwargs):
+    request = info.context["request"]
+    approve_input = kwargs["input"]
+
+    try:
+        access_request = AccessRequest.objects.filter_for_user(request.user).get(
+            id=approve_input["id"]
+        )
+        access_request.approve_if_has_perm(request.user)
+    except (AccessRequest.DoesNotExist, PermissionDenied, ValidationError):
+        return {"success": False, "errors": ["INVALID"]}
+
+    reset_form = PasswordResetForm({"email": access_request.email})
+    if not reset_form.is_valid():
+        return {"success": False, "errors": ["INVALID"]}
+
+    reset_form.save(
+        request=request,
+        use_https=request.is_secure(),
+        subject_template_name="connector_accessmod/mails/access_request_approved_subject.txt",
+        email_template_name="connector_accessmod/mails/access_request_approved.txt",
+        html_email_template_name="connector_accessmod/mails/access_request_approved.html",
+        extra_email_context={
+            "access_request": access_request,
         },
     )
 

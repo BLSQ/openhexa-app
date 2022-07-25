@@ -93,3 +93,7 @@ class AccessRequestTest(TestCase):
         self.ACCESS_REQUEST_MARY.approve_if_has_perm(self.USER_SABRINA)
         self.ACCESS_REQUEST_MARY.refresh_from_db()
         self.assertEqual(AccessRequestStatus.APPROVED, self.ACCESS_REQUEST_MARY.status)
+        self.assertIsInstance(self.ACCESS_REQUEST_MARY.user, User)
+        self.assertEqual(
+            self.ACCESS_REQUEST_MARY.email, self.ACCESS_REQUEST_MARY.user.email
+        )

@@ -1,0 +1,5 @@
+Hi !
+
+Your AccessMod access request has been approved.
+
+You set your password here : {{ protocol}}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}

@@ -1,4 +1,5 @@
 Hi !
+
 {{ access_request.display_name }} has requested access to AccessMod.
 
 You can manage access requests here : {{ manage_url }}

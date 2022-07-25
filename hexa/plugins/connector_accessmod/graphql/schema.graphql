@@ -579,7 +579,7 @@ type RequestAccessmodAccessInputResult {
     success: Boolean!
     errors: [RequestAccessmodAccessError!]!
 }
-input ApproveAccessmodAccessRequest {
+input ApproveAccessmodAccessRequestInput {
     id: String!
 }
 enum ApproveAccessmodAccessRequestError {
@@ -594,7 +594,7 @@ extend type Query {
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
-    approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequest!): ApproveAccessmodAccessRequestResult!
+    approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
 }
 
 # Connector-specific permissions

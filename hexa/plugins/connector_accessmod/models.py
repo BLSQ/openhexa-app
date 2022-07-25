@@ -12,6 +12,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
+from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
 from dpq.models import BaseJob
@@ -1415,6 +1416,16 @@ class AccessRequest(Base):
         if not self.accepted_tos:
             raise ValidationError("User has not accepted TOS")
 
+        # TODO: consider storing TOS acceptance in AccessMod profile
+        user = User.objects.create_user(
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=self.email,
+            password=get_random_string(length=10),
+            accepted_tos=self.accepted_tos,
+        )
+
+        self.user = user
         self.status = AccessRequestStatus.APPROVED
         self.save()
 
