@@ -97,3 +97,9 @@ class AccessRequestTest(TestCase):
         self.assertEqual(
             self.ACCESS_REQUEST_MARY.email, self.ACCESS_REQUEST_MARY.user.email
         )
+        # The user has not accepted OpenHexa TOS, but the AccessMod TOS flag should be true
+        accessmod_profile = AccessmodProfile.objects.get(
+            user=self.ACCESS_REQUEST_MARY.user
+        )
+        self.assertTrue(accessmod_profile.accepted_tos)
+        self.assertFalse(accessmod_profile.user.accepted_tos)

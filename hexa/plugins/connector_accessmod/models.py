@@ -1422,8 +1422,8 @@ class AccessRequest(Base):
             last_name=self.last_name,
             email=self.email,
             password=get_random_string(length=10),
-            accepted_tos=self.accepted_tos,
         )
+        AccessmodProfile.objects.create(user=user, accepted_tos=self.accepted_tos)
 
         self.user = user
         self.status = AccessRequestStatus.APPROVED
@@ -1445,6 +1445,7 @@ class AccessmodProfile(Base):
         blank=True,
         related_name="accessmod_admin_profile",
     )
+    accepted_tos = models.BooleanField(default=False)
     is_accessmod_superuser = models.BooleanField(
         default=False,
         help_text=_(
