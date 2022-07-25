@@ -1,9 +1,7 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import ConnectorAppConfig
 
 
-class PostgresqlConnectorConfig(AppConfig, ConnectorAppConfig):
+class PostgresqlConnectorConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_postgresql"
     label = "connector_postgresql"
 

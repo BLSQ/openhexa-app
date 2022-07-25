@@ -1,8 +1,6 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import CoreAppConfig
+from hexa.app import CoreAppConfig
 
 
-class VisualizationsConfig(AppConfig, CoreAppConfig):
+class VisualizationsConfig(CoreAppConfig):
     name = "hexa.visualizations"
     label = "visualizations"

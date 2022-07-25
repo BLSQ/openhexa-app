@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "django_ltree",
     "ariadne_django",
     "tailwind",
+    "dpq",
     "hexa.user_management",
     "hexa.metrics",
     "hexa.core",
@@ -61,13 +62,12 @@ INSTALLED_APPS = [
     "hexa.comments",
     "hexa.tags",
     "hexa.ui",
-    "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
-    "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
-    "hexa.plugins.connector_gcs.apps.GCSConnectorConfig",
-    "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
-    "hexa.plugins.connector_postgresql.apps.PostgresqlConnectorConfig",
-    "hexa.plugins.connector_accessmod.apps.AccessmodConnectorConfig",
-    "dpq",
+    "hexa.plugins.connector_dhis2",
+    "hexa.plugins.connector_s3",
+    "hexa.plugins.connector_gcs",
+    "hexa.plugins.connector_airflow",
+    "hexa.plugins.connector_postgresql",
+    "hexa.plugins.connector_accessmod",
 ]
 
 MIDDLEWARE = [

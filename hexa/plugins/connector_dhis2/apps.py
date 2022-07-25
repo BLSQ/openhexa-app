@@ -1,9 +1,7 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import ConnectorAppConfig
 
 
-class Dhis2ConnectorConfig(AppConfig, ConnectorAppConfig):
+class Dhis2ConnectorConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_dhis2"
     label = "connector_dhis2"
 

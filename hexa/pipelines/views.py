@@ -12,10 +12,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from hexa.app import get_hexa_app_configs
 from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
 from hexa.pipelines.models import Environment, Index
 
-from ..plugins.app import get_hexa_app_configs
 from .credentials import PipelinesCredentials
 from .queue import environment_sync_queue
 

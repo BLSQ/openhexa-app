@@ -6,16 +6,78 @@ from django.db.models.base import ModelBase
 from django.http import HttpRequest
 
 
-class CoreAppConfig:
-    ANONYMOUS_URLS = []
-    ANONYMOUS_PREFIXES = []
+class CoreAppConfig(AppConfig):
+    """Base class for our own "core" apps (not connector plugins).
+
+    ANONYMOUS_URLS and ANONYMOUS_PREFIXES will be used by our authentication middleware
+    (hexa.user_management.middlewares) to authorized anonymous requests to specific URLs or URL prefixes.
+
+    Example:
+
+        class FooConfig(CoreAppConfig):
+            name = "hexa.foo"
+            label = "foo"
+
+            ANONYMOUS_URLS = ["foo:bar"]
+            ANONYMOUS_PREFIXES = ["/foo/baz/"]
+    """
+
+    ANONYMOUS_URLS = []  # URL names (such as "foo:bar")
+    ANONYMOUS_PREFIXES = []  # Path segments
+
+    def __init_subclass__(cls) -> None:
+        """Django does not play super nicely with multiple nested AppConfig subclasses. To make sure that a "concrete"
+        app class will be used instead of one of the classes below, we have to make sure that the final subclasses
+        have a default property that is set to True.
+
+        TODO: this is a convoluted workaround - consider alternative to AppConfig subclasses for our use case.
+        """
+
+        super().__init_subclass__()
+        cls.default = True
 
 
-class ConnectorAppConfig(CoreAppConfig):
+class ConnectorAppConfig(AppConfig):
+    """Base class for connector plugins.
+
+    Example:
+
+        class Dhis2ConnectorConfig(ConnectorAppConfig):
+            name = "hexa.plugins.connector_foo"
+            label = "connector_foo"
+
+            verbose_name = "Foo Connector"
+
+            NOTEBOOKS_CREDENTIALS = [
+                "hexa.plugins.connector_foo.credentials.notebooks_credentials"
+            ]
+
+            PIPELINES_CREDENTIALS = [
+                "hexa.plugins.connector_foo.credentials.pipelines_credentials"
+            ]
+
+            @property
+            def route_prefix(self):
+                return "foo"
+    """
+
+    ANONYMOUS_URLS = []  # URL names (such as "foo:bar")
+    ANONYMOUS_PREFIXES = []  # Path segments
     NOTEBOOKS_CREDENTIALS = []
     PIPELINES_CREDENTIALS = []
     LAST_ACTIVITIES = None
     EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER = None
+
+    def __init_subclass__(cls) -> None:
+        """Django does not play super nicely with multiple nested AppConfig subclasses. To make sure that a "concrete"
+        app class will be used instead of one of the classes below, we have to make sure that the final subclasses
+        have a default property that is set to True.
+
+        TODO: this is a convoluted workaround - consider alternative to AppConfig subclasses for our use case.
+        """
+
+        super().__init_subclass__()
+        cls.default = True
 
     @property
     def route_prefix(self):
@@ -76,19 +138,6 @@ class ConnectorAppConfig(CoreAppConfig):
 
         return ActivityList()
 
-    @classmethod
-    def get_models_by_capability(cls, capability, filter_app=None):
-        models_by_app: dict[AppConfig, list[ModelBase]] = {}
-        for app in get_hexa_app_configs(connector_only=True):
-            if filter_app and app.label != filter_app:
-                continue
-            models_by_app[app] = []
-            for model in app.get_models():
-                if hasattr(model, capability):
-                    models_by_app[app].append(model)
-
-        return models_by_app
-
     def get_extra_graphql_me_authorized_actions_resolver(self):
         """Check if this app has an extra resolver for the "authorizedActions" field on the "Me" type.
         The base resolver will loop through all plugins and extend the authorized actions list with any extra
@@ -113,12 +162,25 @@ class ConnectorAppConfig(CoreAppConfig):
         return extra_resolver
 
 
-@cache
 def get_hexa_app_configs(connector_only=False):
     """Return the list of Django app configs that corresponds to connector apps"""
 
-    return [
-        app
-        for app in apps.get_app_configs()
-        if isinstance(app, ConnectorAppConfig if connector_only else CoreAppConfig)
-    ]
+    matched_classes = (
+        (ConnectorAppConfig,) if connector_only else (CoreAppConfig, ConnectorAppConfig)
+    )
+
+    return [app for app in apps.get_app_configs() if isinstance(app, matched_classes)]
+
+
+@cache
+def get_hexa_models_by_capability(cls, capability, filter_app=None):
+    models_by_app: dict[AppConfig, list[ModelBase]] = {}
+    for app in get_hexa_app_configs(connector_only=True):
+        if filter_app and app.label != filter_app:
+            continue
+        models_by_app[app] = []
+        for model in app.get_models():
+            if hasattr(model, capability):
+                models_by_app[app].append(model)
+
+    return models_by_app

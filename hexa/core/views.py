@@ -8,11 +8,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from hexa.app import get_hexa_app_configs
 from hexa.catalog.models import Index
 from hexa.core.activities import Activity, ActivityList
 from hexa.core.datagrids import ActivityGrid
 from hexa.core.models.behaviors import Status
-from hexa.plugins.app import get_hexa_app_configs
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 

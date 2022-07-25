@@ -9,9 +9,9 @@ from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 
+from hexa.app import get_hexa_app_configs
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
-from hexa.plugins.app import get_hexa_app_configs
 from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,

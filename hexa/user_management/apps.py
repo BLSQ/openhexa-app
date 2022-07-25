@@ -1,10 +1,15 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import CoreAppConfig
+from hexa.app import CoreAppConfig
 
 
-class UserManagementConfig(AppConfig, CoreAppConfig):
+class UserManagementConfig(CoreAppConfig):
     name = "hexa.user_management"
     label = "user_management"
 
     verbose_name = "User management"
+
+    ANONYMOUS_URLS = [
+        "user:accept_tos",
+        "logout",
+        "password_reset",
+        "password_reset_done",
+    ]

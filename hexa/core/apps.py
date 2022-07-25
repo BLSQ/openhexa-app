@@ -1,8 +1,11 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import CoreAppConfig
+from hexa.app import CoreAppConfig
 
 
-class CoreConfig(AppConfig, CoreAppConfig):
+class CoreConfig(CoreAppConfig):
     name = "hexa.core"
     label = "core"
+
+    ANONYMOUS_URLS = [
+        "core:index",
+        "core:ready",
+    ]

@@ -8,27 +8,26 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from hexa.plugins.app import get_hexa_app_configs
+from hexa.app import get_hexa_app_configs
 
-ANONYMOUS_URLS = [  # TODO: move to app configs
-    "logout",
-    "core:index",
-    "core:ready",
-    "notebooks:credentials",
-    "graphql",
-    "password_reset",
-    "password_reset_done",
-    "user:accept_tos",
-]
 
-# TODO: document
-for app_config in get_hexa_app_configs():
-    ANONYMOUS_URLS += getattr(app_config, "ANONYMOUS_URLS", [])
-REVERSED_ANONYMOUS_URLS = [reverse(url) for url in ANONYMOUS_URLS]
+def get_anonymous_urls():
+    # We don't have an app config for the GraphQL url itself - it is defined in the core urls module
+    anonymous_urls = ["graphql"]
 
-ANONYMOUS_PREFIXES = ["/auth/reset/"]
-for app_config in apps.get_app_configs():
-    ANONYMOUS_PREFIXES += getattr(app_config, "ANONYMOUS_PREFIXES", [])
+    for app_config in get_hexa_app_configs():
+        anonymous_urls += getattr(app_config, "ANONYMOUS_URLS", [])
+
+    return [reverse(url) for url in anonymous_urls]
+
+
+@cache
+def get_anonymous_prefixes():
+    anonymous_prefixes = ["/auth/reset/"]
+    for app_config in apps.get_app_configs():
+        anonymous_prefixes += getattr(app_config, "ANONYMOUS_PREFIXES", [])
+
+    return anonymous_prefixes
 
 
 @cache
@@ -37,11 +36,11 @@ def is_protected_routes(url: str) -> bool:
     Is the URL should be behind login screen? Must the user accept the TOS to get this page?
     """
     matches_prefix = False
-    for prefix in ANONYMOUS_PREFIXES:
+    for prefix in get_anonymous_prefixes():
         if url.startswith(prefix):
             matches_prefix = True
 
-    return not (matches_prefix or (url in REVERSED_ANONYMOUS_URLS))
+    return not (matches_prefix or (url in get_anonymous_urls()))
 
 
 def login_required_middleware(

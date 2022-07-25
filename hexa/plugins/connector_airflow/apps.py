@@ -1,9 +1,7 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import ConnectorAppConfig
 
 
-class ConnectorAirflowConfig(AppConfig, ConnectorAppConfig):
+class ConnectorAirflowConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_airflow"
     label = "connector_airflow"
 

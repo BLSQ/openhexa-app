@@ -1,9 +1,7 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import ConnectorAppConfig
 
 
-class GCSConnectorConfig(AppConfig, ConnectorAppConfig):
+class GCSConnectorConfig(ConnectorAppConfig):
     name = "hexa.plugins.connector_gcs"
     label = "connector_gcs"
 

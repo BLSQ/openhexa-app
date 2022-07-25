@@ -1,8 +1,6 @@
-from django.apps import AppConfig
-
-from hexa.plugins.app import CoreAppConfig
+from hexa.app import CoreAppConfig
 
 
-class TagsConfig(AppConfig, CoreAppConfig):
+class TagsConfig(CoreAppConfig):
     name = "hexa.tags"
     label = "tags"
