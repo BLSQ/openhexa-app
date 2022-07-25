@@ -548,15 +548,17 @@ extend type Mutation {
 enum AccessmodAccessRequestStatus {
     PENDING
     APPROVED
-    REJECTED
+    DENIED
 }
 type AccessmodAccessRequest {
     id: String!
     firstName: String!
     lastName: String!
     email: String!
-    acceptTos: Boolean!
+    acceptedTos: Boolean!
     status: AccessmodAccessRequestStatus!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
 type AccessmodAccessRequestPage {
     pageNumber: Int!
