@@ -1,3 +1,5 @@
+from django.contrib.auth.models import AnonymousUser
+
 from hexa.core.test import TestCase
 from hexa.plugins.connector_accessmod.models import (
     AccessmodProfile,
@@ -117,7 +119,15 @@ class PermissionsTest(TestCase):
             self.USER_GERALD.has_perm("connector_accessmod.create_file", fileset)
         )
 
-    def test_approve_user_permission(self):
+    def test_create_access_request(self):
+        self.assertTrue(
+            AnonymousUser().has_perm("connector_accessmod.create_access_request")
+        )
+        self.assertFalse(
+            self.USER_GERALD.has_perm("connector_accessmod.create_access_request")
+        )
+
+    def test_manage_access_requests(self):
         self.assertTrue(
             self.USER_NANCY.has_perm("connector_accessmod.manage_access_requests")
         )

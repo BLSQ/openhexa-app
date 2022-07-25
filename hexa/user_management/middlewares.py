@@ -11,6 +11,7 @@ from django.urls import reverse
 from hexa.app import get_hexa_app_configs
 
 
+@cache
 def get_anonymous_urls():
     # We don't have an app config for the GraphQL url itself - it is defined in the core urls module
     anonymous_urls = ["graphql"]

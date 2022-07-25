@@ -162,8 +162,12 @@ class ConnectorAppConfig(AppConfig):
         return extra_resolver
 
 
+@cache
 def get_hexa_app_configs(connector_only=False):
-    """Return the list of Django app configs that corresponds to connector apps"""
+    """Return the list of Django app configs that corresponds to our own hexa apps.
+
+    You may use connector_only=True to only fetch connector plugins.
+    """
 
     matched_classes = (
         (ConnectorAppConfig,) if connector_only else (CoreAppConfig, ConnectorAppConfig)
@@ -173,7 +177,9 @@ def get_hexa_app_configs(connector_only=False):
 
 
 @cache
-def get_hexa_models_by_capability(cls, capability, filter_app=None):
+def get_hexa_models_by_capability(cls, capability: str, filter_app: str = None):
+    """Return a dictionary of models that have the requested capability, grouped by app."""
+
     models_by_app: dict[AppConfig, list[ModelBase]] = {}
     for app in get_hexa_app_configs(connector_only=True):
         if filter_app and app.label != filter_app:
