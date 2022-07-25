@@ -983,6 +983,23 @@ def resolve_approve_accessmod_access_request(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+@accessmod_mutations.field("denyAccessmodAccessRequest")
+@transaction.atomic
+def resolve_deny_accessmod_access_request(_, info, **kwargs):
+    request = info.context["request"]
+    deny_input = kwargs["input"]
+
+    try:
+        access_request = AccessRequest.objects.filter_for_user(request.user).get(
+            id=deny_input["id"]
+        )
+        access_request.deny_if_has_perm(request.user)
+    except (AccessRequest.DoesNotExist, PermissionDenied, ValidationError):
+        return {"success": False, "errors": ["INVALID"]}
+
+    return {"success": True, "errors": []}
+
+
 def extra_resolve_me_authorized_actions(_, info):
     """Extra resolver for the "authorizedActions" field on the "Me" type
     (see base resolver in identity module)

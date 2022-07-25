@@ -287,3 +287,74 @@ class AccessRequestTest(GraphQLTestCase):
             {"success": False, "errors": ["INVALID"]},
             r["data"]["approveAccessmodAccessRequest"],
         )
+
+    def test_deny_accessmod_access_request(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+              mutation denyAccessmodAccessRequest($input: DenyAccessmodAccessRequestInput!) {
+                denyAccessmodAccessRequest(input: $input) {
+                  success
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_JULIA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": True},
+            r["data"]["denyAccessmodAccessRequest"],
+        )
+        self.ACCESS_REQUEST_JULIA.refresh_from_db()
+        self.assertEqual(AccessRequestStatus.DENIED, self.ACCESS_REQUEST_JULIA.status)
+
+    def test_deny_accessmod_access_request_errors(self):
+        # Rebecca is not an AccessMod superuser
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+              mutation denyAccessmodAccessRequest($input: DenyAccessmodAccessRequestInput!) {
+                denyAccessmodAccessRequest(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_NINA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
+            r["data"]["denyAccessmodAccessRequest"],
+        )
+
+        # Sabrina is an AccessMod superuser
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+              mutation denyAccessmodAccessRequest($input: DenyAccessmodAccessRequestInput!) {
+                denyAccessmodAccessRequest(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESS_REQUEST_NINA.id),
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID"]},
+            r["data"]["denyAccessmodAccessRequest"],
+        )

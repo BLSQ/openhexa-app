@@ -589,12 +589,23 @@ type ApproveAccessmodAccessRequestResult {
     success: Boolean!
     errors: [ApproveAccessmodAccessRequestError!]!
 }
+input DenyAccessmodAccessRequestInput {
+    id: String!
+}
+enum DenyAccessmodAccessRequestError {
+    INVALID
+}
+type DenyAccessmodAccessRequestResult {
+    success: Boolean!
+    errors: [DenyAccessmodAccessRequestError!]!
+}
 extend type Query {
     accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
     approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
+    denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
 }
 
 # Connector-specific permissions
