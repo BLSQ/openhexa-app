@@ -1,7 +1,9 @@
 import base64
 
+from hexa.core.credentials import HexaCredentials
 
-class NotebooksCredentials:
+
+class NotebooksCredentials(HexaCredentials):
     """This class acts as a container for credentials to be provided to the notebooks component."""
 
     def __init__(self, user):
@@ -12,6 +14,10 @@ class NotebooksCredentials:
     @property
     def authenticated(self):
         return self.user.is_authenticated
+
+    @property
+    def reference_id(self):
+        return self.user.id
 
     def update_env(self, env_dict):
         self.env.update(**env_dict)

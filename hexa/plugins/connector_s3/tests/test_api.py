@@ -109,8 +109,8 @@ class ApiTest(TestCase):
             app_role_arn="test-app-arn-arn-arn",
         )
         credentials = generate_sts_user_s3_credentials(
-            session_identifier="test",
             role_identifier="test",
+            session_identifier="test",
             principal_credentials=principal_credentials,
             read_write_buckets=[bucket],
             read_only_buckets=[],
@@ -135,8 +135,8 @@ class ApiTest(TestCase):
         )
         # activate hash mode for session name with a very long session identifier
         credentials = generate_sts_user_s3_credentials(
-            session_identifier="very-long-long-session-ident-username@very-long-domain-name.another-domain.tld",
             role_identifier="test",
+            session_identifier="test",
             principal_credentials=principal_credentials,
             read_write_buckets=[bucket],
             read_only_buckets=[],
@@ -152,15 +152,15 @@ class ApiTest(TestCase):
         (see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
         """
 
-        bucket_names = [f"hexa-test-bucket-name-{i}" for i in range(20)]
-        policy = generate_s3_policy(bucket_names)
+        buckets = [Bucket(name=f"hexa-test-bucket-name-{i}") for i in range(20)]
+        policy = generate_s3_policy(read_write_buckets=buckets)
         self.assertIsInstance(policy, dict)
         self.assertLess(len(json.dumps(policy)), 2048)
 
     def test_generate_s3_policy_rw_ro(self):
         policy = generate_s3_policy(
-            read_write_bucket_names=["rw_bucket1", "rw_bucket2"],
-            read_only_bucket_names=["ro_bucket1"],
+            read_write_buckets=[Bucket(name="rw_bucket1"), Bucket(name="rw_bucket2")],
+            read_only_buckets=[Bucket(name="ro_bucket1")],
         )
         self.assertEqual(len(policy["Statement"]), 3)
         for statement in policy["Statement"]:
