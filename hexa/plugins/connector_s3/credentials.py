@@ -30,7 +30,7 @@ def _generate_credentials(
 
     session_identifier = str(credentials.reference_id)
 
-    sts_credentials = generate_sts_user_s3_credentials(
+    sts_credentials, fresh_role = generate_sts_user_s3_credentials(
         principal_credentials=principal_s3_credentials,
         read_only_buckets=read_only_buckets,
         read_write_buckets=read_write_buckets,
@@ -65,6 +65,7 @@ def _generate_credentials(
             "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
             "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
             "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
+            "AWS_FRESH_ROLE": "TRUE" if fresh_role else "FALSE",
         }
     )
     if principal_s3_credentials.default_region != "":
@@ -118,6 +119,6 @@ def pipelines_credentials(credentials: PipelinesCredentials):
                 {f"AWS_BUCKET_{label}_NAME": authorized_bucket.datasource.name}
             )
 
-    role_identifier = f"-p-{credentials.reference_id}"
+    role_identifier = f"p-{credentials.reference_id}"
 
     return _generate_credentials(credentials, role_identifier, [], buckets)

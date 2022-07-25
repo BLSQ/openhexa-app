@@ -108,7 +108,7 @@ class ApiTest(TestCase):
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
         )
-        credentials = generate_sts_user_s3_credentials(
+        credentials, _ = generate_sts_user_s3_credentials(
             role_identifier="test",
             session_identifier="test",
             principal_credentials=principal_credentials,
@@ -134,7 +134,7 @@ class ApiTest(TestCase):
             app_role_arn="test-app-arn-arn-arn",
         )
         # activate hash mode for session name with a very long session identifier
-        credentials = generate_sts_user_s3_credentials(
+        credentials, _ = generate_sts_user_s3_credentials(
             role_identifier="test",
             session_identifier="test",
             principal_credentials=principal_credentials,

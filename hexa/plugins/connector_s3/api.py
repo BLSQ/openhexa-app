@@ -122,7 +122,7 @@ def generate_sts_user_s3_credentials(
     read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
     read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
     duration: int = 12 * 60 * 60,
-) -> typing.Dict[str, str]:
+) -> (bool, typing.Dict[str, str]):
     """Generate temporary S3 credentials for a specific use case and for specific buckets.
     Use case includes user notebook session, running pipelines, ...
 
@@ -232,7 +232,7 @@ def generate_sts_user_s3_credentials(
             f"(Status: {response_status_code})"
         )
 
-    return response["Credentials"]
+    return response["Credentials"], not found_role
 
 
 def generate_s3_policy(
