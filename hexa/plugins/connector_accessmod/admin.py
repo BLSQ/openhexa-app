@@ -71,7 +71,7 @@ class ProjectPermissionAdmin(admin.ModelAdmin):
 @admin.action(description="Approve the selected requests")
 def approve_requests(modeladmin, request, queryset):
     for access_request in queryset.filter(status=AccessRequestStatus.PENDING):
-        access_request.approve_if_has_perm(request.user)
+        access_request.approve_if_has_perm(request.user, request=request)
 
 
 @admin.action(description="Deny the selected requests")
