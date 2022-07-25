@@ -177,7 +177,7 @@ def get_hexa_app_configs(connector_only=False):
 
 
 @cache
-def get_hexa_models_by_capability(cls, capability: str, filter_app: str = None):
+def get_hexa_models_by_capability(capability: str, filter_app: str = None):
     """Return a dictionary of models that have the requested capability, grouped by app."""
 
     models_by_app: dict[AppConfig, list[ModelBase]] = {}
