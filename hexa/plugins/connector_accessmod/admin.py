@@ -99,6 +99,7 @@ class AccessRequestAdmin(admin.ModelAdmin):
 class AccessmodProfileAdmin(admin.ModelAdmin):
     list_display = (
         "user",
+        "accepted_tos",
         "is_accessmod_superuser",
         "created_at",
     )
