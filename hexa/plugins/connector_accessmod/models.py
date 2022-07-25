@@ -6,6 +6,7 @@ import json
 import typing
 
 from django.conf import settings
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -1397,7 +1398,7 @@ class AccessRequest(Base):
         "user_management.User",
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="+",
     )
     status = models.CharField(
@@ -1408,7 +1409,7 @@ class AccessRequest(Base):
 
     objects = AccessRequestManager.from_queryset(AccessRequestQuerySet)()
 
-    def approve_if_has_perm(self, principal: UserInterface):
+    def approve_if_has_perm(self, principal: UserInterface, *, request: HttpRequest):
         if not principal.has_perm("connector_accessmod.manage_access_requests"):
             raise PermissionDenied
         if self.status != AccessRequestStatus.PENDING:
@@ -1416,7 +1417,6 @@ class AccessRequest(Base):
         if not self.accepted_tos:
             raise ValidationError("User has not accepted TOS")
 
-        # TODO: consider storing TOS acceptance in AccessMod profile
         user = User.objects.create_user(
             first_name=self.first_name,
             last_name=self.last_name,
@@ -1427,6 +1427,30 @@ class AccessRequest(Base):
 
         self.user = user
         self.status = AccessRequestStatus.APPROVED
+        self.save()
+
+        reset_form = PasswordResetForm({"email": self.email})
+        if not reset_form.is_valid():
+            raise ValueError("Unexpected validation error in PasswordResetForm")
+
+        reset_form.save(
+            request=request,
+            use_https=request.is_secure(),
+            subject_template_name="connector_accessmod/mails/access_request_approved_subject.txt",
+            email_template_name="connector_accessmod/mails/access_request_approved.txt",
+            html_email_template_name="connector_accessmod/mails/access_request_approved.html",
+            extra_email_context={
+                "access_request": self,
+            },
+        )
+
+    def deny_if_has_perm(self, principal: UserInterface):
+        if not principal.has_perm("connector_accessmod.manage_access_requests"):
+            raise PermissionDenied
+        if self.status != AccessRequestStatus.PENDING:
+            raise ValidationError("Can only deny pending requests")
+
+        self.status = AccessRequestStatus.DENIED
         self.save()
 
     @property

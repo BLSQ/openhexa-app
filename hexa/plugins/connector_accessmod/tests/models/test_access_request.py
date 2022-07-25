@@ -84,13 +84,21 @@ class AccessRequestTest(TestCase):
 
     def test_approve_access_request(self):
         with self.assertRaises(PermissionDenied):
-            self.ACCESS_REQUEST_MARY.approve_if_has_perm(self.USER_MAX)
+            self.ACCESS_REQUEST_MARY.approve_if_has_perm(
+                self.USER_MAX, request=self.mock_request(self.USER_MAX)
+            )
         with self.assertRaises(ValidationError):
-            self.ACCESS_REQUEST_JIM.approve_if_has_perm(self.USER_SABRINA)
+            self.ACCESS_REQUEST_JIM.approve_if_has_perm(
+                self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
+            )
         with self.assertRaises(ValidationError):
-            self.ACCESS_REQUEST_KIM.approve_if_has_perm(self.USER_SABRINA)
+            self.ACCESS_REQUEST_KIM.approve_if_has_perm(
+                self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
+            )
 
-        self.ACCESS_REQUEST_MARY.approve_if_has_perm(self.USER_SABRINA)
+        self.ACCESS_REQUEST_MARY.approve_if_has_perm(
+            self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
+        )
         self.ACCESS_REQUEST_MARY.refresh_from_db()
         self.assertEqual(AccessRequestStatus.APPROVED, self.ACCESS_REQUEST_MARY.status)
         self.assertIsInstance(self.ACCESS_REQUEST_MARY.user, User)
@@ -103,3 +111,14 @@ class AccessRequestTest(TestCase):
         )
         self.assertTrue(accessmod_profile.accepted_tos)
         self.assertFalse(accessmod_profile.user.accepted_tos)
+
+    def test_deny_access_request(self):
+        with self.assertRaises(PermissionDenied):
+            self.ACCESS_REQUEST_MARY.deny_if_has_perm(self.USER_MAX)
+        with self.assertRaises(ValidationError):
+            self.ACCESS_REQUEST_JIM.deny_if_has_perm(self.USER_SABRINA)
+
+        self.ACCESS_REQUEST_MARY.deny_if_has_perm(self.USER_SABRINA)
+        self.ACCESS_REQUEST_MARY.refresh_from_db()
+        self.assertEqual(AccessRequestStatus.DENIED, self.ACCESS_REQUEST_MARY.status)
+        self.assertIsNone(self.ACCESS_REQUEST_MARY.user)

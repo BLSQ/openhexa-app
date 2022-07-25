@@ -4,6 +4,7 @@ from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
     AccessmodProfile,
     AccessRequest,
+    AccessRequestStatus,
     File,
     Fileset,
     FilesetRole,
@@ -67,6 +68,18 @@ class ProjectPermissionAdmin(admin.ModelAdmin):
     list_display = ("project", "team", "user", "mode", "created_at")
 
 
+@admin.action(description="Approve the selected requests")
+def approve_requests(modeladmin, request, queryset):
+    for access_request in queryset.filter(status=AccessRequestStatus.PENDING):
+        access_request.approve_if_has_perm(request.user)
+
+
+@admin.action(description="Deny the selected requests")
+def deny_requests(modeladmin, request, queryset):
+    for access_request in queryset.filter(status=AccessRequestStatus.PENDING):
+        access_request.deny_if_has_perm(request.user)
+
+
 @admin.register(AccessRequest)
 class AccessRequestAdmin(admin.ModelAdmin):
     list_display = (
@@ -79,6 +92,7 @@ class AccessRequestAdmin(admin.ModelAdmin):
     )
     list_filter = ("status",)
     search_fields = ("first_name", "last_name", "email")
+    actions = [approve_requests, deny_requests]
 
 
 @admin.register(AccessmodProfile)
