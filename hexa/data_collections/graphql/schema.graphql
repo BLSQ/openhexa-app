@@ -1,0 +1,47 @@
+type Collection {
+    id: String!
+    name: String!
+    author: User
+    countries: [Country!]!
+    tags: [Tag!]!
+    description: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+type CollectionPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Collection!]!
+}
+enum CollectionAuthorizedActions {
+    DELETE
+    UPDATE
+}
+input CreateCollectionInput {
+    id: String!
+    name: String!
+    authorId: String
+    countries: [CountryInput!]!
+    tagIds: [String!]!
+    description: String
+}
+type CreateCollectionResult {
+    success: Boolean!
+    errors: [CreateCollectionError!]!
+    collection: Collection
+}
+enum CreateCollectionError {
+    INVALID
+}
+extend type Query {
+    collections(page: Int, perPage: Int): CollectionPage
+}
+extend type Mutation {
+    createCollection(input: CreateCollectionInput!): CreateCollectionResult!
+}
+
+# App-specific permissions
+extend enum MeAuthorizedActions {
+    CREATE_COLLECTION
+}
