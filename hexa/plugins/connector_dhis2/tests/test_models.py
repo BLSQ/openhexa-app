@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
+from hexa.data_collections.models import Collection
 from hexa.plugins.connector_dhis2.api import DataElementResult, Dhis2Client
 from hexa.plugins.connector_dhis2.models import (
     Credentials,
@@ -32,11 +33,40 @@ from .mock_data import (
 logger = getLogger(__name__)
 
 
-class ConnectorDhis2Test(TestCase):
+class ModelsTestTest(TestCase):
+    DHIS2_INSTANCE_PLAY = None
+    COLLECTION_MALARIA = None
+    DATA_ELEMENT_FOO = None
+    INDICATOR_BAR = None
+    USER_BJORN = None
+
     @classmethod
     def setUpTestData(cls):
+        cls.USER_BJORN = User.objects.create_user(
+            "bjorn@bluesquarehub.com",
+            "bjornbjorn",
+            accepted_tos=True,
+        )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
             url="https://play.dhis2.org.invalid",
+        )
+        cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria collection")
+        cls.DATA_ELEMENT_FOO = DataElement.objects.create(
+            name="Foo",
+            external_access=False,
+            favorite=False,
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            instance=cls.DHIS2_INSTANCE_PLAY,
+        )
+        cls.INDICATOR_BAR = Indicator.objects.create(
+            name="Bar",
+            external_access=False,
+            favorite=False,
+            annualized=False,
+            created=timezone.now(),
+            last_updated=timezone.now(),
+            instance=cls.DHIS2_INSTANCE_PLAY,
         )
 
     def test_delete_data_element(self):
@@ -54,6 +84,21 @@ class ConnectorDhis2Test(TestCase):
         self.assertEqual(1, Index.objects.filter(object_id=data_element_id).count())
         data_element.delete()
         self.assertEqual(0, Index.objects.filter(object_id=data_element_id).count())
+
+    def test_is_collectible(self):
+        self.assertTrue(self.DATA_ELEMENT_FOO.is_collectible)
+        self.assertFalse(self.INDICATOR_BAR.is_collectible)
+
+    def test_add_data_element_to_collection(self):
+        self.DATA_ELEMENT_FOO.add_to_collection_if_has_perm(
+            self.USER_BJORN, self.COLLECTION_MALARIA
+        )
+        self.DATA_ELEMENT_FOO.refresh_from_db()
+        self.COLLECTION_MALARIA.refresh_from_db()
+        self.assertEqual(1, self.DATA_ELEMENT_FOO.collections.count())
+        self.assertEqual(
+            self.COLLECTION_MALARIA, self.DATA_ELEMENT_FOO.collections.get()
+        )
 
 
 class PermissionTest(TestCase):
