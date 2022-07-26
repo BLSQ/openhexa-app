@@ -5,6 +5,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
+    authorizedActions: [CollectionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
