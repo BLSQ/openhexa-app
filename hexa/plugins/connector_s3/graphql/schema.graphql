@@ -16,6 +16,7 @@ type S3Object {
     lastModified: DateTime!
     etag: String!
     collections: [Collection!]!
+    authorizedActions: [S3ObjectAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -44,4 +45,9 @@ enum AddS3ObjectToCollectionError {
 }
 extend type Mutation {
     addS3ObjectToCollection(input: AddS3ObjectToCollectionInput!): AddS3ObjectToCollectionResult!
+}
+
+# Collection extensions
+extend type Collection {
+    s3objects: S3ObjectPage!
 }
