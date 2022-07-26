@@ -73,7 +73,7 @@ def _retry_with_deadline(calling, deadline):
     #
     # For example, if we need to call some external service during a web
     # request, we have only 30s (typical load balancer timeout) to complete
-    # the request, but the external service call is flaky, this mecanism
+    # the request, but if the external service call is flaky, this mecanism
     # is a good idea: it will try the call until it succeed, but won't timeout
 
     while True:
@@ -112,11 +112,11 @@ def generate_sts_user_s3_credentials(
     Use case includes user notebook session, running pipelines, ...
 
     The process can be summarized like this:
-        1. We first check if we already have a IAM role for the tea
+        1. We first check if we already have a IAM role for the team/pipeline/..
         2. If we don't, create the role
         3. Ensure that the app IAM user can assume the team role
-        4. Generates a fresh S3 policy for the team role and sets it on the role (replacing the existing one)
-        5. Assume the team role
+        4. Generates a fresh S3 policy and sets it on the role (replacing the existing one)
+        5. Assume the team/pipeline/.. role
     """
 
     if not principal_credentials.user_arn or not principal_credentials.app_role_arn:
@@ -185,7 +185,7 @@ def generate_sts_user_s3_credentials(
         )
 
     # Build a fresh version of the s3 policy and set it as an inline policy
-    # on the role (forced update). this call may fail, retry it without
+    # on the role (forced update). this call may fail, retry it within
     # the deadline
     _retry_with_deadline(
         lambda: iam_client.put_role_policy(
