@@ -63,21 +63,6 @@ def generate_sts_app_s3_credentials(
     return response["Credentials"]
 
 
-def attach_policy(iam_client, role_name: str, policy_name: str, document: typing.Dict):
-    policy_doc = json.dumps(document)
-    if len(policy_doc) > 10240:
-        raise S3ApiError(
-            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
-        )
-
-    # Build a fresh version of the s3 policy and set it as an inline policy on the role (forced update)
-    iam_client.put_role_policy(
-        RoleName=role_name,
-        PolicyName=policy_name,
-        PolicyDocument=policy_doc,
-    )
-
-
 def _retry_with_deadline(calling, deadline):
     # This is a mecanism to call a function ("calling") and return the
     # result. If the call throw an exception, the mecanism will add a small
@@ -194,6 +179,10 @@ def generate_sts_user_s3_credentials(
             read_write_buckets=read_write_buckets,
         )
     )
+    if len(policy_doc) > 10240:
+        raise S3ApiError(
+            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
+        )
 
     # Build a fresh version of the s3 policy and set it as an inline policy
     # on the role (forced update). this call may fail, retry it without
