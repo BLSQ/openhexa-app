@@ -11,7 +11,12 @@ from hexa.user_management import models as user_management_models
 
 class BaseQuerySet(models.QuerySet):
     def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
+        self,
+        user: typing.Union[
+            AnonymousUser,
+            user_management_models.User,
+            user_management_models.UserInterface,
+        ],
     ) -> models.QuerySet:
         """Most catalog / pipelines models need to implement this method for access control."""
 
@@ -19,7 +24,11 @@ class BaseQuerySet(models.QuerySet):
 
     def _filter_for_user_and_query_object(
         self,
-        user: typing.Union[AnonymousUser, user_management_models.User],
+        user: typing.Union[
+            AnonymousUser,
+            user_management_models.User,
+            user_management_models.UserInterface,
+        ],
         query_object: models.Q,
         *,
         return_all_if_superuser: bool = True,
