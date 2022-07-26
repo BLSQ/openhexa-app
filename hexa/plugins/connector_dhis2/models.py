@@ -350,6 +350,10 @@ class DataElement(Dhis2Entry):
     value_type = models.CharField(choices=ValueType.choices, max_length=100)
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
+    collections = models.ManyToManyField(
+        "data_collections.Collection", through="DataElementCollection", related_name="+"
+    )
+
     def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at
         index.external_name = self.name
@@ -364,6 +368,21 @@ class DataElement(Dhis2Entry):
             "connector_dhis2:data_element_detail",
             kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
         )
+
+
+class DataElementCollection(Base):
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "data_element", "collection", name="de_collection_unique_de_collection"
+            )
+        ]
+
+    data_element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
+    collection = models.ForeignKey(
+        "data_collections.Collection", on_delete=models.CASCADE
+    )
 
 
 class OrganisationUnitQuerySet(EntryQuerySet):
