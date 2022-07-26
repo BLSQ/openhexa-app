@@ -1,0 +1,47 @@
+type S3Bucket {
+    id: String!
+    name: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+type S3Object {
+    id: String!
+    bucket: S3Bucket!
+    key: String!
+    parentKey: String!
+    size: Int!
+    storageClass: String!  # TODO: Enum
+    type: String!  # TODO: Enum
+    lastModified: DateTime!
+    etag: String!
+    collections: [Collection!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+type S3ObjectPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [S3Object!]!
+}
+enum S3ObjectAuthorizedActions {
+    ADD_TO_COLLECTION
+    REMOVE_FROM_COLLECTION
+}
+input AddS3ObjectToCollectionInput {
+    objectId: String!
+    collectionId: String!
+}
+type AddS3ObjectToCollectionResult {
+    success: Boolean!
+    errors: [AddS3ObjectToCollectionError!]!
+    object: S3Object
+}
+enum AddS3ObjectToCollectionError {
+    INVALID
+}
+extend type Mutation {
+    addS3ObjectToCollection(input: AddS3ObjectToCollectionInput!): AddS3ObjectToCollectionResult!
+}
