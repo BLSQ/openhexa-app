@@ -94,11 +94,15 @@ class ModelsTestTest(TestCase):
             self.USER_BJORN, self.COLLECTION_MALARIA
         )
         self.DATA_ELEMENT_FOO.refresh_from_db()
-        self.COLLECTION_MALARIA.refresh_from_db()
         self.assertEqual(1, self.DATA_ELEMENT_FOO.collections.count())
         self.assertEqual(
             self.COLLECTION_MALARIA, self.DATA_ELEMENT_FOO.collections.get()
         )
+
+        with self.assertRaises(NotImplementedError):
+            self.INDICATOR_BAR.add_to_collection_if_has_perm(
+                self.USER_BJORN, self.COLLECTION_MALARIA
+            )
 
 
 class PermissionTest(TestCase):

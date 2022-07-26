@@ -188,9 +188,22 @@ class Entry(IndexableMixin, models.Model):
         # TODO: check if has perm
 
         if self.collections is None:
-            return
+            raise NotImplementedError
 
         self.collections.add(collection)
+
+    def remove_from_collection_if_has_perm(
+        self, principal: User, collection: Collection
+    ):
+        # TODO: check if has perm
+
+        if self.collections is None:
+            raise NotImplementedError
+
+        if not self.collections.contains(collection):
+            raise Collection.DoesNotExist(f"{self} is not in {collection} collection")
+
+        self.collections.remove(collection)
 
     @property
     def is_collectible(self):

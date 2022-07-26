@@ -295,6 +295,10 @@ class Object(Entry):
     objects = ObjectQuerySet.as_manager()
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
+    collections = models.ManyToManyField(
+        "data_collections.Collection", related_name="+"
+    )
+
     def save(self, *args, **kwargs):
         if self.parent_key is None:
             self.parent_key = self.compute_parent_key(self.key)
