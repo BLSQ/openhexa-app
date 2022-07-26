@@ -1,7 +1,7 @@
 import typing
 import uuid
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -14,6 +14,7 @@ from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
+from hexa.data_collections.models import Collection
 from hexa.user_management import models as user_management_models
 
 
@@ -175,11 +176,25 @@ class Entry(IndexableMixin, models.Model):
 
     objects = BaseQuerySet.as_manager()
 
+    collections: models.Manager = None
+
     def get_permission_set(self):
         raise NotImplementedError
 
     def populate_index(self, index):
         raise NotImplementedError
+
+    def add_to_collection_if_has_perm(self, principal: User, collection: Collection):
+        # TODO: check if has perm
+
+        if self.collections is None:
+            return
+
+        self.collections.add(collection)
+
+    @property
+    def is_collectible(self):
+        return isinstance(self.collections, models.Manager)
 
     def get_absolute_url(self):
         raise NotImplementedError
