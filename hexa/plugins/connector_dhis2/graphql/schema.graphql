@@ -10,8 +10,7 @@ type DHIS2DataElementPage {
     totalItems: Int!
     items: [DHIS2DataElement!]!
 }
-
-# Collection extensions
-extend type Collection {
-    dhis2DataElements: DHIS2DataElementPage!
+type DHIS2DataElementCollectionEntry implements CollectionEntry {
+    id: String!
+    item: DHIS2DataElement!
 }
