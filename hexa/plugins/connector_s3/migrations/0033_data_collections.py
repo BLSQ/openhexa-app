@@ -11,12 +11,12 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("data_collections", "0001_data_collections"),
-        ("connector_dhis2", "0028_instance_public"),
+        ("connector_s3", "0032_permission_mode_data_2"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="DataElementCollectionEntry",
+            name="ObjectCollectionEntry",
             fields=[
                 (
                     "id",
@@ -40,28 +40,27 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name="dataelement",
+            model_name="object",
             name="collections",
             field=models.ManyToManyField(
                 related_name="+",
-                through="connector_dhis2.DataElementCollectionEntry",
+                through="connector_s3.ObjectCollectionEntry",
                 to="data_collections.collection",
             ),
         ),
         migrations.AddField(
-            model_name="dataelementcollectionentry",
-            name="data_element",
+            model_name="objectcollectionentry",
+            name="object",
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                to="connector_dhis2.dataelement",
+                on_delete=django.db.models.deletion.CASCADE, to="connector_s3.object"
             ),
         ),
         migrations.AddConstraint(
-            model_name="dataelementcollectionentry",
+            model_name="objectcollectionentry",
             constraint=models.UniqueConstraint(
-                django.db.models.expressions.F("data_element"),
+                django.db.models.expressions.F("object"),
                 django.db.models.expressions.F("collection"),
-                name="de_collection_unique_de_collection",
+                name="obj_collection_unique_obj_collection",
             ),
         ),
     ]

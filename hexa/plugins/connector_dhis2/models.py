@@ -22,6 +22,7 @@ from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.user_management.models import Permission, Team, User
 
+from ...data_collections.models import CollectionEntry
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -351,7 +352,9 @@ class DataElement(Dhis2Entry):
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
     collections = models.ManyToManyField(
-        "data_collections.Collection", through="DataElementCollection", related_name="+"
+        "data_collections.Collection",
+        through="DataElementCollectionEntry",
+        related_name="+",
     )
 
     def populate_index(self, index):
@@ -370,9 +373,8 @@ class DataElement(Dhis2Entry):
         )
 
 
-class DataElementCollection(Base):
+class DataElementCollectionEntry(CollectionEntry):
     class Meta:
-        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 "data_element", "collection", name="de_collection_unique_de_collection"
@@ -380,9 +382,6 @@ class DataElementCollection(Base):
         ]
 
     data_element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
-    collection = models.ForeignKey(
-        "data_collections.Collection", on_delete=models.CASCADE
-    )
 
 
 class OrganisationUnitQuerySet(EntryQuerySet):
