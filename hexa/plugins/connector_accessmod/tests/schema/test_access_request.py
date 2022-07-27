@@ -239,7 +239,7 @@ class AccessRequestTest(GraphQLTestCase):
             "Your AccessMod access request has been approved", mail.outbox[0].subject
         )
         self.assertIn(self.ACCESS_REQUEST_JULIA.email, mail.outbox[0].recipients())
-        self.assertIn("/auth/reset/", mail.outbox[0].body)
+        self.assertIn(settings.ACCESSMOD_SET_PASSWORD_URL, mail.outbox[0].body)
 
     def test_approve_accessmod_access_request_errors(self):
         # Rebecca is not an AccessMod superuser

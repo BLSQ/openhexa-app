@@ -23,7 +23,7 @@
                                             <tbody>
                                             <tr>
                                                 <td>
-                                                    <a href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}" target="_blank">
+                                                    <a href="{{ set_password_url }}?uidb64={{ uid }}&token={{ token }}" target="_blank">
                                                         Set your password
                                                     </a>
                                                 </td>

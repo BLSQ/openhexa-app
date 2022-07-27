@@ -20,7 +20,8 @@ x-app: &common
       - CORS_ALLOWED_ORIGINS=http://localhost:3000
       - GCS_TOKEN_LIFETIME=3600
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
-      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:8000/admin/connector_accessmod/accessrequest/
+      - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
+      - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR

@@ -1441,6 +1441,7 @@ class AccessRequest(Base):
             html_email_template_name="connector_accessmod/mails/access_request_approved.html",
             extra_email_context={
                 "access_request": self,
+                "set_password_url": settings.ACCESSMOD_SET_PASSWORD_URL,
             },
         )
 
