@@ -18,6 +18,7 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.data_collections.models import CollectionEntry
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     get_object_metadata,
@@ -296,7 +297,7 @@ class Object(Entry):
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
     collections = models.ManyToManyField(
-        "data_collections.Collection", related_name="+"
+        "data_collections.Collection", through="ObjectCollectionEntry", related_name="+"
     )
 
     def save(self, *args, **kwargs):
@@ -413,3 +414,14 @@ class Object(Entry):
                 "connector_s3:object_detail",
                 kwargs={"bucket_id": self.bucket.id, "path": self.key},
             )
+
+
+class ObjectCollectionEntry(CollectionEntry):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "object", "collection", name="obj_collection_unique_obj_collection"
+            )
+        ]
+
+    object = models.ForeignKey("Object", on_delete=models.CASCADE)

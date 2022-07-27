@@ -57,10 +57,15 @@ extend type Mutation {
 # Collection entries
 interface CollectionEntry {
     id: String!
+    entryType: CollectionEntryType!
+    item: CollectionEntryItem!
 }
-enum CollectionEntryType {
-    GENERIC
+type FakeCollectionItem {  # unfortunately, we can't create an empty enum
+    id: String!
 }
+union CollectionEntryItem = FakeCollectionItem  # To be extended
+enum CollectionEntryType  # To be extended
+
 type CollectionEntryPage {
     pageNumber: Int!
     totalPages: Int!

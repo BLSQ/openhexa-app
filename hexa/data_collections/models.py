@@ -57,3 +57,13 @@ class Collection(Base):
         # TODO: check if has perm
 
         self.delete()
+
+
+class CollectionEntry(Base):
+    class Meta:
+        abstract = True
+        ordering = ["-created_at"]
+
+    collection = models.ForeignKey(
+        "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
+    )

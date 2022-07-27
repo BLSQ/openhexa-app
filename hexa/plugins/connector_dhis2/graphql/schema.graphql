@@ -10,7 +10,9 @@ type DHIS2DataElementPage {
     totalItems: Int!
     items: [DHIS2DataElement!]!
 }
-type DHIS2DataElementCollectionEntry implements CollectionEntry {
-    id: String!
-    item: DHIS2DataElement!
+
+# Collection extensions
+extend enum CollectionEntryType {
+    DHIS2_DATA_ELEMENT
 }
+extend union CollectionEntryItem = DHIS2DataElement
