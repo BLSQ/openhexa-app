@@ -71,12 +71,12 @@ class AccessRequestTest(GraphQLTestCase):
                 "totalItems": 2,
                 "items": [
                     {
-                        "id": str(self.ACCESS_REQUEST_JULIA.id),
-                        "status": self.ACCESS_REQUEST_JULIA.status,
-                    },
-                    {
                         "id": str(self.ACCESS_REQUEST_NINA.id),
                         "status": self.ACCESS_REQUEST_NINA.status,
+                    },
+                    {
+                        "id": str(self.ACCESS_REQUEST_JULIA.id),
+                        "status": self.ACCESS_REQUEST_JULIA.status,
                     },
                 ],
             },
