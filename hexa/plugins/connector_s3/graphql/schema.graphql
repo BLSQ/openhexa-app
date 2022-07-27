@@ -16,7 +16,6 @@ type S3Object {
     lastModified: DateTime!
     etag: String!
     collections: [Collection!]!
-    authorizedActions: [S3ObjectAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -27,27 +26,7 @@ type S3ObjectPage {
     totalItems: Int!
     items: [S3Object!]!
 }
-enum S3ObjectAuthorizedActions {
-    ADD_TO_COLLECTION
-    REMOVE_FROM_COLLECTION
-}
-input AddS3ObjectToCollectionInput {
-    objectId: String!
-    collectionId: String!
-}
-type AddS3ObjectToCollectionResult {
-    success: Boolean!
-    errors: [AddS3ObjectToCollectionError!]!
-    object: S3Object
-}
-enum AddS3ObjectToCollectionError {
-    INVALID
-}
-extend type Mutation {
-    addS3ObjectToCollection(input: AddS3ObjectToCollectionInput!): AddS3ObjectToCollectionResult!
-}
-
-# Collection extensions
-extend type Collection {
-    s3objects: S3ObjectPage!
+type S3ObjectCollectionEntry implements CollectionEntry {
+    id: String!
+    item: S3Object!
 }
