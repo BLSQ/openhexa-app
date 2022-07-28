@@ -190,7 +190,10 @@ class Entry(IndexableMixin, models.Model):
         if self.collections is None:
             raise NotImplementedError
 
-        self.collections.add(collection)
+        self.create_collection_entry(collection)
+
+    def create_collection_entry(self, collection: Collection):
+        pass
 
     def remove_from_collection_if_has_perm(
         self, principal: User, collection: Collection
