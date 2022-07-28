@@ -47,6 +47,7 @@ enum DeleteCollectionError {
     INVALID
 }
 extend type Query {
+    collection(id: String!): Collection
     collections(page: Int, perPage: Int): CollectionPage!
 }
 extend type Mutation {
@@ -55,17 +56,13 @@ extend type Mutation {
 }
 
 # Collection entries
-type CollectionEntry {
+interface CollectionEntry {
     id: String!
-    entryType: CollectionEntryType!
-    item: CollectionEntryItem!
+    type: CollectionEntryType!
+    createdAt: DateTime!
+    updatedAt: DateTime!
 }
-type FakeCollectionItem {  # unfortunately, we can't create an empty enum
-    id: String!
-}
-union CollectionEntryItem = FakeCollectionItem  # To be extended
-enum CollectionEntryType  # To be extended
-
+enum CollectionEntryType
 type CollectionEntryPage {
     pageNumber: Int!
     totalPages: Int!
@@ -73,8 +70,8 @@ type CollectionEntryPage {
     items: [CollectionEntry!]!
 }
 input CreateCollectionEntryInput {
-    objectType: CollectionEntryType!
-    objectId: String!
+    entryType: CollectionEntryType!
+    entryItemId: String!
 }
 type CreateCollectionEntryResult {
     success: Boolean!

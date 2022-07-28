@@ -374,14 +374,15 @@ class DataElement(Dhis2Entry):
 
 
 class DataElementCollectionEntry(CollectionEntry):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                "data_element", "collection", name="de_collection_unique_de_collection"
-            )
-        ]
-
     data_element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
+
+    @property
+    def graphql_object_type(self):
+        return "DHIS2DataElementCollectionEntry"
+
+    @property
+    def graphql_item_type(self):
+        return "DHIS2_DATA_ELEMENT"
 
 
 class OrganisationUnitQuerySet(EntryQuerySet):

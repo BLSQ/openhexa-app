@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import typing
 
+from django.contrib.auth.models import AnonymousUser
 from django.db import models, transaction
 from django_countries.fields import Country, CountryField
+from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.tags.models import Tag
+from hexa.user_management import models as user_management_models
 from hexa.user_management.models import User, UserInterface
 
 
@@ -59,11 +62,50 @@ class Collection(Base):
         self.delete()
 
 
+class CollectionEntryQuerySet(BaseQuerySet, InheritanceQuerySet):
+    def filter_for_user(
+        self,
+        user: typing.Union[
+            AnonymousUser,
+            user_management_models.User,
+            user_management_models.UserInterface,
+        ],
+    ) -> models.QuerySet:
+        # TODO: implement filter
+
+        return self.all()
+
+
+class CollectionEntryManager(InheritanceManager):
+    """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
+    and "re-attach" the queryset methods ourselves."""
+
+    def get_queryset(self):
+        return CollectionEntryQuerySet(self.model)
+
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self.get_queryset().filter_for_user(user)
+
+
 class CollectionEntry(Base):
+    # TODO: cannot add unique constraint on "collection" + "field in subclass"
+    # TODO: Consider validating uniqueness in model method
+
     class Meta:
-        abstract = True
         ordering = ["-created_at"]
 
     collection = models.ForeignKey(
         "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
     )
+
+    objects = CollectionEntryManager()
+
+    @property
+    def graphql_object_type(self):
+        raise NotImplementedError
+
+    @property
+    def graphql_item_type(
+        self,
+    ):  # TODO: maybe we don't need both graphql_object_type and graphql_entry_type
+        raise NotImplementedError

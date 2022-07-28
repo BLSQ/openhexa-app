@@ -417,11 +417,12 @@ class Object(Entry):
 
 
 class ObjectCollectionEntry(CollectionEntry):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                "object", "collection", name="obj_collection_unique_obj_collection"
-            )
-        ]
-
     object = models.ForeignKey("Object", on_delete=models.CASCADE)
+
+    @property
+    def graphql_object_type(self):
+        return "S3ObjectCollectionEntry"
+
+    @property
+    def graphql_item_type(self):
+        return "S3_OBJECT"
