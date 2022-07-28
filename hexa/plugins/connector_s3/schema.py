@@ -1,12 +1,22 @@
-import pathlib
+from ariadne import MutationType, QueryType
 
-from ariadne import MutationType, QueryType, load_schema_from_path
-
-s3_type_defs = load_schema_from_path(
-    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
+from hexa.core.graphql import (
+    generate_collections_type_defs_and_bindables,
+    load_type_defs_from_file,
 )
-s3_query = QueryType()
-s3_mutations = MutationType()
 
+base_type_defs = load_type_defs_from_file("plugins/connector_s3/graphql/schema.graphql")
 
-s3_bindables = []
+query = QueryType()
+mutations = MutationType()
+
+# collection extensions
+(
+    collections_type_defs,
+    collections_bindables,
+) = generate_collections_type_defs_and_bindables(
+    entry_type="S3Object",
+)
+
+s3_type_defs = [base_type_defs, collections_type_defs]
+s3_bindables = [query, mutations, *collections_bindables]
