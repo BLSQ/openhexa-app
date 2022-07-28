@@ -26,15 +26,3 @@ type S3ObjectPage {
     totalItems: Int!
     items: [S3Object!]!
 }
-
-# Collection extensions
-type S3ObjectCollectionEntry implements CollectionEntry {
-    id: String!
-    type: CollectionEntryType!
-    object: S3Object!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-}
-extend enum CollectionEntryType {
-    S3_OBJECT
-}
