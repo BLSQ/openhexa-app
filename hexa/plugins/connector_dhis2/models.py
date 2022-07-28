@@ -22,7 +22,7 @@ from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.user_management.models import Permission, Team, User
 
-from ...data_collections.models import CollectionEntry
+from ...data_collections.models import Collection, CollectionEntry
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -365,6 +365,11 @@ class DataElement(Dhis2Entry):
         index.search = f"{self.name} {self.description} {self.dhis2_id}"
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
+
+    def create_collection_entry(self, collection: Collection):
+        return DataElementCollectionEntry.objects.create(
+            collection=collection, data_element=self
+        )
 
     def get_absolute_url(self):
         return reverse(

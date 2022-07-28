@@ -18,7 +18,7 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.data_collections.models import CollectionEntry
+from hexa.data_collections.models import Collection, CollectionEntry
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     get_object_metadata,
@@ -316,6 +316,9 @@ class Object(Entry):
         index.search = f"{self.filename} {self.key}"
         index.datasource_name = self.bucket.name
         index.datasource_id = self.bucket.id
+
+    def create_collection_entry(self, collection: Collection):
+        ObjectCollectionEntry.objects.create(collection=collection, object=self)
 
     def __repr__(self):
         return f"<Object s3://{self.bucket.name}/{self.key}>"
