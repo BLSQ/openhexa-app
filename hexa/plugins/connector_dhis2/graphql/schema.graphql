@@ -1,6 +1,7 @@
 type DHIS2DataElement {
     id: String!
     name: String!  # TODO: complete
+    code: String!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -12,7 +13,13 @@ type DHIS2DataElementPage {
 }
 
 # Collection extensions
+type DHIS2DataElementCollectionEntry implements CollectionEntry {
+    id: String!
+    type: CollectionEntryType!
+    dataElement: DHIS2DataElement!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
 extend enum CollectionEntryType {
     DHIS2_DATA_ELEMENT
 }
-extend union CollectionEntryItem = DHIS2DataElement
