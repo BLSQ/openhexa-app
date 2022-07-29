@@ -2,8 +2,8 @@ from logging import getLogger
 
 from django.core.management.base import BaseCommand
 
+from hexa.app import get_hexa_models_by_capability
 from hexa.catalog.models import Datasource
-from hexa.plugins.app import ConnectorAppConfig
 
 logger = getLogger(__name__)
 
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, filter_app, **options):
-        syncables = ConnectorAppConfig.get_models_by_capability("sync", filter_app)
+        syncables = get_hexa_models_by_capability("sync", filter_app)
 
         for app, models in syncables.items():
             for model in models:

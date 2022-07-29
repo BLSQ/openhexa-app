@@ -3,7 +3,7 @@ from logging import getLogger
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import get_hexa_models_by_capability
 
 logger = getLogger(__name__)
 
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, filter_app, **options):
-        indexables = ConnectorAppConfig.get_models_by_capability("index", filter_app)
+        indexables = get_hexa_models_by_capability("index", filter_app)
 
         for app, models in indexables.items():
             for model in models:

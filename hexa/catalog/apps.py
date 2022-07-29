@@ -1,6 +1,6 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class CatalogConfig(AppConfig):
+class CatalogConfig(CoreAppConfig):
     name = "hexa.catalog"
     label = "catalog"

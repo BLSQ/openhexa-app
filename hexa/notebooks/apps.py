@@ -1,6 +1,10 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class NotebooksConfig(AppConfig):
+class NotebooksConfig(CoreAppConfig):
     name = "hexa.notebooks"
     label = "notebooks"
+
+    ANONYMOUS_URLS = [
+        "notebooks:credentials",
+    ]

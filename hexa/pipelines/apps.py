@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class PipelinesConfig(AppConfig):
+class PipelinesConfig(CoreAppConfig):
     name = "hexa.pipelines"
     label = "pipelines"
 
