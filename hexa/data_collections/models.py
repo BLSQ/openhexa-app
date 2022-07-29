@@ -98,7 +98,7 @@ class CollectionElement(Base):
     class Meta:
         ordering = ["-created_at"]
 
-    item: models.ForeignKey = None
+    element: models.ForeignKey = None
     collection = models.ForeignKey(
         "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
     )
@@ -106,5 +106,5 @@ class CollectionElement(Base):
     objects = CollectionElementManager()
 
     @property
-    def graphql_item_type(self):
+    def graphql_element_type(self):
         raise NotImplementedError
