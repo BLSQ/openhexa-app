@@ -125,7 +125,7 @@ class IASOAccount(Datasource):
 
     def get_absolute_url(self):
         return reverse(
-            "connector_iaso:datasource_index", kwargs={"datasource_id": self.id}
+            "connector_iaso:datasource_detail", kwargs={"datasource_id": self.id}
         )
 
     @property
@@ -252,7 +252,7 @@ class IASOForm(IASOEntry):
 
     def get_absolute_url(self):
         return reverse(
-            "connector_iaso:iasoform_detail",
+            "connector_iaso:form_detail",
             kwargs={"iasoaccount_id": self.iaso_account.id, "iaso_id": self.iaso_id},
         )
 

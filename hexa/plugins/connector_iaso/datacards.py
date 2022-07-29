@@ -3,7 +3,7 @@ import json
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.ui.datacard import Datacard, DateProperty, Section, TextProperty
+from hexa.ui.datacard import CodeProperty, Datacard, DateProperty, Section, TextProperty
 from hexa.ui.datacard.properties import Property
 from hexa.ui.utils import StaticText
 
@@ -59,7 +59,9 @@ class FormSection(Section):
         label="Last updated", date="updated", date_format="Y-m-d H:i:s"
     )
     version_id = TextProperty(label="Version", text="version_id")
-    org_unit_types = JSONProperty(code="org_unit_types")
+    org_unit_types = CodeProperty(
+        code="org_unit_types", label="Org Unit Types", language="json"
+    )
     projects = JSONProperty(code="projects")
 
 

@@ -2,11 +2,7 @@ from hexa.ui.datagrid import Datagrid, DateColumn, LeadingColumn, LinkColumn, Te
 from hexa.ui.utils import StaticText
 
 
-class IndexGrid(Datagrid):
-    title = StaticText("Type of Objects")
-
-
-class ObjectGrid(Datagrid):
+class FormGrid(Datagrid):
     title = StaticText("Forms")
 
     lead = LeadingColumn(

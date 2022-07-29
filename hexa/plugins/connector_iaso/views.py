@@ -6,13 +6,13 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
 
 from .datacards import FormCard, IASOCard
-from .datagrids import ObjectGrid
+from .datagrids import FormGrid
 from .models import IASOAccount
 
 logger = getLogger(__name__)
 
 
-def datasource_index(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
+def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
     iaso_account = get_object_or_404(
         IASOAccount.objects.filter_for_user(request.user),
         pk=datasource_id,
@@ -22,10 +22,10 @@ def datasource_index(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResp
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (iaso_account.display_name, "connector_iaso:datasource_index", datasource_id),
+        (iaso_account.display_name, "connector_iaso:datasource_detail", datasource_id),
     ]
 
-    object_grid = ObjectGrid(
+    form_grid = FormGrid(
         iaso_account.iasoform_set.prefetch_indexes().select_related("iaso_account"),
         parent_model=iaso_account,
         prefix="",
@@ -41,12 +41,12 @@ def datasource_index(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResp
             "datasource": iaso_account,
             "breadcrumbs": breadcrumbs,
             "iaso_card": iaso_card,
-            "object_grid": object_grid,
+            "form_grid": form_grid,
         },
     )
 
 
-def iasoform_detail(
+def form_detail(
     request: HttpRequest, iasoaccount_id: uuid.UUID, iaso_id: int
 ) -> HttpResponse:
     iaso_account = get_object_or_404(
@@ -60,7 +60,7 @@ def iasoform_detail(
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),
-        (iaso_account.name, "connector_iaso:datasource_index", iasoaccount_id),
+        (iaso_account.name, "connector_iaso:datasource_detail", iasoaccount_id),
     ]
 
     return render(
