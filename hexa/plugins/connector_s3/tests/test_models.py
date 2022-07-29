@@ -63,7 +63,7 @@ class ModelTest(TestCase):
             bucket=cls.BUCKET_2, key="file2.csv", size=100
         )
         ObjectCollectionItem.objects.create(
-            collection=cls.COLLECTION_MALARIA, object=cls.OBJECT_2
+            collection=cls.COLLECTION_MALARIA, item=cls.OBJECT_2
         )
 
     def test_filter_for_user_regular(self):
