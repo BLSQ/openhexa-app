@@ -42,7 +42,7 @@ def generate_collections_type_defs_and_bindables(
             type Add{item_type}ToCollectionResult {{
                 success: Boolean!
                 errors: [Add{item_type}ToCollectionError!]!
-                collection: Collection!
+                collection: Collection
                 item: {item_type}
                 collectionItem: {item_type}CollectionItem
             }}

@@ -5,6 +5,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -189,6 +190,11 @@ class Entry(IndexableMixin, models.Model):
 
         if self.collection_item_class is None:
             raise NotImplementedError
+
+        if self.collection_item_class.objects.filter(
+            item=self, collection=collection
+        ).exists():
+            raise ValidationError("Already in collection")
 
         return self.collection_item_class.objects.create(
             item=self, collection=collection
