@@ -15,7 +15,7 @@ from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
-from hexa.data_collections.models import Collection, CollectionItem
+from hexa.data_collections.models import Collection, CollectionElement
 from hexa.user_management import models as user_management_models
 
 
@@ -218,7 +218,7 @@ class Entry(IndexableMixin, models.Model):
         return self.collection_item_class is not None
 
     @property
-    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionItem]]:
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionElement]]:
         return None
 
     def get_absolute_url(self):

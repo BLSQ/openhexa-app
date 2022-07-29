@@ -6,7 +6,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
-    items: CollectionItemPage!
+    items: CollectionElementPage!
     authorizedActions: [CollectionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -24,8 +24,8 @@ type CollectionAuthorizedActions {
 input CreateCollectionInput {
     name: String!
     authorId: String
-    countries: [CountryInput!]!
-    tagIds: [String!]!
+    countries: [CountryInput!]
+    tagIds: [String!]
     description: String
 }
 type CreateCollectionResult {
@@ -56,20 +56,20 @@ extend type Mutation {
 }
 
 # Collection items
-interface CollectionItem {
+interface CollectionElement {
     id: String!
-    type: CollectionItemType!
+    type: CollectionElementType!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
-enum CollectionItemType {
+enum CollectionElementType {
     _  # Cannot create empty enums
 }
-type CollectionItemPage {
+type CollectionElementPage {
     pageNumber: Int!
     totalPages: Int!
     totalItems: Int!
-    items: [CollectionItem!]!
+    elements: [CollectionElement!]!
 }
 
 # App-specific permissions
