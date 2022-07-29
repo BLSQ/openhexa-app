@@ -6,7 +6,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
-    entries: CollectionItemPage!
+    items: CollectionItemPage!
     authorizedActions: [CollectionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -55,7 +55,7 @@ extend type Mutation {
     deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
 }
 
-# Collection entries
+# Collection items
 interface CollectionItem {
     id: String!
     type: CollectionItemType!

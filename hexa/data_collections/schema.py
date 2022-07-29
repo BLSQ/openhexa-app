@@ -44,8 +44,8 @@ def resolve_collections(_, info, **kwargs):
 collection_object = ObjectType("Collection")
 
 
-@collection_object.field("entries")
-def resolve_collection_entries(collection: Collection, info, **kwargs):
+@collection_object.field("items")
+def resolve_collection_items(collection: Collection, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = (
@@ -60,7 +60,7 @@ def resolve_collection_entries(collection: Collection, info, **kwargs):
     )
 
 
-# Collection entries
+# Collection items
 collection_item_interface = InterfaceType("CollectionItem")
 
 
