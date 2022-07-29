@@ -1,7 +1,7 @@
 import pathlib
 
 import stringcase
-from ariadne import load_schema_from_path
+from ariadne import MutationType, load_schema_from_path
 from django.conf import settings
 from django.core.paginator import Paginator
 
@@ -25,9 +25,29 @@ def generate_collections_type_defs_and_bindables(
         extend enum CollectionEntryType {{
             {stringcase.constcase(entry_type)}
         }}
+        input Add{entry_type}ToCollectionInput {{
+            id: String!
+        }}
+        type Add{entry_type}ToCollectionResult {{
+            success: Boolean!
+            errors: [Add{entry_type}ToCollectionError!]!
+            entry: {entry_type}CollectionEntry
+        }}
+        enum Add{entry_type}ToCollectionError {{
+            INVALID
+        }}
+        extend type Mutation {{
+            add{entry_type}ToCollection(input: Add{entry_type}ToCollectionInput!): Add{entry_type}ToCollectionResult!
+        }}
     """
 
-    bindables = []
+    collections_mutations = MutationType()
+
+    @collections_mutations.field(f"add{entry_type}ToCollection")
+    def add_to_collection_resolver(_, info, **kwargs):
+        pass
+
+    bindables = [collections_mutations]
 
     return type_defs, bindables
 
