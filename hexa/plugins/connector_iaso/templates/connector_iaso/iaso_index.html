@@ -1,0 +1,36 @@
+{% extends "layouts/page.html" %}
+{% load embed i18n static %}
+{% block page_title %}{{ datasource.display_name }}{% endblock %}
+
+{% block page_content %}
+    {% static "connector_iaso/img/symbol.svg" as symbol %}
+    {% embed "catalog/components/data_header.html" with content=datasource symbol=symbol symbol_alt=_("IASO Account") %}
+        {% slot actions %}
+            {% include "catalog/components/data_header_action.html" with url=datasource.sync_url label=_("Sync") icon="refresh" %}
+        {% endslot %}
+    {% endembed %}
+    {% embed "ui/tabs/tabs.html" with default_tab="content" %}
+        {% slot navigation %}
+            {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
+            {% blocktranslate asvar comment_label with count=datasource.index.comment_set.count %}
+                Comments ({{ count }})
+            {% endblocktranslate %}
+            {% include "ui/tabs/tab_nav_item.html" with label=comment_label id="comments" %}
+        {% endslot %}
+        {% slot tabs %}
+            {# Content tab #}
+            {% embed "ui/tabs/tab.html" with id="content" %}
+                {% slot content %}
+                    {{ form_grid }}
+                {% endslot %}
+            {% endembed %}
+            {# Metadata tab #}
+            {# Comments tab #}
+            {% embed "ui/tabs/tab.html" with id="comments" %}
+                {% slot content %}
+                    {% include "comments/components/page_section_comments.html" with object=datasource %}
+                {% endslot %}
+            {% endembed %}
+        {% endslot %}
+    {% endembed %}
+{% endblock %}
