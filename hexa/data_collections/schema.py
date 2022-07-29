@@ -44,6 +44,11 @@ def resolve_collections(_, info, **kwargs):
 collection_object = ObjectType("Collection")
 
 
+@collection_object.field("tags")
+def resolve_collection_tags(object: Collection, info):
+    return object.tags.all()
+
+
 @collection_object.field("items")
 def resolve_collection_items(collection: Collection, info, **kwargs):
     request: HttpRequest = info.context["request"]
