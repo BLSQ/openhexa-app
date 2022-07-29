@@ -10,7 +10,7 @@ from hexa.plugins.connector_s3.models import (
     BucketPermission,
     Credentials,
     Object,
-    ObjectCollectionEntry,
+    ObjectCollectionItem,
 )
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
@@ -62,7 +62,7 @@ class ModelTest(TestCase):
         cls.OBJECT_2 = Object.objects.create(
             bucket=cls.BUCKET_2, key="file2.csv", size=100
         )
-        ObjectCollectionEntry.objects.create(
+        ObjectCollectionItem.objects.create(
             collection=cls.COLLECTION_MALARIA, object=cls.OBJECT_2
         )
 

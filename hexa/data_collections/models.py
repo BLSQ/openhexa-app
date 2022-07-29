@@ -62,7 +62,7 @@ class Collection(Base):
         self.delete()
 
 
-class CollectionEntryQuerySet(BaseQuerySet, InheritanceQuerySet):
+class CollectionItemQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(
         self,
         user: typing.Union[
@@ -76,36 +76,31 @@ class CollectionEntryQuerySet(BaseQuerySet, InheritanceQuerySet):
         return self.all()
 
 
-class CollectionEntryManager(InheritanceManager):
+class CollectionItemManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
     and "re-attach" the queryset methods ourselves."""
 
     def get_queryset(self):
-        return CollectionEntryQuerySet(self.model)
+        return CollectionItemQuerySet(self.model)
 
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
 
-class CollectionEntry(Base):
+class CollectionItem(Base):
     # TODO: cannot add unique constraint on "collection" + "field in subclass"
     # TODO: Consider validating uniqueness in model method
 
     class Meta:
         ordering = ["-created_at"]
 
+    item: models.ForeignKey = None
     collection = models.ForeignKey(
         "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
     )
 
-    objects = CollectionEntryManager()
+    objects = CollectionItemManager()
 
     @property
-    def graphql_object_type(self):
-        raise NotImplementedError
-
-    @property
-    def graphql_item_type(
-        self,
-    ):  # TODO: maybe we don't need both graphql_object_type and graphql_entry_type
+    def graphql_item_type(self):
         raise NotImplementedError

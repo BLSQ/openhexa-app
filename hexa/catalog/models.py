@@ -14,7 +14,7 @@ from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
-from hexa.data_collections.models import Collection
+from hexa.data_collections.models import Collection, CollectionItem
 from hexa.user_management import models as user_management_models
 
 
@@ -187,13 +187,12 @@ class Entry(IndexableMixin, models.Model):
     def add_to_collection_if_has_perm(self, principal: User, collection: Collection):
         # TODO: check if has perm
 
-        if self.collections is None:
+        if self.collection_item_class is None:
             raise NotImplementedError
 
-        self.create_collection_entry(collection)
-
-    def create_collection_entry(self, collection: Collection):
-        pass
+        return self.collection_item_class.objects.create(
+            item=self, collection=collection
+        )
 
     def remove_from_collection_if_has_perm(
         self, principal: User, collection: Collection
@@ -210,7 +209,11 @@ class Entry(IndexableMixin, models.Model):
 
     @property
     def is_collectible(self):
-        return isinstance(self.collections, models.Manager)
+        return self.collection_item_class is not None
+
+    @property
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionItem]]:
+        return None
 
     def get_absolute_url(self):
         raise NotImplementedError
