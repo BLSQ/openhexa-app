@@ -192,12 +192,12 @@ class Entry(IndexableMixin, models.Model):
             raise NotImplementedError
 
         if self.collection_item_class.objects.filter(
-            item=self, collection=collection
+            element=self, collection=collection
         ).exists():
             raise ValidationError("Already in collection")
 
         return self.collection_item_class.objects.create(
-            item=self, collection=collection
+            element=self, collection=collection
         )
 
     def remove_from_collection_if_has_perm(

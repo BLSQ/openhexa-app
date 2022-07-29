@@ -6,7 +6,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
-    items: CollectionElementPage!
+    elements: CollectionElementPage!
     authorizedActions: [CollectionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -69,7 +69,7 @@ type CollectionElementPage {
     pageNumber: Int!
     totalPages: Int!
     totalItems: Int!
-    elements: [CollectionElement!]!
+    items: [CollectionElement!]!
 }
 
 # App-specific permissions

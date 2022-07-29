@@ -378,10 +378,10 @@ class DataElement(Dhis2Entry):
 
 
 class DataElementCollectionElement(CollectionElement):
-    item = models.ForeignKey("DataElement", on_delete=models.CASCADE)
+    element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
 
     @property
-    def graphql_item_type(self):
+    def graphql_element_type(self):
         return "DHIS2DataElementCollectionElement"
 
 

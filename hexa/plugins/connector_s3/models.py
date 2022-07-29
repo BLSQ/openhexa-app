@@ -423,8 +423,8 @@ class Object(Entry):
 
 
 class ObjectCollectionElement(CollectionElement):
-    item = models.ForeignKey("Object", on_delete=models.CASCADE)
+    element = models.ForeignKey("Object", on_delete=models.CASCADE)
 
     @property
-    def graphql_item_type(self):
+    def graphql_element_type(self):
         return "S3ObjectCollectionElement"

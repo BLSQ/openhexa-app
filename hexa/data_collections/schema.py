@@ -51,8 +51,8 @@ def resolve_collection_tags(object: Collection, info):
     return object.tags.all()
 
 
-@collection_object.field("items")
-def resolve_collection_items(collection: Collection, info, **kwargs):
+@collection_object.field("elements")
+def resolve_collection_elements(collection: Collection, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = (
@@ -120,18 +120,18 @@ def resolve_delete_collection(_, info, **kwargs):
         }
 
 
-# Collection items
-collection_item_interface = InterfaceType("CollectionElement")
+# Collection elements
+collection_element_interface = InterfaceType("CollectionElement")
 
 
-@collection_item_interface.type_resolver
-def resolve_collection_item_type(collection_item: CollectionElement, *_):
-    return collection_item.graphql_item_type
+@collection_element_interface.type_resolver
+def resolve_collection_element_type(collection_element: CollectionElement, *_):
+    return collection_element.graphql_element_type
 
 
 collections_bindables = [
     collections_query,
     collection_object,
-    collection_item_interface,
+    collection_element_interface,
     collections_mutations,
 ]
