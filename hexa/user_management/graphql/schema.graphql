@@ -17,9 +17,21 @@ type Me {
     user: User
     authorizedActions: [MeAuthorizedActions!]!
 }
+# This is our legacy approach : a simple enum that other modules can extend
+# it works fine, but implementing it in the API is complex - see resolve_me to get
+# a glimpse of the added complexity. We are now moving to an alternative approach -
+# see the "AuthorizedActions" type below
 enum MeAuthorizedActions {
     CREATE_TEAM
 }
+
+# This is the preferred way of determining the global (not specific to a business object) actions that users can take
+# This type can be extended in other modules. It is the responsibility of each module to extend this type and provide a
+# resolver for the added fields.
+type AuthorizedActions {
+    createTeam: Boolean!
+}
+
 input LoginInput {
     email: String!
     password: String!

@@ -353,11 +353,20 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
+authorized_actions_object = ObjectType("AuthorizedActions")
+
+
+@authorized_actions_object.field("createTeam")
+def resolve_can_create_team(team: Team, *_, **kwargs):
+    return True
+
+
 identity_bindables = [
     identity_query,
     user_object,
     team_object,
     membership_object,
+    authorized_actions_object,
     organization_object,
     identity_mutations,
 ]

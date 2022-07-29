@@ -708,10 +708,22 @@ def resolve_accessmod_fileset_roles(_, info, **kwargs):
     return FilesetRole.objects.all()
 
 
+# Analysis
 analysis_interface = InterfaceType("AccessmodAnalysis")
 
 
-# Analysis
+@analysis_interface.type_resolver
+def resolve_analysis_type(analysis: Analysis, *_):
+    if isinstance(analysis, AccessibilityAnalysis):
+        return "AccessmodAccessibilityAnalysis"
+    elif isinstance(analysis, GeographicCoverageAnalysis):
+        return "AccessmodGeographicCoverageAnalysis"
+    elif isinstance(analysis, ZonalStatisticsAnalysis):
+        return "AccessmodZonalStatistics"
+
+    return None
+
+
 @analysis_interface.field("authorizedActions")
 def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -731,18 +743,6 @@ def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kw
             else None,
         ],
     )
-
-
-@analysis_interface.type_resolver
-def resolve_analysis_type(analysis: Analysis, *_):
-    if isinstance(analysis, AccessibilityAnalysis):
-        return "AccessmodAccessibilityAnalysis"
-    elif isinstance(analysis, GeographicCoverageAnalysis):
-        return "AccessmodGeographicCoverageAnalysis"
-    elif isinstance(analysis, ZonalStatisticsAnalysis):
-        return "AccessmodZonalStatistics"
-
-    return None
 
 
 @accessmod_query.field("accessmodAnalysis")

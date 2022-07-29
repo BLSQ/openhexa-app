@@ -20,6 +20,7 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
+from hexa.data_collections.models import CollectionElement
 from hexa.user_management.models import Permission, Team, User
 
 from .api import Dhis2Client
@@ -350,6 +351,16 @@ class DataElement(Dhis2Entry):
     value_type = models.CharField(choices=ValueType.choices, max_length=100)
     aggregation_type = models.CharField(choices=AggregationType.choices, max_length=100)
 
+    collections = models.ManyToManyField(
+        "data_collections.Collection",
+        through="DataElementCollectionElement",
+        related_name="+",
+    )
+
+    @property
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionElement]]:
+        return DataElementCollectionElement
+
     def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at
         index.external_name = self.name
@@ -364,6 +375,14 @@ class DataElement(Dhis2Entry):
             "connector_dhis2:data_element_detail",
             kwargs={"instance_id": self.instance.id, "data_element_id": self.id},
         )
+
+
+class DataElementCollectionElement(CollectionElement):
+    element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
+
+    @property
+    def graphql_element_type(self):
+        return "DHIS2DataElementCollectionElement"
 
 
 class OrganisationUnitQuerySet(EntryQuerySet):
