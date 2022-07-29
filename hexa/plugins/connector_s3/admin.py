@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Bucket, BucketPermission, Credentials, Object, ObjectCollectionItem
+from .models import (
+    Bucket,
+    BucketPermission,
+    Credentials,
+    Object,
+    ObjectCollectionElement,
+)
 
 
 class PermissionInline(admin.TabularInline):
@@ -25,8 +31,8 @@ class BucketAdmin(admin.ModelAdmin):
     ]
 
 
-class DataElementCollectionItemInline(admin.TabularInline):
-    model = ObjectCollectionItem
+class DataElementCollectionElementInline(admin.TabularInline):
+    model = ObjectCollectionElement
     extra = 1
 
 
@@ -42,7 +48,7 @@ class ObjectAdmin(admin.ModelAdmin):
     )
     list_filter = ("type", "bucket")
     search_fields = ("key", "bucket")
-    inlines = (DataElementCollectionItemInline,)
+    inlines = (DataElementCollectionElementInline,)
 
 
 @admin.register(BucketPermission)

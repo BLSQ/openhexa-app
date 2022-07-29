@@ -22,115 +22,123 @@ def generate_collections_type_defs_and_bindables(
     type_defs = []
     bindables = []
 
-    for item_type, ItemClass in config.items():
+    for element_type, ElementClass in config.items():
         type_defs.append(
             f"""
-            type {item_type}CollectionItem implements CollectionItem {{
+            type {element_type}CollectionElement implements CollectionElement {{
                 id: String!
-                type: CollectionItemType!
-                item: {item_type}!
+                type: CollectionElementType!
+                element: {element_type}!
                 createdAt: DateTime!
                 updatedAt: DateTime!
             }}
-            extend enum CollectionItemType {{
-                {stringcase.constcase(item_type)}
+            extend enum CollectionElementType {{
+                {stringcase.constcase(element_type)}
             }}
-            input Add{item_type}ToCollectionInput {{
+            input Add{element_type}ToCollectionInput {{
                 id: String!
                 collectionId: String!
             }}
-            type Add{item_type}ToCollectionResult {{
+            type Add{element_type}ToCollectionResult {{
                 success: Boolean!
-                errors: [Add{item_type}ToCollectionError!]!
+                errors: [Add{element_type}ToCollectionError!]!
                 collection: Collection
-                item: {item_type}
-                collectionItem: {item_type}CollectionItem
+                element: {element_type}
+                collectionElement: {element_type}CollectionElement
             }}
-            enum Add{item_type}ToCollectionError {{
+            enum Add{element_type}ToCollectionError {{
                 INVALID
             }}
-            input Remove{item_type}FromCollectionInput {{
+            input Remove{element_type}FromCollectionInput {{
                 id: String!
                 collectionId: String!
             }}
-            type Remove{item_type}FromCollectionResult {{
+            type Remove{element_type}FromCollectionResult {{
                 success: Boolean!
-                errors: [Remove{item_type}FromCollectionError!]!
+                errors: [Remove{element_type}FromCollectionError!]!
                 collection: Collection
-                item: {item_type}
+                element: {element_type}
             }}
-            enum Remove{item_type}FromCollectionError {{
+            enum Remove{element_type}FromCollectionError {{
                 INVALID
             }}
             extend type Mutation {{
-                add{item_type}ToCollection(input: Add{item_type}ToCollectionInput!): Add{item_type}ToCollectionResult!
-                remove{item_type}FromCollection(input: Remove{item_type}FromCollectionInput!): Remove{item_type}FromCollectionResult!
+                add{element_type}ToCollection(input: Add{element_type}ToCollectionInput!): Add{element_type}ToCollectionResult!
+                remove{element_type}FromCollection(input: Remove{element_type}FromCollectionInput!): Remove{element_type}FromCollectionResult!
             }}
         """
         )
 
         collections_mutations = MutationType()
 
-        @collections_mutations.field(f"add{item_type}ToCollection")
+        @collections_mutations.field(f"add{element_type}ToCollection")
         def add_to_collection_resolver(_, info, **kwargs):
             request: HttpRequest = info.context["request"]
             principal = request.user
             add_input = kwargs["input"]
 
             try:
-                item = ItemClass.objects.filter_for_user(principal).get(
+                element = ElementClass.objects.filter_for_user(principal).get(
                     id=add_input["id"]
                 )
                 collection = Collection.objects.filter_for_user(principal).get(
                     id=add_input["collectionId"]
                 )
-                collection_item = item.add_to_collection_if_has_perm(
+                collection_element = element.add_to_collection_if_has_perm(
                     principal, collection=collection
                 )
 
                 return {
                     "success": True,
-                    "item": item,
+                    "element": element,
                     "collection": collection,
-                    "collectionItem": collection_item,
+                    "collectionElement": collection_element,
                     "errors": [],
                 }
-            except (ItemClass.DoesNotExist, Collection.DoesNotExist, ValidationError):
+            except (
+                ElementClass.DoesNotExist,
+                Collection.DoesNotExist,
+                ValidationError,
+            ):
                 return {
                     "success": False,
-                    "item": None,
+                    "element": None,
                     "collection": None,
-                    "collectionItem": None,
+                    "collectionElement": None,
                     "errors": ["INVALID"],
                 }
 
-        @collections_mutations.field(f"remove{item_type}FromCollection")
+        @collections_mutations.field(f"remove{element_type}FromCollection")
         def remove_from_collection_resolver(_, info, **kwargs):
             request: HttpRequest = info.context["request"]
             principal = request.user
             remove_input = kwargs["input"]
 
             try:
-                item = ItemClass.objects.filter_for_user(principal).get(
+                element = ElementClass.objects.filter_for_user(principal).get(
                     id=remove_input["id"]
                 )
                 collection = Collection.objects.filter_for_user(principal).get(
                     id=remove_input["collectionId"]
                 )
-                item.remove_from_collection_if_has_perm(
+                element.remove_from_collection_if_has_perm(
                     principal, collection=collection
                 )
 
                 return {
                     "success": True,
-                    "item": item,
+                    "element": element,
                     "collection": collection,
                     "errors": [],
                 }
-            except (ItemClass.DoesNotExist, Collection.DoesNotExist, ValidationError):
+            except (
+                ElementClass.DoesNotExist,
+                Collection.DoesNotExist,
+                ValidationError,
+            ):
                 return {
                     "success": False,
-                    "item": None,
+                    "element": None,
                     "collection": None,
                     "errors": ["INVALID"],
                 }

@@ -7,10 +7,12 @@ from ariadne import (
     QueryType,
     load_schema_from_path,
 )
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.data_collections.models import Collection, CollectionItem
+from hexa.data_collections.models import Collection, CollectionElement
+from hexa.user_management.models import User
 
 collections_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -54,7 +56,7 @@ def resolve_collection_items(collection: Collection, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = (
-        CollectionItem.objects.filter_for_user(request.user)
+        CollectionElement.objects.filter_for_user(request.user)
         .filter(collection=collection)
         .order_by("-created_at")
         .select_subclasses()
@@ -65,12 +67,65 @@ def resolve_collection_items(collection: Collection, info, **kwargs):
     )
 
 
+@collections_mutations.field("createCollection")
+def resolve_create_collection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    create_input = kwargs["input"]
+
+    try:
+        collection = Collection.objects.create_if_has_perm(
+            principal,
+            name=create_input["name"],
+            author=User.objects.get(id=create_input["authorId"])
+            if "authorId" in create_input
+            else None,
+            description=create_input.get("description"),
+        )
+        # TODO: countries & tags
+
+        return {
+            "success": True,
+            "collection": collection,
+            "errors": [],
+        }
+    except ValidationError:
+        return {
+            "success": False,
+            "collection": None,
+            "errors": ["INVALID"],
+        }
+
+
+@collections_mutations.field("deleteCollection")
+def resolve_delete_collection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    delete_input = kwargs["input"]
+
+    try:
+        collection = Collection.objects.filter_for_user(principal).get(
+            id=delete_input["id"]
+        )
+        collection.delete_if_has_perm(principal)
+
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except (Collection.DoesNotExist, ValidationError):
+        return {
+            "success": False,
+            "errors": ["INVALID"],
+        }
+
+
 # Collection items
-collection_item_interface = InterfaceType("CollectionItem")
+collection_item_interface = InterfaceType("CollectionElement")
 
 
 @collection_item_interface.type_resolver
-def resolve_collection_item_type(collection_item: CollectionItem, *_):
+def resolve_collection_item_type(collection_item: CollectionElement, *_):
     return collection_item.graphql_item_type
 
 

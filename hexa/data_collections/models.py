@@ -29,13 +29,17 @@ class CollectionManager(models.Manager):
         author: User = None,
         countries: typing.Sequence[Country] = None,  # TODO: use hexa.countries ?
         tags: typing.Sequence[Tag] = None,
-        description: str = "",
+        description: str = None,
     ):
         # TODO: check if has perm & create owner permissions
 
-        collection = self.create(
-            name=name, author=author, countries=countries, description=description
-        )
+        create_kwargs = {"name": name, "author": author}
+        if countries is not None:
+            create_kwargs["countries"] = countries
+        if description is not None:
+            create_kwargs["description"] = description
+
+        collection = self.create(**create_kwargs)
         if tags is not None:
             collection.tags.set(tags)
 
@@ -62,7 +66,7 @@ class Collection(Base):
         self.delete()
 
 
-class CollectionItemQuerySet(BaseQuerySet, InheritanceQuerySet):
+class CollectionElementQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(
         self,
         user: typing.Union[
@@ -76,18 +80,18 @@ class CollectionItemQuerySet(BaseQuerySet, InheritanceQuerySet):
         return self.all()
 
 
-class CollectionItemManager(InheritanceManager):
+class CollectionElementManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
     and "re-attach" the queryset methods ourselves."""
 
     def get_queryset(self):
-        return CollectionItemQuerySet(self.model)
+        return CollectionElementQuerySet(self.model)
 
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
 
-class CollectionItem(Base):
+class CollectionElement(Base):
     # TODO: cannot add unique constraint on "collection" + "field in subclass"
     # TODO: Consider validating uniqueness in model method
 
@@ -99,7 +103,7 @@ class CollectionItem(Base):
         "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
     )
 
-    objects = CollectionItemManager()
+    objects = CollectionElementManager()
 
     @property
     def graphql_item_type(self):
