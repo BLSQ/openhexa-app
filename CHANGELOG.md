@@ -1,6 +1,19 @@
 Changelog
 =========
 
+Version 0.43
+------------
+
+July 26, 2022
+
+### Updated
+
+- Refactored S3 credentials and align notebooks / pipelines
+
+### Fixed
+
+- Fixed AccessMod Zonal Stats travel times validation
+
 Version 0.42
 ------------
 

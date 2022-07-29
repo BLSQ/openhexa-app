@@ -30,6 +30,8 @@ class AccessRequestTest(TestCase):
         cls.USER_MAX = User.objects.create_user(
             "max@bluesquarehub.com",
             "standardpassword",
+            first_name="Max",
+            last_name="Power",
         )
 
         cls.ACCESS_REQUEST_KIM = AccessRequest.objects.create(
@@ -53,9 +55,48 @@ class AccessRequestTest(TestCase):
             accepted_tos=True,
             status=AccessRequestStatus.PENDING,
         )
+        cls.ACCESS_REQUEST_SIMONE_1 = AccessRequest.objects.create(
+            first_name="Simone",
+            last_name="Jones",
+            email="simonejones@bluesquarehub.com",
+            accepted_tos=True,
+            status=AccessRequestStatus.PENDING,
+        )
+        cls.ACCESS_REQUEST_SIMONE_2 = AccessRequest.objects.create(
+            first_name="Simone",
+            last_name="Jones",
+            email="simonejones@bluesquarehub.com",
+            accepted_tos=True,
+            status=AccessRequestStatus.PENDING,
+        )
 
     def test_create_access_request(self):
-        with self.assertRaises(PermissionDenied):
+        # Create first request
+        access_request_1 = AccessRequest.objects.create_if_has_perm(
+            AnonymousUser(),
+            first_name="John",
+            last_name="Doe",
+            email="johndoe@openhexa.org",
+            accepted_tos=True,
+        )
+        self.assertIsInstance(access_request_1, AccessRequest)
+        self.assertEqual(AccessRequestStatus.PENDING, access_request_1.status)
+
+        # Should be possible to create additional access requests as long as no user has been created
+        access_request_2 = AccessRequest.objects.create_if_has_perm(
+            AnonymousUser(),
+            first_name="John",
+            last_name="Doe",
+            email="johndoe@openhexa.org",
+            accepted_tos=True,
+        )
+        self.assertIsInstance(access_request_2, AccessRequest)
+        self.assertEqual(AccessRequestStatus.PENDING, access_request_2.status)
+
+    def test_create_access_request_error(self):
+        with self.assertRaises(
+            PermissionDenied
+        ):  # Logged-in users can't create access requests
             AccessRequest.objects.create_if_has_perm(
                 self.USER_MAX,
                 first_name="John",
@@ -63,7 +104,7 @@ class AccessRequestTest(TestCase):
                 email="johndoe@openhexa.org",
                 accepted_tos=True,
             )
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(ValidationError):  # Should accept TOS
             AccessRequest.objects.create_if_has_perm(
                 AnonymousUser(),
                 first_name="John",
@@ -71,16 +112,16 @@ class AccessRequestTest(TestCase):
                 email="johndoe@openhexa.org",
                 accepted_tos=False,
             )
-
-        access_request = AccessRequest.objects.create_if_has_perm(
-            AnonymousUser(),
-            first_name="John",
-            last_name="Doe",
-            email="johndoe@openhexa.org",
-            accepted_tos=True,
-        )
-        self.assertIsInstance(access_request, AccessRequest)
-        self.assertEqual(AccessRequestStatus.PENDING, access_request.status)
+        with self.assertRaises(
+            ValidationError
+        ):  # Already a user for max@bluesquarehub.com
+            AccessRequest.objects.create_if_has_perm(
+                AnonymousUser(),
+                first_name=self.USER_MAX.first_name,
+                last_name=self.USER_MAX.last_name,
+                email=self.USER_MAX.email,
+                accepted_tos=True,
+            )
 
     def test_approve_access_request(self):
         with self.assertRaises(PermissionDenied):
@@ -96,6 +137,7 @@ class AccessRequestTest(TestCase):
                 self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
             )
 
+        # Approve Mary - single request
         self.ACCESS_REQUEST_MARY.approve_if_has_perm(
             self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
         )
@@ -105,12 +147,26 @@ class AccessRequestTest(TestCase):
         self.assertEqual(
             self.ACCESS_REQUEST_MARY.email, self.ACCESS_REQUEST_MARY.user.email
         )
-        # The user has not accepted OpenHexa TOS, but the AccessMod TOS flag should be true
         accessmod_profile = AccessmodProfile.objects.get(
             user=self.ACCESS_REQUEST_MARY.user
         )
         self.assertTrue(accessmod_profile.accepted_tos)
         self.assertFalse(accessmod_profile.user.accepted_tos)
+
+        # Approve Simone - multiple requests, non-approved requests should be denied
+        self.ACCESS_REQUEST_SIMONE_2.approve_if_has_perm(
+            self.USER_SABRINA, request=self.mock_request(self.USER_SABRINA)
+        )
+        self.ACCESS_REQUEST_SIMONE_1.refresh_from_db()
+        self.ACCESS_REQUEST_SIMONE_2.refresh_from_db()
+        self.assertEqual(
+            AccessRequestStatus.DENIED, self.ACCESS_REQUEST_SIMONE_1.status
+        )
+        self.assertIsNone(self.ACCESS_REQUEST_SIMONE_1.user)
+        self.assertEqual(
+            AccessRequestStatus.APPROVED, self.ACCESS_REQUEST_SIMONE_2.status
+        )
+        self.assertIsInstance(self.ACCESS_REQUEST_SIMONE_2.user, User)
 
     def test_deny_access_request(self):
         with self.assertRaises(PermissionDenied):

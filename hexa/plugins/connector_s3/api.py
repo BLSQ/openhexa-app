@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import typing
 from logging import getLogger
-from time import sleep
+from time import monotonic, sleep
 
 import boto3
 from botocore.config import Config
@@ -43,9 +43,7 @@ def generate_sts_app_s3_credentials(
     )
 
     assume_role_extra_kwargs = (
-        {}
-        if bucket is None
-        else {"Policy": json.dumps(generate_s3_policy([bucket.name]))}
+        {} if bucket is None else {"Policy": json.dumps(generate_s3_policy([bucket]))}
     )
 
     response = sts_client.assume_role(
@@ -65,62 +63,40 @@ def generate_sts_app_s3_credentials(
     return response["Credentials"]
 
 
-def get_or_create_role(
-    *,
-    principal_credentials: models.Credentials,
-    role_name: str,
-    role_path: str = "/",
-    description: str = "",
-):
-    iam_client = boto3.client(
-        "iam",
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
-    )
+def _retry_with_deadline(calling, deadline):
+    # This is a mecanism to call a function ("calling") and return the
+    # result. If the call throw an exception, the mecanism will add a small
+    # delay (1s) and redo the call IF the total runtime is within a given
+    # deadline.
+    #
+    # deadline must be against the wall time -> set it with monotonic()
+    #
+    # For example, if we need to call some external service during a web
+    # request, we have only 30s (typical load balancer timeout) to complete
+    # the request, but if the external service call is flaky, this mecanism
+    # is a good idea: it will try the call until it succeed, but won't timeout
 
-    assume_role_policy_doc = json.dumps(
-        {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Action": "sts:AssumeRole",
-                    "Effect": "Allow",
-                    "Principal": {"AWS": principal_credentials.user_arn},
-                },
-            ],
-        }
-    )
-    try:
-        role_data = iam_client.get_role(RoleName=role_name)
-        created = False
-    except iam_client.exceptions.NoSuchEntityException:
-        role_data = iam_client.create_role(
-            RoleName=role_name,
-            MaxSessionDuration=12 * 60 * 60,
-            AssumeRolePolicyDocument=assume_role_policy_doc,
-            Description=description,
-            Path=role_path,
-        )
-        # Very unfortunate, but the assume role policy effect is not immediate
-        sleep(10)
-        created = True
+    while True:
+        exception = None
+        try:
+            return calling()
+        except Exception as e:
+            # we manage the exception outside of the except block to have
+            # cleaner stack trace: we might need to re-raise it again after
+            exception = e
 
-    return role_data, created
-
-
-def attach_policy(iam_client, role_name: str, policy_name: str, document: typing.Dict):
-    policy_doc = json.dumps(document)
-    if len(policy_doc) > 10240:
-        raise S3ApiError(
-            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
-        )
-
-    # Build a fresh version of the s3 policy and set it as an inline policy on the role (forced update)
-    iam_client.put_role_policy(
-        RoleName=role_name,
-        PolicyName=policy_name,
-        PolicyDocument=policy_doc,
-    )
+        if exception:
+            if monotonic() < deadline:
+                # still have time -> call again
+                sleep(1)
+                continue
+            else:
+                # outside deadline, re-raise
+                raise exception
+        else:
+            # we shouldn't be here -> return always succeed or
+            # exception != None
+            raise RuntimeError("We shouldn't be here")
 
 
 def generate_sts_user_s3_credentials(
@@ -128,63 +104,114 @@ def generate_sts_user_s3_credentials(
     principal_credentials: models.Credentials,
     role_identifier: str,
     session_identifier: str,
-    read_only_buckets: typing.Sequence[models.Bucket],
-    read_write_buckets: typing.Sequence[models.Bucket],
-    duration: int = 60 * 60,
-) -> typing.Dict[str, str]:
-    """Generate temporary S3 credentials for a specific team and for specific buckets.
+    read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
+    read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
+    duration: int = 12 * 60 * 60,
+) -> (bool, typing.Dict[str, str]):
+    """Generate temporary S3 credentials for a specific use case and for specific buckets.
+    Use case includes user notebook session, running pipelines, ...
 
     The process can be summarized like this:
-
-        1. We first check if we already have a IAM role for the team
+        1. We first check if we already have a IAM role for the team/pipeline/..
         2. If we don't, create the role
         3. Ensure that the app IAM user can assume the team role
-        4. Generates a fresh S3 policy for the team role and sets it on the role (replacing the existing one)
-        5. Assume the team role
+        4. Generates a fresh S3 policy and sets it on the role (replacing the existing one)
+        5. Assume the team/pipeline/.. role
     """
 
-    if principal_credentials.user_arn == "":
+    if not principal_credentials.user_arn or not principal_credentials.app_role_arn:
         raise S3ApiError(
-            f'Credentials "{principal_credentials.display_name}" have no user ARN'
+            f'Credentials "{principal_credentials.display_name}" incomplete: missing user_arn or role_arn'
         )
+
+    # role_name max length 64 chars.
+    role_name = f"{principal_credentials.username}-s3-{role_identifier}"
+
+    if len(role_name) > 63:
+        raise S3ApiError(f"Role_name too long ({len(role_name)} chars, max 63)")
+
+    # start the clock -> deadline is now + 25s
+    deadline = monotonic() + 25.0
+
+    # if the call fail for technical reason -> retry it. it wont be useful
+    # against 403 (see retry_with_deadline). Doc here:
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html
+    config = Config(retries={"max_attempts": 20, "mode": "standard"})
 
     iam_client = boto3.client(
         "iam",
         aws_access_key_id=principal_credentials.access_key_id,
         aws_secret_access_key=principal_credentials.secret_access_key,
+        config=config,
     )
 
-    # role_name max length 64 chars.
-    role_name = f"{principal_credentials.username}-s3-{role_identifier}"
+    try:
+        role_data = iam_client.get_role(RoleName=role_name)
+        found_role = True
+    except iam_client.exceptions.NoSuchEntityException:
+        # create a new role outside of exception handler -> better stack trace
+        found_role = False
 
-    role_data, _ = get_or_create_role(
-        principal_credentials=principal_credentials, role_name=role_name
+    if not found_role:
+        assume_role_policy_doc = json.dumps(
+            {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": "sts:AssumeRole",
+                        "Effect": "Allow",
+                        "Principal": {"AWS": principal_credentials.user_arn},
+                    },
+                ],
+            }
+        )
+        role_data = iam_client.create_role(
+            RoleName=role_name,
+            MaxSessionDuration=duration,
+            AssumeRolePolicyDocument=assume_role_policy_doc,
+            Description="OpenHexa auto role for notebooks/pipelines",
+            Path="/",
+        )
+
+    policy_doc = json.dumps(
+        generate_s3_policy(
+            read_only_buckets=read_only_buckets,
+            read_write_buckets=read_write_buckets,
+        )
     )
+    if len(policy_doc) > 10240:
+        raise S3ApiError(
+            f"Role policies cannot exceed 10240 characters (generated policy is {len(policy_doc)} long)"
+        )
 
-    attach_policy(
-        iam_client=iam_client,
-        role_name=role_data["Role"]["RoleName"],
-        policy_name="s3-access",
-        document=generate_s3_policy(
-            [b.name for b in read_write_buckets], [b.name for b in read_only_buckets]
+    # Build a fresh version of the s3 policy and set it as an inline policy
+    # on the role (forced update). this call may fail, retry it within
+    # the deadline
+    _retry_with_deadline(
+        lambda: iam_client.put_role_policy(
+            RoleName=role_name,
+            PolicyName="s3-access",
+            PolicyDocument=policy_doc,
         ),
+        deadline,
     )
 
-    # We can then assume the team role
     sts_client = boto3.client(
         "sts",
         aws_access_key_id=principal_credentials.access_key_id,
         aws_secret_access_key=principal_credentials.secret_access_key,
+        config=config,
     )
 
-    role_session_name = (
-        f"sts-{principal_credentials.username[:22]}-{session_identifier}"
-    )
-
-    response = sts_client.assume_role(
-        RoleArn=role_data["Role"]["Arn"],
-        RoleSessionName=role_session_name,
-        DurationSeconds=duration,
+    # Create the temporary token. This call will fail a lot if it's a new
+    # role. Retry it until the deadline is expired.
+    response = _retry_with_deadline(
+        lambda: sts_client.assume_role(
+            RoleArn=role_data["Role"]["Arn"],
+            RoleSessionName=session_identifier,
+            DurationSeconds=duration,
+        ),
+        deadline,
     )
 
     response_status_code = response["ResponseMetadata"]["HTTPStatusCode"]
@@ -194,30 +221,24 @@ def generate_sts_user_s3_credentials(
             f"(Status: {response_status_code})"
         )
 
-    return response["Credentials"]
+    return response["Credentials"], not found_role
 
 
 def generate_s3_policy(
-    read_write_bucket_names: typing.Sequence[str] = None,
-    read_only_bucket_names: typing.Optional[typing.Sequence[str]] = None,
+    read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
+    read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
 ) -> typing.Dict:
     statements = []
 
-    if read_only_bucket_names:
+    if read_only_buckets:
         statements.append(
             {
                 "Sid": "S3RO",
                 "Effect": "Allow",
                 "Action": ["s3:ListBucket", "s3:GetObject*"],
                 "Resource": [
-                    *[
-                        f"arn:aws:s3:::{bucket_name}"
-                        for bucket_name in read_only_bucket_names
-                    ],
-                    *[
-                        f"arn:aws:s3:::{bucket_name}/*"
-                        for bucket_name in read_only_bucket_names
-                    ],
+                    *[f"arn:aws:s3:::{bucket.name}" for bucket in read_only_buckets],
+                    *[f"arn:aws:s3:::{bucket.name}/*" for bucket in read_only_buckets],
                 ],
             }
         )
@@ -227,26 +248,20 @@ def generate_s3_policy(
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    f"arn:aws:s3:::{bucket_name}/.s3keep"
-                    for bucket_name in read_only_bucket_names
+                    f"arn:aws:s3:::{bucket.name}/.s3keep"
+                    for bucket in read_only_buckets
                 ],
             }
         )
-    if read_write_bucket_names:
+    if read_write_buckets:
         statements.append(
             {
                 "Sid": "S3AllActions",
                 "Effect": "Allow",
                 "Action": "s3:*",
                 "Resource": [
-                    *[
-                        f"arn:aws:s3:::{bucket_name}"
-                        for bucket_name in read_write_bucket_names
-                    ],
-                    *[
-                        f"arn:aws:s3:::{bucket_name}/*"
-                        for bucket_name in read_write_bucket_names
-                    ],
+                    *[f"arn:aws:s3:::{bucket.name}" for bucket in read_write_buckets],
+                    *[f"arn:aws:s3:::{bucket.name}/*" for bucket in read_write_buckets],
                 ],
             }
         )

@@ -930,7 +930,9 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
 @accessmod_query.field("accessmodAccessRequests")
 def resolve_accessmod_access_requests(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    queryset = AccessRequest.objects.filter_for_user(request.user)
+    queryset = AccessRequest.objects.filter_for_user(request.user).order_by(
+        "-created_at"
+    )
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")

@@ -1355,12 +1355,7 @@ class AccessRequestManager(models.Manager):
     ) -> AccessRequest:
         if not principal.has_perm("connector_accessmod.create_access_request"):
             raise PermissionDenied
-        if (
-            User.objects.filter(email=email).exists()
-            or AccessRequest.objects.filter(
-                email=email, status=AccessRequestStatus.PENDING
-            ).exists()
-        ):
+        if User.objects.filter(email=email).exists():
             raise ValidationError("Already exists")
         if not accepted_tos:
             raise ValidationError("Must accept TOS")
@@ -1390,7 +1385,7 @@ class AccessRequest(Base):
     class Meta:
         ordering = ["created_at"]
 
-    email = CIEmailField(unique=True)
+    email = CIEmailField()
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     accepted_tos = models.BooleanField(default=False)
@@ -1409,6 +1404,7 @@ class AccessRequest(Base):
 
     objects = AccessRequestManager.from_queryset(AccessRequestQuerySet)()
 
+    @transaction.atomic
     def approve_if_has_perm(self, principal: UserInterface, *, request: HttpRequest):
         if not principal.has_perm("connector_accessmod.manage_access_requests"):
             raise PermissionDenied
@@ -1429,6 +1425,12 @@ class AccessRequest(Base):
         self.status = AccessRequestStatus.APPROVED
         self.save()
 
+        # Deny other pending requests for the same user
+        for other_access_request in AccessRequest.objects.filter(
+            email=self.email, status=AccessRequestStatus.PENDING
+        ):
+            other_access_request.deny_if_has_perm(principal)
+
         reset_form = PasswordResetForm({"email": self.email})
         if not reset_form.is_valid():
             raise ValueError("Unexpected validation error in PasswordResetForm")
@@ -1441,6 +1443,7 @@ class AccessRequest(Base):
             html_email_template_name="connector_accessmod/mails/access_request_approved.html",
             extra_email_context={
                 "access_request": self,
+                "set_password_url": settings.ACCESSMOD_SET_PASSWORD_URL,
             },
         )
 
