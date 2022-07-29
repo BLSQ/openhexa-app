@@ -49,8 +49,22 @@ def generate_collections_type_defs_and_bindables(
             enum Add{item_type}ToCollectionError {{
                 INVALID
             }}
+            input Remove{item_type}FromCollectionInput {{
+                id: String!
+                collectionId: String!
+            }}
+            type Remove{item_type}FromCollectionResult {{
+                success: Boolean!
+                errors: [Remove{item_type}FromCollectionError!]!
+                collection: Collection
+                item: {item_type}
+            }}
+            enum Remove{item_type}FromCollectionError {{
+                INVALID
+            }}
             extend type Mutation {{
                 add{item_type}ToCollection(input: Add{item_type}ToCollectionInput!): Add{item_type}ToCollectionResult!
+                remove{item_type}FromCollection(input: Remove{item_type}FromCollectionInput!): Remove{item_type}FromCollectionResult!
             }}
         """
         )
@@ -87,6 +101,37 @@ def generate_collections_type_defs_and_bindables(
                     "item": None,
                     "collection": None,
                     "collectionItem": None,
+                    "errors": ["INVALID"],
+                }
+
+        @collections_mutations.field(f"remove{item_type}FromCollection")
+        def remove_from_collection_resolver(_, info, **kwargs):
+            request: HttpRequest = info.context["request"]
+            principal = request.user
+            remove_input = kwargs["input"]
+
+            try:
+                item = ItemClass.objects.filter_for_user(principal).get(
+                    id=remove_input["id"]
+                )
+                collection = Collection.objects.filter_for_user(principal).get(
+                    id=remove_input["collectionId"]
+                )
+                item.remove_from_collection_if_has_perm(
+                    principal, collection=collection
+                )
+
+                return {
+                    "success": True,
+                    "item": item,
+                    "collection": collection,
+                    "errors": [],
+                }
+            except (ItemClass.DoesNotExist, Collection.DoesNotExist, ValidationError):
+                return {
+                    "success": False,
+                    "item": None,
+                    "collection": None,
                     "errors": ["INVALID"],
                 }
 
