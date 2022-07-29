@@ -6,7 +6,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
-    entries: CollectionEntryPage!
+    entries: CollectionItemPage!
     authorizedActions: [CollectionAuthorizedActions!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -56,45 +56,20 @@ extend type Mutation {
 }
 
 # Collection entries
-interface CollectionEntry {
+interface CollectionItem {
     id: String!
-    type: CollectionEntryType!
+    type: CollectionItemType!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
-enum CollectionEntryType
-type CollectionEntryPage {
+enum CollectionItemType {
+    _  # Cannot create empty enums
+}
+type CollectionItemPage {
     pageNumber: Int!
     totalPages: Int!
     totalItems: Int!
-    items: [CollectionEntry!]!
-}
-input CreateCollectionEntryInput {
-    entryType: CollectionEntryType!
-    entryItemId: String!
-}
-type CreateCollectionEntryResult {
-    success: Boolean!
-    errors: [CreateCollectionEntryError!]!
-    entry: CollectionEntry
-}
-enum CreateCollectionEntryError {
-    INVALID
-}
-input DeleteCollectionEntryInput {
-    id: String!
-}
-type DeleteCollectionEntryResult {
-    success: Boolean!
-    errors: [CreateCollectionEntryError!]!
-    collection: Collection
-}
-enum DeleteCollectionEntryError {
-    INVALID
-}
-extend type Mutation {
-    createCollectionEntry(input: CreateCollectionEntryInput!): CreateCollectionEntryResult!
-    deleteCollectionEntry(input: DeleteCollectionEntryInput!): DeleteCollectionEntryResult!
+    items: [CollectionItem!]!
 }
 
 # App-specific permissions

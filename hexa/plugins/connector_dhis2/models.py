@@ -22,7 +22,7 @@ from hexa.core.models.locale import LocaleField
 from hexa.core.models.path import PathField
 from hexa.user_management.models import Permission, Team, User
 
-from ...data_collections.models import Collection, CollectionEntry
+from ...data_collections.models import CollectionItem
 from .api import Dhis2Client
 from .sync import sync_from_dhis2_results
 
@@ -353,9 +353,13 @@ class DataElement(Dhis2Entry):
 
     collections = models.ManyToManyField(
         "data_collections.Collection",
-        through="DataElementCollectionEntry",
+        through="DataElementCollectionItem",
         related_name="+",
     )
+
+    @property
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionItem]]:
+        return DataElementCollectionItem
 
     def populate_index(self, index):
         index.last_synced_at = self.instance.last_synced_at
@@ -366,11 +370,6 @@ class DataElement(Dhis2Entry):
         index.datasource_name = self.instance.name
         index.datasource_id = self.instance.id
 
-    def create_collection_entry(self, collection: Collection):
-        return DataElementCollectionEntry.objects.create(
-            collection=collection, data_element=self
-        )
-
     def get_absolute_url(self):
         return reverse(
             "connector_dhis2:data_element_detail",
@@ -378,16 +377,12 @@ class DataElement(Dhis2Entry):
         )
 
 
-class DataElementCollectionEntry(CollectionEntry):
-    data_element = models.ForeignKey("DataElement", on_delete=models.CASCADE)
-
-    @property
-    def graphql_object_type(self):
-        return "DHIS2DataElementCollectionEntry"
+class DataElementCollectionItem(CollectionItem):
+    item = models.ForeignKey("DataElement", on_delete=models.CASCADE)
 
     @property
     def graphql_item_type(self):
-        return "DHIS2_DATA_ELEMENT"
+        return "DHIS2DataElementCollectionItem"
 
 
 class OrganisationUnitQuerySet(EntryQuerySet):

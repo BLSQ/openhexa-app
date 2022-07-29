@@ -18,7 +18,7 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.data_collections.models import Collection, CollectionEntry
+from hexa.data_collections.models import CollectionItem
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     get_object_metadata,
@@ -297,8 +297,12 @@ class Object(Entry):
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
     collections = models.ManyToManyField(
-        "data_collections.Collection", through="ObjectCollectionEntry", related_name="+"
+        "data_collections.Collection", through="ObjectCollectionItem", related_name="+"
     )
+
+    @property
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionItem]]:
+        return ObjectCollectionItem
 
     def save(self, *args, **kwargs):
         if self.parent_key is None:
@@ -316,9 +320,6 @@ class Object(Entry):
         index.search = f"{self.filename} {self.key}"
         index.datasource_name = self.bucket.name
         index.datasource_id = self.bucket.id
-
-    def create_collection_entry(self, collection: Collection):
-        ObjectCollectionEntry.objects.create(collection=collection, object=self)
 
     def __repr__(self):
         return f"<Object s3://{self.bucket.name}/{self.key}>"
@@ -419,13 +420,9 @@ class Object(Entry):
             )
 
 
-class ObjectCollectionEntry(CollectionEntry):
-    object = models.ForeignKey("Object", on_delete=models.CASCADE)
-
-    @property
-    def graphql_object_type(self):
-        return "S3ObjectCollectionEntry"
+class ObjectCollectionItem(CollectionItem):
+    item = models.ForeignKey("Object", on_delete=models.CASCADE)
 
     @property
     def graphql_item_type(self):
-        return "S3_OBJECT"
+        return "S3ObjectCollectionItem"

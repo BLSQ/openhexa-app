@@ -10,7 +10,7 @@ from ariadne import (
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.data_collections.models import Collection, CollectionEntry
+from hexa.data_collections.models import Collection, CollectionItem
 
 collections_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -49,7 +49,7 @@ def resolve_collection_entries(collection: Collection, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     queryset = (
-        CollectionEntry.objects.filter_for_user(request.user)
+        CollectionItem.objects.filter_for_user(request.user)
         .filter(collection=collection)
         .order_by("-created_at")
         .select_subclasses()
@@ -61,22 +61,17 @@ def resolve_collection_entries(collection: Collection, info, **kwargs):
 
 
 # Collection entries
-collection_entry_interface = InterfaceType("CollectionEntry")
+collection_item_interface = InterfaceType("CollectionItem")
 
 
-@collection_entry_interface.type_resolver
-def resolve_collection_entry_object(collection_entry: CollectionEntry, *_):
-    return collection_entry.graphql_object_type
-
-
-@collection_entry_interface.field("type")
-def resolve_collection_entry_type(collection_entry: CollectionEntry, *_):
-    return collection_entry.graphql_entry_type
+@collection_item_interface.type_resolver
+def resolve_collection_item_type(collection_item: CollectionItem, *_):
+    return collection_item.graphql_item_type
 
 
 collections_bindables = [
     collections_query,
     collection_object,
-    collection_entry_interface,
+    collection_item_interface,
     collections_mutations,
 ]
