@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class CountriesConfig(AppConfig):
+class CountriesConfig(CoreAppConfig):
     name = "hexa.countries"
     label = "countries"
     verbose_name = "Countries"

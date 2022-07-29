@@ -19,7 +19,10 @@ type Me {
 }
 enum MeAuthorizedActions {
     CREATE_TEAM
-    CREATE_ACCESSMOD_PROJECT
+}
+input LoginInput {
+    email: String!
+    password: String!
 }
 type LoginResult {
     success: Boolean!
@@ -27,10 +30,6 @@ type LoginResult {
 }
 type LogoutResult {
     success: Boolean!
-}
-input LoginInput {
-    email: String!
-    password: String!
 }
 input ResetPasswordInput {
     email: String!

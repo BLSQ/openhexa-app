@@ -1,7 +1,6 @@
 import base64
 import json
 
-import responses
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -33,7 +32,6 @@ class AnalysisTest(TestCase):
     WATER_FILESET = None
 
     @classmethod
-    @responses.activate
     def setUpTestData(cls):
         cls.USER_TAYLOR = User.objects.create_user(
             "taylor@bluesquarehub.com",

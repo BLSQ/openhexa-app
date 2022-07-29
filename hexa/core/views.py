@@ -8,11 +8,11 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from hexa.app import get_hexa_app_configs
 from hexa.catalog.models import Index
 from hexa.core.activities import Activity, ActivityList
 from hexa.core.datagrids import ActivityGrid
 from hexa.core.models.behaviors import Status
-from hexa.plugins.app import get_connector_app_configs
 from hexa.plugins.connector_airflow.models import DAG
 from hexa.plugins.connector_s3.models import Object
 
@@ -62,7 +62,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
             )
         ]
     )
-    for app_config in get_connector_app_configs():
+    for app_config in get_hexa_app_configs(connector_only=True):
         last_activities += app_config.get_last_activities(request)
 
     last_activity_grid = ActivityGrid(

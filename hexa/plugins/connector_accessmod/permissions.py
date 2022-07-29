@@ -1,6 +1,9 @@
 import typing
 
+from django.contrib.auth.models import AnonymousUser
+
 from hexa.plugins.connector_accessmod.models import (
+    AccessmodProfile,
     Analysis,
     Fileset,
     Project,
@@ -198,3 +201,26 @@ def delete_analysis(principal: User, analysis: Analysis):
         if isinstance(analysis.owner, Team)
         else principal == analysis.owner
     )
+
+
+def create_access_request(principal: typing.Union[User, AnonymousUser]) -> bool:
+    """Access requests can be only be created by anonymous users."""
+
+    return isinstance(principal, AnonymousUser)
+
+
+def manage_access_requests(principal: typing.Union[User, AnonymousUser]) -> bool:
+    """Access requests can be approved either by global superusers or by AccessMod superusers"""
+
+    if isinstance(principal, AnonymousUser):
+        return False
+
+    if principal.is_superuser:
+        return True
+
+    try:
+        admin_profile = principal.accessmod_admin_profile
+
+        return admin_profile.is_accessmod_superuser
+    except AccessmodProfile.DoesNotExist:
+        return False

@@ -31,7 +31,7 @@ class BaseCredentialsTestCase(TestCase):
         cls.PIPELINE = DAG.objects.create(template=cls.TEMPLATE, dag_id="Test DAG 1")
 
 
-def get_connector_app_configs():
+def get_hexa_app_configs(connector_only=False):
     class AppConfig:
         def get_pipelines_credentials(self):
             def credentials_function(pipeline_credentials):
@@ -44,8 +44,8 @@ def get_connector_app_configs():
 
 class CredentialsTestCase(BaseCredentialsTestCase):
     @patch(
-        "hexa.pipelines.views.get_connector_app_configs",
-        return_value=get_connector_app_configs(),
+        "hexa.pipelines.views.get_hexa_app_configs",
+        return_value=get_hexa_app_configs(),
     )
     def test_credentials_200(self, _):
         token = self.PIPELINE.get_token()
@@ -61,7 +61,7 @@ class CredentialsTestCase(BaseCredentialsTestCase):
 
         fake = [AppConfig()]
 
-        with patch("hexa.pipelines.views.get_connector_app_configs", return_value=fake):
+        with patch("hexa.pipelines.views.get_hexa_app_configs", return_value=fake):
             response = self.client.post(
                 reverse(
                     "pipelines:credentials",

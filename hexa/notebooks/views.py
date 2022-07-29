@@ -4,8 +4,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from hexa.app import get_hexa_app_configs
 from hexa.notebooks.credentials import NotebooksCredentials
-from hexa.plugins.app import get_connector_app_configs
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -24,7 +24,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
     notebooks_credentials = NotebooksCredentials(request.user)
 
     if request.user.is_authenticated:
-        for app_config in get_connector_app_configs():
+        for app_config in get_hexa_app_configs(connector_only=True):
             credentials_functions = app_config.get_notebooks_credentials()
             for credentials_function in credentials_functions:
                 credentials_function(notebooks_credentials)

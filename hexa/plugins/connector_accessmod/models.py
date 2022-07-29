@@ -6,11 +6,15 @@ import json
 import typing
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser, User
-from django.core.exceptions import PermissionDenied
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.postgres.fields import CIEmailField
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.http import HttpRequest
+from django.utils.crypto import get_random_string
+from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
 from dpq.models import BaseJob
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -23,7 +27,13 @@ from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
-from hexa.user_management.models import Permission, PermissionMode, Team
+from hexa.user_management.models import (
+    Permission,
+    PermissionMode,
+    Team,
+    User,
+    UserInterface,
+)
 
 
 class ProjectQuerySet(BaseQuerySet):
@@ -1325,3 +1335,150 @@ class ZonalStatisticsAnalysis(Analysis):
         }
 
         return dag_conf
+
+
+class AccessRequestStatus(models.TextChoices):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    DENIED = "DENIED"
+
+
+class AccessRequestManager(models.Manager):
+    @staticmethod
+    def create_if_has_perm(
+        principal: User,
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        accepted_tos: bool,
+    ) -> AccessRequest:
+        if not principal.has_perm("connector_accessmod.create_access_request"):
+            raise PermissionDenied
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("Already exists")
+        if not accepted_tos:
+            raise ValidationError("Must accept TOS")
+
+        access_request = AccessRequest(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            accepted_tos=accepted_tos,
+            status=AccessRequestStatus.PENDING,
+        )
+        access_request.full_clean()
+        access_request.save()
+
+        return access_request
+
+
+class AccessRequestQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        if not user.has_perm("connector_accessmod.manage_access_requests"):
+            return self.none()
+
+        return self.all()
+
+
+class AccessRequest(Base):
+    class Meta:
+        ordering = ["created_at"]
+
+    email = CIEmailField()
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    accepted_tos = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        "user_management.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=AccessRequestStatus.choices,
+        default=AccessRequestStatus.PENDING,
+    )
+
+    objects = AccessRequestManager.from_queryset(AccessRequestQuerySet)()
+
+    @transaction.atomic
+    def approve_if_has_perm(self, principal: UserInterface, *, request: HttpRequest):
+        if not principal.has_perm("connector_accessmod.manage_access_requests"):
+            raise PermissionDenied
+        if self.status != AccessRequestStatus.PENDING:
+            raise ValidationError("Can only approve pending requests")
+        if not self.accepted_tos:
+            raise ValidationError("User has not accepted TOS")
+
+        user = User.objects.create_user(
+            first_name=self.first_name,
+            last_name=self.last_name,
+            email=self.email,
+            password=get_random_string(length=10),
+        )
+        AccessmodProfile.objects.create(user=user, accepted_tos=self.accepted_tos)
+
+        self.user = user
+        self.status = AccessRequestStatus.APPROVED
+        self.save()
+
+        # Deny other pending requests for the same user
+        for other_access_request in AccessRequest.objects.filter(
+            email=self.email, status=AccessRequestStatus.PENDING
+        ):
+            other_access_request.deny_if_has_perm(principal)
+
+        reset_form = PasswordResetForm({"email": self.email})
+        if not reset_form.is_valid():
+            raise ValueError("Unexpected validation error in PasswordResetForm")
+
+        reset_form.save(
+            request=request,
+            use_https=request.is_secure(),
+            subject_template_name="connector_accessmod/mails/access_request_approved_subject.txt",
+            email_template_name="connector_accessmod/mails/access_request_approved.txt",
+            html_email_template_name="connector_accessmod/mails/access_request_approved.html",
+            extra_email_context={
+                "access_request": self,
+                "set_password_url": settings.ACCESSMOD_SET_PASSWORD_URL,
+            },
+        )
+
+    def deny_if_has_perm(self, principal: UserInterface):
+        if not principal.has_perm("connector_accessmod.manage_access_requests"):
+            raise PermissionDenied
+        if self.status != AccessRequestStatus.PENDING:
+            raise ValidationError("Can only deny pending requests")
+
+        self.status = AccessRequestStatus.DENIED
+        self.save()
+
+    @property
+    def display_name(self):
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+
+        return self.email
+
+
+class AccessmodProfile(Base):
+    user = models.OneToOneField(
+        "user_management.User",
+        null=True,
+        on_delete=models.CASCADE,
+        blank=True,
+        related_name="accessmod_admin_profile",
+    )
+    accepted_tos = models.BooleanField(default=False)
+    is_accessmod_superuser = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Designates that this user has all AccessMod-related permissions without explicitly assigning them."
+        ),
+    )
+
+    def __str__(self):
+        return f"Accessmod admin profile for user '{self.user}'"
