@@ -6,7 +6,7 @@ type Collection {
     countries: [Country!]!
     tags: [Tag!]!
     description: String
-    elements: CollectionElementPage!
+    elements (page: Int, perPage: Int): CollectionElementPage!
     authorizedActions: CollectionAuthorizedActions!
     createdAt: DateTime!
     updatedAt: DateTime!
