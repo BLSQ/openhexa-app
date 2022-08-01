@@ -18,7 +18,11 @@ def load_type_defs_from_file(path: str):
 
 def generate_collections_type_defs_and_bindables(
     config: typing.Mapping[str, typing.Type[Entry]]
-):
+) -> typing.Tuple[typing.List[str], typing.List[typing.Callable]]:
+    """This function can be used to generate the GraphQL types and mutations that a datasource entry (an object in
+    a distributed filesystem, a database table, etc...) needs in order to be added to / removed from Openhexa
+    collections."""
+
     type_defs = []
     bindables = []
 
