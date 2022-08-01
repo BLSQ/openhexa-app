@@ -67,6 +67,24 @@ def resolve_collection_elements(collection: Collection, info, **kwargs):
     )
 
 
+@collection_object.field("authorizedActions")
+def resolve_collection_authorized_actions(collection: Collection, info):
+    return collection
+
+
+collection_authorized_actions = ObjectType("CollectionAuthorizedActions")
+
+
+@collection_authorized_actions.field("canUpdate")
+def resolve_collection_can_update(collection: Collection, info):
+    return False
+
+
+@collection_authorized_actions.field("canDelete")
+def resolve_collection_can_delete(collection: Collection, info):
+    return True
+
+
 @collections_mutations.field("createCollection")
 def resolve_create_collection(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -134,4 +152,5 @@ collections_bindables = [
     collection_object,
     collection_element_interface,
     collections_mutations,
+    collection_authorized_actions,
 ]

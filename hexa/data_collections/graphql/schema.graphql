@@ -7,7 +7,7 @@ type Collection {
     tags: [Tag!]!
     description: String
     elements: CollectionElementPage!
-    authorizedActions: [CollectionAuthorizedActions!]!
+    authorizedActions: CollectionAuthorizedActions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -62,8 +62,9 @@ interface CollectionElement {
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
 enum CollectionElementType {
-    _  # Cannot create empty enums
+    EMPTY  # Cannot create empty enums
 }
 type CollectionElementPage {
     pageNumber: Int!
