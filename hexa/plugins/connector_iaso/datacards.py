@@ -1,32 +1,8 @@
-import json
-
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.ui.datacard import CodeProperty, Datacard, DateProperty, Section, TextProperty
-from hexa.ui.datacard.properties import Property
+from hexa.ui.datacard import Datacard, DateProperty, JSONProperty, Section, TextProperty
 from hexa.ui.utils import StaticText
-
-
-class JSONProperty(Property):
-    def __init__(self, *, code, **kwargs):
-        super().__init__(**kwargs)
-        self.code = code
-        self.language = "json"
-
-    @property
-    def template(self):
-        return "ui/datacard/property_code.html"
-
-    def context(self, model, section, **kwargs):
-        return {
-            "code": json.dumps(
-                self.get_value(model, self.code, container=section),
-                ensure_ascii=False,
-                indent=4,
-            ),
-            "language": self.language,
-        }
 
 
 class IASOSection(Section):
@@ -34,6 +10,7 @@ class IASOSection(Section):
 
     name = TextProperty(text="name")
     content = TextProperty(text="content_summary")
+    url = TextProperty(text="api_url", translate=False)
 
 
 class IASOCard(Datacard):
@@ -59,9 +36,7 @@ class FormSection(Section):
         label="Last updated", date="updated", date_format="Y-m-d H:i:s"
     )
     version_id = TextProperty(label="Version", text="version_id")
-    org_unit_types = CodeProperty(
-        code="org_unit_types", label="Org Unit Types", language="json"
-    )
+    org_unit_types = JSONProperty(code="org_unit_types", label="Org Unit Types")
     projects = JSONProperty(code="projects")
 
 

@@ -2,7 +2,7 @@ import uuid
 from logging import getLogger
 
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 
 from .datacards import FormCard, IASOCard
@@ -19,6 +19,8 @@ def datasource_detail(request: HttpRequest, datasource_id: uuid.UUID) -> HttpRes
     )
 
     iaso_card = IASOCard(iaso_account, request=request)
+    if request.method == "POST" and iaso_card.save():
+        return redirect(request.META["HTTP_REFERER"])
 
     breadcrumbs = [
         (_("Catalog"), "catalog:index"),

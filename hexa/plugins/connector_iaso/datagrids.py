@@ -11,8 +11,10 @@ class FormGrid(Datagrid):
         translate=False,
     )
     created = DateColumn(date="created", date_format="%Y-%m-%d %H:%M:%S")
-    last_modified = DateColumn(date="updated", date_format="%Y-%m-%d %H:%M:%S")
-    version_id = TextColumn(text="version_id")
+    last_modified = DateColumn(
+        label="Updated", date="updated", date_format="%Y-%m-%d %H:%M:%S"
+    )
+    version_id = TextColumn(label="Version ID", text="version_id")
     link = LinkColumn(text="View")
 
     def __init__(self, queryset, *, prefix: str, **kwargs):
