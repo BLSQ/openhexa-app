@@ -1,4 +1,4 @@
-from ariadne import MutationType, QueryType
+from ariadne import MutationType, ObjectType, QueryType
 
 from hexa.core.graphql import (
     generate_collections_type_defs_and_bindables,
@@ -23,5 +23,21 @@ mutations = MutationType()
 )
 
 
+instance_object = ObjectType("DHIS2Instance")
+
+data_element_object = ObjectType("DHIS2DataElement")
+
+
+@data_element_object.field("instance")
+def resolve_data_element_instance(object: DataElement, info):
+    return object.instance
+
+
 dhis2_type_defs = [base_type_defs, *collections_type_defs]
-dhis2_bindables = [query, mutations, *collections_bindables]
+dhis2_bindables = [
+    query,
+    mutations,
+    instance_object,
+    data_element_object,
+    *collections_bindables,
+]
