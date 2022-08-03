@@ -10,5 +10,10 @@ module.exports = {
 
     // allow an empty value to count as invalid (by default is true)
     returnEmptyString: false,
+
+    react: {
+      // Which nodes are allowed to be kept in translations during defaultValue generation of <Trans>
+      transKeepBasicHtmlNodesFor: ["b", "br", "strong", "i", "p"],
+    },
   },
 };
