@@ -6,10 +6,7 @@ from hexa.ui.datagrid import Datagrid, LeadingColumn, TagColumn, TextColumn
 
 class TableGrid(Datagrid):
     lead = LeadingColumn(
-        label="Name",
-        text="name",
-        icon="get_table_icon",
-        translate=False,
+        label="Name", text="name", icon="get_table_icon", translate=False, width="30%"
     )
     tags = TagColumn(value="index.tags.all")
     content = TextColumn(text="get_content")

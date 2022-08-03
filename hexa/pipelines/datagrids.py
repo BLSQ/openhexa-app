@@ -20,6 +20,7 @@ class EnvironmentGrid(Datagrid):
         secondary_text="content_type_name",
         image_src="symbol",
         detail_url="get_url",
+        width="25%",
     )
     content = TextColumn(text="content")
     tags = TagColumn(value="tags.all")

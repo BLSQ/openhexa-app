@@ -16,6 +16,7 @@ class DatasourceGrid(Datagrid):
         secondary_text="content_type_name",
         image_src="symbol",
         detail_url="get_datasource_url",
+        width="40%",
     )
     owner = TextColumn(
         text="owner.display_name",
