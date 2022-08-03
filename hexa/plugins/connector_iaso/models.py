@@ -12,9 +12,10 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.sync import DatasourceSyncResult
+from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.plugins.connector_iaso.api import get_forms_json
+from hexa.plugins.connector_iaso.api import get_forms_json, get_orgunits_level12
 from hexa.user_management import models as user_management_models
 from hexa.user_management.models import Permission
 
@@ -55,20 +56,23 @@ class IASOAccount(Datasource):
         return self.iasopermission_set.all()
 
     def sync(self):
-        result = get_forms_json(iaso_account=self)
+        iasofroms = get_forms_json(iaso_account=self)
+        iasoorgunits = get_orgunits_level12(iaso_account=self)
+
+        created_count = 0
+        updated_count = 0
+        identical_count = 0
+        deleted_count = 0
 
         with transaction.atomic():
             IASOAccount.objects.select_for_update().get(pk=self.pk)
-            with transaction.atomic():
-                created_count = 0
-                updated_count = 0
-                identical_count = 0
-                deleted_count = 0
 
+            with transaction.atomic():
+                # AISO Forms
                 remote = set()
                 local = {x.iaso_id: x for x in self.iasoform_set.all()}
 
-                for form in result:
+                for form in iasofroms:
                     key = form["id"]
                     remote.add(key)
                     if key in local:
@@ -89,6 +93,33 @@ class IASOAccount(Datasource):
                     if key not in remote:
                         deleted_count += 1
                         obj.delete()
+
+                # AISO OrgUnits
+                remote = set()
+                local = {x.iaso_id: x for x in self.iasoorgunit_set.all()}
+
+                for orgunit in iasoorgunits:
+                    key = orgunit["id"]
+                    remote.add(key)
+                    if key in local:
+                        if datetime.fromtimestamp(form.get("updated_at")).replace(
+                            tzinfo=timezone.utc
+                        ) == local[key].updated.replace(tzinfo=timezone.utc):
+                            identical_count += 1
+                        else:
+                            updated_count += 1
+                            local[key].update_from_json(orgunit)
+                            local[key].save()
+                    else:
+                        IASOOrgUnit.create_from_json(self, orgunit)
+                        created_count += 1
+
+                # cleanup unmatched objects
+                for key, obj in local.items():
+                    if key not in remote:
+                        deleted_count += 1
+                        obj.delete()
+
                 # Flag the datasource as synced
                 self.last_synced_at = timezone.now()
                 self.save()
@@ -103,7 +134,7 @@ class IASOAccount(Datasource):
 
     @property
     def content_summary(self):
-        count = self.iasoform_set.count()
+        count = self.iasoform_set.count() + self.iasoorgunit_set.count()
 
         return (
             ""
@@ -115,7 +146,7 @@ class IASOAccount(Datasource):
     def populate_index(self, index):
         index.last_synced_at = self.last_synced_at
         index.content = self.content_summary
-        index.description = f"IASO Forms from {self.api_url}"
+        index.description = f"IASO data from {self.api_url}"
         index.path = [self.pk.hex]
         index.external_id = self.name
         index.external_name = self.name
@@ -173,6 +204,10 @@ class IASOEntry(Entry):
 
     def get_permission_set(self):
         return self.iaso_account.iasopermission_set.all()
+
+    @property
+    def display_name(self):
+        return self.name
 
 
 class IASOForm(IASOEntry):
@@ -256,6 +291,75 @@ class IASOForm(IASOEntry):
             kwargs={"iasoaccount_id": self.iaso_account.id, "iaso_id": self.iaso_id},
         )
 
-    @property
-    def display_name(self):
-        return self.name
+
+class IASOOrgUnit(IASOEntry):
+    class Meta:
+        verbose_name = "IASO OrgUnit"
+        ordering = ("name",)
+
+    searchable = True  # TODO: remove (see comment in datasource_index command)
+
+    org_unit_type_id = models.IntegerField()
+    org_unit_type_name = models.CharField(max_length=50, default="")
+    iaso_parent_id = models.IntegerField(null=True)
+
+    def populate_index(self, index):
+        index.last_synced_at = self.iaso_account.last_synced_at
+        index.external_name = self.name
+        index.path = [self.iaso_account.pk.hex, self.pk.hex]
+        index.external_id = self.name
+        index.external_type = "OrgUnit"
+        index.search = f"{self.name}"
+        index.datasource_name = self.iaso_account.name
+        index.datasource_id = self.iaso_account.id
+
+    def update_from_json(self, metadata):
+        self.name = metadata["name"]
+        self.created = datetime.fromtimestamp(metadata["created_at"]).replace(
+            tzinfo=timezone.utc
+        )
+        self.updated = datetime.fromtimestamp(metadata["updated_at"]).replace(
+            tzinfo=timezone.utc
+        )
+        self.iaso_parent_id = metadata["parent_id"]
+        self.org_unit_type_id = metadata["org_unit_type_id"]
+        self.org_unit_type_name = metadata["org_unit_type_name"]
+
+    @classmethod
+    def create_from_json(cls, iaso_account, metadata):
+        return cls.objects.create(
+            iaso_account=iaso_account,
+            iaso_id=metadata["id"],
+            name=metadata["name"],
+            created=datetime.fromtimestamp(metadata["created_at"]).replace(
+                tzinfo=timezone.utc
+            ),
+            updated=datetime.fromtimestamp(metadata["updated_at"]).replace(
+                tzinfo=timezone.utc
+            ),
+            org_unit_type_id=metadata["org_unit_type_id"],
+            org_unit_type_name=metadata["org_unit_type_name"],
+            iaso_parent_id=metadata["parent_id"],
+        )
+
+    def get_absolute_url(self):
+        return reverse(
+            "connector_iaso:iasoorgunit_detail",
+            kwargs={"iasoaccount_id": self.iaso_account.id, "iaso_id": self.iaso_id},
+        )
+
+
+class IASOApiToken(Base):
+    class Meta:
+        verbose_name = "IASO API Token"
+        constraints = [
+            models.UniqueConstraint(fields=["iaso_account", "user"], name="user-iaso")
+        ]
+
+    iaso_account = models.ForeignKey(
+        "IASOAccount", null=False, on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        "user_management.User", null=False, on_delete=models.CASCADE
+    )
+    token = models.CharField(max_length=250, default="")

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import IASOAccount, IASOForm, IASOPermission
+from .models import IASOAccount, IASOApiToken, IASOForm, IASOOrgUnit, IASOPermission
 
 
 @admin.register(IASOAccount)
@@ -19,3 +19,16 @@ class FormAdmin(admin.ModelAdmin):
     list_display = ("name", "updated")
     list_filter = ("name",)
     search_fields = ("name",)
+
+
+@admin.register(IASOOrgUnit)
+class OrganisationUnitAdmin(admin.ModelAdmin):
+    list_display = ("name", "updated")
+    list_filter = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(IASOApiToken)
+class IASOApiToken(admin.ModelAdmin):
+    list_display = ("iaso_account", "user")
+    search_fields = ("iaso_account", "user.login")
