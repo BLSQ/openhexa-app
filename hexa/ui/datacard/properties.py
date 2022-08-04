@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import typing
 import urllib.parse
 
@@ -182,6 +183,27 @@ class BooleanProperty(Property):
 
         return {
             "text": _("Yes") if value is True else _("No"),
+        }
+
+
+class JSONProperty(Property):
+    def __init__(self, *, code, **kwargs):
+        super().__init__(**kwargs)
+        self.code = code
+        self.language = "json"
+
+    @property
+    def template(self):
+        return "ui/datacard/property_code.html"
+
+    def context(self, model, section, **kwargs):
+        return {
+            "code": json.dumps(
+                self.get_value(model, self.code, container=section),
+                ensure_ascii=False,
+                indent=4,
+            ),
+            "language": self.language,
         }
 
 

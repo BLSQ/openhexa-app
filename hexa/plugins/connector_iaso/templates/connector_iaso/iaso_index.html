@@ -12,6 +12,7 @@
     {% embed "ui/tabs/tabs.html" with default_tab="content" %}
         {% slot navigation %}
             {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
+            {% include "ui/tabs/tab_nav_item.html" with label=_("Details") id="details" %}
             {% blocktranslate asvar comment_label with count=datasource.index.comment_set.count %}
                 Comments ({{ count }})
             {% endblocktranslate %}
@@ -25,6 +26,11 @@
                 {% endslot %}
             {% endembed %}
             {# Metadata tab #}
+            {% embed "ui/tabs/tab.html" with id="details" %}
+                {% slot content %}
+                    {{ iaso_card }}
+                {% endslot %}
+            {% endembed %}
             {# Comments tab #}
             {% embed "ui/tabs/tab.html" with id="comments" %}
                 {% slot content %}

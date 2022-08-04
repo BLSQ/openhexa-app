@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 0.44
+------------
+
+August 2, 2022
+
+### Added
+
+- First version of Iaso connector plugin
+
 Version 0.43
 ------------
 
