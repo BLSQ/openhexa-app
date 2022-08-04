@@ -151,10 +151,11 @@ class Datagrid(metaclass=DatagridMeta):
 class Column:
     """Base column class (to be extended)"""
 
-    def __init__(self, *, label=None, hide_label=False):
+    def __init__(self, *, label=None, hide_label=False, width=None):
         self._label = label
         self.hide_label = hide_label
         self.name = None
+        self.width = width
 
     def bind(self, grid: Datagrid, model: DjangoModel):
         return BoundColumn(self, grid=grid, model=model)
@@ -278,7 +279,14 @@ class LeadingColumn(Column):
 class TextColumn(Column):
     """Simple text column, with one or two rows"""
 
-    def __init__(self, *, text=None, secondary_text=None, translate=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        text=None,
+        secondary_text=None,
+        translate=True,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.text = text

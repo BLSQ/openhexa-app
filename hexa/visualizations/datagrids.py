@@ -20,6 +20,7 @@ class DashboardGrid(Datagrid):
         secondary_text="content",
         image_src="screenshot",
         detail_url="get_dashboard_url",
+        width="25%",
     )
     tags = TagColumn(value="tags.all")
     location = CountryColumn(value="countries")

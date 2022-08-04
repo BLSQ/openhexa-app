@@ -9,6 +9,7 @@ class FormGrid(Datagrid):
         label="Name",
         text="name",
         translate=False,
+        width="25%",
     )
     created = DateColumn(date="created", date_format="%Y-%m-%d %H:%M:%S")
     last_modified = DateColumn(

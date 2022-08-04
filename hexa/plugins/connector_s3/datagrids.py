@@ -38,6 +38,7 @@ class ObjectGrid(Datagrid):
         text="filename",
         icon="get_table_icon",
         translate=False,
+        width="30%",
     )
     directory = TextColumn(text="parent_key", translate=False)
     tags = TagColumn(value="index.tags.all")

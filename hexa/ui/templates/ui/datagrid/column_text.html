@@ -1,8 +1,8 @@
 {% if single or empty %}
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ text|default:"-" }}</td>
+    <td title="{{ text|default:"-" }}" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate">{{ text|default:"-" }}</td>
 {% else %}
-    <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900" {% if not translate %}translate="no"{% endif %}>{{ text|truncatechars:80|default:"-" }}</div>
-        <div class="text-sm text-gray-500" {% if not translate %}translate="no"{% endif %}>{{ secondary_text|truncatechars:80|default:"-" }}</div>
+    <td class="px-6 py-4 whitespace-nowrap truncate">
+        <div title="{{ text }}" class="truncate text-sm text-gray-900" {% if not translate %}translate="no"{% endif %}>{{ text|truncatechars:80|default:"-" }}</div>
+        <div class="truncate text-sm text-gray-500" {% if not translate %}translate="no"{% endif %}>{{ secondary_text|truncatechars:80|default:"-" }}</div>
     </td>
 {% endif %}

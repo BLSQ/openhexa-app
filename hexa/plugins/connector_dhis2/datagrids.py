@@ -52,6 +52,7 @@ class DataElementGrid(Dhis2Grid):
         secondary_text="get_value_type_display",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
@@ -115,6 +116,7 @@ class IndicatorGrid(Dhis2Grid):
         secondary_text="indicator_type.name",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
@@ -144,6 +146,7 @@ class DatasetGrid(Dhis2Grid):
         text="name",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
