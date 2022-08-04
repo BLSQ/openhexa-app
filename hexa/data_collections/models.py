@@ -65,6 +65,9 @@ class Collection(Base):
 
         self.delete()
 
+    def get_absolute_url(self) -> str:
+        return f"/collections/{self.id}"
+
 
 class CollectionElementQuerySet(BaseQuerySet, InheritanceQuerySet):
     def filter_for_user(
