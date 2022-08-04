@@ -1,9 +1,15 @@
 import clsx from "clsx";
 import { ButtonHTMLAttributes, ReactElement } from "react";
 
+const ButtonVariants = ["primary", "secondary", "white", "outlined", "custom"];
+type ButtonVariant = typeof ButtonVariants[number];
+
+const ButtonSizes = ["sm", "md", "lg", "xl", "xxl"];
+type ButtonSize = typeof ButtonSizes[number];
+
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "white" | "outlined" | "custom";
-  size?: "sm" | "md" | "lg" | "xl" | "xxl";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
   leadingIcon?: ReactElement;
 }
@@ -54,6 +60,8 @@ const Button = (props: ButtonProps) => {
     </button>
   );
 };
+Button.Variants = ButtonVariants;
+Button.Sizes = ButtonSizes;
 
 const LeadingIcon = (props: { children: ReactElement }) => {
   return (

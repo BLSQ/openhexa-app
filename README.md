@@ -85,6 +85,14 @@ Lint and format the code using the following command:
 npm run lint && npm run format
 ```
 
+### Component library
+
+We use [Ladle](https://ladle.dev/) to develop our component library.
+
+Ladle offers a web interface that allows developers to browse and test individual components and their parameters.
+
+You can run Ladle and open its web interface using `npm run ladle`.
+
 ## NPM Scripts
 
 * `npm run dev`: Launch Nextjs in dev mode and watch files to extract graphql code and generate typescript types and hooks
@@ -126,30 +134,3 @@ The following environment variables should be provided at run time:
 - `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
-
-
-## Local development
-
-First, install the dependencies
-
-```bash
-npm install
-# or
-yarn
-```
-
-Then, copy the sample `.env.local.dist` and adapt it to your needs:
-
-```bash
-cp .env.local.dist .env.local
-```
-
-Finally, run the development server:
-
-```bash
-npm run watch
-# or
-yarn watch
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

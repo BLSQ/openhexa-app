@@ -17,7 +17,8 @@
     "prepare": "husky install",
     "schema": "npx get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
     "codegen": "find . -name *.generated.tsx -delete && graphql-codegen --config codegen.yml",
-    "i18n:extract": "i18next"
+    "i18n:extract": "i18next",
+    "ladle": "npx ladle serve"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -34,6 +35,7 @@
     "@graphql-codegen/near-operation-file-preset": "^2.2.14",
     "@headlessui/react": "^1.6.1",
     "@heroicons/react": "^1.0.6",
+    "@ladle/react": "^2.0.2",
     "@popperjs/core": "^2.11.5",
     "@sentry/nextjs": "^7.1.1",
     "@tailwindcss/aspect-ratio": "^0.4.0",
