@@ -24,8 +24,15 @@ export default async function proxy(req: NextRequest) {
     .filter((c) => c !== null)
     .join(";");
 
-  return await fetch(fallbackURL, {
+  const response = await fetch(fallbackURL, {
     headers: { cookie },
     credentials: "include",
+  });
+
+  return new Response(await response.text(), {
+    status: response.status,
+    headers: {
+      "Content-Type": response.headers.get("Content-Type") || "text/html",
+    },
   });
 }
