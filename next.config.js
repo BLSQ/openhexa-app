@@ -14,29 +14,7 @@ const config = {
   reactStrictMode: true,
   trailingSlash: false,
   i18n,
-
   swcMinify: true,
-
-  async rewrites() {
-    const { FALLBACK_URL = "" } = process.env;
-
-    return {
-      // After checking all Next.js pages (including dynamic routes)...
-      // ...and static files we proxy any other requests
-      beforeFiles: [],
-      fallback: [
-        // Proxied static files do not need to have a trailing slash
-        {
-          source: "/static/:path*",
-          destination: `${FALLBACK_URL}/static/:path*`,
-        },
-        {
-          source: "/:path*",
-          destination: `${FALLBACK_URL}/:path*/`,
-        },
-      ],
-    };
-  },
 };
 
 const sentryWebpackPluginOptions = {
