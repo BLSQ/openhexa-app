@@ -1,4 +1,4 @@
-name: Build OpenHEXA Frontend
+name: Build OpenHexa Frontend
 
 on:
   release:
