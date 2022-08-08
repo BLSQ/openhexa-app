@@ -3,40 +3,16 @@
 {% block page_title %}{{ datasource.display_name }}{% endblock %}
 
 {% block page_content %}
-    {% static "connector_iaso/img/symbol.svg" as symbol %}
-    {% embed "catalog/components/data_header.html" with content=datasource symbol=symbol symbol_alt=_("IASO Account") %}
-        {% slot actions %}
-            {% include "catalog/components/data_header_action.html" with url=datasource.sync_url label=_("Sync") icon="refresh" %}
+    {{ iaso_card }}
+    {% include "comments/components/page_section_comments.html" with object=datasource %}
+    {% embed "ui/section/section.html" with title=_("IASO Forms") %}
+        {% slot content %}
+            {{ form_grid }}
         {% endslot %}
     {% endembed %}
-    {% embed "ui/tabs/tabs.html" with default_tab="content" %}
-        {% slot navigation %}
-            {% include "ui/tabs/tab_nav_item.html" with label=_("Content") id="content" %}
-            {% include "ui/tabs/tab_nav_item.html" with label=_("Details") id="details" %}
-            {% blocktranslate asvar comment_label with count=datasource.index.comment_set.count %}
-                Comments ({{ count }})
-            {% endblocktranslate %}
-            {% include "ui/tabs/tab_nav_item.html" with label=comment_label id="comments" %}
-        {% endslot %}
-        {% slot tabs %}
-            {# Content tab #}
-            {% embed "ui/tabs/tab.html" with id="content" %}
-                {% slot content %}
-                    {{ form_grid }}
-                {% endslot %}
-            {% endembed %}
-            {# Metadata tab #}
-            {% embed "ui/tabs/tab.html" with id="details" %}
-                {% slot content %}
-                    {{ iaso_card }}
-                {% endslot %}
-            {% endembed %}
-            {# Comments tab #}
-            {% embed "ui/tabs/tab.html" with id="comments" %}
-                {% slot content %}
-                    {% include "comments/components/page_section_comments.html" with object=datasource %}
-                {% endslot %}
-            {% endembed %}
+    {% embed "ui/section/section.html" with title=_("IASO OrgUnit") %}
+        {% slot content %}
+            {{ orgunit_grid }}
         {% endslot %}
     {% endembed %}
 {% endblock %}

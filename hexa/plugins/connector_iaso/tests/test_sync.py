@@ -2,28 +2,36 @@ import unittest.mock
 
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.test import TestCase
-from hexa.plugins.connector_iaso.models import IASOAccount
+from hexa.plugins.connector_iaso.models import Account
 
 
 class SyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.iaso_account = IASOAccount.objects.create(name="iaso-dev")
+        cls.iaso_account = Account.objects.create(name="iaso-dev")
 
     def test_empty_sync(self):
-        self.assertEqual(self.iaso_account.iasoform_set.count(), 0)
-        with unittest.mock.patch(
-            "hexa.plugins.connector_iaso.models.get_forms_json"
-        ) as mocked_get_forms_json:
-            mocked_get_forms_json.return_value = []
+        self.assertEqual(self.iaso_account.form_set.count(), 0)
+        self.assertEqual(self.iaso_account.orgunit_set.count(), 0)
+        with unittest.mock.patch.multiple(
+            "hexa.plugins.connector_iaso.models",
+            get_forms_json=unittest.mock.DEFAULT,
+            get_orgunits_level12=unittest.mock.DEFAULT,
+        ) as mocks:
+            mocks["get_forms_json"].return_value = []
+            mocks["get_orgunits_level12"].return_value = []
             self.iaso_account.sync()
-        self.assertQuerysetEqual(self.iaso_account.iasoform_set.all(), [])
+        self.assertQuerysetEqual(self.iaso_account.form_set.all(), [])
+        self.assertQuerysetEqual(self.iaso_account.orgunit_set.all(), [])
 
     def test_sync_base(self):
-        with unittest.mock.patch(
-            "hexa.plugins.connector_iaso.models.get_forms_json"
-        ) as mocked_get_forms_json:
-            mocked_get_forms_json.return_value = [
+        with unittest.mock.patch.multiple(
+            "hexa.plugins.connector_iaso.models",
+            get_forms_json=unittest.mock.DEFAULT,
+            get_orgunits_level12=unittest.mock.DEFAULT,
+        ) as mocks:
+            mocks["get_orgunits_level12"].return_value = []
+            mocks["get_forms_json"].return_value = [
                 {
                     "id": 2,
                     "name": "Questionnaire 1",
@@ -97,19 +105,24 @@ class SyncTest(TestCase):
                 },
             ]
             sync_result = self.iaso_account.sync()
-            self.assertEqual(self.iaso_account.iasoform_set.count(), 2)
+            self.assertEqual(self.iaso_account.orgunit_set.count(), 0)
+            self.assertEqual(self.iaso_account.form_set.count(), 2)
             self.assertEqual(sync_result.created, 2)
 
             # Sync again, should not differ
             sync_result = self.iaso_account.sync()
-            self.assertEqual(self.iaso_account.iasoform_set.count(), 2)
+            self.assertEqual(self.iaso_account.orgunit_set.count(), 0)
+            self.assertEqual(self.iaso_account.form_set.count(), 2)
             self.assertEqual(sync_result.identical, 2)
 
     def test_sync_remove_add(self):
-        with unittest.mock.patch(
-            "hexa.plugins.connector_iaso.models.get_forms_json"
-        ) as mocked_get_forms_json:
-            mocked_get_forms_json.return_value = [
+        with unittest.mock.patch.multiple(
+            "hexa.plugins.connector_iaso.models",
+            get_forms_json=unittest.mock.DEFAULT,
+            get_orgunits_level12=unittest.mock.DEFAULT,
+        ) as mocks:
+            mocks["get_orgunits_level12"].return_value = []
+            mocks["get_forms_json"].return_value = [
                 {
                     "id": 2,
                     "name": "Questionnaire 1",
@@ -156,7 +169,7 @@ class SyncTest(TestCase):
             )
 
             # Delete id2, add id18 & id20
-            mocked_get_forms_json.return_value = [
+            mocks["get_forms_json"].return_value = [
                 {
                     "id": 7,
                     "name": "Questionnaire 2",
