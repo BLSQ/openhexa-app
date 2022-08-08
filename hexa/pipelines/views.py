@@ -29,7 +29,9 @@ def index(request: HttpRequest) -> HttpResponse:
     pipelines = (
         Index.objects.filter_for_user(request.user).prefetch_related("object").leaves(1)
     )
-    pipeline_grid = PipelineIndexGrid(pipelines, request=request)
+    pipeline_grid = PipelineIndexGrid(
+        pipelines, page=int(request.GET.get("page", "1")), request=request
+    )
 
     environments = Index.objects.filter_for_user(request.user).roots()
     environment_grid = EnvironmentGrid(environments, request=request)
