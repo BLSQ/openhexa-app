@@ -8,6 +8,7 @@ from .indexes import (
     BaseIndexQuerySet,
 )
 from .postgres import PostgresTextSearchConfigField
+from .customcredentials import Credentials
 
 __all__ = [
     "Base",
@@ -18,4 +19,5 @@ __all__ = [
     "BaseIndexPermission",
     "BaseIndexableMixin",
     "BaseIndexQuerySet",
+    "Credentials"
 ]

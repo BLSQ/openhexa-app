@@ -1,5 +1,5 @@
 from django.contrib import admin
-
+from .models.customcredentials import Credentials
 
 @admin.display
 def country_list(obj):
@@ -14,3 +14,7 @@ def country_list(obj):
         country_list_string += f" (+{country_count - max_count})"
 
     return country_list_string
+
+@admin.register(Credentials)
+class CredentialsAdmin(admin.ModelAdmin):
+    list_display = ("user", 'name', "value")
