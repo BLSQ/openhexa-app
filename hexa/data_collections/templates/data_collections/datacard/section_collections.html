@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<div class="border-t border-gray-200 px-4 py-5 sm:px-0">
+  <div class="flex items-center mb-2">
+      {% if title %}
+        <h3 class="text-md leading-4 font-medium text-gray-900 py-4 sm:py-5 sm:px-6">
+            {{ title }}
+        </h3>
+      {% endif %}
+      {% if manage_url %}
+      <a href="{{ manage_url }}" class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer">
+        {% translate "Manage collections" %}
+      </a>
+      {% endif %}
+  </div>
+  <div class="sm:px-6">
+    {% if collections %}
+      <p class="text-gray-500 text-sm">{% translate "This data element is included in the following collections:" %}</p>
+      <div class="mt-4 flex items-center gap-2">
+      {% for collection in collections %}
+        <a href="{{ collection.url }}">
+            {% include "ui/tag.html" with label=collection.name only %}
+        </a>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-500">{% translate "This data is not included in any collections." %}</p>
+    {% endif %}
+  </div>
+</div>

@@ -52,7 +52,7 @@ class ObjectCard(Datacard):
     title = StaticText("Object details")
 
     external = ObjectSection()
-    collections = CollectionsSection()
+    collections = CollectionsSection("S3Object", value="collections.all")
 
     @property
     def generic_description(self):

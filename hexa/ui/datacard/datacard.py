@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 import hexa.ui.datacard.actions
 from hexa.ui.datacard.base import BaseMeta
 from hexa.ui.datacard.properties import Property
+from hexa.ui.datagrid import DjangoModel
 from hexa.ui.utils import StaticText, get_item_value
 
 from .base import DatacardComponent
@@ -151,6 +152,15 @@ class Section(DatacardComponent, metaclass=SectionMeta):
     def template(self):
         return "ui/datacard/section.html"
 
+    @property
+    def is_editable(self):
+        return any([p for p in self.properties if p.editable])
+
+    def context(
+        self, model: DjangoModel, card: Datacard
+    ) -> typing.Mapping[str, typing.Any]:
+        return {}
+
     def is_enabled(self, request: HttpRequest, model):
         return True
 
@@ -166,10 +176,10 @@ class BoundSection:
         return self.unbound_section.is_enabled(request, model)
 
     def build_form(self):
-        editable_properties = [p for p in self.unbound_section.properties if p.editable]
-
-        if len(editable_properties) == 0:
+        if not self.unbound_section.is_editable:
             return None
+
+        editable_properties = [p for p in self.unbound_section.properties if p.editable]
 
         if not hasattr(self.unbound_section, "Meta"):
             raise ValueError("Need a Meta for forms")
@@ -215,7 +225,8 @@ class BoundSection:
                 if self.unbound_section.title is not None
                 else None,
                 "properties": self.properties,
-                "editable": any(p.editable for p in self.properties),
+                "editable": self.unbound_section.is_editable,
+                **self.unbound_section.context(self.model, self.datacard),
             }
 
             return template.render(context, request=self.datacard.request)

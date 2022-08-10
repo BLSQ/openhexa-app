@@ -117,7 +117,7 @@ class DataElementCard(Datacard):
 
     external = DataElementSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    collections = CollectionsSection()
+    collections = CollectionsSection("DHIS2DataElement", value="collections.all")
 
     @property
     def generic_description(self):
