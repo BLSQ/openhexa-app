@@ -207,7 +207,7 @@ class BoundSection:
 
     def __str__(self):
         if self.is_enabled(self.datacard.request, self.model):
-            template = loader.get_template("ui/datacard/section.html")
+            template = loader.get_template(self.unbound_section.template)
 
             context = {
                 "name": self.unbound_section.name,
