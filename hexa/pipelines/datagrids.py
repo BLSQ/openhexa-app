@@ -36,6 +36,7 @@ class PipelineIndexGrid(Datagrid):
         text="display_name",
         secondary_text="content_type_name",
         image_src="symbol",
+        width="30%",
     )
     location = CountryColumn(value="countries")
     tags = TagColumn(value="tags.all")
