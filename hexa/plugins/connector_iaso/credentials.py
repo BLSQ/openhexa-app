@@ -1,3 +1,5 @@
+from slugify import slugify
+
 import hexa.plugins.connector_iaso.models as models
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.pipelines.credentials import PipelinesCredentials
@@ -11,7 +13,9 @@ def notebooks_credentials(credentials: NotebooksCredentials):
         env = {}
 
         for t in iaso_tokens:
-            label = t.iaso_account.name.replace("-", "_")
+            label = slugify(
+                t.iaso_account.name, separator="_", word_boundary=True
+            ).upper()
             env[f"IASO_{label}_URL"] = t.iaso_account.api_url
             env[f"IASO_{label}_TOKEN"] = t.token
 
