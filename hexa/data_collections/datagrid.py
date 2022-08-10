@@ -1,3 +1,5 @@
+from django.http import HttpRequest
+
 from hexa.ui.datagrid import Column, Datagrid, DjangoModel
 
 
@@ -22,6 +24,9 @@ class CollectionColumn(Column):
             {"label": collection.name, "url": collection.get_absolute_url()}
             for collection in self.get_value(model, self.value, container=Datagrid)
         ]
+
+    def is_enabled(self, request: HttpRequest):
+        return request.user.has_feature_flag("collections")
 
     @property
     def template(self):

@@ -1,3 +1,5 @@
+from django.http import HttpRequest
+
 from hexa.ui import datacard
 from hexa.ui.datacard import properties
 from hexa.ui.utils import get_item_value
@@ -37,8 +39,11 @@ class CollectionsSection(datacard.Section):
 
     @property
     def is_editable(self):
-        # TODO
+        # TODO: Link this to a user perm
         return True
+
+    def is_enabled(self, request: HttpRequest, model):
+        return request.user.has_feature_flag("collections")
 
     def context(self, model, card):
         collections = get_item_value(
