@@ -429,12 +429,13 @@ class DurationColumn(Column):
 
 
 class LinkColumn(Column):
-    def __init__(self, *, text, url=None, **kwargs):
+    def __init__(self, *, text, url=None, width=None, **kwargs):
         super().__init__(**kwargs, hide_label=True)
         self.text = text
         if url is None:
             url = "get_absolute_url"
         self.url = url
+        self.width = width if width is not None else "120"
 
     @property
     def template(self):
