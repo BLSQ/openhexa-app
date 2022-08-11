@@ -14,18 +14,18 @@
                         <thead class="bg-gray-50">
                         <tr>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {% translate "Type" %}
                             </th>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {% translate "Name" %}
                             </th>
                             <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                class="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 {% translate "Instance" %}
                             </th>
-                            <th scope="col" class="relative px-6 py-3">
+                            <th scope="col" class="relative px-3 lg:px-6 py-3">
                                 <span class="sr-only">{% translate "Actions" %}</span>
                             </th>
                         </tr>
@@ -33,32 +33,32 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                         {% for data_element in extract.data_elements.all %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {% translate "Data element" %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
                                     {{ data_element.hexa_or_dhis2_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
                                     {{ data_element.instance.display_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <a href="#" class="text-blue-600 hover:text-blue-900">Remove</a>
                                 </td>
                             </tr>
                         {% endfor %}
                         {% for indicator in extract.indicators.all %}
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {% translate "Indicator" %}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
                                     {{ indicator.hexa_or_dhis2_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500" translate="no">
                                     {{ indicator.instance.display_name }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <a href="#" class="text-blue-600 hover:text-blue-900">Remove</a>
                                 </td>
                             </tr>
