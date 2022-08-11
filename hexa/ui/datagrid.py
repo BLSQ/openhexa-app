@@ -449,9 +449,9 @@ class LinkColumn(Column):
 
 
 class TagColumn(Column):
-    def __init__(self, *, value=None, max_items=2, **kwargs):
+    def __init__(self, *, value=None, max_items=2, width=None, **kwargs):
         super().__init__(**kwargs)
-
+        self.width = width or "170"
         self.value = value
         self.max_items = max_items
 
