@@ -1,28 +1,24 @@
-import * as Types from "../../graphql-types";
+import * as Types from '../../graphql-types';
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type LoginMutationVariables = Types.Exact<{
   input: Types.LoginInput;
 }>;
 
-export type LoginMutation = {
-  __typename?: "Mutation";
-  login: { __typename?: "LoginResult"; success: boolean };
-};
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResult', success: boolean } };
+
 
 export const LoginDocument = gql`
-  mutation Login($input: LoginInput!) {
-    login(input: $input) {
-      success
-    }
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    success
   }
-`;
-export type LoginMutationFn = Apollo.MutationFunction<
-  LoginMutation,
-  LoginMutationVariables
->;
+}
+    `;
+export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
 
 /**
  * __useLoginMutation__
@@ -41,21 +37,10 @@ export type LoginMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useLoginMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    LoginMutation,
-    LoginMutationVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<LoginMutation, LoginMutationVariables>(
-    LoginDocument,
-    options
-  );
-}
+export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+      }
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
-export type LoginMutationOptions = Apollo.BaseMutationOptions<
-  LoginMutation,
-  LoginMutationVariables
->;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;

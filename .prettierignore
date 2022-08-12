@@ -2,4 +2,6 @@ build
 .next
 coverage
 schema.graphql
-src/helpers/graphql.ts
+graphql-types.ts
+*.generated.tsx
+*.generated.ts

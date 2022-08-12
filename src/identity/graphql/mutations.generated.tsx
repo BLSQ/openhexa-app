@@ -1,48 +1,36 @@
-import * as Types from "../../graphql-types";
+import * as Types from '../../graphql-types';
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ResetPasswordMutationVariables = Types.Exact<{
   input: Types.ResetPasswordInput;
 }>;
 
-export type ResetPasswordMutation = {
-  __typename?: "Mutation";
-  resetPassword: { __typename?: "ResetPasswordResult"; success: boolean };
-};
+
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'ResetPasswordResult', success: boolean } };
 
 export type SetPasswordMutationVariables = Types.Exact<{
   input: Types.SetPasswordInput;
 }>;
 
-export type SetPasswordMutation = {
-  __typename?: "Mutation";
-  setPassword: {
-    __typename?: "SetPasswordResult";
-    success: boolean;
-    error?: Types.SetPasswordError | null;
-  };
-};
 
-export type LogoutMutationVariables = Types.Exact<{ [key: string]: never }>;
+export type SetPasswordMutation = { __typename?: 'Mutation', setPassword: { __typename?: 'SetPasswordResult', success: boolean, error?: Types.SetPasswordError | null } };
 
-export type LogoutMutation = {
-  __typename?: "Mutation";
-  logout: { __typename?: "LogoutResult"; success: boolean };
-};
+export type LogoutMutationVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'LogoutResult', success: boolean } };
+
 
 export const ResetPasswordDocument = gql`
-  mutation ResetPassword($input: ResetPasswordInput!) {
-    resetPassword(input: $input) {
-      success
-    }
+    mutation ResetPassword($input: ResetPasswordInput!) {
+  resetPassword(input: $input) {
+    success
   }
-`;
-export type ResetPasswordMutationFn = Apollo.MutationFunction<
-  ResetPasswordMutation,
-  ResetPasswordMutationVariables
->;
+}
+    `;
+export type ResetPasswordMutationFn = Apollo.MutationFunction<ResetPasswordMutation, ResetPasswordMutationVariables>;
 
 /**
  * __useResetPasswordMutation__
@@ -61,39 +49,22 @@ export type ResetPasswordMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useResetPasswordMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    ResetPasswordMutation,
-    ResetPasswordMutationVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    ResetPasswordMutation,
-    ResetPasswordMutationVariables
-  >(ResetPasswordDocument, options);
-}
-export type ResetPasswordMutationHookResult = ReturnType<
-  typeof useResetPasswordMutation
->;
-export type ResetPasswordMutationResult =
-  Apollo.MutationResult<ResetPasswordMutation>;
-export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<
-  ResetPasswordMutation,
-  ResetPasswordMutationVariables
->;
+export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetPasswordMutation, ResetPasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument, options);
+      }
+export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
+export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
+export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
 export const SetPasswordDocument = gql`
-  mutation SetPassword($input: SetPasswordInput!) {
-    setPassword(input: $input) {
-      success
-      error
-    }
+    mutation SetPassword($input: SetPasswordInput!) {
+  setPassword(input: $input) {
+    success
+    error
   }
-`;
-export type SetPasswordMutationFn = Apollo.MutationFunction<
-  SetPasswordMutation,
-  SetPasswordMutationVariables
->;
+}
+    `;
+export type SetPasswordMutationFn = Apollo.MutationFunction<SetPasswordMutation, SetPasswordMutationVariables>;
 
 /**
  * __useSetPasswordMutation__
@@ -112,38 +83,21 @@ export type SetPasswordMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useSetPasswordMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    SetPasswordMutation,
-    SetPasswordMutationVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<SetPasswordMutation, SetPasswordMutationVariables>(
-    SetPasswordDocument,
-    options
-  );
-}
-export type SetPasswordMutationHookResult = ReturnType<
-  typeof useSetPasswordMutation
->;
-export type SetPasswordMutationResult =
-  Apollo.MutationResult<SetPasswordMutation>;
-export type SetPasswordMutationOptions = Apollo.BaseMutationOptions<
-  SetPasswordMutation,
-  SetPasswordMutationVariables
->;
+export function useSetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<SetPasswordMutation, SetPasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetPasswordMutation, SetPasswordMutationVariables>(SetPasswordDocument, options);
+      }
+export type SetPasswordMutationHookResult = ReturnType<typeof useSetPasswordMutation>;
+export type SetPasswordMutationResult = Apollo.MutationResult<SetPasswordMutation>;
+export type SetPasswordMutationOptions = Apollo.BaseMutationOptions<SetPasswordMutation, SetPasswordMutationVariables>;
 export const LogoutDocument = gql`
-  mutation Logout {
-    logout {
-      success
-    }
+    mutation Logout {
+  logout {
+    success
   }
-`;
-export type LogoutMutationFn = Apollo.MutationFunction<
-  LogoutMutation,
-  LogoutMutationVariables
->;
+}
+    `;
+export type LogoutMutationFn = Apollo.MutationFunction<LogoutMutation, LogoutMutationVariables>;
 
 /**
  * __useLogoutMutation__
@@ -161,21 +115,10 @@ export type LogoutMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useLogoutMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    LogoutMutation,
-    LogoutMutationVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(
-    LogoutDocument,
-    options
-  );
-}
+export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<LogoutMutation, LogoutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LogoutMutation, LogoutMutationVariables>(LogoutDocument, options);
+      }
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
-export type LogoutMutationOptions = Apollo.BaseMutationOptions<
-  LogoutMutation,
-  LogoutMutationVariables
->;
+export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;

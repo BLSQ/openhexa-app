@@ -6,15 +6,23 @@ import * as Sentry from "@sentry/nextjs";
 
 import getConfig from "next/config";
 
-const { publicRuntimeConfig } = getConfig();
+const config = getConfig();
 
-Sentry.init({
-  dsn: publicRuntimeConfig.SENTRY_DSN,
-  environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: 1.0,
-  // ...
-  // Note: if you want to override the automatic release value, do not set a
-  // `release` value here - use the environment variable `SENTRY_RELEASE`, so
-  // that it will also get attached to your source maps
-});
+if (config) {
+  const { publicRuntimeConfig } = config;
+  Sentry.init({
+    dsn: publicRuntimeConfig.SENTRY_DSN,
+    environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+    // Adjust this value in production, or use tracesSampler for greater control
+    tracesSampler(context) {
+      if (context.location?.pathname === "/ready") {
+        return 0;
+      }
+      return 0.005;
+    },
+    // ...
+    // Note: if you want to override the automatic release value, do not set a
+    // `release` value here - use the environment variable `SENTRY_RELEASE`, so
+    // that it will also get attached to your source maps
+  });
+}

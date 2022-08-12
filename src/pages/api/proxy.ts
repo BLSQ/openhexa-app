@@ -29,7 +29,7 @@ export default async function proxy(req: NextRequest) {
     credentials: "include",
   });
 
-  return new Response(await response.text(), {
+  return new Response(response.body, {
     status: response.status,
     headers: {
       "Content-Type": response.headers.get("Content-Type") || "text/html",
