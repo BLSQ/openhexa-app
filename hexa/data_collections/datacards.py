@@ -1,4 +1,5 @@
 from django.http import HttpRequest
+from django.utils.http import urlencode
 
 from hexa.ui import datacard
 from hexa.ui.datacard import properties
@@ -49,8 +50,14 @@ class CollectionsSection(datacard.Section):
         collections = get_item_value(
             model, self.source, container=card, exclude=datacard.Section
         )
+
+        params = urlencode(
+            {"redirect": card.request.path, "id": model.id, "type": self.graphql_type}
+        )
+        manage_url = f"/collections/add?{params}"
+
         return {
-            "manage_url": f"/collections/add?type={self.graphql_type}&id={model.id}",
+            "manage_url": manage_url,
             "collections": [
                 {"name": collection.name, "url": f"/collections/{collection.id}"}
                 for collection in collections
