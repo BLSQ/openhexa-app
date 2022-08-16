@@ -23,7 +23,11 @@ class ViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(
             response.content,
-            {"username": "jane@bluesquarehub.com", "env": {}, "files": {}},
+            {
+                "username": "jane@bluesquarehub.com",
+                "env": {"GIT_EXTENSION_ENABLED": "false"},
+                "files": {},
+            },
         )
 
     def test_credentials_401(self):
