@@ -43,5 +43,6 @@ COPY --from=builder /code/next-i18next.config.js ./
 COPY --from=builder /code/public ./public
 COPY --from=builder /code/.next ./.next
 COPY --from=builder /code/node_modules ./node_modules
+COPY --from=builder /code/scripts ./scripts
 
 CMD [ "npm", "start" ]
