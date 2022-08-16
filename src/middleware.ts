@@ -16,7 +16,8 @@ export async function middleware(request: NextRequest) {
   if (
     request.nextUrl.pathname.startsWith("/collections") ||
     request.nextUrl.pathname.startsWith("/images") ||
-    request.nextUrl.pathname.startsWith("/_next")
+    request.nextUrl.pathname.startsWith("/_next") ||
+    request.nextUrl.pathname.startsWith("/ready")
   ) {
     return NextResponse.next();
   }
