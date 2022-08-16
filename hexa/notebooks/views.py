@@ -24,6 +24,17 @@ def credentials(request: HttpRequest) -> HttpResponse:
     notebooks_credentials = NotebooksCredentials(request.user)
 
     if request.user.is_authenticated:
+        # Set "Git in notebooks" feature flag
+        notebooks_credentials.update_env(
+            {
+                "GIT_EXTENSION_ENABLED": "true"
+                if notebooks_credentials.user.has_feature_flag(
+                    "notebooks_git_extension"
+                )
+                else "false"
+            }
+        )
+
         for app_config in get_hexa_app_configs(connector_only=True):
             credentials_functions = app_config.get_notebooks_credentials()
             for credentials_function in credentials_functions:
