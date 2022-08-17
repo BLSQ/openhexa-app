@@ -1,18 +1,47 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
+import { PlusIcon } from "@heroicons/react/outline";
+import {
+  CollectionsPageDocument,
+  useCollectionsPageQuery,
+} from "collections/graphql/queries.generated";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
+import DataGrid from "core/components/DataGrid";
+import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
+import CountryColumn from "core/components/DataGrid/CountryColumn";
+import DateColumn from "core/components/DataGrid/DateColumn";
+import TagColumn from "core/components/DataGrid/TagColumn";
+import CreateCollectionDialog from "collections/features/CreateCollectionDialog";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { PageContent } from "core/components/Layout/PageContent";
-import Pagination from "core/components/Pagination";
-import { TableClasses } from "core/components/Table";
-import { FAKE_COLLECTIONS } from "collections/helpers/collections";
 import { createGetServerSideProps } from "core/helpers/page";
+import Toggle from "core/helpers/Toggle";
 import { useTranslation } from "next-i18next";
-import Link from "next/link";
-import Badge from "core/components/Badge";
-import clsx from "clsx";
+import { useRouter } from "next/router";
 
-const CollectionsPage = () => {
+type Props = {
+  page: number;
+  perPage: number;
+};
+
+const CollectionsPage = (props: Props) => {
   const { t } = useTranslation();
+  const { data } = useCollectionsPageQuery({
+    variables: {
+      page: props.page,
+      perPage: props.perPage,
+    },
+  });
+  const router = useRouter();
+
+  const onChangePage = ({ page }: { page: number }) => {
+    router.push({ pathname: router.pathname, query: { page } });
+  };
+
+  if (!data) {
+    return null;
+  }
+
   return (
     <PageContent>
       <Breadcrumbs className="my-8 px-2">
@@ -20,125 +49,82 @@ const CollectionsPage = () => {
           {t("Collections")}
         </Breadcrumbs.Part>
       </Breadcrumbs>
-      <Block className="mt-12">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className={TableClasses.th}>
-                {t("Name")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                {t("Location")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                {t("Tags")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                {t("Visibility")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                {t("Created")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                {t("Author")}
-              </th>
-              <th scope="col" className={TableClasses.th}>
-                <span className="sr-only">{t("Actions")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {FAKE_COLLECTIONS.map((collection) => (
-              <tr key={collection.id}>
-                <td className={TableClasses.td}>
-                  <Link
-                    href={{
-                      pathname: "/collections/[collectionId]",
-                      query: { collectionId: collection.id },
-                    }}
-                  >
-                    <a className="font-medium text-gray-900">
-                      {collection.name}
-                    </a>
-                  </Link>
-                </td>
-                <td className={TableClasses.td}>
-                  <Badge
-                    className={
-                      "cursor-pointer border-gray-300 bg-gray-50 hover:bg-opacity-70"
-                    }
-                  >
-                    <img
-                      alt="Country flag"
-                      className="mr-1 h-3"
-                      src={`/static/flags/${collection.locationCode}.gif`}
-                    />
-                    {collection.location}
-                  </Badge>
-                </td>
-                <td className={TableClasses.td}>
-                  <div className="space-x-2">
-                    {collection.tags?.length ? (
-                      collection.tags.slice(0, 1).map((t, i) => (
-                        <Badge
-                          className={clsx(
-                            "cursor-pointer hover:bg-opacity-70",
-                            [
-                              "border-purple-400 bg-purple-100",
-                              "border-amber-400 bg-amber-100",
-                              "border-lime-400 bg-lime-100",
-                            ][i % 3]
-                          )}
-                          key={t}
-                        >
-                          {t}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span>-</span>
-                    )}
-                    {collection.tags.length > 1
-                      ? ` (+${collection.tags.length - 1})`
-                      : ""}
-                  </div>
-                </td>
-                <td className={TableClasses.td}>{collection.visibility}</td>
-                <td className={TableClasses.td}>{collection.createdAt}</td>
-                <td className={TableClasses.td}>{collection.createdBy}</td>
-                <td className={TableClasses.td}>
-                  <div className="flex justify-end">
-                    <Link
-                      href={{
-                        pathname: "/collections/[collectionId]",
-                        query: { collectionId: collection.id },
-                      }}
-                    >
-                      <a className="inline-flex items-center font-medium text-blue-600 hover:text-blue-900">
-                        {t("View")} <ChevronRightIcon className="ml-1 h-4" />
-                      </a>
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <Pagination
-          className="border-t border-gray-200 px-6 text-gray-500"
-          countItems={FAKE_COLLECTIONS.length}
-          totalItems={FAKE_COLLECTIONS.length}
-          page={1}
-          perPage={10}
-          totalPages={1}
-          onChange={() => {}}
-        />
-      </Block>
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <Toggle>
+            {({ isToggled, toggle }) => (
+              <>
+                <Button onClick={toggle}>
+                  <PlusIcon className="mr-1 h-4" />
+                  {t("Create")}
+                </Button>
+                <CreateCollectionDialog open={isToggled} onClose={toggle} />
+              </>
+            )}
+          </Toggle>
+        </div>
+        <Block>
+          <DataGrid
+            defaultPageSize={15}
+            data={data.collections.items}
+            totalItems={data.collections.totalItems}
+            totalPages={data.collections.totalPages}
+            fetchData={onChangePage}
+          >
+            <TextColumn
+              label={t("Name")}
+              accessor="name"
+              className="text-gray-700"
+              minWidth={240}
+            />
+            <CountryColumn
+              max={2}
+              defaultValue="-"
+              label={t("Locations")}
+              accessor="countries"
+            />
+            <TagColumn
+              max={2}
+              defaultValue="-"
+              label={t("Tags")}
+              accessor="tags"
+            />
+            <DateColumn label={t("Created")} accessor={"createdAt"} />
+            <TextColumn
+              defaultValue="-"
+              accessor="author.displayName"
+              label={t("Author")}
+            />
+            <ChevronLinkColumn
+              accessor="id"
+              url={(value: any) => ({
+                pathname: "/collections/[collectionId]",
+                query: { collectionId: value },
+              })}
+            />
+          </DataGrid>
+        </Block>
+      </div>
     </PageContent>
   );
 };
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  getServerSideProps: async (ctx, client) => {
+    const page = (ctx.query.page as string)
+      ? parseInt(ctx.query.page as string, 10)
+      : 1;
+    const perPage = 15;
+    await client.query({
+      query: CollectionsPageDocument,
+      variables: {
+        page,
+        perPage,
+      },
+    });
+    return { props: { page, perPage } };
+  },
 });
 
 export default CollectionsPage;

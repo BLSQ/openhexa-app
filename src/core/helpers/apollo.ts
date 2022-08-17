@@ -5,7 +5,6 @@ import {
   NormalizedCacheObject,
   createHttpLink,
 } from "@apollo/client";
-import getConfig from "next/config";
 import { onError } from "@apollo/link-error";
 import merge from "deepmerge";
 import { IncomingHttpHeaders } from "http";
@@ -13,6 +12,7 @@ import fetch from "isomorphic-unfetch";
 import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
 import { useMemo } from "react";
+import getConfig from "next/config";
 
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
@@ -38,6 +38,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
   };
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
+    ssrForceFetchDelay: 100, // in milliseconds
     link: ApolloLink.from([
       onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors) {
@@ -72,9 +73,28 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
         AccessmodAnalysis: [
           "AccessmodGeographicCoverageAnalysis",
           "AccessmodAccessibilityAnalysis",
+          "AccessmodZonalStatistics",
+        ],
+        CollectionElement: [
+          "DHIS2DataElementCollectionElement",
+          "S3ObjectCollectionElement",
         ],
       },
       typePolicies: {
+        Team: {
+          merge: true,
+          fields: {
+            permissions: {
+              merge: true,
+            },
+          },
+        },
+        AccessmodProject: {
+          merge: true,
+        },
+        User: {
+          merge: true,
+        },
         Country: {
           // Country code are unique (at least it should). Let's use that for the cache key
           keyFields: false,
@@ -101,11 +121,14 @@ export const getApolloClient = (
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // get hydrated here
   if (initialState) {
-    // Get existing cache, loaded during client side data fetching
-    const existingCache = client.extract();
+    let existingCache = {};
+    // Get existing cache, loaded during server side data fetching
+    if (typeof window === "undefined") {
+      existingCache = client.extract();
+    }
 
     // Merge the existing cache into data passed from getStaticProps/getServerSideProps
-    const data = merge(initialState, existingCache, {
+    const data = merge(existingCache, initialState, {
       // combine arrays using object equality (like in sets)
       arrayMerge: (destinationArray, sourceArray) => [
         ...sourceArray,

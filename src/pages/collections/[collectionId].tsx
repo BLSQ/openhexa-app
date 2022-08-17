@@ -1,39 +1,45 @@
-import { ExternalLinkIcon, PencilIcon } from "@heroicons/react/outline";
+import { PencilIcon } from "@heroicons/react/outline";
+import CollectionActionsMenu from "collections/features/CollectionActionsMenu";
+import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
+import CollectionElementsTable from "collections/features/CollectionElementsTable";
 import {
-  ChevronRightIcon,
-  DocumentDownloadIcon,
-} from "@heroicons/react/outline";
-import clsx from "clsx";
-import ReactMarkdown from "react-markdown";
-import Badge from "core/components/Badge";
+  CollectionPageDocument,
+  CollectionPageQuery,
+  useCollectionPageQuery,
+} from "collections/graphql/queries.generated";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import Button from "core/components/Button";
 import DescriptionList from "core/components/DescriptionList";
 import { PageContent } from "core/components/Layout/PageContent";
-import { TableClasses } from "core/components/Table";
 import Time from "core/components/Time";
-import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
-import useToggle from "core/hooks/useToggle";
-import { FAKE_COLLECTIONS } from "collections/helpers/collections";
+import CountryBadge from "core/features/CountryBadge";
+import Tag from "core/features/Tag";
 import { createGetServerSideProps } from "core/helpers/page";
+import useToggle from "core/hooks/useToggle";
+import { CollectionElementType } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import Comments from "core/components/Comments";
+import ReactMarkdown from "react-markdown";
 
-const CollectionPage = () => {
+type Props = {
+  collectionId: string;
+};
+
+const CollectionPage = ({ collectionId }: Props) => {
   const router = useRouter();
   const { t } = useTranslation();
 
   const [isDialogOpen, { toggle: toggleDialog }] = useToggle();
 
-  const collection = FAKE_COLLECTIONS.find(
-    (col) => col.id === (router.query.collectionId as string)
-  );
+  const { data } = useCollectionPageQuery({
+    variables: { id: collectionId },
+  });
 
-  if (!collection) {
+  if (!data?.collection) {
     return null;
   }
+
+  const { collection } = data;
 
   return (
     <>
@@ -53,17 +59,13 @@ const CollectionPage = () => {
         </Breadcrumbs>
         <div className="space-y-10">
           <Block as="section" className="mt-12 divide-y divide-gray-200">
-            <Block.Title className="">
-              <span>{collection.name}</span>
-              {collection.excerpt && (
-                <div className="mt-2 text-sm text-gray-400">
-                  {collection.excerpt}
-                </div>
-              )}
+            <Block.Title className="flex items-center justify-between">
+              {collection.name}
+              <CollectionActionsMenu collection={collection} />
             </Block.Title>
             <Block.Content>
               <h4 className="mt-1 mb-4 font-medium">
-                {t("Collection properties")}
+                {t("Collection Properties")}
                 <button className="ml-4 inline-flex items-center text-sm text-blue-500 hover:text-blue-400">
                   {t("Edit")}
                   <PencilIcon className="ml-1 h-4" />
@@ -74,46 +76,26 @@ const CollectionPage = () => {
                   {collection.name}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Created by")}>
-                  {collection.createdBy}
+                  {collection.author?.displayName ?? "-"}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Created")}>
-                  {collection.createdAt}
+                  <Time datetime={collection.createdAt} />
                 </DescriptionList.Item>
-                <DescriptionList.Item label={t("Location")}>
-                  <Badge
-                    className={
-                      "cursor-pointer border-gray-300 bg-gray-50 hover:bg-opacity-70"
-                    }
-                  >
-                    <img
-                      alt="Country flag"
-                      className="mr-1 h-3"
-                      src={`/static/flags/${collection.locationCode}.gif`}
-                    />
-                    {collection.location}
-                  </Badge>
+                <DescriptionList.Item
+                  label={t("Locations")}
+                  className="flex gap-2"
+                >
+                  {collection.countries.map((country) => (
+                    <CountryBadge key={country.code} country={country} />
+                  ))}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Tags")}>
                   <div className="space-x-2">
-                    {collection.tags?.length ? (
-                      collection.tags.map((t, i) => (
-                        <Badge
-                          className={clsx(
-                            "cursor-pointer hover:bg-opacity-70",
-                            [
-                              "border-purple-400 bg-purple-100",
-                              "border-amber-400 bg-amber-100",
-                              "border-lime-400 bg-lime-100",
-                            ][i % 3]
-                          )}
-                          key={t}
-                        >
-                          {t}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span>-</span>
-                    )}
+                    {collection.tags.map((tag) => (
+                      <Tag key={tag.id} tag={tag} />
+                    ))}
+
+                    {collection.tags.length === 0 && <span>-</span>}
                   </div>
                 </DescriptionList.Item>
               </DescriptionList>
@@ -126,19 +108,39 @@ const CollectionPage = () => {
                   <PencilIcon className="ml-1 h-4" />
                 </button>
               </h4>
-              <ReactMarkdown className="prose max-w-3xl text-sm ">
-                {collection.description}
-              </ReactMarkdown>
-            </Block.Content>
-            <Block.Content>
-              <h4 className="mt-1 mb-4 font-medium">{t("Discussion")}</h4>
-              <Comments />
+              {collection.description && (
+                <ReactMarkdown className="prose max-w-3xl text-sm">
+                  {collection.description}
+                </ReactMarkdown>
+              )}
             </Block.Content>
           </Block>
 
-          {/* *********** DHIS Sources *********** */}
+          <section>
+            <h3 className="mb-4 font-bold">{t("DHIS2 Data Elements")}</h3>
+            <Block>
+              <CollectionElementsTable
+                elements={collection.elements.items.filter(
+                  (x) => x.__typename === "DHIS2DataElementCollectionElement"
+                )}
+                renderAs={CollectionElementType.DHIS2DataElement}
+              />
+            </Block>
+          </section>
 
           <section>
+            <h3 className="mb-4 font-bold">{t("S3 Objects")}</h3>
+            <Block>
+              <CollectionElementsTable
+                elements={collection.elements.items.filter(
+                  (x) => x.__typename === "S3ObjectCollectionElement"
+                )}
+                renderAs={CollectionElementType.S3Object}
+              />
+            </Block>
+          </section>
+
+          {/*<section>
             <h3 className="mb-4 font-bold">{t("DHIS2 Data")}</h3>
             <Block>
               <table className={TableClasses.table}>
@@ -199,8 +201,6 @@ const CollectionPage = () => {
               </table>
             </Block>
           </section>
-
-          {/* *********** S3 *********** */}
 
           <section>
             <h3 className="mb-4 font-bold">{t("S3 Data")}</h3>
@@ -274,8 +274,6 @@ const CollectionPage = () => {
             </Block>
           </section>
 
-          {/* *********** Database *********** */}
-
           <section>
             <h3 className="mb-4 font-bold">{t("Postgres Data")}</h3>
             <Block>
@@ -337,8 +335,6 @@ const CollectionPage = () => {
               </table>
             </Block>
           </section>
-
-          {/* *********** Notebooks *********** */}
 
           <section>
             <h3 className="mb-4 font-bold">{t("Notebooks")}</h3>
@@ -405,8 +401,6 @@ const CollectionPage = () => {
             </Block>
           </section>
 
-          {/* *********** Visualizations *********** */}
-
           <section>
             <h3 className="mb-4 font-bold">{t("Visualizations")}</h3>
             <Block>
@@ -470,7 +464,7 @@ const CollectionPage = () => {
                 </tbody>
               </table>
             </Block>
-          </section>
+                  </section> */}
         </div>
       </PageContent>
 
@@ -484,6 +478,26 @@ const CollectionPage = () => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query<CollectionPageQuery>({
+      query: CollectionPageDocument,
+      variables: {
+        id: ctx.params?.collectionId,
+      },
+    });
+
+    if (!data.collection) {
+      return {
+        notFound: true,
+      };
+    }
+
+    return {
+      props: {
+        collectionId: ctx.params?.collectionId,
+      },
+    };
+  },
 });
 
 export default CollectionPage;

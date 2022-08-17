@@ -11,11 +11,12 @@ const Classes = {
   md: "px-2.5 pt-1 text-md",
 };
 
-const Badge = ({ children, className, size = "xs" }: Props) => {
+const Badge = ({ children, className, size = "xs", ...delegated }: Props) => {
   return (
     <span
+      {...delegated}
       className={clsx(
-        "inline-flex items-center rounded-md border font-medium",
+        "inline-flex items-center whitespace-nowrap rounded-md border font-medium",
         size === "xs" && Classes.xs,
         size === "sm" && Classes.sm,
         size === "md" && Classes.md,

@@ -4,11 +4,12 @@ directive @specifiedBy(
   url: String!
 ) on SCALAR
 
-type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
+type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwnership {
   id: String!
   type: AccessmodAnalysisType!
   status: AccessmodAnalysisStatus!
   name: String!
+  owner: AccessmodOwner
   author: User!
   authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
   createdAt: DateTime!
@@ -16,27 +17,48 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis {
   landCover: AccessmodFileset
   dem: AccessmodFileset
   transportNetwork: AccessmodFileset
-  slope: AccessmodFileset
   water: AccessmodFileset
   barrier: AccessmodFileset
-  movingSpeeds: AccessmodFileset
+  stack: AccessmodFileset
+  stackPriorities: StackPriorities
+  movingSpeeds: MovingSpeeds
   healthFacilities: AccessmodFileset
   invertDirection: Boolean
   maxTravelTime: Int
-  maxSlope: Float
-  priorityRoads: Boolean
-  priorityLandCover: [Int!]
   waterAllTouched: Boolean
   algorithm: AccessmodAccessibilityAnalysisAlgorithm
   knightMove: Boolean
   travelTimes: AccessmodFileset
   frictionSurface: AccessmodFileset
-  catchmentAreas: AccessmodFileset
 }
 
 enum AccessmodAccessibilityAnalysisAlgorithm {
   ANISOTROPIC
   ISOTROPIC
+}
+
+type AccessmodAccessRequest {
+  id: String!
+  firstName: String!
+  lastName: String!
+  email: String!
+  acceptedTos: Boolean!
+  status: AccessmodAccessRequestStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AccessmodAccessRequestPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [AccessmodAccessRequest!]!
+}
+
+enum AccessmodAccessRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
 }
 
 interface AccessmodAnalysis {
@@ -75,6 +97,7 @@ enum AccessmodAnalysisStatus {
 enum AccessmodAnalysisType {
   ACCESSIBILITY
   GEOGRAPHIC_COVERAGE
+  ZONAL_STATISTICS
 }
 
 type AccessmodFile {
@@ -87,12 +110,14 @@ type AccessmodFile {
   updatedAt: DateTime!
 }
 
-type AccessmodFileset {
+type AccessmodFileset implements AccessmodOwnership {
   id: String!
   name: String!
+  mode: AccessmodFilesetMode!
   status: AccessmodFilesetStatus!
   role: AccessmodFilesetRole!
   author: User!
+  owner: AccessmodOwner
   files: [AccessmodFile!]!
   metadata: AccessmodFilesetMetadata!
   authorizedActions: [AccessmodFilesetAuthorizedActions!]!
@@ -114,6 +139,11 @@ enum AccessmodFilesetFormat {
 
 scalar AccessmodFilesetMetadata
 
+enum AccessmodFilesetMode {
+  USER_INPUT
+  AUTOMATIC_ACQUISITION
+}
+
 type AccessmodFilesetPage {
   pageNumber: Int!
   totalPages: Int!
@@ -132,19 +162,20 @@ type AccessmodFilesetRole {
 
 enum AccessmodFilesetRoleCode {
   BARRIER
-  CATCHMENT_AREAS
   COVERAGE
   DEM
   FRICTION_SURFACE
   GEOMETRY
   HEALTH_FACILITIES
   LAND_COVER
-  MOVING_SPEEDS
   POPULATION
-  SLOPE
   TRANSPORT_NETWORK
   TRAVEL_TIMES
   WATER
+  STACK
+  BOUNDARIES
+  ZONAL_STATISTICS
+  ZONAL_STATISTICS_TABLE
 }
 
 enum AccessmodFilesetStatus {
@@ -152,13 +183,15 @@ enum AccessmodFilesetStatus {
   VALIDATING
   VALID
   INVALID
+  TO_ACQUIRE
 }
 
-type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
+type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & AccessmodOwnership {
   id: String!
   type: AccessmodAnalysisType!
   status: AccessmodAnalysisStatus!
   name: String!
+  owner: AccessmodOwner
   author: User!
   authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
   createdAt: DateTime!
@@ -174,7 +207,13 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis {
   catchmentAreas: AccessmodFileset
 }
 
-type AccessmodProject {
+union AccessmodOwner = User | Team
+
+interface AccessmodOwnership {
+  owner: AccessmodOwner
+}
+
+type AccessmodProject implements AccessmodOwnership {
   id: String!
   name: String!
   spatialResolution: Int!
@@ -182,7 +221,9 @@ type AccessmodProject {
   crs: Int!
   country: Country!
   author: User!
-  extent: AccessmodFileset
+  owner: AccessmodOwner
+  extent: [[Float!]!]
+  dem: AccessmodFileset
   authorizedActions: [AccessmodProjectAuthorizedActions!]!
   permissions: [AccessmodProjectPermission!]!
   createdAt: DateTime!
@@ -195,6 +236,13 @@ enum AccessmodProjectAuthorizedActions {
   CREATE_FILESET
   CREATE_ANALYSIS
   CREATE_PERMISSION
+}
+
+enum AccessmodProjectOrder {
+  UPDATED_AT_DESC
+  UPDATED_AT_ASC
+  NAME_DESC
+  NAME_ASC
 }
 
 type AccessmodProjectPage {
@@ -227,9 +275,124 @@ type AccessmodProjectPermissionPage {
   items: [AccessmodProjectPermission!]!
 }
 
+type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership {
+  id: String!
+  type: AccessmodAnalysisType!
+  status: AccessmodAnalysisStatus!
+  name: String!
+  owner: AccessmodOwner
+  author: User!
+  authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  population: AccessmodFileset
+  travelTimes: AccessmodFileset
+  boundaries: AccessmodFileset
+  timeThresholds: TimeThresholds
+  zonalStatisticsTable: AccessmodFileset
+  zonalStatisticsGeo: AccessmodFileset
+}
+
+enum AddDHIS2DataElementToCollectionError {
+  INVALID
+}
+
+input AddDHIS2DataElementToCollectionInput {
+  id: String!
+  collectionId: String!
+}
+
+type AddDHIS2DataElementToCollectionResult {
+  success: Boolean!
+  errors: [AddDHIS2DataElementToCollectionError!]!
+  collection: Collection
+  element: DHIS2DataElement
+  collectionElement: DHIS2DataElementCollectionElement
+}
+
+enum AddS3ObjectToCollectionError {
+  INVALID
+}
+
+input AddS3ObjectToCollectionInput {
+  id: String!
+  collectionId: String!
+}
+
+type AddS3ObjectToCollectionResult {
+  success: Boolean!
+  errors: [AddS3ObjectToCollectionError!]!
+  collection: Collection
+  element: S3Object
+  collectionElement: S3ObjectCollectionElement
+}
+
+enum ApproveAccessmodAccessRequestError {
+  INVALID
+}
+
+input ApproveAccessmodAccessRequestInput {
+  id: String!
+}
+
+type ApproveAccessmodAccessRequestResult {
+  success: Boolean!
+  errors: [ApproveAccessmodAccessRequestError!]!
+}
+
+type AuthorizedActions {
+  createTeam: Boolean!
+  createCollection: Boolean!
+}
+
 type Avatar {
   initials: String!
   color: String!
+}
+
+type Collection {
+  id: String!
+  name: String!
+  author: User
+  countries: [Country!]!
+  tags: [Tag!]!
+  description: String
+  elements(page: Int, perPage: Int): CollectionElementPage!
+  authorizedActions: CollectionAuthorizedActions!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CollectionAuthorizedActions {
+  canUpdate: Boolean!
+  canDelete: Boolean!
+}
+
+interface CollectionElement {
+  id: String!
+  type: CollectionElementType!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type CollectionElementPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [CollectionElement!]!
+}
+
+enum CollectionElementType {
+  EMPTY
+  D_H_I_S2_DATA_ELEMENT
+  S3_OBJECT
+}
+
+type CollectionPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [Collection!]!
 }
 
 type Country {
@@ -237,6 +400,7 @@ type Country {
   alpha3: String!
   name: String!
   flag: String!
+  whoInfo: WHOInfo!
 }
 
 input CountryInput {
@@ -286,6 +450,8 @@ input CreateAccessmodFilesetInput {
   name: String!
   projectId: String!
   roleId: String!
+  automatic: Boolean
+  metadata: AccessmodFilesetMetadata
 }
 
 type CreateAccessmodFilesetResult {
@@ -301,16 +467,18 @@ enum CreateAccessmodProjectError {
 
 input CreateAccessmodProjectInput {
   name: String!
-  spatialResolution: Int!
   description: String
+  spatialResolution: Int!
   crs: Int!
-  extentId: String
   country: CountryInput!
+  extent: [[Float!]!]
 }
 
 enum CreateAccessmodProjectPermissionError {
+  ALREADY_EXISTS
   PERMISSION_DENIED
   NOT_FOUND
+  NOT_IMPLEMENTED
 }
 
 input CreateAccessmodProjectPermissionInput {
@@ -332,7 +500,41 @@ type CreateAccessmodProjectResult {
   errors: [CreateAccessmodProjectError!]!
 }
 
+enum CreateAccessmodZonalStatisticsError {
+  NAME_DUPLICATE
+}
+
+input CreateAccessmodZonalStatisticsInput {
+  projectId: String!
+  name: String!
+}
+
+type CreateAccessmodZonalStatisticsResult {
+  success: Boolean!
+  analysis: AccessmodZonalStatistics
+  errors: [CreateAccessmodZonalStatisticsError!]!
+}
+
+enum CreateCollectionError {
+  INVALID
+}
+
+input CreateCollectionInput {
+  name: String!
+  authorId: String
+  countries: [CountryInput!]
+  tagIds: [String!]
+  description: String
+}
+
+type CreateCollectionResult {
+  success: Boolean!
+  errors: [CreateCollectionError!]!
+  collection: Collection
+}
+
 enum CreateMembershipError {
+  ALREADY_EXISTS
   PERMISSION_DENIED
   NOT_FOUND
 }
@@ -382,21 +584,9 @@ type DeleteAccessmodAnalysisResult {
   errors: [DeleteAccessmodAnalysisError!]!
 }
 
-enum DeleteAccessmodFileError {
-  NOT_FOUND
-}
-
-input DeleteAccessmodFileInput {
-  id: String!
-}
-
-type DeleteAccessmodFileResult {
-  success: Boolean!
-  errors: [DeleteAccessmodFileError!]!
-}
-
 enum DeleteAccessmodFilesetError {
   NOT_FOUND
+  FILESET_IN_USE
 }
 
 input DeleteAccessmodFilesetInput {
@@ -420,6 +610,7 @@ input DeleteAccessmodProjectInput {
 enum DeleteAccessmodProjectPermissionError {
   PERMISSION_DENIED
   NOT_FOUND
+  NOT_IMPLEMENTED
 }
 
 input DeleteAccessmodProjectPermissionInput {
@@ -434,6 +625,19 @@ type DeleteAccessmodProjectPermissionResult {
 type DeleteAccessmodProjectResult {
   success: Boolean!
   errors: [DeleteAccessmodProjectError!]!
+}
+
+enum DeleteCollectionError {
+  INVALID
+}
+
+input DeleteCollectionInput {
+  id: String!
+}
+
+type DeleteCollectionResult {
+  success: Boolean!
+  errors: [DeleteCollectionError!]!
 }
 
 enum DeleteMembershipError {
@@ -462,6 +666,49 @@ input DeleteTeamInput {
 type DeleteTeamResult {
   success: Boolean!
   errors: [DeleteTeamError!]!
+}
+
+enum DenyAccessmodAccessRequestError {
+  INVALID
+}
+
+input DenyAccessmodAccessRequestInput {
+  id: String!
+}
+
+type DenyAccessmodAccessRequestResult {
+  success: Boolean!
+  errors: [DenyAccessmodAccessRequestError!]!
+}
+
+type DHIS2DataElement {
+  id: String!
+  name: String!
+  code: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  instance: DHIS2Instance!
+}
+
+type DHIS2DataElementCollectionElement implements CollectionElement {
+  id: String!
+  type: CollectionElementType!
+  element: DHIS2DataElement!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type DHIS2DataElementPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DHIS2DataElement!]!
+}
+
+type DHIS2Instance {
+  id: String!
+  name: String!
+  url: String
 }
 
 enum LaunchAccessmodAnalysisError {
@@ -500,6 +747,7 @@ type Me {
 enum MeAuthorizedActions {
   CREATE_TEAM
   CREATE_ACCESSMOD_PROJECT
+  MANAGE_ACCESSMOD_ACCESS_REQUESTS
 }
 
 type Membership {
@@ -529,6 +777,8 @@ enum MembershipRole {
   REGULAR
 }
 
+scalar MovingSpeeds
+
 type Mutation {
   login(input: LoginInput!): LoginResult!
   logout: LogoutResult!
@@ -540,22 +790,34 @@ type Mutation {
   createMembership(input: CreateMembershipInput!): CreateMembershipResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
-  createAccessmodProject(input: CreateAccessmodProjectInput): CreateAccessmodProjectResult!
-  updateAccessmodProject(input: UpdateAccessmodProjectInput): UpdateAccessmodProjectResult!
-  deleteAccessmodProject(input: DeleteAccessmodProjectInput): DeleteAccessmodProjectResult!
+  createCollection(input: CreateCollectionInput!): CreateCollectionResult!
+  deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
+  addDHIS2DataElementToCollection(input: AddDHIS2DataElementToCollectionInput!): AddDHIS2DataElementToCollectionResult!
+  removeDHIS2DataElementFromCollection(input: RemoveDHIS2DataElementFromCollectionInput!): RemoveDHIS2DataElementFromCollectionResult!
+  addS3ObjectToCollection(input: AddS3ObjectToCollectionInput!): AddS3ObjectToCollectionResult!
+  removeS3ObjectFromCollection(input: RemoveS3ObjectFromCollectionInput!): RemoveS3ObjectFromCollectionResult!
+  createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
+  updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
+  deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
   createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
   updateAccessmodProjectPermission(input: UpdateAccessmodProjectPermissionInput!): UpdateAccessmodProjectPermissionResult!
   deleteAccessmodProjectPermission(input: DeleteAccessmodProjectPermissionInput!): DeleteAccessmodProjectPermissionResult!
-  createAccessmodFileset(input: CreateAccessmodFilesetInput): CreateAccessmodFilesetResult!
-  deleteAccessmodFileset(input: DeleteAccessmodFilesetInput): DeleteAccessmodFilesetResult!
-  prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput): PrepareAccessmodFileUploadResult!
-  prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput): PrepareAccessmodFileDownloadResult!
-  createAccessmodFile(input: CreateAccessmodFileInput): CreateAccessmodFileResult!
-  deleteAccessmodFile(input: DeleteAccessmodFileInput): DeleteAccessmodFileResult!
+  createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult!
+  updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult!
+  deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
+  prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult!
+  prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult!
+  prepareAccessmodFilesetVisualizationDownload(input: PrepareAccessmodFilesetVisualizationDownloadInput!): PrepareAccessmodFilesetVisualizationDownloadResult!
+  createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
+  createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
   updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
+  updateAccessmodZonalStatistics(input: UpdateAccessmodZonalStatisticsInput): UpdateAccessmodZonalStatisticsResult!
   launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
   deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
+  requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
+  approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
+  denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
 }
 
 type Organization {
@@ -589,6 +851,15 @@ type PrepareAccessmodFileDownloadResult {
   downloadUrl: String
 }
 
+input PrepareAccessmodFilesetVisualizationDownloadInput {
+  id: String!
+}
+
+type PrepareAccessmodFilesetVisualizationDownloadResult {
+  success: Boolean!
+  url: String
+}
+
 input PrepareAccessmodFileUploadInput {
   filesetId: String!
   mimeType: String!
@@ -605,15 +876,70 @@ type Query {
   team(id: String!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
   organizations: [Organization!]!
-  countries: [Country!]!
+  collection(id: String!): Collection
+  collections(page: Int, perPage: Int): CollectionPage!
   accessmodProject(id: String): AccessmodProject
-  accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int): AccessmodProjectPage!
+  accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
   accessmodFileset(id: String): AccessmodFileset
-  accessmodFilesets(projectId: String!, roleId: String, term: String, page: Int, perPage: Int): AccessmodFilesetPage!
+  accessmodFilesets(projectId: String!, roleId: String, term: String, mode: AccessmodFilesetMode, page: Int, perPage: Int): AccessmodFilesetPage!
   accessmodFilesetRole(id: String!): AccessmodFilesetRole
   accessmodFilesetRoles: [AccessmodFilesetRole!]!
   accessmodAnalysis(id: String): AccessmodAnalysis
   accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
+  accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
+  country(code: String, alpha3: String): Country
+  boundaries(country_code: String!, level: String!): [WHOBoundary!]!
+  countries: [Country!]!
+}
+
+enum RemoveDHIS2DataElementFromCollectionError {
+  INVALID
+}
+
+input RemoveDHIS2DataElementFromCollectionInput {
+  id: String!
+  collectionId: String!
+}
+
+type RemoveDHIS2DataElementFromCollectionResult {
+  success: Boolean!
+  errors: [RemoveDHIS2DataElementFromCollectionError!]!
+  collection: Collection
+  element: DHIS2DataElement
+}
+
+enum RemoveS3ObjectFromCollectionError {
+  INVALID
+}
+
+input RemoveS3ObjectFromCollectionInput {
+  id: String!
+  collectionId: String!
+}
+
+type RemoveS3ObjectFromCollectionResult {
+  success: Boolean!
+  errors: [RemoveS3ObjectFromCollectionError!]!
+  collection: Collection
+  element: S3Object
+}
+
+enum RequestAccessmodAccessError {
+  ALREADY_EXISTS
+  MUST_ACCEPT_TOS
+  INVALID
+}
+
+input RequestAccessmodAccessInput {
+  firstName: String!
+  lastName: String!
+  email: String!
+  acceptTos: Boolean!
+}
+
+type RequestAccessmodAccessInputResult {
+  success: Boolean!
+  errors: [RequestAccessmodAccessError!]!
 }
 
 input ResetPasswordInput {
@@ -622,6 +948,44 @@ input ResetPasswordInput {
 
 type ResetPasswordResult {
   success: Boolean!
+}
+
+type S3Bucket {
+  id: String!
+  name: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type S3Object {
+  id: String!
+  bucket: S3Bucket!
+  filename: String!
+  key: String!
+  parentKey: String!
+  size: Int!
+  storageClass: String!
+  type: String!
+  lastModified: DateTime!
+  etag: String!
+  collections: [Collection!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type S3ObjectCollectionElement implements CollectionElement {
+  id: String!
+  type: CollectionElementType!
+  element: S3Object!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type S3ObjectPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [S3Object!]!
 }
 
 enum SetPasswordError {
@@ -641,6 +1005,15 @@ input SetPasswordInput {
 type SetPasswordResult {
   success: Boolean!
   error: SetPasswordError
+}
+
+scalar SimplifiedExtentType
+
+scalar StackPriorities
+
+type Tag {
+  id: String!
+  name: String!
 }
 
 type Team {
@@ -665,6 +1038,8 @@ type TeamPage {
   items: [Team!]!
 }
 
+scalar TimeThresholds
+
 enum UpdateAccessmodAccessibilityAnalysisError {
   NOT_FOUND
   NAME_DUPLICATE
@@ -675,17 +1050,15 @@ input UpdateAccessmodAccessibilityAnalysisInput {
   name: String
   landCoverId: String
   demId: String
+  stackId: String
+  stackPriorities: StackPriorities
   transportNetworkId: String
-  slopeId: String
   waterId: String
   barrierId: String
-  movingSpeedsId: String
+  movingSpeeds: MovingSpeeds
   healthFacilitiesId: String
   invertDirection: Boolean
   maxTravelTime: Int
-  maxSlope: Float
-  priorityRoads: Boolean
-  priorityLandCover: [Int!]
   waterAllTouched: Boolean
   algorithm: AccessmodAccessibilityAnalysisAlgorithm
   knightMove: Boolean
@@ -695,6 +1068,24 @@ type UpdateAccessmodAccessibilityAnalysisResult {
   success: Boolean!
   analysis: AccessmodAccessibilityAnalysis
   errors: [UpdateAccessmodAccessibilityAnalysisError!]!
+}
+
+enum UpdateAccessmodFilesetError {
+  NOT_FOUND
+  NAME_DUPLICATE
+  PERMISSION_DENIED
+}
+
+input UpdateAccessmodFilesetInput {
+  id: String!
+  name: String
+  metadata: AccessmodFilesetMetadata
+}
+
+type UpdateAccessmodFilesetResult {
+  success: Boolean!
+  fileset: AccessmodFileset
+  errors: [UpdateAccessmodFilesetError!]!
 }
 
 enum UpdateAccessmodProjectError {
@@ -707,15 +1098,12 @@ input UpdateAccessmodProjectInput {
   id: String!
   name: String
   description: String
-  crs: Int
-  spatialResolution: Int
-  country: CountryInput
-  extentId: String
 }
 
 enum UpdateAccessmodProjectPermissionError {
   PERMISSION_DENIED
   NOT_FOUND
+  NOT_IMPLEMENTED
 }
 
 input UpdateAccessmodProjectPermissionInput {
@@ -735,9 +1123,30 @@ type UpdateAccessmodProjectResult {
   errors: [UpdateAccessmodProjectError!]!
 }
 
+enum UpdateAccessmodZonalStatisticsError {
+  NOT_FOUND
+  NAME_DUPLICATE
+}
+
+input UpdateAccessmodZonalStatisticsInput {
+  id: String!
+  name: String
+  populationId: String
+  travelTimesId: String
+  boundariesId: String
+  timeThresholds: TimeThresholds
+}
+
+type UpdateAccessmodZonalStatisticsResult {
+  success: Boolean!
+  analysis: AccessmodZonalStatistics
+  errors: [UpdateAccessmodZonalStatisticsError!]!
+}
+
 enum UpdateMembershipError {
   PERMISSION_DENIED
   NOT_FOUND
+  INVALID_ROLE
 }
 
 input UpdateMembershipInput {
@@ -773,8 +1182,29 @@ type User {
   email: String!
   firstName: String
   lastName: String
+  displayName: String!
   avatar: Avatar!
   dateJoined: DateTime!
   lastLogin: DateTime
+}
+
+type WHOBoundary {
+  id: String!
+  name: String!
+  country: Country!
+  administrative_level: Int!
+  parent: String
+  extent: String!
+}
+
+type WHOInfo {
+  region: WHORegion
+  defaultCRS: Int!
+  simplifiedExtent: SimplifiedExtentType
+}
+
+type WHORegion {
+  code: String!
+  name: String!
 }
 

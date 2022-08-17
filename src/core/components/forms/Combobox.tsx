@@ -1,8 +1,9 @@
-import { Combobox as UICombobox } from "@headlessui/react";
-import { CheckIcon, SelectorIcon } from "@heroicons/react/outline";
+import { Combobox as UICombobox, Portal } from "@headlessui/react";
+import { CheckIcon, SelectorIcon, XIcon } from "@heroicons/react/outline";
+import { Modifier } from "@popperjs/core";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
-import { usePopper } from "react-popper";
+import { sameWidthModifier } from "core/helpers/popper";
 import {
   ChangeEvent,
   Fragment,
@@ -14,10 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
-import Input from "./Input";
-import { sameWidthModifier } from "core/helpers/popper";
-import { createPortal } from "react-dom";
-import { Modifier } from "@popperjs/core";
+import { usePopper } from "react-popper";
 
 type ComboboxProps = {
   value: any;
@@ -28,6 +26,13 @@ type ComboboxProps = {
   name?: string;
   disabled?: boolean;
   children: ReactNode;
+  footer?: ({
+    close,
+    clear,
+  }: {
+    close: () => void;
+    clear: () => void;
+  }) => ReactNode;
   loading?: boolean;
   renderIcon?: ({ value }: { value: any }) => ReactElement | undefined | null;
   onOpen?: () => void;
@@ -35,41 +40,28 @@ type ComboboxProps = {
   placeholder?: string;
   displayValue: (value: any) => string;
   withPortal?: boolean;
+  className?: string;
 };
 
 const OptionsWrapper = (props: {
   onOpen?: () => void;
   onClose?: () => void;
-  open: boolean;
-  children: ReactElement;
+  children: ReactNode;
 }) => {
-  const { onOpen, onClose, open, children } = props;
-  const [isMounted, setMounted] = useState(false);
+  const { onOpen, onClose, children } = props;
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    onOpen && onOpen();
+    return onClose;
+  }, [onOpen, onClose]);
 
-  useEffect(() => {
-    // Don't call event handlers if we just mounted the component
-    if (!isMounted) return;
-
-    if (open) {
-      onOpen && onOpen();
-    } else {
-      onClose && onClose();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, onOpen, onClose]);
-
-  return children;
+  return <>{children}</>;
 };
 
 const Classes = {
-  Button:
-    "absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none text-gray-400 hover:text-gray-500",
   Options:
-    "max-h-60 z-10 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm",
+    "max-h-60 z-10 w-full rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm flex flex-col",
+  OptionsList: "overflow-auto flex-1",
 };
 
 const Combobox = (props: ComboboxProps) => {
@@ -78,18 +70,21 @@ const Combobox = (props: ComboboxProps) => {
     required = false,
     withPortal = false,
     children,
+    footer,
     onOpen,
     onClose,
     onInputChange,
     displayValue,
+    className,
     renderIcon,
+    multiple,
     value,
     placeholder,
+    onChange,
     ...delegated
   } = props;
 
   const btnRef = useRef<HTMLButtonElement>(null);
-  const openRef = useRef<boolean>(false);
   const [referenceElement, setReferenceElement] =
     useState<HTMLDivElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLElement | null>(null);
@@ -107,20 +102,12 @@ const Combobox = (props: ComboboxProps) => {
     modifiers,
   });
 
-  const handleFocus = useCallback(() => {
-    // Simulate a click on the button to open the menu ...
-    // ... when the user focuses the input (and do nothing ...
-    // ... when the user already clicked on the button)
-    if (!openRef.current) btnRef.current?.click();
+  const onClear = useCallback(() => {
+    onChange(null);
+  }, [onChange]);
+  const close = useCallback(() => {
+    btnRef.current?.click();
   }, [btnRef]);
-
-  const icon = useMemo(() => {
-    if (loading) {
-      return <Spinner size="xs" />;
-    } else if (renderIcon) {
-      return renderIcon({ value });
-    }
-  }, [loading, renderIcon, value]);
 
   const optionsElement = (
     <UICombobox.Options
@@ -129,40 +116,72 @@ const Combobox = (props: ComboboxProps) => {
       style={styles.popper}
       {...attributes.popper}
     >
-      {({ open }) => {
-        openRef.current = open; // Store the last 'open' value to avoid to "double trigger" the open event
-        return (
-          <OptionsWrapper open={open} onOpen={onOpen} onClose={onClose}>
-            <>{children}</>
-          </OptionsWrapper>
-        );
-      }}
+      <div className={Classes.OptionsList}>
+        <OptionsWrapper onOpen={onOpen} onClose={onClose}>
+          {children}
+        </OptionsWrapper>
+      </div>
+      {footer && footer({ close, clear: onClear })}
     </UICombobox.Options>
   );
+
   return (
-    <UICombobox {...delegated} value={value} as="div" nullable={!required}>
-      <div className="relative" ref={setReferenceElement}>
-        <UICombobox.Input
-          as={Fragment}
-          onChange={onInputChange}
-          displayValue={displayValue}
-        >
-          <Input
-            placeholder={placeholder}
-            onFocus={handleFocus}
-            trailingIcon={
-              <UICombobox.Button className={Classes.Button} ref={btnRef}>
-                {icon ?? (
-                  <SelectorIcon className="h-5 w-5 " aria-hidden="true" />
+    <UICombobox
+      {...delegated}
+      onChange={onChange}
+      value={value}
+      as="div"
+      nullable={!required}
+      multiple={multiple}
+    >
+      {({ open }) => (
+        <div className="relative" ref={setReferenceElement}>
+          <div
+            className={clsx(
+              "form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300",
+              "focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
+              "sm:text-sm",
+              open ? "border-blue-500" : "hover:border-gray-400"
+            )}
+          >
+            <div className="mr-1 flex flex-1 items-center truncate">
+              <UICombobox.Input
+                as={Fragment}
+                onChange={onInputChange}
+                displayValue={displayValue}
+              >
+                <input
+                  className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
+                  autoComplete="off"
+                  placeholder={placeholder}
+                />
+              </UICombobox.Input>
+            </div>
+            {renderIcon && renderIcon({ value })}
+            <UICombobox.Button ref={btnRef}>
+              <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
+                {(multiple ? value?.length > 0 : value) && (
+                  <XIcon
+                    onClick={() => onChange(multiple ? [] : null)}
+                    className="h-4 w-4 cursor-pointer hover:text-gray-500"
+                    aria-hidden="true"
+                  />
                 )}
-              </UICombobox.Button>
-            }
-          />
-        </UICombobox.Input>
-        {typeof window !== "undefined" && withPortal
-          ? createPortal(optionsElement, document.body)
-          : optionsElement}
-      </div>
+                {loading ? (
+                  <Spinner aria-hidden="true" size="sm" />
+                ) : (
+                  <SelectorIcon
+                    className="h-5 w-5 hover:text-gray-500"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+            </UICombobox.Button>
+          </div>
+
+          {withPortal ? <Portal>{optionsElement}</Portal> : optionsElement}
+        </div>
+      )}
     </UICombobox>
   );
 };
@@ -199,7 +218,7 @@ Combobox.CheckOption = function CheckOption(props: CheckOptionsProps) {
       className={({ active }) =>
         clsx(
           "relative cursor-default select-none px-2 py-2",
-          active ? "bg-lochmara text-white" : "text-gray-900",
+          active ? "bg-blue-500 text-white" : "text-gray-900",
           className
         )
       }
@@ -216,7 +235,7 @@ Combobox.CheckOption = function CheckOption(props: CheckOptionsProps) {
             <CheckIcon
               className={clsx(
                 "h-5 w-5",
-                (selected || forceSelected) && !active && "text-lochmara"
+                (selected || forceSelected) && !active && "text-blue-500"
               )}
               aria-hidden="true"
             />

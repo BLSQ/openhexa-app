@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { DateTime, DateTimeOptions } from "luxon";
 import { memo } from "react";
 
@@ -14,7 +15,7 @@ const Time = (props: Props) => {
     <time
       title={datetime.toISO()}
       dateTime={datetime.toISO()}
-      className={props.className}
+      className={clsx("whitespace-nowrap", props.className)}
     >
       {datetime.toLocaleString(props.format ?? DateTime.DATETIME_SHORT)}
     </time>

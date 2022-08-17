@@ -1,7 +1,7 @@
 import { Story } from "@ladle/react";
 import { DocumentDownloadIcon } from "@heroicons/react/outline";
 
-import ButtonComponent, { ButtonProps } from "./components/Button";
+import ButtonComponent, { ButtonProps } from "../components/Button";
 
 interface ButtonStoryProps extends ButtonProps {
   leading: boolean;

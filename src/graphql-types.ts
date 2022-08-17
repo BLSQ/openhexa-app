@@ -13,15 +13,44 @@ export type Scalars = {
   AccessmodFilesetMetadata: any;
   Date: any;
   DateTime: any;
+  MovingSpeeds: any;
+  SimplifiedExtentType: any;
+  StackPriorities: any;
+  TimeThresholds: any;
 };
 
-export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & {
+export type AccessmodAccessRequest = {
+  __typename?: 'AccessmodAccessRequest';
+  acceptedTos: Scalars['Boolean'];
+  createdAt: Scalars['DateTime'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  id: Scalars['String'];
+  lastName: Scalars['String'];
+  status: AccessmodAccessRequestStatus;
+  updatedAt: Scalars['DateTime'];
+};
+
+export type AccessmodAccessRequestPage = {
+  __typename?: 'AccessmodAccessRequestPage';
+  items: Array<AccessmodAccessRequest>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
+export enum AccessmodAccessRequestStatus {
+  Approved = 'APPROVED',
+  Denied = 'DENIED',
+  Pending = 'PENDING'
+}
+
+export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & AccessmodOwnership & {
   __typename?: 'AccessmodAccessibilityAnalysis';
   algorithm?: Maybe<AccessmodAccessibilityAnalysisAlgorithm>;
   author: User;
   authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   barrier?: Maybe<AccessmodFileset>;
-  catchmentAreas?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
   dem?: Maybe<AccessmodFileset>;
   frictionSurface?: Maybe<AccessmodFileset>;
@@ -30,13 +59,12 @@ export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & {
   invertDirection?: Maybe<Scalars['Boolean']>;
   knightMove?: Maybe<Scalars['Boolean']>;
   landCover?: Maybe<AccessmodFileset>;
-  maxSlope?: Maybe<Scalars['Float']>;
   maxTravelTime?: Maybe<Scalars['Int']>;
-  movingSpeeds?: Maybe<AccessmodFileset>;
+  movingSpeeds?: Maybe<Scalars['MovingSpeeds']>;
   name: Scalars['String'];
-  priorityLandCover?: Maybe<Array<Scalars['Int']>>;
-  priorityRoads?: Maybe<Scalars['Boolean']>;
-  slope?: Maybe<AccessmodFileset>;
+  owner?: Maybe<AccessmodOwner>;
+  stack?: Maybe<AccessmodFileset>;
+  stackPriorities?: Maybe<Scalars['StackPriorities']>;
   status: AccessmodAnalysisStatus;
   transportNetwork?: Maybe<AccessmodFileset>;
   travelTimes?: Maybe<AccessmodFileset>;
@@ -87,7 +115,8 @@ export enum AccessmodAnalysisStatus {
 
 export enum AccessmodAnalysisType {
   Accessibility = 'ACCESSIBILITY',
-  GeographicCoverage = 'GEOGRAPHIC_COVERAGE'
+  GeographicCoverage = 'GEOGRAPHIC_COVERAGE',
+  ZonalStatistics = 'ZONAL_STATISTICS'
 }
 
 export type AccessmodFile = {
@@ -101,7 +130,7 @@ export type AccessmodFile = {
   uri: Scalars['String'];
 };
 
-export type AccessmodFileset = {
+export type AccessmodFileset = AccessmodOwnership & {
   __typename?: 'AccessmodFileset';
   author: User;
   authorizedActions: Array<AccessmodFilesetAuthorizedActions>;
@@ -109,7 +138,9 @@ export type AccessmodFileset = {
   files: Array<AccessmodFile>;
   id: Scalars['String'];
   metadata: Scalars['AccessmodFilesetMetadata'];
+  mode: AccessmodFilesetMode;
   name: Scalars['String'];
+  owner?: Maybe<AccessmodOwner>;
   role: AccessmodFilesetRole;
   status: AccessmodFilesetStatus;
   updatedAt: Scalars['DateTime'];
@@ -125,6 +156,11 @@ export enum AccessmodFilesetFormat {
   Raster = 'RASTER',
   Tabular = 'TABULAR',
   Vector = 'VECTOR'
+}
+
+export enum AccessmodFilesetMode {
+  AutomaticAcquisition = 'AUTOMATIC_ACQUISITION',
+  UserInput = 'USER_INPUT'
 }
 
 export type AccessmodFilesetPage = {
@@ -147,29 +183,31 @@ export type AccessmodFilesetRole = {
 
 export enum AccessmodFilesetRoleCode {
   Barrier = 'BARRIER',
-  CatchmentAreas = 'CATCHMENT_AREAS',
+  Boundaries = 'BOUNDARIES',
   Coverage = 'COVERAGE',
   Dem = 'DEM',
   FrictionSurface = 'FRICTION_SURFACE',
   Geometry = 'GEOMETRY',
   HealthFacilities = 'HEALTH_FACILITIES',
   LandCover = 'LAND_COVER',
-  MovingSpeeds = 'MOVING_SPEEDS',
   Population = 'POPULATION',
-  Slope = 'SLOPE',
+  Stack = 'STACK',
   TransportNetwork = 'TRANSPORT_NETWORK',
   TravelTimes = 'TRAVEL_TIMES',
-  Water = 'WATER'
+  Water = 'WATER',
+  ZonalStatistics = 'ZONAL_STATISTICS',
+  ZonalStatisticsTable = 'ZONAL_STATISTICS_TABLE'
 }
 
 export enum AccessmodFilesetStatus {
   Invalid = 'INVALID',
   Pending = 'PENDING',
+  ToAcquire = 'TO_ACQUIRE',
   Valid = 'VALID',
   Validating = 'VALIDATING'
 }
 
-export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & {
+export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & AccessmodOwnership & {
   __typename?: 'AccessmodGeographicCoverageAnalysis';
   anisotropic?: Maybe<Scalars['Boolean']>;
   author: User;
@@ -184,23 +222,32 @@ export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & {
   id: Scalars['String'];
   maxTravelTime?: Maybe<Scalars['Int']>;
   name: Scalars['String'];
+  owner?: Maybe<AccessmodOwner>;
   population?: Maybe<AccessmodFileset>;
   status: AccessmodAnalysisStatus;
   type: AccessmodAnalysisType;
   updatedAt: Scalars['DateTime'];
 };
 
-export type AccessmodProject = {
+export type AccessmodOwner = Team | User;
+
+export type AccessmodOwnership = {
+  owner?: Maybe<AccessmodOwner>;
+};
+
+export type AccessmodProject = AccessmodOwnership & {
   __typename?: 'AccessmodProject';
   author: User;
   authorizedActions: Array<AccessmodProjectAuthorizedActions>;
   country: Country;
   createdAt: Scalars['DateTime'];
   crs: Scalars['Int'];
+  dem?: Maybe<AccessmodFileset>;
   description: Scalars['String'];
-  extent?: Maybe<AccessmodFileset>;
+  extent?: Maybe<Array<Array<Scalars['Float']>>>;
   id: Scalars['String'];
   name: Scalars['String'];
+  owner?: Maybe<AccessmodOwner>;
   permissions: Array<AccessmodProjectPermission>;
   spatialResolution: Scalars['Int'];
   updatedAt: Scalars['DateTime'];
@@ -212,6 +259,13 @@ export enum AccessmodProjectAuthorizedActions {
   CreatePermission = 'CREATE_PERMISSION',
   Delete = 'DELETE',
   Update = 'UPDATE'
+}
+
+export enum AccessmodProjectOrder {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC'
 }
 
 export type AccessmodProjectPage = {
@@ -247,10 +301,140 @@ export type AccessmodProjectPermissionPage = {
   totalPages: Scalars['Int'];
 };
 
+export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & {
+  __typename?: 'AccessmodZonalStatistics';
+  author: User;
+  authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
+  boundaries?: Maybe<AccessmodFileset>;
+  createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  name: Scalars['String'];
+  owner?: Maybe<AccessmodOwner>;
+  population?: Maybe<AccessmodFileset>;
+  status: AccessmodAnalysisStatus;
+  timeThresholds?: Maybe<Scalars['TimeThresholds']>;
+  travelTimes?: Maybe<AccessmodFileset>;
+  type: AccessmodAnalysisType;
+  updatedAt: Scalars['DateTime'];
+  zonalStatisticsGeo?: Maybe<AccessmodFileset>;
+  zonalStatisticsTable?: Maybe<AccessmodFileset>;
+};
+
+export enum AddDhis2DataElementToCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type AddDhis2DataElementToCollectionInput = {
+  collectionId: Scalars['String'];
+  id: Scalars['String'];
+};
+
+export type AddDhis2DataElementToCollectionResult = {
+  __typename?: 'AddDHIS2DataElementToCollectionResult';
+  collection?: Maybe<Collection>;
+  collectionElement?: Maybe<Dhis2DataElementCollectionElement>;
+  element?: Maybe<Dhis2DataElement>;
+  errors: Array<AddDhis2DataElementToCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum AddS3ObjectToCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type AddS3ObjectToCollectionInput = {
+  collectionId: Scalars['String'];
+  id: Scalars['String'];
+};
+
+export type AddS3ObjectToCollectionResult = {
+  __typename?: 'AddS3ObjectToCollectionResult';
+  collection?: Maybe<Collection>;
+  collectionElement?: Maybe<S3ObjectCollectionElement>;
+  element?: Maybe<S3Object>;
+  errors: Array<AddS3ObjectToCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum ApproveAccessmodAccessRequestError {
+  Invalid = 'INVALID'
+}
+
+export type ApproveAccessmodAccessRequestInput = {
+  id: Scalars['String'];
+};
+
+export type ApproveAccessmodAccessRequestResult = {
+  __typename?: 'ApproveAccessmodAccessRequestResult';
+  errors: Array<ApproveAccessmodAccessRequestError>;
+  success: Scalars['Boolean'];
+};
+
+export type AuthorizedActions = {
+  __typename?: 'AuthorizedActions';
+  createCollection: Scalars['Boolean'];
+  createTeam: Scalars['Boolean'];
+};
+
 export type Avatar = {
   __typename?: 'Avatar';
   color: Scalars['String'];
   initials: Scalars['String'];
+};
+
+export type Collection = {
+  __typename?: 'Collection';
+  author?: Maybe<User>;
+  authorizedActions: CollectionAuthorizedActions;
+  countries: Array<Country>;
+  createdAt: Scalars['DateTime'];
+  description?: Maybe<Scalars['String']>;
+  elements: CollectionElementPage;
+  id: Scalars['String'];
+  name: Scalars['String'];
+  tags: Array<Tag>;
+  updatedAt: Scalars['DateTime'];
+};
+
+
+export type CollectionElementsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+export type CollectionAuthorizedActions = {
+  __typename?: 'CollectionAuthorizedActions';
+  canDelete: Scalars['Boolean'];
+  canUpdate: Scalars['Boolean'];
+};
+
+export type CollectionElement = {
+  createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  type: CollectionElementType;
+  updatedAt: Scalars['DateTime'];
+};
+
+export type CollectionElementPage = {
+  __typename?: 'CollectionElementPage';
+  items: Array<CollectionElement>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
+export enum CollectionElementType {
+  DHIS2DataElement = 'D_H_I_S2_DATA_ELEMENT',
+  Empty = 'EMPTY',
+  S3Object = 'S3_OBJECT'
+}
+
+export type CollectionPage = {
+  __typename?: 'CollectionPage';
+  items: Array<Collection>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
 };
 
 export type Country = {
@@ -259,6 +443,7 @@ export type Country = {
   code: Scalars['String'];
   flag: Scalars['String'];
   name: Scalars['String'];
+  whoInfo: WhoInfo;
 };
 
 export type CountryInput = {
@@ -307,6 +492,8 @@ export enum CreateAccessmodFilesetError {
 }
 
 export type CreateAccessmodFilesetInput = {
+  automatic?: InputMaybe<Scalars['Boolean']>;
+  metadata?: InputMaybe<Scalars['AccessmodFilesetMetadata']>;
   name: Scalars['String'];
   projectId: Scalars['String'];
   roleId: Scalars['String'];
@@ -328,13 +515,15 @@ export type CreateAccessmodProjectInput = {
   country: CountryInput;
   crs: Scalars['Int'];
   description?: InputMaybe<Scalars['String']>;
-  extentId?: InputMaybe<Scalars['String']>;
+  extent?: InputMaybe<Array<Array<Scalars['Float']>>>;
   name: Scalars['String'];
   spatialResolution: Scalars['Int'];
 };
 
 export enum CreateAccessmodProjectPermissionError {
+  AlreadyExists = 'ALREADY_EXISTS',
   NotFound = 'NOT_FOUND',
+  NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -359,7 +548,43 @@ export type CreateAccessmodProjectResult = {
   success: Scalars['Boolean'];
 };
 
+export enum CreateAccessmodZonalStatisticsError {
+  NameDuplicate = 'NAME_DUPLICATE'
+}
+
+export type CreateAccessmodZonalStatisticsInput = {
+  name: Scalars['String'];
+  projectId: Scalars['String'];
+};
+
+export type CreateAccessmodZonalStatisticsResult = {
+  __typename?: 'CreateAccessmodZonalStatisticsResult';
+  analysis?: Maybe<AccessmodZonalStatistics>;
+  errors: Array<CreateAccessmodZonalStatisticsError>;
+  success: Scalars['Boolean'];
+};
+
+export enum CreateCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type CreateCollectionInput = {
+  authorId?: InputMaybe<Scalars['String']>;
+  countries?: InputMaybe<Array<CountryInput>>;
+  description?: InputMaybe<Scalars['String']>;
+  name: Scalars['String'];
+  tagIds?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type CreateCollectionResult = {
+  __typename?: 'CreateCollectionResult';
+  collection?: Maybe<Collection>;
+  errors: Array<CreateCollectionError>;
+  success: Scalars['Boolean'];
+};
+
 export enum CreateMembershipError {
+  AlreadyExists = 'ALREADY_EXISTS',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -393,6 +618,40 @@ export type CreateTeamResult = {
   team?: Maybe<Team>;
 };
 
+export type Dhis2DataElement = {
+  __typename?: 'DHIS2DataElement';
+  code: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  instance: Dhis2Instance;
+  name: Scalars['String'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type Dhis2DataElementCollectionElement = CollectionElement & {
+  __typename?: 'DHIS2DataElementCollectionElement';
+  createdAt: Scalars['DateTime'];
+  element: Dhis2DataElement;
+  id: Scalars['String'];
+  type: CollectionElementType;
+  updatedAt: Scalars['DateTime'];
+};
+
+export type Dhis2DataElementPage = {
+  __typename?: 'DHIS2DataElementPage';
+  items: Array<Dhis2DataElement>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
+export type Dhis2Instance = {
+  __typename?: 'DHIS2Instance';
+  id: Scalars['String'];
+  name: Scalars['String'];
+  url?: Maybe<Scalars['String']>;
+};
+
 export enum DeleteAccessmodAnalysisError {
   DeleteFailed = 'DELETE_FAILED',
   NotFound = 'NOT_FOUND'
@@ -408,21 +667,8 @@ export type DeleteAccessmodAnalysisResult = {
   success: Scalars['Boolean'];
 };
 
-export enum DeleteAccessmodFileError {
-  NotFound = 'NOT_FOUND'
-}
-
-export type DeleteAccessmodFileInput = {
-  id: Scalars['String'];
-};
-
-export type DeleteAccessmodFileResult = {
-  __typename?: 'DeleteAccessmodFileResult';
-  errors: Array<DeleteAccessmodFileError>;
-  success: Scalars['Boolean'];
-};
-
 export enum DeleteAccessmodFilesetError {
+  FilesetInUse = 'FILESET_IN_USE',
   NotFound = 'NOT_FOUND'
 }
 
@@ -447,6 +693,7 @@ export type DeleteAccessmodProjectInput = {
 
 export enum DeleteAccessmodProjectPermissionError {
   NotFound = 'NOT_FOUND',
+  NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -463,6 +710,20 @@ export type DeleteAccessmodProjectPermissionResult = {
 export type DeleteAccessmodProjectResult = {
   __typename?: 'DeleteAccessmodProjectResult';
   errors: Array<DeleteAccessmodProjectError>;
+  success: Scalars['Boolean'];
+};
+
+export enum DeleteCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type DeleteCollectionInput = {
+  id: Scalars['String'];
+};
+
+export type DeleteCollectionResult = {
+  __typename?: 'DeleteCollectionResult';
+  errors: Array<DeleteCollectionError>;
   success: Scalars['Boolean'];
 };
 
@@ -493,6 +754,20 @@ export type DeleteTeamInput = {
 export type DeleteTeamResult = {
   __typename?: 'DeleteTeamResult';
   errors: Array<DeleteTeamError>;
+  success: Scalars['Boolean'];
+};
+
+export enum DenyAccessmodAccessRequestError {
+  Invalid = 'INVALID'
+}
+
+export type DenyAccessmodAccessRequestInput = {
+  id: Scalars['String'];
+};
+
+export type DenyAccessmodAccessRequestResult = {
+  __typename?: 'DenyAccessmodAccessRequestResult';
+  errors: Array<DenyAccessmodAccessRequestError>;
   success: Scalars['Boolean'];
 };
 
@@ -535,7 +810,8 @@ export type Me = {
 
 export enum MeAuthorizedActions {
   CreateAccessmodProject = 'CREATE_ACCESSMOD_PROJECT',
-  CreateTeam = 'CREATE_TEAM'
+  CreateTeam = 'CREATE_TEAM',
+  ManageAccessmodAccessRequests = 'MANAGE_ACCESSMOD_ACCESS_REQUESTS'
 }
 
 export type Membership = {
@@ -569,32 +845,59 @@ export enum MembershipRole {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addDHIS2DataElementToCollection: AddDhis2DataElementToCollectionResult;
+  addS3ObjectToCollection: AddS3ObjectToCollectionResult;
+  approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
   createAccessmodFileset: CreateAccessmodFilesetResult;
   createAccessmodProject: CreateAccessmodProjectResult;
   createAccessmodProjectPermission: CreateAccessmodProjectPermissionResult;
+  createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
+  createCollection: CreateCollectionResult;
   createMembership: CreateMembershipResult;
   createTeam: CreateTeamResult;
   deleteAccessmodAnalysis: DeleteAccessmodAnalysisResult;
-  deleteAccessmodFile: DeleteAccessmodFileResult;
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectPermission: DeleteAccessmodProjectPermissionResult;
+  deleteCollection: DeleteCollectionResult;
   deleteMembership: DeleteMembershipResult;
   deleteTeam: DeleteTeamResult;
+  denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   login: LoginResult;
   logout: LogoutResult;
   prepareAccessmodFileDownload: PrepareAccessmodFileDownloadResult;
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
+  prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
+  removeDHIS2DataElementFromCollection: RemoveDhis2DataElementFromCollectionResult;
+  removeS3ObjectFromCollection: RemoveS3ObjectFromCollectionResult;
+  requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
   setPassword: SetPasswordResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
+  updateAccessmodFileset: UpdateAccessmodFilesetResult;
   updateAccessmodProject: UpdateAccessmodProjectResult;
   updateAccessmodProjectPermission: UpdateAccessmodProjectPermissionResult;
+  updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateMembership: UpdateMembershipResult;
   updateTeam: UpdateTeamResult;
+};
+
+
+export type MutationAddDhis2DataElementToCollectionArgs = {
+  input: AddDhis2DataElementToCollectionInput;
+};
+
+
+export type MutationAddS3ObjectToCollectionArgs = {
+  input: AddS3ObjectToCollectionInput;
+};
+
+
+export type MutationApproveAccessmodAccessRequestArgs = {
+  input: ApproveAccessmodAccessRequestInput;
 };
 
 
@@ -604,22 +907,32 @@ export type MutationCreateAccessmodAccessibilityAnalysisArgs = {
 
 
 export type MutationCreateAccessmodFileArgs = {
-  input?: InputMaybe<CreateAccessmodFileInput>;
+  input: CreateAccessmodFileInput;
 };
 
 
 export type MutationCreateAccessmodFilesetArgs = {
-  input?: InputMaybe<CreateAccessmodFilesetInput>;
+  input: CreateAccessmodFilesetInput;
 };
 
 
 export type MutationCreateAccessmodProjectArgs = {
-  input?: InputMaybe<CreateAccessmodProjectInput>;
+  input: CreateAccessmodProjectInput;
 };
 
 
 export type MutationCreateAccessmodProjectPermissionArgs = {
   input: CreateAccessmodProjectPermissionInput;
+};
+
+
+export type MutationCreateAccessmodZonalStatisticsArgs = {
+  input?: InputMaybe<CreateAccessmodZonalStatisticsInput>;
+};
+
+
+export type MutationCreateCollectionArgs = {
+  input: CreateCollectionInput;
 };
 
 
@@ -638,23 +951,23 @@ export type MutationDeleteAccessmodAnalysisArgs = {
 };
 
 
-export type MutationDeleteAccessmodFileArgs = {
-  input?: InputMaybe<DeleteAccessmodFileInput>;
-};
-
-
 export type MutationDeleteAccessmodFilesetArgs = {
-  input?: InputMaybe<DeleteAccessmodFilesetInput>;
+  input: DeleteAccessmodFilesetInput;
 };
 
 
 export type MutationDeleteAccessmodProjectArgs = {
-  input?: InputMaybe<DeleteAccessmodProjectInput>;
+  input: DeleteAccessmodProjectInput;
 };
 
 
 export type MutationDeleteAccessmodProjectPermissionArgs = {
   input: DeleteAccessmodProjectPermissionInput;
+};
+
+
+export type MutationDeleteCollectionArgs = {
+  input: DeleteCollectionInput;
 };
 
 
@@ -665,6 +978,11 @@ export type MutationDeleteMembershipArgs = {
 
 export type MutationDeleteTeamArgs = {
   input: DeleteTeamInput;
+};
+
+
+export type MutationDenyAccessmodAccessRequestArgs = {
+  input: DenyAccessmodAccessRequestInput;
 };
 
 
@@ -679,12 +997,32 @@ export type MutationLoginArgs = {
 
 
 export type MutationPrepareAccessmodFileDownloadArgs = {
-  input?: InputMaybe<PrepareAccessmodFileDownloadInput>;
+  input: PrepareAccessmodFileDownloadInput;
 };
 
 
 export type MutationPrepareAccessmodFileUploadArgs = {
-  input?: InputMaybe<PrepareAccessmodFileUploadInput>;
+  input: PrepareAccessmodFileUploadInput;
+};
+
+
+export type MutationPrepareAccessmodFilesetVisualizationDownloadArgs = {
+  input: PrepareAccessmodFilesetVisualizationDownloadInput;
+};
+
+
+export type MutationRemoveDhis2DataElementFromCollectionArgs = {
+  input: RemoveDhis2DataElementFromCollectionInput;
+};
+
+
+export type MutationRemoveS3ObjectFromCollectionArgs = {
+  input: RemoveS3ObjectFromCollectionInput;
+};
+
+
+export type MutationRequestAccessmodAccessArgs = {
+  input: RequestAccessmodAccessInput;
 };
 
 
@@ -703,13 +1041,23 @@ export type MutationUpdateAccessmodAccessibilityAnalysisArgs = {
 };
 
 
+export type MutationUpdateAccessmodFilesetArgs = {
+  input: UpdateAccessmodFilesetInput;
+};
+
+
 export type MutationUpdateAccessmodProjectArgs = {
-  input?: InputMaybe<UpdateAccessmodProjectInput>;
+  input: UpdateAccessmodProjectInput;
 };
 
 
 export type MutationUpdateAccessmodProjectPermissionArgs = {
   input: UpdateAccessmodProjectPermissionInput;
+};
+
+
+export type MutationUpdateAccessmodZonalStatisticsArgs = {
+  input?: InputMaybe<UpdateAccessmodZonalStatisticsInput>;
 };
 
 
@@ -767,8 +1115,19 @@ export type PrepareAccessmodFileUploadResult = {
   uploadUrl?: Maybe<Scalars['String']>;
 };
 
+export type PrepareAccessmodFilesetVisualizationDownloadInput = {
+  id: Scalars['String'];
+};
+
+export type PrepareAccessmodFilesetVisualizationDownloadResult = {
+  __typename?: 'PrepareAccessmodFilesetVisualizationDownloadResult';
+  success: Scalars['Boolean'];
+  url?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
   __typename?: 'Query';
+  accessmodAccessRequests: AccessmodAccessRequestPage;
   accessmodAnalyses: AccessmodAnalysisPage;
   accessmodAnalysis?: Maybe<AccessmodAnalysis>;
   accessmodFileset?: Maybe<AccessmodFileset>;
@@ -777,11 +1136,21 @@ export type Query = {
   accessmodFilesets: AccessmodFilesetPage;
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
+  boundaries: Array<WhoBoundary>;
+  collection?: Maybe<Collection>;
+  collections: CollectionPage;
   countries: Array<Country>;
+  country?: Maybe<Country>;
   me: Me;
   organizations: Array<Organization>;
   team?: Maybe<Team>;
   teams: TeamPage;
+};
+
+
+export type QueryAccessmodAccessRequestsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -808,6 +1177,7 @@ export type QueryAccessmodFilesetRoleArgs = {
 
 
 export type QueryAccessmodFilesetsArgs = {
+  mode?: InputMaybe<AccessmodFilesetMode>;
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
   projectId: Scalars['String'];
@@ -823,10 +1193,34 @@ export type QueryAccessmodProjectArgs = {
 
 export type QueryAccessmodProjectsArgs = {
   countries?: InputMaybe<Array<Scalars['String']>>;
+  orderBy?: InputMaybe<AccessmodProjectOrder>;
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
   teams?: InputMaybe<Array<Scalars['String']>>;
   term?: InputMaybe<Scalars['String']>;
+};
+
+
+export type QueryBoundariesArgs = {
+  country_code: Scalars['String'];
+  level: Scalars['String'];
+};
+
+
+export type QueryCollectionArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QueryCollectionsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryCountryArgs = {
+  alpha3?: InputMaybe<Scalars['String']>;
+  code?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -841,6 +1235,59 @@ export type QueryTeamsArgs = {
   term?: InputMaybe<Scalars['String']>;
 };
 
+export enum RemoveDhis2DataElementFromCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type RemoveDhis2DataElementFromCollectionInput = {
+  collectionId: Scalars['String'];
+  id: Scalars['String'];
+};
+
+export type RemoveDhis2DataElementFromCollectionResult = {
+  __typename?: 'RemoveDHIS2DataElementFromCollectionResult';
+  collection?: Maybe<Collection>;
+  element?: Maybe<Dhis2DataElement>;
+  errors: Array<RemoveDhis2DataElementFromCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum RemoveS3ObjectFromCollectionError {
+  Invalid = 'INVALID'
+}
+
+export type RemoveS3ObjectFromCollectionInput = {
+  collectionId: Scalars['String'];
+  id: Scalars['String'];
+};
+
+export type RemoveS3ObjectFromCollectionResult = {
+  __typename?: 'RemoveS3ObjectFromCollectionResult';
+  collection?: Maybe<Collection>;
+  element?: Maybe<S3Object>;
+  errors: Array<RemoveS3ObjectFromCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum RequestAccessmodAccessError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  Invalid = 'INVALID',
+  MustAcceptTos = 'MUST_ACCEPT_TOS'
+}
+
+export type RequestAccessmodAccessInput = {
+  acceptTos: Scalars['Boolean'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
+};
+
+export type RequestAccessmodAccessInputResult = {
+  __typename?: 'RequestAccessmodAccessInputResult';
+  errors: Array<RequestAccessmodAccessError>;
+  success: Scalars['Boolean'];
+};
+
 export type ResetPasswordInput = {
   email: Scalars['String'];
 };
@@ -848,6 +1295,48 @@ export type ResetPasswordInput = {
 export type ResetPasswordResult = {
   __typename?: 'ResetPasswordResult';
   success: Scalars['Boolean'];
+};
+
+export type S3Bucket = {
+  __typename?: 'S3Bucket';
+  createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  name: Scalars['String'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type S3Object = {
+  __typename?: 'S3Object';
+  bucket: S3Bucket;
+  collections: Array<Collection>;
+  createdAt: Scalars['DateTime'];
+  etag: Scalars['String'];
+  filename: Scalars['String'];
+  id: Scalars['String'];
+  key: Scalars['String'];
+  lastModified: Scalars['DateTime'];
+  parentKey: Scalars['String'];
+  size: Scalars['Int'];
+  storageClass: Scalars['String'];
+  type: Scalars['String'];
+  updatedAt: Scalars['DateTime'];
+};
+
+export type S3ObjectCollectionElement = CollectionElement & {
+  __typename?: 'S3ObjectCollectionElement';
+  createdAt: Scalars['DateTime'];
+  element: S3Object;
+  id: Scalars['String'];
+  type: CollectionElementType;
+  updatedAt: Scalars['DateTime'];
+};
+
+export type S3ObjectPage = {
+  __typename?: 'S3ObjectPage';
+  items: Array<S3Object>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
 };
 
 export enum SetPasswordError {
@@ -868,6 +1357,12 @@ export type SetPasswordResult = {
   __typename?: 'SetPasswordResult';
   error?: Maybe<SetPasswordError>;
   success: Scalars['Boolean'];
+};
+
+export type Tag = {
+  __typename?: 'Tag';
+  id: Scalars['String'];
+  name: Scalars['String'];
 };
 
 export type Team = {
@@ -914,13 +1409,11 @@ export type UpdateAccessmodAccessibilityAnalysisInput = {
   invertDirection?: InputMaybe<Scalars['Boolean']>;
   knightMove?: InputMaybe<Scalars['Boolean']>;
   landCoverId?: InputMaybe<Scalars['String']>;
-  maxSlope?: InputMaybe<Scalars['Float']>;
   maxTravelTime?: InputMaybe<Scalars['Int']>;
-  movingSpeedsId?: InputMaybe<Scalars['String']>;
+  movingSpeeds?: InputMaybe<Scalars['MovingSpeeds']>;
   name?: InputMaybe<Scalars['String']>;
-  priorityLandCover?: InputMaybe<Array<Scalars['Int']>>;
-  priorityRoads?: InputMaybe<Scalars['Boolean']>;
-  slopeId?: InputMaybe<Scalars['String']>;
+  stackId?: InputMaybe<Scalars['String']>;
+  stackPriorities?: InputMaybe<Scalars['StackPriorities']>;
   transportNetworkId?: InputMaybe<Scalars['String']>;
   waterAllTouched?: InputMaybe<Scalars['Boolean']>;
   waterId?: InputMaybe<Scalars['String']>;
@@ -933,6 +1426,25 @@ export type UpdateAccessmodAccessibilityAnalysisResult = {
   success: Scalars['Boolean'];
 };
 
+export enum UpdateAccessmodFilesetError {
+  NameDuplicate = 'NAME_DUPLICATE',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdateAccessmodFilesetInput = {
+  id: Scalars['String'];
+  metadata?: InputMaybe<Scalars['AccessmodFilesetMetadata']>;
+  name?: InputMaybe<Scalars['String']>;
+};
+
+export type UpdateAccessmodFilesetResult = {
+  __typename?: 'UpdateAccessmodFilesetResult';
+  errors: Array<UpdateAccessmodFilesetError>;
+  fileset?: Maybe<AccessmodFileset>;
+  success: Scalars['Boolean'];
+};
+
 export enum UpdateAccessmodProjectError {
   NameDuplicate = 'NAME_DUPLICATE',
   NotFound = 'NOT_FOUND',
@@ -940,17 +1452,14 @@ export enum UpdateAccessmodProjectError {
 }
 
 export type UpdateAccessmodProjectInput = {
-  country?: InputMaybe<CountryInput>;
-  crs?: InputMaybe<Scalars['Int']>;
   description?: InputMaybe<Scalars['String']>;
-  extentId?: InputMaybe<Scalars['String']>;
   id: Scalars['String'];
   name?: InputMaybe<Scalars['String']>;
-  spatialResolution?: InputMaybe<Scalars['Int']>;
 };
 
 export enum UpdateAccessmodProjectPermissionError {
   NotFound = 'NOT_FOUND',
+  NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -973,7 +1482,29 @@ export type UpdateAccessmodProjectResult = {
   success: Scalars['Boolean'];
 };
 
+export enum UpdateAccessmodZonalStatisticsError {
+  NameDuplicate = 'NAME_DUPLICATE',
+  NotFound = 'NOT_FOUND'
+}
+
+export type UpdateAccessmodZonalStatisticsInput = {
+  boundariesId?: InputMaybe<Scalars['String']>;
+  id: Scalars['String'];
+  name?: InputMaybe<Scalars['String']>;
+  populationId?: InputMaybe<Scalars['String']>;
+  timeThresholds?: InputMaybe<Scalars['TimeThresholds']>;
+  travelTimesId?: InputMaybe<Scalars['String']>;
+};
+
+export type UpdateAccessmodZonalStatisticsResult = {
+  __typename?: 'UpdateAccessmodZonalStatisticsResult';
+  analysis?: Maybe<AccessmodZonalStatistics>;
+  errors: Array<UpdateAccessmodZonalStatisticsError>;
+  success: Scalars['Boolean'];
+};
+
 export enum UpdateMembershipError {
+  InvalidRole = 'INVALID_ROLE',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -1012,9 +1543,33 @@ export type User = {
   __typename?: 'User';
   avatar: Avatar;
   dateJoined: Scalars['DateTime'];
+  displayName: Scalars['String'];
   email: Scalars['String'];
   firstName?: Maybe<Scalars['String']>;
   id: Scalars['String'];
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName?: Maybe<Scalars['String']>;
+};
+
+export type WhoBoundary = {
+  __typename?: 'WHOBoundary';
+  administrative_level: Scalars['Int'];
+  country: Country;
+  extent: Scalars['String'];
+  id: Scalars['String'];
+  name: Scalars['String'];
+  parent?: Maybe<Scalars['String']>;
+};
+
+export type WhoInfo = {
+  __typename?: 'WHOInfo';
+  defaultCRS: Scalars['Int'];
+  region?: Maybe<WhoRegion>;
+  simplifiedExtent?: Maybe<Scalars['SimplifiedExtentType']>;
+};
+
+export type WhoRegion = {
+  __typename?: 'WHORegion';
+  code: Scalars['String'];
+  name: Scalars['String'];
 };

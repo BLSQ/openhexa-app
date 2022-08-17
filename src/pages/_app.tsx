@@ -6,6 +6,7 @@ import { AppPropsWithLayout } from "core/helpers/types";
 import { appWithTranslation } from "next-i18next";
 import NavigationProgress from "nextjs-progressbar";
 import "../styles/globals.css";
+import AlertManager from "core/components/AlertManager";
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
@@ -23,6 +24,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
           <meta name="description" content="" />
         </Head>
         {getLayout(<Component {...pageProps} />)}
+        <AlertManager />
       </ApolloProvider>
     </>
   );
