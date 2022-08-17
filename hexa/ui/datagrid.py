@@ -89,6 +89,12 @@ class Datagrid(metaclass=DatagridMeta):
         return template.render(self.context())
 
     @property
+    def enabled_columns(self):
+        return [
+            column for column in self._meta.columns if column.is_enabled(self.request)
+        ]
+
+    @property
     def template(self):
         return "ui/datagrid/datagrid.html"
 
@@ -96,7 +102,7 @@ class Datagrid(metaclass=DatagridMeta):
         rows = []
         for item in self.page:
             bound_columns = []
-            for column in self._meta.columns:
+            for column in self.enabled_columns:
                 bound_columns.append(column.bind(grid=self, model=item))
 
             rows.append(bound_columns)
@@ -104,7 +110,7 @@ class Datagrid(metaclass=DatagridMeta):
             "title": get_item_value(None, "title", container=self, exclude=Column),
             "actions": [action.bind(self) for action in self._meta.actions],
             "rows": rows,
-            "columns": self._meta.columns,
+            "columns": self.enabled_columns,
             "pagination": {
                 "display": self.paginate,
                 "page_parameter": self.page_parameter_name,
@@ -169,6 +175,9 @@ class Column:
         raise NotImplementedError(
             "Each Column class should implement the template() property"
         )
+
+    def is_enabled(self, request: HttpRequest) -> bool:
+        return True
 
     def context(
         self, model: DjangoModel, grid: Datagrid
