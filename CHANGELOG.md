@@ -1,6 +1,34 @@
 Changelog
 =========
 
+Version 0.46
+------------
+
+August 17, 2022
+
+### Added
+
+- Collections mutations
+
+### Fixed
+
+
+
+Version 0.45
+------------
+
+August 8, 2022
+
+### Added
+
+- Collections data model
+- Inject IASO use API token into notebooks
+- Add feature flag for git in notebooks + pass it to notebooks componen
+
+### Fixed
+
+- Fix column's widths of the data grid
+
 Version 0.44
 ------------
 
