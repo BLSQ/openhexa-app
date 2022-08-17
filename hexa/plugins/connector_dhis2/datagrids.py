@@ -1,3 +1,5 @@
+import typing
+
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -21,8 +23,16 @@ from hexa.ui.utils import StaticText
 
 
 class Dhis2Grid(Datagrid):
-    def __init__(self, queryset, *, export_prefix: str = "", **kwargs):
+    def __init__(
+        self,
+        queryset,
+        *,
+        export_prefix: str = "",
+        export_filters: typing.Optional[typing.Mapping[str, str]] = None,
+        **kwargs,
+    ):
         self.export_prefix = export_prefix
+        self.export_filters = export_filters
         super().__init__(queryset, **kwargs)
 
     @property
@@ -42,7 +52,13 @@ class Dhis2Grid(Datagrid):
             f"{self.parent_model.display_name}_{self.export_prefix}_{self.export_suffix}.csv"
         )
 
-        return f"{download_url}?filename={filename}"
+        if self.export_filters is not None:
+            filters = "&".join([f"{k}={v}" for k, v in self.export_filters.items()])
+            qs = f"&{filters}"
+        else:
+            qs = ""
+
+        return f"{download_url}?filename={filename}{qs}"
 
 
 class DataElementGrid(Dhis2Grid):

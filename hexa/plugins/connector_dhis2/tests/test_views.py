@@ -1,3 +1,6 @@
+import csv
+from io import StringIO
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -140,6 +143,7 @@ class ConnectorDhis2Test(TestCase):
             external_access=False,
             favorite=False,
         )
+        cls.DATASET_1.data_elements.add(cls.DATA_ELEMENT_1)
 
     def test_catalog_index_empty_200(self):
         """Bjorn is not a superuser, he can see the catalog but it will be empty."""
@@ -225,6 +229,25 @@ class ConnectorDhis2Test(TestCase):
         self.assertEqual(
             "attachment;filename=test.csv", response.headers["Content-Disposition"]
         )
+        reader = csv.reader(StringIO(response.content.decode("utf-8")), delimiter=",")
+        self.assertEqual(4, len(list(reader)))
+
+    def test_data_element_in_dataset_download_200(self):
+        self.client.force_login(self.USER_KRISTEN)
+        response = self.client.get(
+            reverse(
+                "connector_dhis2:data_element_download",
+                kwargs={"instance_id": self.DHIS2_INSTANCE_PLAY.id},
+            )
+            + f"?filename=test.csv&dataset_id={self.DATASET_1.id}",
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("text/csv", response.headers["Content-Type"])
+        self.assertEqual(
+            "attachment;filename=test.csv", response.headers["Content-Disposition"]
+        )
+        reader = csv.reader(StringIO(response.content.decode("utf-8")), delimiter=",")
+        self.assertEqual(2, len(list(reader)))
 
     def test_data_element_detail_200(self):
         self.client.force_login(self.USER_KRISTEN)
