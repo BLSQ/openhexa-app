@@ -83,10 +83,6 @@ class DataElementGrid(Dhis2Grid):
         return "connector_dhis2:data_element_download"
 
     @property
-    def download_filters(self):
-        return [("dataset_id", self.dataset_id)]
-
-    @property
     def export_suffix(self):
         return "data_elements"
 
