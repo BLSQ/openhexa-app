@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django_countries.fields import Country, CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
@@ -31,7 +32,8 @@ class CollectionManager(models.Manager):
         tags: typing.Sequence[Tag] = None,
         description: str = None,
     ):
-        # TODO: check if has perm & create owner permissions
+        if not principal.has_perm("data_collections.create_collection"):
+            raise PermissionDenied
 
         create_kwargs = {"name": name, "author": author}
         if countries is not None:
@@ -61,9 +63,29 @@ class Collection(Base):
         self,
         principal: UserInterface,
     ):
-        # TODO: check if has perm
+        if not principal.has_perm("data_collections.delete_collection", self):
+            raise PermissionDenied
 
         self.delete()
+
+    def update_if_has_perm(self, principal: User, **kwargs):
+        if not principal.has_perm("data_collections.update_collection", self):
+            raise PermissionDenied
+
+        for key in [
+            "name",
+            "description",
+        ]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        if kwargs.get("countries", None) is not None:
+            self.countries = [c for c in kwargs["countries"] if c is not None]
+
+        if kwargs.get("tags", None) is not None:
+            self.tags = [tag for tag in kwargs["tags"] if tag is not None]
+
+        return self.save()
 
     def get_absolute_url(self) -> str:
         return f"/collections/{self.id}"
