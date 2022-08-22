@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
 
-import hexa.core.models
-from hexa.notebooks.credentials import NotebooksCredentials
-
 
 class HexaCredentials(ABC):
     """This class acts as a interface to implement a container for credentials"""
@@ -19,11 +16,3 @@ class HexaCredentials(ABC):
     @abstractmethod
     def to_dict(self):
         pass
-
-
-def custom_credentials(credentials: NotebooksCredentials):
-
-    env = hexa.core.models.Credentials.objects.filter(user=credentials.user)
-
-    if env:
-        credentials.update_env(env)

@@ -10,4 +10,4 @@ class CoreConfig(CoreAppConfig):
         "core:ready",
     ]
 
-    NOTEBOOKS_CUSTOM_CREDENTIALS = ["hexa.core.credentials.custom_credentials"]
+    NOTEBOOKS_CREDENTIALS = ["hexa.core.credential_hook.custom_credentials"]
