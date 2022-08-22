@@ -6,5 +6,5 @@ class CoreConfig(AppConfig):
     label = "core"
 
     NOTEBOOKS_CUSTOM_CREDENTIALS = [
-        "hexa.core.models.customcredentials.custom_credentials"
+        "hexa.core.credentials.custom_credentials"
     ]

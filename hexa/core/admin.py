@@ -18,3 +18,4 @@ def country_list(obj):
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
     list_display = ("user", 'name', "value")
+    search_fields = ("user", "name")
