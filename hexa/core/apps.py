@@ -1,10 +1,13 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class CoreConfig(AppConfig):
+class CoreConfig(CoreAppConfig):
     name = "hexa.core"
     label = "core"
 
-    NOTEBOOKS_CUSTOM_CREDENTIALS = [
-        "hexa.core.credentials.custom_credentials"
+    ANONYMOUS_URLS = [
+        "core:index",
+        "core:ready",
     ]
+
+    NOTEBOOKS_CUSTOM_CREDENTIALS = ["hexa.core.credentials.custom_credentials"]

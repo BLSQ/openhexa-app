@@ -9,6 +9,7 @@ from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 
+from hexa.app import get_hexa_app_configs
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import (
@@ -34,18 +35,25 @@ def resolve_me(_, info):
     request = info.context["request"]
     principal = request.user
 
+    authorized_actions = []
+
+    # Base authorized actions
+    if principal.has_perm("user_management.create_team"):
+        authorized_actions.append("CREATE_TEAM")
+
+    # Loop over plugin configs and check if we have an extra resolver for this field
+    for app_config in get_hexa_app_configs(connector_only=True):
+        extra_authorized_actions_resolver = (
+            app_config.get_extra_graphql_me_authorized_actions_resolver()
+        )
+        if extra_authorized_actions_resolver is not None:
+            authorized_actions += extra_authorized_actions_resolver(_, info)
+
     return {
         "user": principal if principal.is_authenticated else None,
         "authorized_actions": filter(
             bool,
-            [
-                "CREATE_TEAM"
-                if principal.has_perm("user_management.create_team")
-                else None,
-                "CREATE_ACCESSMOD_PROJECT"
-                if principal.has_perm("connector_accessmod.create_project")
-                else None,
-            ],
+            authorized_actions,
         ),
     }
 
@@ -345,11 +353,20 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
+authorized_actions_object = ObjectType("AuthorizedActions")
+
+
+@authorized_actions_object.field("createTeam")
+def resolve_can_create_team(team: Team, *_, **kwargs):
+    return True
+
+
 identity_bindables = [
     identity_query,
     user_object,
     team_object,
     membership_object,
+    authorized_actions_object,
     organization_object,
     identity_mutations,
 ]

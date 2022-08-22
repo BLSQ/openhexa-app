@@ -1,7 +1,7 @@
 {% if not tags %}
-    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
+    <td class="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500">-</td>
 {% else %}
-    <td class="px-6 py-1 whitespace-nowrap">
+    <td class="px-3 lg:px-6 py-1 whitespace-nowrap">
         <div class="flex items-center gap-1 max-w-xs flex-wrap">
             {% for tag in tags|slice:slice %}
                 {% include "ui/tag.html" with short_label=tag.short_label label=tag.label image=tag.image only %}

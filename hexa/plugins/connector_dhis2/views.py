@@ -134,8 +134,13 @@ def data_element_download(request: HttpRequest, instance_id: uuid.UUID) -> HttpR
         pk=instance_id,
     )
 
+    queryset = instance.dataelement_set.prefetch_indexes().select_related("instance")
+    dataset_id = request.GET.get("dataset_id")
+    if dataset_id is not None:
+        queryset = queryset.filter(dataset__id=dataset_id)
+
     return render_queryset_to_csv(
-        instance.dataelement_set.prefetch_indexes().select_related("instance"),
+        queryset,
         filename=request.GET.get("filename", ""),
         field_names=[
             "instance.display_name",
@@ -503,6 +508,7 @@ def dataset_detail(
         dataset.data_elements.prefetch_indexes().select_related("instance"),
         parent_model=instance,
         export_prefix=dataset.display_name,
+        export_filters={"dataset_id": dataset.id},
         page=int(request.GET.get("page", "1")),
         request=request,
     )

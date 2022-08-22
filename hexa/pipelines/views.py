@@ -12,10 +12,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from hexa.app import get_hexa_app_configs
 from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
 from hexa.pipelines.models import Environment, Index
 
-from ..plugins.app import get_connector_app_configs
 from .credentials import PipelinesCredentials
 from .queue import environment_sync_queue
 
@@ -29,7 +29,9 @@ def index(request: HttpRequest) -> HttpResponse:
     pipelines = (
         Index.objects.filter_for_user(request.user).prefetch_related("object").leaves(1)
     )
-    pipeline_grid = PipelineIndexGrid(pipelines, request=request)
+    pipeline_grid = PipelineIndexGrid(
+        pipelines, page=int(request.GET.get("page", "1")), request=request
+    )
 
     environments = Index.objects.filter_for_user(request.user).roots()
     environment_grid = EnvironmentGrid(environments, request=request)
@@ -99,7 +101,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
 
     pipeline_credentials = PipelinesCredentials(pipeline)
 
-    for app_config in get_connector_app_configs():
+    for app_config in get_hexa_app_configs(connector_only=True):
         credentials_functions = app_config.get_pipelines_credentials()
         for credentials_function in credentials_functions:
             credentials_function(pipeline_credentials)

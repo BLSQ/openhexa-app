@@ -50,10 +50,12 @@ INSTALLED_APPS = [
     "django_ltree",
     "ariadne_django",
     "tailwind",
+    "dpq",
     "hexa.user_management",
     "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
+    "hexa.data_collections",
     "hexa.countries",
     "hexa.visualizations",
     "hexa.notebooks",
@@ -61,13 +63,13 @@ INSTALLED_APPS = [
     "hexa.comments",
     "hexa.tags",
     "hexa.ui",
-    "hexa.plugins.connector_dhis2.apps.Dhis2ConnectorConfig",
-    "hexa.plugins.connector_s3.apps.S3ConnectorConfig",
-    "hexa.plugins.connector_gcs.apps.GCSConnectorConfig",
-    "hexa.plugins.connector_airflow.apps.ConnectorAirflowConfig",
-    "hexa.plugins.connector_postgresql.apps.PostgresqlConnectorConfig",
-    "hexa.plugins.connector_accessmod.apps.AccessmodConnectorConfig",
-    "dpq",
+    "hexa.plugins.connector_dhis2",
+    "hexa.plugins.connector_s3",
+    "hexa.plugins.connector_gcs",
+    "hexa.plugins.connector_airflow",
+    "hexa.plugins.connector_postgresql",
+    "hexa.plugins.connector_accessmod",
+    "hexa.plugins.connector_iaso",
 ]
 
 MIDDLEWARE = [
@@ -131,13 +133,15 @@ AUTH_USER_MODEL = "user_management.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 8,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -341,6 +345,8 @@ else:
 
 # Accessmod settings
 ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
+ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
+ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
 
 # Custom test runner
 TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"

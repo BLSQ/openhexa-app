@@ -1,5 +1,7 @@
 from django.contrib import admin
+
 from .models.customcredentials import Credentials
+
 
 @admin.display
 def country_list(obj):
@@ -15,7 +17,8 @@ def country_list(obj):
 
     return country_list_string
 
+
 @admin.register(Credentials)
 class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("user", 'name', "value")
+    list_display = ("user", "name", "value")
     search_fields = ("user", "name")

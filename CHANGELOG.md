@@ -1,6 +1,56 @@
 Changelog
 =========
 
+Version 0.46
+------------
+
+August 17, 2022
+
+### Added
+
+- Collections mutations
+
+### Fixed
+
+
+
+Version 0.45
+------------
+
+August 8, 2022
+
+### Added
+
+- Collections data model
+- Inject IASO use API token into notebooks
+- Add feature flag for git in notebooks + pass it to notebooks componen
+
+### Fixed
+
+- Fix column's widths of the data grid
+
+Version 0.44
+------------
+
+August 2, 2022
+
+### Added
+
+- First version of Iaso connector plugin
+
+Version 0.43
+------------
+
+July 26, 2022
+
+### Updated
+
+- Refactored S3 credentials and align notebooks / pipelines
+
+### Fixed
+
+- Fixed AccessMod Zonal Stats travel times validation
+
 Version 0.42
 ------------
 

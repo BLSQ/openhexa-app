@@ -10,7 +10,7 @@ from ariadne import (
     UnionType,
     load_schema_from_path,
 )
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.urls import reverse
@@ -25,6 +25,7 @@ from hexa.core.graphql import result_page
 from hexa.countries.models import Country
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
+    AccessRequest,
     Analysis,
     File,
     Fileset,
@@ -35,6 +36,7 @@ from hexa.plugins.connector_accessmod.models import (
     ZonalStatisticsAnalysis,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
+from hexa.plugins.connector_accessmod.utils import send_mail_to_accessmod_superusers
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
@@ -706,10 +708,22 @@ def resolve_accessmod_fileset_roles(_, info, **kwargs):
     return FilesetRole.objects.all()
 
 
+# Analysis
 analysis_interface = InterfaceType("AccessmodAnalysis")
 
 
-# Analysis
+@analysis_interface.type_resolver
+def resolve_analysis_type(analysis: Analysis, *_):
+    if isinstance(analysis, AccessibilityAnalysis):
+        return "AccessmodAccessibilityAnalysis"
+    elif isinstance(analysis, GeographicCoverageAnalysis):
+        return "AccessmodGeographicCoverageAnalysis"
+    elif isinstance(analysis, ZonalStatisticsAnalysis):
+        return "AccessmodZonalStatistics"
+
+    return None
+
+
 @analysis_interface.field("authorizedActions")
 def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -729,18 +743,6 @@ def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kw
             else None,
         ],
     )
-
-
-@analysis_interface.type_resolver
-def resolve_analysis_type(analysis: Analysis, *_):
-    if isinstance(analysis, AccessibilityAnalysis):
-        return "AccessmodAccessibilityAnalysis"
-    elif isinstance(analysis, GeographicCoverageAnalysis):
-        return "AccessmodGeographicCoverageAnalysis"
-    elif isinstance(analysis, ZonalStatisticsAnalysis):
-        return "AccessmodZonalStatistics"
-
-    return None
 
 
 @accessmod_query.field("accessmodAnalysis")
@@ -923,6 +925,98 @@ def resolve_delete_accessmod_analysis(_, info, **kwargs):
         return {"success": False, "errors": ["DELETE_FAILED"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@accessmod_query.field("accessmodAccessRequests")
+def resolve_accessmod_access_requests(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    queryset = AccessRequest.objects.filter_for_user(request.user).order_by(
+        "-created_at"
+    )
+
+    return result_page(
+        queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+    )
+
+
+@accessmod_mutations.field("requestAccessmodAccess")
+@transaction.atomic
+def resolve_request_accessmod_access(_, info, **kwargs):
+    request = info.context["request"]
+    request_input = kwargs["input"]
+
+    try:
+        access_request = AccessRequest.objects.create_if_has_perm(
+            request.user,
+            first_name=request_input["firstName"],
+            last_name=request_input["lastName"],
+            email=request_input["email"],
+            accepted_tos=request_input["acceptTos"],
+        )
+    except (ValidationError, PermissionDenied):
+        return {"success": False, "errors": ["INVALID"]}
+
+    send_mail_to_accessmod_superusers(
+        title=f"AcccessMod : {access_request.display_name} has requested an access to AccessMod.",
+        template_name="connector_accessmod/mails/request_access",
+        template_variables={
+            "access_request": access_request,
+            "manage_url": settings.ACCESSMOD_MANAGE_REQUESTS_URL,
+        },
+    )
+
+    return {"success": True, "errors": []}
+
+
+@accessmod_mutations.field("approveAccessmodAccessRequest")
+@transaction.atomic
+def resolve_approve_accessmod_access_request(_, info, **kwargs):
+    request = info.context["request"]
+    approve_input = kwargs["input"]
+
+    try:
+        access_request = AccessRequest.objects.filter_for_user(request.user).get(
+            id=approve_input["id"]
+        )
+        access_request.approve_if_has_perm(request.user, request=request)
+    except (AccessRequest.DoesNotExist, PermissionDenied, ValidationError):
+        return {"success": False, "errors": ["INVALID"]}
+
+    return {"success": True, "errors": []}
+
+
+@accessmod_mutations.field("denyAccessmodAccessRequest")
+@transaction.atomic
+def resolve_deny_accessmod_access_request(_, info, **kwargs):
+    request = info.context["request"]
+    deny_input = kwargs["input"]
+
+    try:
+        access_request = AccessRequest.objects.filter_for_user(request.user).get(
+            id=deny_input["id"]
+        )
+        access_request.deny_if_has_perm(request.user)
+    except (AccessRequest.DoesNotExist, PermissionDenied, ValidationError):
+        return {"success": False, "errors": ["INVALID"]}
+
+    return {"success": True, "errors": []}
+
+
+def extra_resolve_me_authorized_actions(_, info):
+    """Extra resolver for the "authorizedActions" field on the "Me" type
+    (see base resolver in identity module)
+    """
+
+    request = info.context["request"]
+    principal = request.user
+
+    authorized_actions = []
+    if principal.has_perm("connector_accessmod.create_project"):
+        authorized_actions.append("CREATE_ACCESSMOD_PROJECT")
+    if principal.has_perm("connector_accessmod.manage_access_requests"):
+        authorized_actions.append("MANAGE_ACCESSMOD_ACCESS_REQUESTS")
+
+    return authorized_actions
 
 
 accessmod_bindables = [

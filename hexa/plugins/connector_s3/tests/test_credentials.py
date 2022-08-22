@@ -213,11 +213,9 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         roles_data = self.CLIENT.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
 
-        expected_role_name = "hexa-app-test-p-" + str(self.PIPELINE.id)
+        expected_role_name = "hexa-app-test-s3-p-" + str(self.PIPELINE.id)
         self.assertEqual(expected_role_name, roles_data["Roles"][0]["RoleName"])
-
-        expected_role_path = "/hexa-app-unittest/pipelines/connector_airflow/"
-        self.assertEqual(expected_role_path, roles_data["Roles"][0]["Path"])
+        self.assertEqual("/", roles_data["Roles"][0]["Path"])
 
         # Check that the role has the correct policies
         policy_data = self.CLIENT.get_role_policy(
@@ -263,6 +261,20 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             self.assertGreater(len(credentials.env[key]), 0)
             del credentials.env[key]
 
+        # opaque content in base64
+        self.assertTrue("AWS_S3_FUSE_CONFIG" in credentials.env)
+        aws_fuse_config = json.loads(
+            base64.b64decode(credentials.env["AWS_S3_FUSE_CONFIG"])
+        )
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(aws_fuse_config[key], str)
+            self.assertGreater(len(aws_fuse_config[key]), 0)
+        del credentials.env["AWS_S3_FUSE_CONFIG"]
+
         self.assertEqual(
             {
                 "AWS_DEFAULT_REGION": "eu-central-1",
@@ -284,7 +296,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         # Setup
         self.CLIENT.create_role(
             Path="/hexa-app-unittest/pipelines/",
-            RoleName="hexa-app-test-p-" + str(self.PIPELINE.id),
+            RoleName="hexa-app-test-s3-p-" + str(self.PIPELINE.id),
             AssumeRolePolicyDocument="some document",
         )
 
@@ -301,7 +313,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         self.assertEqual(1, len(roles_data["Roles"]))
 
         # Check that the role has the correct policies
-        expected_role_name = "hexa-app-test-p-" + str(self.PIPELINE.id)
+        expected_role_name = "hexa-app-test-s3-p-" + str(self.PIPELINE.id)
         policy_data = self.CLIENT.get_role_policy(
             RoleName=expected_role_name, PolicyName="s3-access"
         )
@@ -356,6 +368,20 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             self.assertIsInstance(credentials.env[key], str)
             self.assertGreater(len(credentials.env[key]), 0)
             del credentials.env[key]
+
+        # opaque content in base64
+        self.assertTrue("AWS_S3_FUSE_CONFIG" in credentials.env)
+        aws_fuse_config = json.loads(
+            base64.b64decode(credentials.env["AWS_S3_FUSE_CONFIG"])
+        )
+        for key in [
+            "AWS_ACCESS_KEY_ID",
+            "AWS_SECRET_ACCESS_KEY",
+            "AWS_SESSION_TOKEN",
+        ]:
+            self.assertIsInstance(aws_fuse_config[key], str)
+            self.assertGreater(len(aws_fuse_config[key]), 0)
+        del credentials.env["AWS_S3_FUSE_CONFIG"]
 
         self.assertEqual(
             {

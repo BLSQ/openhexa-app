@@ -1,6 +1,7 @@
 from .base import Base
 from .behaviors import WithStatus
 from .choices import DynamicTextChoices
+from .customcredentials import Credentials
 from .indexes import (
     BaseIndex,
     BaseIndexableMixin,
@@ -8,7 +9,6 @@ from .indexes import (
     BaseIndexQuerySet,
 )
 from .postgres import PostgresTextSearchConfigField
-from .customcredentials import Credentials
 
 __all__ = [
     "Base",
@@ -19,5 +19,5 @@ __all__ = [
     "BaseIndexPermission",
     "BaseIndexableMixin",
     "BaseIndexQuerySet",
-    "Credentials"
+    "Credentials",
 ]

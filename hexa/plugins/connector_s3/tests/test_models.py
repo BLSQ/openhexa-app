@@ -1,23 +1,28 @@
 import boto3
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
+from hexa.data_collections.models import Collection
 from hexa.plugins.connector_s3.models import (
     Bucket,
     BucketPermission,
     Credentials,
     Object,
+    ObjectCollectionElement,
 )
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 
-class BucketTest(TestCase):
+class ModelTest(TestCase):
     USER_JIM = None
     USER_JANE = None
     BUCKET_1 = None
     BUCKET_2 = None
+    OBJECT_1 = None
+    OBJECT_2 = None
+    COLLECTION_MALARIA = None
     TEAM = None
 
     @classmethod
@@ -34,6 +39,7 @@ class BucketTest(TestCase):
             is_superuser=False,
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
+        cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria collection")
         cls.api_credentials = Credentials.objects.create(
             username="app-iam-username",
             access_key_id="FOO",
@@ -49,6 +55,15 @@ class BucketTest(TestCase):
         cls.BUCKET_2 = Bucket.objects.create(name="test-bucket-2")
         BucketPermission.objects.create(
             team=cls.TEAM, bucket=cls.BUCKET_2, mode=PermissionMode.VIEWER
+        )
+        cls.OBJECT_1 = Object.objects.create(
+            bucket=cls.BUCKET_2, key="file1.csv", size=100
+        )
+        cls.OBJECT_2 = Object.objects.create(
+            bucket=cls.BUCKET_2, key="file2.csv", size=100
+        )
+        ObjectCollectionElement.objects.create(
+            collection=cls.COLLECTION_MALARIA, element=cls.OBJECT_2
         )
 
     def test_filter_for_user_regular(self):
@@ -172,6 +187,30 @@ class BucketTest(TestCase):
 
         with self.assertRaises(ValidationError):
             bucket.clean()
+
+    def test_is_collectible(self):
+        self.assertTrue(self.OBJECT_1.is_collectible)
+        self.assertTrue(self.OBJECT_2.is_collectible)
+
+    def test_add_object_to_collection(self):
+        self.OBJECT_1.add_to_collection_if_has_perm(
+            self.USER_JIM, self.COLLECTION_MALARIA
+        )
+        self.OBJECT_1.refresh_from_db()
+        self.assertEqual(1, self.OBJECT_1.collections.count())
+        self.assertEqual(self.COLLECTION_MALARIA, self.OBJECT_1.collections.get())
+
+    def test_remove_object_from_collection(self):
+        self.OBJECT_2.remove_from_collection_if_has_perm(
+            self.USER_JIM, self.COLLECTION_MALARIA
+        )
+        self.OBJECT_2.refresh_from_db()
+        self.assertEqual(0, self.OBJECT_2.collections.count())
+
+        with self.assertRaises(ObjectDoesNotExist):
+            self.OBJECT_1.remove_from_collection_if_has_perm(
+                self.USER_JIM, self.COLLECTION_MALARIA
+            )
 
 
 class PermissionTest(TestCase):

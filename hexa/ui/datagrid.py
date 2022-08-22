@@ -89,6 +89,12 @@ class Datagrid(metaclass=DatagridMeta):
         return template.render(self.context())
 
     @property
+    def enabled_columns(self):
+        return [
+            column for column in self._meta.columns if column.is_enabled(self.request)
+        ]
+
+    @property
     def template(self):
         return "ui/datagrid/datagrid.html"
 
@@ -96,7 +102,7 @@ class Datagrid(metaclass=DatagridMeta):
         rows = []
         for item in self.page:
             bound_columns = []
-            for column in self._meta.columns:
+            for column in self.enabled_columns:
                 bound_columns.append(column.bind(grid=self, model=item))
 
             rows.append(bound_columns)
@@ -104,7 +110,7 @@ class Datagrid(metaclass=DatagridMeta):
             "title": get_item_value(None, "title", container=self, exclude=Column),
             "actions": [action.bind(self) for action in self._meta.actions],
             "rows": rows,
-            "columns": self._meta.columns,
+            "columns": self.enabled_columns,
             "pagination": {
                 "display": self.paginate,
                 "page_parameter": self.page_parameter_name,
@@ -151,10 +157,11 @@ class Datagrid(metaclass=DatagridMeta):
 class Column:
     """Base column class (to be extended)"""
 
-    def __init__(self, *, label=None, hide_label=False):
+    def __init__(self, *, label=None, hide_label=False, width=None):
         self._label = label
         self.hide_label = hide_label
         self.name = None
+        self.width = width
 
     def bind(self, grid: Datagrid, model: DjangoModel):
         return BoundColumn(self, grid=grid, model=model)
@@ -168,6 +175,9 @@ class Column:
         raise NotImplementedError(
             "Each Column class should implement the template() property"
         )
+
+    def is_enabled(self, request: HttpRequest) -> bool:
+        return True
 
     def context(
         self, model: DjangoModel, grid: Datagrid
@@ -278,7 +288,14 @@ class LeadingColumn(Column):
 class TextColumn(Column):
     """Simple text column, with one or two rows"""
 
-    def __init__(self, *, text=None, secondary_text=None, translate=True, **kwargs):
+    def __init__(
+        self,
+        *,
+        text=None,
+        secondary_text=None,
+        translate=True,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.text = text
@@ -421,12 +438,13 @@ class DurationColumn(Column):
 
 
 class LinkColumn(Column):
-    def __init__(self, *, text, url=None, **kwargs):
+    def __init__(self, *, text, url=None, width=None, **kwargs):
         super().__init__(**kwargs, hide_label=True)
         self.text = text
         if url is None:
             url = "get_absolute_url"
         self.url = url
+        self.width = width if width is not None else "120"
 
     @property
     def template(self):
@@ -440,9 +458,9 @@ class LinkColumn(Column):
 
 
 class TagColumn(Column):
-    def __init__(self, *, value=None, max_items=2, **kwargs):
+    def __init__(self, *, value=None, max_items=2, width=None, **kwargs):
         super().__init__(**kwargs)
-
+        self.width = width or "170"
         self.value = value
         self.max_items = max_items
 

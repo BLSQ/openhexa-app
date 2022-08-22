@@ -1,0 +1,79 @@
+# Collections
+type Collection {
+    id: String!
+    name: String!
+    author: User
+    countries: [Country!]!
+    tags: [Tag!]!
+    description: String
+    elements (page: Int, perPage: Int): CollectionElementPage!
+    authorizedActions: CollectionAuthorizedActions!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+type CollectionPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [Collection!]!
+}
+type CollectionAuthorizedActions {
+    canUpdate: Boolean!
+    canDelete: Boolean!
+}
+input CreateCollectionInput {
+    name: String!
+    authorId: String
+    countries: [CountryInput!]
+    tagIds: [String!]
+    description: String
+}
+type CreateCollectionResult {
+    success: Boolean!
+    errors: [CreateCollectionError!]!
+    collection: Collection
+}
+enum CreateCollectionError {
+    INVALID
+}
+input DeleteCollectionInput {
+    id: String!
+}
+type DeleteCollectionResult {
+    success: Boolean!
+    errors: [DeleteCollectionError!]!
+}
+enum DeleteCollectionError {
+    INVALID
+}
+extend type Query {
+    collection(id: String!): Collection
+    collections(page: Int, perPage: Int): CollectionPage!
+}
+extend type Mutation {
+    createCollection(input: CreateCollectionInput!): CreateCollectionResult!
+    deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
+}
+
+# Collection items
+interface CollectionElement {
+    id: String!
+    type: CollectionElementType!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+enum CollectionElementType {
+    EMPTY  # Cannot create empty enums
+}
+type CollectionElementPage {
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+    items: [CollectionElement!]!
+}
+
+# App-specific permissions
+extend type AuthorizedActions {
+    createCollection: Boolean!
+}

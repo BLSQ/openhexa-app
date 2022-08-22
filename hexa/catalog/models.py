@@ -1,10 +1,11 @@
 import typing
 import uuid
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.indexes import GinIndex, GistIndex
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -14,6 +15,7 @@ from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
 from hexa.core.search import tokenize
+from hexa.data_collections.models import Collection, CollectionElement
 from hexa.user_management import models as user_management_models
 
 
@@ -175,11 +177,49 @@ class Entry(IndexableMixin, models.Model):
 
     objects = BaseQuerySet.as_manager()
 
+    collections: models.Manager = None
+
     def get_permission_set(self):
         raise NotImplementedError
 
     def populate_index(self, index):
         raise NotImplementedError
+
+    def add_to_collection_if_has_perm(self, principal: User, collection: Collection):
+        # TODO: check if has perm
+
+        if self.collection_item_class is None:
+            raise NotImplementedError
+
+        if self.collection_item_class.objects.filter(
+            element=self, collection=collection
+        ).exists():
+            raise ValidationError("Already in collection")
+
+        return self.collection_item_class.objects.create(
+            element=self, collection=collection
+        )
+
+    def remove_from_collection_if_has_perm(
+        self, principal: User, collection: Collection
+    ):
+        # TODO: check if has perm
+
+        if self.collections is None:
+            raise NotImplementedError
+
+        if not self.collections.contains(collection):
+            raise Collection.DoesNotExist(f"{self} is not in {collection} collection")
+
+        self.collections.remove(collection)
+
+    @property
+    def is_collectible(self):
+        return self.collection_item_class is not None
+
+    @property
+    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionElement]]:
+        return None
 
     def get_absolute_url(self):
         raise NotImplementedError

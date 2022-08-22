@@ -1,4 +1,4 @@
-from hexa.plugins.app import ConnectorAppConfig
+from hexa.app import ConnectorAppConfig
 
 
 class ConnectorAirflowConfig(ConnectorAppConfig):

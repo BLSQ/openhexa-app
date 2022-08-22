@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class UiConfig(AppConfig):
+class UiConfig(CoreAppConfig):
     name = "hexa.ui"
     label = "ui"
 

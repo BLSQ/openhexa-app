@@ -10,7 +10,7 @@ def global_variables(request):
             "index_url": "visualizations:visualization_index",
         },
     ]
-    if request.user.is_authenticated and request.user.has_feature_flag("new_frontend"):
+    if request.user.is_authenticated and request.user.has_feature_flag("collections"):
         menu_items.insert(1, {"title": "Collections", "index_url": "core:collections"})
 
     return {"main_menu_items": menu_items}

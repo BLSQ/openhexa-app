@@ -1,6 +1,6 @@
 <div class="flex flex-col" {% block extra_wrapper_attrs %}{% endblock %}>
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+    <div class="-my-2 sm:-mx-6 lg:-mx-8">
+        <div class="py-2 align-middle inline-block w-full sm:px-6 lg:px-8">
             <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
                 {% if title %}
                     <div class="-ml-4 -mt-4 flex justify-between items-center flex-wrap sm:flex-nowrap py-5 px-4 sm:px-6 bg-white border-b border-gray-200">
@@ -18,31 +18,38 @@
                         {% endif %}
                     </div>
                 {% endif %}
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        {% for column in columns %}
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                {% if column.hide_label %}
-                                    <span class="sr-only">{{ column.label }}</span>
-                                {% else %}
-                                    {{ column.label }}
-                                {% endif %}
-                            </th>
-                        {% endfor %}
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                    {% for row in rows %}
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full divide-y divide-gray-200 table-fixed">
+                        <thead class="bg-gray-50">
                         <tr>
-                            {% for cell in row %}
-                                {{ cell }}
+                            {% for column in columns %}
+                                <th scope="col"
+                                    class="px-3 lg:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    {% if column.width %}
+                                    width="{{ column.width }}"
+                                    {% endif %}
+                                    >
+                                    {% if column.hide_label %}
+                                        <span class="sr-only">{{ column.label }}</span>
+                                    {% else %}
+                                        {{ column.label }}
+                                    {% endif %}
+                                    
+                                </th>
                             {% endfor %}
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        {% for row in rows %}
+                            <tr>
+                                {% for cell in row %}
+                                    {{ cell }}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 {% if pagination.display %}
                     {% include "ui/datagrid/footer_pagination.html" %}
                 {% elif more_url %}

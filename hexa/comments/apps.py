@@ -1,6 +1,6 @@
-from django.apps import AppConfig
+from hexa.app import CoreAppConfig
 
 
-class CommentsConfig(AppConfig):
+class CommentsConfig(CoreAppConfig):
     name = "hexa.comments"
     label = "comments"

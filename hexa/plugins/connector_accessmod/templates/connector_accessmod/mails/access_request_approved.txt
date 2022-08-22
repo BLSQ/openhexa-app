@@ -1,0 +1,5 @@
+Hi !
+
+Your AccessMod access request has been approved.
+
+You set your password here : {{ set_password_url }}?uidb64={{ uid }}&token={{ token }}

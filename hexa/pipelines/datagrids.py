@@ -20,6 +20,7 @@ class EnvironmentGrid(Datagrid):
         secondary_text="content_type_name",
         image_src="symbol",
         detail_url="get_url",
+        width="25%",
     )
     content = TextColumn(text="content")
     tags = TagColumn(value="tags.all")
@@ -35,6 +36,7 @@ class PipelineIndexGrid(Datagrid):
         text="display_name",
         secondary_text="content_type_name",
         image_src="symbol",
+        width="30%",
     )
     location = CountryColumn(value="countries")
     tags = TagColumn(value="tags.all")

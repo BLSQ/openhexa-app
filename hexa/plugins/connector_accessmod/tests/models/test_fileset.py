@@ -1,4 +1,3 @@
-import responses
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import ProtectedError
@@ -28,7 +27,6 @@ class FilesetTest(TestCase):
     WATER_FILESET = None
 
     @classmethod
-    @responses.activate
     def setUpTestData(cls):
         cls.USER_SIMONE = User.objects.create_user(
             "simone@bluesquarehub.com",

@@ -1,7 +1,10 @@
+import typing
+
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.string import generate_filename
+from hexa.data_collections.datagrid import CollectionColumn
 from hexa.plugins.connector_dhis2.models import (
     DataElement,
     DomainType,
@@ -20,8 +23,16 @@ from hexa.ui.utils import StaticText
 
 
 class Dhis2Grid(Datagrid):
-    def __init__(self, queryset, *, export_prefix: str = "", **kwargs):
+    def __init__(
+        self,
+        queryset,
+        *,
+        export_prefix: str = "",
+        export_filters: typing.Optional[typing.Mapping[str, str]] = None,
+        **kwargs,
+    ):
         self.export_prefix = export_prefix
+        self.export_filters = export_filters
         super().__init__(queryset, **kwargs)
 
     @property
@@ -41,7 +52,13 @@ class Dhis2Grid(Datagrid):
             f"{self.parent_model.display_name}_{self.export_prefix}_{self.export_suffix}.csv"
         )
 
-        return f"{download_url}?filename={filename}"
+        if self.export_filters is not None:
+            filters = "&".join([f"{k}={v}" for k, v in self.export_filters.items()])
+            qs = f"&{filters}"
+        else:
+            qs = ""
+
+        return f"{download_url}?filename={filename}{qs}"
 
 
 class DataElementGrid(Dhis2Grid):
@@ -52,10 +69,11 @@ class DataElementGrid(Dhis2Grid):
         secondary_text="get_value_type_display",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
-    tags = TagColumn(value="index.tags.all")
+    collections = CollectionColumn(value="collections.all")
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
@@ -115,6 +133,7 @@ class IndicatorGrid(Dhis2Grid):
         secondary_text="indicator_type.name",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
@@ -144,6 +163,7 @@ class DatasetGrid(Dhis2Grid):
         text="name",
         icon="get_icon",
         translate=False,
+        width="25%",
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
