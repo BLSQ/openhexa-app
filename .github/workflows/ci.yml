@@ -1,15 +1,45 @@
 # This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Lint & Test
+name: Lint, Test & Build
 
 on:
   pull_request:
   push:
     branches: [main]
 
+concurrency: 
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  i18n:
+    name: Validate i18n
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: "npm"
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: node_modules-${{ hashFiles('package-lock.json') }}
+        
+      - run: npm run i18n:extract
+        name: Check I18N strings
+        env:
+          CI: true
+
   ci:
+    name: Lint, Test & Build
     runs-on: ubuntu-latest
 
     steps:
@@ -38,10 +68,6 @@ jobs:
       - run: npm run test:ci
         name: Run Tests
 
-      - run: npm run i18n:extract
-        name: Check I18N strings
-        env:
-          CI: true
 
       - run: npm run build
         name: Build
