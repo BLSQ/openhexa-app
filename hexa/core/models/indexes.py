@@ -7,11 +7,10 @@ from typing import Any, List
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
+from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity
 from django.db import connection, models
-from django.db.models import Field, Q, Value
+from django.db.models import Q, Value
 from django.db.models.functions import Greatest
-from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeManager, TreeQuerySet
@@ -26,28 +25,6 @@ from hexa.core.models.postgres import (
 )
 from hexa.core.search import Token, TokenType, normalize_search_index
 from hexa.user_management import models as user_management_models
-
-
-@Field.register_lookup
-class TrigramWordSimilar(PostgresOperatorLookup):
-    """
-    Those "advanced" lookups and functions are not yet in Django (3.2)
-    We implement them here for now. Hopefully there will be redundant
-    in the next version
-    """
-
-    lookup_name = "trigram_word_similar"
-    postgres_operator = "%%>"
-
-
-class TrigramWordSimilarity(TrigramBase):
-    """
-    Those "advanced" lookups and functions are not yet in Django (3.2)
-    We implement them here for now. Hopefully there will be redundant
-    in the next version
-    """
-
-    function = "WORD_SIMILARITY"
 
 
 class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
