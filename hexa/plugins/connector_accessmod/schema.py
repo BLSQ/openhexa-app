@@ -857,10 +857,15 @@ def resolve_update_accessmod_analysis(_, info, **kwargs):
             "boundariesId",
         ]:
             if fileset_field in update_input:
-                fileset = Fileset.objects.filter_for_user(principal).get(
-                    id=update_input[fileset_field]
+                fileset = (
+                    Fileset.objects.filter_for_user(principal).get(
+                        id=update_input[fileset_field]
+                    )
+                    if update_input[fileset_field] is not None
+                    else None
                 )
-                changes[snakecase(fileset_field)] = fileset.id
+
+                changes[snakecase(fileset_field)] = fileset.id if fileset else None
         if len(changes) > 0:
             try:
                 analysis.update_if_has_perm(principal, **changes)

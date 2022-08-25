@@ -780,6 +780,44 @@ class AnalysisTest(GraphQLTestCase):
             r["data"]["updateAccessmodAccessibilityAnalysis"],
         )
 
+    def test_update_accessmod_accessibility_analysis_null_fileset(self):
+        self.client.force_login(self.USER_1)
+
+        r = self.run_query(
+            """
+                mutation updateAccessmodAccessibilityAnalysis($input: UpdateAccessmodAccessibilityAnalysisInput) {
+                  updateAccessmodAccessibilityAnalysis(input: $input) {
+                    success
+                    analysis {
+                        id
+                        stack {
+                            id
+                        }
+                    }
+                    errors
+                  }
+                }
+            """,
+            {
+                "input": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
+                    "stackId": None,
+                }
+            },
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "analysis": {
+                    "id": str(self.ACCESSIBILITY_ANALYSIS_1.id),
+                    "stack": None,
+                },
+                "errors": [],
+            },
+            r["data"]["updateAccessmodAccessibilityAnalysis"],
+        )
+
     def test_create_accessmod_zonal_statistics_analysis(self):
         self.client.force_login(self.USER_1)
 
