@@ -49,7 +49,7 @@ def webhook(request: HttpRequest) -> HttpResponse:
         except Analysis.DoesNotExist:
             return JsonResponse(
                 {"success": False},
-                status=401,
+                status=400,
             )
 
         with transaction.atomic():
@@ -72,7 +72,7 @@ def webhook(request: HttpRequest) -> HttpResponse:
         except Analysis.DoesNotExist:
             return JsonResponse(
                 {"success": False},
-                status=401,
+                status=400,
             )
 
         try:
