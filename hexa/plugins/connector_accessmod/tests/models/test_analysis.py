@@ -215,6 +215,13 @@ class AnalysisBuildConfTest(TestCase):
             spatial_resolution=100,
             crs=6933,
         )
+        cls.PROJECT_2 = Project.objects.create(
+            name="A project",
+            country="FR",
+            author=None,
+            spatial_resolution=100,
+            crs=6933,
+        )
 
         def make_file(project, role, status):
             fsr = FilesetRole.objects.create(
@@ -260,6 +267,24 @@ class AnalysisBuildConfTest(TestCase):
             dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
             health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
         )
+        cls.ANALYSIS_MINIMAL = AccessibilityAnalysis.objects.create(
+            author=None,
+            project=cls.PROJECT,
+            name="minimal analysis wihtout stack",
+            water=None,
+            transport_network=None,
+            land_cover=None,
+            dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
+            health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
+        )
+        # cls.ANALYSIS_USER_STACK = AccessibilityAnalysis.objects.create(
+        #     author=None,
+        #     project=cls.PROJECT_2,
+        #     name="analysis user stack",
+        #     stack=make_file(cls.PROJECT, "STACK", "VALID"),
+        #     dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
+        #     health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
+        # )
 
     def test_build_dag_noacq(self):
         config = self.ANALYSIS_NOACQ.build_dag_conf("s3://S/")
@@ -292,3 +317,31 @@ class AnalysisBuildConfTest(TestCase):
         self.assertEqual(am_config["country"]["name"], "Belgium")
         self.assertEqual(am_config["spatial_resolution"], 100)
         self.assertEqual(am_config["dem"]["auto"], True)
+
+    def test_build_dag_user_stack(self):
+        fsr = FilesetRole.objects.create(
+            name="STACK",
+            code=FilesetRoleCode.STACK,
+            format=FilesetFormat.RASTER,
+        )
+        fs = Fileset.objects.create(
+            project=self.PROJECT,
+            name=f"{fsr.id}_STACK",
+            status=FilesetStatus.VALID,
+            role=fsr,
+            author=None,
+        )
+        File.objects.create(
+            mime_type="image/geotiff",
+            uri=f"s3://some-bucket/{fs.id}/some-file",
+            fileset=fs,
+        )
+        self.ANALYSIS_MINIMAL.stack = fs
+        self.ANALYSIS_MINIMAL.save()
+
+        self.assertEqual(self.ANALYSIS_MINIMAL.status, AnalysisStatus.READY)
+        config = self.ANALYSIS_MINIMAL.build_dag_conf("s3://S/")
+        am_config = json.loads(base64.b64decode(config["am_config"]))
+
+        self.assertTrue("priorities" not in am_config)
+        self.assertEqual(am_config["stack"]["name"], self.ANALYSIS_MINIMAL.stack.name)
