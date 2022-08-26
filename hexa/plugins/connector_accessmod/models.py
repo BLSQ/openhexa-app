@@ -938,7 +938,7 @@ class AccessibilityAnalysis(Analysis):
 
     def build_dag_conf(self, output_dir: str):
         # if build_dag_conf -> status is ready. so assume:
-        # name, land_cover, transport_network, water, health_facilities, dem
+        # name, land_cover, health_facilities, dem
         # as non null
 
         # force output_dir to end with a "/"
@@ -993,60 +993,6 @@ class AccessibilityAnalysis(Analysis):
                 # FIXME: filter by amenity todo
             }
 
-        if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
-            am_conf["land_cover"] = {
-                "auto": True,
-                "name": self.land_cover.name,
-                "path": output_dir + f"{str(self.land_cover.id)}_land_cover.tif",
-                "labels": self.land_cover.metadata.get("labels", None),
-                # FIXME: you can use 2015 -> 2019 as year for data source
-                "year": 2019,
-            }
-        else:
-            am_conf["land_cover"] = {
-                "auto": False,
-                "name": self.land_cover.name,
-                "path": self.land_cover.primary_uri,
-                "labels": self.land_cover.metadata.get("labels", None),
-            }
-
-        if self.transport_network.status == FilesetStatus.TO_ACQUIRE:
-            am_conf["transport_network"] = {
-                "auto": True,
-                "name": self.transport_network.name,
-                "path": output_dir + f"{str(self.transport_network.id)}_transport.gpkg",
-                "category_column": self.transport_network.metadata.get(
-                    "category_column", None
-                ),
-            }
-        else:
-            am_conf["transport_network"] = {
-                "auto": False,
-                "name": self.transport_network.name,
-                "path": self.transport_network.primary_uri,
-                "category_column": self.transport_network.metadata.get(
-                    "category_column", None
-                ),
-            }
-
-        if self.water:
-            if self.water.status == FilesetStatus.TO_ACQUIRE:
-                am_conf["water"] = {
-                    "auto": True,
-                    "name": self.water.name,
-                    "path": output_dir + f"{str(self.water.id)}_water.gpkg",
-                    "all_touched": self.water_all_touched,
-                }
-            else:
-                am_conf["water"] = {
-                    "auto": False,
-                    "name": self.water.name,
-                    "path": self.water.primary_uri,
-                    "all_touched": self.water_all_touched,
-                }
-        else:
-            am_conf["water"] = None
-
         # Do we have a stack to use or do we need to build it?
         if self.stack:
             am_conf["stack"] = {
@@ -1060,6 +1006,7 @@ class AccessibilityAnalysis(Analysis):
                 {"name": Fileset.objects.get(id=p["id"]).name, "class": p["class"]}
                 for p in self.stack_priorities
             ]
+
             if self.barrier:
                 am_conf["barriers"] = [
                     {
@@ -1070,19 +1017,65 @@ class AccessibilityAnalysis(Analysis):
                     }
                 ]
 
+            if self.land_cover.status == FilesetStatus.TO_ACQUIRE:
+                am_conf["land_cover"] = {
+                    "auto": True,
+                    "name": self.land_cover.name,
+                    "path": output_dir + f"{str(self.land_cover.id)}_land_cover.tif",
+                    "labels": self.land_cover.metadata.get("labels", None),
+                    # FIXME: you can use 2015 -> 2019 as year for data source
+                    "year": 2019,
+                }
+            else:
+                am_conf["land_cover"] = {
+                    "auto": False,
+                    "name": self.land_cover.name,
+                    "path": self.land_cover.primary_uri,
+                    "labels": self.land_cover.metadata.get("labels", None),
+                }
+
+            if self.transport_network.status == FilesetStatus.TO_ACQUIRE:
+                am_conf["transport_network"] = {
+                    "auto": True,
+                    "name": self.transport_network.name,
+                    "path": output_dir
+                    + f"{str(self.transport_network.id)}_transport.gpkg",
+                    "category_column": self.transport_network.metadata.get(
+                        "category_column", None
+                    ),
+                }
+            else:
+                am_conf["transport_network"] = {
+                    "auto": False,
+                    "name": self.transport_network.name,
+                    "path": self.transport_network.primary_uri,
+                    "category_column": self.transport_network.metadata.get(
+                        "category_column", None
+                    ),
+                }
+
+            if self.water:
+                if self.water.status == FilesetStatus.TO_ACQUIRE:
+                    am_conf["water"] = {
+                        "auto": True,
+                        "name": self.water.name,
+                        "path": output_dir + f"{str(self.water.id)}_water.gpkg",
+                        "all_touched": self.water_all_touched,
+                    }
+                else:
+                    am_conf["water"] = {
+                        "auto": False,
+                        "name": self.water.name,
+                        "path": self.water.primary_uri,
+                        "all_touched": self.water_all_touched,
+                    }
+            else:
+                am_conf["water"] = None
+
         dag_conf = {
             # flag interpreted by airflow for starting acquisition pipelines
             "acquisition_healthsites": self.health_facilities.status
             == FilesetStatus.TO_ACQUIRE,
-            "acquisition_copernicus": self.land_cover.status
-            == FilesetStatus.TO_ACQUIRE,
-            "acquisition_osm": (
-                self.transport_network.status == FilesetStatus.TO_ACQUIRE
-                or (
-                    self.water is not None
-                    and self.water.status == FilesetStatus.TO_ACQUIRE
-                )
-            ),
             "acquisition_srtm": self.dem.status == FilesetStatus.TO_ACQUIRE,
             # Overwrite and output_dir repeated: for create report, which
             # doesnt parse am_config
@@ -1091,6 +1084,17 @@ class AccessibilityAnalysis(Analysis):
             # config for accessibility pipeline
             "am_config": base64.b64encode(json.dumps(am_conf).encode()).decode(),
         }
+
+        if self.stack is None:
+            dag_conf.update(
+                {
+                    "acquisition_copernicus": self.land_cover.status
+                    == FilesetStatus.TO_ACQUIRE,
+                    "acquisition_osm": self.transport_network
+                    and self.transport_network.status == FilesetStatus.TO_ACQUIRE
+                    or (self.water and self.water.status == FilesetStatus.TO_ACQUIRE),
+                }
+            )
 
         return dag_conf
 
