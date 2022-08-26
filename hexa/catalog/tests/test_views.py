@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 
-from hexa.core.models import BaseIndexQuerySet
 from hexa.core.test import TestCase
 from hexa.plugins.connector_dhis2.models import (
     DataElement,
@@ -151,8 +150,8 @@ class CatalogTest(TestCase):
 
         response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(0, response.context["results"].count())
+        self.assertIsInstance(response.context["results"], list)
+        self.assertEqual(0, len(response.context["results"]))
 
     def test_catalog_no_query_200(self):
         """No query, no result."""
@@ -161,8 +160,8 @@ class CatalogTest(TestCase):
 
         response = self.client.get(reverse("catalog:search"), data={"query": ""})
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(0, response.context["results"].count())
+        self.assertIsInstance(response.context["results"], list)
+        self.assertEqual(0, len(response.context["results"]))
 
     def test_catalog_search_200(self):
         """As a superuser, Kristen can search for content."""
@@ -171,8 +170,8 @@ class CatalogTest(TestCase):
 
         response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(4, response.context["results"].count())
+        self.assertIsInstance(response.context["results"], list)
+        self.assertEqual(4, len(response.context["results"]))
 
     def test_dhis2_id(self):
         """As a user, Kristen can search for DHIS2 id and found dhis2 objects."""
@@ -182,9 +181,15 @@ class CatalogTest(TestCase):
         for q in ("JFx4YWRDIyK", "O1BccPF5yci", "xaG3AfYG2Ts", "1ceDA1fEcvX"):
             response = self.client.get(reverse("catalog:search"), data={"query": q})
             self.assertEqual(response.status_code, 200)
-            self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+            self.assertIsInstance(response.context["results"], list)
             self.assertTrue(
-                len([i for i in response.context["results"] if i.object.dhis2_id == q])
+                len(
+                    [
+                        i
+                        for i in response.context["results"]
+                        if i["datasource_name"] == self.DHIS2_INSTANCE_PLAY.name
+                    ]
+                )
                 > 0
             )
 
@@ -206,7 +211,7 @@ class CatalogTest(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertEqual(0, len(response.context["results"]))
 
     def test_catalog_search_instance_in_datasource(self):
@@ -221,7 +226,7 @@ class CatalogTest(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertEqual(1, len(response.context["results"]))
 
     def test_catalog_search_instance_elements(self):
@@ -233,7 +238,7 @@ class CatalogTest(TestCase):
             data={"query": "ANC datasource:" + str(self.DHIS2_INSTANCE_PLAY.id)},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertTrue(len(response.context["results"]) > 1)
 
     def test_catalog_search_exact_word(self):
@@ -244,14 +249,14 @@ class CatalogTest(TestCase):
             reverse("catalog:search"), data={"query": "ANC data indicators"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertTrue(len(response.context["results"]) > 1)
 
         response = self.client.get(
             reverse("catalog:search"), data={"query": '"ANC data indicators"'}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertTrue(len(response.context["results"]) == 1)
 
     def test_catalog_search_datasource_200(self):
@@ -261,7 +266,7 @@ class CatalogTest(TestCase):
             reverse("catalog:search"), data={"query": "play type:dhis2_instance"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
+        self.assertIsInstance(response.context["results"], list)
         self.assertEqual(1, len(response.context["results"]))
 
     def test_catalog_search_data_element_200(self):
@@ -271,8 +276,8 @@ class CatalogTest(TestCase):
             reverse("catalog:search"), data={"query": "anc type:dhis2_dataelement"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(2, response.context["results"].count())
+        self.assertIsInstance(response.context["results"], list)
+        self.assertEqual(2, len(response.context["results"]))
 
     def test_catalog_search_indicator_200(self):
         self.client.force_login(self.USER_KRISTEN)
@@ -281,8 +286,8 @@ class CatalogTest(TestCase):
             reverse("catalog:search"), data={"query": "anc type:dhis2_indicator"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.context["results"], BaseIndexQuerySet)
-        self.assertEqual(2, response.context["results"].count())
+        self.assertIsInstance(response.context["results"], list)
+        self.assertEqual(2, len(response.context["results"]))
 
     def test_catalog_quick_search_empty_200(self):
         """Bjorn is not a superuser, he can try to search for content but there will be no results"""

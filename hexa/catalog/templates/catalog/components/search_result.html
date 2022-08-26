@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <li>
-    <a href="{{ result.object.get_absolute_url }}" class="block hover:bg-gray-50">
+    <a href="{{ result.url }}" class="block hover:bg-gray-50">
         <div class="flex items-center px-4 py-4 sm:px-6">
             <div class="min-w-0 flex-1 flex items-center">
                 <div class="flex-shrink-0">
@@ -14,8 +14,10 @@
                             <span class="ml-2 text-xs text-gray-300">{{ result.rank }}</span>
                         </div>
                         <div class="mt-2 text-xs text-gray-500">
-                            <span>{{ result.content_type_name }}</span> /
-                            <span>{{ result.datasource_name }}</span>
+                            <span>{{ result.content_type_name }}</span>
+                            {% if result.datasource_name %}
+                                / <span>{{ result.datasource_name }}</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

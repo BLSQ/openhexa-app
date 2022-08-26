@@ -3,19 +3,55 @@ from __future__ import annotations
 import typing
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
+from django.db.models import Q, Value
+from django.db.models.functions import Greatest
+from django.templatetags.static import static
 from django_countries.fields import Country, CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.search_utils import TokenType, tokenize
 from hexa.tags.models import Tag
 from hexa.user_management import models as user_management_models
 from hexa.user_management.models import User, UserInterface
 
 
 class CollectionQuerySet(BaseQuerySet):
+    def search(self, query: str, min_rank=0.3):
+        qs = self
+
+        tokens = tokenize(query)
+        trigram_query = " ".join([t.value for t in tokens if t.type == TokenType.WORD])
+        if trigram_query:
+            similarity = Greatest(
+                TrigramSimilarity("name", query)
+                + TrigramSimilarity("description", query),
+                TrigramWordSimilarity(query, "name")
+                + TrigramWordSimilarity(query, "description"),
+            )
+            qs = qs.filter(
+                Q(name__trigram_similar=trigram_query)
+                | Q(name__trigram_word_similar=trigram_query)
+                | Q(description__trigram_similar=trigram_query)
+                | Q(description__trigram_word_similar=trigram_query)
+            )
+            qs = qs.annotate(rank=similarity)
+        else:
+            qs = qs.annotate(rank=Value(0.5))
+
+        # filter with exact word
+        for t in tokens:
+            if t.type == TokenType.EXACT_WORD:
+                qs = qs.filter(
+                    Q(name__contains=t.value) | Q(description__contains=t.value)
+                )
+
+        return qs.filter(rank__gte=min_rank).order_by("-rank")
+
     def filter_for_user(self, user: UserInterface):
         return self.all()
 
@@ -89,6 +125,18 @@ class Collection(Base):
 
     def get_absolute_url(self) -> str:
         return f"/collections/{self.id}"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "symbol": static("data_collections/img/collection.svg"),
+            "rank": getattr(self, "rank", None),
+            "app_label": "data_collections",
+            "content_type_name": "Collection",
+            "display_name": self.name,
+            "url": self.get_absolute_url(),
+            "countries": [country.code for country in self.countries],
+        }
 
 
 class CollectionElementQuerySet(BaseQuerySet, InheritanceQuerySet):

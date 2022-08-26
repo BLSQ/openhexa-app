@@ -14,7 +14,7 @@ from dpq.models import BaseJob
 from hexa.core.models import BaseIndex, BaseIndexableMixin, BaseIndexPermission
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.indexes import BaseIndexManager, BaseIndexQuerySet
-from hexa.core.search import tokenize
+from hexa.core.search_utils import tokenize
 from hexa.data_collections.models import Collection, CollectionElement
 from hexa.user_management import models as user_management_models
 

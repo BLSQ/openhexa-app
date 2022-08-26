@@ -1,4 +1,4 @@
-from hexa.core.search import Token, TokenType, tokenize
+from hexa.core.search_utils import Token, TokenType, tokenize
 from hexa.core.test import TestCase
 
 

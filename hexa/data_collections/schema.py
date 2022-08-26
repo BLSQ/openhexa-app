@@ -99,7 +99,7 @@ def resolve_create_collection(_, info, **kwargs):
             name=create_input["name"],
             author=User.objects.get(id=create_input["authorId"])
             if "authorId" in create_input
-            else None,
+            else principal,
             description=create_input.get("description"),
         )
         # TODO: countries & tags
