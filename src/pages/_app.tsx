@@ -7,6 +7,8 @@ import { appWithTranslation } from "next-i18next";
 import NavigationProgress from "nextjs-progressbar";
 import "../styles/globals.css";
 import AlertManager from "core/components/AlertManager";
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
@@ -15,6 +17,13 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
     Component.getLayout ??
     ((page) => <Layout pageProps={pageProps}>{page}</Layout>);
 
+  useEffect(() => {
+    Sentry.setUser(
+      pageProps.user
+        ? { email: pageProps.user.email, id: pageProps.user.id }
+        : null
+    );
+  }, [pageProps.user]);
   return (
     <>
       <NavigationProgress color="#002C5F" height={3} />
