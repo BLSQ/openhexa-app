@@ -53,7 +53,7 @@ urlpatterns = [
     ),
     path("auth/", include("django.contrib.auth.urls")),
     re_path(
-        "^graphql/(\\w+)?/$",
+        r"^graphql/([\w+\/]*?)?$",
         GraphQLView.as_view(
             schema=schema, playground_options={"request.credentials": "include"}
         )
