@@ -277,14 +277,6 @@ class AnalysisBuildConfTest(TestCase):
             dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
             health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
         )
-        # cls.ANALYSIS_USER_STACK = AccessibilityAnalysis.objects.create(
-        #     author=None,
-        #     project=cls.PROJECT_2,
-        #     name="analysis user stack",
-        #     stack=make_file(cls.PROJECT, "STACK", "VALID"),
-        #     dem=make_file(cls.PROJECT, "DEM", "TO_ACQUIRE"),
-        #     health_facilities=make_file(cls.PROJECT, "HEALTH_FACILITIES", "TO_ACQUIRE"),
-        # )
 
     def test_build_dag_noacq(self):
         config = self.ANALYSIS_NOACQ.build_dag_conf("s3://S/")
