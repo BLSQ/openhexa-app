@@ -184,7 +184,7 @@ ENABLE_GRAPHQL = os.environ.get("ENABLE_GRAPHQL", "false") == "true"
 RAW_CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS")
 if RAW_CORS_ALLOWED_ORIGINS is not None:
     CORS_ALLOWED_ORIGINS = RAW_CORS_ALLOWED_ORIGINS.split(",")
-    CORS_URLS_REGEX = r"^/graphql/$"
+    CORS_URLS_REGEX = r"^/graphql/(\w+\/)?$"
     CORS_ALLOW_CREDENTIALS = True
 
 
