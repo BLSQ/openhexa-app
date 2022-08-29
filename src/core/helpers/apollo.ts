@@ -4,6 +4,7 @@ import {
   InMemoryCache,
   NormalizedCacheObject,
   createHttpLink,
+  InMemoryCacheConfig,
 } from "@apollo/client";
 import { onError } from "@apollo/link-error";
 import merge from "deepmerge";
@@ -22,85 +23,82 @@ let apolloClient: CustomApolloClient | undefined;
 
 const { publicRuntimeConfig } = getConfig();
 
+const CACHE_CONFIG: InMemoryCacheConfig = {
+  // possibleTypes must be provided to cache correctly unions and interfaces
+  // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
+  possibleTypes: {
+    CollectionElement: [
+      "DHIS2DataElementCollectionElement",
+      "S3ObjectCollectionElement",
+    ],
+  },
+  typePolicies: {
+    Team: {
+      merge: true,
+      fields: {
+        permissions: {
+          merge: true,
+        },
+      },
+    },
+    User: {
+      merge: true,
+    },
+    Country: {
+      // Country code are unique (at least it should). Let's use that for the cache key
+      keyFields: false,
+    },
+  },
+};
+
 const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
-  const enhancedFetch = (url: RequestInfo, init: RequestInit) => {
-    if (process.env.NODE_ENV === "development") {
-      const body = JSON.parse(init.body as string);
-      console.log(`Fetch ${url}${body.operationName}`);
-    }
-    return fetch(url, {
+  const enhancedFetch = (url: RequestInfo, init: RequestInit) =>
+    fetch(url, {
       ...init,
       headers: {
         ...init.headers,
         cookie: headers?.cookie ?? "",
       },
-    }).then((resp) => resp);
-  };
+    });
+
+  const link = ApolloLink.from([
+    onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.error(
+            `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
+              locations
+            )}, Path: ${path}`
+          )
+        );
+      }
+      if (networkError) {
+        console.error(
+          `[Network error]: ${networkError}. Backend is unreachable. Is it running?`
+        );
+      }
+    }),
+
+    createHttpLink({
+      uri: (operation) =>
+        operation.operationName
+          ? `${publicRuntimeConfig.GRAPHQL_ENDPOINT}${operation.operationName}/`
+          : publicRuntimeConfig.GRAPHQL_ENDPOINT,
+      fetch: enhancedFetch,
+      credentials: "include",
+      fetchOptions: {
+        mode: "cors",
+      },
+    }),
+  ]);
+
+  const cache = new InMemoryCache(CACHE_CONFIG);
+
   return new ApolloClient({
     ssrMode: typeof window === "undefined",
     ssrForceFetchDelay: 100, // in milliseconds
-    link: ApolloLink.from([
-      onError(({ graphQLErrors, networkError }) => {
-        if (graphQLErrors) {
-          graphQLErrors.forEach(({ message, locations, path }) =>
-            console.error(
-              `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
-                locations
-              )}, Path: ${path}`
-            )
-          );
-        }
-        if (networkError) {
-          console.error(
-            `[Network error]: ${networkError}. Backend is unreachable. Is it running?`
-          );
-        }
-      }),
-
-      createHttpLink({
-        uri: publicRuntimeConfig.GRAPHQL_ENDPOINT,
-        fetch: enhancedFetch,
-        credentials: "include",
-        fetchOptions: {
-          mode: "cors",
-        },
-      }),
-    ]),
-    cache: new InMemoryCache({
-      // possibleTypes must be provided to cache correctly unions and interfaces
-      // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
-      possibleTypes: {
-        AccessmodAnalysis: [
-          "AccessmodGeographicCoverageAnalysis",
-          "AccessmodAccessibilityAnalysis",
-          "AccessmodZonalStatistics",
-        ],
-        CollectionElement: [
-          "DHIS2DataElementCollectionElement",
-          "S3ObjectCollectionElement",
-        ],
-      },
-      typePolicies: {
-        Team: {
-          merge: true,
-          fields: {
-            permissions: {
-              merge: true,
-            },
-          },
-        },
-        AccessmodProject: {
-          merge: true,
-        },
-        User: {
-          merge: true,
-        },
-        Country: {
-          // Country code are unique (at least it should). Let's use that for the cache key
-          keyFields: false,
-        },
-      },
-    }),
+    link,
+    cache,
   });
 };
 
@@ -121,14 +119,11 @@ export const getApolloClient = (
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // get hydrated here
   if (initialState) {
-    let existingCache = {};
-    // Get existing cache, loaded during server side data fetching
-    if (typeof window === "undefined") {
-      existingCache = client.extract();
-    }
+    // Get existing cache, loaded during client side data fetching
+    const existingCache = client.extract();
 
     // Merge the existing cache into data passed from getStaticProps/getServerSideProps
-    const data = merge(existingCache, initialState, {
+    const data = merge(initialState, existingCache, {
       // combine arrays using object equality (like in sets)
       arrayMerge: (destinationArray, sourceArray) => [
         ...sourceArray,
@@ -151,6 +146,7 @@ export const getApolloClient = (
 
   return client;
 };
+
 export const addApolloState = (client: ApolloClient<NormalizedCacheObject>) => {
   return { props: { [APOLLO_STATE_PROP_NAME]: client.cache.extract() } };
 };
