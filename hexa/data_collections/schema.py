@@ -11,7 +11,9 @@ from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 from hexa.data_collections.models import Collection, CollectionElement
+from hexa.tags.models import Tag
 from hexa.user_management.models import User
 
 collections_type_defs = load_schema_from_path(
@@ -107,6 +109,48 @@ def resolve_create_collection(_, info, **kwargs):
             "collection": collection,
             "errors": [],
         }
+    except ValidationError:
+        return {
+            "success": False,
+            "collection": None,
+            "errors": ["INVALID"],
+        }
+
+
+@collections_mutations.field("updateCollection")
+def resolve_update_collection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+    update_input = kwargs["input"]
+
+    try:
+        collection = Collection.objects.filter_for_user(principal).get(
+            id=update_input["id"]
+        )
+        collection.update_if_has_perm(
+            principal,
+            name=update_input["name"],
+            author=User.objects.get(id=update_input["authorId"])
+            if "authorId" in update_input
+            else None,
+            countries=[
+                Country.objects.get(code=c["code"]) for c in update_input["countries"]
+            ]
+            if "countries" in update_input
+            else None,
+            tags=[Tag.objects.get(pk=t) for t in update_input["tags"]]
+            if "tags" in update_input
+            else None,
+            description=update_input.get("description"),
+        )
+
+        return {
+            "success": True,
+            "collection": collection,
+            "errors": [],
+        }
+    except Collection.DoesNotExist:
+        return {"success": False, "collection": None, "errors": ["NOT_FOUND"]}
     except ValidationError:
         return {
             "success": False,

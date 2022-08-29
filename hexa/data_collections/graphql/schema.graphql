@@ -36,6 +36,23 @@ type CreateCollectionResult {
 enum CreateCollectionError {
     INVALID
 }
+input UpdateCollectionInput {
+    id: String!
+    name: String
+    authorId: String
+    countries: [CountryInput!]
+    tagIds: [String!]
+    description: String
+}
+type UpdateCollectionResult {
+    success: Boolean!
+    errors: [CreateCollectionError!]!
+    collection: Collection
+}
+enum UpdateCollectionError {
+    NOT_FOUND
+    INVALID
+}
 input DeleteCollectionInput {
     id: String!
 }
@@ -52,6 +69,7 @@ extend type Query {
 }
 extend type Mutation {
     createCollection(input: CreateCollectionInput!): CreateCollectionResult!
+    updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
     deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
 }
 
