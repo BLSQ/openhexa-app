@@ -11,10 +11,10 @@ import {
 import usePrevious from "./usePrevious";
 
 type FormData = {
-  string?: string;
+  [key: string]: string;
 };
 
-type UseFormResult<T, TData = void> = {
+export type FormInstance<T, TData = void> = {
   formData: Partial<T>;
   submitError: string | null;
   previousFormData: Partial<T> | undefined;
@@ -45,14 +45,14 @@ type UseFormOptions<T> = {
   initialState?: Partial<T>;
   getInitialState?: () => Partial<T>;
   onSubmit: (formData: T) => void | Promise<any>;
-  validate?: (values: Partial<T>) => {
+  validate?: (values: Partial<T> & { [key: string]: any }) => {
     [key in keyof T]: FormFieldError;
   };
 };
 
 function useForm<T = FormData, TData = void>(
   options: UseFormOptions<T>
-): UseFormResult<T, TData> {
+): FormInstance<T, TData> {
   const { t } = useTranslation();
   const { initialState = {}, getInitialState, validate, onSubmit } = options;
   const [isSubmitting, setSubmitting] = useState(false);
@@ -70,13 +70,13 @@ function useForm<T = FormData, TData = void>(
   const uniqueRef = useRef<{}>({});
   const internalInitialState = useRef<Partial<T>>();
 
-  const setInitialState = () => {
+  const setInitialState = useCallback(() => {
     if (getInitialState) {
       internalInitialState.current = getInitialState() as T;
     } else {
       internalInitialState.current = initialState ?? {};
     }
-  };
+  }, [internalInitialState, getInitialState, initialState]);
   if (!internalInitialState.current) {
     setInitialState();
   }
@@ -94,7 +94,7 @@ function useForm<T = FormData, TData = void>(
     setInitialState();
     setFormData(internalInitialState.current ?? {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getInitialState, initialState]);
+  }, [setInitialState]);
 
   const handleInputChange: ChangeEventHandler<
     HTMLInputElement | HTMLSelectElement

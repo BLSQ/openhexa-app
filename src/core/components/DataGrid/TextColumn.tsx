@@ -10,7 +10,7 @@ type TextColumnProps = BaseColumnProps & {
 };
 
 export function TextColumn(props: TextColumnProps) {
-  const { textPath, subtextPath, defaultValue } = props;
+  const { textPath, subtextPath, defaultValue = "-" } = props;
   const cell = useCellContext();
 
   const text = useMemo(

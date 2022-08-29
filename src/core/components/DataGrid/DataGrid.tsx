@@ -10,6 +10,7 @@ import { useTranslation } from "next-i18next";
 import React, {
   isValidElement,
   ReactElement,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -38,7 +39,7 @@ export type Column<D extends object = any> = ReactTableColumn<D> & {
 };
 
 interface IDataGridProps {
-  children: ReactElement | ReactElement[];
+  children: ReactNode;
   data: object[];
   manualSortBy?: boolean;
   extraTableProps?: object;

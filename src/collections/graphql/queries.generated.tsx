@@ -3,6 +3,8 @@ import * as Types from '../../graphql-types';
 import { gql } from '@apollo/client';
 import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import { CountryBadge_CountryFragmentDoc } from '../../core/features/CountryBadge.generated';
+import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
+import { CountryPicker_CountryFragmentDoc } from '../../core/features/CountryPicker/CountryPicker.generated';
 import { CollectionElementsTable_ElementFragmentDoc } from '../features/CollectionElementsTable.generated';
 import { CollectionActionsMenu_CollectionFragmentDoc } from '../features/CollectionActionsMenu.generated';
 import * as Apollo from '@apollo/client';
@@ -20,7 +22,7 @@ export type CollectionPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, author?: { __typename?: 'User', displayName: string } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, createdAt: any, updatedAt: any, dhis2: { __typename?: 'DHIS2DataElement', id: string, name: string, code: string, instance: { __typename?: 'DHIS2Instance', id: string, name: string } } } | { __typename?: 'S3ObjectCollectionElement', id: string, createdAt: any, updatedAt: any, s3: { __typename?: 'S3Object', id: string, type: string, size: number, key: string, filename: string, storageClass: string, bucket: { __typename?: 'S3Bucket', id: string, name: string } } }> }, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canDelete: boolean, canUpdate: boolean } } | null };
+export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, createdAt: any, updatedAt: any, dhis2: { __typename?: 'DHIS2DataElement', id: string, name: string, code: string, instance: { __typename?: 'DHIS2Instance', id: string, name: string } } } | { __typename?: 'S3ObjectCollectionElement', id: string, createdAt: any, updatedAt: any, s3: { __typename?: 'S3Object', id: string, type: string, size: number, key: string, filename: string, storageClass: string, bucket: { __typename?: 'S3Bucket', id: string, name: string } } }> }, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canDelete: boolean, canUpdate: boolean } } | null };
 
 
 export const CollectionsPageDocument = gql`
@@ -86,11 +88,13 @@ export const CollectionPageDocument = gql`
     updatedAt
     description
     author {
-      displayName
+      id
+      ...User_user
     }
     countries {
       code
       ...CountryBadge_country
+      ...CountryPicker_country
     }
     tags {
       id
@@ -104,7 +108,9 @@ export const CollectionPageDocument = gql`
     ...CollectionActionsMenu_collection
   }
 }
-    ${CountryBadge_CountryFragmentDoc}
+    ${User_UserFragmentDoc}
+${CountryBadge_CountryFragmentDoc}
+${CountryPicker_CountryFragmentDoc}
 ${Tag_TagFragmentDoc}
 ${CollectionElementsTable_ElementFragmentDoc}
 ${CollectionActionsMenu_CollectionFragmentDoc}`;

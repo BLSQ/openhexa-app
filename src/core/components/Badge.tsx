@@ -1,7 +1,7 @@
 import { ComponentPropsWithoutRef } from "react";
 import clsx from "clsx";
 
-interface Props extends ComponentPropsWithoutRef<"span"> {
+export interface BadgeProps extends ComponentPropsWithoutRef<"span"> {
   size?: "xs" | "sm" | "md";
 }
 
@@ -11,7 +11,12 @@ const Classes = {
   md: "px-2.5 pt-1 text-md",
 };
 
-const Badge = ({ children, className, size = "xs", ...delegated }: Props) => {
+const Badge = ({
+  children,
+  className,
+  size = "xs",
+  ...delegated
+}: BadgeProps) => {
   return (
     <span
       {...delegated}

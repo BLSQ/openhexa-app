@@ -17,9 +17,9 @@ import {
 } from "react";
 import { usePopper } from "react-popper";
 
-type ComboboxProps = {
-  value: any;
-  onChange: (value: any) => void;
+type ComboboxProps<T = {}> = {
+  value: T | T[] | null;
+  onChange: (value: T | T[] | null) => void;
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   multiple?: boolean;
   required?: boolean;
@@ -34,11 +34,15 @@ type ComboboxProps = {
     clear: () => void;
   }) => ReactNode;
   loading?: boolean;
-  renderIcon?: ({ value }: { value: any }) => ReactElement | undefined | null;
+  renderIcon?: ({
+    value,
+  }: {
+    value: T | T[] | null;
+  }) => ReactElement | undefined | null;
   onOpen?: () => void;
   onClose?: () => void;
   placeholder?: string;
-  displayValue: (value: any) => string;
+  displayValue: (value: T | T[] | null) => string;
   withPortal?: boolean;
   className?: string;
 };
@@ -46,7 +50,7 @@ type ComboboxProps = {
 const OptionsWrapper = (props: {
   onOpen?: () => void;
   onClose?: () => void;
-  children: ReactNode;
+  children: ReactElement | ReactNode | undefined;
 }) => {
   const { onOpen, onClose, children } = props;
 
@@ -64,7 +68,7 @@ const Classes = {
   OptionsList: "overflow-auto flex-1",
 };
 
-const Combobox = (props: ComboboxProps) => {
+function Combobox<T>(props: ComboboxProps<T>) {
   const {
     loading = false,
     required = false,
@@ -160,7 +164,7 @@ const Combobox = (props: ComboboxProps) => {
             {renderIcon && renderIcon({ value })}
             <UICombobox.Button ref={btnRef}>
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
-                {(multiple ? value?.length > 0 : value) && (
+                {(Array.isArray(value) ? value?.length > 0 : value) && (
                   <XIcon
                     onClick={() => onChange(multiple ? [] : null)}
                     className="h-4 w-4 cursor-pointer hover:text-gray-500"
@@ -184,7 +188,7 @@ const Combobox = (props: ComboboxProps) => {
       )}
     </UICombobox>
   );
-};
+}
 
 type CheckOptionsProps = {
   value: any;

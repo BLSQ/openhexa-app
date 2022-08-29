@@ -1,0 +1,12 @@
+.ladle-main {
+  @apply bg-gray-50;
+}
+
+.ladle-aside {
+  @apply border-r border-r-gray-200 shadow;
+}
+
+
+.ladle-addons {
+  @apply bottom-3 left-3 m-0;
+}

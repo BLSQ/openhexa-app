@@ -4,3 +4,13 @@ mutation DeleteCollection($input: DeleteCollectionInput!) {
     errors
   }
 }
+
+mutation UpdateCollection($input: UpdateCollectionInput!) {
+  updateCollection(input: $input) {
+    collection {
+      id
+    }
+    success
+    errors
+  }
+}

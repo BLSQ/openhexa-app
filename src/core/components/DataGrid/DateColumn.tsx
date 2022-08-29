@@ -5,18 +5,20 @@ import { useCellContext } from "./helpers";
 
 type DateColumnProps = {
   format?: DateTimeOptions;
+  defaultValue?: string;
 } & BaseColumnProps;
 
-const DateColumn = (props: DateColumnProps) => {
+const DateColumn = ({
+  className,
+  format,
+  defaultValue = "-",
+}: DateColumnProps) => {
   const cell = useCellContext();
 
-  return (
-    <Time
-      className={props.className}
-      datetime={cell.value}
-      format={props.format}
-    />
-  );
+  if (!cell.value) {
+    return defaultValue ? <span>{defaultValue}</span> : null;
+  }
+  return <Time className={className} datetime={cell.value} format={format} />;
 };
 
 export default DateColumn;

@@ -3,7 +3,7 @@ import clsx from "clsx";
 import Badge from "../components/Badge";
 import { CountryBadge_CountryFragment } from "./CountryBadge.generated";
 
-type CountryBadgeProps = {
+export type CountryBadgeProps = {
   onClick?: () => void;
   className?: string;
   country: CountryBadge_CountryFragment;

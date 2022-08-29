@@ -791,6 +791,7 @@ type Mutation {
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
   createCollection(input: CreateCollectionInput!): CreateCollectionResult!
+  updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
   deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
   addDHIS2DataElementToCollection(input: AddDHIS2DataElementToCollectionInput!): AddDHIS2DataElementToCollectionResult!
   removeDHIS2DataElementFromCollection(input: RemoveDHIS2DataElementFromCollectionInput!): RemoveDHIS2DataElementFromCollectionResult!
@@ -1141,6 +1142,26 @@ type UpdateAccessmodZonalStatisticsResult {
   success: Boolean!
   analysis: AccessmodZonalStatistics
   errors: [UpdateAccessmodZonalStatisticsError!]!
+}
+
+enum UpdateCollectionError {
+  NOT_FOUND
+  INVALID
+}
+
+input UpdateCollectionInput {
+  id: String!
+  name: String
+  authorId: String
+  countries: [CountryInput!]
+  tagIds: [String!]
+  description: String
+}
+
+type UpdateCollectionResult {
+  success: Boolean!
+  errors: [CreateCollectionError!]!
+  collection: Collection
 }
 
 enum UpdateMembershipError {

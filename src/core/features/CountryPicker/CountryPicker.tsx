@@ -2,7 +2,6 @@ import { gql, useQuery } from "@apollo/client";
 import Combobox from "core/components/forms/Combobox";
 import { ensureArray } from "core/helpers/array";
 import useDebounce from "core/hooks/useDebounce";
-import { Country } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -15,20 +14,16 @@ type CountryPickerProps = {
   disabled?: boolean;
   placeholder?: string;
   required?: boolean;
-  multiple?: boolean;
   withPortal?: boolean;
-} & (
-  | {
-      multiple: true;
-      value: CountryPicker_CountryFragment[] | null;
-      onChange: (value: CountryPicker_CountryFragment[] | null) => void;
-    }
-  | {
-      multiple?: false;
-      value: CountryPicker_CountryFragment | null;
-      onChange: (value: CountryPicker_CountryFragment | null) => void;
-    }
-);
+  multiple?: boolean;
+  value: CountryPicker_CountryFragment | CountryPicker_CountryFragment[] | null;
+  onChange: (
+    value:
+      | CountryPicker_CountryFragment
+      | CountryPicker_CountryFragment[]
+      | null
+  ) => void;
+};
 
 const CountryPicker = (props: CountryPickerProps) => {
   const { t } = useTranslation();
@@ -69,17 +64,17 @@ const CountryPicker = (props: CountryPickerProps) => {
   }, [data, debouncedQuery]);
 
   return (
-    <Combobox
+    <Combobox<CountryPicker_CountryFragment>
       required={required}
       onChange={onChange}
       loading={loading}
       withPortal={withPortal}
       displayValue={(value) =>
-        multiple
+        value
           ? ensureArray(value)
               .map((v) => v.name)
               .join(", ")
-          : value?.name
+          : ""
       }
       onInputChange={useCallback((event) => setQuery(event.target.value), [])}
       placeholder={placeholder}

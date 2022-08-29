@@ -1,22 +1,17 @@
 import { gql } from "@apollo/client";
 import Avatar, { AvatarProps } from "core/components/Avatar";
 
-import { useMemo } from "react";
 import { UserAvatar_UserFragment } from "./UserAvatar.generated";
 
 type Props = {
   user: UserAvatar_UserFragment;
-} & AvatarProps;
+} & Omit<AvatarProps, "title" | "color" | "initials">;
 
 const UserAvatar = ({ user, ...delegated }: Props) => {
-  const name = useMemo(
-    () => [user.firstName, user.lastName].filter(Boolean).join(" "),
-    [user]
-  );
   return (
     <Avatar
       {...delegated}
-      title={name}
+      title={user.displayName}
       color={user.avatar.color}
       initials={user.avatar.initials}
     />
@@ -26,8 +21,7 @@ const UserAvatar = ({ user, ...delegated }: Props) => {
 UserAvatar.fragments = {
   user: gql`
     fragment UserAvatar_user on User {
-      firstName
-      lastName
+      displayName
       avatar {
         initials
         color
