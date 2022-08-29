@@ -1,7 +1,6 @@
 import typing
 import uuid
 
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.search_utils import tokenize
@@ -9,31 +8,29 @@ from hexa.user_management.models import User
 
 
 def get_search_options(user: User, query: str):
-    from hexa.catalog.models import Datasource
+    from hexa.catalog.models import Index
 
     type_options, datasource_options = [], []
-    for ct in ContentType.objects.filter(app_label__startswith="connector_"):
-        model = ct.model_class()
-        if not model:
-            continue
 
-        if issubclass(model, Datasource):
-            for obj in model.objects.all():
-                datasource_options.append(
-                    {
-                        "value": obj.id,
-                        "label": f"({ct.app_label[10:].capitalize()}) {obj.display_name}",
-                        "selected": f"datasource:{obj.id}" in query,
-                    }
-                )
+    datasources = (
+        Index.objects.filter_for_user(user).roots().select_related("content_type")
+    )
+    for source in datasources:
+        datasource_options.append(
+            {
+                "value": source.id,
+                "label": f"({source.app_label[10:].capitalize()}) {source.object.display_name}",
+                "selected": f"datasource:{source.object.id}" in query,
+            }
+        )
         if hasattr(
-            model, "searchable"
+            source, "searchable"
         ):  # TODO: remove (see comment in datasource_index command)
-            content_code = f"{ct.app_label[10:]}_{ct.model}"
+            content_code = f"{source.app_label[10:]}_{source.model}"
             type_options.append(
                 {
                     "value": f"{content_code}",
-                    "label": ct.name,
+                    "label": source.name,
                     "selected": f"type:{content_code}" in query,
                 }
             )
