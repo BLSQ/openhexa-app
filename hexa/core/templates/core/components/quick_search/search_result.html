@@ -3,15 +3,16 @@
         <div class="flex items-center">
             <div class="min-w-0 flex-1 flex items-center">
                 <div class="flex-shrink-0">
-                    <img class="w-5 " :src="result.symbol" alt="">
+                    <img class="w-5 text-blue-600" :src="result.symbol" alt="">
                 </div>
                 <div class="flex flex-col min-w-0 flex-1 px-4">
                     <div class="flex flex-rows items-center">
-                        <span class="text-sm font-medium text-blue-600" x-text="result.display_name" translate="no"></span>
-                        <span class="ml-2 text-xs text-gray-300" x-text="`#${result.rank}`" translate="no"></span>
+                        <span class="text-sm font-medium text-blue-600" x-text="result.display_name || result.name" translate="no"></span>
+                        <span class="ml-2 text-xs text-gray-300" x-text="`#${Math.round(result.rank*100)/100}`" translate="no"></span>
                     </div>
                     <p class="mt-2 text-xs text-gray-500">
-                        <span x-text="result.content_type_name"></span> /
+                        <span x-text="result.content_type_name"></span> 
+                        <template x-if="result.datasource_name"/>/</template>
                         <span x-text="result.datasource_name"></span>
                     </p>
                 </div>

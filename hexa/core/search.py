@@ -1,62 +1,96 @@
-import re
 import typing
-from dataclasses import dataclass
-from enum import Enum
+import uuid
+
+from django.contrib.contenttypes.models import ContentType
+from django.utils.translation import gettext_lazy as _
+
+from hexa.core.search_utils import tokenize
+from hexa.user_management.models import User
 
 
-class TokenType(Enum):
-    WORD = 1
-    EXACT_WORD = 2
-    FILTER = 3
+def get_search_options(user: User, query: str):
+    from hexa.catalog.models import Datasource
+
+    type_options, datasource_options = [], []
+    for ct in ContentType.objects.filter(app_label__startswith="connector_"):
+        model = ct.model_class()
+        if not model:
+            continue
+
+        if issubclass(model, Datasource):
+            for obj in model.objects.all():
+                datasource_options.append(
+                    {
+                        "value": obj.id,
+                        "label": f"({ct.app_label[10:].capitalize()}) {obj.display_name}",
+                        "selected": f"datasource:{obj.id}" in query,
+                    }
+                )
+        if hasattr(
+            model, "searchable"
+        ):  # TODO: remove (see comment in datasource_index command)
+            content_code = f"{ct.app_label[10:]}_{ct.model}"
+            type_options.append(
+                {
+                    "value": f"{content_code}",
+                    "label": ct.name,
+                    "selected": f"type:{content_code}" in query,
+                }
+            )
+
+    if user.has_feature_flag("collections"):
+        type_options.append(
+            {
+                "value": "collection",
+                "label": _("Collection"),
+                "selected": "type:collection" in query,
+            }
+        )
+    type_options = sorted(type_options, key=lambda e: e["label"])
+    datasource_options = sorted(datasource_options, key=lambda e: e["label"])
+
+    return type_options, datasource_options
 
 
-@dataclass(frozen=True)
-class Token:
-    value: str
-    type: TokenType
+def search(user: User, query: str, size: int = 10) -> typing.List[dict]:
+    from hexa.catalog.models import Index
+    from hexa.data_collections.models import Collection
 
+    if len(query) == 0:
+        return []
 
-def tokenize(
-    input_string: str, valid_filter_types: typing.Sequence[str] = None
-) -> typing.List[Token]:
-    tokens, accu, inside = [], "", False
+    results = []
+    tokens = tokenize(query, ["type", "datasource"])
+    # Filters
+    types = [t.value[5:] for t in tokens if t.value.startswith("type:")]
+    datasources = []
+    for t in tokens:
+        if t.value.startswith("datasource:"):
+            try:
+                datasources.append(uuid.UUID(t.value[11:]))
+            except ValueError:
+                continue
 
-    def is_filter(s):
-        if valid_filter_types is None:
-            return False
-        column_index = s.find(":")
-        return column_index != -1 and s[:column_index] in valid_filter_types
+    # As of now we do not index collections so we also search for collections matching the criteria and
+    # merge the results with the index results.
+    if not (len(types) == 1 and types[0] == "collection"):
+        # Do not search in indexes if what the user wants to see is only collections
+        results = list(
+            Index.objects.filter_for_user(user).filter_for_tokens(tokens)
+            # filter by resources type
+            .filter_for_types(types)
+            # filter by datasources
+            .filter_for_datasources(datasources)
+            # exclude s3keep, artifact of s3content mngt
+            .exclude(external_name=".s3keep")[:size]
+        )
 
-    def push_token():
-        nonlocal accu, tokens, inside
-        if accu:
-            if is_filter(accu):
-                t = TokenType.FILTER
-            elif inside:
-                t = TokenType.EXACT_WORD
-            else:
-                t = TokenType.WORD
-            tokens.append(Token(value=accu.lower(), type=t))
-            accu = ""
+    # Search for collections if it's enabled and user wants to search in all types or only for collections
+    if user.has_feature_flag("collections") and (
+        len(types) == 0 or "collection" in types
+    ):
+        results += list(Collection.objects.filter_for_user(user).search(query)[:size])
+        results.sort(key=lambda x: getattr(x, "rank"), reverse=True)
+        results = results[:size]
 
-    def accumulate(c):
-        nonlocal accu
-        accu += c
-
-    for c in input_string:
-        if c == " ":
-            if inside:
-                accumulate(c)
-            else:
-                push_token()
-        elif c == '"':
-            push_token()
-            inside = not inside
-        else:
-            accumulate(c)
-    push_token()
-    return tokens
-
-
-def normalize_search_index(raw_search: str) -> str:
-    return re.sub(r"( +)", " ", raw_search.replace("\t", " ").lower()).strip()
+    return results

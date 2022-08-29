@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import typing
 import uuid
 from typing import Any, List
@@ -7,11 +8,10 @@ from typing import Any, List
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.search import TrigramBase, TrigramSimilarity
+from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity
 from django.db import connection, models
-from django.db.models import Field, Q, Value
+from django.db.models import Q, Value
 from django.db.models.functions import Greatest
-from django.db.models.lookups import PostgresOperatorLookup
 from django.templatetags.static import static
 from django_countries.fields import CountryField
 from django_ltree.managers import TreeManager, TreeQuerySet
@@ -24,30 +24,10 @@ from hexa.core.models.postgres import (
     PostgresTextSearchConfigField,
     locale_to_text_search_config,
 )
-from hexa.core.search import Token, TokenType, normalize_search_index
+from hexa.core.search_utils import Token, TokenType, normalize_search_index
 from hexa.user_management import models as user_management_models
 
-
-@Field.register_lookup
-class TrigramWordSimilar(PostgresOperatorLookup):
-    """
-    Those "advanced" lookups and functions are not yet in Django (3.2)
-    We implement them here for now. Hopefully there will be redundant
-    in the next version
-    """
-
-    lookup_name = "trigram_word_similar"
-    postgres_operator = "%%>"
-
-
-class TrigramWordSimilarity(TrigramBase):
-    """
-    Those "advanced" lookups and functions are not yet in Django (3.2)
-    We implement them here for now. Hopefully there will be redundant
-    in the next version
-    """
-
-    function = "WORD_SIMILARITY"
+logger = logging.getLogger(__name__)
 
 
 class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
@@ -90,8 +70,11 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
             # We mix similarity and word_similarity to achieve better results in long strings
             # See https://dev.to/moritzrieger/build-a-fuzzy-search-with-postgresql-2029
             similarity = Greatest(
-                TrigramSimilarity("search", trig_query),
-                TrigramWordSimilarity("search", trig_query),
+                TrigramSimilarity(
+                    "search",
+                    trig_query,
+                ),
+                TrigramWordSimilarity(trig_query, "search"),
             )
 
             # Here, we do 2 things:
@@ -203,11 +186,11 @@ class BaseIndex(Base):
         super().save(*args, **kwargs)
 
     @property
-    def app_label(self) -> str:  # TODO: check
+    def app_label(self) -> str:
         return self.content_type.app_label
 
     @property
-    def content_type_name(self) -> str:  # TODO: check
+    def content_type_name(self) -> str:
         return self.content_type.name
 
     @property
@@ -215,13 +198,13 @@ class BaseIndex(Base):
         return self.label or self.external_name
 
     @property
-    def symbol(self) -> str:  # TODO: check
+    def symbol(self) -> str:
         return static(f"{self.app_label}/img/symbol.svg")
 
     def to_dict(self) -> dict[str, Any]:
-        return {  # TODO: adapt to new models
+        return {
             "id": self.id,
-            "rank": getattr(self, "rank"),
+            "rank": getattr(self, "rank", None),
             "app_label": self.app_label,
             "content_type_name": self.content_type_name,
             "display_name": self.display_name,
@@ -314,15 +297,23 @@ class BaseIndexableMixin:
         self.build_index()
 
     def build_index(self):
+        IndexModel: models.Model = self.get_index_model()
         try:
-            index, _ = self.get_index_model().objects.get_or_create(
+            index = IndexModel.objects.get(
                 content_type=ContentType.objects.get_for_model(self),
                 object_id=getattr(self, "id"),
             )
+        except IndexModel.DoesNotExist:
+            index = IndexModel(
+                content_type=ContentType.objects.get_for_model(self),
+                object_id=getattr(self, "id"),
+            )
+
+        try:
             self.populate_index(index)
-        # For some Entry subclasses, we want to skip indexing. This might be an inheritance issue and we
-        # might want to refactor this in the future - or make sure that all entries are indexed.
         except NotImplementedError:
+            # For some Entry subclasses, we want to skip indexing. This might be an inheritance issue and we
+            # might want to refactor this in the future - or make sure that all entries are indexed.
             return
 
         # Add to the search string the fields from the index (hexa metadata)
