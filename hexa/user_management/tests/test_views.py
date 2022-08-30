@@ -42,6 +42,13 @@ class ViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_graphql_anonymous(self):
+        response = self.client.get(reverse("graphql"))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse("graphql") + "MyQuery/")
+        self.assertEqual(response.status_code, 200)
+
 
 class AceptTosTest(TestCase):
     @classmethod
