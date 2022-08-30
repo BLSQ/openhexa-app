@@ -488,6 +488,10 @@ def process_fileset(fileset: Fileset):
         # custom validation by role
         fileset_role_validator[fileset.role.code](fileset, content)
 
+    # end of validation -> not valid
+    if fileset.status == FilesetStatus.INVALID:
+        return
+
     # end of validation -> it's valid
     fileset.status = FilesetStatus.VALID
     fileset.save()
