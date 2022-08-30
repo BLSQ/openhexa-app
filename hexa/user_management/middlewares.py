@@ -13,8 +13,7 @@ from hexa.app import get_hexa_app_configs
 
 @cache
 def get_anonymous_urls():
-    # We don't have an app config for the GraphQL url itself - it is defined in the core urls module
-    anonymous_urls = ["graphql"]
+    anonymous_urls = []
 
     for app_config in get_hexa_app_configs():
         anonymous_urls += getattr(app_config, "ANONYMOUS_URLS", [])
@@ -24,7 +23,8 @@ def get_anonymous_urls():
 
 @cache
 def get_anonymous_prefixes():
-    anonymous_prefixes = ["/auth/reset/"]
+    # We don't have an app config for the GraphQL url itself - it is defined in the core urls module
+    anonymous_prefixes = ["/auth/reset/", "/graphql/"]
     for app_config in apps.get_app_configs():
         anonymous_prefixes += getattr(app_config, "ANONYMOUS_PREFIXES", [])
 
