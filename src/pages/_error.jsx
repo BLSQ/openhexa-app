@@ -42,7 +42,7 @@ ErrorPage.getInitialProps = async (context) => {
   //    Boundaries: https://reactjs.org/docs/error-boundaries.html
 
   if (err) {
-    Sentry.captureException(err);
+    Sentry.captureEvent(err);
 
     // Flushing before returning is necessary if deploying to Vercel, see
     // https://vercel.com/docs/platform/limits#streaming-responses

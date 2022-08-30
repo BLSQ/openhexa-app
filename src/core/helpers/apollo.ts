@@ -52,14 +52,16 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
 };
 
 const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
-  const enhancedFetch = (url: RequestInfo, init: RequestInit) =>
-    fetch(url, {
+  const enhancedFetch = (url: RequestInfo, init: RequestInit) => {
+    return fetch(url, {
       ...init,
       headers: {
         ...init.headers,
         cookie: headers?.cookie ?? "",
+        accept: "application/json",
       },
     });
+  };
 
   const link = ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
