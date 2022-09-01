@@ -22,4 +22,16 @@ class IndexAdmin(admin.ModelAdmin):
 
 @admin.register(IndexPermission)
 class IndexPermissionAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
     list_display = ("index", "team")
+    readonly_fields = (
+        "team",
+        "permission_type",
+        "permission_id",
+        "index",
+    )
