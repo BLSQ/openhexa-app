@@ -1,11 +1,17 @@
 import { SearchIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
+import { logout } from "identity/helpers/auth";
+import { useTranslation } from "next-i18next";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
 
 const Header = ({ user }: { user: any }) => {
+  const router = useRouter();
+  const { t } = useTranslation();
   return (
     <div className="bg-gray-800">
       <div
@@ -31,16 +37,30 @@ const Header = ({ user }: { user: any }) => {
         <Navbar />
         <a className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex">
           <SearchIcon className="h-5" />
-          <span>Search</span>
+          <span>{t("Search")}</span>
           <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
             ⌘K
           </span>
         </a>
-        <Avatar
-          initials={user.avatar.initials}
-          color={user.avatar.color}
-          size="md"
-        />
+        <Menu
+          trigger={
+            <Avatar
+              initials={user.avatar.initials}
+              color={user.avatar.color}
+              size="md"
+            />
+          }
+        >
+          <Menu.Item onClick={() => router.push("/user/account")}>
+            {t("Your account")}
+          </Menu.Item>
+          {/* This needs to be behind a Me.permissions.admin
+          <Menu.Item onClick={() => router.push("/admin")}>
+            {t("Admin")}
+        </Menu.Item> */}
+
+          <Menu.Item onClick={() => logout()}>{t("Sign out")}</Menu.Item>
+        </Menu>
       </div>
     </div>
   );

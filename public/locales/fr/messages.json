@@ -35,8 +35,10 @@
   "Properties": "",
   "S3 Objects": "",
   "Save": "",
+  "Search": "",
   "Select a country": "",
   "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "",
+  "Sign out": "",
   "Size": "",
   "Tabs": "",
   "Tags": "",
@@ -44,5 +46,6 @@
   "Type": "",
   "Type a name for the collection": "",
   "Unable to set collections": "",
-  "View": ""
+  "View": "",
+  "Your account": ""
 }

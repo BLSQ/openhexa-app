@@ -46,7 +46,7 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     },
     Country: {
       // Country code are unique (at least it should). Let's use that for the cache key
-      keyFields: false,
+      keyFields: ["code"],
     },
   },
 };

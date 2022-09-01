@@ -9,6 +9,13 @@ import "../styles/globals.css";
 import AlertManager from "core/components/AlertManager";
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
+import { Settings } from "luxon";
+
+// Set the default locale & timezone to be used on server and client.
+// This should be changed to use the correct lang and tz of the user when it's available.
+// Fixes #OPENHEXA-D7 Hydration error
+Settings.defaultLocale = "en";
+Settings.defaultZone = "Europe/Brussels";
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
