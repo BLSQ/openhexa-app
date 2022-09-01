@@ -153,6 +153,14 @@ class Datasource(IndexableMixin, models.Model):
     def sync(self):
         raise NotImplementedError
 
+    def sync_permissions(self):
+        self.set_index_permissions()
+        index_model = self.get_index_model()
+
+        # Par batch pour ne pas mettre la DB par terre en an ASYNC
+        for child in index_model.objects.filter(path__descendants=self.index.path):
+            child.object.set_index_permissions()
+
     def sync_url(self):
         return reverse(
             "catalog:datasource_sync",

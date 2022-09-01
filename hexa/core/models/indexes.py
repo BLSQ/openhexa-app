@@ -37,13 +37,11 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, user_management_models.User]
     ):
+        user_teams = user_management_models.Team.objects.filter_for_user(user)
+
         return self._filter_for_user_and_query_object(
             user,
-            Q(
-                indexpermission__team__in=user_management_models.Team.objects.filter_for_user(
-                    user
-                )
-            ),
+            Q(indexpermission__team__in=user_teams),
         )
 
     def filter_for_types(self, code_types: List[str]):
@@ -296,6 +294,17 @@ class BaseIndexableMixin:
         getattr(super(), "save")(*args, **kwargs)
         self.build_index()
 
+    def set_index_permissions(self):
+        index = self.index
+        # Clear all existing permissions for this index
+        self.get_permission_model().objects.all().delete()
+
+        # Create new permissions
+        for permission in self.get_permission_set():
+            self.get_permission_model().objects.create(
+                index=index, team=permission.team, permission=permission
+            )
+
     def build_index(self):
         IndexModel: models.Model = self.get_index_model()
         try:
@@ -330,7 +339,4 @@ class BaseIndexableMixin:
 
         index.save()
 
-        for permission in self.get_permission_set():
-            self.get_permission_model().objects.update_or_create(
-                index=index, team=permission.team, defaults={"permission": permission}
-            )
+        self.set_index_permissions()

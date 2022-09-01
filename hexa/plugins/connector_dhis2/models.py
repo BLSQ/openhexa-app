@@ -239,6 +239,7 @@ class InstancePermission(Permission):
 
     def index_object(self):
         self.instance.build_index()
+        self.instance.sync_permissions()
 
     def __str__(self):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"
