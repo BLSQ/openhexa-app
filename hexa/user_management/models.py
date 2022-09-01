@@ -74,7 +74,7 @@ class UserInterface:
 class User(AbstractUser, UserInterface):
     class Meta:
         db_table = "identity_user"
-        ordering = ["first_name", "last_name", "email"]
+        ordering = ["last_name"]
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
