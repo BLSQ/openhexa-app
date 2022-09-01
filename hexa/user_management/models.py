@@ -74,6 +74,7 @@ class UserInterface:
 class User(AbstractUser, UserInterface):
     class Meta:
         db_table = "identity_user"
+        ordering = ["first_name", "last_name", "email"]
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -114,7 +115,10 @@ class User(AbstractUser, UserInterface):
         return self.membership_set.filter(team=team, role=MembershipRole.ADMIN).exists()
 
     def __str__(self):
-        return self.display_name
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip() + f" ({self.email})"
+
+        return self.email
 
 
 class OrganizationType(models.TextChoices):

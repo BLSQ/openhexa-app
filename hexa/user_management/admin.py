@@ -40,6 +40,10 @@ class MembershipInline(admin.TabularInline):
     model = Membership
 
 
+class FeatureFlagInline(admin.TabularInline):
+    model = FeatureFlag
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = (
@@ -53,9 +57,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
-    inlines = [
-        MembershipInline,
-    ]
+    inlines = [MembershipInline, FeatureFlagInline]
     fieldsets = (
         (
             None,
@@ -158,10 +160,6 @@ class TeamAdmin(admin.ModelAdmin):
         return obj.members.count()
 
     members_count.short_description = "Members Count"
-
-
-class FeatureFlagInline(admin.TabularInline):
-    model = FeatureFlag
 
 
 @admin.register(Feature)
