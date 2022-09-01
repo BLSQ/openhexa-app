@@ -119,6 +119,31 @@ npm run i18n:extract
 
 Translations are stored in `public/locales/[lang]/[ns].json`.
 
+## Versioning
+
+This library follows [Semantic Versioning](http://semver.org/).
+Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with the next release based on the [commit messages of the new commits](#how-should-i-write-my-commits).
+
+
+Triggering a new release is done by merging the pull request created by release-please. The result is:
+* the version in package.json is bumped
+* the changelog.md is updated with the commit messages
+* a github release is created
+* a docker image is built for the new tag and pushed on the docker registry
+
+
+## How should I write my commits?
+
+This project assumes you are using [Conventional Commit messages](https://www.conventionalcommits.org/).
+
+The most important prefixes you should have in mind are:
+
+* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
+  patch.
+* `feat:` which represents a new feature, and correlates to a SemVer minor.
+* `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
+  (indicated by the `!`) and will result in a SemVer major.
+
 
 ## Deployment
 
