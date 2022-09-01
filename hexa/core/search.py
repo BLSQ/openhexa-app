@@ -18,19 +18,19 @@ def get_search_options(user: User, query: str):
     for source in datasources:
         datasource_options.append(
             {
-                "value": source.id,
+                "value": source.object.id,
                 "label": f"({source.app_label[10:].capitalize()}) {source.object.display_name}",
                 "selected": f"datasource:{source.object.id}" in query,
             }
         )
-        if hasattr(
-            source, "searchable"
+        if getattr(
+            source.object, "searchable", False
         ):  # TODO: remove (see comment in datasource_index command)
-            content_code = f"{source.app_label[10:]}_{source.model}"
+            content_code = f"{source.app_label[10:]}_{source.content_type.model}"
             type_options.append(
                 {
                     "value": f"{content_code}",
-                    "label": source.name,
+                    "label": source.content_type.name,
                     "selected": f"type:{content_code}" in query,
                 }
             )
@@ -87,7 +87,7 @@ def search(user: User, query: str, size: int = 10) -> typing.List[dict]:
         len(types) == 0 or "collection" in types
     ):
         results += list(Collection.objects.filter_for_user(user).search(query)[:size])
-        results.sort(key=lambda x: getattr(x, "rank"), reverse=True)
+        results.sort(key=lambda x: getattr(x, "rank", None), reverse=True)
         results = results[:size]
 
     return results

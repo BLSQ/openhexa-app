@@ -24,7 +24,7 @@ class Command(BaseCommand):
                 # But those items SHOULD be index as well.
                 # The next step would be to create a command in core, that would index across all plugins
                 # (Or alternatively to create one command per core module - catalog, pipelines, visualizations)
-                if not hasattr(model, "searchable"):
+                if not getattr(model, "searchable", False):
                     continue
 
                 for instance in model.objects.all():
