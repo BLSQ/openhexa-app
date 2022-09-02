@@ -11,7 +11,7 @@
                     <div>
                         <div class="flex flex-rows items-center">
                             <span class="text-sm font-medium text-blue-600">{{ result.display_name }}</span>
-                            <span class="ml-2 text-xs text-gray-300">{{ result.rank }}</span>
+                            <span class="ml-2 text-xs text-gray-300">{{ result.rank|floatformat:2 }}</span>
                         </div>
                         <div class="mt-2 text-xs text-gray-500">
                             <span>{{ result.content_type_name }}</span>
