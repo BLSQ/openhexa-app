@@ -40,6 +40,7 @@ from hexa.plugins.connector_accessmod.utils import send_mail_to_accessmod_superu
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
+from hexa.user_management.schema import me_permissions_object
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,19 @@ accessmod_type_defs = load_schema_from_path(
 )
 accessmod_query = QueryType()
 accessmod_mutations = MutationType()
+
+
+@me_permissions_object.field("createAccessmodProject")
+def resolve_me_permissions_create_project(me, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.create_project")
+
+
+@me_permissions_object.field("manageAccessmodAccessRequests")
+def resolve_me_permissions_manage_access_requests(me, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.manage_access_requests")
+
 
 # Projects
 project_object = ObjectType("AccessmodProject")
@@ -88,6 +102,7 @@ def resolve_ownership_type(obj, *_):
         return "AccessmodFileset"
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 @project_object.field("authorizedActions")
 def resolve_accessmod_project_authorized_actions(project: Project, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -118,12 +133,50 @@ def resolve_accessmod_project_authorized_actions(project: Project, info, **kwarg
     )
 
 
-@project_object.field("permissions")
-def resolve_accessmod_project_permissions(project: Project, info, **kwargs):
+@project_object.field("members")
+def resolve_accessmod_project_members(project: Project, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
 
     return project.projectpermission_set.filter_for_user(principal).all()
+
+
+@project_object.field("permissions")
+def resolve_accessmod_project_permissions(project: Project, info):
+    return project
+
+
+project_permissions_object = ObjectType("AccessmodProjectPermissions")
+
+
+@project_permissions_object.field("update")
+def resolve_accessmod_project_permissions_update(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.update_project", project)
+
+
+@project_permissions_object.field("delete")
+def resolve_accessmod_project_permissions_delete(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.delete_project", project)
+
+
+@project_permissions_object.field("createFileset")
+def resolve_accessmod_project_permissions_create_fileset(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.create_fileset", project)
+
+
+@project_permissions_object.field("createAnalysis")
+def resolve_accessmod_project_permissions_create_analysis(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.create_analysis", project)
+
+
+@project_permissions_object.field("createMember")
+def resolve_accessmod_project_permissions_create_member(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.create_member", project)
 
 
 @accessmod_query.field("accessmodProject")
@@ -243,11 +296,11 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
-# Permissions
-permission_object = ObjectType("AccessmodProjectPermission")
+project_member_object = ObjectType("AccessmodProjectMember")
 
 
-@permission_object.field("authorizedActions")
+# FIXME: To remove once authorizedActions are completely deprecated
+@project_member_object.field("permissions")
 def resolve_accessmod_project_permission_authorized_actions(
     permission: ProjectPermission, info, **kwargs
 ):
@@ -271,9 +324,30 @@ def resolve_accessmod_project_permission_authorized_actions(
     )
 
 
-@accessmod_mutations.field("createAccessmodProjectPermission")
+fileset_permissions_object = ObjectType("AccessmodFilesetPermissions")
+
+
+@fileset_permissions_object.field("update")
+def resolve_fileset_permission_update(fileset: Fileset, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.update_fileset", fileset)
+
+
+@fileset_permissions_object.field("delete")
+def resolve_fileset_permission_delete(fileset: Fileset, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.delete_fileset", fileset)
+
+
+@fileset_permissions_object.field("createFile")
+def resolve_fileset_permission_create_file(fileset: Fileset, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("connector_accessmod.create_file", fileset)
+
+
+@accessmod_mutations.field("createAccessmodProjectMember")
 @transaction.atomic
-def resolve_create_accessmod_project_permission(_, info, **kwargs):
+def resolve_create_accessmod_project_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
@@ -290,7 +364,7 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
             else None
         )
         project = Project.objects.get(pk=create_input["projectId"])
-        permission = ProjectPermission.objects.create_if_has_perm(
+        member = ProjectPermission.objects.create_if_has_perm(
             principal,
             project=project,
             user=user,
@@ -298,7 +372,7 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
             mode=create_input["mode"],
         )
 
-        return {"success": True, "permission": permission, "errors": []}
+        return {"success": True, "member": member, "errors": []}
     except NotImplementedError:
         return {"success": False, "errors": ["NOT_IMPLEMENTED"]}
     except (Team.DoesNotExist, User.DoesNotExist, Project.DoesNotExist):
@@ -307,31 +381,31 @@ def resolve_create_accessmod_project_permission(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@accessmod_mutations.field("updateAccessmodProjectPermission")
+@accessmod_mutations.field("updateAccessmodProjectMember")
 @transaction.atomic
-def resolve_update_accessmod_project_permission(_, info, **kwargs):
+def resolve_update_accessmod_project_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     update_input = kwargs["input"]
 
     try:
-        permission = ProjectPermission.objects.filter_for_user(user=principal).get(
+        member = ProjectPermission.objects.filter_for_user(user=principal).get(
             id=update_input["id"]
         )
-        permission.update_if_has_perm(principal, mode=update_input["mode"])
+        member.update_if_has_perm(principal, mode=update_input["mode"])
 
-        return {"success": True, "permission": permission, "errors": []}
+        return {"success": True, "member": member, "errors": []}
     except NotImplementedError:
         return {"success": False, "errors": ["NOT_IMPLEMENTED"]}
     except ProjectPermission.DoesNotExist:
-        return {"success": False, "permission": None, "errors": ["NOT_FOUND"]}
+        return {"success": False, "member": None, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
-        return {"success": False, "permission": None, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "member": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@accessmod_mutations.field("deleteAccessmodProjectPermission")
+@accessmod_mutations.field("deleteAccessmodProjectMember")
 @transaction.atomic
-def resolve_delete_accessmod_project_permission(_, info, **kwargs):
+def resolve_delete_accessmod_project_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     delete_input = kwargs["input"]
@@ -360,6 +434,7 @@ def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
     return [f for f in fileset.file_set.all()]
 
 
+# FIXME To remove once authorizedActions are completely deprecated
 @fileset_object.field("authorizedActions")
 def resolve_accessmod_fileset_authorized_actions(fileset: Fileset, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -724,6 +799,7 @@ def resolve_analysis_type(analysis: Analysis, *_):
     return None
 
 
+# FIXME To remove once authorizedActions are completely deprecated
 @analysis_interface.field("authorizedActions")
 def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -743,6 +819,30 @@ def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kw
             else None,
         ],
     )
+
+
+analysis_permissions = ObjectType("AccessmodAnalysisPermissions")
+
+
+@analysis_permissions.field("update")
+def resolve_analysis_permissions_update(analysis: Analysis, info):
+    request: HttpRequest = info.context["request"]
+
+    return request.user.has_perm("connector_accessmod.update_analysis", analysis)
+
+
+@analysis_permissions.field("delete")
+def resolve_analysis_permissions_delete(analysis: Analysis, info):
+    request: HttpRequest = info.context["request"]
+
+    return request.user.has_perm("connector_accessmod.delete_analysis", analysis)
+
+
+@analysis_permissions.field("run")
+def resolve_analysis_permissions_run(analysis: Analysis, info):
+    request: HttpRequest = info.context["request"]
+
+    return request.user.has_perm("connector_accessmod.run_analysis", analysis)
 
 
 @accessmod_query.field("accessmodAnalysis")
@@ -1007,6 +1107,7 @@ def resolve_deny_accessmod_access_request(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 def extra_resolve_me_authorized_actions(_, info):
     """Extra resolver for the "authorizedActions" field on the "Me" type
     (see base resolver in identity module)
@@ -1031,7 +1132,10 @@ accessmod_bindables = [
     project_order_by,
     owner_union,
     ownership_interface,
-    permission_object,
+    project_member_object,
     fileset_object,
     analysis_interface,
+    analysis_permissions,
+    project_permissions_object,
+    fileset_permissions_object,
 ]

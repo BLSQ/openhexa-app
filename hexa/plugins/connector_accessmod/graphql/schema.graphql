@@ -16,12 +16,22 @@ type AccessmodProject implements AccessmodOwnership {
     owner: AccessmodOwner
     extent: [[Float!]!]
     dem: AccessmodFileset
-    authorizedActions: [AccessmodProjectAuthorizedActions!]!
-    permissions: [AccessmodProjectPermission!]!
+    authorizedActions: [AccessmodProjectAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodProjectPermissions!
+    members: [AccessmodProjectMember!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
 
+type AccessmodProjectPermissions {
+    update: Boolean!
+    delete: Boolean!
+    createFileset: Boolean!
+    createAnalysis: Boolean!
+    createMember: Boolean!
+}
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum AccessmodProjectAuthorizedActions {
     UPDATE
     DELETE
@@ -78,65 +88,67 @@ enum DeleteAccessmodProjectError {
     NOT_FOUND
     PERMISSION_DENIED
 }
-type AccessmodProjectPermissionPage {
-    pageNumber: Int!
-    totalPages: Int!
-    totalItems: Int!
-    items: [AccessmodProjectPermission!]!
-}
-type AccessmodProjectPermission {
+type AccessmodProjectMember {
     id: String!
     user: User
     team: Team
     project: AccessmodProject!
     mode: PermissionMode!
-    authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]!
+    authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodProjectMemberPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type AccessmodProjectMemberPermissions {
+    update: Boolean!
+    delete: Boolean!
+}
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum AccessmodProjectPermissionAuthorizedActions {
     UPDATE
     DELETE
 }
-input CreateAccessmodProjectPermissionInput {
+input CreateAccessmodProjectMemberInput {
     userId: String
     teamId: String
     projectId: String!
     mode: PermissionMode!
 }
-type CreateAccessmodProjectPermissionResult {
+type CreateAccessmodProjectMemberResult {
     success: Boolean!
-    permission: AccessmodProjectPermission
-    errors: [CreateAccessmodProjectPermissionError!]!
+    member: AccessmodProjectMember
+    errors: [CreateAccessmodProjectMemberError!]!
 }
-enum CreateAccessmodProjectPermissionError {
+enum CreateAccessmodProjectMemberError {
     ALREADY_EXISTS
     PERMISSION_DENIED
     NOT_FOUND
     NOT_IMPLEMENTED
 }
-input UpdateAccessmodProjectPermissionInput {
+input UpdateAccessmodProjectMemberInput {
     id: String!
     mode: PermissionMode!
 }
-type UpdateAccessmodProjectPermissionResult {
+type UpdateAccessmodProjectMemberResult {
     success: Boolean!
-    permission: AccessmodProjectPermission
-    errors: [UpdateAccessmodProjectPermissionError!]!
+    member: AccessmodProjectMember
+    errors: [UpdateAccessmodProjectMemberError!]!
 }
-enum UpdateAccessmodProjectPermissionError {
+enum UpdateAccessmodProjectMemberError {
     PERMISSION_DENIED
     NOT_FOUND
     NOT_IMPLEMENTED
 }
-input DeleteAccessmodProjectPermissionInput {
+input DeleteAccessmodProjectMemberInput {
     id: String!
 }
-type DeleteAccessmodProjectPermissionResult {
+type DeleteAccessmodProjectMemberResult {
     success: Boolean!
-    errors: [DeleteAccessmodProjectPermissionError!]!
+    errors: [DeleteAccessmodProjectMemberError!]!
 }
-enum DeleteAccessmodProjectPermissionError {
+enum DeleteAccessmodProjectMemberError {
     PERMISSION_DENIED
     NOT_FOUND
     NOT_IMPLEMENTED
@@ -157,9 +169,9 @@ extend type Mutation {
     createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
     updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
     deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
-    createAccessmodProjectPermission(input: CreateAccessmodProjectPermissionInput!): CreateAccessmodProjectPermissionResult!
-    updateAccessmodProjectPermission(input: UpdateAccessmodProjectPermissionInput!): UpdateAccessmodProjectPermissionResult!
-    deleteAccessmodProjectPermission(input: DeleteAccessmodProjectPermissionInput!): DeleteAccessmodProjectPermissionResult!
+    createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult!
+    updateAccessmodProjectMember(input: UpdateAccessmodProjectMemberInput!): UpdateAccessmodProjectMemberResult!
+    deleteAccessmodProjectMember(input: DeleteAccessmodProjectMemberInput!): DeleteAccessmodProjectMemberResult!
 }
 
 # Filesets
@@ -173,10 +185,18 @@ type AccessmodFileset implements AccessmodOwnership {
     owner: AccessmodOwner
     files: [AccessmodFile!]!
     metadata: AccessmodFilesetMetadata!
-    authorizedActions: [AccessmodFilesetAuthorizedActions!]!
+    authorizedActions: [AccessmodFilesetAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodFilesetPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type AccessmodFilesetPermissions {
+    update: Boolean!
+    delete: Boolean!
+    createFile: Boolean!
+}
+
 enum AccessmodFilesetMode {
     USER_INPUT
     AUTOMATIC_ACQUISITION
@@ -189,6 +209,8 @@ enum AccessmodFilesetStatus {
     TO_ACQUIRE
 }
 scalar AccessmodFilesetMetadata
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum AccessmodFilesetAuthorizedActions {
     UPDATE
     DELETE
@@ -354,10 +376,19 @@ interface AccessmodAnalysis {
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type AccessmodAnalysisPermissions {
+    update: Boolean!
+    delete: Boolean!
+    run: Boolean!
+}
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum AccessmodAnalysisAuthorizedActions {
     UPDATE
     DELETE
@@ -377,7 +408,8 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
     landCover: AccessmodFileset
@@ -404,7 +436,8 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & Accessmo
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
     population: AccessmodFileset
@@ -470,7 +503,8 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]!
+    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
     population: AccessmodFileset
@@ -610,7 +644,13 @@ extend type Mutation {
     denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
 }
 
+extend type MePermissions {
+    createAccessmodProject: Boolean!
+    manageAccessmodAccessRequests: Boolean!
+}
+
 # Connector-specific permissions
+#FIXME To remove once authorizedActions are completely deprecated
 extend enum MeAuthorizedActions {
     CREATE_ACCESSMOD_PROJECT
     MANAGE_ACCESSMOD_ACCESS_REQUESTS

@@ -68,9 +68,13 @@ class SchemaTest(GraphQLTestCase):
                   user {
                     id
                   }
-                  authorizedActions
                   features {
                     code
+                  }
+                  permissions {
+                    createTeam
+                    adminPanel
+                    superUser
                   }
                 }
               }
@@ -78,7 +82,7 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"user": None, "authorizedActions": [], "features": []},
+            {"user": None, "permissions": {"createTeam": False, "superUser": False, "adminPanel": False}, "features": []},
             r["data"]["me"],
         )
 
@@ -97,7 +101,6 @@ class SchemaTest(GraphQLTestCase):
                     dateJoined
                     lastLogin
                   }
-                  authorizedActions
                   features {
                     code
                     config
@@ -121,7 +124,6 @@ class SchemaTest(GraphQLTestCase):
                     else None,
                 },
                 "features": [],
-                "authorizedActions": ["CREATE_TEAM", "CREATE_ACCESSMOD_PROJECT"],
             },
             r["data"]["me"],
         )
