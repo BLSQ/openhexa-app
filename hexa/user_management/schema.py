@@ -35,7 +35,7 @@ me_permissions_object = ObjectType("MePermissions")
 
 
 @me_permissions_object.field("createTeam")
-def resolve_can_create_team(obj, info, **kwargs):
+def resolve_me_permissions_create_team(obj, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return request.user.is_authenticated  # TODO: Implement a real check of permissions
 
@@ -109,6 +109,11 @@ def resolve_me_features(_, info):
         return principal.featureflag_set.all()
     else:
         return []
+
+
+@me_object.field("permissions")
+def resolve_me_permissions(_, info):
+    return me_permissions_object
 
 
 @identity_query.field("me")
