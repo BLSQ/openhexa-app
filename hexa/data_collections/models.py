@@ -67,6 +67,7 @@ class CollectionManager(models.Manager):
         countries: typing.Sequence[Country] = None,  # TODO: use hexa.countries ?
         tags: typing.Sequence[Tag] = None,
         description: str = None,
+        summary: str = None,
     ):
         if not principal.has_perm("data_collections.create_collection"):
             raise PermissionDenied
@@ -76,6 +77,8 @@ class CollectionManager(models.Manager):
             create_kwargs["countries"] = countries
         if description is not None:
             create_kwargs["description"] = description
+        if summary is not None:
+            create_kwargs["summary"] = summary
 
         collection = self.create(**create_kwargs)
         if tags is not None:
@@ -91,6 +94,7 @@ class Collection(Base):
     )
     countries = CountryField(multiple=True, blank=True)
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="+")
+    summary = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True)
 
     objects = CollectionManager.from_queryset(CollectionQuerySet)()
@@ -108,10 +112,7 @@ class Collection(Base):
         if not principal.has_perm("data_collections.update_collection", self):
             raise PermissionDenied
 
-        for key in [
-            "name",
-            "description",
-        ]:
+        for key in ["name", "description", "summary"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

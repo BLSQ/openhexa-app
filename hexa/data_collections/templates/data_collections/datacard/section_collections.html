@@ -10,6 +10,7 @@
       {% if manage_url %}
       <a href="{{ manage_url }}" class="text-md text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer">
         {% translate "Manage collections" %}
+        {% include "ui/icons/pencil.html" with w=4 h=4 ml=1 %}
       </a>
       {% endif %}
   </div>
@@ -24,7 +25,13 @@
       {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-500">{% translate "This data is not included in any collections." %}</p>
+      <p class="text-gray-500">{% translate "This data is not included in any collections." %}
+        {% if manage_url %}
+        <a href="{{ manage_url }}" class="text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer">
+          {% translate "Add it to a collection." %}
+        </a>
+        {% endif %}
+      </p>
     {% endif %}
   </div>
 </div>
