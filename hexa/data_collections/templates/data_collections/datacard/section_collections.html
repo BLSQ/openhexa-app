@@ -25,13 +25,7 @@
       {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-500">{% translate "This data is not included in any collections." %}
-        {% if manage_url %}
-        <a href="{{ manage_url }}" class="text-blue-600 hover:text-blue-500 focus:outline-none flex items-center cursor-pointer">
-          {% translate "Add it to a collection." %}
-        </a>
-        {% endif %}
-      </p>
+      <p class="text-gray-500">{% translate "This data is not included in any collections." %}</p>
     {% endif %}
   </div>
 </div>

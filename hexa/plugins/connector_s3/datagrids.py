@@ -43,7 +43,7 @@ class ObjectGrid(Datagrid):
     directory = TextColumn(text="parent_key", translate=False)
     size = TextColumn(text="file_size_display", translate=False)
     type = TextColumn(text="type_display")
-    collections = CollectionColumn(value="collections.all")
+    collections = CollectionColumn()
     last_modified = DateColumn(date="last_modified", date_format="%Y-%m-%d %H:%M:%S %Z")
     link = LinkColumn(text="View")
 

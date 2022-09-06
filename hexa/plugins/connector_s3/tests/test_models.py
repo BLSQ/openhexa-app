@@ -1,16 +1,15 @@
 import boto3
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
-from hexa.data_collections.models import Collection
+from hexa.data_collections.models import Collection, CollectionElement
 from hexa.plugins.connector_s3.models import (
     Bucket,
     BucketPermission,
     Credentials,
     Object,
-    ObjectCollectionElement,
 )
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
@@ -61,9 +60,6 @@ class ModelTest(TestCase):
         )
         cls.OBJECT_2 = Object.objects.create(
             bucket=cls.BUCKET_2, key="file2.csv", size=100
-        )
-        ObjectCollectionElement.objects.create(
-            collection=cls.COLLECTION_MALARIA, element=cls.OBJECT_2
         )
 
     def test_filter_for_user_regular(self):
@@ -188,29 +184,14 @@ class ModelTest(TestCase):
         with self.assertRaises(ValidationError):
             bucket.clean()
 
-    def test_is_collectible(self):
-        self.assertTrue(self.OBJECT_1.is_collectible)
-        self.assertTrue(self.OBJECT_2.is_collectible)
-
     def test_add_object_to_collection(self):
-        self.OBJECT_1.add_to_collection_if_has_perm(
-            self.USER_JIM, self.COLLECTION_MALARIA
-        )
+        self.COLLECTION_MALARIA.add_object(self.USER_JIM, self.OBJECT_1)
         self.OBJECT_1.refresh_from_db()
-        self.assertEqual(1, self.OBJECT_1.collections.count())
-        self.assertEqual(self.COLLECTION_MALARIA, self.OBJECT_1.collections.get())
-
-    def test_remove_object_from_collection(self):
-        self.OBJECT_2.remove_from_collection_if_has_perm(
-            self.USER_JIM, self.COLLECTION_MALARIA
-        )
-        self.OBJECT_2.refresh_from_db()
-        self.assertEqual(0, self.OBJECT_2.collections.count())
-
-        with self.assertRaises(ObjectDoesNotExist):
-            self.OBJECT_1.remove_from_collection_if_has_perm(
-                self.USER_JIM, self.COLLECTION_MALARIA
-            )
+        elements = CollectionElement.objects.filter_for_user(
+            self.USER_JIM
+        ).filter_for_object(self.OBJECT_1)
+        self.assertEqual(1, elements.count())
+        self.assertEqual(self.OBJECT_1, elements.first().object)
 
 
 class PermissionTest(TestCase):

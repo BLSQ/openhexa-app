@@ -70,23 +70,61 @@ extend type Query {
     collection(id: String!): Collection
     collections(page: Int, perPage: Int): CollectionPage!
 }
+
+
 extend type Mutation {
     createCollection(input: CreateCollectionInput!): CreateCollectionResult!
     updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
     deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
+    createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult!
+    deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult!
 }
 
-# Collection items
-interface CollectionElement {
+input CreateCollectionElementInput {
+    collectionId: String!
+    app: String!
+    model: String!
+    objectId: String!
+}
+type CreateCollectionElementResult {
+    success: Boolean!
+    errors: [CreateCollectionElementError!]!
+    element: CollectionElement
+}
+enum CreateCollectionElementError {
+    COLLECTION_NOT_FOUND
+    OBJECT_NOT_FOUND
+    INVALID
+}
+
+input DeleteCollectionElementInput {
     id: String!
-    type: CollectionElementType!
+}
+type DeleteCollectionElementResult {
+    success: Boolean!
+    errors: [DeleteCollectionElementError!]!
+    collection: Collection
+}
+enum DeleteCollectionElementError {
+    NOT_FOUND
+    INVALID
+}
+
+
+
+# Collection items
+type CollectionElement {
+    id: String!
+    app: String!
+    model: String!
+    type: String!
+    name: String!
+    objectId: String!
+    url: URL
     createdAt: DateTime!
     updatedAt: DateTime!
 }
 
-enum CollectionElementType {
-    EMPTY  # Cannot create empty enums
-}
 type CollectionElementPage {
     pageNumber: Int!
     totalPages: Int!

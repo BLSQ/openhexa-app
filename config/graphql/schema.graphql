@@ -1,5 +1,6 @@
 scalar Date
 scalar DateTime
+scalar URL
 
 type Query
 type Mutation

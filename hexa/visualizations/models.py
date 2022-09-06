@@ -80,7 +80,7 @@ class ExternalDashboard(IndexableMixin, models.Model):
         return f"ExternalDashboard for '{self.url}'"
 
     def get_absolute_url(self):
-        return ""
+        return self.url
 
 
 class ExternalDashboardPermission(Permission):

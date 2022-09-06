@@ -3,7 +3,6 @@ from django.contrib import admin
 from .models import (
     Credentials,
     DataElement,
-    DataElementCollectionElement,
     DataSet,
     Indicator,
     IndicatorType,
@@ -35,11 +34,6 @@ class InstanceAdmin(admin.ModelAdmin):
     ]
 
 
-class DataElementCollectionElementInline(admin.TabularInline):
-    model = DataElementCollectionElement
-    extra = 1
-
-
 @admin.register(DataElement)
 class DataElementAdmin(admin.ModelAdmin):
     list_display = (
@@ -58,7 +52,6 @@ class DataElementAdmin(admin.ModelAdmin):
         "short_name",
         "code",
     ]
-    inlines = (DataElementCollectionElementInline,)
 
 
 @admin.register(IndicatorType)

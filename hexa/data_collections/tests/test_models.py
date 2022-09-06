@@ -23,18 +23,22 @@ class ModelsTest(TestCase):
         cls.COLLECTION_COVID = Collection.objects.create(
             name="Covid", author=cls.USER_MARK
         )
-        cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria")
+        cls.COLLECTION_MALARIA = Collection.objects.create(
+            name="Malaria", summary="Malaria collection summary"
+        )
 
     def test_create_collection_if_has_perm(self):
         collection = Collection.objects.create_if_has_perm(
             self.USER_MARK,
             name="A collection",
             description="A great collection",
+            summary="A collection with a summary",
             countries=[Country("BE"), Country("DE")],
         )
         self.assertIsInstance(collection, Collection)
         self.assertEqual("A collection", collection.name)
         self.assertEqual("A great collection", collection.description)
+        self.assertEqual("A collection with a summary", collection.summary)
         self.assertEqual([Country("BE"), Country("DE")], collection.countries)
         self.assertEqual(0, collection.tags.count())
         self.assertIsNone(collection.author)

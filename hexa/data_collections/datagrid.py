@@ -2,12 +2,13 @@ from django.http import HttpRequest
 
 from hexa.ui.datagrid import Column, Datagrid, DjangoModel
 
+from .models import CollectionElement
+
 
 class CollectionColumn(Column):
-    def __init__(self, *, value=None, max_items=2, **kwargs):
+    def __init__(self, *, max_items=2, **kwargs):
         super().__init__(**kwargs)
 
-        self.value = value
         self.max_items = max_items
 
     def context(self, model: DjangoModel, grid: Datagrid):
@@ -20,9 +21,19 @@ class CollectionColumn(Column):
         }
 
     def get_data(self, model: DjangoModel, grid: Datagrid):
+        elements = (
+            CollectionElement.objects.filter_for_user(grid.request.user)
+            .filter_for_object(model)
+            .order_by("-updated_at")
+            .select_related("collection")
+        )
+
         return [
-            {"label": collection.name, "url": collection.get_absolute_url()}
-            for collection in self.get_value(model, self.value, container=Datagrid)
+            {
+                "label": element.collection.name,
+                "url": element.collection.get_absolute_url(),
+            }
+            for element in elements
         ]
 
     def is_enabled(self, request: HttpRequest):

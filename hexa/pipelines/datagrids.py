@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 
+from hexa.data_collections.datagrid import CollectionColumn
 from hexa.pipelines.models import Index
 from hexa.ui.datagrid import (
     CountryColumn,
@@ -39,7 +40,7 @@ class PipelineIndexGrid(Datagrid):
         width="30%",
     )
     location = CountryColumn(value="countries")
-    tags = TagColumn(value="tags.all")
+    collections = CollectionColumn()
     last_run = DateColumn(date="object.last_run.execution_date", label=_("Last run"))
     last_state = StatusColumn(value="object.last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")
