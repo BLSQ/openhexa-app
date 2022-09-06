@@ -39,7 +39,9 @@ def resolve_collections(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
     return result_page(
-        queryset=Collection.objects.filter_for_user(request.user),
+        queryset=Collection.objects.filter_for_user(request.user).order_by(
+            "-updated_at"
+        ),
         page=kwargs.get("page", 1),
         per_page=kwargs.get("perPage"),
     )
@@ -101,6 +103,11 @@ def resolve_create_collection(_, info, **kwargs):
             if "authorId" in create_input
             else principal,
             description=create_input.get("description"),
+            countries=[
+                Country.objects.get(code=c["code"]) for c in create_input["countries"]
+            ]
+            if "countries" in create_input
+            else None,
         )
         # TODO: countries & tags
 
@@ -129,7 +136,8 @@ def resolve_update_collection(_, info, **kwargs):
         )
         collection.update_if_has_perm(
             principal,
-            name=update_input["name"],
+            name=update_input.get("name", None),
+            summary=update_input.get("summary", None),
             author=User.objects.get(id=update_input["authorId"])
             if "authorId" in update_input
             else None,
@@ -141,7 +149,7 @@ def resolve_update_collection(_, info, **kwargs):
             tags=[Tag.objects.get(pk=t) for t in update_input["tags"]]
             if "tags" in update_input
             else None,
-            description=update_input.get("description"),
+            description=update_input.get("description", None),
         )
 
         return {
