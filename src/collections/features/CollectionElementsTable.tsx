@@ -28,6 +28,7 @@ const CollectionElementsTable = (props: CollectionElementsTableProps) => {
             textPath="name"
             subtextPath="instance.name"
             minWidth={300}
+            textClassName="text-gray-600 font-medium"
           />
           <BaseColumn label={t("Code")} accessor="dhis2.code" />
           <DateColumn label={t("Last Extracted")} accessor="updatedAt" />
@@ -53,6 +54,7 @@ const CollectionElementsTable = (props: CollectionElementsTableProps) => {
             accessor="s3"
             textPath="filename"
             subtextPath="bucket.name"
+            textClassName="text-gray-600 font-medium"
             minWidth={300}
           />
           <BaseColumn label={t("Type")} accessor="s3.type" />

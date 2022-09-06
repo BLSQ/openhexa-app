@@ -15,7 +15,7 @@ export type UpdateCollectionMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateCollectionMutation = { __typename?: 'Mutation', updateCollection: { __typename?: 'UpdateCollectionResult', success: boolean, errors: Array<Types.CreateCollectionError>, collection?: { __typename?: 'Collection', id: string } | null } };
+export type UpdateCollectionMutation = { __typename?: 'Mutation', updateCollection: { __typename?: 'UpdateCollectionResult', success: boolean, errors: Array<Types.CreateCollectionError>, collection?: { __typename?: 'Collection', id: string, name: string, description?: string | null, summary?: string | null } | null } };
 
 
 export const DeleteCollectionDocument = gql`
@@ -57,6 +57,9 @@ export const UpdateCollectionDocument = gql`
   updateCollection(input: $input) {
     collection {
       id
+      name
+      description
+      summary
     }
     success
     errors

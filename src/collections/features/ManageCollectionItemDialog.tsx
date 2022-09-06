@@ -43,6 +43,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
         items {
           id
           name
+          summary
           elements {
             items {
               id
@@ -140,11 +141,10 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
       // We need to create the new collection and add the element to it
       try {
         const collection = await collectionForm.handleSubmit();
-        console.log(collection);
         if (collection) {
           await addToCollection(collection.id, element);
         }
-        onClose();
+        // onClose();
       } catch (exc: any) {
         displayAlert((exc as Error).message, AlertType.error);
       } finally {
@@ -169,21 +169,44 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
                   "Add or remove this element from the collections below by using the switch"
                 )}
               </p>
-              <div className="divide-y-2">
+              <div className="max-h-96 divide-y-2 overflow-y-auto">
                 {data.collections.items.map((collection) => (
                   <div
                     key={collection.id}
-                    className="flex items-center py-4 px-2"
+                    className="flex items-center gap-4 py-4 px-2"
                   >
-                    <div className="flex-1 font-medium">{collection.name}</div>
-                    <div>
-                      <Switch
-                        checked={isElementInCollection(collection)}
-                        onChange={(checked) =>
-                          onChangeCollectionSwitch(checked, collection)
-                        }
-                      />
+                    <div className="flex-1">
+                      <div className="truncate font-medium">
+                        {collection.name}
+                      </div>
+                      <div
+                        className="truncate pt-1 text-sm text-gray-500"
+                        title={collection.summary ?? ""}
+                      >
+                        {collection.summary}
+                      </div>
                     </div>
+
+                    {collection.countries.length > 0 && (
+                      <div
+                        title={collection.countries
+                          .map((c) => c.name)
+                          .join(", ")}
+                      >
+                        <CountryBadge country={collection.countries[0]} />
+                        {collection.countries.length > 1 && (
+                          <span className="ml-2 text-sm">
+                            +{collection.countries.length - 1}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <Switch
+                      checked={isElementInCollection(collection)}
+                      onChange={(checked) =>
+                        onChangeCollectionSwitch(checked, collection)
+                      }
+                    />
                   </div>
                 ))}
               </div>

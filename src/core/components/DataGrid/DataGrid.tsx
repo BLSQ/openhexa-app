@@ -112,7 +112,7 @@ function DataGrid(props: DataGridProps) {
       const def: any = {
         id: column.props.id ?? uniqueId("col"),
         Header: column.props.label ?? "",
-        accessor: column.props.accessor,
+        accessor: column.props.accessor ?? ((v: any) => v),
         className: column.props.className,
         hideLabel: column.props.hideLabel,
         Cell: () => React.cloneElement(column),

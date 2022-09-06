@@ -9,6 +9,9 @@ mutation UpdateCollection($input: UpdateCollectionInput!) {
   updateCollection(input: $input) {
     collection {
       id
+      name
+      description
+      summary
     }
     success
     errors

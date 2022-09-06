@@ -357,6 +357,7 @@ type Collection {
   countries: [Country!]!
   tags: [Tag!]!
   description: String
+  summary: String
   elements(page: Int, perPage: Int): CollectionElementPage!
   authorizedActions: CollectionAuthorizedActions!
   createdAt: DateTime!
@@ -524,6 +525,7 @@ input CreateCollectionInput {
   authorId: String
   countries: [CountryInput!]
   tagIds: [String!]
+  summary: String
   description: String
 }
 
@@ -1152,6 +1154,7 @@ enum UpdateCollectionError {
 input UpdateCollectionInput {
   id: String!
   name: String
+  summary: String
   authorId: String
   countries: [CountryInput!]
   tagIds: [String!]

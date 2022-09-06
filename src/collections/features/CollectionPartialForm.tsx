@@ -13,20 +13,28 @@ const CollectionPartialForm = (props: CollectionPartialFormProps) => {
   const { formData, handleInputChange, setFieldValue } = form;
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-4 gap-4">
       <Field
         type="text"
         name="name"
-        label={t("Collection name")}
+        label={t("Name")}
         value={formData.name}
         onChange={handleInputChange}
+        className="col-span-4"
         required
       />
       <Field
-        type="text"
-        name="name"
+        name="summary"
+        value={formData.summary}
+        onChange={form.handleInputChange}
+        label={t("Summary")}
+        className="col-span-4"
+      />
+      <Field
+        name="countries"
         label={t("Countries")}
         onChange={handleInputChange}
+        className="col-span-4"
       >
         <CountryPicker
           withPortal

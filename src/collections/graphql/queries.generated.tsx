@@ -15,14 +15,14 @@ export type CollectionsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type CollectionsPageQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Collection', id: string, name: string, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, author?: { __typename?: 'User', displayName: string } | null }> } };
+export type CollectionsPageQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Collection', id: string, name: string, summary?: string | null, createdAt: any, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, author?: { __typename?: 'User', displayName: string } | null }> } };
 
 export type CollectionPageQueryVariables = Types.Exact<{
   id: Types.Scalars['String'];
 }>;
 
 
-export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, createdAt: any, updatedAt: any, dhis2: { __typename?: 'DHIS2DataElement', id: string, name: string, code: string, instance: { __typename?: 'DHIS2Instance', id: string, name: string } } } | { __typename?: 'S3ObjectCollectionElement', id: string, createdAt: any, updatedAt: any, s3: { __typename?: 'S3Object', id: string, type: string, size: number, key: string, filename: string, storageClass: string, bucket: { __typename?: 'S3Bucket', id: string, name: string } } }> }, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canDelete: boolean, canUpdate: boolean } } | null };
+export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, summary?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, createdAt: any, updatedAt: any, dhis2: { __typename?: 'DHIS2DataElement', id: string, name: string, code: string, instance: { __typename?: 'DHIS2Instance', id: string, name: string } } } | { __typename?: 'S3ObjectCollectionElement', id: string, createdAt: any, updatedAt: any, s3: { __typename?: 'S3Object', id: string, type: string, size: number, key: string, filename: string, storageClass: string, bucket: { __typename?: 'S3Bucket', id: string, name: string } } }> }, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canDelete: boolean, canUpdate: boolean } } | null };
 
 
 export const CollectionsPageDocument = gql`
@@ -34,6 +34,8 @@ export const CollectionsPageDocument = gql`
     items {
       id
       name
+      summary
+      createdAt
       tags {
         ...Tag_tag
         id
@@ -87,6 +89,7 @@ export const CollectionPageDocument = gql`
     createdAt
     updatedAt
     description
+    summary
     author {
       id
       ...User_user

@@ -18,6 +18,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import Toggle from "core/helpers/Toggle";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { DateTime } from "luxon";
 
 type Props = {
   page: number;
@@ -72,9 +73,15 @@ const CollectionsPage = (props: Props) => {
             fetchData={onChangePage}
           >
             <TextColumn
+              id="name"
               label={t("Name")}
-              accessor="name"
-              className="text-gray-700"
+              textPath="name"
+              textClassName="text-gray-700 font-medium"
+              subtextPath="summary"
+              url={(value: any) => ({
+                pathname: "/collections/[collectionId]",
+                query: { collectionId: value.id },
+              })}
               minWidth={240}
             />
             <CountryColumn
@@ -89,13 +96,18 @@ const CollectionsPage = (props: Props) => {
               label={t("Tags")}
               accessor="tags"
             />
-            <DateColumn label={t("Created")} accessor={"createdAt"} />
+            <DateColumn
+              label={t("Created")}
+              format={DateTime.DATE_MED}
+              accessor="createdAt"
+            />
             <TextColumn
               defaultValue="-"
               accessor="author.displayName"
               label={t("Author")}
             />
             <ChevronLinkColumn
+              maxWidth="100"
               accessor="id"
               url={(value: any) => ({
                 pathname: "/collections/[collectionId]",

@@ -401,6 +401,7 @@ export type Collection = {
   elements: CollectionElementPage;
   id: Scalars["String"];
   name: Scalars["String"];
+  summary?: Maybe<Scalars["String"]>;
   tags: Array<Tag>;
   updatedAt: Scalars["DateTime"];
 };
@@ -581,6 +582,7 @@ export type CreateCollectionInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars["String"]>;
   name: Scalars["String"];
+  summary?: InputMaybe<Scalars["String"]>;
   tagIds?: InputMaybe<Array<Scalars["String"]>>;
 };
 
@@ -1475,6 +1477,7 @@ export type UpdateCollectionInput = {
   description?: InputMaybe<Scalars["String"]>;
   id: Scalars["String"];
   name?: InputMaybe<Scalars["String"]>;
+  summary?: InputMaybe<Scalars["String"]>;
   tagIds?: InputMaybe<Array<Scalars["String"]>>;
 };
 

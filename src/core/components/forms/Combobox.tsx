@@ -34,6 +34,7 @@ type ComboboxProps<T = {}> = {
     clear: () => void;
   }) => ReactNode;
   loading?: boolean;
+  by?: string;
   renderIcon?: ({
     value,
   }: {

@@ -76,6 +76,7 @@ const CountryPicker = (props: CountryPickerProps) => {
               .join(", ")
           : ""
       }
+      by="code" /* FIXME: Upgrade @headlessui/react to > 1.6.6 to fix the comparison criteria */
       onInputChange={useCallback((event) => setQuery(event.target.value), [])}
       placeholder={placeholder}
       value={value}

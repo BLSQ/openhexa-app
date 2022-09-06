@@ -7,7 +7,7 @@ const defaultOptions = {} as const;
 export type ManageCollectionItemDialogQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type ManageCollectionItemDialogQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', items: Array<{ __typename?: 'Collection', id: string, name: string, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, element: { __typename?: 'DHIS2DataElement', id: string } } | { __typename?: 'S3ObjectCollectionElement', id: string, element: { __typename?: 'S3Object', id: string } }> }, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }> }> } };
+export type ManageCollectionItemDialogQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', items: Array<{ __typename?: 'Collection', id: string, name: string, summary?: string | null, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'DHIS2DataElementCollectionElement', id: string, element: { __typename?: 'DHIS2DataElement', id: string } } | { __typename?: 'S3ObjectCollectionElement', id: string, element: { __typename?: 'S3Object', id: string } }> }, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }> }> } };
 
 
 export const ManageCollectionItemDialogDocument = gql`
@@ -16,6 +16,7 @@ export const ManageCollectionItemDialogDocument = gql`
     items {
       id
       name
+      summary
       elements {
         items {
           id
