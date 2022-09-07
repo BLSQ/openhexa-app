@@ -99,6 +99,7 @@ def resolve_create_collection(_, info, **kwargs):
         collection = Collection.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
+            summary=create_input.get("summary"),
             author=User.objects.get(id=create_input["authorId"])
             if "authorId" in create_input
             else principal,
