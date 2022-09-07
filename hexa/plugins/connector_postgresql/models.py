@@ -1,9 +1,11 @@
 import typing
 from enum import Enum
+from logging import getLogger
 from typing import Dict, List, Tuple
 
 import psycopg2
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
@@ -14,10 +16,13 @@ from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError, sql
 
 from hexa.catalog.models import Datasource, Entry
+from hexa.catalog.queue import datasource_work_queue
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.user_management.models import Permission, Team, User
+
+logger = getLogger(__name__)
 
 
 class ExternalType(Enum):
@@ -92,6 +97,15 @@ class Database(Datasource):
         index.content = self.content_summary
         index.datasource_name = self.database
         index.datasource_id = self.id
+
+    def index_all_objects(self):
+        logger.info("index_all_objects %s", self.id)
+        for table in self.table_set.all():
+            try:
+                with transaction.atomic():
+                    table.build_index()
+            except Exception:
+                logger.exception("index error")
 
     @property
     def display_name(self):
@@ -259,6 +273,13 @@ class DatabasePermission(Permission):
 
     def index_object(self):
         self.database.build_index()
+        datasource_work_queue.enqueue(
+            "datasource_index",
+            {
+                "contenttype_id": ContentType.objects.get_for_model(self.database).id,
+                "object_id": str(self.database.id),
+            },
+        )
 
     def __str__(self):
         return f"Permission for team '{self.team}' on database '{self.database}'"

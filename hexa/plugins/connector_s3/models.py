@@ -5,6 +5,7 @@ import typing
 from logging import getLogger
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
@@ -14,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
+from hexa.catalog.queue import datasource_work_queue
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
@@ -225,6 +227,15 @@ class Bucket(Datasource):
         index.datasource_name = self.name
         index.datasource_id = self.id
 
+    def index_all_objects(self):
+        logger.info("index_all_objects %s", self.id)
+        for obj in self.object_set.all():
+            try:
+                with transaction.atomic():
+                    obj.build_index()
+            except Exception:
+                logger.exception("index error")
+
     @property
     def display_name(self):
         return self.name
@@ -263,6 +274,13 @@ class BucketPermission(Permission):
 
     def index_object(self):
         self.bucket.build_index()
+        datasource_work_queue.enqueue(
+            "datasource_index",
+            {
+                "contenttype_id": ContentType.objects.get_for_model(self.bucket).id,
+                "object_id": str(self.bucket.id),
+            },
+        )
 
     def __str__(self):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"

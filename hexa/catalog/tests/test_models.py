@@ -1,10 +1,14 @@
+import boto3
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from moto import mock_s3, mock_sts
 
 from hexa.core.test import TestCase
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import Membership, Team, User
 
 from ..models import Index, IndexPermission
+from ..queue import datasource_work_queue
 
 
 class PermissionTest(TestCase):
@@ -75,3 +79,73 @@ class PermissionTest(TestCase):
         )
         with self.assertRaises(ObjectDoesNotExist):
             Index.objects.filter_for_user(self.USER_REGULAR_2).get(id=index.id)
+
+
+class PermissionUpdateTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_REGULAR_1 = User.objects.create_user(
+            "jim@bluesquarehub.com",
+            "jimmyjim",
+        )
+        cls.USER_REGULAR_2 = User.objects.create_user(
+            "jane@bluesquarehub.com",
+            "janyjane",
+        )
+        cls.TEAM1 = Team.objects.create(name="Test Team1")
+        cls.TEAM2 = Team.objects.create(name="Test Team2")
+        Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR_1)
+        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR_1)
+
+        cls.CREDS = Credentials.objects.create(
+            username="test-username",
+            default_region="eu-central-1",
+            user_arn="test-user-arn-arn-arn",
+            app_role_arn="test-app-arn-arn-arn",
+        )
+        cls.BUCKET = Bucket.objects.create(name="test-bucket")
+
+    @mock_s3
+    @mock_sts
+    def test_permission_update(self):
+        # we start the test with one index: the bucket
+        self.assertEqual(Index.objects.count(), 1)
+
+        # let's make a bucket with two files
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(Bucket="test-bucket", Key="file1", Body="test")
+        s3_client.put_object(Bucket="test-bucket", Key="file2", Body="test")
+        self.BUCKET.sync()
+
+        # do we have 2 things in the bucket?
+        self.assertEqual(Index.objects.count(), 3)
+
+        # USER1/USER2 dont see anything
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 0)
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 0)
+
+        # add permission between team 1 and bucket
+        bp = BucketPermission.objects.create(bucket=self.BUCKET, team=self.TEAM1)
+
+        # USER1 see the bucket but not object, index permission not updated
+        # USER2 dont see anything
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 1)
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 0)
+
+        # update permission async
+        while datasource_work_queue.run_once():
+            pass
+
+        # USER1 see the 3 indexes, but not USER2
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 3)
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 0)
+
+        # remove permission and update permission
+        bp.delete()
+        while datasource_work_queue.run_once():
+            pass
+
+        # USER1/USER2 dont see anything
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 0)
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 0)
