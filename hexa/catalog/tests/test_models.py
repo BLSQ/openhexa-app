@@ -95,7 +95,7 @@ class PermissionUpdateTest(TestCase):
         cls.TEAM1 = Team.objects.create(name="Test Team1")
         cls.TEAM2 = Team.objects.create(name="Test Team2")
         Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR_1)
-        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR_1)
+        Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR_2)
 
         cls.CREDS = Credentials.objects.create(
             username="test-username",
@@ -141,7 +141,17 @@ class PermissionUpdateTest(TestCase):
         self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 3)
         self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 0)
 
-        # remove permission and update permission
+        # update permission: now bucket perm is the same but between team2 and bucket!
+        bp.team = self.TEAM2
+        bp.save()
+        while datasource_work_queue.run_once():
+            pass
+
+        # USER1 dont see anything, USER2 see DS + objects
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_1).count(), 0)
+        self.assertEqual(Index.objects.filter_for_user(self.USER_REGULAR_2).count(), 3)
+
+        # remove permission and update index permission
         bp.delete()
         while datasource_work_queue.run_once():
             pass
