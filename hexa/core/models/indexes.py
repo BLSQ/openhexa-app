@@ -194,6 +194,10 @@ class BaseIndex(Base):
         return self.content_type.name
 
     @property
+    def content_type_model(self) -> str:
+        return self.content_type.model
+
+    @property
     def display_name(self) -> str:
         return self.label or self.external_name
 
@@ -204,8 +208,10 @@ class BaseIndex(Base):
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
+            "object_id": self.object_id,
             "rank": getattr(self, "rank", None),
             "app_label": self.app_label,
+            "content_type_model": self.content_type_model,
             "content_type_name": self.content_type_name,
             "display_name": self.display_name,
             "summary": self.content_type_name,
