@@ -114,12 +114,14 @@ collection_authorized_actions = ObjectType("CollectionAuthorizedActions")
 
 @collection_authorized_actions.field("canUpdate")
 def resolve_collection_can_update(collection: Collection, info):
-    return False
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("data_collections.update_collection", collection)
 
 
 @collection_authorized_actions.field("canDelete")
 def resolve_collection_can_delete(collection: Collection, info):
-    return True
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("data_collections.delete_collection", collection)
 
 
 @collections_mutations.field("createCollection")

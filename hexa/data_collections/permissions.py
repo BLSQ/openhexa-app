@@ -12,13 +12,13 @@ def create_collection(principal: User):
 def update_collection(principal: User, collection: Collection):
     """Only the author of the collection can update it"""
 
-    return collection.author == principal
+    return principal.is_authenticated
 
 
 def delete_collection(principal: User, collection: Collection):
     """Only the author of the collection can delete it"""
 
-    return collection.author == principal
+    return principal.is_authenticated
 
 
 def create_collection_element(principal: User, collection: Collection):
