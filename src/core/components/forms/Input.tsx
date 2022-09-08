@@ -42,7 +42,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         ref={ref}
       />
       {trailingIcon && (
-        <div className="absolute inset-y-0 right-0 inline-flex items-center justify-center pr-2.5">
+        <div className="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5">
           {trailingIcon}
         </div>
       )}
