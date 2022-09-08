@@ -8,19 +8,16 @@ export type BaseColumnProps = { [key: string]: any } & {
   accessor?: string;
   className?: string;
   headerClassName?: string;
-  cell?: any;
   minWidth?: number;
   width?: number;
   maxWidth?: number;
-  children?: (value: any) => ReactElement;
 };
 
-export function BaseColumn({ children, className }: BaseColumnProps) {
-  const cell = useCellContext();
+type ColumnProps<V = any> = BaseColumnProps & {
+  children: (value: V) => ReactElement;
+};
 
-  if (children) {
-    return children(cell.value);
-  } else {
-    return <span className="truncate">{cell.value}</span>;
-  }
+export function BaseColumn<V = any>({ children }: ColumnProps<V>) {
+  const cell = useCellContext<V>();
+  return children(cell.value);
 }

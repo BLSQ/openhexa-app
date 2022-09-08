@@ -1,12 +1,9 @@
-import { gql, useMutation } from "@apollo/client";
-import {
-  DeleteCollectionDocument,
-  useDeleteCollectionMutation,
-} from "collections/graphql/mutations.generated";
+import { gql } from "@apollo/client";
+import { deleteCollection } from "collections/helpers/collections";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { ReactNode, useCallback } from "react";
+import { useCallback } from "react";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 import { CollectionDeleteTrigger_CollectionFragment } from "./CollectionDeleteTrigger.generated";
 
@@ -29,13 +26,12 @@ const CollectionDeleteTrigger = (props: CollectionDeleteTriggerProps) => {
     ),
   } = props;
   const router = useRouter();
-  const [deleteCollection] = useDeleteCollectionMutation();
 
   const clearCache = useCacheKey(["collections", collection.id]);
 
   const onClick = useCallback(async () => {
     if (window.confirm(confirmMessage)) {
-      await deleteCollection({ variables: { input: { id: collection.id } } });
+      await deleteCollection(collection.id);
       clearCache();
       if (
         router.asPath.startsWith(
@@ -45,7 +41,7 @@ const CollectionDeleteTrigger = (props: CollectionDeleteTriggerProps) => {
         router.push(`/collections`);
       }
     }
-  }, [collection, clearCache, router, deleteCollection, confirmMessage]);
+  }, [collection, clearCache, router, confirmMessage]);
 
   if (!collection.authorizedActions.canDelete) {
     return null;

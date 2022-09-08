@@ -10,6 +10,7 @@ import {
 } from "collections/graphql/queries.generated";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import CountryProperty from "core/components/DataCard/CountryProperty";
 import DateProperty from "core/components/DataCard/DateProperty";
@@ -30,6 +31,7 @@ type Props = {
 const CollectionPage = ({ collectionId }: Props) => {
   const { t } = useTranslation();
   const [isDialogOpen, { toggle: toggleDialog }] = useToggle();
+  const [isEditingElements, { toggle: toggleEditingElements }] = useToggle();
 
   const { data, refetch } = useCollectionPageQuery({
     variables: { id: collectionId },
@@ -64,7 +66,7 @@ const CollectionPage = ({ collectionId }: Props) => {
   };
 
   const { collection } = data;
-
+  console.log(collection);
   return (
     <>
       <PageContent>
@@ -136,9 +138,33 @@ const CollectionPage = ({ collectionId }: Props) => {
           </DataCard>
 
           <section>
-            <h3 className="mb-4 font-medium">{t("Elements")}</h3>
+            <div className="mb-4 flex w-full items-center justify-between">
+              <h3 className="font-medium">{t("Elements")}</h3>
+              {collection.authorizedActions.canUpdate && isEditingElements && (
+                <Button
+                  onClick={toggleEditingElements}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {t("Done")}
+                </Button>
+              )}
+              {collection.authorizedActions.canUpdate && !isEditingElements && (
+                <Button
+                  onClick={toggleEditingElements}
+                  variant="white"
+                  size="sm"
+                >
+                  {t("Edit")}
+                </Button>
+              )}
+            </div>
             <Block>
-              <CollectionElementsTable elements={collection.elements.items} />
+              <CollectionElementsTable
+                isEditing={isEditingElements}
+                elements={collection.elements.items}
+                collection={collection}
+              />
             </Block>
           </section>
         </div>

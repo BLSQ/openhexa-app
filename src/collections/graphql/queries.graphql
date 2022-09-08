@@ -45,7 +45,10 @@ query CollectionPage($id: String!) {
       id
       ...Tag_tag
     }
-
+    ...CollectionElementsTable_collection
+    authorizedActions {
+      canUpdate
+    }
     elements {
       items {
         ...CollectionElementsTable_element

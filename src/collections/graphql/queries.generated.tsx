@@ -5,7 +5,7 @@ import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import { CountryBadge_CountryFragmentDoc } from '../../core/features/CountryBadge.generated';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import { CountryPicker_CountryFragmentDoc } from '../../core/features/CountryPicker/CountryPicker.generated';
-import { CollectionElementsTable_ElementFragmentDoc } from '../features/CollectionElementsTable.generated';
+import { CollectionElementsTable_CollectionFragmentDoc, CollectionElementsTable_ElementFragmentDoc } from '../features/CollectionElementsTable.generated';
 import { CollectionActionsMenu_CollectionFragmentDoc } from '../features/CollectionActionsMenu.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
@@ -22,7 +22,7 @@ export type CollectionPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, summary?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'CollectionElement', id: string, createdAt: any, updatedAt: any, name: string, type: string, app: string, model: string, url?: any | null, objectId: string }> }, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canDelete: boolean, canUpdate: boolean } } | null };
+export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, summary?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canUpdate: boolean, canDelete: boolean }, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'CollectionElement', id: string, createdAt: any, updatedAt: any, name: string, type: string, app: string, model: string, url?: any | null, objectId: string }> } } | null };
 
 
 export const CollectionsPageDocument = gql`
@@ -103,6 +103,10 @@ export const CollectionPageDocument = gql`
       id
       ...Tag_tag
     }
+    ...CollectionElementsTable_collection
+    authorizedActions {
+      canUpdate
+    }
     elements {
       items {
         ...CollectionElementsTable_element
@@ -115,6 +119,7 @@ export const CollectionPageDocument = gql`
 ${CountryBadge_CountryFragmentDoc}
 ${CountryPicker_CountryFragmentDoc}
 ${Tag_TagFragmentDoc}
+${CollectionElementsTable_CollectionFragmentDoc}
 ${CollectionElementsTable_ElementFragmentDoc}
 ${CollectionActionsMenu_CollectionFragmentDoc}`;
 

@@ -55,7 +55,9 @@ const Button = (props: ButtonProps) => {
   );
   return (
     <button className={classes} disabled={disabled} {...delegated}>
-      {leadingIcon ? <LeadingIcon>{leadingIcon}</LeadingIcon> : null}
+      {leadingIcon ? (
+        <LeadingIcon size={size}>{leadingIcon}</LeadingIcon>
+      ) : null}
       {children}
     </button>
   );
@@ -63,9 +65,12 @@ const Button = (props: ButtonProps) => {
 Button.Variants = ButtonVariants;
 Button.Sizes = ButtonSizes;
 
-const LeadingIcon = (props: { children: ReactElement }) => {
+const LeadingIcon = (props: { children: ReactElement; size?: ButtonSize }) => {
   return (
-    <div className="-ml-1 mr-2" aria-hidden="true">
+    <div
+      className={clsx("-ml-1", props.size === ButtonSizes[0] ? "mr-1" : "mr-2")}
+      aria-hidden="true"
+    >
       {props.children}
     </div>
   );

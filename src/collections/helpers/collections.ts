@@ -1,4 +1,8 @@
 import { gql } from "@apollo/client";
+import {
+  DeleteCollectionMutation,
+  DeleteCollectionMutationVariables,
+} from "collections/graphql/mutations.generated";
 import { getApolloClient } from "core/helpers/apollo";
 import { CreateCollectionInput } from "graphql-types";
 import {
@@ -45,6 +49,15 @@ export async function removeFromCollection(elementId: string) {
     variables: {
       input: { id: elementId },
     },
+    update(cache) {
+      const normalizedId = cache.identify({
+        id: elementId,
+        __typename: "CollectionElement",
+      });
+
+      cache.evict({ id: normalizedId });
+      cache.gc();
+    },
   });
 
   return data?.deleteCollectionElement.success;
@@ -76,4 +89,35 @@ export async function createCollection(input: CreateCollectionInput) {
   }
 
   return data?.createCollection.collection;
+}
+
+export async function deleteCollection(collectionId: string) {
+  const client = getApolloClient();
+  const { data } = await client.mutate<
+    DeleteCollectionMutation,
+    DeleteCollectionMutationVariables
+  >({
+    mutation: gql`
+      mutation DeleteCollection($input: DeleteCollectionInput!) {
+        deleteCollection(input: $input) {
+          success
+          errors
+        }
+      }
+    `,
+    variables: { input: { id: collectionId } },
+    update(cache) {
+      const normalizedId = cache.identify({
+        id: collectionId,
+        __typename: "Collection",
+      });
+
+      cache.evict({ id: normalizedId });
+      cache.gc();
+    },
+  });
+
+  if (!data?.deleteCollection.success) {
+    throw new Error("Impossible to delete collection");
+  }
 }
