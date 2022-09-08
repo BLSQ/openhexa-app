@@ -15,6 +15,7 @@ export async function addToCollection(
   element: { id: string; app: string; model: string }
 ) {
   const client = getApolloClient();
+
   return client.mutate({
     mutation: gql`
       mutation createCollectionElement($input: CreateCollectionElementInput!) {

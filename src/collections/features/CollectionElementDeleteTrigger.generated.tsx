@@ -1,3 +1,4 @@
+import * as Types from '../../graphql-types';
 
 import { gql } from '@apollo/client';
 export type CollectionElementDeleteTrigger_CollectionFragment = { __typename?: 'Collection', id: string, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canUpdate: boolean } };

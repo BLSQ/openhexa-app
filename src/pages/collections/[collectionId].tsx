@@ -1,4 +1,9 @@
-import { gql, useMutation } from "@apollo/client";
+import {
+  CheckIcon,
+  PencilIcon,
+  PlusIcon,
+  XIcon,
+} from "@heroicons/react/outline";
 import CollectionActionsMenu from "collections/features/CollectionActionsMenu";
 import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
 import CollectionElementsTable from "collections/features/CollectionElementsTable";
@@ -8,6 +13,7 @@ import {
   CollectionPageQuery,
   useCollectionPageQuery,
 } from "collections/graphql/queries.generated";
+import { addToCollection } from "collections/helpers/collections";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -19,18 +25,64 @@ import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
 import { PageContent } from "core/components/Layout/PageContent";
+import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
 import { createGetServerSideProps } from "core/helpers/page";
+import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
 import { useTranslation } from "next-i18next";
+import { useState } from "react";
+import Quicksearch from "search/features/Quicksearch";
+import { QuickSearchResult } from "search/features/Quicksearch/Quicksearch";
 
 type Props = {
   collectionId: string;
 };
 
+const QuickActionAddToCollection = (props: {
+  collectionId: string;
+  element: QuickSearchResult;
+  onSubmit: () => void;
+}) => {
+  const { element, collectionId, onSubmit } = props;
+  const [flag, setFlag] = useState<"done" | "error" | "loading" | "ready">(
+    "ready"
+  );
+
+  const onClick = async () => {
+    setFlag("loading");
+    try {
+      await addToCollection(collectionId, {
+        id: element.object_id,
+        app: element.app_label,
+        model: element.content_type_model,
+      });
+      setFlag("done");
+      onSubmit();
+    } catch {
+      setFlag("error");
+    }
+  };
+
+  return (
+    <Button
+      onClick={onClick}
+      variant="secondary"
+      size="sm"
+      disabled={flag !== "ready"}
+    >
+      {flag === "done" && <CheckIcon className="w-4" />}
+      {flag === "ready" && <PlusIcon className="w-4" />}
+      {flag === "loading" && <Spinner size="xs" />}
+      {flag === "error" && <XIcon className="w-4" />}
+    </Button>
+  );
+};
+
 const CollectionPage = ({ collectionId }: Props) => {
   const { t } = useTranslation();
   const [isDialogOpen, { toggle: toggleDialog }] = useToggle();
+  const [isSearchOpen, { toggle: toggleSearch }] = useToggle();
   const [isEditingElements, { toggle: toggleEditingElements }] = useToggle();
 
   const { data, refetch } = useCollectionPageQuery({
@@ -38,6 +90,8 @@ const CollectionPage = ({ collectionId }: Props) => {
   });
 
   const [mutate] = useUpdateCollectionMutation();
+
+  useCacheKey("collections", () => refetch());
 
   if (!data?.collection) {
     return null;
@@ -66,7 +120,7 @@ const CollectionPage = ({ collectionId }: Props) => {
   };
 
   const { collection } = data;
-  console.log(collection);
+
   return (
     <>
       <PageContent>
@@ -139,25 +193,38 @@ const CollectionPage = ({ collectionId }: Props) => {
 
           <section>
             <div className="mb-4 flex w-full items-center justify-between">
-              <h3 className="font-medium">{t("Elements")}</h3>
-              {collection.authorizedActions.canUpdate && isEditingElements && (
-                <Button
-                  onClick={toggleEditingElements}
-                  variant="secondary"
-                  size="sm"
-                >
-                  {t("Done")}
-                </Button>
-              )}
-              {collection.authorizedActions.canUpdate && !isEditingElements && (
-                <Button
-                  onClick={toggleEditingElements}
-                  variant="white"
-                  size="sm"
-                >
-                  {t("Edit")}
-                </Button>
-              )}
+              <h3 className="flex-1 font-medium">{t("Elements")}</h3>
+              <div className="flex items-center gap-2">
+                {collection.authorizedActions.canUpdate && (
+                  <Button
+                    onClick={toggleSearch}
+                    variant="secondary"
+                    size="sm"
+                    leadingIcon={<PlusIcon className="w-3" />}
+                  >
+                    {t("Add")}
+                  </Button>
+                )}
+                {collection.authorizedActions.canUpdate && !isEditingElements && (
+                  <Button
+                    onClick={toggleEditingElements}
+                    variant="secondary"
+                    size="sm"
+                    leadingIcon={<PencilIcon className="w-3" />}
+                  >
+                    {t("Edit")}
+                  </Button>
+                )}
+                {collection.authorizedActions.canUpdate && isEditingElements && (
+                  <Button
+                    onClick={toggleEditingElements}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    {t("Done")}
+                  </Button>
+                )}
+              </div>
             </div>
             <Block>
               <CollectionElementsTable
@@ -173,6 +240,18 @@ const CollectionPage = ({ collectionId }: Props) => {
       <CollectionDataSourceViewerDialog
         open={isDialogOpen}
         onClose={toggleDialog}
+      />
+
+      <Quicksearch
+        renderActions={(element) => (
+          <QuickActionAddToCollection
+            onSubmit={() => refetch()}
+            collectionId={collection.id}
+            element={element}
+          />
+        )}
+        open={isSearchOpen}
+        onClose={toggleSearch}
       />
     </>
   );
