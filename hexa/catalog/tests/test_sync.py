@@ -4,7 +4,7 @@ from django import test
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
-from hexa.catalog.queue import datasource_sync_queue
+from hexa.catalog.queue import datasource_work_queue
 from hexa.core.test import TestCase
 from hexa.plugins.connector_postgresql.models import Database, DatasourceSyncResult
 from hexa.user_management.models import User
@@ -81,7 +81,7 @@ class AsyncRefreshTest(TestCase):
         self.assertFalse(synced)
 
         with patch("hexa.plugins.connector_postgresql.models.Database.sync", mock_sync):
-            while datasource_sync_queue.run_once():
+            while datasource_work_queue.run_once():
                 pass
 
         self.assertTrue(synced)

@@ -3,6 +3,7 @@ from datetime import datetime
 from logging import getLogger
 
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import pluralize
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
+from hexa.catalog.queue import datasource_work_queue
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
@@ -154,6 +156,22 @@ class Account(Datasource):
         index.datasource_name = self.name
         index.datasource_id = self.id
 
+    def index_all_objects(self):
+        logger.info("index_all_objects %s", self.id)
+        for obj in self.orgunit_set.all():
+            try:
+                with transaction.atomic():
+                    obj.build_index()
+            except Exception:
+                logger.exception("index error")
+
+        for obj in self.form_set.all():
+            try:
+                with transaction.atomic():
+                    obj.build_index()
+            except Exception:
+                logger.exception("index error")
+
     def get_absolute_url(self):
         return reverse(
             "connector_iaso:datasource_detail", kwargs={"datasource_id": self.id}
@@ -187,6 +205,15 @@ class IASOPermission(Permission):
 
     def index_object(self):
         self.iaso_account.build_index()
+        datasource_work_queue.enqueue(
+            "datasource_index",
+            {
+                "contenttype_id": ContentType.objects.get_for_model(
+                    self.iaso_account
+                ).id,
+                "object_id": str(self.iaso_account.id),
+            },
+        )
 
     def __str__(self):
         return (

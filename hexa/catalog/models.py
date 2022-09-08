@@ -143,6 +143,9 @@ class Datasource(IndexableMixin, models.Model):
     def populate_index(self, index):
         raise NotImplementedError
 
+    def index_all_objects(self):
+        raise NotImplementedError
+
     def get_absolute_url(self):
         raise NotImplementedError
 
@@ -229,8 +232,8 @@ class Entry(IndexableMixin, models.Model):
         self.build_index()
 
 
-class DatasourcesSyncJob(BaseJob):
+class DatasourcesWorkJob(BaseJob):
     # queue table to hold sync job from django-postgres-queue. Need to redefine this class to specify a
     # custom table name, to avoid conflicts with other queue in the system
     class Meta:
-        db_table = "catalog_datasourcessyncjob"
+        db_table = "catalog_datasourcesworkjob"

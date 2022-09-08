@@ -13,7 +13,7 @@ from hexa.core.search import search as do_search
 
 from .datagrids import DatasourceGrid
 from .models import Datasource, Index
-from .queue import datasource_sync_queue
+from .queue import datasource_work_queue
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -85,7 +85,7 @@ def datasource_sync(
     )
 
     if settings.EXTERNAL_ASYNC_REFRESH and "synchronous" not in request.GET:
-        datasource_sync_queue.enqueue(
+        datasource_work_queue.enqueue(
             "datasource_sync",
             {
                 "contenttype_id": datasource_contenttype_id,

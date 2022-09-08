@@ -330,6 +330,7 @@ class BaseIndexableMixin:
 
         index.save()
 
+        self.get_permission_model().objects.filter(index=index.id).delete()
         for permission in self.get_permission_set():
             self.get_permission_model().objects.update_or_create(
                 index=index, team=permission.team, defaults={"permission": permission}
