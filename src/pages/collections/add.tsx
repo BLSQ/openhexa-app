@@ -11,7 +11,8 @@ const AddToCollectionsPage = () => {
   const router = useRouter();
 
   const element = {
-    __typename: router.query.type as string,
+    model: router.query.model as string,
+    app: router.query.app as string,
     id: router.query.id as string,
   };
 

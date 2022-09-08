@@ -293,40 +293,6 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   zonalStatisticsGeo: AccessmodFileset
 }
 
-enum AddDHIS2DataElementToCollectionError {
-  INVALID
-}
-
-input AddDHIS2DataElementToCollectionInput {
-  id: String!
-  collectionId: String!
-}
-
-type AddDHIS2DataElementToCollectionResult {
-  success: Boolean!
-  errors: [AddDHIS2DataElementToCollectionError!]!
-  collection: Collection
-  element: DHIS2DataElement
-  collectionElement: DHIS2DataElementCollectionElement
-}
-
-enum AddS3ObjectToCollectionError {
-  INVALID
-}
-
-input AddS3ObjectToCollectionInput {
-  id: String!
-  collectionId: String!
-}
-
-type AddS3ObjectToCollectionResult {
-  success: Boolean!
-  errors: [AddS3ObjectToCollectionError!]!
-  collection: Collection
-  element: S3Object
-  collectionElement: S3ObjectCollectionElement
-}
-
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -369,9 +335,14 @@ type CollectionAuthorizedActions {
   canDelete: Boolean!
 }
 
-interface CollectionElement {
+type CollectionElement {
   id: String!
-  type: CollectionElementType!
+  app: String!
+  model: String!
+  type: String!
+  name: String!
+  objectId: String!
+  url: URL
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -381,12 +352,6 @@ type CollectionElementPage {
   totalPages: Int!
   totalItems: Int!
   items: [CollectionElement!]!
-}
-
-enum CollectionElementType {
-  EMPTY
-  D_H_I_S2_DATA_ELEMENT
-  S3_OBJECT
 }
 
 type CollectionPage {
@@ -516,6 +481,25 @@ type CreateAccessmodZonalStatisticsResult {
   errors: [CreateAccessmodZonalStatisticsError!]!
 }
 
+enum CreateCollectionElementError {
+  COLLECTION_NOT_FOUND
+  OBJECT_NOT_FOUND
+  INVALID
+}
+
+input CreateCollectionElementInput {
+  collectionId: String!
+  app: String!
+  model: String!
+  objectId: String!
+}
+
+type CreateCollectionElementResult {
+  success: Boolean!
+  errors: [CreateCollectionElementError!]!
+  element: CollectionElement
+}
+
 enum CreateCollectionError {
   INVALID
 }
@@ -629,6 +613,21 @@ type DeleteAccessmodProjectResult {
   errors: [DeleteAccessmodProjectError!]!
 }
 
+enum DeleteCollectionElementError {
+  NOT_FOUND
+  INVALID
+}
+
+input DeleteCollectionElementInput {
+  id: String!
+}
+
+type DeleteCollectionElementResult {
+  success: Boolean!
+  errors: [DeleteCollectionElementError!]!
+  collection: Collection
+}
+
 enum DeleteCollectionError {
   INVALID
 }
@@ -690,14 +689,6 @@ type DHIS2DataElement {
   createdAt: DateTime!
   updatedAt: DateTime!
   instance: DHIS2Instance!
-}
-
-type DHIS2DataElementCollectionElement implements CollectionElement {
-  id: String!
-  type: CollectionElementType!
-  element: DHIS2DataElement!
-  createdAt: DateTime!
-  updatedAt: DateTime!
 }
 
 type DHIS2DataElementPage {
@@ -795,10 +786,8 @@ type Mutation {
   createCollection(input: CreateCollectionInput!): CreateCollectionResult!
   updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
   deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
-  addDHIS2DataElementToCollection(input: AddDHIS2DataElementToCollectionInput!): AddDHIS2DataElementToCollectionResult!
-  removeDHIS2DataElementFromCollection(input: RemoveDHIS2DataElementFromCollectionInput!): RemoveDHIS2DataElementFromCollectionResult!
-  addS3ObjectToCollection(input: AddS3ObjectToCollectionInput!): AddS3ObjectToCollectionResult!
-  removeS3ObjectFromCollection(input: RemoveS3ObjectFromCollectionInput!): RemoveS3ObjectFromCollectionResult!
+  createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult!
+  deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult!
   createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
   updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
   deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
@@ -895,38 +884,6 @@ type Query {
   countries: [Country!]!
 }
 
-enum RemoveDHIS2DataElementFromCollectionError {
-  INVALID
-}
-
-input RemoveDHIS2DataElementFromCollectionInput {
-  id: String!
-  collectionId: String!
-}
-
-type RemoveDHIS2DataElementFromCollectionResult {
-  success: Boolean!
-  errors: [RemoveDHIS2DataElementFromCollectionError!]!
-  collection: Collection
-  element: DHIS2DataElement
-}
-
-enum RemoveS3ObjectFromCollectionError {
-  INVALID
-}
-
-input RemoveS3ObjectFromCollectionInput {
-  id: String!
-  collectionId: String!
-}
-
-type RemoveS3ObjectFromCollectionResult {
-  success: Boolean!
-  errors: [RemoveS3ObjectFromCollectionError!]!
-  collection: Collection
-  element: S3Object
-}
-
 enum RequestAccessmodAccessError {
   ALREADY_EXISTS
   MUST_ACCEPT_TOS
@@ -972,14 +929,6 @@ type S3Object {
   lastModified: DateTime!
   etag: String!
   collections: [Collection!]!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type S3ObjectCollectionElement implements CollectionElement {
-  id: String!
-  type: CollectionElementType!
-  element: S3Object!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1200,6 +1149,8 @@ type UpdateTeamResult {
   success: Boolean!
   errors: [UpdateTeamError!]!
 }
+
+scalar URL
 
 type User {
   id: String!

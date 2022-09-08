@@ -22,7 +22,7 @@ import {
 type ManageCollectionItemDialogProps = {
   onClose: () => void;
   open: boolean;
-  element: { id: string; __typename: string };
+  element: { id: string; app: string; model: string };
 };
 
 const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
@@ -47,16 +47,9 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
           elements {
             items {
               id
-              ... on S3ObjectCollectionElement {
-                element {
-                  id
-                }
-              }
-              ... on DHIS2DataElementCollectionElement {
-                element {
-                  id
-                }
-              }
+              objectId
+              app
+              model
             }
           }
           countries {
@@ -127,7 +120,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
           if (operation === "add") {
             return addToCollection(collectionId, element);
           } else if (operation === "delete") {
-            return removeFromCollection(collectionId, element);
+            return removeFromCollection(element.id);
           }
         })
       );

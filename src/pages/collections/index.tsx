@@ -25,6 +25,8 @@ type Props = {
   perPage: number;
 };
 
+// Refresh list on deletion
+
 const CollectionsPage = (props: Props) => {
   const { t } = useTranslation();
   const { data } = useCollectionsPageQuery({

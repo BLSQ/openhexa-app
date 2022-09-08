@@ -21,7 +21,6 @@ import { PageContent } from "core/components/Layout/PageContent";
 import { ensureArray } from "core/helpers/array";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
-import { CollectionElementType } from "graphql-types";
 import { useTranslation } from "next-i18next";
 
 type Props = {
@@ -137,26 +136,9 @@ const CollectionPage = ({ collectionId }: Props) => {
           </DataCard>
 
           <section>
-            <h3 className="mb-4 font-bold">{t("DHIS2 Data Elements")}</h3>
+            <h3 className="mb-4 font-medium">{t("Elements")}</h3>
             <Block>
-              <CollectionElementsTable
-                elements={collection.elements.items.filter(
-                  (x) => x.__typename === "DHIS2DataElementCollectionElement"
-                )}
-                renderAs={CollectionElementType.DHIS2DataElement}
-              />
-            </Block>
-          </section>
-
-          <section>
-            <h3 className="mb-4 font-bold">{t("S3 Objects")}</h3>
-            <Block>
-              <CollectionElementsTable
-                elements={collection.elements.items.filter(
-                  (x) => x.__typename === "S3ObjectCollectionElement"
-                )}
-                renderAs={CollectionElementType.S3Object}
-              />
+              <CollectionElementsTable elements={collection.elements.items} />
             </Block>
           </section>
         </div>

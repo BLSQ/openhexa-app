@@ -23,6 +23,7 @@ export type Scalars = {
   SimplifiedExtentType: any;
   StackPriorities: any;
   TimeThresholds: any;
+  URL: any;
 };
 
 export type AccessmodAccessRequest = {
@@ -329,42 +330,6 @@ export type AccessmodZonalStatistics = AccessmodAnalysis &
     zonalStatisticsTable?: Maybe<AccessmodFileset>;
   };
 
-export enum AddDhis2DataElementToCollectionError {
-  Invalid = "INVALID",
-}
-
-export type AddDhis2DataElementToCollectionInput = {
-  collectionId: Scalars["String"];
-  id: Scalars["String"];
-};
-
-export type AddDhis2DataElementToCollectionResult = {
-  __typename?: "AddDHIS2DataElementToCollectionResult";
-  collection?: Maybe<Collection>;
-  collectionElement?: Maybe<Dhis2DataElementCollectionElement>;
-  element?: Maybe<Dhis2DataElement>;
-  errors: Array<AddDhis2DataElementToCollectionError>;
-  success: Scalars["Boolean"];
-};
-
-export enum AddS3ObjectToCollectionError {
-  Invalid = "INVALID",
-}
-
-export type AddS3ObjectToCollectionInput = {
-  collectionId: Scalars["String"];
-  id: Scalars["String"];
-};
-
-export type AddS3ObjectToCollectionResult = {
-  __typename?: "AddS3ObjectToCollectionResult";
-  collection?: Maybe<Collection>;
-  collectionElement?: Maybe<S3ObjectCollectionElement>;
-  element?: Maybe<S3Object>;
-  errors: Array<AddS3ObjectToCollectionError>;
-  success: Scalars["Boolean"];
-};
-
 export enum ApproveAccessmodAccessRequestError {
   Invalid = "INVALID",
 }
@@ -418,10 +383,16 @@ export type CollectionAuthorizedActions = {
 };
 
 export type CollectionElement = {
+  __typename?: "CollectionElement";
+  app: Scalars["String"];
   createdAt: Scalars["DateTime"];
   id: Scalars["String"];
-  type: CollectionElementType;
+  model: Scalars["String"];
+  name: Scalars["String"];
+  objectId: Scalars["String"];
+  type: Scalars["String"];
   updatedAt: Scalars["DateTime"];
+  url?: Maybe<Scalars["URL"]>;
 };
 
 export type CollectionElementPage = {
@@ -431,12 +402,6 @@ export type CollectionElementPage = {
   totalItems: Scalars["Int"];
   totalPages: Scalars["Int"];
 };
-
-export enum CollectionElementType {
-  DHIS2DataElement = "D_H_I_S2_DATA_ELEMENT",
-  Empty = "EMPTY",
-  S3Object = "S3_OBJECT",
-}
 
 export type CollectionPage = {
   __typename?: "CollectionPage";
@@ -573,6 +538,26 @@ export type CreateAccessmodZonalStatisticsResult = {
   success: Scalars["Boolean"];
 };
 
+export enum CreateCollectionElementError {
+  CollectionNotFound = "COLLECTION_NOT_FOUND",
+  Invalid = "INVALID",
+  ObjectNotFound = "OBJECT_NOT_FOUND",
+}
+
+export type CreateCollectionElementInput = {
+  app: Scalars["String"];
+  collectionId: Scalars["String"];
+  model: Scalars["String"];
+  objectId: Scalars["String"];
+};
+
+export type CreateCollectionElementResult = {
+  __typename?: "CreateCollectionElementResult";
+  element?: Maybe<CollectionElement>;
+  errors: Array<CreateCollectionElementError>;
+  success: Scalars["Boolean"];
+};
+
 export enum CreateCollectionError {
   Invalid = "INVALID",
 }
@@ -635,15 +620,6 @@ export type Dhis2DataElement = {
   id: Scalars["String"];
   instance: Dhis2Instance;
   name: Scalars["String"];
-  updatedAt: Scalars["DateTime"];
-};
-
-export type Dhis2DataElementCollectionElement = CollectionElement & {
-  __typename?: "DHIS2DataElementCollectionElement";
-  createdAt: Scalars["DateTime"];
-  element: Dhis2DataElement;
-  id: Scalars["String"];
-  type: CollectionElementType;
   updatedAt: Scalars["DateTime"];
 };
 
@@ -720,6 +696,22 @@ export type DeleteAccessmodProjectPermissionResult = {
 export type DeleteAccessmodProjectResult = {
   __typename?: "DeleteAccessmodProjectResult";
   errors: Array<DeleteAccessmodProjectError>;
+  success: Scalars["Boolean"];
+};
+
+export enum DeleteCollectionElementError {
+  Invalid = "INVALID",
+  NotFound = "NOT_FOUND",
+}
+
+export type DeleteCollectionElementInput = {
+  id: Scalars["String"];
+};
+
+export type DeleteCollectionElementResult = {
+  __typename?: "DeleteCollectionElementResult";
+  collection?: Maybe<Collection>;
+  errors: Array<DeleteCollectionElementError>;
   success: Scalars["Boolean"];
 };
 
@@ -855,8 +847,6 @@ export enum MembershipRole {
 
 export type Mutation = {
   __typename?: "Mutation";
-  addDHIS2DataElementToCollection: AddDhis2DataElementToCollectionResult;
-  addS3ObjectToCollection: AddS3ObjectToCollectionResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
@@ -865,6 +855,7 @@ export type Mutation = {
   createAccessmodProjectPermission: CreateAccessmodProjectPermissionResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
   createCollection: CreateCollectionResult;
+  createCollectionElement: CreateCollectionElementResult;
   createMembership: CreateMembershipResult;
   createTeam: CreateTeamResult;
   deleteAccessmodAnalysis: DeleteAccessmodAnalysisResult;
@@ -872,6 +863,7 @@ export type Mutation = {
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectPermission: DeleteAccessmodProjectPermissionResult;
   deleteCollection: DeleteCollectionResult;
+  deleteCollectionElement: DeleteCollectionElementResult;
   deleteMembership: DeleteMembershipResult;
   deleteTeam: DeleteTeamResult;
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
@@ -881,8 +873,6 @@ export type Mutation = {
   prepareAccessmodFileDownload: PrepareAccessmodFileDownloadResult;
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
   prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
-  removeDHIS2DataElementFromCollection: RemoveDhis2DataElementFromCollectionResult;
-  removeS3ObjectFromCollection: RemoveS3ObjectFromCollectionResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
   setPassword: SetPasswordResult;
@@ -894,14 +884,6 @@ export type Mutation = {
   updateCollection: UpdateCollectionResult;
   updateMembership: UpdateMembershipResult;
   updateTeam: UpdateTeamResult;
-};
-
-export type MutationAddDhis2DataElementToCollectionArgs = {
-  input: AddDhis2DataElementToCollectionInput;
-};
-
-export type MutationAddS3ObjectToCollectionArgs = {
-  input: AddS3ObjectToCollectionInput;
 };
 
 export type MutationApproveAccessmodAccessRequestArgs = {
@@ -936,6 +918,10 @@ export type MutationCreateCollectionArgs = {
   input: CreateCollectionInput;
 };
 
+export type MutationCreateCollectionElementArgs = {
+  input: CreateCollectionElementInput;
+};
+
 export type MutationCreateMembershipArgs = {
   input: CreateMembershipInput;
 };
@@ -962,6 +948,10 @@ export type MutationDeleteAccessmodProjectPermissionArgs = {
 
 export type MutationDeleteCollectionArgs = {
   input: DeleteCollectionInput;
+};
+
+export type MutationDeleteCollectionElementArgs = {
+  input: DeleteCollectionElementInput;
 };
 
 export type MutationDeleteMembershipArgs = {
@@ -994,14 +984,6 @@ export type MutationPrepareAccessmodFileUploadArgs = {
 
 export type MutationPrepareAccessmodFilesetVisualizationDownloadArgs = {
   input: PrepareAccessmodFilesetVisualizationDownloadInput;
-};
-
-export type MutationRemoveDhis2DataElementFromCollectionArgs = {
-  input: RemoveDhis2DataElementFromCollectionInput;
-};
-
-export type MutationRemoveS3ObjectFromCollectionArgs = {
-  input: RemoveS3ObjectFromCollectionInput;
 };
 
 export type MutationRequestAccessmodAccessArgs = {
@@ -1199,40 +1181,6 @@ export type QueryTeamsArgs = {
   term?: InputMaybe<Scalars["String"]>;
 };
 
-export enum RemoveDhis2DataElementFromCollectionError {
-  Invalid = "INVALID",
-}
-
-export type RemoveDhis2DataElementFromCollectionInput = {
-  collectionId: Scalars["String"];
-  id: Scalars["String"];
-};
-
-export type RemoveDhis2DataElementFromCollectionResult = {
-  __typename?: "RemoveDHIS2DataElementFromCollectionResult";
-  collection?: Maybe<Collection>;
-  element?: Maybe<Dhis2DataElement>;
-  errors: Array<RemoveDhis2DataElementFromCollectionError>;
-  success: Scalars["Boolean"];
-};
-
-export enum RemoveS3ObjectFromCollectionError {
-  Invalid = "INVALID",
-}
-
-export type RemoveS3ObjectFromCollectionInput = {
-  collectionId: Scalars["String"];
-  id: Scalars["String"];
-};
-
-export type RemoveS3ObjectFromCollectionResult = {
-  __typename?: "RemoveS3ObjectFromCollectionResult";
-  collection?: Maybe<Collection>;
-  element?: Maybe<S3Object>;
-  errors: Array<RemoveS3ObjectFromCollectionError>;
-  success: Scalars["Boolean"];
-};
-
 export enum RequestAccessmodAccessError {
   AlreadyExists = "ALREADY_EXISTS",
   Invalid = "INVALID",
@@ -1283,15 +1231,6 @@ export type S3Object = {
   size: Scalars["Int"];
   storageClass: Scalars["String"];
   type: Scalars["String"];
-  updatedAt: Scalars["DateTime"];
-};
-
-export type S3ObjectCollectionElement = CollectionElement & {
-  __typename?: "S3ObjectCollectionElement";
-  createdAt: Scalars["DateTime"];
-  element: S3Object;
-  id: Scalars["String"];
-  type: CollectionElementType;
   updatedAt: Scalars["DateTime"];
 };
 
