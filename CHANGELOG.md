@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/BLSQ/openhexa-frontend/compare/0.6.1...0.6.2) (2022-09-09)
+
+
+### Bug Fixes
+
+* **Collections:** Fix element values extracted from the url and the isInCollection check ([aef7b88](https://github.com/BLSQ/openhexa-frontend/commit/aef7b880dae69807ee0bbad175a6806a6545c84e))
+
 ## [0.6.1](https://github.com/BLSQ/openhexa-frontend/compare/0.6.0...0.6.1) (2022-09-09)
 
 
