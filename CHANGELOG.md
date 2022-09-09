@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.1](https://github.com/BLSQ/openhexa-frontend/compare/0.6.0...0.6.1) (2022-09-09)
+
+
+### Features
+
+* **Page:** Add a title on pages ([19d0fca](https://github.com/BLSQ/openhexa-frontend/commit/19d0fca56635fb56ad58c31378a86721c4c63ed1))
+
+
+### Bug Fixes
+
+* **Datagrid:** set max width for CountryColumn & truncate text in TextColumn when wrapped in a link ([c193de5](https://github.com/BLSQ/openhexa-frontend/commit/c193de524c1bf9407cdf914be9b1db55ad45820e))
+
+
+### Miscellaneous Chores
+
+* **Main:** Release 0.6.1 ([7180291](https://github.com/BLSQ/openhexa-frontend/commit/7180291db836d5d0eca94848e4bf3d7bc57933c5))
+
 ## [0.6.0](https://github.com/BLSQ/openhexa-frontend/compare/0.5.3...0.6.0) (2022-09-09)
 
 
