@@ -12,10 +12,10 @@ def get_search_options(user: User, query: str):
 
     type_options, datasource_options = [], []
 
-    datasources = (
+    datasource_indexes = (
         Index.objects.filter_for_user(user).roots().select_related("content_type")
     )
-    for source in datasources:
+    for source in datasource_indexes:
         datasource_options.append(
             {
                 "value": source.object.id,
@@ -23,17 +23,24 @@ def get_search_options(user: User, query: str):
                 "selected": f"datasource:{source.object.id}" in query,
             }
         )
-        if getattr(
-            source.object, "searchable", False
-        ):  # TODO: remove (see comment in datasource_index command)
-            content_code = f"{source.app_label[10:]}_{source.content_type.model}"
-            type_options.append(
-                {
-                    "value": f"{content_code}",
-                    "label": source.content_type.name,
-                    "selected": f"type:{content_code}" in query,
-                }
-            )
+
+    content_types = [
+        x.content_type
+        for x in Index.objects.filter_for_user(user)
+        .filter_for_datasources([d.object.id for d in datasource_indexes])
+        .order_by("content_type")
+        .distinct("content_type")
+        .select_related("content_type")
+    ]
+    for content_type in content_types:
+        content_code = f"{content_type.app_label[10:]}_{content_type.model}"
+        type_options.append(
+            {
+                "value": f"{content_code}",
+                "label": content_type.name,
+                "selected": f"type:{content_code}" in query,
+            }
+        )
 
     if user.has_feature_flag("collections"):
         type_options.append(
