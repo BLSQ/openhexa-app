@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0](https://github.com/BLSQ/openhexa-frontend/compare/0.5.3...0.6.0) (2022-09-09)
+
+
+### Features
+
+* **collections:** User can delete elements from collections directly ([0237e3c](https://github.com/BLSQ/openhexa-frontend/commit/0237e3c5a40a722869f0aee6f6d995e7d134b779))
+* **Collection:** User can add & remove elements from collection's page ([47dd5e8](https://github.com/BLSQ/openhexa-frontend/commit/47dd5e816bbb8b99263627ba9d748fce7cd69aa2))
+* **Search:** Implement a basic quick search component ([22a881a](https://github.com/BLSQ/openhexa-frontend/commit/22a881ae15311599eaafa040f933630a948b2933))
+
 ## [0.5.3](https://github.com/BLSQ/openhexa-frontend/compare/0.5.2...0.5.3) (2022-09-07)
 
 
