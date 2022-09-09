@@ -35,6 +35,10 @@ urlpatterns = [
     path("user/", include("hexa.user_management.urls", namespace="user")),
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path(
+        "collections/",
+        include("hexa.data_collections.urls", namespace="data_collections"),
+    ),
+    path(
         "visualizations/",
         include("hexa.visualizations.urls", namespace="visualizations"),
     ),

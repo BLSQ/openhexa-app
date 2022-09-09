@@ -23,6 +23,7 @@ x-app: &common
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
+      - NEW_FRONTEND_DOMAIN=http://localhost:3000
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR

@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
+from django.urls import reverse
 from django.utils.http import urlencode
 
 from hexa.ui import datacard
@@ -35,7 +36,8 @@ class CollectionsSection(datacard.Section):
                 "model": content_type.model,
             }
         )
-        manage_url = f"/collections/add?{params}"
+
+        manage_url = f"{reverse('data_collections:manage_collections')}?{params}"
 
         elements = (
             CollectionElement.objects.filter_for_user(card.request.user)

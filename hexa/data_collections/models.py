@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Greatest
 from django.templatetags.static import static
+from django.urls import reverse
 from django_countries.fields import Country, CountryField
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
@@ -134,7 +135,7 @@ class Collection(Base):
         )
 
     def get_absolute_url(self) -> str:
-        return f"/collections/{self.id}"
+        return reverse("data_collections:collection_details", args=[self.id])
 
     def to_dict(self):
         return {
