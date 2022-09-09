@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import typing
+from functools import cache
 
+import django.apps
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
@@ -124,6 +128,11 @@ class Collection(Base):
 
         return self.save()
 
+    def add_object(self, principal: UserInterface, object: models.Model):
+        return CollectionElement.objects.create_if_has_perm(
+            principal, collection=self, object=object
+        )
+
     def get_absolute_url(self) -> str:
         return f"/collections/{self.id}"
 
@@ -153,6 +162,10 @@ class CollectionElementQuerySet(BaseQuerySet, InheritanceQuerySet):
 
         return self.all()
 
+    def filter_for_object(self, object: models.Model):
+        object_type = ContentType.objects.get_for_model(object)
+        return self.filter(object_type=object_type, object_id=object.id)
+
 
 class CollectionElementManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
@@ -164,6 +177,34 @@ class CollectionElementManager(InheritanceManager):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.get_queryset().filter_for_user(user)
 
+    def create_if_has_perm(
+        self,
+        principal: User,
+        collection: Collection,
+        object: models.Model,
+        **kwargs,
+    ):
+        if not principal.has_perm(
+            "data_collections.create_collection_element", collection
+        ):
+            raise PermissionDenied
+
+        return self.create(
+            collection=collection,
+            object=object,
+            **kwargs,
+        )
+
+
+@cache
+def limit_data_source_types():
+    from hexa.core.models.indexes import BaseIndexableMixin
+
+    all_models = django.apps.apps.get_models()
+    indexables = [x for x in all_models if issubclass(x, BaseIndexableMixin)]
+    names = [x.__name__.lower() for x in indexables]
+    return {"model__in": names}
+
 
 class CollectionElement(Base):
     # TODO: cannot add unique constraint on "collection" + "field in subclass"
@@ -171,14 +212,34 @@ class CollectionElement(Base):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "collection_id",
+                "object_type",
+                "object_id",
+                name="collection_element_unique_object",
+            )
+        ]
 
-    element: models.ForeignKey = None
     collection = models.ForeignKey(
-        "data_collections.Collection", on_delete=models.CASCADE, related_name="+"
+        "data_collections.Collection", on_delete=models.CASCADE, related_name="elements"
     )
+    object_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        null=True,
+        limit_choices_to=limit_data_source_types,
+    )
+    object_id = models.UUIDField(null=True)
+    object = GenericForeignKey("object_type", "object_id")
 
     objects = CollectionElementManager()
 
-    @property
-    def graphql_element_type(self):
-        raise NotImplementedError
+    def delete_if_has_perm(
+        self,
+        principal: UserInterface,
+    ):
+        if not principal.has_perm("data_collections.delete_collection_element", self):
+            raise PermissionDenied
+
+        self.delete()

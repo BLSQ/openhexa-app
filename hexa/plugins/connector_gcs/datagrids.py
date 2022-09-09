@@ -1,5 +1,6 @@
 from django.urls import reverse
 
+from hexa.data_collections.datagrid import CollectionColumn
 from hexa.plugins.connector_gcs.models import Object
 from hexa.ui.datagrid import (
     Action,
@@ -7,7 +8,6 @@ from hexa.ui.datagrid import (
     DateColumn,
     LeadingColumn,
     LinkColumn,
-    TagColumn,
     TextColumn,
 )
 from hexa.ui.utils import StaticText
@@ -41,7 +41,7 @@ class ObjectGrid(Datagrid):
         width="25%",
     )
     directory = TextColumn(text="parent_key", translate=False)
-    tags = TagColumn(value="index.tags.all")
+    collections = CollectionColumn()
     size = TextColumn(text="file_size_display", translate=False)
     type = TextColumn(text="type_display")
     last_modified = DateColumn(date="last_modified", date_format="%Y-%m-%d %H:%M:%S %Z")

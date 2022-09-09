@@ -73,7 +73,7 @@ class DataElementGrid(Dhis2Grid):
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
-    collections = CollectionColumn(value="collections.all")
+    collections = CollectionColumn()
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
@@ -108,6 +108,7 @@ class OrganisationUnitGrid(Dhis2Grid):
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
     tags = TagColumn(value="index.tags.all")
+    collections = CollectionColumn()
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
@@ -137,7 +138,7 @@ class IndicatorGrid(Dhis2Grid):
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
-    tags = TagColumn(value="index.tags.all")
+    collections = CollectionColumn()
     last_synced = DateColumn(date="instance.last_synced_at")
     view = LinkColumn(text="View")
 
@@ -167,7 +168,7 @@ class DatasetGrid(Dhis2Grid):
     )
     dhis2_id = TextColumn(text="dhis2_id", label="ID", translate=False)
     code = TextColumn(text="code", translate=False)
-    tags = TextColumn(text="todo_tags", translate=False)
+    collections = CollectionColumn()
     last_synced = DateColumn(date="instance.last_synced_at", label=_("Last synced"))
     view = LinkColumn(text="View")
 

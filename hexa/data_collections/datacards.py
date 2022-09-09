@@ -1,38 +1,17 @@
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 from django.utils.http import urlencode
 
 from hexa.ui import datacard
-from hexa.ui.datacard import properties
-from hexa.ui.utils import get_item_value
 
-from .models import Collection
-
-
-class CollectionProperty(properties.Property):
-    def __init__(self, *, value=None, **kwargs):
-        super().__init__(**kwargs)
-        self.value = value
-
-    @property
-    def template(self):
-        return "data_collections/datacard/property_collection.html"
-
-    def context(self, model, section):
-        return {
-            "collections": [
-                {"name": c.name, "url": c.get_absolute_url()}
-                for c in self.get_value(model, self.value, container=section)
-            ],
-        }
+from .models import Collection, CollectionElement
 
 
 class CollectionsSection(datacard.Section):
     title = "Collections"
 
-    def __init__(self, graphql_type, value=None, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.graphql_type = graphql_type
-        self.source = value
 
     @property
     def template(self):
@@ -47,20 +26,31 @@ class CollectionsSection(datacard.Section):
         return request.user.has_feature_flag("collections")
 
     def context(self, model, card):
-        collections = get_item_value(
-            model, self.source, container=card, exclude=datacard.Section
-        )
-
+        content_type = ContentType.objects.get_for_model(model)
         params = urlencode(
-            {"redirect": card.request.path, "id": model.id, "type": self.graphql_type}
+            {
+                "redirect": card.request.path,
+                "objectId": model.id,
+                "app": content_type.app_label,
+                "model": content_type.model,
+            }
         )
         manage_url = f"/collections/add?{params}"
 
+        elements = (
+            CollectionElement.objects.filter_for_user(card.request.user)
+            .filter_for_object(model)
+            .order_by("-updated_at")
+            .select_related("collection")
+        )
         return {
             "manage_url": manage_url,
             "collections": [
-                {"name": collection.name, "url": f"/collections/{collection.id}"}
-                for collection in collections
+                {
+                    "name": element.collection.name,
+                    "url": element.collection.get_absolute_url(),
+                }
+                for element in elements
             ],
         }
 

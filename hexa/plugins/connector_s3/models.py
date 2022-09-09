@@ -20,7 +20,6 @@ from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.data_collections.models import CollectionElement
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     get_object_metadata,
@@ -314,16 +313,6 @@ class Object(Entry):
     objects = ObjectQuerySet.as_manager()
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
-    collections = models.ManyToManyField(
-        "data_collections.Collection",
-        through="ObjectCollectionElement",
-        related_name="+",
-    )
-
-    @property
-    def collection_item_class(self) -> typing.Optional[typing.Type[CollectionElement]]:
-        return ObjectCollectionElement
-
     def save(self, *args, **kwargs):
         if self.parent_key is None:
             self.parent_key = self.compute_parent_key(self.key)
@@ -438,11 +427,3 @@ class Object(Entry):
                 "connector_s3:object_detail",
                 kwargs={"bucket_id": self.bucket.id, "path": self.key},
             )
-
-
-class ObjectCollectionElement(CollectionElement):
-    element = models.ForeignKey("Object", on_delete=models.CASCADE)
-
-    @property
-    def graphql_element_type(self):
-        return "S3ObjectCollectionElement"

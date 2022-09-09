@@ -1,13 +1,9 @@
 import pathlib
 
-from ariadne import (
-    InterfaceType,
-    MutationType,
-    ObjectType,
-    QueryType,
-    load_schema_from_path,
-)
+from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -61,14 +57,51 @@ def resolve_collection_elements(collection: Collection, info, **kwargs):
 
     queryset = (
         CollectionElement.objects.filter_for_user(request.user)
+        .prefetch_related("object")
         .filter(collection=collection)
         .order_by("-created_at")
-        .select_subclasses()
     )
 
     return result_page(
         queryset=queryset, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
     )
+
+
+# Collection elements
+collection_element_object = ObjectType("CollectionElement")
+
+
+@collection_element_object.field("name")
+def resolve_collection_element_name(element: CollectionElement, info):
+    return element.object.index.display_name
+
+
+@collection_element_object.field("type")
+def resolve_collection_element_type(element: CollectionElement, info):
+    return element.object_type.name
+
+
+@collection_element_object.field("model")
+def resolve_collection_element_model(element: CollectionElement, info):
+    return element.object_type.model
+
+
+@collection_element_object.field("app")
+def resolve_collection_element_app_label(element: CollectionElement, info):
+    return element.object_type.app_label
+
+
+@collection_element_object.field("objectId")
+def resolve_collection_element_object_id(element: CollectionElement, info):
+    return element.object_id
+
+
+@collection_element_object.field("url")
+def resolve_collection_element_url(element: CollectionElement, info):
+    try:
+        return element.object.index.get_absolute_url()
+    except NotImplementedError:
+        return None
 
 
 @collection_object.field("authorizedActions")
@@ -81,12 +114,14 @@ collection_authorized_actions = ObjectType("CollectionAuthorizedActions")
 
 @collection_authorized_actions.field("canUpdate")
 def resolve_collection_can_update(collection: Collection, info):
-    return False
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("data_collections.update_collection", collection)
 
 
 @collection_authorized_actions.field("canDelete")
 def resolve_collection_can_delete(collection: Collection, info):
-    return True
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("data_collections.delete_collection", collection)
 
 
 @collections_mutations.field("createCollection")
@@ -110,19 +145,61 @@ def resolve_create_collection(_, info, **kwargs):
             if "countries" in create_input
             else None,
         )
-        # TODO: countries & tags
 
         return {
             "success": True,
             "collection": collection,
             "errors": [],
         }
+    except PermissionError:
+        return {"success": False, "collection": None, "errors": ["INVALID"]}
     except ValidationError:
         return {
             "success": False,
             "collection": None,
             "errors": ["INVALID"],
         }
+
+
+@collections_mutations.field("createCollectionElement")
+def resolve_create_collection_element(_, info, input, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    object_model = ContentType.objects.get(
+        app_label=input["app"], model=input["model"]
+    ).model_class()
+
+    try:
+        collection = Collection.objects.get(id=input["collectionId"])
+        object = object_model.objects.filter_for_user(principal).get(
+            id=input["objectId"]
+        )
+
+        element = collection.add_object(principal, object)
+
+        return {"success": True, "element": element, "errors": []}
+    except Collection.DoesNotExist:
+        return {"success": False, "errors": ["COLLECTION_NOT_FOUND"]}
+    except (ContentType.DoesNotExist, IntegrityError):
+        return {"success": False, "errors": ["INVALID"]}
+    except object_model.DoesNotExist:
+        return {"success": False, "errors": ["OBJECT_NOT_FOUND"]}
+
+
+@collections_mutations.field("deleteCollectionElement")
+def resolve_delete_collection_element(_, info, input, **kwargs):
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    try:
+        element = CollectionElement.objects.get(id=input["id"])
+        collection = element.collection
+        element.delete_if_has_perm(principal)
+
+        return {"success": True, "errors": [], "collection": collection}
+    except CollectionElement.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 @collections_mutations.field("updateCollection")
@@ -191,19 +268,10 @@ def resolve_delete_collection(_, info, **kwargs):
         }
 
 
-# Collection elements
-collection_element_interface = InterfaceType("CollectionElement")
-
-
-@collection_element_interface.type_resolver
-def resolve_collection_element_type(collection_element: CollectionElement, *_):
-    return collection_element.graphql_element_type
-
-
 collections_bindables = [
     collections_query,
     collection_object,
-    collection_element_interface,
+    collection_element_object,
     collections_mutations,
     collection_authorized_actions,
 ]

@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
-from hexa.data_collections.models import Collection
+from hexa.data_collections.models import Collection, CollectionElement
 from hexa.plugins.connector_dhis2.api import DataElementResult, Dhis2Client
 from hexa.plugins.connector_dhis2.models import (
     Credentials,
@@ -85,24 +85,15 @@ class ModelsTestTest(TestCase):
         data_element.delete()
         self.assertEqual(0, Index.objects.filter(object_id=data_element_id).count())
 
-    def test_is_collectible(self):
-        self.assertTrue(self.DATA_ELEMENT_FOO.is_collectible)
-        self.assertFalse(self.INDICATOR_BAR.is_collectible)
-
     def test_add_data_element_to_collection(self):
-        self.DATA_ELEMENT_FOO.add_to_collection_if_has_perm(
-            self.USER_BJORN, self.COLLECTION_MALARIA
-        )
+        self.COLLECTION_MALARIA.add_object(self.USER_BJORN, self.DATA_ELEMENT_FOO)
         self.DATA_ELEMENT_FOO.refresh_from_db()
-        self.assertEqual(1, self.DATA_ELEMENT_FOO.collections.count())
-        self.assertEqual(
-            self.COLLECTION_MALARIA, self.DATA_ELEMENT_FOO.collections.get()
-        )
 
-        with self.assertRaises(NotImplementedError):
-            self.INDICATOR_BAR.add_to_collection_if_has_perm(
-                self.USER_BJORN, self.COLLECTION_MALARIA
-            )
+        elements = CollectionElement.objects.filter_for_user(
+            self.USER_BJORN
+        ).filter_for_object(self.DATA_ELEMENT_FOO)
+        self.assertEqual(1, elements.count())
+        self.assertEqual(self.DATA_ELEMENT_FOO, elements.first().object)
 
 
 class PermissionTest(TestCase):

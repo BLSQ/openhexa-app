@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.data_collections.datacards import CollectionsSection
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 from hexa.ui.datacard import (
     Action,
@@ -90,7 +91,7 @@ class DAGCard(Datacard):
 
     external = DAGSection()
     metadata = OpenHexaMetaDataSection(value="index")
-
+    collections = CollectionsSection()
     actions = [
         Action(
             label="Open in Airflow",
