@@ -1,10 +1,12 @@
 import { SearchIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
+import Toggle from "core/helpers/Toggle";
 import { logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import Quicksearch from "search/features/Quicksearch";
 import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
@@ -35,13 +37,23 @@ const Header = ({ user }: { user: any }) => {
           </a>
         </Link>
         <Navbar />
-        <a className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex">
-          <SearchIcon className="h-5" />
-          <span>{t("Search")}</span>
-          <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
-            ⌘K
-          </span>
-        </a>
+        <Toggle>
+          {({ isToggled, toggle }) => (
+            <>
+              <a
+                className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
+                onClick={toggle}
+              >
+                <SearchIcon className="h-5" />
+                <span>{t("Search")}</span>
+                <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
+                  ⌘K
+                </span>
+              </a>
+              <Quicksearch open={isToggled} onClose={toggle} />
+            </>
+          )}
+        </Toggle>
         <Menu
           trigger={
             <Avatar
