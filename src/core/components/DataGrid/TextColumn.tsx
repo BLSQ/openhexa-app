@@ -58,7 +58,7 @@ export function TextColumn(props: TextColumnProps) {
   if (href) {
     return (
       <Link href={href}>
-        <a>{children}</a>
+        <a className="truncate">{children}</a>
       </Link>
     );
   } else {

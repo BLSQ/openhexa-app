@@ -18,7 +18,7 @@ const CountryBadge = (props: CountryBadgeProps) => {
         className,
         onClick && "cursor-pointer",
         "border border-gray-300 bg-gray-50",
-        "hover-bg-opacity-70 relative "
+        "hover-bg-opacity-70"
       )}
     >
       <img
@@ -26,9 +26,7 @@ const CountryBadge = (props: CountryBadgeProps) => {
         className="absolute w-4 flex-shrink rounded-sm"
         src={country.flag}
       />
-      <span className="ml-5 max-w-[20ch] overflow-hidden text-ellipsis">
-        {country.name}
-      </span>
+      <span className="ml-5 max-w-[20ch] truncate">{country.name}</span>
     </Badge>
   );
 };
