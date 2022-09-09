@@ -33,6 +33,9 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
+# Domain of the new frontend (it is used to redirect the user to new pages not implemented in Django)
+NEW_FRONTEND_DOMAIN = os.environ.get("NEW_FRONTEND_DOMAIN")
+
 # Application definition
 INSTALLED_APPS = [
     # http://whitenoise.evans.io/en/stable/django.html#using-whitenoise-in-development

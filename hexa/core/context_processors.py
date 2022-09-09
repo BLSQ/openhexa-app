@@ -11,6 +11,8 @@ def global_variables(request):
         },
     ]
     if request.user.is_authenticated and request.user.has_feature_flag("collections"):
-        menu_items.insert(1, {"title": "Collections", "index_url": "core:collections"})
+        menu_items.insert(
+            1, {"title": "Collections", "index_url": "data_collections:index"}
+        )
 
     return {"main_menu_items": menu_items}
