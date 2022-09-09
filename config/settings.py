@@ -161,6 +161,11 @@ AUTHENTICATION_BACKENDS = [
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
+
+RAW_CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS")
+if RAW_CSRF_TRUSTED_ORIGINS is not None:
+    CSRF_TRUSTED_ORIGINS = RAW_CSRF_TRUSTED_ORIGINS.split(",")
+
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
 SECURE_HSTS_SECONDS = os.environ.get(
     "SECURE_HSTS_SECONDS", 60 * 60
