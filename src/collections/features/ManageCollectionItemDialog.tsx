@@ -86,7 +86,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
         return operations[collection.id] === "add";
       }
       return collection.elements.items.some(
-        (collectionElement: any) => collectionElement.element.id === element.id
+        (collectionElement: any) => collectionElement.objectId === element.id
       );
     },
     [operations, element]
@@ -94,7 +94,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
 
   const onChangeCollectionSwitch = (checked: boolean, collection: any) => {
     const isInServerCollection = collection.elements.items.some(
-      (collectionElement: any) => collectionElement.element.id === element.id
+      (collectionElement: any) => collectionElement.objectId === element.id
     );
 
     if (checked) {
@@ -137,7 +137,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
         if (collection) {
           await addToCollection(collection.id, element);
         }
-        // onClose();
+        onClose();
       } catch (exc: any) {
         displayAlert((exc as Error).message, AlertType.error);
       } finally {
@@ -168,7 +168,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
                     key={collection.id}
                     className="flex items-center gap-4 py-4 px-2"
                   >
-                    <div className="flex-1">
+                    <div className="flex-1 truncate">
                       <div className="truncate font-medium">
                         {collection.name}
                       </div>

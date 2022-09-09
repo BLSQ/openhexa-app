@@ -13,7 +13,7 @@ const AddToCollectionsPage = () => {
   const element = {
     model: router.query.model as string,
     app: router.query.app as string,
-    id: router.query.id as string,
+    id: router.query.objectId as string,
   };
 
   const onClose = () => {
