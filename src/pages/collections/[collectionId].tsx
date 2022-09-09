@@ -24,6 +24,7 @@ import { OnSaveFn } from "core/components/DataCard/Section";
 import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
+import Page from "core/components/Layout/Page";
 import { PageContent } from "core/components/Layout/PageContent";
 import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
@@ -122,7 +123,7 @@ const CollectionPage = ({ collectionId }: Props) => {
   const { collection } = data;
 
   return (
-    <>
+    <Page title={collection.name}>
       <PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/collections">
@@ -253,7 +254,7 @@ const CollectionPage = ({ collectionId }: Props) => {
         open={isSearchOpen}
         onClose={toggleSearch}
       />
-    </>
+    </Page>
   );
 };
 

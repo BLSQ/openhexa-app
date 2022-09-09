@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
+import Page from "core/components/Layout/Page";
 
 interface LoginForm {
   email: string;
@@ -44,78 +45,83 @@ const LoginPage: NextPageWithLayout = () => {
   });
 
   return (
-    <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <form className="max-w-md flex-1 space-y-6" onSubmit={form.handleSubmit}>
-        <div>
-          <div className="relative h-16 w-auto">
-            <Image
-              priority
-              src="/images/logo.svg"
-              layout="fill"
-              className="mx-auto block h-16 w-auto"
-              alt="OpenHexa logo"
+    <Page>
+      <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <form
+          className="max-w-md flex-1 space-y-6"
+          onSubmit={form.handleSubmit}
+        >
+          <div>
+            <div className="relative h-16 w-auto">
+              <Image
+                priority
+                src="/images/logo.svg"
+                layout="fill"
+                className="mx-auto block h-16 w-auto"
+                alt="OpenHexa logo"
+              />
+            </div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Sign in
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              No account yet?{" "}
+              <a
+                href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Contact us!
+              </a>
+            </p>
+          </div>
+          <div className="-space-y-px pt-2">
+            <label className="sr-only" htmlFor="email">
+              Email address
+            </label>
+            <Input
+              name="email"
+              value={form.formData.email}
+              required
+              type="text"
+              className="rounded-b-none"
+              onChange={form.handleInputChange}
+              autoComplete="email"
+              placeholder="Email address"
+              disabled={form.isSubmitting}
+              error={form.touched.email && form.errors.email}
+            />
+            <label className="sr-only" htmlFor="password">
+              Password
+            </label>
+            <Input
+              name="password"
+              value={form.formData.password}
+              required
+              type="password"
+              placeholder="Password"
+              onChange={form.handleInputChange}
+              autoComplete="current-password"
+              disabled={form.isSubmitting}
+              error={form.touched.password && form.errors.password}
+              className="rounded-t-none"
             />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            No account yet?{" "}
-            <a
-              href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              Contact us!
-            </a>
-          </p>
-        </div>
-        <div className="-space-y-px pt-2">
-          <label className="sr-only" htmlFor="email">
-            Email address
-          </label>
-          <Input
-            name="email"
-            value={form.formData.email}
-            required
-            type="text"
-            className="rounded-b-none"
-            onChange={form.handleInputChange}
-            autoComplete="email"
-            placeholder="Email address"
-            disabled={form.isSubmitting}
-            error={form.touched.email && form.errors.email}
-          />
-          <label className="sr-only" htmlFor="password">
-            Password
-          </label>
-          <Input
-            name="password"
-            value={form.formData.password}
-            required
-            type="password"
-            placeholder="Password"
-            onChange={form.handleInputChange}
-            autoComplete="current-password"
-            disabled={form.isSubmitting}
-            error={form.touched.password && form.errors.password}
-            className="rounded-t-none"
-          />
-        </div>
-        <div className="flex items-center justify-end">
-          <div className="text-sm">
-            <Link href="/auth/password_reset/">
-              <a className="text-blue-600 hover:text-blue-500">
-                Forgot your password?
-              </a>
-            </Link>
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <Link href="/auth/password_reset/">
+                <a className="text-blue-600 hover:text-blue-500">
+                  Forgot your password?
+                </a>
+              </Link>
+            </div>
           </div>
-        </div>
-        <Button disabled={form.isSubmitting} type="submit" className="w-full">
-          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-          Sign in
-        </Button>
-      </form>
-    </div>
+          <Button disabled={form.isSubmitting} type="submit" className="w-full">
+            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+            Sign in
+          </Button>
+        </form>
+      </div>
+    </Page>
   );
 };
 

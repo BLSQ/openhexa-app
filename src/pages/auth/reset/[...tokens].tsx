@@ -1,5 +1,6 @@
 import Button from "core/components/Button";
 import Field from "core/components/forms/Field";
+import Page from "core/components/Layout/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
 import { SetPasswordError } from "graphql-types";
@@ -72,62 +73,66 @@ const SetPasswordPage = () => {
   });
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md">
-        {isDone ? (
-          <>
-            <h2 className="mb-6 text-center text-3xl font-extrabold text-gray-900">
-              Password changed!
-            </h2>
-            <div className="text-center">
-              <Link href="/">
-                <a>
-                  <Button>Go back to login</Button>
-                </a>
-              </Link>
-            </div>
-          </>
-        ) : (
-          <form className="flex-1 space-y-6" onSubmit={form.handleSubmit}>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Set a new password
-            </h2>
-            <Field
-              name="password1"
-              type="password"
-              label="Password"
-              required
-              autoComplete="new-password"
-              value={form.formData.password1}
-              onChange={form.handleInputChange}
-              disabled={form.isSubmitting}
-              error={form.touched.password1 && form.errors.password1}
-            />
-            <Field
-              name="password2"
-              type="password"
-              label="Password"
-              required
-              autoComplete="new-password"
-              value={form.formData.password2}
-              onChange={form.handleInputChange}
-              disabled={form.isSubmitting}
-              error={form.touched.password2 && form.errors.password2}
-            />
-            {form.submitError && (
-              <p className={"mt-2 text-sm text-red-600"}>{form.submitError}</p>
-            )}
-            <Button
-              disabled={form.isSubmitting}
-              type="submit"
-              className="w-full"
-            >
-              Set password
-            </Button>
-          </form>
-        )}
+    <Page>
+      <div className="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md">
+          {isDone ? (
+            <>
+              <h2 className="mb-6 text-center text-3xl font-extrabold text-gray-900">
+                Password changed!
+              </h2>
+              <div className="text-center">
+                <Link href="/">
+                  <a>
+                    <Button>Go back to login</Button>
+                  </a>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <form className="flex-1 space-y-6" onSubmit={form.handleSubmit}>
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Set a new password
+              </h2>
+              <Field
+                name="password1"
+                type="password"
+                label="Password"
+                required
+                autoComplete="new-password"
+                value={form.formData.password1}
+                onChange={form.handleInputChange}
+                disabled={form.isSubmitting}
+                error={form.touched.password1 && form.errors.password1}
+              />
+              <Field
+                name="password2"
+                type="password"
+                label="Password"
+                required
+                autoComplete="new-password"
+                value={form.formData.password2}
+                onChange={form.handleInputChange}
+                disabled={form.isSubmitting}
+                error={form.touched.password2 && form.errors.password2}
+              />
+              {form.submitError && (
+                <p className={"mt-2 text-sm text-red-600"}>
+                  {form.submitError}
+                </p>
+              )}
+              <Button
+                disabled={form.isSubmitting}
+                type="submit"
+                className="w-full"
+              >
+                Set password
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
-    </div>
+    </Page>
   );
 };
 

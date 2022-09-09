@@ -19,6 +19,7 @@ import Toggle from "core/helpers/Toggle";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { DateTime } from "luxon";
+import Page from "core/components/Layout/Page";
 
 type Props = {
   page: number;
@@ -46,80 +47,82 @@ const CollectionsPage = (props: Props) => {
   }
 
   return (
-    <PageContent>
-      <Breadcrumbs className="my-8 px-2">
-        <Breadcrumbs.Part href="/collections">
-          {t("Collections")}
-        </Breadcrumbs.Part>
-      </Breadcrumbs>
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <Toggle>
-            {({ isToggled, toggle }) => (
-              <>
-                <Button onClick={toggle}>
-                  <PlusIcon className="mr-1 h-4" />
-                  {t("Create")}
-                </Button>
-                <CreateCollectionDialog open={isToggled} onClose={toggle} />
-              </>
-            )}
-          </Toggle>
+    <Page title={t("Collections")}>
+      <PageContent>
+        <Breadcrumbs className="my-8 px-2">
+          <Breadcrumbs.Part href="/collections">
+            {t("Collections")}
+          </Breadcrumbs.Part>
+        </Breadcrumbs>
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Toggle>
+              {({ isToggled, toggle }) => (
+                <>
+                  <Button onClick={toggle}>
+                    <PlusIcon className="mr-1 h-4" />
+                    {t("Create")}
+                  </Button>
+                  <CreateCollectionDialog open={isToggled} onClose={toggle} />
+                </>
+              )}
+            </Toggle>
+          </div>
+          <Block>
+            <DataGrid
+              defaultPageSize={15}
+              data={data.collections.items}
+              totalItems={data.collections.totalItems}
+              totalPages={data.collections.totalPages}
+              fetchData={onChangePage}
+            >
+              <TextColumn
+                id="name"
+                label={t("Name")}
+                textPath="name"
+                textClassName="text-gray-700 font-medium"
+                subtextPath="summary"
+                url={(value: any) => ({
+                  pathname: "/collections/[collectionId]",
+                  query: { collectionId: value.id },
+                })}
+                minWidth={240}
+              />
+              <CountryColumn
+                max={2}
+                defaultValue="-"
+                label={t("Locations")}
+                accessor="countries"
+              />
+              <TagColumn
+                max={2}
+                defaultValue="-"
+                label={t("Tags")}
+                accessor="tags"
+              />
+              <DateColumn
+                label={t("Created")}
+                format={DateTime.DATE_MED}
+                accessor="createdAt"
+              />
+              <TextColumn
+                defaultValue="-"
+                accessor="author.displayName"
+                label={t("Author")}
+              />
+              <ChevronLinkColumn
+                maxWidth="100"
+                accessor="id"
+                url={(value: any) => ({
+                  pathname: "/collections/[collectionId]",
+                  query: { collectionId: value },
+                })}
+              />
+            </DataGrid>
+          </Block>
         </div>
-        <Block>
-          <DataGrid
-            defaultPageSize={15}
-            data={data.collections.items}
-            totalItems={data.collections.totalItems}
-            totalPages={data.collections.totalPages}
-            fetchData={onChangePage}
-          >
-            <TextColumn
-              id="name"
-              label={t("Name")}
-              textPath="name"
-              textClassName="text-gray-700 font-medium"
-              subtextPath="summary"
-              url={(value: any) => ({
-                pathname: "/collections/[collectionId]",
-                query: { collectionId: value.id },
-              })}
-              minWidth={240}
-            />
-            <CountryColumn
-              max={2}
-              defaultValue="-"
-              label={t("Locations")}
-              accessor="countries"
-            />
-            <TagColumn
-              max={2}
-              defaultValue="-"
-              label={t("Tags")}
-              accessor="tags"
-            />
-            <DateColumn
-              label={t("Created")}
-              format={DateTime.DATE_MED}
-              accessor="createdAt"
-            />
-            <TextColumn
-              defaultValue="-"
-              accessor="author.displayName"
-              label={t("Author")}
-            />
-            <ChevronLinkColumn
-              maxWidth="100"
-              accessor="id"
-              url={(value: any) => ({
-                pathname: "/collections/[collectionId]",
-                query: { collectionId: value },
-              })}
-            />
-          </DataGrid>
-        </Block>
-      </div>
-    </PageContent>
+      </PageContent>
+    </Page>
   );
 };
 
