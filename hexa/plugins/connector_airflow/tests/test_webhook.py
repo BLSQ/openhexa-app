@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from unittest import mock
 from urllib.parse import urljoin
 
 import responses
@@ -86,45 +87,55 @@ class WebHookTest(TestCase):
         self.assertEqual(50, self.DAG_RUN.current_progress)
 
     def test_webhook_log_messages(self):
-        message1 = {"priority": "LOG", "message": "HelloWorld!"}
-        message2 = {"priority": "ERR", "message": "Crashed :/"}
-        response = self.client.post(
-            reverse(
-                "connector_airflow:webhook",
-            ),
-            {
-                "id": str(uuid.uuid4()),
-                "object": "event",
-                "created": datetime.timestamp(timezone.now()),
-                "type": "log_message",
-                "data": message1,
-            },
-            **{
-                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
-            },
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(
-            response.content,
-            {"success": True},
-        )
-        response = self.client.post(
-            reverse(
-                "connector_airflow:webhook",
-            ),
-            {
-                "id": str(uuid.uuid4()),
-                "object": "event",
-                "created": datetime.timestamp(timezone.now()),
-                "type": "log_message",
-                "data": message2,
-            },
-            **{
-                "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
-            },
-            content_type="application/json",
-        )
+        utc_now = datetime.utcnow()
+        message1 = {
+            "priority": "LOG",
+            "message": "HelloWorld!",
+        }
+        message2 = {
+            "priority": "ERR",
+            "message": "Crashed :/",
+        }
+        with mock.patch("hexa.plugins.connector_airflow.models.datetime") as mock_date:
+            mock_date.utcnow.return_value = utc_now
+            mock_date.side_effect = lambda *a, **kw: datetime(*a, **kw)
+            response = self.client.post(
+                reverse(
+                    "connector_airflow:webhook",
+                ),
+                {
+                    "id": str(uuid.uuid4()),
+                    "object": "event",
+                    "created": datetime.timestamp(timezone.now()),
+                    "type": "log_message",
+                    "data": message1,
+                },
+                **{
+                    "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
+                },
+                content_type="application/json",
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertJSONEqual(
+                response.content,
+                {"success": True},
+            )
+            response = self.client.post(
+                reverse(
+                    "connector_airflow:webhook",
+                ),
+                {
+                    "id": str(uuid.uuid4()),
+                    "object": "event",
+                    "created": datetime.timestamp(timezone.now()),
+                    "type": "log_message",
+                    "data": message2,
+                },
+                **{
+                    "HTTP_AUTHORIZATION": f"Bearer {Signer().sign_object(self.DAG_RUN.webhook_token)}"
+                },
+                content_type="application/json",
+            )
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(
             response.content,
@@ -132,8 +143,8 @@ class WebHookTest(TestCase):
         )
 
         self.DAG_RUN.refresh_from_db()
-        self.assertEqual(message1, self.DAG_RUN.messages[0])
-        self.assertEqual(message2, self.DAG_RUN.messages[1])
+        self.assertGreaterEqual(self.DAG_RUN.messages[0].items(), message1.items())
+        self.assertGreaterEqual(self.DAG_RUN.messages[1].items(), message2.items())
 
     @responses.activate
     def test_get_run_logs(self):

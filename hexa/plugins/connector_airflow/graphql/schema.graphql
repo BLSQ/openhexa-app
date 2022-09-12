@@ -1,0 +1,96 @@
+
+type DAGRunMessage {
+  message: String!
+  priority: String!
+  timestamp: DateTime
+}
+
+enum DAGRunTrigger {
+  SCHEDULED
+  MANUAL
+}
+
+type DAGRun {
+  id: String!
+  externalId: String
+  externalUrl: URL
+  user: User
+  config: JSON
+  status: DAGRunStatus!
+  executionDate: DateTime
+  lastRefreshedAt: DateTime
+  duration: Int
+  progress: Int!
+  triggerMode: DAGRunTrigger
+  messages: [DAGRunMessage!]!
+  logs: String
+}
+
+enum DAGRunStatus {
+  success
+  running
+  failed
+  queued
+}
+
+enum DAGRunOrderBy {
+  EXECUTION_DATE_DESC
+  EXECUTION_DATE_ASC
+}
+
+type DAGRunPage {
+  items: [DAGRun!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type DAGTemplate {
+  code: String!
+  description: String
+  sampleConfig: JSON
+}
+
+type DAG {
+  id: String!
+  code: String!
+  user: User
+  template: DAGTemplate!
+  schedule: String
+  externalUrl: URL
+  runs(page: Int, perPage: Int, orderBy: DAGRunOrderBy): DAGRunPage!
+}
+
+type DAGPage {
+  items: [DAG!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+extend type Query {
+  dags(page: Int, perPage: Int, ): DAGPage!
+  dag(id: String!): DAG
+  dagRun(id: String!): DAGRun
+}
+
+enum RunDAGError {
+  DAG_NOT_FOUND
+  INVALID_CONFIG
+}
+
+type RunDAGResult {
+  success: Boolean!
+  errors: [RunDAGError!]!
+  dagRun: DAGRun
+  dag: DAG
+}
+
+input RunDAGInput {
+  dagId: String!
+  config: JSON!
+}
+
+extend type Mutation {
+  runDAG(input: RunDAGInput!): RunDAGResult!
+}

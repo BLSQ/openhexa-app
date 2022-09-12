@@ -1,5 +1,3 @@
-from urllib.parse import quote_plus
-
 from django.contrib.contenttypes.models import ContentType
 from django.templatetags.static import static
 from django.urls import reverse
@@ -115,7 +113,7 @@ class DAGCard(Datacard):
 
     @staticmethod
     def get_airflow_url(dag: DAG):
-        return f"{dag.template.cluster.url}graph?dag_id={dag.dag_id}"
+        dag.get_airflow_url()
 
     @property
     def generic_description(self) -> str:
@@ -214,4 +212,4 @@ class DAGRunCard(Datacard):
 
     @staticmethod
     def get_airflow_url(run: DAGRun):
-        return f"{run.dag.template.cluster.url}graph?dag_id={run.dag.dag_id}&execution_date={quote_plus(run.execution_date.isoformat())}"
+        return run.get_airflow_url()

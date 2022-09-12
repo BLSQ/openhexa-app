@@ -1,6 +1,7 @@
 scalar Date
 scalar DateTime
 scalar URL
+scalar JSON
 
 type Query
 type Mutation
