@@ -139,7 +139,7 @@ class Cluster(Environment):
                 if var_name not in variables:
                     client.create_variable(var_name, json.dumps(config, indent=2))
                     created_count += 1
-                elif variables[var_name] != config:
+                elif variables[var_name] != json.dumps(config, indent=2):
                     client.update_variable(var_name, json.dumps(config, indent=2))
                     updated_count += 1
                 else:
@@ -212,7 +212,8 @@ class Cluster(Environment):
                 orphans = DAGRun.objects.filter(dag=hexa_dag).exclude(
                     run_id__in=run_ids
                 )
-                orphans.delete()
+                # Do not delete them, AccessMod dag_run cannot be deleted
+                # orphans.delete()
 
                 for run_info in dag_runs_data["dag_runs"]:
                     run, created = DAGRun.objects.get_or_create(
