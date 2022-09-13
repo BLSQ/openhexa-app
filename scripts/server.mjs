@@ -1,7 +1,6 @@
 import express from "express";
 import next from "next";
 import proxy from "express-http-proxy";
-
 const port = process.env.PORT ?? 3000;
 const dev = process.env.NODE_ENV !== "production";
 const fallback_url = process.env.FALLBACK_URL ?? "localhost:8000";
@@ -9,7 +8,7 @@ const fallback_url = process.env.FALLBACK_URL ?? "localhost:8000";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   const server = express();
 
   server.use(

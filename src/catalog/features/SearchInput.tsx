@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import Input, { InputProps } from "core/components/forms/Input";
+import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 
@@ -7,7 +7,8 @@ type SearchInputProps = {
   loading?: boolean;
   placeholder?: string;
   className?: string;
-} & Pick<InputProps, "onChange" | "value" | "name" | "required">;
+  required?: boolean;
+} & Pick<React.ComponentProps<typeof Input>, "onChange" | "value" | "name">;
 
 const SearchInput = (props: SearchInputProps) => {
   const { t } = useTranslation();

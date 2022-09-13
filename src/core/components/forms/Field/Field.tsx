@@ -1,6 +1,6 @@
-import Label from "./Label";
+import Label from "../Label";
 import { ReactElement, ReactNode } from "react";
-import Input, { InputProps } from "./Input";
+import Input from "../Input";
 import clsx from "clsx";
 import Tooltip from "core/components/Tooltip";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
@@ -21,7 +21,7 @@ type CustomField = CommonProps & {
   children: ReactElement | ReactElement[];
 };
 
-type InputField = CommonProps & InputProps;
+type InputField = CommonProps & React.ComponentProps<typeof Input>;
 
 const Field = (props: CustomField | InputField) => {
   const {
@@ -50,13 +50,13 @@ const Field = (props: CustomField | InputField) => {
     <div className={className}>
       {label && (
         <div className="mb-1 flex justify-between">
-          <Label color={labelColor} htmlFor={name} className="flex">
+          <Label htmlFor={name} className={clsx("flex", labelColor)}>
             {label}
             {help && (
               <Tooltip
                 placement="top"
                 renderTrigger={(ref) => (
-                  <span ref={ref}>
+                  <span ref={ref} data-testid="help">
                     <InformationCircleIcon className="ml-1 h-3 w-3 cursor-pointer" />
                   </span>
                 )}

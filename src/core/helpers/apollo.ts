@@ -111,13 +111,13 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
 };
 
 type InitialState = NormalizedCacheObject | undefined;
-interface IGetApolloClient {
+export interface GetApolloClient {
   headers?: IncomingHttpHeaders | null;
   initialState?: InitialState | null;
 }
 
 export const getApolloClient = (
-  { headers, initialState }: IGetApolloClient = {
+  { headers, initialState }: GetApolloClient = {
     headers: null,
     initialState: null,
   }

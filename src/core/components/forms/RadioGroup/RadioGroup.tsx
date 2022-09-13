@@ -11,10 +11,17 @@ type OptionId = string;
 interface RadioGroupProps extends HTMLAttributes<HTMLInputElement> {
   options: RadioOption[];
   value?: OptionId;
+  disabled?: boolean;
   name: string;
 }
 
-const RadioGroup = ({ name, options, onChange, value }: RadioGroupProps) => {
+const RadioGroup = ({
+  name,
+  options,
+  disabled = false,
+  onChange,
+  value,
+}: RadioGroupProps) => {
   return (
     <fieldset className="flex gap-4">
       {options.map((option) => (
@@ -23,6 +30,7 @@ const RadioGroup = ({ name, options, onChange, value }: RadioGroupProps) => {
             id={`${name}-${option.id}`}
             type="radio"
             name={name}
+            disabled={disabled}
             className={clsx(
               "form-radio text-gray-800 focus:outline-none focus:ring-transparent"
             )}

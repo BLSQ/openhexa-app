@@ -1,0 +1,130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Layout renders the layout for a authenticated user 1`] = `
+<div>
+  <div
+    class="flex min-h-screen flex-col "
+  >
+    <div
+      class="bg-gray-800"
+    >
+      <div
+        class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex h-16 items-center gap-6"
+      >
+        <a
+          class="relative flex h-8 flex-shrink-0 items-center"
+          href="/dashboard"
+        >
+          <img
+            alt="OpenHexa logo"
+            class="block h-full lg:hidden"
+            src="/images/logo.svg"
+          />
+          <img
+            alt="OpenHexa logo"
+            class="hidden h-full lg:block"
+            src="/images/logo_with_text_white.svg"
+          />
+        </a>
+        <nav
+          class="relative flex flex-1 items-center space-x-4 text-sm font-medium"
+        >
+          <a
+            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white bg-gray-900 text-white"
+            href="/"
+          >
+            Dashboard
+          </a>
+          <a
+            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
+            href="/catalog"
+          >
+            Catalog
+          </a>
+          <a
+            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
+            href="/notebooks"
+          >
+            Notebooks
+          </a>
+          <a
+            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
+            href="/pipelines"
+          >
+            Pipelines
+          </a>
+          <a
+            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
+            href="/visualizations"
+          >
+            Visualizations
+          </a>
+        </nav>
+        <a
+          class="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
+        >
+          <svg
+            aria-hidden="true"
+            class="h-5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span>
+            Search
+          </span>
+          <span
+            class="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white"
+          >
+            ⌘K
+          </span>
+        </a>
+        <div
+          class="relative"
+        >
+          <button
+            aria-expanded="false"
+            aria-haspopup="true"
+            id="headlessui-menu-button-:r0:"
+            type="button"
+          >
+            <span
+              class="inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500 text-md h-10 w-10"
+              style="background: red;"
+            >
+              <span
+                class="font-medium leading-none text-white"
+              >
+                AE
+              </span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <span
+      data-testid="page"
+    />
+  </div>
+</div>
+`;
+
+exports[`Layout renders the layout for an unauthenticated user 1`] = `
+<div>
+  <div
+    class="flex min-h-screen flex-col "
+  >
+    <span
+      data-testid="page"
+    />
+  </div>
+</div>
+`;

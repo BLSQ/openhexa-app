@@ -8,6 +8,7 @@ const Spinner = (props: {
 
   return (
     <svg
+      data-testid="spinner"
       className={clsx(
         "animate-spin",
         size === "xs" && "h-3 w-3",

@@ -1,7 +1,7 @@
 import { Menu as HeadlessMenu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { Classes as ButtonClasses } from "./Button";
+import { Classes as ButtonClasses } from "./Button/Button";
 import { Fragment, ReactNode } from "react";
 import { ReactElement } from "react-markdown/lib/react-markdown";
 

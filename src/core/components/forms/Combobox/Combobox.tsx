@@ -120,6 +120,7 @@ function Combobox<T>(props: ComboboxProps<T>) {
       className={Classes.Options}
       ref={setPopperElement}
       style={styles.popper}
+      data-testid="combobox-options"
       {...attributes.popper}
     >
       <div className={Classes.OptionsList}>
@@ -167,6 +168,7 @@ function Combobox<T>(props: ComboboxProps<T>) {
                 displayValue={handleDisplayValue}
               >
                 <input
+                  data-testid="combobox-input"
                   className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
                   autoComplete="off"
                   placeholder={placeholder}
@@ -174,7 +176,7 @@ function Combobox<T>(props: ComboboxProps<T>) {
               </UICombobox.Input>
             </div>
             {renderIcon && renderIcon({ value })}
-            <UICombobox.Button ref={btnRef}>
+            <UICombobox.Button ref={btnRef} data-testid="combobox-button">
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
                 {(Array.isArray(value) ? value?.length > 0 : value) && (
                   <XMarkIcon

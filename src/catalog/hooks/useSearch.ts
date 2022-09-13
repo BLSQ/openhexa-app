@@ -9,10 +9,11 @@ export type UseSearchOptions = {
   types?: string[];
   page?: number;
   perPage?: number;
+  skip?: boolean;
 };
 
 function useSearch(options: UseSearchOptions) {
-  const { query, page, perPage, datasourceIds, types } = options;
+  const { query, page, perPage, datasourceIds, types, skip = false } = options;
   const { data, loading, previousData } = useQuery<SearchQueryQuery>(
     gql`
       query SearchQuery(
@@ -42,14 +43,18 @@ function useSearch(options: UseSearchOptions) {
     `,
     {
       variables: { query, page, perPage, datasourceIds, types },
+      skip,
     }
   );
+  if (skip) {
+    return { results: undefined, types: undefined, loading: false };
+  }
 
   const results = (data || previousData)?.search.results;
   return {
     results: results as SearchResult_ResultFragment[] | undefined,
     types: (data || previousData)?.search.types,
-    loading,
+    loading: loading ?? false,
   } as const;
 }
 

@@ -1,10 +1,16 @@
 import clsx from "clsx";
 import { ButtonHTMLAttributes, ReactElement } from "react";
 
-const ButtonVariants = ["primary", "secondary", "white", "outlined", "custom"];
+const ButtonVariants = [
+  "primary",
+  "secondary",
+  "white",
+  "outlined",
+  "custom",
+] as const;
 type ButtonVariant = typeof ButtonVariants[number];
 
-const ButtonSizes = ["sm", "md", "lg", "xl", "xxl"];
+const ButtonSizes = ["sm", "md", "lg", "xl", "xxl"] as const;
 type ButtonSize = typeof ButtonSizes[number];
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

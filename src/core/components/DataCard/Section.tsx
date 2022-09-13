@@ -23,7 +23,7 @@ import {
   useState,
 } from "react";
 import Block from "../Block";
-import Button from "../Button";
+import Button from "../Button/Button";
 import DescriptionList from "../DescriptionList";
 import Spinner from "../Spinner";
 import { DataCardSectionContext } from "./context";

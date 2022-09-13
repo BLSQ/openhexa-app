@@ -20,9 +20,11 @@ const Quicksearch = (props: QuicksearchProps) => {
   const { t } = useTranslation();
   const router = useRouter();
   const debouncedQueryString = useDebounce(queryString, 120);
+
   const { results, loading } = useSearch({
     query: debouncedQueryString,
     perPage: 10,
+    skip: !open,
   });
 
   useEffect(() => {

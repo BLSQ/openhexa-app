@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import Page from "core/components/Layout/Page";
+import { useTranslation } from "next-i18next";
 
 interface LoginForm {
   email: string;
@@ -19,6 +20,7 @@ interface LoginForm {
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
   const [doLogin] = useLoginMutation();
+  const { t } = useTranslation();
 
   const form = useForm<LoginForm>({
     onSubmit: async (values) => {
@@ -29,6 +31,8 @@ const LoginPage: NextPageWithLayout = () => {
       });
       if (data?.login.success) {
         router.push((router.query.next as string) ?? "/dashboard");
+      } else {
+        throw new Error(t("Wrong email address and/or password."));
       }
     },
     initialState: {},
@@ -80,6 +84,7 @@ const LoginPage: NextPageWithLayout = () => {
             </label>
             <Input
               name="email"
+              data-testid="email"
               value={form.formData.email}
               required
               type="text"
@@ -97,6 +102,7 @@ const LoginPage: NextPageWithLayout = () => {
               name="password"
               value={form.formData.password}
               required
+              data-testid="password"
               type="password"
               placeholder="Password"
               onChange={form.handleInputChange}
@@ -105,6 +111,11 @@ const LoginPage: NextPageWithLayout = () => {
               error={form.touched.password && form.errors.password}
               className="rounded-t-none"
             />
+            {form.submitError && (
+              <p data-testid="error" className={"my-2 text-sm text-red-600"}>
+                {form.submitError}
+              </p>
+            )}
           </div>
           <div className="flex items-center justify-end">
             <div className="text-sm">
@@ -115,7 +126,12 @@ const LoginPage: NextPageWithLayout = () => {
               </Link>
             </div>
           </div>
-          <Button disabled={form.isSubmitting} type="submit" className="w-full">
+          <Button
+            data-testid="submit"
+            disabled={form.isSubmitting || !form.isValid}
+            type="submit"
+            className="w-full"
+          >
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             Sign in
           </Button>

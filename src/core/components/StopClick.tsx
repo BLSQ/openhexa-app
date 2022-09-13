@@ -11,7 +11,6 @@ const StopClick = (props: StopClickProps) => {
 
   const handler = useCallback(
     (event: { stopPropagation: Function; preventDefault: Function }) => {
-      console.log("called");
       event.preventDefault();
       event.stopPropagation();
     },

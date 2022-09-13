@@ -12,7 +12,7 @@ type Props = {
 };
 
 const Toggle = (props: Props) => {
-  const { children, defaultIsToggled } = props;
+  const { children, defaultIsToggled = false } = props;
   const [isToggled, { toggle, setTrue, setFalse }] =
     useToggle(defaultIsToggled);
 

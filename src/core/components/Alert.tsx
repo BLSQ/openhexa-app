@@ -5,7 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import { ReactNode, useEffect, useState } from "react";
-import Button from "./Button";
+import Button from "./Button/Button";
 import Dialog from "./Dialog";
 
 type AlertProps = {
