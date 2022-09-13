@@ -63,7 +63,7 @@ function getProperty<F>(
   return prop;
 }
 
-function Section<F = { [key: string]: any }>(props: SectionProps) {
+function Section<F extends { [key: string]: any }>(props: SectionProps) {
   const { t } = useTranslation();
   const { title, editLabel, editIcon, className, children, onSave } = props;
   const { item } = useItemContext();

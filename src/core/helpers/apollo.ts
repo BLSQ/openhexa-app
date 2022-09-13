@@ -153,7 +153,9 @@ export const addApolloState = (client: ApolloClient<NormalizedCacheObject>) => {
   return { props: { [APOLLO_STATE_PROP_NAME]: client.cache.extract() } };
 };
 
-export function useApollo(pageProps: AppProps["pageProps"]) {
+export function useApollo(
+  pageProps: AppProps<{ [key: string]: any }>["pageProps"]
+) {
   const state = pageProps[APOLLO_STATE_PROP_NAME];
   const client = useMemo(
     () => getApolloClient({ initialState: state }),

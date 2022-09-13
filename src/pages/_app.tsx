@@ -26,7 +26,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 
   useEffect(() => {
     Sentry.setUser(
-      pageProps.user
+      pageProps?.user
         ? { email: pageProps.user.email, id: pageProps.user.id }
         : null
     );

@@ -18,7 +18,9 @@ export type NextPageWithPrefetch<T = any> = NextPage<T> & {
   ) => Promise<void> | void;
 };
 
-export type AppPropsWithLayout = AppProps & {
+type PageProps = { [key: string]: any };
+
+export type AppPropsWithLayout<P extends PageProps = any> = AppProps<P> & {
   Component: NextPageWithLayout;
 };
 
