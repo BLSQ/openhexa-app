@@ -17,7 +17,7 @@ from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.datagrids import DAGGrid, DAGRunGrid
-from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun, DAGRunState
 
 logger = getLogger(__name__)
 
@@ -302,6 +302,20 @@ def webhook(request: HttpRequest) -> HttpResponse:
             status=401,
         )
 
+    try:
+        dag_run = DAGRun.objects.get(pk=request.user.dag_run.id)
+    except DAGRun.DoesNotExist:
+        return JsonResponse(
+            {"success": False},
+            status=400,
+        )
+
+    if dag_run.state in [DAGRunState.SUCCESS, DAGRunState.FAILED]:
+        return JsonResponse(
+            {"success": False, "message": "Pipeline already completed"},
+            status=500,
+        )
+
     payload = json.loads(request.body.decode("utf-8"))
     if "type" not in payload or "data" not in payload:
         return JsonResponse(
@@ -313,33 +327,12 @@ def webhook(request: HttpRequest) -> HttpResponse:
     event_data = payload["data"]
 
     if event_type == EventType.ADD_OUTPUT_FILE:
-        try:
-            dag_run = DAGRun.objects.get(pk=request.user.dag_run.id)
-        except DAGRun.DoesNotExist:
-            return JsonResponse(
-                {"success": False},
-                status=400,
-            )
-        dag_run.set_output(event_data)
+        dag_run.set_output(**event_data)
 
     elif event_type == EventType.LOG_MESSAGE:
-        try:
-            dag_run = DAGRun.objects.get(pk=request.user.dag_run.id)
-        except DAGRun.DoesNotExist:
-            return JsonResponse(
-                {"success": False},
-                status=400,
-            )
         dag_run.log_message(**event_data)
 
     elif event_type == EventType.PROGRESS_UPDATE:
-        try:
-            dag_run = DAGRun.objects.get(pk=request.user.dag_run.id)
-        except DAGRun.DoesNotExist:
-            return JsonResponse(
-                {"success": False},
-                status=400,
-            )
         try:
             progress = int(event_data)
         except ValueError:

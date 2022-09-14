@@ -556,8 +556,8 @@ class DAGRun(Base, WithStatus):
         self.messages.append({"priority": priority, "message": message})
         self.save()
 
-    def set_output(self, uri: str):
-        self.outputs.append({"uri": uri})
+    def set_output(self, title: str, uri: str):
+        self.outputs.append({"title": title, "uri": uri})
         self.save()
 
     def progress_update(self, percent: int):

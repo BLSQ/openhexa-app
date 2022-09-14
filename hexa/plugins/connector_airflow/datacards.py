@@ -1,4 +1,3 @@
-import json
 from urllib.parse import quote_plus
 
 from django.contrib.contenttypes.models import ContentType
@@ -11,9 +10,9 @@ from hexa.data_collections.datacards import CollectionsSection
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 from hexa.ui.datacard import (
     Action,
-    CodeProperty,
     Datacard,
     DateProperty,
+    JSONProperty,
     Section,
     StatusProperty,
     TextProperty,
@@ -135,7 +134,9 @@ class DAGRunSection(Section):
     execution_date = DateProperty(date="execution_date", label="Execution Date")
     user = TextProperty(text="user.display_name")
     state = StatusProperty(value="status", label="State")
-    config = CodeProperty(code="get_conf_as_string", label="Config", language="json")
+    config = JSONProperty(code="conf", label="Config")
+    message = JSONProperty(code="messages", label="Messages")
+    outputs = JSONProperty(code="outputs", label="Outputs")
 
     @staticmethod
     def get_dag_url(run: DAGRun):
@@ -145,10 +146,6 @@ class DAGRunSection(Section):
                 "dag_id": run.dag.id,
             },
         )
-
-    @staticmethod
-    def get_conf_as_string(run: DAGRun):
-        return json.dumps(run.conf, indent=2)
 
 
 class DAGRunCard(Datacard):
