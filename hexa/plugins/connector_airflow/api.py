@@ -23,6 +23,24 @@ class AirflowAPIClient:
 
         return response.json()
 
+    def list_task_instances(self, dag_id, run_id) -> typing.Dict:
+        url = urljoin(self._url, "dags")
+        url = f"{url}/{dag_id}/dagRuns/{run_id}/taskInstances"
+        response = self._session.get(url, allow_redirects=False)
+        if response.status_code != 200:
+            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+
+        return response.json()
+
+    def get_logs(self, dag_id, run_id, task):
+        url = urljoin(self._url, "dags")
+        url = f"{url}/{dag_id}/dagRuns/{run_id}/taskInstances/{task}/logs/1"
+        response = self._session.get(url, allow_redirects=False)
+        if response.status_code != 200:
+            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+
+        return response.text
+
     def trigger_dag_run(
         self, dag_id: str, conf: typing.Mapping[str, typing.Any]
     ) -> typing.Dict:
@@ -40,15 +58,28 @@ class AirflowAPIClient:
 
         return response.json()
 
-    def list_dag_runs(self, dag_id: str, limit: int = 100) -> typing.Dict:
-        url = urljoin(
-            self._url, f"dags/{dag_id}/dagRuns?order_by=-end_date&limit={limit}"
-        )
-        response = self._session.get(url, allow_redirects=False)
-        if response.status_code != 200:
-            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+    def list_dag_runs(
+        self, dag_id: str, limit: int = 100, get_all: bool = False
+    ) -> typing.Dict:
+        results = []
+        continueloop = True
+        offset = 0
+        while continueloop:
+            url = urljoin(
+                self._url,
+                f"dags/{dag_id}/dagRuns?order_by=-end_date&limit={limit}&offset={offset}",
+            )
+            response = self._session.get(url, allow_redirects=False)
+            if response.status_code != 200:
+                raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+            j = response.json()
+            results += j["dag_runs"]
 
-        return response.json()
+            offset += limit
+            if j["total_entries"] <= offset or not get_all:
+                continueloop = False
+
+        return results
 
     def get_dag_run(self, dag_id: str, run_id: str) -> typing.Dict:
         url = urljoin(

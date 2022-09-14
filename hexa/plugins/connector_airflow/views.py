@@ -1,19 +1,23 @@
+import enum
 import json
 import uuid
 from logging import getLogger
 
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from hexa.metrics.decorators import do_not_track
 from hexa.pipelines.queue import environment_sync_queue
 from hexa.plugins.connector_airflow.api import AirflowAPIError
+from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.plugins.connector_airflow.datacards import ClusterCard, DAGCard, DAGRunCard
 from hexa.plugins.connector_airflow.datagrids import DAGGrid, DAGRunGrid
-from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
+from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun, DAGRunState
 
 logger = getLogger(__name__)
 
@@ -276,4 +280,69 @@ def dag_run_toggle_favorite(
             "dag_run": dag_run,
             "breadcrumbs": breadcrumbs,
         },
+    )
+
+
+class EventType(str, enum.Enum):
+    ADD_OUTPUT_FILE = "add_output_file"
+    LOG_MESSAGE = "log_message"
+    PROGRESS_UPDATE = "progress_update"
+
+
+@require_POST
+@csrf_exempt
+@do_not_track
+def webhook(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_authenticated or not isinstance(request.user, DAGRunUser):
+        logger.error(
+            "dag_run_authentication_middleware error",
+        )
+        return JsonResponse(
+            {"success": False},
+            status=401,
+        )
+
+    try:
+        dag_run = DAGRun.objects.get(pk=request.user.dag_run.id)
+    except DAGRun.DoesNotExist:
+        return JsonResponse(
+            {"success": False},
+            status=400,
+        )
+
+    if dag_run.state in [DAGRunState.SUCCESS, DAGRunState.FAILED]:
+        return JsonResponse(
+            {"success": False, "message": "Pipeline already completed"},
+            status=500,
+        )
+
+    payload = json.loads(request.body.decode("utf-8"))
+    if "type" not in payload or "data" not in payload:
+        return JsonResponse(
+            {"success": False, "message": "Malformed JSON"},
+            status=500,
+        )
+
+    event_type = payload["type"]
+    event_data = payload["data"]
+
+    if event_type == EventType.ADD_OUTPUT_FILE:
+        dag_run.set_output(**event_data)
+
+    elif event_type == EventType.LOG_MESSAGE:
+        dag_run.log_message(**event_data)
+
+    elif event_type == EventType.PROGRESS_UPDATE:
+        try:
+            progress = int(event_data)
+        except ValueError:
+            return JsonResponse(
+                {"success": False, "message": f"Can't convert {event_data} to integer"},
+                status=400,
+            )
+        dag_run.progress_update(progress)
+
+    return JsonResponse(
+        {"success": True},
+        status=200,
     )

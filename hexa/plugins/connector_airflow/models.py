@@ -110,8 +110,8 @@ class Cluster(Environment):
         :return: None
         """
         client = self.get_api_client()
-        dag_runs = client.list_dag_runs("~", limit)
-        for run_info in dag_runs["dag_runs"]:
+        dag_runs_info = client.list_dag_runs("~", limit)
+        for run_info in dag_runs_info:
             try:
                 dag_run = DAGRun.objects.get(
                     dag__dag_id=run_info["dag_id"],
@@ -205,17 +205,17 @@ class Cluster(Environment):
                     client.unpause_dag(dag_id)
 
                 # update runs
-                dag_runs_data = client.list_dag_runs(dag_id)
+                dag_runs_data = client.list_dag_runs(dag_id, get_all=True)
 
                 # Delete runs not in Airflow
-                run_ids = [x["dag_run_id"] for x in dag_runs_data["dag_runs"]]
+                run_ids = [x["dag_run_id"] for x in dag_runs_data]
                 orphans = DAGRun.objects.filter(dag=hexa_dag).exclude(
                     run_id__in=run_ids
                 )
                 # Do not delete them, AccessMod dag_run cannot be deleted
                 # orphans.delete()
 
-                for run_info in dag_runs_data["dag_runs"]:
+                for run_info in dag_runs_data:
                     run, created = DAGRun.objects.get_or_create(
                         dag=hexa_dag,
                         run_id=run_info["dag_run_id"],
@@ -224,6 +224,10 @@ class Cluster(Environment):
                         },
                     )
                     run.update_state(run_info)
+
+                    if run.run_logs == "":
+                        run.get_run_logs()
+                        run.save()
 
             # Flag the datasource as synced
             self.last_synced_at = timezone.now()
@@ -328,12 +332,13 @@ class DAG(Pipeline):
         client = self.template.cluster.get_api_client()
         # add report email to feedback user
         conf["_report_email"] = request.user.email
-        if webhook_path is not None:
-            raw_token, signed_token = self.build_webhook_token()
-            conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
-            conf["_webhook_token"] = signed_token
-        else:
-            raw_token = ""
+
+        if webhook_path is None:
+            webhook_path = reverse("connector_airflow:webhook")
+        raw_token, signed_token = self.build_webhook_token()
+        conf["_webhook_token"] = signed_token
+        conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
+
         dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
 
         # don't save private information in past run, like email, tokens...
@@ -486,6 +491,10 @@ class DAGRun(Base, WithStatus):
     duration = models.DurationField(null=True)
     conf = models.JSONField(blank=True, default=dict)
     webhook_token = models.CharField(max_length=200, blank=True)
+    messages = models.JSONField(null=True, blank=True, default=list)
+    outputs = models.JSONField(null=True, blank=True, default=list)
+    run_logs = models.TextField(null=True, blank=True)
+    current_progress = models.PositiveSmallIntegerField(default=0)
 
     objects = DAGRunQuerySet.as_manager()
 
@@ -517,6 +526,9 @@ class DAGRun(Base, WithStatus):
                 self.duration = (
                     parse_datetime(run_data["end_date"]) - self.execution_date
                 )
+            if success_or_failed:
+                self.current_progress = 100
+                self.get_run_logs()
             self.save()
 
     def add_to_favorites(
@@ -539,6 +551,36 @@ class DAGRun(Base, WithStatus):
             return True
         except DAGRunFavorite.DoesNotExist:
             return False
+
+    def log_message(self, priority: str, message: str):
+        self.messages.append({"priority": priority, "message": message})
+        self.save()
+
+    def set_output(self, title: str, uri: str):
+        self.outputs.append({"title": title, "uri": uri})
+        self.save()
+
+    def progress_update(self, percent: int):
+        self.current_progress = percent
+        self.save()
+
+    def get_run_logs(self):
+        client = self.dag.template.cluster.get_api_client()
+        tasks = client.list_task_instances(dag_id=self.dag.dag_id, run_id=self.run_id)[
+            "task_instances"
+        ]
+        logs = ""
+        for task in tasks:
+            if (
+                task["task_id"] != "success"
+                and task["task_id"] != "failure"
+                and task["state"] != "skipped"
+            ):
+                log = client.get_logs(
+                    dag_id=self.dag.dag_id, run_id=self.run_id, task=task["task_id"]
+                )
+                logs = logs + log + "\n\n\n"
+        self.run_logs = logs
 
     @property
     def status(self):

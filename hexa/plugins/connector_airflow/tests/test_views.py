@@ -81,6 +81,31 @@ class ViewsTest(TestCase):
             json=dag_run_hello_world_1,
             status=200,
         )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "running",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
 
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.get(
@@ -90,7 +115,7 @@ class ViewsTest(TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(3, len(responses.calls))
         dag_run.refresh_from_db()
         self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
         self.assertIsInstance(response.context["cluster_card"], ClusterCard)
@@ -177,6 +202,31 @@ class ViewsTest(TestCase):
             json=dag_run_same_old_1,
             status=200,
         )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "queued",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
 
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.get(
@@ -186,7 +236,7 @@ class ViewsTest(TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(3, len(responses.calls))
         dag_run.refresh_from_db()
         self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
         self.assertIsInstance(response.context["dag_card"], DAGCard)
@@ -275,6 +325,31 @@ class ViewsTest(TestCase):
             json=dag_run_same_old_1,
             status=200,
         )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "queued",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                f"dags/{dag.dag_id}/dagRuns/{dag_run.run_id}/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
 
         self.client.force_login(self.USER_TAYLOR)
         response = self.client.get(
@@ -287,7 +362,7 @@ class ViewsTest(TestCase):
             ),
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(1, len(responses.calls))
+        self.assertEqual(3, len(responses.calls))
         dag_run.refresh_from_db()
         self.assertEqual(dag_run.state, DAGRunState.SUCCESS)
         self.assertIsInstance(response.context["dag_run_card"], DAGRunCard)

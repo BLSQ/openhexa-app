@@ -45,7 +45,10 @@ class ContinuousSyncTest(TestCase):
     def test_continuous_sync_noact(self):
         responses.add(
             responses.GET,
-            urljoin(self.CLUSTER.api_url, "dags/~/dagRuns?order_by=-end_date&limit=25"),
+            urljoin(
+                self.CLUSTER.api_url,
+                "dags/~/dagRuns?order_by=-end_date&limit=25&offset=0",
+            ),
             json=dag_continuous_sync1,
             status=200,
         )
@@ -65,7 +68,35 @@ class ContinuousSyncTest(TestCase):
 
         responses.add(
             responses.GET,
-            urljoin(self.CLUSTER.api_url, "dags/~/dagRuns?order_by=-end_date&limit=25"),
+            urljoin(
+                self.CLUSTER.api_url,
+                f"dags/{self.DAG.dag_id}/dagRuns/run2/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "running",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                self.CLUSTER.api_url,
+                f"dags/{self.DAG.dag_id}/dagRuns/run2/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                self.CLUSTER.api_url,
+                "dags/~/dagRuns?order_by=-end_date&limit=25&offset=0",
+            ),
             json=dag_continuous_sync2,
             status=200,
         )

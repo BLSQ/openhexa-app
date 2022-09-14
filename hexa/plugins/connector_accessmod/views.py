@@ -11,6 +11,7 @@ from hexa.metrics.decorators import do_not_track
 from hexa.plugins.connector_accessmod.models import Analysis
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
+from hexa.plugins.connector_airflow.views import webhook as AirflowWebhook
 
 logger = getLogger(__name__)
 
@@ -66,7 +67,12 @@ def webhook(request: HttpRequest) -> HttpResponse:
                 },
             )
 
-    if event_type == EventType.ACQUISITION_FINISHED:
+        return JsonResponse(
+            {"success": True},
+            status=200,
+        )
+
+    elif event_type == EventType.ACQUISITION_FINISHED:
         try:
             analysis = Analysis.objects.get_subclass(dag_run=request.user.dag_run.id)
         except Analysis.DoesNotExist:
@@ -96,7 +102,9 @@ def webhook(request: HttpRequest) -> HttpResponse:
             },
         )
 
-    return JsonResponse(
-        {"success": True},
-        status=200,
-    )
+        return JsonResponse(
+            {"success": True},
+            status=200,
+        )
+    else:
+        return AirflowWebhook(request)
