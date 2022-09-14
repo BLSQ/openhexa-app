@@ -93,7 +93,10 @@ class ContinuousSyncTest(TestCase):
         )
         responses.add(
             responses.GET,
-            urljoin(self.CLUSTER.api_url, "dags/~/dagRuns?order_by=-end_date&limit=25"),
+            urljoin(
+                self.CLUSTER.api_url,
+                "dags/~/dagRuns?order_by=-end_date&limit=25&offset=0",
+            ),
             json=dag_continuous_sync2,
             status=200,
         )
