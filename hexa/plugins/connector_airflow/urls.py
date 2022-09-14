@@ -45,4 +45,9 @@ urlpatterns = [
         views.dag_run_toggle_favorite,
         name="dag_run_toggle_favorite",
     ),
+    path(
+        "webhook/",
+        views.webhook,
+        name="webhook",
+    ),
 ]

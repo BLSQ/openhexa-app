@@ -281,6 +281,32 @@ class DAGSyncTest(TestCase):
 
         responses.add(
             responses.GET,
+            urljoin(
+                cluster.api_url,
+                "dags/prj1_update/dagRuns/prj1_update_id1/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "success",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                cluster.api_url,
+                "dags/prj1_update/dagRuns/prj1_update_id1/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
+
+        responses.add(
+            responses.GET,
             urljoin(cluster.api_url, "dags"),
             json={
                 "dags": [
@@ -467,7 +493,33 @@ class ModelsTest(TestCase):
         self.assertEqual({"foo": "bar"}, run.conf)
         self.assertEqual(DAGRunState.QUEUED, run.state)
 
+    @responses.activate
     def test_dag_run_duration(self):
+        responses.add(
+            responses.GET,
+            urljoin(
+                self.CLUSTER.api_url,
+                f"dags/{self.DAG.dag_id}/dagRuns/same_old_run_2/taskInstances",
+            ),
+            json={
+                "task_instances": [
+                    {
+                        "state": "success",
+                        "task_id": "task-prj1_update",
+                    }
+                ]
+            },
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            urljoin(
+                self.CLUSTER.api_url,
+                f"dags/{self.DAG.dag_id}/dagRuns/same_old_run_2/taskInstances/task-prj1_update/logs/1",
+            ),
+            body="A nice log is here",
+            status=200,
+        )
         with mock.patch(
             "django.utils.timezone.now",
             return_value=parse_datetime(dag_run_same_old_2["execution_date"])

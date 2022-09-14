@@ -23,6 +23,24 @@ class AirflowAPIClient:
 
         return response.json()
 
+    def list_task_instances(self, dag_id, run_id) -> typing.Dict:
+        url = urljoin(self._url, "dags")
+        url = f"{url}/{dag_id}/dagRuns/{run_id}/taskInstances"
+        response = self._session.get(url, allow_redirects=False)
+        if response.status_code != 200:
+            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+
+        return response.json()
+
+    def get_logs(self, dag_id, run_id, task):
+        url = urljoin(self._url, "dags")
+        url = f"{url}/{dag_id}/dagRuns/{run_id}/taskInstances/{task}/logs/1"
+        response = self._session.get(url, allow_redirects=False)
+        if response.status_code != 200:
+            raise AirflowAPIError(f"GET {url}: got {response.status_code}")
+
+        return response.text
+
     def trigger_dag_run(
         self, dag_id: str, conf: typing.Mapping[str, typing.Any]
     ) -> typing.Dict:
