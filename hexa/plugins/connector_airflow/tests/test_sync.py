@@ -45,7 +45,10 @@ class ContinuousSyncTest(TestCase):
     def test_continuous_sync_noact(self):
         responses.add(
             responses.GET,
-            urljoin(self.CLUSTER.api_url, "dags/~/dagRuns?order_by=-end_date&limit=25"),
+            urljoin(
+                self.CLUSTER.api_url,
+                "dags/~/dagRuns?order_by=-end_date&limit=25&offset=0",
+            ),
             json=dag_continuous_sync1,
             status=200,
         )

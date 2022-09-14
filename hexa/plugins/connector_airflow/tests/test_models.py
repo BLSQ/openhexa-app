@@ -358,7 +358,8 @@ class DAGSyncTest(TestCase):
         responses.add(
             responses.GET,
             urljoin(
-                cluster.api_url, "dags/prj1_update/dagRuns?order_by=-end_date&limit=100"
+                cluster.api_url,
+                "dags/prj1_update/dagRuns?order_by=-end_date&limit=100&offset=0",
             ),
             json={
                 "dag_runs": [
@@ -372,7 +373,8 @@ class DAGSyncTest(TestCase):
                         "start_date": "2021-10-08T16:43:01.101863+00:00",
                         "state": "success",
                     }
-                ]
+                ],
+                "total_entries": 1,
             },
             status=200,
         )

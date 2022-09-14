@@ -110,8 +110,8 @@ class Cluster(Environment):
         :return: None
         """
         client = self.get_api_client()
-        dag_runs = client.list_dag_runs("~", limit)
-        for run_info in dag_runs["dag_runs"]:
+        dag_runs_info = client.list_dag_runs("~", limit)
+        for run_info in dag_runs_info:
             try:
                 dag_run = DAGRun.objects.get(
                     dag__dag_id=run_info["dag_id"],
@@ -205,17 +205,17 @@ class Cluster(Environment):
                     client.unpause_dag(dag_id)
 
                 # update runs
-                dag_runs_data = client.list_dag_runs(dag_id)
+                dag_runs_data = client.list_dag_runs(dag_id, get_all=True)
 
                 # Delete runs not in Airflow
-                run_ids = [x["dag_run_id"] for x in dag_runs_data["dag_runs"]]
+                run_ids = [x["dag_run_id"] for x in dag_runs_data]
                 orphans = DAGRun.objects.filter(dag=hexa_dag).exclude(
                     run_id__in=run_ids
                 )
                 # Do not delete them, AccessMod dag_run cannot be deleted
                 # orphans.delete()
 
-                for run_info in dag_runs_data["dag_runs"]:
+                for run_info in dag_runs_data:
                     run, created = DAGRun.objects.get_or_create(
                         dag=hexa_dag,
                         run_id=run_info["dag_run_id"],
