@@ -7,6 +7,8 @@ import { Fragment, ReactElement, ReactNode, useRef } from "react";
 type DialogProps = {
   open: boolean;
   onClose: (value: any) => void;
+  centered?: boolean;
+  padding?: string;
   children: ReactElement | ReactElement[];
   closeOnOutsideClick?: boolean;
   closeOnEsc?: boolean;
@@ -50,6 +52,8 @@ function Dialog(props: DialogProps) {
     open,
     onClose,
     children,
+    centered = true,
+    padding,
     closeOnOutsideClick = true,
     closeOnEsc = true,
     className,
@@ -72,30 +76,32 @@ function Dialog(props: DialogProps) {
     <Transition.Root show={open} as={Fragment}>
       <BaseDialog
         ref={dialogRef}
-        className="fixed inset-0 z-10 overflow-y-auto"
+        className="fixed inset-0 z-10"
         onClose={onClose}
       >
-        <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <BaseDialog.Overlay
-              className={clsx(
-                "fixed inset-0 bg-gray-500 bg-opacity-80 backdrop-blur-sm transition-opacity",
-                !closeOnOutsideClick && "pointer-events-none" // Let's prevent mouse events to be triggered to ensure the dialog stay open.
-              )}
-            />
-          </Transition.Child>
-
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <BaseDialog.Overlay
+            className={clsx(
+              "fixed inset-0 bg-gray-800 bg-opacity-50 backdrop-blur-sm transition-opacity",
+              !closeOnOutsideClick && "pointer-events-none" // Let's prevent mouse events to be triggered to ensure the dialog stay open.
+            )}
+          />
+        </Transition.Child>
+        <div className="h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           {/* This element is to trick the browser into centering the modal contents. */}
           <span
-            className="hidden sm:inline-block sm:h-screen sm:align-middle"
+            className={clsx(
+              "hidden sm:inline-block sm:h-screen",
+              centered && "sm:align-middle"
+            )}
             aria-hidden="true"
           >
             &#8203;
@@ -111,8 +117,10 @@ function Dialog(props: DialogProps) {
           >
             <div
               className={clsx(
-                "inline-block transform overflow-hidden rounded-lg bg-white px-4 py-5 text-left text-gray-600 shadow-xl transition-all sm:my-8 sm:w-full sm:p-6 sm:align-middle",
+                "inline-block transform overflow-hidden rounded-lg bg-white  text-left text-gray-600 shadow-2xl transition-all sm:my-24 sm:w-full ",
                 maxWidth ?? "max-w-lg",
+                padding ?? "px-4 py-5 sm:p-6",
+                centered && "sm:align-middle",
                 className
               )}
             >
