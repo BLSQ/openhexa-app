@@ -11,6 +11,10 @@ class IASOConnectorConfig(ConnectorAppConfig):
         "hexa.plugins.connector_iaso.credentials.notebooks_credentials"
     ]
 
+    PIPELINES_CREDENTIALS = [
+        "hexa.plugins.connector_iaso.credentials.pipelines_credentials"
+    ]
+
     @property
     def route_prefix(self):
         return "iaso"
