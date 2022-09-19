@@ -1034,25 +1034,26 @@ class AccessibilityAnalysis(Analysis):
                     "labels": self.land_cover.metadata.get("labels", None),
                 }
 
-            if self.transport_network.status == FilesetStatus.TO_ACQUIRE:
-                am_conf["transport_network"] = {
-                    "auto": True,
-                    "name": self.transport_network.name,
-                    "path": output_dir
-                    + f"{str(self.transport_network.id)}_transport.gpkg",
-                    "category_column": self.transport_network.metadata.get(
-                        "category_column", None
-                    ),
-                }
-            else:
-                am_conf["transport_network"] = {
-                    "auto": False,
-                    "name": self.transport_network.name,
-                    "path": self.transport_network.primary_uri,
-                    "category_column": self.transport_network.metadata.get(
-                        "category_column", None
-                    ),
-                }
+            if self.transport_network:
+                if self.transport_network.status == FilesetStatus.TO_ACQUIRE:
+                    am_conf["transport_network"] = {
+                        "auto": True,
+                        "name": self.transport_network.name,
+                        "path": output_dir
+                        + f"{str(self.transport_network.id)}_transport.gpkg",
+                        "category_column": self.transport_network.metadata.get(
+                            "category_column", None
+                        ),
+                    }
+                else:
+                    am_conf["transport_network"] = {
+                        "auto": False,
+                        "name": self.transport_network.name,
+                        "path": self.transport_network.primary_uri,
+                        "category_column": self.transport_network.metadata.get(
+                            "category_column", None
+                        ),
+                    }
 
             if self.water:
                 if self.water.status == FilesetStatus.TO_ACQUIRE:
@@ -1069,8 +1070,6 @@ class AccessibilityAnalysis(Analysis):
                         "path": self.water.primary_uri,
                         "all_touched": self.water_all_touched,
                     }
-            else:
-                am_conf["water"] = None
 
         dag_conf = {
             # flag interpreted by airflow for starting acquisition pipelines
