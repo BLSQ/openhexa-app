@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.1](https://github.com/BLSQ/openhexa-frontend/compare/0.7.0...0.7.1) (2022-09-20)
+
+
+### Features
+
+* **pipelines:** Add outputs ([66d0c7a](https://github.com/BLSQ/openhexa-frontend/commit/66d0c7a834a44f85b63558823563df8d0a04d27b))
+
+
+### Miscellaneous Chores
+
+* Release 0.7.1 ([06c52b7](https://github.com/BLSQ/openhexa-frontend/commit/06c52b7c03cf08b569918ab3f7a21ecb3c0a7b18))
+
 ## [0.7.0](https://github.com/BLSQ/openhexa-frontend/compare/0.6.2...0.7.0) (2022-09-20)
 
 
