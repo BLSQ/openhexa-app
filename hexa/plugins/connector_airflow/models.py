@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import enum
 import json
 import typing
 import uuid
+from datetime import datetime
 from enum import Enum
 from functools import cache
 from logging import getLogger
 from time import sleep
-from urllib.parse import urljoin
+from urllib.parse import quote_plus, urljoin
 
 import django.apps
 from django.conf import settings
@@ -315,6 +317,9 @@ class DAG(Pipeline):
             args=(self.id,),
         )
 
+    def get_airflow_url(self):
+        return f"{self.template.cluster.url}graph?dag_id={self.dag_id}"
+
     @property
     def last_run(self) -> "DAGRun":
         return self.dagrun_set.first()
@@ -469,6 +474,11 @@ class DAGRunState(models.TextChoices):
     QUEUED = "queued", _("Queued")
 
 
+class DAGRunTrigger(str, enum.Enum):
+    SCHEDULED = "SCHEDULED"
+    MANUAL = "MANUAL"
+
+
 class DAGRun(Base, WithStatus):
     STATUS_MAPPINGS = {
         DAGRunState.SUCCESS: Status.SUCCESS,
@@ -504,6 +514,16 @@ class DAGRun(Base, WithStatus):
             args=(self.dag.id, self.id),
         )
 
+    @property
+    def trigger_mode(self):
+        if self.run_id.startswith("manual"):
+            return DAGRunTrigger.MANUAL
+        if self.run_id.startswith("scheduled"):
+            return DAGRunTrigger.SCHEDULED
+
+    def get_airflow_url(self):
+        return f"{self.dag.template.cluster.url}graph?dag_id={self.dag.dag_id}&execution_date={quote_plus(self.execution_date.isoformat())}"
+
     def refresh(self) -> None:
         client = self.dag.template.cluster.get_api_client()
         run_data = client.get_dag_run(self.dag.dag_id, self.run_id)
@@ -515,10 +535,6 @@ class DAGRun(Base, WithStatus):
             DAGRunState.RUNNING,
             DAGRunState.QUEUED,
         ]
-        success_or_failed = run_data["state"] in [
-            DAGRunState.SUCCESS,
-            DAGRunState.FAILED,
-        ]
         if should_update:
             self.last_refreshed_at = timezone.now()
             self.state = run_data["state"]
@@ -526,6 +542,10 @@ class DAGRun(Base, WithStatus):
                 self.duration = (
                     parse_datetime(run_data["end_date"]) - self.execution_date
                 )
+            success_or_failed = run_data["state"] in [
+                DAGRunState.SUCCESS,
+                DAGRunState.FAILED,
+            ]
             if success_or_failed:
                 self.current_progress = 100
                 self.get_run_logs()
@@ -553,7 +573,13 @@ class DAGRun(Base, WithStatus):
             return False
 
     def log_message(self, priority: str, message: str):
-        self.messages.append({"priority": priority, "message": message})
+        self.messages.append(
+            {
+                "priority": priority if priority else "info",
+                "message": message,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
         self.save()
 
     def set_output(self, title: str, uri: str):
