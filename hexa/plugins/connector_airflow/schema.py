@@ -41,6 +41,21 @@ def resolve_dag_external_url(dag: DAG, info, **kwargs):
     return dag.get_airflow_url()
 
 
+@dag_object.field("label")
+def resolve_dag_label(dag: DAG, info, **kwargs):
+    return dag.index.label
+
+
+@dag_object.field("countries")
+def resolve_dag_countries(dag: DAG, info, **kwargs):
+    return dag.index.countries
+
+
+@dag_object.field("tags")
+def resolve_dag_tags(dag: DAG, info, **kwargs):
+    return dag.index.tags.all()
+
+
 @dag_object.field("runs")
 def resolve_dag_runs(dag: DAG, info, **kwargs):
     qs = dag.dagrun_set.all()

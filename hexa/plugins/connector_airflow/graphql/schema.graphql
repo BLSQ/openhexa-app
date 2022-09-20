@@ -10,6 +10,11 @@ enum DAGRunTrigger {
   MANUAL
 }
 
+type DAGRunOutput {
+  title: String!
+  uri: String!
+}
+
 type DAGRun {
   id: String!
   externalId: String
@@ -24,6 +29,7 @@ type DAGRun {
   triggerMode: DAGRunTrigger
   messages: [DAGRunMessage!]!
   logs: String
+  outputs: [DAGRunOutput!]!
 }
 
 enum DAGRunStatus {
@@ -53,6 +59,9 @@ type DAGTemplate {
 
 type DAG {
   id: String!
+  label: String!
+  tags: [Tag!]!
+  countries: [Country!]!
   code: String!
   user: User
   template: DAGTemplate!
