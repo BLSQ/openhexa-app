@@ -169,6 +169,27 @@ const PipelineRunPage = (props: Props) => {
               >
                 {(value) => <span>{value ? formatDuration(value) : "-"}</span>}
               </RenderProperty>
+              <RenderProperty<{ title: string; uri: string }[]>
+                readonly
+                id="outputs"
+                accessor="outputs"
+                label={t("Outputs")}
+              >
+                {(outputs) => (
+                  <>
+                    {outputs.length === 0 && "-"}
+                    {outputs.length > 0 && (
+                      <ul className="list-inside list-disc">
+                        {outputs.map((output, i) => (
+                          <li key={i}>
+                            {output.uri} ({output.title})
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </RenderProperty>
               <RenderProperty
                 id="config"
                 readonly

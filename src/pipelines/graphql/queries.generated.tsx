@@ -30,7 +30,7 @@ export type PipelineRunPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', id: string, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, status: Types.DagRunStatus, config?: any | null, logs?: string | null, messages: Array<{ __typename?: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } | null, dag?: { __typename?: 'DAG', id: string, code: string } | null };
+export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', id: string, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, status: Types.DagRunStatus, config?: any | null, logs?: string | null, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, messages: Array<{ __typename?: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } | null, dag?: { __typename?: 'DAG', id: string, code: string, label: string } | null };
 
 export type PipelineConfigureRunPageQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['String'];
@@ -182,6 +182,10 @@ export const PipelineRunPageDocument = gql`
     executionDate
     status
     config
+    outputs {
+      title
+      uri
+    }
     ...RunMessages_dagRun
     ...RunLogs_dagRun
     ...PipelineRunStatusBadge_dagRun
@@ -189,6 +193,7 @@ export const PipelineRunPageDocument = gql`
   dag(id: $pipelineId) {
     id
     code
+    label
   }
 }
     ${RunMessages_DagRunFragmentDoc}

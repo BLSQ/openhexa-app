@@ -76,6 +76,10 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
 
     status
     config
+    outputs {
+      title
+      uri
+    }
     ...RunMessages_dagRun
     ...RunLogs_dagRun
     ...PipelineRunStatusBadge_dagRun
@@ -84,6 +88,7 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
   dag(id: $pipelineId) {
     id
     code
+    label
   }
 }
 
