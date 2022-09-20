@@ -18,10 +18,10 @@ const Badge = ({
   ...delegated
 }: BadgeProps) => {
   return (
-    <div
+    <span
       {...delegated}
       className={clsx(
-        "flex items-center truncate whitespace-nowrap rounded-md border font-medium",
+        "inline-block truncate whitespace-nowrap rounded-md border font-medium",
         size === "xs" && Classes.xs,
         size === "sm" && Classes.sm,
         size === "md" && Classes.md,
@@ -29,7 +29,7 @@ const Badge = ({
       )}
     >
       {children}
-    </div>
+    </span>
   );
 };
 

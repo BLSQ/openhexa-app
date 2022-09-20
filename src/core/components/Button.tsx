@@ -68,7 +68,10 @@ Button.Sizes = ButtonSizes;
 const LeadingIcon = (props: { children: ReactElement; size?: ButtonSize }) => {
   return (
     <div
-      className={clsx("-ml-1", props.size === ButtonSizes[0] ? "mr-1" : "mr-2")}
+      className={clsx(
+        "-ml-1",
+        props.size === ButtonSizes[0] ? "mr-1" : "mr-1.5"
+      )}
       aria-hidden="true"
     >
       {props.children}

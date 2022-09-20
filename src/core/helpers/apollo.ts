@@ -41,6 +41,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
         },
       },
     },
+    DAGRun: {
+      merge: true,
+    },
     User: {
       merge: true,
     },

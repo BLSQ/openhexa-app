@@ -138,7 +138,7 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
   return (
     <DataCardSectionContext.Provider value={section}>
       <Block.Content className={className}>
-        <h4 className="mb-4">
+        <h4 className="mb-7">
           <span className=" font-medium">{title}</span>
           {onSave && !isEdited && (
             <button

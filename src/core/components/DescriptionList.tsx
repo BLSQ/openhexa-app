@@ -7,7 +7,7 @@ const DescriptionList = ({
   children,
   className,
 }: React.HTMLAttributes<HTMLDataListElement>) => {
-  return <dl className={clsx("space-y-3", className)}>{children}</dl>;
+  return <dl className={clsx("space-y-6", className)}>{children}</dl>;
 };
 
 DescriptionList.Item = function Item({

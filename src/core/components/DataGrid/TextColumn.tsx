@@ -9,6 +9,7 @@ type URLResolver = (value: any) => LinkProps["href"];
 type TextColumnProps = BaseColumnProps & {
   url?: LinkProps["href"] | URLResolver;
   textPath?: string;
+  symbolPath?: string;
   defaultValue?: ReactElement | string;
   subtextPath?: string;
   textClassName?: string;
@@ -18,6 +19,7 @@ export function TextColumn(props: TextColumnProps) {
   const {
     textPath,
     subtextPath,
+    symbolPath,
     textClassName,
     url,
     defaultValue = "-",
@@ -33,6 +35,11 @@ export function TextColumn(props: TextColumnProps) {
     [cell.value, subtextPath]
   );
 
+  const symbol = useMemo(
+    () => (symbolPath ? _.get(cell.value, symbolPath) : null),
+    [cell.value, symbolPath]
+  );
+
   const href = useMemo(() => {
     if (typeof url === "function") {
       return url(cell.value);
@@ -42,23 +49,33 @@ export function TextColumn(props: TextColumnProps) {
   }, [cell.value, url]);
 
   const children = (
-    <div className="w-full">
-      <div
-        title={text}
-        className={clsx("truncate lg:whitespace-nowrap", textClassName)}
-      >
-        {text ?? defaultValue}
-      </div>
-      {subtext && (
-        <div className=" mt-1 truncate text-sm text-gray-400">{subtext}</div>
+    <div className="flex items-center gap-4">
+      {symbol && (
+        <div className="w-8">
+          <img src={symbol} alt={text} />
+        </div>
       )}
+      <div className="truncate">
+        <div
+          title={text}
+          className={clsx(
+            "flex-1 truncate lg:whitespace-nowrap",
+            textClassName
+          )}
+        >
+          {text ?? defaultValue}
+        </div>
+        {subtext && (
+          <div className=" mt-1 truncate text-sm text-gray-400">{subtext}</div>
+        )}
+      </div>
     </div>
   );
 
   if (href) {
     return (
       <Link href={href}>
-        <a className="truncate">{children}</a>
+        <a className="max-w-full">{children}</a>
       </Link>
     );
   } else {

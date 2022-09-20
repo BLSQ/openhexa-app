@@ -18,6 +18,7 @@ app.prepare().then(() => {
       filter: function (req) {
         const isNext =
           req.url.startsWith("/collections") ||
+          req.url.startsWith("/pipelines") ||
           req.url.startsWith("/images") ||
           req.url.startsWith("/_next") ||
           req.url === "/" ||

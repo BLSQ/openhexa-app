@@ -6,7 +6,7 @@ export type PropertyFlag = boolean | ((value: any) => boolean);
 export type PropertyDefinition = {
   id: string;
   label: string;
-  accessor: ValueAccessor;
+  accessor?: ValueAccessor;
   readonly?: PropertyFlag;
   visible?: PropertyFlag;
   required?: PropertyFlag;

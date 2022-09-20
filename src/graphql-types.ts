@@ -13,6 +13,7 @@ export type Scalars = {
   AccessmodFilesetMetadata: any;
   Date: any;
   DateTime: any;
+  JSON: any;
   MovingSpeeds: any;
   SimplifiedExtentType: any;
   StackPriorities: any;
@@ -605,6 +606,88 @@ export type CreateTeamResult = {
   team?: Maybe<Team>;
 };
 
+export type Dag = {
+  __typename?: 'DAG';
+  code: Scalars['String'];
+  externalUrl?: Maybe<Scalars['URL']>;
+  id: Scalars['String'];
+  runs: DagRunPage;
+  schedule?: Maybe<Scalars['String']>;
+  template: DagTemplate;
+  user?: Maybe<User>;
+};
+
+
+export type DagRunsArgs = {
+  orderBy?: InputMaybe<DagRunOrderBy>;
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+export type DagPage = {
+  __typename?: 'DAGPage';
+  items: Array<Dag>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
+export type DagRun = {
+  __typename?: 'DAGRun';
+  config?: Maybe<Scalars['JSON']>;
+  duration?: Maybe<Scalars['Int']>;
+  executionDate?: Maybe<Scalars['DateTime']>;
+  externalId?: Maybe<Scalars['String']>;
+  externalUrl?: Maybe<Scalars['URL']>;
+  id: Scalars['String'];
+  lastRefreshedAt?: Maybe<Scalars['DateTime']>;
+  logs?: Maybe<Scalars['String']>;
+  messages: Array<DagRunMessage>;
+  progress: Scalars['Int'];
+  status: DagRunStatus;
+  triggerMode?: Maybe<DagRunTrigger>;
+  user?: Maybe<User>;
+};
+
+export type DagRunMessage = {
+  __typename?: 'DAGRunMessage';
+  message: Scalars['String'];
+  priority: Scalars['String'];
+  timestamp?: Maybe<Scalars['DateTime']>;
+};
+
+export enum DagRunOrderBy {
+  ExecutionDateAsc = 'EXECUTION_DATE_ASC',
+  ExecutionDateDesc = 'EXECUTION_DATE_DESC'
+}
+
+export type DagRunPage = {
+  __typename?: 'DAGRunPage';
+  items: Array<DagRun>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
+export enum DagRunStatus {
+  Failed = 'failed',
+  Queued = 'queued',
+  Running = 'running',
+  Success = 'success'
+}
+
+export enum DagRunTrigger {
+  Manual = 'MANUAL',
+  Scheduled = 'SCHEDULED'
+}
+
+export type DagTemplate = {
+  __typename?: 'DAGTemplate';
+  code: Scalars['String'];
+  description?: Maybe<Scalars['String']>;
+  sampleConfig?: Maybe<Scalars['JSON']>;
+};
+
 export type Dhis2DataElement = {
   __typename?: 'DHIS2DataElement';
   code: Scalars['String'];
@@ -867,6 +950,7 @@ export type Mutation = {
   prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
+  runDAG: RunDagResult;
   setPassword: SetPasswordResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
@@ -1014,6 +1098,11 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationRunDagArgs = {
+  input: RunDagInput;
+};
+
+
 export type MutationSetPasswordArgs = {
   input: SetPasswordInput;
 };
@@ -1129,6 +1218,9 @@ export type Query = {
   collections: CollectionPage;
   countries: Array<Country>;
   country?: Maybe<Country>;
+  dag?: Maybe<Dag>;
+  dagRun?: Maybe<DagRun>;
+  dags: DagPage;
   me: Me;
   organizations: Array<Organization>;
   team?: Maybe<Team>;
@@ -1212,6 +1304,22 @@ export type QueryCountryArgs = {
 };
 
 
+export type QueryDagArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QueryDagRunArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QueryDagsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
 export type QueryTeamArgs = {
   id: Scalars['String'];
 };
@@ -1248,6 +1356,24 @@ export type ResetPasswordInput = {
 
 export type ResetPasswordResult = {
   __typename?: 'ResetPasswordResult';
+  success: Scalars['Boolean'];
+};
+
+export enum RunDagError {
+  DagNotFound = 'DAG_NOT_FOUND',
+  InvalidConfig = 'INVALID_CONFIG'
+}
+
+export type RunDagInput = {
+  config: Scalars['JSON'];
+  dagId: Scalars['String'];
+};
+
+export type RunDagResult = {
+  __typename?: 'RunDAGResult';
+  dag?: Maybe<Dag>;
+  dagRun?: Maybe<DagRun>;
+  errors: Array<RunDagError>;
   success: Scalars['Boolean'];
 };
 

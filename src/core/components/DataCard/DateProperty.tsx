@@ -35,7 +35,9 @@ const DateProperty = (props: DatePropertyProps) => {
           onChange={(e) => property.setValue(e.target.value)}
         />
       ) : (
-        <Time datetime={property.displayValue} format={format} />
+        property.displayValue && (
+          <Time datetime={property.displayValue} format={format} />
+        )
       )}
     </DataCard.Property>
   );

@@ -24,7 +24,7 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
     [item, titleAccessor]
   );
   const subtitle = useMemo(
-    () => getValue(item, subtitleAccessor),
+    () => (subtitleAccessor ? getValue(item, subtitleAccessor) : null),
     [item, subtitleAccessor]
   );
 
@@ -33,7 +33,7 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
       className={clsx(className, "flex items-center justify-between")}
     >
       <div>
-        {title}
+        {title ?? ""}
         {subtitle && (
           <div className="truncate pt-2 text-sm text-gray-500">{subtitle}</div>
         )}

@@ -5,12 +5,13 @@ import { useCellContext } from "./helpers";
 
 type DateColumnProps = {
   format?: DateTimeOptions;
+  relative?: boolean;
   defaultValue?: string;
 } & BaseColumnProps;
 
 const DateColumn = ({
-  className,
   format,
+  relative,
   defaultValue = "-",
 }: DateColumnProps) => {
   const cell = useCellContext();
@@ -18,7 +19,14 @@ const DateColumn = ({
   if (!cell.value) {
     return defaultValue ? <span>{defaultValue}</span> : null;
   }
-  return <Time className={className} datetime={cell.value} format={format} />;
+  return (
+    <Time
+      className="truncate"
+      datetime={cell.value}
+      format={format}
+      relative={relative}
+    />
+  );
 };
 
 export default DateColumn;

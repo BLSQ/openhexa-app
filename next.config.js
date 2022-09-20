@@ -11,6 +11,10 @@ const config = {
     SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
   },
 
+  sentry: {
+    hideSourceMaps: true,
+  },
+
   poweredByHeader: false, // Disable 'x-powered-by' header
   reactStrictMode: true,
   trailingSlash: false,

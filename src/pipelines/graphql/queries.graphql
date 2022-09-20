@@ -1,0 +1,86 @@
+query PipelinesPage {
+  dags {
+    totalPages
+    totalItems
+    items {
+      id
+      code
+      runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
+        items {
+          id
+          status
+          executionDate
+          ...PipelineRunStatusBadge_dagRun
+        }
+      }
+    }
+  }
+}
+
+query PipelinePage($id: String!, $page: Int) {
+  dag(id: $id) {
+    id
+    code
+    schedule
+    externalUrl
+    template {
+      code
+      description
+      sampleConfig
+    }
+    schedule
+    user {
+      ...UserProperty_user
+    }
+    runs(page: $page, perPage: 15) {
+      totalItems
+      totalPages
+      items {
+        id
+        triggerMode
+        externalId
+        externalUrl
+        user {
+          ...UserColumn_user
+        }
+        status
+        executionDate
+        lastRefreshedAt
+        duration
+        ...PipelineRunStatusBadge_dagRun
+      }
+    }
+  }
+}
+
+query PipelineRunPage($pipelineId: String!, $runId: String!) {
+  dagRun(id: $runId) {
+    id
+    externalId
+    externalUrl
+    executionDate
+
+    status
+    config
+    ...RunMessages_dagRun
+    ...RunLogs_dagRun
+    ...PipelineRunStatusBadge_dagRun
+  }
+
+  dag(id: $pipelineId) {
+    id
+    code
+  }
+}
+
+query PipelineConfigureRunPage($pipelineId: String!) {
+  dag(id: $pipelineId) {
+    id
+    code
+    template {
+      sampleConfig
+      description
+    }
+    ...PipelineRunForm_dag
+  }
+}

@@ -5,7 +5,7 @@ export type BaseColumnProps = { [key: string]: any } & {
   id?: string;
   label?: string;
   hideLabel?: boolean;
-  accessor?: string;
+  accessor?: string | ((value: any) => any);
   className?: string;
   headerClassName?: string;
   minWidth?: number;

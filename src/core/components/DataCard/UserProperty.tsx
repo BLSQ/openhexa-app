@@ -1,3 +1,4 @@
+import { gql } from "@apollo/client";
 import User from "core/features/User";
 import { User_UserFragment } from "core/features/User/User.generated";
 import { useDataCardProperty } from "./context";
@@ -16,6 +17,15 @@ const UserProperty = (props: UserPropertyProps) => {
       {property.displayValue ? <User user={property.displayValue} /> : "-"}
     </DataCard.Property>
   );
+};
+
+UserProperty.fragments = {
+  user: gql`
+    fragment UserProperty_user on User {
+      ...User_user
+    }
+    ${User.fragments.user}
+  `,
 };
 
 export default UserProperty;
