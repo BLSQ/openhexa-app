@@ -2,6 +2,7 @@ import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import DataGrid from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
+import CountryColumn from "core/components/DataGrid/CountryColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Page from "core/components/Layout/Page";
@@ -70,9 +71,9 @@ const PipelinesPage = (props: Props) => {
               fetchData={onChangePage}
             >
               <TextColumn
-                id="code"
-                label={t("Code")}
-                textPath="code"
+                id="label"
+                label={t("Name")}
+                textPath="label"
                 textClassName="text-gray-700 font-medium"
                 url={(value: any) => ({
                   pathname: "/pipelines/[pipelinesId]",
@@ -80,6 +81,7 @@ const PipelinesPage = (props: Props) => {
                 })}
                 minWidth={240}
               />
+              <CountryColumn accessor="countries" label={t("Location")} />
               <DateColumn
                 label={t("Last run")}
                 relative

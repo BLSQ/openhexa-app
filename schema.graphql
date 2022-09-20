@@ -554,6 +554,9 @@ type CreateTeamResult {
 
 type DAG {
   id: String!
+  label: String!
+  tags: [Tag!]!
+  countries: [Country!]!
   code: String!
   user: User
   template: DAGTemplate!
@@ -583,6 +586,7 @@ type DAGRun {
   triggerMode: DAGRunTrigger
   messages: [DAGRunMessage!]!
   logs: String
+  outputs: [DAGRunOutput!]!
 }
 
 type DAGRunMessage {
@@ -594,6 +598,11 @@ type DAGRunMessage {
 enum DAGRunOrderBy {
   EXECUTION_DATE_DESC
   EXECUTION_DATE_ASC
+}
+
+type DAGRunOutput {
+  title: String!
+  uri: String!
 }
 
 type DAGRunPage {

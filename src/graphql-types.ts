@@ -609,10 +609,13 @@ export type CreateTeamResult = {
 export type Dag = {
   __typename?: 'DAG';
   code: Scalars['String'];
+  countries: Array<Country>;
   externalUrl?: Maybe<Scalars['URL']>;
   id: Scalars['String'];
+  label: Scalars['String'];
   runs: DagRunPage;
   schedule?: Maybe<Scalars['String']>;
+  tags: Array<Tag>;
   template: DagTemplate;
   user?: Maybe<User>;
 };
@@ -643,6 +646,7 @@ export type DagRun = {
   lastRefreshedAt?: Maybe<Scalars['DateTime']>;
   logs?: Maybe<Scalars['String']>;
   messages: Array<DagRunMessage>;
+  outputs: Array<DagRunOutput>;
   progress: Scalars['Int'];
   status: DagRunStatus;
   triggerMode?: Maybe<DagRunTrigger>;
@@ -660,6 +664,12 @@ export enum DagRunOrderBy {
   ExecutionDateAsc = 'EXECUTION_DATE_ASC',
   ExecutionDateDesc = 'EXECUTION_DATE_DESC'
 }
+
+export type DagRunOutput = {
+  __typename?: 'DAGRunOutput';
+  title: Scalars['String'];
+  uri: Scalars['String'];
+};
 
 export type DagRunPage = {
   __typename?: 'DAGRunPage';

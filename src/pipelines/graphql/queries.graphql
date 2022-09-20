@@ -3,6 +3,13 @@ query PipelinesPage {
     totalPages
     totalItems
     items {
+      label
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
       id
       code
       runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
@@ -20,6 +27,13 @@ query PipelinesPage {
 query PipelinePage($id: String!, $page: Int) {
   dag(id: $id) {
     id
+    label
+    countries {
+      ...CountryBadge_country
+    }
+    tags {
+      ...Tag_tag
+    }
     code
     schedule
     externalUrl

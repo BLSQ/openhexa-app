@@ -10,7 +10,7 @@ type CountryColumnProps = {
 } & BaseColumnProps;
 
 const CountryColumn = (props: CountryColumnProps) => {
-  const { max, defaultValue } = props;
+  const { max, defaultValue = "-" } = props;
   const cell = useCellContext<CountryBadge_CountryFragment>();
   const allCountries = useMemo(() => {
     if (!cell.value) return [];
@@ -25,7 +25,7 @@ const CountryColumn = (props: CountryColumnProps) => {
 
   return (
     <div className="flex max-w-full flex-wrap items-center gap-2">
-      {!allCountries?.length && defaultValue}
+      {allCountries.length === 0 && defaultValue}
       {countries.map((country) => (
         <CountryBadge key={country.code} country={country} />
       ))}

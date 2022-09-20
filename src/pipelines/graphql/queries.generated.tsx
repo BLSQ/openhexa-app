@@ -1,6 +1,8 @@
 import * as Types from '../../graphql-types';
 
 import { gql } from '@apollo/client';
+import { CountryBadge_CountryFragmentDoc } from '../../core/features/CountryBadge.generated';
+import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import { PipelineRunStatusBadge_DagRunFragmentDoc } from '../features/PipelineRunStatusBadge.generated';
 import { UserProperty_UserFragmentDoc } from '../../core/components/DataCard/UserProperty.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
@@ -12,7 +14,7 @@ const defaultOptions = {} as const;
 export type PipelinesPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', id: string, code: string, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: string, status: Types.DagRunStatus, executionDate?: any | null }> } }> } };
+export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', label: string, id: string, code: string, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: string, status: Types.DagRunStatus, executionDate?: any | null }> } }> } };
 
 export type PipelinePageQueryVariables = Types.Exact<{
   id: Types.Scalars['String'];
@@ -20,7 +22,7 @@ export type PipelinePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, code: string, schedule?: string | null, externalUrl?: any | null, template: { __typename?: 'DAGTemplate', code: string, description?: string | null, sampleConfig?: any | null }, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, runs: { __typename?: 'DAGRunPage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'DAGRun', id: string, triggerMode?: Types.DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, status: Types.DagRunStatus, executionDate?: any | null, lastRefreshedAt?: any | null, duration?: number | null, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
+export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, label: string, code: string, schedule?: string | null, externalUrl?: any | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, template: { __typename?: 'DAGTemplate', code: string, description?: string | null, sampleConfig?: any | null }, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, runs: { __typename?: 'DAGRunPage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'DAGRun', id: string, triggerMode?: Types.DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, status: Types.DagRunStatus, executionDate?: any | null, lastRefreshedAt?: any | null, duration?: number | null, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
 
 export type PipelineRunPageQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['String'];
@@ -44,6 +46,13 @@ export const PipelinesPageDocument = gql`
     totalPages
     totalItems
     items {
+      label
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
       id
       code
       runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
@@ -57,7 +66,9 @@ export const PipelinesPageDocument = gql`
     }
   }
 }
-    ${PipelineRunStatusBadge_DagRunFragmentDoc}`;
+    ${CountryBadge_CountryFragmentDoc}
+${Tag_TagFragmentDoc}
+${PipelineRunStatusBadge_DagRunFragmentDoc}`;
 
 /**
  * __usePipelinesPageQuery__
@@ -89,6 +100,13 @@ export const PipelinePageDocument = gql`
     query PipelinePage($id: String!, $page: Int) {
   dag(id: $id) {
     id
+    label
+    countries {
+      ...CountryBadge_country
+    }
+    tags {
+      ...Tag_tag
+    }
     code
     schedule
     externalUrl
@@ -121,7 +139,9 @@ export const PipelinePageDocument = gql`
     }
   }
 }
-    ${UserProperty_UserFragmentDoc}
+    ${CountryBadge_CountryFragmentDoc}
+${Tag_TagFragmentDoc}
+${UserProperty_UserFragmentDoc}
 ${UserColumn_UserFragmentDoc}
 ${PipelineRunStatusBadge_DagRunFragmentDoc}`;
 
