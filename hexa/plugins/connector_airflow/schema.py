@@ -4,6 +4,7 @@ from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_f
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 
 from .models import DAG, DAGRun
 
@@ -23,7 +24,7 @@ dag_run_status_enum = EnumType("DAGRunStatus", DAGRun.STATUS_MAPPINGS)
 
 dag_object = ObjectType("DAG")
 
-dag_object.set_alias("code", "dag_id")
+dag_object.set_alias("externalId", "dag_id")
 
 
 @dag_object.field("template")
@@ -49,6 +50,11 @@ def resolve_dag_label(dag: DAG, info, **kwargs):
 @dag_object.field("countries")
 def resolve_dag_countries(dag: DAG, info, **kwargs):
     return dag.index.countries
+
+
+@dag_object.field("description")
+def resolve_dag_description(dag: DAG, info, **kwargs):
+    return dag.index.description
 
 
 @dag_object.field("tags")
@@ -146,6 +152,34 @@ def resolve_run_dag(_, info, **kwargs):
             "success": False,
             "errors": ["DAG_NOT_FOUND"],
         }
+
+
+@dags_mutations.field("updateDAG")
+def resolve_update_dag(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        dag: DAG = DAG.objects.filter_for_user(request.user).get(id=input.get("id"))
+        if input.get("schedule", None) is not None:
+            dag.schedule = input["schedule"]
+        for key in ["label", "description"]:
+            if input.get(key, None) is not None:
+                setattr(dag.index, key, input[key])
+
+        countries = (
+            [Country.objects.get(code=c["code"]) for c in input["countries"]]
+            if "countries" in input
+            else None
+        )
+        if countries is not None:
+            dag.index.countries = countries
+        dag.index.save()
+        dag.save()
+        return {"success": True, "errors": [], "dag": dag}
+
+    except DAG.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
 
 
 dags_bindables = [
