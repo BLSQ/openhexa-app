@@ -18,7 +18,7 @@ type Form = {
   config: { [key: string]: any };
 };
 
-const CUSTOM_IHP_FORM = ["ihp"];
+const CUSTOM_IHP_FORM = "ihp";
 
 function PipelineRunForm(props: PipelineRunFormProps) {
   const { onSubmit, dag, fromConfig } = props;
