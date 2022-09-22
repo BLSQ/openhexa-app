@@ -61,8 +61,10 @@ type DAG {
   id: String!
   label: String!
   tags: [Tag!]!
+  formCode: String
   countries: [Country!]!
-  code: String!
+  externalId: String!
+  description: String
   user: User
   template: DAGTemplate!
   schedule: String
@@ -100,6 +102,36 @@ input RunDAGInput {
   config: JSON!
 }
 
+input UpdateDAGInput {
+  id: String!
+  label: String
+  description: String
+  schedule: String
+  countries: [CountryInput!]
+}
+
+enum UpdateDAGError {
+  NOT_FOUND
+  INVALID
+}
+
+type UpdateDAGResult {
+  success: Boolean!
+  errors: [UpdateDAGError!]!
+  dag: DAG
+}
+
+input PrepareDownloadURLInput {
+  uri: URL!
+}
+
+type PrepareDownloadURLResult {
+  success: Boolean!
+  url: URL
+}
+
 extend type Mutation {
   runDAG(input: RunDAGInput!): RunDAGResult!
+  updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
+  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
 }

@@ -3,7 +3,12 @@ import pathlib
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
 from django.http import HttpRequest
 
+import hexa.plugins.connector_gcs.api as gcs_api
+import hexa.plugins.connector_s3.api as s3_api
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
+from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
+from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
 from .models import DAG, DAGRun
 
@@ -23,7 +28,7 @@ dag_run_status_enum = EnumType("DAGRunStatus", DAGRun.STATUS_MAPPINGS)
 
 dag_object = ObjectType("DAG")
 
-dag_object.set_alias("code", "dag_id")
+dag_object.set_alias("externalId", "dag_id")
 
 
 @dag_object.field("template")
@@ -49,6 +54,11 @@ def resolve_dag_label(dag: DAG, info, **kwargs):
 @dag_object.field("countries")
 def resolve_dag_countries(dag: DAG, info, **kwargs):
     return dag.index.countries
+
+
+@dag_object.field("description")
+def resolve_dag_description(dag: DAG, info, **kwargs):
+    return dag.index.description
 
 
 @dag_object.field("tags")
@@ -146,6 +156,74 @@ def resolve_run_dag(_, info, **kwargs):
             "success": False,
             "errors": ["DAG_NOT_FOUND"],
         }
+
+
+@dags_mutations.field("updateDAG")
+def resolve_update_dag(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        dag: DAG = DAG.objects.filter_for_user(request.user).get(id=input.get("id"))
+        index = dag.index
+        if input.get("schedule", None) is not None:
+            dag.schedule = input["schedule"]
+        for key in ["label", "description"]:
+            if input.get(key, None) is not None:
+                setattr(index, key, input[key])
+
+        countries = (
+            [Country.objects.get(code=c["code"]) for c in input["countries"]]
+            if "countries" in input
+            else None
+        )
+        if countries is not None:
+            index.countries = countries
+        index.save()
+        dag.save()
+        return {"success": True, "errors": [], "dag": dag}
+
+    except DAG.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+
+
+@dags_mutations.field("prepareDownloadURL")
+def resolve_prepare_download_url(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    uri = input.get("uri")
+
+    try:
+        uri_protocol, uri_full_path = uri.split("://")
+        bucket_name, *paths = uri_full_path.split("/")
+        uri_path = "/".join(paths)
+
+        if uri_protocol == "s3":
+            Bucket = S3Bucket
+        elif uri_protocol == "gcs":
+            Bucket = GCSBucket
+        else:
+            raise ValueError(f"Protocol {uri_protocol} not supported.")
+
+        try:
+            bucket = Bucket.objects.filter_for_user(request.user).get(name=bucket_name)
+        except Bucket.DoesNotExist:
+            raise ValueError(f"The bucket {bucket_name} does not exist")
+
+        if uri_protocol == "s3":
+            download_url = s3_api.generate_download_url(
+                principal_credentials=bucket.principal_credentials,
+                bucket=bucket,
+                target_key=uri_path,
+            )
+        elif uri_protocol == "gcs":
+            download_url = gcs_api.generate_download_url(
+                bucket=bucket,
+                target_key=uri_path,
+            )
+        return {"success": True, "url": download_url}
+    except ValueError as err:
+        return {"success": False}
 
 
 dags_bindables = [

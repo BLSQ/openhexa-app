@@ -289,6 +289,8 @@ class DAG(Pipeline):
     template = models.ForeignKey(DAGTemplate, on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
 
+    form_code = models.CharField(max_length=200, null=True, blank=True)
+
     # for scheduled DAG:
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
