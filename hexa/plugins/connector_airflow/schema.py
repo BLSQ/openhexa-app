@@ -129,14 +129,16 @@ def resolve_dags(_, info, **kwargs):
 def resolve_dag(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    return DAG.objects.filter_for_user(request.user).get(id=kwargs.get("id"))
+    return DAG.objects.filter_for_user(request.user).filter(id=kwargs.get("id")).first()
 
 
 @dags_query.field("dagRun")
 def resolve_dag_run(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    return DAGRun.objects.filter_for_user(request.user).get(id=kwargs.get("id"))
+    return (
+        DAGRun.objects.filter_for_user(request.user).filter(id=kwargs.get("id")).first()
+    )
 
 
 dags_mutations = MutationType()
