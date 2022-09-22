@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/BLSQ/openhexa-frontend/compare/0.7.4...0.7.5) (2022-09-22)
+
+
+### Bug Fixes
+
+* **Header:** Add /admin entry if user is marked as "staff" user ([2e2ac7c](https://github.com/BLSQ/openhexa-frontend/commit/2e2ac7c3c30ba6dc084d9c7cd01d42379186c5e1))
+
 ## [0.7.4](https://github.com/BLSQ/openhexa-frontend/compare/0.7.3...0.7.4) (2022-09-22)
 
 
