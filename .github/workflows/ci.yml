@@ -59,7 +59,9 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ./node_modules
+          path: |
+            ./node_modules
+            ${{ github.workspace }}/.next/cache
           key: node_modules-${{ hashFiles('package-lock.json') }}
 
       - name: Install dependencies
@@ -71,7 +73,6 @@ jobs:
 
       - run: npm run test:ci
         name: Run Tests
-
 
       - run: npm run build
         name: Build
