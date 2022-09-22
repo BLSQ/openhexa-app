@@ -1,10 +1,12 @@
 query GetUser {
   me {
+    authorizedActions
     user {
       email
       id
       firstName
       lastName
+      displayName
       avatar {
         initials
         color

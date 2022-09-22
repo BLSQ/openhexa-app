@@ -4,7 +4,7 @@ import { HTMLAttributes } from "react";
 export type AvatarProps = {
   initials: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
-  color: string;
+  color?: string;
 } & HTMLAttributes<HTMLSpanElement>;
 
 const Avatar = (props: AvatarProps) => {

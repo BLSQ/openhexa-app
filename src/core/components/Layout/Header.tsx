@@ -2,7 +2,8 @@ import { SearchIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
 import Toggle from "core/helpers/Toggle";
-import { logout } from "identity/helpers/auth";
+import { MeAuthorizedActions } from "graphql-types";
+import { getMe, logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,7 +12,11 @@ import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
 
-const Header = ({ user }: { user: any }) => {
+type HeaderProps = {
+  me: NonNullable<Awaited<ReturnType<typeof getMe>>>;
+};
+
+const Header = ({ me }: HeaderProps) => {
   const router = useRouter();
   const { t } = useTranslation();
   return (
@@ -57,8 +62,8 @@ const Header = ({ user }: { user: any }) => {
         <Menu
           trigger={
             <Avatar
-              initials={user.avatar.initials}
-              color={user.avatar.color}
+              initials={me.user?.avatar.initials ?? ""}
+              color={me.user ? me.user.avatar.color : undefined}
               size="md"
             />
           }
@@ -66,10 +71,11 @@ const Header = ({ user }: { user: any }) => {
           <Menu.Item onClick={() => router.push("/user/account")}>
             {t("Your account")}
           </Menu.Item>
-          {/* This needs to be behind a Me.permissions.admin
-          <Menu.Item onClick={() => router.push("/admin")}>
-            {t("Admin")}
-        </Menu.Item> */}
+          {me.authorizedActions?.includes(MeAuthorizedActions.AdminPanel) && (
+            <Menu.Item onClick={() => router.push("/admin")}>
+              {t("Admin")}
+            </Menu.Item>
+          )}
 
           <Menu.Item onClick={() => logout()}>{t("Sign out")}</Menu.Item>
         </Menu>

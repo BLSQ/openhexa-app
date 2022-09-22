@@ -1,10 +1,10 @@
 import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import { AuthenticatedUser, getUser } from "identity/helpers/auth";
+import { getMe } from "identity/helpers/auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { addApolloState, CustomApolloClient, getApolloClient } from "./apollo";
 
 interface GetServerSidePropsContextWithUser extends GetServerSidePropsContext {
-  user: AuthenticatedUser | null;
+  me: Awaited<ReturnType<typeof getMe>>;
 }
 
 interface CreateGetServerSideProps {
@@ -20,7 +20,7 @@ interface CreateGetServerSideProps {
 }
 
 interface ServerSideProps {
-  user: AuthenticatedUser | null;
+  me: Awaited<ReturnType<typeof getMe>>;
   [key: string]: any;
 }
 
@@ -34,17 +34,17 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   return async function (
     ctx: GetServerSidePropsContextWithUser
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
-    const user = await getUser(ctx);
-    ctx.user = user;
+    const me = await getMe(ctx);
+    ctx.me = me;
     const res = {
       props: {
-        user,
+        me,
         // Replace ctx.locale by user.lang when implemented
         ...(await serverSideTranslations(ctx.locale ?? "en", i18n)),
       },
     };
 
-    if (requireAuth && !res.props.user) {
+    if (requireAuth && !res.props.me?.user) {
       return {
         ...res,
         redirect: {

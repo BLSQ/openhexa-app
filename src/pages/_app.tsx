@@ -26,11 +26,11 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 
   useEffect(() => {
     Sentry.setUser(
-      pageProps?.user
-        ? { email: pageProps.user.email, id: pageProps.user.id }
+      pageProps?.me?.user
+        ? { email: pageProps.me.user.email, id: pageProps.me.user.id }
         : null
     );
-  }, [pageProps.user]);
+  }, [pageProps.me]);
   return (
     <>
       <NavigationProgress color="#002C5F" height={3} />
