@@ -136,7 +136,7 @@ const PipelineRunPage = (props: Props) => {
                       query: { pipelineId: dag.id },
                     }}
                   >
-                    {dag.externalId}
+                    {dag.label || dag.externalId}
                   </Link>
                 )}
               </RenderProperty>
