@@ -1,0 +1,12 @@
+mutation UpdatePipeline($input: UpdateDAGInput!) {
+  updateDAG(input: $input) {
+    success
+    errors
+    dag {
+      id
+      label
+      description
+      schedule
+    }
+  }
+}

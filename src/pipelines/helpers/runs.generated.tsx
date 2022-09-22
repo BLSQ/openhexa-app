@@ -10,6 +10,13 @@ export type GetPipelineRunQueryVariables = Types.Exact<{
 
 export type GetPipelineRunQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', config?: any | null, externalUrl?: any | null, externalId?: string | null, status: Types.DagRunStatus, executionDate?: any | null, duration?: number | null } | null };
 
+export type GetRunOutputDownloadUrlMutationVariables = Types.Exact<{
+  input: Types.PrepareDownloadUrlInput;
+}>;
+
+
+export type GetRunOutputDownloadUrlMutation = { __typename?: 'Mutation', prepareDownloadURL?: { __typename?: 'PrepareDownloadURLResult', success: boolean, url?: any | null } | null };
+
 
 export const GetPipelineRunDocument = gql`
     query GetPipelineRun($runId: String!) {
@@ -51,3 +58,37 @@ export function useGetPipelineRunLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type GetPipelineRunQueryHookResult = ReturnType<typeof useGetPipelineRunQuery>;
 export type GetPipelineRunLazyQueryHookResult = ReturnType<typeof useGetPipelineRunLazyQuery>;
 export type GetPipelineRunQueryResult = Apollo.QueryResult<GetPipelineRunQuery, GetPipelineRunQueryVariables>;
+export const GetRunOutputDownloadUrlDocument = gql`
+    mutation GetRunOutputDownloadURL($input: PrepareDownloadURLInput!) {
+  prepareDownloadURL(input: $input) {
+    success
+    url
+  }
+}
+    `;
+export type GetRunOutputDownloadUrlMutationFn = Apollo.MutationFunction<GetRunOutputDownloadUrlMutation, GetRunOutputDownloadUrlMutationVariables>;
+
+/**
+ * __useGetRunOutputDownloadUrlMutation__
+ *
+ * To run a mutation, you first call `useGetRunOutputDownloadUrlMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGetRunOutputDownloadUrlMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [getRunOutputDownloadUrlMutation, { data, loading, error }] = useGetRunOutputDownloadUrlMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGetRunOutputDownloadUrlMutation(baseOptions?: Apollo.MutationHookOptions<GetRunOutputDownloadUrlMutation, GetRunOutputDownloadUrlMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GetRunOutputDownloadUrlMutation, GetRunOutputDownloadUrlMutationVariables>(GetRunOutputDownloadUrlDocument, options);
+      }
+export type GetRunOutputDownloadUrlMutationHookResult = ReturnType<typeof useGetRunOutputDownloadUrlMutation>;
+export type GetRunOutputDownloadUrlMutationResult = Apollo.MutationResult<GetRunOutputDownloadUrlMutation>;
+export type GetRunOutputDownloadUrlMutationOptions = Apollo.BaseMutationOptions<GetRunOutputDownloadUrlMutation, GetRunOutputDownloadUrlMutationVariables>;

@@ -14,6 +14,7 @@ import {
 } from "pipelines/graphql/queries.generated";
 import { runPipeline } from "pipelines/helpers/pipeline";
 import { getPipelineRun } from "pipelines/helpers/runs";
+import { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 
 type Props = {
@@ -43,11 +44,16 @@ const PipelineConfigureRunPage = (props: Props) => {
       );
     }
   };
+  const description = useMemo(
+    () => data?.dag?.description || data?.dag?.template.description,
+    [data]
+  );
   if (!data || !data.dag) {
     return null;
   }
 
   const { dag } = data;
+
   return (
     <Page title={t("Configure Pipeline")}>
       <PageContent>
@@ -65,22 +71,29 @@ const PipelineConfigureRunPage = (props: Props) => {
           </Breadcrumbs.Part>
         </Breadcrumbs>
         <Block>
-          <Block.Content className="grid grid-cols-5 gap-4">
-            <div className="col-span-3">
+          <Block.Content className="flex gap-4">
+            <div className="flex-1 basis-7/12">
               <Title level={3}>
-                {t("Create a new run of {{code}}", { code: dag.code })}
+                {t("Create a new run of {{externalId}}", {
+                  externalId: dag.externalId,
+                })}
               </Title>
 
-              <PipelineRunForm dag={dag} onSubmit={onSubmit} />
+              <PipelineRunForm
+                fromConfig={run?.config}
+                dag={dag}
+                onSubmit={onSubmit}
+              />
             </div>
-            <div className="col-span-2">
-              <Title level={3}>{t("Description")}</Title>
-              {dag.template.description && (
+            {description && (
+              <div className="basis-5/12">
+                <Title level={3}>{t("Description")}</Title>
+
                 <ReactMarkdown className="prose max-w-3xl text-sm">
-                  {dag.template.description}
+                  {description}
                 </ReactMarkdown>
-              )}
-            </div>
+              </div>
+            )}
           </Block.Content>
         </Block>
       </PageContent>
@@ -92,7 +105,7 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
     const pipelineId = ctx.params?.pipelineId as string;
-    const fromRun = ctx.params?.fromRun as string | null;
+    const fromRun = ctx.query?.fromRun as string | null;
     const { data } = await client.query({
       query: PipelineConfigureRunPageDocument,
       variables: { pipelineId },
@@ -106,7 +119,7 @@ export const getServerSideProps = createGetServerSideProps({
 
     let run = null;
     if (fromRun) {
-      run = await getPipelineRun(fromRun);
+      run = await getPipelineRun(fromRun, ctx.req);
     }
     return {
       props: {

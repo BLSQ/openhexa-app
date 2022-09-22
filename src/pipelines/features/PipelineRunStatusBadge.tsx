@@ -1,5 +1,7 @@
 import { gql } from "@apollo/client";
+import clsx from "clsx";
 import Badge from "core/components/Badge";
+import Spinner from "core/components/Spinner";
 import { DagRunStatus } from "graphql-types";
 import { formatDAGRunStatus } from "pipelines/helpers/format";
 import { useMemo } from "react";
@@ -24,7 +26,12 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
     }
   }, [dagRun.status]);
   return (
-    <Badge className={className}>{formatDAGRunStatus(dagRun.status)}</Badge>
+    <Badge className={clsx(className, "flex items-center")}>
+      {dagRun.status === DagRunStatus.Running && (
+        <Spinner className="mr-1" size="xs" />
+      )}
+      {formatDAGRunStatus(dagRun.status)}
+    </Badge>
   );
 };
 

@@ -608,9 +608,11 @@ export type CreateTeamResult = {
 
 export type Dag = {
   __typename?: 'DAG';
-  code: Scalars['String'];
   countries: Array<Country>;
+  description?: Maybe<Scalars['String']>;
+  externalId: Scalars['String'];
   externalUrl?: Maybe<Scalars['URL']>;
+  formCode?: Maybe<Scalars['String']>;
   id: Scalars['String'];
   label: Scalars['String'];
   runs: DagRunPage;
@@ -958,6 +960,7 @@ export type Mutation = {
   prepareAccessmodFileDownload: PrepareAccessmodFileDownloadResult;
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
   prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
+  prepareDownloadURL?: Maybe<PrepareDownloadUrlResult>;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
   runDAG: RunDagResult;
@@ -968,6 +971,7 @@ export type Mutation = {
   updateAccessmodProjectPermission: UpdateAccessmodProjectPermissionResult;
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateCollection: UpdateCollectionResult;
+  updateDAG: UpdateDagResult;
   updateMembership: UpdateMembershipResult;
   updateTeam: UpdateTeamResult;
 };
@@ -1098,6 +1102,11 @@ export type MutationPrepareAccessmodFilesetVisualizationDownloadArgs = {
 };
 
 
+export type MutationPrepareDownloadUrlArgs = {
+  input: PrepareDownloadUrlInput;
+};
+
+
 export type MutationRequestAccessmodAccessArgs = {
   input: RequestAccessmodAccessInput;
 };
@@ -1145,6 +1154,11 @@ export type MutationUpdateAccessmodZonalStatisticsArgs = {
 
 export type MutationUpdateCollectionArgs = {
   input: UpdateCollectionInput;
+};
+
+
+export type MutationUpdateDagArgs = {
+  input: UpdateDagInput;
 };
 
 
@@ -1210,6 +1224,16 @@ export type PrepareAccessmodFilesetVisualizationDownloadResult = {
   __typename?: 'PrepareAccessmodFilesetVisualizationDownloadResult';
   success: Scalars['Boolean'];
   url?: Maybe<Scalars['String']>;
+};
+
+export type PrepareDownloadUrlInput = {
+  uri: Scalars['URL'];
+};
+
+export type PrepareDownloadUrlResult = {
+  __typename?: 'PrepareDownloadURLResult';
+  success: Scalars['Boolean'];
+  url?: Maybe<Scalars['URL']>;
 };
 
 export type Query = {
@@ -1603,6 +1627,26 @@ export type UpdateCollectionResult = {
   __typename?: 'UpdateCollectionResult';
   collection?: Maybe<Collection>;
   errors: Array<CreateCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum UpdateDagError {
+  Invalid = 'INVALID',
+  NotFound = 'NOT_FOUND'
+}
+
+export type UpdateDagInput = {
+  countries?: InputMaybe<Array<CountryInput>>;
+  description?: InputMaybe<Scalars['String']>;
+  id: Scalars['String'];
+  label?: InputMaybe<Scalars['String']>;
+  schedule?: InputMaybe<Scalars['String']>;
+};
+
+export type UpdateDagResult = {
+  __typename?: 'UpdateDAGResult';
+  dag?: Maybe<Dag>;
+  errors: Array<UpdateDagError>;
   success: Scalars['Boolean'];
 };
 

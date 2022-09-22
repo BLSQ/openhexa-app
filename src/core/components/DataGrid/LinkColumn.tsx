@@ -7,13 +7,12 @@ import { useCellContext } from "./helpers";
 type URLResolver = (value: any) => LinkProps["href"];
 export type LinkColumnProps = Omit<BaseColumnProps, "children"> & {
   url: LinkProps["href"] | URLResolver;
-  hoverColor?: string;
+  linkStyle?: string;
   children?: ReactNode;
-  color?: string;
 };
 
 const LinkColumn = (props: LinkColumnProps) => {
-  const { className, url, children, hoverColor, color } = props;
+  const { className, url, children, linkStyle } = props;
   const cell = useCellContext();
 
   const href = useMemo(() => {
@@ -25,12 +24,7 @@ const LinkColumn = (props: LinkColumnProps) => {
   }, [cell.value, url]);
 
   return (
-    <Link
-      className={className}
-      hoverColor={hoverColor}
-      color={color}
-      href={href}
-    >
+    <Link className={className} linkStyle={linkStyle} href={href}>
       {children}
     </Link>
   );

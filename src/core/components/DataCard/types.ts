@@ -10,6 +10,7 @@ export type PropertyDefinition = {
   readonly?: PropertyFlag;
   visible?: PropertyFlag;
   required?: PropertyFlag;
+  defaultValue?: string;
 };
 export interface Property<V = any, FV = V> {
   id: string;

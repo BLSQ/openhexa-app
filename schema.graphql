@@ -556,8 +556,10 @@ type DAG {
   id: String!
   label: String!
   tags: [Tag!]!
+  formCode: String
   countries: [Country!]!
-  code: String!
+  externalId: String!
+  description: String
   user: User
   template: DAGTemplate!
   schedule: String
@@ -869,6 +871,8 @@ type Mutation {
   createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult!
   deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
+  updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
+  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
   createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
   updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
   deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
@@ -942,6 +946,15 @@ type PrepareAccessmodFileUploadResult {
   success: Boolean!
   uploadUrl: String
   fileUri: String
+}
+
+input PrepareDownloadURLInput {
+  uri: URL!
+}
+
+type PrepareDownloadURLResult {
+  success: Boolean!
+  url: URL
 }
 
 type Query {
@@ -1215,6 +1228,25 @@ type UpdateCollectionResult {
   success: Boolean!
   errors: [CreateCollectionError!]!
   collection: Collection
+}
+
+enum UpdateDAGError {
+  NOT_FOUND
+  INVALID
+}
+
+input UpdateDAGInput {
+  id: String!
+  label: String
+  description: String
+  schedule: String
+  countries: [CountryInput!]
+}
+
+type UpdateDAGResult {
+  success: Boolean!
+  errors: [UpdateDAGError!]!
+  dag: DAG
 }
 
 enum UpdateMembershipError {

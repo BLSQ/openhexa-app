@@ -21,7 +21,7 @@ const Badge = ({
     <span
       {...delegated}
       className={clsx(
-        "inline-block truncate whitespace-nowrap rounded-md border font-medium",
+        "inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium",
         size === "xs" && Classes.xs,
         size === "sm" && Classes.sm,
         size === "md" && Classes.md,

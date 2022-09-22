@@ -1,14 +1,14 @@
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import DataGrid from "core/components/DataGrid";
+import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import CountryColumn from "core/components/DataGrid/CountryColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Page from "core/components/Layout/Page";
 import { PageContent } from "core/components/Layout/PageContent";
+import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
-import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
@@ -16,7 +16,6 @@ import {
   PipelinesPageDocument,
   usePipelinesPageQuery,
 } from "pipelines/graphql/queries.generated";
-import { formatDAGRunStatus } from "pipelines/helpers/format";
 import { useMemo } from "react";
 
 type Props = {
@@ -70,18 +69,24 @@ const PipelinesPage = (props: Props) => {
               totalPages={data.dags.totalPages}
               fetchData={onChangePage}
             >
-              <TextColumn
-                id="label"
-                label={t("Name")}
-                textPath="label"
-                textClassName="text-gray-700 font-medium"
-                url={(value: any) => ({
-                  pathname: "/pipelines/[pipelinesId]",
-                  query: { pipelinesId: value.id },
-                })}
-                minWidth={240}
+              <BaseColumn id="name" label={t("Name")} minWidth={240}>
+                {(item) => (
+                  <Link
+                    linkStyle="text-gray-700 font-medium"
+                    href={{
+                      pathname: "/pipelines/[pipelinesId]",
+                      query: { pipelinesId: item.id },
+                    }}
+                  >
+                    {item.label || item.externalId}
+                  </Link>
+                )}
+              </BaseColumn>
+              <CountryColumn
+                accessor="countries"
+                label={t("Location")}
+                max={1}
               />
-              <CountryColumn accessor="countries" label={t("Location")} />
               <DateColumn
                 label={t("Last run")}
                 relative

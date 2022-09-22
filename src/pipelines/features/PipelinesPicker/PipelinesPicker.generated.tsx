@@ -6,14 +6,14 @@ const defaultOptions = {} as const;
 export type PipelinesPickerQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type PipelinesPickerQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', items: Array<{ __typename?: 'DAG', id: string, code: string }> } };
+export type PipelinesPickerQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', items: Array<{ __typename?: 'DAG', id: string, externalId: string }> } };
 
-export type PipelinesPicker_ValueFragment = { __typename?: 'DAG', id: string, code: string };
+export type PipelinesPicker_ValueFragment = { __typename?: 'DAG', id: string, externalId: string };
 
 export const PipelinesPicker_ValueFragmentDoc = gql`
     fragment PipelinesPicker_value on DAG {
   id
-  code
+  externalId
 }
     `;
 export const PipelinesPickerDocument = gql`

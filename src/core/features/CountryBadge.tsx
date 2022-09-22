@@ -17,6 +17,7 @@ const CountryBadge = (props: CountryBadgeProps) => {
       className={clsx(
         className,
         onClick && "cursor-pointer",
+        "flex items-center gap-1",
         "border border-gray-300 bg-gray-50",
         "hover-bg-opacity-70"
       )}

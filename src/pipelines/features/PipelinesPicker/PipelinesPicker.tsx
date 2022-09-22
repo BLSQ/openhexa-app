@@ -53,7 +53,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     const lowercaseQuery = debouncedQuery.toLowerCase();
     return (
       data?.dags?.items?.filter((p) =>
-        p.code.toLowerCase().includes(lowercaseQuery)
+        p.externalId.toLowerCase().includes(lowercaseQuery)
       ) ?? []
     );
   }, [data, debouncedQuery]);
@@ -67,11 +67,11 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
       displayValue={(value) =>
         value
           ? ensureArray(value)
-              .map((v) => v.code)
+              .map((v) => v.externalId)
               .join(", ")
           : ""
       }
-      by="code" /* FIXME: Upgrade @headlessui/react to > 1.6.6 to fix the comparison criteria */
+      by="externalId" /* FIXME: Upgrade @headlessui/react to > 1.6.6 to fix the comparison criteria */
       onInputChange={useCallback((event) => setQuery(event.target.value), [])}
       placeholder={placeholder}
       value={value}
@@ -80,7 +80,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     >
       {options.map((option) => (
         <Combobox.CheckOption key={option.id} value={option}>
-          <div className="flex items-center">{option.code}</div>
+          <div className="flex items-center">{option.externalId}</div>
         </Combobox.CheckOption>
       ))}
     </Combobox>
@@ -91,7 +91,7 @@ PipelinesPicker.fragments = {
   value: gql`
     fragment PipelinesPicker_value on DAG {
       id
-      code
+      externalId
     }
   `,
 };

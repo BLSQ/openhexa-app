@@ -32,9 +32,7 @@ function CodeEditor(props: CodeEditorProps) {
   }, [lang]);
 
   return (
-    <div
-      className={clsx("max-h-44 overflow-y-auto rounded-md border", className)}
-    >
+    <div className={clsx("overflow-y-auto rounded-md border", className)}>
       <CodeMirror
         readOnly={readonly}
         editable={editable}

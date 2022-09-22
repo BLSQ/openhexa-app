@@ -18,7 +18,7 @@ type Form = {
   config: { [key: string]: any };
 };
 
-const CUSTOM_IHP_PIPELINE = "ihp-update";
+const CUSTOM_IHP_FORM = ["ihp"];
 
 function PipelineRunForm(props: PipelineRunFormProps) {
   const { onSubmit, dag, fromConfig } = props;
@@ -26,7 +26,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
   const form = useForm<Form>({
     validate(values) {
       const errors = {} as any;
-      if (dag.code !== CUSTOM_IHP_PIPELINE) {
+      if (CUSTOM_IHP_FORM !== dag.formCode) {
         try {
           JSON.parse(values.textConfig ?? "");
         } catch {
@@ -46,17 +46,21 @@ function PipelineRunForm(props: PipelineRunFormProps) {
       return errors;
     },
     async onSubmit(values) {
-      if (dag.code !== CUSTOM_IHP_PIPELINE) {
+      if (CUSTOM_IHP_FORM !== dag.formCode) {
         onSubmit(dag.id, JSON.parse(values.textConfig));
       } else {
         onSubmit(dag.id, values.config);
       }
     },
-    initialState: {
-      textConfig: JSON.stringify(
-        fromConfig ?? (dag.template.sampleConfig || {})
-      ),
-      config: fromConfig ?? (dag.template.sampleConfig || {}),
+    getInitialState() {
+      return {
+        textConfig: JSON.stringify(
+          fromConfig ?? (dag.template.sampleConfig || {}),
+          null,
+          2
+        ),
+        config: fromConfig ?? (dag.template.sampleConfig || {}),
+      };
     },
   });
 
@@ -66,9 +70,15 @@ function PipelineRunForm(props: PipelineRunFormProps) {
 
   return (
     <form onSubmit={form.handleSubmit} className="grid grid-cols-2 gap-4">
-      {dag.code !== CUSTOM_IHP_PIPELINE ? (
-        <Field name="config" label={t("Configuration")} required>
+      {CUSTOM_IHP_FORM !== dag.formCode ? (
+        <Field
+          name="config"
+          label={t("Configuration")}
+          required
+          className="col-span-2"
+        >
           <CodeEditor
+            height="auto"
             lang="json"
             onChange={(value) => form.setFieldValue("textConfig", value)}
             value={form.formData.textConfig}
@@ -101,14 +111,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
               (form.touched as any).end_date && (form.errors as any).end_date
             }
           />
-          <Checkbox
-            value={form.formData.config?.reuse_existing_extract}
-            name="reuse_existing_extract"
-            onChange={(e) =>
-              setConfigFieldValue("reuse_existing_extract", e.target.checked)
-            }
-            label={t("Reuse existing extract if available")}
-          />
+
           <Checkbox
             value={form.formData.config?.generate_extract}
             name="generate_extract"
@@ -154,7 +157,7 @@ PipelineRunForm.fragments = {
       template {
         sampleConfig
       }
-      code
+      formCode
       id
     }
   `,

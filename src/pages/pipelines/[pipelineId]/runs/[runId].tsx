@@ -22,6 +22,7 @@ import useInterval from "core/hooks/useInterval";
 import { DagRunStatus, DagRunTrigger } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import PipelineRunOutputEntry from "pipelines/features/PipelineRunOutputEntry";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
@@ -77,7 +78,7 @@ const PipelineRunPage = (props: Props) => {
               query: { pipelineId: dag.id },
             }}
           >
-            {dag.code}
+            {dag.label || dag.externalId}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             href={{
@@ -135,9 +136,17 @@ const PipelineRunPage = (props: Props) => {
                       query: { pipelineId: dag.id },
                     }}
                   >
-                    {dag.code}
+                    {dag.externalId}
                   </Link>
                 )}
+              </RenderProperty>
+              <RenderProperty
+                accessor="progress"
+                label={t("Progress")}
+                id="progress"
+                readonly
+              >
+                {(property) => <span>{property.displayValue} %</span>}
               </RenderProperty>
               <DateProperty
                 id="executionDate"
@@ -146,15 +155,15 @@ const PipelineRunPage = (props: Props) => {
               />
               <UserProperty id="user" accessor="user" label={t("User")} />
               <RenderProperty readonly id="status" label={t("Status")}>
-                {(item) => (
+                {(property) => (
                   <div>
-                    <PipelineRunStatusBadge dagRun={item} />
+                    <PipelineRunStatusBadge dagRun={property.displayValue} />
                   </div>
                 )}
               </RenderProperty>
               <RenderProperty readonly id="triggerMode" label={t("Trigger")}>
-                {(item) =>
-                  item.triggerMode === DagRunTrigger.Manual ? (
+                {(property) =>
+                  property.displayValue.triggerMode === DagRunTrigger.Manual ? (
                     <span>{t("Manual")}</span>
                   ) : (
                     <span>{t("Scheduled")}</span>
@@ -167,7 +176,13 @@ const PipelineRunPage = (props: Props) => {
                 accessor="duration"
                 label={t("Duration")}
               >
-                {(value) => <span>{value ? formatDuration(value) : "-"}</span>}
+                {(property) => (
+                  <span>
+                    {property.displayValue
+                      ? formatDuration(property.displayValue)
+                      : "-"}
+                  </span>
+                )}
               </RenderProperty>
               <RenderProperty<{ title: string; uri: string }[]>
                 readonly
@@ -175,14 +190,14 @@ const PipelineRunPage = (props: Props) => {
                 accessor="outputs"
                 label={t("Outputs")}
               >
-                {(outputs) => (
+                {(property) => (
                   <>
-                    {outputs.length === 0 && "-"}
-                    {outputs.length > 0 && (
+                    {property.displayValue.length === 0 && "-"}
+                    {property.displayValue.length > 0 && (
                       <ul className="list-inside list-disc">
-                        {outputs.map((output, i) => (
+                        {property.displayValue.map((output, i) => (
                           <li key={i}>
-                            {output.uri} ({output.title})
+                            <PipelineRunOutputEntry output={output} />
                           </li>
                         ))}
                       </ul>
@@ -196,11 +211,13 @@ const PipelineRunPage = (props: Props) => {
                 accessor="config"
                 label={t("Config")}
               >
-                {(value) => (
+                {(property) => (
                   <div className="p-2 text-xs">
                     <CodeEditor
                       editable={false}
-                      value={JSON.stringify(value)}
+                      height="auto"
+                      minHeight="auto"
+                      value={JSON.stringify(property.displayValue, null, 2)}
                       lang="json"
                     />
                   </div>

@@ -22,7 +22,7 @@ const TextProperty = (props: TextPropertyProps) => {
     label,
   });
 
-  if (section.isEdited) {
+  if (section.isEdited && !property.readonly) {
     return (
       <DataCard.Property property={property}>
         {markdown ? (
@@ -35,7 +35,7 @@ const TextProperty = (props: TextPropertyProps) => {
           />
         ) : (
           <Input
-            value={property.formValue}
+            value={property.formValue ?? ""}
             onChange={(e) => property.setValue(e.target.value)}
             required={property.required}
             readOnly={property.readonly}
@@ -46,9 +46,9 @@ const TextProperty = (props: TextPropertyProps) => {
   } else {
     return (
       <DataCard.Property property={property}>
-        {markdown ? (
+        {markdown && property.displayValue ? (
           <ReactMarkdown className="prose max-w-3xl text-sm">
-            {property.displayValue ?? defaultValue}
+            {property.displayValue}
           </ReactMarkdown>
         ) : (
           <div className="prose text-sm">

@@ -1,6 +1,7 @@
 import CountryBadge from "core/features/CountryBadge";
 import CountryPicker from "core/features/CountryPicker";
 import { ensureArray } from "core/helpers/array";
+import { useMemo } from "react";
 import { useDataCardProperty } from "./context";
 import DataCard from "./DataCard";
 import { PropertyDefinition } from "./types";
@@ -8,8 +9,13 @@ import { PropertyDefinition } from "./types";
 type CountryPropertyProps = { multiple?: boolean } & PropertyDefinition;
 
 const CountryProperty = (props: CountryPropertyProps) => {
-  const { multiple, ...delegated } = props;
+  const { multiple, defaultValue, ...delegated } = props;
   const { property, section } = useDataCardProperty(delegated);
+
+  const countriesArray = useMemo(
+    () => ensureArray(property.displayValue),
+    [property]
+  );
 
   return (
     <DataCard.Property property={property}>
@@ -21,7 +27,8 @@ const CountryProperty = (props: CountryPropertyProps) => {
         />
       ) : (
         <div className="flex flex-wrap items-center gap-1.5">
-          {ensureArray(property.displayValue).map((country, i) => (
+          {countriesArray.length === 0 && defaultValue}
+          {countriesArray.map((country, i) => (
             <CountryBadge key={i} country={country} />
           ))}
         </div>

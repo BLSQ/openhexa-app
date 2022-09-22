@@ -11,7 +11,7 @@ query PipelinesPage {
         ...Tag_tag
       }
       id
-      code
+      externalId
       runs(orderBy: EXECUTION_DATE_DESC, perPage: 1) {
         items {
           id
@@ -34,7 +34,7 @@ query PipelinePage($id: String!, $page: Int) {
     tags {
       ...Tag_tag
     }
-    code
+    externalId
     schedule
     externalUrl
     template {
@@ -42,6 +42,7 @@ query PipelinePage($id: String!, $page: Int) {
       description
       sampleConfig
     }
+    description
     schedule
     user {
       ...UserProperty_user
@@ -77,9 +78,9 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
     status
     config
     outputs {
-      title
-      uri
+      ...PipelineRunOutputEntry_output
     }
+    progress
     ...RunMessages_dagRun
     ...RunLogs_dagRun
     ...PipelineRunStatusBadge_dagRun
@@ -87,7 +88,7 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
 
   dag(id: $pipelineId) {
     id
-    code
+    externalId
     label
   }
 }
@@ -95,11 +96,12 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
 query PipelineConfigureRunPage($pipelineId: String!) {
   dag(id: $pipelineId) {
     id
-    code
+    externalId
     template {
       sampleConfig
       description
     }
+    description
     ...PipelineRunForm_dag
   }
 }
