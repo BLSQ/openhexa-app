@@ -41,6 +41,9 @@ def resolve_me(_, info):
     if principal.has_perm("user_management.create_team"):
         authorized_actions.append("CREATE_TEAM")
 
+    if principal.is_staff:
+        authorized_actions.append("ADMIN_PANEL")
+
     # Loop over plugin configs and check if we have an extra resolver for this field
     for app_config in get_hexa_app_configs(connector_only=True):
         extra_authorized_actions_resolver = (

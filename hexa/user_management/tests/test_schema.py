@@ -30,6 +30,9 @@ class SchemaTest(GraphQLTestCase):
             "taylor@bluesquarehub.com",
             "taylortaylor2000",
         )
+        cls.USER_STAFF_NICO = User.objects.create_user(
+            "nico@bluesquarehub.com", "nicodu93", is_staff=True
+        )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
         cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
             user=cls.USER_JANE, team=cls.TEAM_CORE, role=MembershipRole.ADMIN
@@ -786,4 +789,33 @@ class SchemaTest(GraphQLTestCase):
                 "success": False,
             },
             r["data"]["deleteMembership"],
+        )
+
+    def test_staff_authorized_action(self):
+        self.client.force_login(self.USER_STAFF_NICO)
+        r = self.run_query(
+            """
+            query {
+              me {
+                user {
+                  id
+                }
+                authorizedActions
+              }
+            }
+          """,
+        )
+
+        self.assertEqual(
+            {
+                "user": {
+                    "id": str(self.USER_STAFF_NICO.id),
+                },
+                "authorizedActions": [
+                    "CREATE_TEAM",
+                    "ADMIN_PANEL",
+                    "CREATE_ACCESSMOD_PROJECT",
+                ],
+            },
+            r["data"]["me"],
         )
