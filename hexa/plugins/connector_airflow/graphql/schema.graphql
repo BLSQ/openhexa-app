@@ -121,7 +121,17 @@ type UpdateDAGResult {
   dag: DAG
 }
 
+input PrepareDownloadURLInput {
+  uri: URL!
+}
+
+type PrepareDownloadURLResult {
+  success: Boolean!
+  url: URL
+}
+
 extend type Mutation {
   runDAG(input: RunDAGInput!): RunDAGResult!
   updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
+  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
 }
