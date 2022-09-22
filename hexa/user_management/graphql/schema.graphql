@@ -23,6 +23,7 @@ type Me {
 # see the "AuthorizedActions" type below
 enum MeAuthorizedActions {
     CREATE_TEAM
+    ADMIN_PANEL
 }
 
 # This is the preferred way of determining the global (not specific to a business object) actions that users can take
