@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/BLSQ/openhexa-frontend/compare/0.7.2...0.7.3) (2022-09-22)
+
+
+### Bug Fixes
+
+* **IHP:** Wrong identifier ([56d305b](https://github.com/BLSQ/openhexa-frontend/commit/56d305bc5940640fb372d6a7a8bab7c1020ab14b))
+
 ## [0.7.2](https://github.com/BLSQ/openhexa-frontend/compare/0.7.1...0.7.2) (2022-09-22)
 
 
