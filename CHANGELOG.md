@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4](https://github.com/BLSQ/openhexa-frontend/compare/0.7.3...0.7.4) (2022-09-22)
+
+
+### Bug Fixes
+
+* **Pipelines:** Config editor should not shrink ([37e4fef](https://github.com/BLSQ/openhexa-frontend/commit/37e4fef447436e38f2a4061b7eae186c9c4bc59e))
+
 ## [0.7.3](https://github.com/BLSQ/openhexa-frontend/compare/0.7.2...0.7.3) (2022-09-22)
 
 
