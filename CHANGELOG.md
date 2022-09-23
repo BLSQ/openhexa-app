@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.7](https://github.com/BLSQ/openhexa-frontend/compare/0.7.6...0.7.7) (2022-09-23)
+
+
+### Bug Fixes
+
+* **Pipelines:** decrease duration of refresh when pipeline is running ([72d1f62](https://github.com/BLSQ/openhexa-frontend/commit/72d1f6265a4b741443572dd9787241068bff4e96))
+
 ## [0.7.6](https://github.com/BLSQ/openhexa-frontend/compare/0.7.5...0.7.6) (2022-09-23)
 
 
