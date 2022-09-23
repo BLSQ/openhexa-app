@@ -1,0 +1,70 @@
+import { PlayIcon } from "@heroicons/react/outline";
+import Button from "core/components/Button";
+import CodeEditor from "core/components/CodeEditor";
+import Field from "core/components/forms/Field";
+import useForm from "core/hooks/useForm";
+import { useTranslation } from "next-i18next";
+
+type GenericFormProps = {
+  onSubmit(config: { [key: string]: any }): Promise<void>;
+  fromConfig?: object | null;
+};
+
+type Form = {
+  textConfig: string;
+};
+
+const GenericForm = (props: GenericFormProps) => {
+  const { onSubmit, fromConfig } = props;
+  const { t } = useTranslation();
+  const form = useForm<Form>({
+    validate(values) {
+      const errors = {} as any;
+      try {
+        JSON.parse(values.textConfig ?? "");
+      } catch {
+        errors.config = t("Invalid configuration. This is not a valid JSON.");
+      }
+
+      return errors;
+    },
+    async onSubmit(values) {
+      onSubmit(JSON.parse(values.textConfig));
+    },
+    getInitialState() {
+      return {
+        textConfig: fromConfig ? JSON.stringify(fromConfig, null, 2) : "{}",
+      };
+    },
+  });
+
+  return (
+    <form onSubmit={form.handleSubmit} className="grid grid-cols-2 gap-4">
+      <Field
+        name="config"
+        label={t("Configuration")}
+        required
+        className="col-span-2"
+      >
+        <CodeEditor
+          height="auto"
+          lang="json"
+          onChange={(value) => form.setFieldValue("textConfig", value)}
+          value={form.formData.textConfig}
+        />
+      </Field>
+
+      <div className="col-span-2 text-right">
+        <Button
+          disabled={!form.isValid}
+          type="submit"
+          leadingIcon={<PlayIcon className="w-6" />}
+        >
+          {t("Configure & run")}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default GenericForm;
