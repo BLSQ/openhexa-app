@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.6](https://github.com/BLSQ/openhexa-frontend/compare/0.7.5...0.7.6) (2022-09-23)
+
+
+### Bug Fixes
+
+* Redirect old airflow urls to /pipelines ones ([1c33d44](https://github.com/BLSQ/openhexa-frontend/commit/1c33d44e27a6a14a1de280fe2f76af53a31b29d1))
+
 ## [0.7.5](https://github.com/BLSQ/openhexa-frontend/compare/0.7.4...0.7.5) (2022-09-22)
 
 
