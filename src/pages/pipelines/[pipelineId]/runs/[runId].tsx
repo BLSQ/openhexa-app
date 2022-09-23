@@ -200,15 +200,15 @@ const PipelineRunPage = (props: Props) => {
                 {(property) => (
                   <>
                     {property.displayValue.length === 0 && "-"}
-                    {property.displayValue.length > 0 && (
-                      <ul className="list-inside list-disc">
-                        {property.displayValue.map((output, i) => (
-                          <li key={i}>
-                            <PipelineRunOutputEntry output={output} />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    {property.displayValue.length > 0 &&
+                      property.displayValue.map((output, i) => (
+                        <>
+                          <PipelineRunOutputEntry key={i} output={output} />
+                          {i < property.displayValue.length - 1 && (
+                            <span>, </span>
+                          )}
+                        </>
+                      ))}
                   </>
                 )}
               </RenderProperty>
