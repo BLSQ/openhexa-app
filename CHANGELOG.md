@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.9](https://github.com/BLSQ/openhexa-frontend/compare/0.7.8...0.7.9) (2022-09-23)
+
+
+### Bug Fixes
+
+* **pipelines:** IHP parameters must be in config.parameters ([aca9afa](https://github.com/BLSQ/openhexa-frontend/commit/aca9afa4ba42cc38c3f8d63c5474cb8481094781))
+
 ## [0.7.8](https://github.com/BLSQ/openhexa-frontend/compare/0.7.7...0.7.8) (2022-09-23)
 
 
