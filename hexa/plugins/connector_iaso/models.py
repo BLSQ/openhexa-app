@@ -246,7 +246,7 @@ class Form(Entry):
 
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
-    form_id = models.CharField(max_length=50, default="")
+    form_id = models.CharField(max_length=50, default="", null=True)
     version_id = models.CharField(null=True, max_length=20)
     file_uri = models.TextField(null=True)
     org_unit_types = models.JSONField(blank=True, default=dict)
