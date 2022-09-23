@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.8](https://github.com/BLSQ/openhexa-frontend/compare/0.7.7...0.7.8) (2022-09-23)
+
+
+### Bug Fixes
+
+* **IHP:** Set default values for checkbox & use checked={} ([3cd4e94](https://github.com/BLSQ/openhexa-frontend/commit/3cd4e94a7fe141bccbe4eaa401b6c21080f55050))
+
 ## [0.7.7](https://github.com/BLSQ/openhexa-frontend/compare/0.7.6...0.7.7) (2022-09-23)
 
 
