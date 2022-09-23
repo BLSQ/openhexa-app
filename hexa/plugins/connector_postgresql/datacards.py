@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.data_collections.datacards import CollectionsSection
 from hexa.plugins.connector_postgresql.models import Database, Table
 from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProperty
 
@@ -111,6 +112,7 @@ class TableCard(Datacard):
 
     external = TableSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    collections = CollectionsSection()
 
     @property
     def generic_description(self):

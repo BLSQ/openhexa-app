@@ -152,6 +152,7 @@ class OrganisationUnitCard(Datacard):
 
     external = OrganisationUnitSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    collections = CollectionsSection()
 
     @property
     def generic_description(self):
@@ -187,6 +188,7 @@ class IndicatorCard(Datacard):
 
     external = IndicatorSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    collections = CollectionsSection()
 
     @property
     def generic_description(self):
@@ -216,6 +218,7 @@ class DatasetCard(Datacard):
 
     external = DatasetSection()
     metadata = OpenHexaMetaDataSection(value="index")
+    collections = CollectionsSection()
 
     @property
     def generic_description(self):
