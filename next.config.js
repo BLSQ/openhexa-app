@@ -11,6 +11,16 @@ const config = {
     SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/airflow/dag/:path*",
+        destination: "/pipelines/:path*",
+        permanent: false,
+      },
+    ];
+  },
+
   sentry: {
     hideSourceMaps: true,
   },
