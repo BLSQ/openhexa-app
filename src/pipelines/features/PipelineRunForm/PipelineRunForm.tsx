@@ -53,14 +53,24 @@ function PipelineRunForm(props: PipelineRunFormProps) {
       }
     },
     getInitialState() {
-      return {
-        textConfig: JSON.stringify(
-          fromConfig ?? (dag.template.sampleConfig || {}),
-          null,
-          2
-        ),
-        config: fromConfig ?? (dag.template.sampleConfig || {}),
-      };
+      if (CUSTOM_IHP_FORM !== dag.formCode) {
+        return {
+          textConfig: JSON.stringify(
+            fromConfig ?? (dag.template.sampleConfig || {}),
+            null,
+            2
+          ),
+        };
+      } else {
+        return {
+          config: {
+            generate_extract: false,
+            update_dhis2: false,
+            update_dashboard: false,
+            ...(fromConfig ?? (dag.template.sampleConfig || {})),
+          },
+        };
+      }
     },
   });
 
@@ -114,6 +124,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
 
           <Checkbox
             value={form.formData.config?.generate_extract}
+            checked={form.formData.config?.generate_extract}
             name="generate_extract"
             onChange={(e) =>
               setConfigFieldValue("generate_extract", e.target.checked)
@@ -122,6 +133,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
           />
           <Checkbox
             value={form.formData.config?.update_dhis2}
+            checked={form.formData.config?.update_dhis2}
             name="update_dhis2"
             onChange={(e) =>
               setConfigFieldValue("update_dhis2", e.target.checked)
@@ -130,6 +142,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
           />
           <Checkbox
             value={form.formData.config?.update_dashboard}
+            checked={form.formData.config?.update_dashboard}
             name="update_dashboard"
             onChange={(e) =>
               setConfigFieldValue("update_dashboard", e.target.checked)

@@ -202,12 +202,12 @@ const PipelineRunPage = (props: Props) => {
                     {property.displayValue.length === 0 && "-"}
                     {property.displayValue.length > 0 &&
                       property.displayValue.map((output, i) => (
-                        <>
-                          <PipelineRunOutputEntry key={i} output={output} />
+                        <span key={i}>
+                          <PipelineRunOutputEntry output={output} />
                           {i < property.displayValue.length - 1 && (
                             <span>, </span>
                           )}
-                        </>
+                        </span>
                       ))}
                   </>
                 )}
