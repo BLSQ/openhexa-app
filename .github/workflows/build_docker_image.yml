@@ -42,8 +42,8 @@ jobs:
           tags: |
             blsq/openhexa-frontend:${{ steps.version.outputs.number }}
             blsq/openhexa-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-frontend:buildcache,mode=max
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"
@@ -58,8 +58,8 @@ jobs:
           tags: |
             blsq/openhexa-frontend:${{ github.event.inputs.tag }}
             blsq/openhexa-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-frontend:buildcache,mode=max
           build-args: |
             "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}"
             "RELEASE=${{ steps.version.outputs.number }}"

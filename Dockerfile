@@ -1,9 +1,9 @@
 #
 # ----------- Base -----------
-FROM node:17-alpine as deps
+FROM node:16-alpine as deps
 WORKDIR /code
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# RUN apk add --no-cache libc6-compat
 # copy project file
 COPY package.json package.json
 COPY package-lock.json package-lock.json
@@ -12,7 +12,7 @@ RUN npm set progress=false && \
     npm ci
 
 ## ----------- Builder -----------
-FROM node:17-alpine AS builder
+FROM node:16-alpine AS builder
 WORKDIR /code
 COPY . .
 COPY --from=deps /code/node_modules ./node_modules
@@ -22,12 +22,12 @@ ARG SENTRY_AUTH_TOKEN
 
 ENV SENTRY_RELEASE=${RELEASE}
 ENV NEXT_PUBLIC_RELEASE=${RELEASE}
-
+ENV CI=1
 RUN npm run build
 
 #
 ## ----------- Runner -----------
-FROM node:17-alpine AS runner
+FROM node:16-alpine AS runner
 WORKDIR /code
 ARG APP=/code
 ENV APP_USER=runner
