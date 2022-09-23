@@ -30,7 +30,7 @@ import {
   PipelineRunPageDocument,
   usePipelineRunPageQuery,
 } from "pipelines/graphql/queries.generated";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 type Props = {
   page: number;
@@ -48,15 +48,22 @@ const PipelineRunPage = (props: Props) => {
     },
   });
 
+  const intervalDuration = useMemo(() => {
+    switch (data?.dagRun?.status) {
+      case DagRunStatus.Queued:
+        return 10 * 1000;
+      case DagRunStatus.Running:
+        return 3 * 1000;
+      default:
+        return null;
+    }
+  }, [data]);
+
   useInterval(
     useCallback(() => {
       refetch();
     }, [refetch]),
-    [DagRunStatus.Running, DagRunStatus.Queued].includes(
-      data?.dagRun?.status as any
-    )
-      ? 15 * 1000
-      : null
+    intervalDuration
   );
 
   if (!data || !data.dag || !data.dagRun) {
