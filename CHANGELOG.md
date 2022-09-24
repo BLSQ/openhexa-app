@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.11](https://github.com/BLSQ/openhexa-frontend/compare/0.7.10...0.7.11) (2022-09-24)
+
+
+### Bug Fixes
+
+* **Pipelines:** Add condition to display the progress pie ([3ce6c86](https://github.com/BLSQ/openhexa-frontend/commit/3ce6c86c150221b62326d795e465d8ea92ed6af3))
+
 ## [0.7.10](https://github.com/BLSQ/openhexa-frontend/compare/0.7.9...0.7.10) (2022-09-24)
 
 
