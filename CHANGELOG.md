@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.10](https://github.com/BLSQ/openhexa-frontend/compare/0.7.9...0.7.10) (2022-09-24)
+
+
+### Features
+
+* **Pipelines:** Revamp the pipeline's job page ([9053c88](https://github.com/BLSQ/openhexa-frontend/commit/9053c880b75f84c49b149b2a23753db45f50c51e))
+
 ## [0.7.9](https://github.com/BLSQ/openhexa-frontend/compare/0.7.8...0.7.9) (2022-09-23)
 
 
