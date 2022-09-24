@@ -93,12 +93,14 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
       >
         {() => (
           <div className="flex items-center gap-4">
-            <ProgressPie
-              background="fill-sky-100"
-              foreground="stroke-sky-500"
-              progress={dagRun.progress}
-              size={30}
-            />
+            {dagRun.status === DagRunStatus.Running && (
+              <ProgressPie
+                background="fill-sky-100"
+                foreground="stroke-sky-500"
+                progress={dagRun.progress}
+                size={30}
+              />
+            )}
             <div>
               {dagRun.triggerMode === DagRunTrigger.Manual
                 ? t("Manual run of {{label}} by {{user}}", {
