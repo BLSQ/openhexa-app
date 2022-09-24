@@ -10,6 +10,6 @@ export function formatDAGRunStatus(status: DagRunStatus) {
     case DagRunStatus.Running:
       return i18n!.t("Running");
     case DagRunStatus.Success:
-      return i18n!.t("Success");
+      return i18n!.t("Succeeded");
   }
 }

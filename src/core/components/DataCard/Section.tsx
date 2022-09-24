@@ -1,5 +1,11 @@
-import { PencilIcon } from "@heroicons/react/outline";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  PencilIcon,
+} from "@heroicons/react/outline";
 import clsx from "clsx";
+import { Disclosure, Transition } from "@headlessui/react";
+
 import useForm, { FormInstance } from "core/hooks/useForm";
 import {
   getValue,
@@ -22,6 +28,7 @@ import DescriptionList from "../DescriptionList";
 import Spinner from "../Spinner";
 import { DataCardSectionContext } from "./context";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
+import StopClick from "../StopClick";
 
 export type OnSaveFn = (
   values: { [key: string]: any },
@@ -31,7 +38,9 @@ export type OnSaveFn = (
 type SectionProps = {
   className?: string;
   children?: ReactNode;
-  title?: string;
+  defaultOpen?: boolean;
+  title?: string | ReactElement;
+  right?: ReactNode;
   editLabel?: string;
   editIcon?: ReactElement;
   onSave?: OnSaveFn;
@@ -66,7 +75,16 @@ function getProperty<F>(
 
 function Section<F extends { [key: string]: any }>(props: SectionProps) {
   const { t } = useTranslation();
-  const { title, editLabel, editIcon, className, children, onSave } = props;
+  const {
+    title,
+    editLabel,
+    editIcon,
+    right,
+    className,
+    children,
+    onSave,
+    defaultOpen = true,
+  } = props;
   const { item } = useItemContext();
 
   const [isEdited, setEdited] = useState<boolean>(false);
@@ -138,44 +156,82 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
 
   return (
     <DataCardSectionContext.Provider value={section}>
-      <Block.Content className={clsx(className, "mb-4")}>
-        <h4 className="mb-7">
-          <span className=" font-medium">{title}</span>
-          {onSave && !isEdited && (
-            <button
-              className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
-              onClick={toggleEdit}
-            >
-              {editLabel ?? t("Edit")}
-              {editIcon ?? <PencilIcon className="h-4" />}
-            </button>
-          )}
-        </h4>
-        <form onSubmit={form.handleSubmit}>
-          <DescriptionList>{children}</DescriptionList>
-
-          {isEdited && (
+      <Block.Content className={clsx(className)}>
+        <Disclosure defaultOpen={defaultOpen}>
+          {({ open }) => (
             <>
-              {form.submitError && (
-                <p className={"my-2 text-sm text-red-600"}>
-                  {form.submitError}
-                </p>
-              )}
-              <div className="mt-2 flex items-center justify-end gap-2">
-                <Button
-                  type="submit"
-                  disabled={form.isSubmitting || !form.isValid}
+              {title && (
+                <Disclosure.Button
+                  as="div"
+                  className="-my-7 flex items-center py-7"
                 >
-                  {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-                  {t("Save")}
-                </Button>
-                <Button onClick={toggleEdit} variant="white">
-                  {t("Cancel")}
-                </Button>
-              </div>
+                  <h4 className="font-medium">{title}</h4>
+                  {onSave && open && !isEdited && (
+                    <StopClick>
+                      <button
+                        className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+                        onClick={toggleEdit}
+                      >
+                        {editLabel ?? t("Edit")}
+                        {editIcon ?? <PencilIcon className="h-4" />}
+                      </button>
+                    </StopClick>
+                  )}
+                  <div className="flex flex-1 items-center justify-end">
+                    {right ?? (
+                      <button title={open ? t("Hide") : t("Show")}>
+                        {open ? (
+                          <ChevronDownIcon className="h-5 w-5" />
+                        ) : (
+                          <ChevronRightIcon className="h-5 w-5" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </Disclosure.Button>
+              )}
+              <Transition
+                show={open}
+                enter="transition duration-75 ease-out"
+                enterFrom="transform opacity-0"
+                enterTo="transform opacity-100"
+                leave="transition duration-50 ease-out"
+                leaveFrom="transform opacity-100"
+                leaveTo="transform opacity-0"
+              >
+                <Disclosure.Panel static className={clsx(title && "mt-6")}>
+                  <form onSubmit={form.handleSubmit}>
+                    <DescriptionList>{children}</DescriptionList>
+
+                    {isEdited && (
+                      <>
+                        {form.submitError && (
+                          <p className={"my-2 text-sm text-red-600"}>
+                            {form.submitError}
+                          </p>
+                        )}
+                        <div className="mt-2 flex items-center justify-end gap-2">
+                          <Button
+                            type="submit"
+                            disabled={form.isSubmitting || !form.isValid}
+                          >
+                            {form.isSubmitting && (
+                              <Spinner size="xs" className="mr-1" />
+                            )}
+                            {t("Save")}
+                          </Button>
+                          <Button onClick={toggleEdit} variant="white">
+                            {t("Cancel")}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </form>
+                </Disclosure.Panel>
+              </Transition>
             </>
           )}
-        </form>
+        </Disclosure>
       </Block.Content>
     </DataCardSectionContext.Provider>
   );

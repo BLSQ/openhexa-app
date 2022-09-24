@@ -6,9 +6,7 @@ import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import { PipelineRunStatusBadge_DagRunFragmentDoc } from '../features/PipelineRunStatusBadge.generated';
 import { UserProperty_UserFragmentDoc } from '../../core/components/DataCard/UserProperty.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
-import { PipelineRunOutputEntry_OutputFragmentDoc } from '../features/PipelineRunOutputEntry.generated';
-import { RunMessages_DagRunFragmentDoc } from '../features/RunMessages/RunMessages.generated';
-import { RunLogs_DagRunFragmentDoc } from '../features/RunLogs/RunLogs.generated';
+import { PipelineRunDataCard_DagRunFragmentDoc, PipelineRunDataCard_DagFragmentDoc } from '../features/PipelineRunDataCard/PipelineRunDataCard.generated';
 import { PipelineRunForm_DagFragmentDoc } from '../features/PipelineRunForm/PipelineRunForm.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
@@ -20,6 +18,7 @@ export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'D
 export type PipelinePageQueryVariables = Types.Exact<{
   id: Types.Scalars['String'];
   page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 
@@ -31,14 +30,14 @@ export type PipelineRunPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', id: string, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, status: Types.DagRunStatus, config?: any | null, progress: number, logs?: string | null, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, messages: Array<{ __typename?: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } | null, dag?: { __typename?: 'DAG', id: string, externalId: string, label: string } | null };
+export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', id: string, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, triggerMode?: Types.DagRunTrigger | null, status: Types.DagRunStatus, config?: any | null, duration?: number | null, progress: number, logs?: string | null, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, user?: { __typename?: 'User', displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, messages: Array<{ __typename: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } | null, dag?: { __typename?: 'DAG', id: string, externalId: string, label: string, formCode?: string | null } | null };
 
 export type PipelineConfigureRunPageQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['String'];
 }>;
 
 
-export type PipelineConfigureRunPageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, externalId: string, description?: string | null, formCode?: string | null, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null, description?: string | null } } | null };
+export type PipelineConfigureRunPageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, label: string, externalId: string, description?: string | null, formCode?: string | null, template: { __typename?: 'DAGTemplate', sampleConfig?: any | null, description?: string | null } } | null };
 
 
 export const PipelinesPageDocument = gql`
@@ -98,7 +97,7 @@ export type PipelinesPageQueryHookResult = ReturnType<typeof usePipelinesPageQue
 export type PipelinesPageLazyQueryHookResult = ReturnType<typeof usePipelinesPageLazyQuery>;
 export type PipelinesPageQueryResult = Apollo.QueryResult<PipelinesPageQuery, PipelinesPageQueryVariables>;
 export const PipelinePageDocument = gql`
-    query PipelinePage($id: String!, $page: Int) {
+    query PipelinePage($id: String!, $page: Int, $perPage: Int) {
   dag(id: $id) {
     id
     label
@@ -121,7 +120,7 @@ export const PipelinePageDocument = gql`
     user {
       ...UserProperty_user
     }
-    runs(page: $page, perPage: 15) {
+    runs(page: $page, perPage: $perPage) {
       totalItems
       totalPages
       items {
@@ -161,6 +160,7 @@ ${PipelineRunStatusBadge_DagRunFragmentDoc}`;
  *   variables: {
  *      id: // value for 'id'
  *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */
@@ -179,29 +179,17 @@ export const PipelineRunPageDocument = gql`
     query PipelineRunPage($pipelineId: String!, $runId: String!) {
   dagRun(id: $runId) {
     id
-    externalId
-    externalUrl
-    executionDate
-    status
-    config
-    outputs {
-      ...PipelineRunOutputEntry_output
-    }
-    progress
-    ...RunMessages_dagRun
-    ...RunLogs_dagRun
-    ...PipelineRunStatusBadge_dagRun
+    ...PipelineRunDataCard_dagRun
   }
   dag(id: $pipelineId) {
     id
     externalId
     label
+    ...PipelineRunDataCard_dag
   }
 }
-    ${PipelineRunOutputEntry_OutputFragmentDoc}
-${RunMessages_DagRunFragmentDoc}
-${RunLogs_DagRunFragmentDoc}
-${PipelineRunStatusBadge_DagRunFragmentDoc}`;
+    ${PipelineRunDataCard_DagRunFragmentDoc}
+${PipelineRunDataCard_DagFragmentDoc}`;
 
 /**
  * __usePipelineRunPageQuery__
@@ -235,6 +223,7 @@ export const PipelineConfigureRunPageDocument = gql`
     query PipelineConfigureRunPage($pipelineId: String!) {
   dag(id: $pipelineId) {
     id
+    label
     externalId
     template {
       sampleConfig

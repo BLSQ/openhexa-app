@@ -14,12 +14,13 @@ type Form = {
 };
 
 type IHPFormProps = {
-  onSubmit(config: { [key: string]: any }): Promise<void>;
+  onSubmit?(config: { [key: string]: any }): Promise<void>;
+  readOnly?: boolean;
   fromConfig?: { parameters: Form } | null;
 };
 
 const IHPForm = (props: IHPFormProps) => {
-  const { onSubmit, fromConfig } = props;
+  const { onSubmit, fromConfig, readOnly } = props;
   const { t } = useTranslation();
   const form = useForm<Form>({
     validate(values) {
@@ -49,13 +50,14 @@ const IHPForm = (props: IHPFormProps) => {
     },
 
     onSubmit(values) {
-      onSubmit({ parameters: values });
+      onSubmit ? onSubmit({ parameters: values }) : null;
     },
   });
   return (
     <form onSubmit={form.handleSubmit} className="grid grid-cols-2 gap-4">
       <Field
         name="start_date"
+        disabled={readOnly}
         type="date"
         required
         value={form.formData.start_date}
@@ -67,6 +69,7 @@ const IHPForm = (props: IHPFormProps) => {
       <Field
         name="end_date"
         type="date"
+        disabled={readOnly}
         required
         value={form.formData.end_date}
         onChange={form.handleInputChange}
@@ -78,30 +81,35 @@ const IHPForm = (props: IHPFormProps) => {
       <Checkbox
         checked={form.formData.generate_extract}
         name="generate_extract"
+        disabled={readOnly}
         onChange={form.handleInputChange}
         label={t("Generate extract")}
       />
       <Checkbox
         checked={form.formData.update_dhis2}
         name="update_dhis2"
+        disabled={readOnly}
         onChange={form.handleInputChange}
         label={t("Update DHIS2")}
       />
       <Checkbox
         checked={form.formData.update_dashboard}
         name="update_dashboard"
+        disabled={readOnly}
         onChange={form.handleInputChange}
         label={t("Update dashboard")}
       />
-      <div className="col-span-2 text-right">
-        <Button
-          disabled={!form.isValid}
-          type="submit"
-          leadingIcon={<PlayIcon className="w-6" />}
-        >
-          {t("Configure & run")}
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="col-span-2 text-right">
+          <Button
+            disabled={!form.isValid}
+            type="submit"
+            leadingIcon={<PlayIcon className="w-6" />}
+          >
+            {t("Configure & run")}
+          </Button>
+        </div>
+      )}
     </form>
   );
 };

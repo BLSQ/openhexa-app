@@ -24,7 +24,7 @@ query PipelinesPage {
   }
 }
 
-query PipelinePage($id: String!, $page: Int) {
+query PipelinePage($id: String!, $page: Int, $perPage: Int) {
   dag(id: $id) {
     id
     label
@@ -47,7 +47,7 @@ query PipelinePage($id: String!, $page: Int) {
     user {
       ...UserProperty_user
     }
-    runs(page: $page, perPage: 15) {
+    runs(page: $page, perPage: $perPage) {
       totalItems
       totalPages
       items {
@@ -71,31 +71,22 @@ query PipelinePage($id: String!, $page: Int) {
 query PipelineRunPage($pipelineId: String!, $runId: String!) {
   dagRun(id: $runId) {
     id
-    externalId
-    externalUrl
-    executionDate
 
-    status
-    config
-    outputs {
-      ...PipelineRunOutputEntry_output
-    }
-    progress
-    ...RunMessages_dagRun
-    ...RunLogs_dagRun
-    ...PipelineRunStatusBadge_dagRun
+    ...PipelineRunDataCard_dagRun
   }
 
   dag(id: $pipelineId) {
     id
     externalId
     label
+    ...PipelineRunDataCard_dag
   }
 }
 
 query PipelineConfigureRunPage($pipelineId: String!) {
   dag(id: $pipelineId) {
     id
+    label
     externalId
     template {
       sampleConfig

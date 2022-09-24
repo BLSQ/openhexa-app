@@ -6,8 +6,9 @@ import useForm from "core/hooks/useForm";
 import { useTranslation } from "next-i18next";
 
 type GenericFormProps = {
-  onSubmit(config: { [key: string]: any }): Promise<void>;
+  onSubmit?(config: { [key: string]: any }): Promise<void>;
   fromConfig?: object | null;
+  readOnly?: boolean;
 };
 
 type Form = {
@@ -15,7 +16,7 @@ type Form = {
 };
 
 const GenericForm = (props: GenericFormProps) => {
-  const { onSubmit, fromConfig } = props;
+  const { onSubmit, fromConfig, readOnly } = props;
   const { t } = useTranslation();
   const form = useForm<Form>({
     validate(values) {
@@ -29,7 +30,7 @@ const GenericForm = (props: GenericFormProps) => {
       return errors;
     },
     async onSubmit(values) {
-      onSubmit(JSON.parse(values.textConfig));
+      onSubmit && onSubmit(JSON.parse(values.textConfig));
     },
     getInitialState() {
       return {
@@ -44,25 +45,30 @@ const GenericForm = (props: GenericFormProps) => {
         name="config"
         label={t("Configuration")}
         required
+        readOnly={readOnly}
         className="col-span-2"
       >
         <CodeEditor
           height="auto"
           lang="json"
+          readonly={readOnly}
+          editable={!readOnly}
           onChange={(value) => form.setFieldValue("textConfig", value)}
           value={form.formData.textConfig}
         />
       </Field>
 
-      <div className="col-span-2 text-right">
-        <Button
-          disabled={!form.isValid}
-          type="submit"
-          leadingIcon={<PlayIcon className="w-6" />}
-        >
-          {t("Configure & run")}
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="col-span-2 text-right">
+          <Button
+            disabled={!form.isValid}
+            type="submit"
+            leadingIcon={<PlayIcon className="w-6" />}
+          >
+            {t("Configure & run")}
+          </Button>
+        </div>
+      )}
     </form>
   );
 };

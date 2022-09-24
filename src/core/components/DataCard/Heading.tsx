@@ -13,10 +13,17 @@ type HeadingProps<T> = {
   subtitleAccessor?: ValueAccessor;
   className?: string;
   renderActions?(item: T): ReactElement;
+  children?(item: T): ReactElement;
 };
 
 function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
-  const { titleAccessor, subtitleAccessor, renderActions, className } = props;
+  const {
+    titleAccessor,
+    subtitleAccessor,
+    renderActions,
+    className,
+    children,
+  } = props;
   const { item } = useItemContext<T>();
 
   const title = useMemo(
@@ -32,12 +39,18 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
     <Block.Title
       className={clsx(className, "flex items-center justify-between")}
     >
-      <div>
-        {title ?? ""}
-        {subtitle && (
-          <div className="truncate pt-2 text-sm text-gray-500">{subtitle}</div>
-        )}
-      </div>
+      {children ? (
+        children(item)
+      ) : (
+        <div>
+          {title ?? ""}
+          {subtitle && (
+            <div className="truncate pt-2 text-sm text-gray-500">
+              {subtitle}
+            </div>
+          )}
+        </div>
+      )}
       {renderActions ? renderActions(item) : null}
     </Block.Title>
   );

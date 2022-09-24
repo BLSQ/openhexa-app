@@ -63,6 +63,14 @@ const PipelineConfigureRunPage = (props: Props) => {
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             href={{
+              pathname: "/pipelines/[pipelineId]",
+              query: { pipelineId: dag.id },
+            }}
+          >
+            {dag.label || dag.externalId}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            href={{
               pathname: "/pipelines/[pipelineId]/run",
               query: { pipelineId: dag.id },
             }}
@@ -70,32 +78,32 @@ const PipelineConfigureRunPage = (props: Props) => {
             {t("Configure & Run")}
           </Breadcrumbs.Part>
         </Breadcrumbs>
-        <Block>
-          <Block.Content className="flex gap-4">
-            <div className="flex-1 flex-shrink-0 basis-7/12">
-              <Title level={3}>
-                {t("Create a new run of {{externalId}}", {
-                  externalId: dag.externalId,
-                })}
-              </Title>
-
+        <div className="flex flex-col gap-4 md:flex-row">
+          <Block className="flex-1 flex-shrink-0 basis-7/12">
+            <Block.Title>
+              {t("Create a new run of {{externalId}}", {
+                externalId: dag.externalId,
+              })}
+            </Block.Title>
+            <Block.Content className="">
               <PipelineRunForm
                 fromConfig={run?.config}
                 dag={dag}
                 onSubmit={onSubmit}
               />
-            </div>
-            {description && (
-              <div className="basis-5/12">
-                <Title level={3}>{t("Description")}</Title>
-
+            </Block.Content>
+          </Block>
+          {description && (
+            <Block className="basis-5/12">
+              <Block.Title>{t("Description")}</Block.Title>
+              <Block.Content>
                 <ReactMarkdown className="prose max-w-3xl text-sm">
                   {description}
                 </ReactMarkdown>
-              </div>
-            )}
-          </Block.Content>
-        </Block>
+              </Block.Content>
+            </Block>
+          )}
+        </div>
       </PageContent>
     </Page>
   );

@@ -10,6 +10,19 @@ type RunMessagesProps = {
   dagRun: RunMessages_DagRunFragment;
 };
 
+function getBadgeClassName(priority: string) {
+  switch (priority) {
+    case "INFO":
+      return "bg-sky-100 text-sky-600";
+    case "WARNING":
+      return "bg-amber-50 text-amber-600";
+    case "ERROR":
+      return "bg-red-100 text-red-500";
+    default:
+      return undefined;
+  }
+}
+
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
   const { dagRun } = props;
@@ -23,10 +36,14 @@ const RunMessages = (props: RunMessagesProps) => {
   }
 
   return (
-    <DataGrid data={dagRun.messages} sortable>
+    <DataGrid
+      data={dagRun.messages}
+      sortable
+      className="overflow-hidden rounded-md border"
+    >
       <DateColumn accessor="timestamp" label={t("Timestamp")} />
       <BaseColumn accessor="priority" label={t("Priority")}>
-        {(value) => <Badge>{value}</Badge>}
+        {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}
       </BaseColumn>
       <TextColumn width={400} accessor="message" label={t("Message")} />
     </DataGrid>

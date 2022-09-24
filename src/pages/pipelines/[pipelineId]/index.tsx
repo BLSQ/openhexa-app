@@ -52,7 +52,8 @@ const PipelinePage = (props: Props) => {
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
       page,
-      id: router.query.pipelinesId as string,
+      perPage: 10,
+      id: router.query.pipelineId as string,
     });
   };
 
@@ -125,7 +126,33 @@ const PipelinePage = (props: Props) => {
                 </div>
               )}
             />
-            <DataCard.Section title={t("Airflow Data")} onSave={onSave}>
+            <DataCard.Section title={t("Pipeline Metadata")} onSave={onSave}>
+              <TextProperty
+                id="label"
+                accessor="label"
+                label={t("Label")}
+                defaultValue="-"
+              />
+              <CountryProperty
+                id="countries"
+                accessor="countries"
+                multiple
+                label={t("Location")}
+                defaultValue="-"
+              />
+              <TextProperty
+                id="description"
+                accessor={"description"}
+                label={t("Description")}
+                defaultValue="-"
+                markdown
+              />
+            </DataCard.Section>
+            <DataCard.Section
+              title={t("Airflow Data")}
+              onSave={onSave}
+              defaultOpen={false}
+            >
               <TextProperty
                 readonly
                 id="externalId"
@@ -148,35 +175,12 @@ const PipelinePage = (props: Props) => {
                 markdown
               />
             </DataCard.Section>
-            <DataCard.Section title={t("OpenHexa Metadata")} onSave={onSave}>
-              <TextProperty
-                id="label"
-                accessor="label"
-                label={t("Label")}
-                defaultValue="-"
-              />
-              <CountryProperty
-                id="countries"
-                accessor="countries"
-                multiple
-                label={t("Location")}
-                defaultValue="-"
-              />
-              <UserProperty id="user" accessor="user" label={t("Report to")} />
-              <TextProperty
-                id="description"
-                accessor={"description"}
-                label={t("Description")}
-                defaultValue="-"
-                markdown
-              />
-            </DataCard.Section>
           </DataCard>
           <div>
             <h3 className="mb-4 text-lg font-medium">{t("Runs")}</h3>
             <Block>
               <DataGrid
-                defaultPageSize={15}
+                defaultPageSize={10}
                 data={dag.runs.items}
                 totalItems={dag.runs.totalItems}
                 totalPages={dag.runs.totalPages}

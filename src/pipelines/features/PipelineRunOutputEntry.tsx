@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
+import { PaperClipIcon } from "@heroicons/react/outline";
 import Anchor from "core/components/Anchor";
-import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { useTranslation } from "next-i18next";
@@ -46,11 +46,11 @@ const PipelineRunOutputEntry = (props: PipelineRunOutputEntryProps) => {
   } else {
     return (
       <span
-        className="inline-flex cursor-pointer items-center gap-1.5 text-blue-600 hover:text-blue-500"
+        className="inline-flex cursor-pointer items-center gap-1 text-blue-600 hover:text-blue-500"
         onClick={onClick}
       >
         {output.title}
-        {isLoading && <Spinner size="xs" />}
+        {isLoading ? <Spinner size="xs" /> : <PaperClipIcon className="w-3" />}
       </span>
     );
   }

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import useInterval from "core/hooks/useInterval";
+import useRelativeTime from "core/hooks/useRelativeTime";
 import { DateTime, DateTimeOptions } from "luxon";
 import { memo, useEffect, useMemo, useState } from "react";
 
@@ -15,19 +16,18 @@ const Time = (props: Props) => {
     () => DateTime.fromISO(props.datetime),
     [props.datetime]
   );
-  const [toggle, setToggle] = useState(false);
 
-  useInterval(() => setToggle(!toggle), props.relative ? 5000 : null);
+  const relativeDate = useRelativeTime(datetime);
 
   const value = useMemo(() => {
     if (props.relative) {
-      return datetime.toRelative();
+      return relativeDate;
     } else {
       return datetime.toLocaleString(props.format ?? DateTime.DATETIME_SHORT);
     }
     // We use the toggle variable to force React to recompute this value
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datetime, props.format, props.relative, toggle]);
+  }, [datetime, props.format, props.relative, relativeDate]);
 
   return (
     <time
