@@ -10,6 +10,7 @@ type Form = {
   end_date: string;
   generate_extract: boolean;
   update_dhis2: boolean;
+  reuse_existing_extract: boolean;
   update_dashboard: boolean;
 };
 
@@ -42,7 +43,9 @@ const IHPForm = (props: IHPFormProps) => {
         generate_extract: false,
         update_dhis2: false,
         update_dashboard: false,
+        reuse_existing_extract: false,
       };
+
       if (fromConfig) {
         initialState = { ...initialState, ...fromConfig.parameters };
       }
@@ -84,6 +87,13 @@ const IHPForm = (props: IHPFormProps) => {
         disabled={readOnly}
         onChange={form.handleInputChange}
         label={t("Generate extract")}
+      />
+      <Checkbox
+        checked={form.formData.reuse_existing_extract}
+        name="reuse_existing_extract"
+        disabled={readOnly}
+        onChange={form.handleInputChange}
+        label={t("Re-use existing extract")}
       />
       <Checkbox
         checked={form.formData.update_dhis2}

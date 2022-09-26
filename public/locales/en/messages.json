@@ -80,6 +80,7 @@
   "Queued": "Queued",
   "queued {{relativeTime}}": "queued {{relativeTime}}",
   "Re-run job": "Re-run job",
+  "Re-use existing extract": "Re-use existing extract",
   "Remove": "Remove",
   "Report to": "Report to",
   "Reset password": "Reset password",
