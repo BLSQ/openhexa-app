@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.12](https://github.com/BLSQ/openhexa-frontend/compare/0.7.11...0.7.12) (2022-09-26)
+
+
+### Bug Fixes
+
+* **Pipelines:** Small UX improvements on the run page ([a3fbd4e](https://github.com/BLSQ/openhexa-frontend/commit/a3fbd4e5fa9f12f6225ed192685e44e561df73d4))
+
 ## [0.7.11](https://github.com/BLSQ/openhexa-frontend/compare/0.7.10...0.7.11) (2022-09-24)
 
 
