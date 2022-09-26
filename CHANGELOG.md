@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.13](https://github.com/BLSQ/openhexa-frontend/compare/0.7.12...0.7.13) (2022-09-26)
+
+
+### Bug Fixes
+
+* **IHP:** Add missing parameter reuse_existing_extract ([3db150c](https://github.com/BLSQ/openhexa-frontend/commit/3db150c1d838af08fd2549bf24ac47b478c58b7f))
+
 ## [0.7.12](https://github.com/BLSQ/openhexa-frontend/compare/0.7.11...0.7.12) (2022-09-26)
 
 
