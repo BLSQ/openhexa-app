@@ -3,6 +3,7 @@ import Badge from "core/components/Badge";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
+import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { RunMessages_DagRunFragment } from "./RunMessages.generated";
 
@@ -28,11 +29,7 @@ const RunMessages = (props: RunMessagesProps) => {
   const { dagRun } = props;
 
   if (dagRun.messages.length === 0) {
-    return (
-      <div className="w-full p-5 text-center text-sm text-gray-500">
-        {t("No messages")}
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -41,7 +38,11 @@ const RunMessages = (props: RunMessagesProps) => {
       sortable
       className="overflow-hidden rounded-md border"
     >
-      <DateColumn accessor="timestamp" label={t("Timestamp")} />
+      <DateColumn
+        accessor="timestamp"
+        label={t("Timestamp")}
+        format={DateTime.DATETIME_SHORT_WITH_SECONDS}
+      />
       <BaseColumn accessor="priority" label={t("Priority")}>
         {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}
       </BaseColumn>

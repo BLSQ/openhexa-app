@@ -190,21 +190,21 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
                   </div>
                 </Disclosure.Button>
               )}
-              <Transition
-                show={open}
-                enter="transition duration-75 ease-out"
-                enterFrom="transform opacity-0"
-                enterTo="transform opacity-100"
-                leave="transition duration-50 ease-out"
-                leaveFrom="transform opacity-100"
-                leaveTo="transform opacity-0"
-              >
-                <Disclosure.Panel static className={clsx(title && "mt-6")}>
-                  <form onSubmit={form.handleSubmit}>
-                    <DescriptionList>{children}</DescriptionList>
+              {children && (
+                <Transition
+                  show={open}
+                  enter="transition duration-75 ease-out"
+                  enterFrom="transform opacity-0"
+                  enterTo="transform opacity-100"
+                  leave="transition duration-50 ease-out"
+                  leaveFrom="transform opacity-100"
+                  leaveTo="transform opacity-0"
+                >
+                  <Disclosure.Panel static className={clsx(title && "mt-6")}>
+                    {isEdited ? (
+                      <form onSubmit={form.handleSubmit}>
+                        <DescriptionList>{children}</DescriptionList>
 
-                    {isEdited && (
-                      <>
                         {form.submitError && (
                           <p className={"my-2 text-sm text-red-600"}>
                             {form.submitError}
@@ -224,11 +224,13 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
                             {t("Cancel")}
                           </Button>
                         </div>
-                      </>
+                      </form>
+                    ) : (
+                      <DescriptionList>{children}</DescriptionList>
                     )}
-                  </form>
-                </Disclosure.Panel>
-              </Transition>
+                  </Disclosure.Panel>
+                </Transition>
+              )}
             </>
           )}
         </Disclosure>

@@ -93,7 +93,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
       >
         {() => (
           <div className="flex items-center gap-4">
-            {dagRun.status === DagRunStatus.Running && (
+            {!isFinished && (
               <ProgressPie
                 background="fill-sky-100"
                 foreground="stroke-sky-500"
@@ -101,7 +101,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
                 size={30}
               />
             )}
-            <div>
+            <div title={dagRun.executionDate}>
               {dagRun.triggerMode === DagRunTrigger.Manual
                 ? t("Manual run of {{label}} by {{user}}", {
                     label: dag.label || dag.externalId,
@@ -163,11 +163,11 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
       <DataCard.Section
         right={intervalDuration ? <Spinner size="sm" /> : null}
         title={t("Messages")}
-        defaultOpen={dagRun.messages?.length > 0}
+        defaultOpen
       >
-        <RunMessages dagRun={dagRun} />
+        {dagRun.messages.length ? <RunMessages dagRun={dagRun} /> : null}
       </DataCard.Section>
-      <DataCard.Section title={t("Configuration")} defaultOpen={false}>
+      <DataCard.Section title={t("Configuration")} defaultOpen>
         <PipelineRunReadonlyForm dag={dag} dagRun={dagRun} />
       </DataCard.Section>
       {isFinished && (

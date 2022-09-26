@@ -98,7 +98,6 @@ const PipelinePage = (props: Props) => {
           <DataCard item={dag}>
             <DataCard.Heading<typeof dag>
               titleAccessor={(item) => item.label || item.externalId}
-              subtitleAccessor={(item) => (item.label ? item.externalId : null)}
               renderActions={(item) => (
                 <div className="flex items-center gap-2">
                   <Link href={item.externalUrl}>

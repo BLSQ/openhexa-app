@@ -50,6 +50,7 @@ const GenericForm = (props: GenericFormProps) => {
       >
         <CodeEditor
           height="auto"
+          minHeight="auto"
           lang="json"
           readonly={readOnly}
           editable={!readOnly}

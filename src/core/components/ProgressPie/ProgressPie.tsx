@@ -25,8 +25,8 @@ const ProgressPie = (props: ProgressPieProps) => {
         cy="10"
         fill="transparent"
         className={foreground}
-        stroke-width="10"
-        stroke-dasharray={`calc(${value} * 31.4 / 100) 31.4`}
+        strokeWidth="10"
+        strokeDasharray={`calc(${value} * 31.4 / 100) 31.4`}
         transform="rotate(-90) translate(-20)"
       />
     </svg>
