@@ -221,6 +221,25 @@ class AccessmodDataWorkerTest(TestCase):
 
     @mock_s3
     @mock_sts
+    def test_validate_dem_wrong(self):
+        dem_file = os.path.dirname(__file__) + "/data/dem_invalid.tif"
+        dem_data = open(dem_file, "rb").read()
+        s3_client = boto3.client("s3", region_name="us-east-1")
+        s3_client.create_bucket(Bucket="test-bucket")
+        s3_client.put_object(
+            Bucket="test-bucket", Key="analysis/dem.tif", Body=dem_data
+        )
+
+        validate_fileset_job(None, MockJob(args={"fileset_id": str(self.dem_fs.id)}))
+        self.dem_fs.refresh_from_db()
+        self.assertEqual(
+            self.dem_fs.metadata,
+            {"validation_error": "file content outside of reality"},
+        )
+        self.assertEqual(self.dem_fs.status, FilesetStatus.INVALID)
+
+    @mock_s3
+    @mock_sts
     def test_validate_facilities(self):
         facilities_file = os.path.dirname(__file__) + "/data/facilities.gpkg"
         facilities_data = open(facilities_file, "rb").read()
