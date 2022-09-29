@@ -316,6 +316,38 @@ type Avatar {
   color: String!
 }
 
+type CatalogEntry {
+  id: String!
+  name: String!
+  description: String
+  countries: [Country!]!
+  lastSyncedAt: DateTime
+  symbol: URL
+  externalId: String
+  externalType: String
+  externalSubtype: String
+  externalName: String
+  externalDescription: String
+  type: CatalogEntryType!
+  objectId: String!
+  objectUrl: URL!
+  datasource: Datasource
+}
+
+type CatalogEntryType {
+  id: String!
+  app: String!
+  model: String!
+  name: String!
+}
+
+type CatalogPage {
+  items: [CatalogEntry!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
 type Collection {
   id: String!
   name: String!
@@ -630,6 +662,11 @@ type DAGTemplate {
   code: String!
   description: String
   sampleConfig: JSON
+}
+
+type Datasource {
+  id: String!
+  name: String!
 }
 
 scalar Date
@@ -959,6 +996,8 @@ type PrepareDownloadURLResult {
 }
 
 type Query {
+  search(query: String, page: Int, perPage: Int, datasourceIds: [String!], types: [String!]): SearchQueryResult!
+  catalog(path: String, page: Int, perPage: Int): CatalogPage!
   me: Me!
   team(id: String!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
@@ -1053,6 +1092,23 @@ type S3ObjectPage {
   totalPages: Int!
   totalItems: Int!
   items: [S3Object!]!
+}
+
+type SearchQueryResult {
+  results: [SearchResult!]!
+  types: [SearchType!]!
+}
+
+type SearchResult {
+  object: SearchResultObject!
+  rank: Float!
+}
+
+union SearchResultObject = CatalogEntry | Collection
+
+type SearchType {
+  value: String!
+  label: String!
 }
 
 enum SetPasswordError {

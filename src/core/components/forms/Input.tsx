@@ -4,6 +4,7 @@ import clsx from "clsx";
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string | null | false | true;
   trailingIcon?: ReactNode;
+  leading?: ReactNode;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
@@ -13,6 +14,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     error,
     className,
     trailingIcon,
+    leading = null,
     value = "",
     ...delegated
   } = props;
@@ -25,6 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       ? "border-red-300  placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
     trailingIcon && "pr-4",
+    leading && "pl-10",
     className
   );
 
@@ -41,6 +44,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         {...delegated}
         ref={ref}
       />
+      {leading && (
+        <div className="absolute inset-y-0 left-0 z-30 inline-flex items-center justify-center pl-2.5">
+          {leading}
+        </div>
+      )}
       {trailingIcon && (
         <div className="absolute inset-y-0 right-0 z-10 inline-flex items-center justify-center pr-2.5">
           {trailingIcon}

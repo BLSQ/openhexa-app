@@ -348,6 +348,41 @@ export type Avatar = {
   initials: Scalars['String'];
 };
 
+export type CatalogEntry = {
+  __typename?: 'CatalogEntry';
+  countries: Array<Country>;
+  datasource?: Maybe<Datasource>;
+  description?: Maybe<Scalars['String']>;
+  externalDescription?: Maybe<Scalars['String']>;
+  externalId?: Maybe<Scalars['String']>;
+  externalName?: Maybe<Scalars['String']>;
+  externalSubtype?: Maybe<Scalars['String']>;
+  externalType?: Maybe<Scalars['String']>;
+  id: Scalars['String'];
+  lastSyncedAt?: Maybe<Scalars['DateTime']>;
+  name: Scalars['String'];
+  objectId: Scalars['String'];
+  objectUrl: Scalars['URL'];
+  symbol?: Maybe<Scalars['URL']>;
+  type: CatalogEntryType;
+};
+
+export type CatalogEntryType = {
+  __typename?: 'CatalogEntryType';
+  app: Scalars['String'];
+  id: Scalars['String'];
+  model: Scalars['String'];
+  name: Scalars['String'];
+};
+
+export type CatalogPage = {
+  __typename?: 'CatalogPage';
+  items: Array<CatalogEntry>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
 export type Collection = {
   __typename?: 'Collection';
   author?: Maybe<User>;
@@ -723,6 +758,12 @@ export type Dhis2Instance = {
   id: Scalars['String'];
   name: Scalars['String'];
   url?: Maybe<Scalars['String']>;
+};
+
+export type Datasource = {
+  __typename?: 'Datasource';
+  id: Scalars['String'];
+  name: Scalars['String'];
 };
 
 export enum DeleteAccessmodAnalysisError {
@@ -1249,6 +1290,7 @@ export type Query = {
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
   boundaries: Array<WhoBoundary>;
+  catalog: CatalogPage;
   collection?: Maybe<Collection>;
   collections: CollectionPage;
   countries: Array<Country>;
@@ -1258,6 +1300,7 @@ export type Query = {
   dags: DagPage;
   me: Me;
   organizations: Array<Organization>;
+  search: SearchQueryResult;
   team?: Maybe<Team>;
   teams: TeamPage;
 };
@@ -1322,6 +1365,13 @@ export type QueryBoundariesArgs = {
 };
 
 
+export type QueryCatalogArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  path?: InputMaybe<Scalars['String']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
 export type QueryCollectionArgs = {
   id: Scalars['String'];
 };
@@ -1352,6 +1402,15 @@ export type QueryDagRunArgs = {
 export type QueryDagsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QuerySearchArgs = {
+  datasourceIds?: InputMaybe<Array<Scalars['String']>>;
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+  query?: InputMaybe<Scalars['String']>;
+  types?: InputMaybe<Array<Scalars['String']>>;
 };
 
 
@@ -1443,6 +1502,26 @@ export type S3ObjectPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type SearchQueryResult = {
+  __typename?: 'SearchQueryResult';
+  results: Array<SearchResult>;
+  types: Array<SearchType>;
+};
+
+export type SearchResult = {
+  __typename?: 'SearchResult';
+  object: SearchResultObject;
+  rank: Scalars['Float'];
+};
+
+export type SearchResultObject = CatalogEntry | Collection;
+
+export type SearchType = {
+  __typename?: 'SearchType';
+  label: Scalars['String'];
+  value: Scalars['String'];
 };
 
 export enum SetPasswordError {

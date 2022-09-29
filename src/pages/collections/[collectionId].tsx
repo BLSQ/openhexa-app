@@ -33,8 +33,8 @@ import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
-import Quicksearch from "search/features/Quicksearch";
-import { QuickSearchResult } from "search/features/Quicksearch/Quicksearch";
+import Quicksearch from "catalog/features/Quicksearch";
+import { SearchResult_ResultFragment } from "catalog/features/SearchResult.generated";
 
 type Props = {
   collectionId: string;
@@ -42,7 +42,7 @@ type Props = {
 
 const QuickActionAddToCollection = (props: {
   collectionId: string;
-  element: QuickSearchResult;
+  element: SearchResult_ResultFragment;
   onSubmit: () => void;
 }) => {
   const { element, collectionId, onSubmit } = props;
@@ -50,18 +50,21 @@ const QuickActionAddToCollection = (props: {
     "ready"
   );
 
+  if (element.object.__typename !== "CatalogEntry") return null;
   const onClick = async () => {
-    setFlag("loading");
-    try {
-      await addToCollection(collectionId, {
-        id: element.object_id,
-        app: element.app_label,
-        model: element.content_type_model,
-      });
-      setFlag("done");
-      onSubmit();
-    } catch {
-      setFlag("error");
+    if (element.object.__typename === "CatalogEntry") {
+      setFlag("loading");
+      try {
+        await addToCollection(collectionId, {
+          id: element.object.objectId,
+          app: element.object.type.app,
+          model: element.object.type.model,
+        });
+        setFlag("done");
+        onSubmit();
+      } catch {
+        setFlag("error");
+      }
     }
   };
 

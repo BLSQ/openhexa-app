@@ -7,7 +7,7 @@ import { getMe, logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import Quicksearch from "search/features/Quicksearch";
+import Quicksearch from "catalog/features/Quicksearch";
 import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";

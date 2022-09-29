@@ -17,7 +17,7 @@ import {
 } from "react";
 import { usePopper } from "react-popper";
 
-type ComboboxProps<T = {}> = {
+export type ComboboxProps<T = {}> = {
   value: T | T[] | null;
   onChange: (value: T | T[] | null) => void;
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -43,7 +43,7 @@ type ComboboxProps<T = {}> = {
   onOpen?: () => void;
   onClose?: () => void;
   placeholder?: string;
-  displayValue: (value: T | T[] | null) => string;
+  displayValue: (value: T) => string;
   withPortal?: boolean;
   className?: string;
 };
@@ -130,12 +130,24 @@ function Combobox<T>(props: ComboboxProps<T>) {
     </UICombobox.Options>
   );
 
+  const handleDisplayValue = (value: T | T[] | null) => {
+    if (!value) {
+      return "";
+    }
+    if (Array.isArray(value)) {
+      return value.map((v) => displayValue(v)).join(", ");
+    } else {
+      return displayValue(value);
+    }
+  };
+
   return (
     <UICombobox
       {...delegated}
       onChange={onChange}
       value={value}
       as="div"
+      className={className}
       nullable={!required}
       multiple={multiple}
     >
@@ -153,7 +165,7 @@ function Combobox<T>(props: ComboboxProps<T>) {
               <UICombobox.Input
                 as={Fragment}
                 onChange={onInputChange}
-                displayValue={displayValue}
+                displayValue={handleDisplayValue}
               >
                 <input
                   className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
