@@ -86,6 +86,29 @@ class WebHookTest(TestCase):
         self.DAG_RUN.refresh_from_db()
         self.assertEqual(50, self.DAG_RUN.current_progress)
 
+    def test_webhook_bad_signature(self):
+        response = self.client.post(
+            reverse(
+                "connector_airflow:webhook",
+            ),
+            {
+                "id": str(uuid.uuid4()),
+                "object": "event",
+                "created": datetime.timestamp(timezone.now()),
+                "type": "progress_update",
+                "data": 50,
+            },
+            **{
+                "HTTP_AUTHORIZATION": "Bearer 220|zsYv8cs5Kp0v6wlaXYOgI5llzC87kOAV1tjzsmCU"
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertJSONEqual(
+            response.content,
+            {"success": False},
+        )
+
     def test_webhook_log_messages(self):
         utc_now = datetime.utcnow()
         message1 = {

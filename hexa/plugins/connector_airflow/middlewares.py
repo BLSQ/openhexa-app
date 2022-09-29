@@ -1,7 +1,7 @@
 import binascii
 from logging import getLogger
 
-from django.core.signing import Signer
+from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest
 
 from hexa.plugins.connector_airflow.models import DAGRun
@@ -27,7 +27,7 @@ def dag_run_authentication_middleware(get_response):
             logger.exception(
                 "dag_run_authentication_middleware error",
             )
-        except (UnicodeDecodeError, binascii.Error):
+        except (UnicodeDecodeError, binascii.Error, BadSignature):
             pass
         except DAGRun.DoesNotExist:
             pass
