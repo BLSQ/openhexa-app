@@ -71,6 +71,7 @@ extend type Query {
     collections(page: Int, perPage: Int): CollectionPage!
 }
 
+extend union SearchResultObject = Collection
 
 extend type Mutation {
     createCollection(input: CreateCollectionInput!): CreateCollectionResult!

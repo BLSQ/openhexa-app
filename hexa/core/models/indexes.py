@@ -205,6 +205,12 @@ class BaseIndex(Base):
     def symbol(self) -> str:
         return static(f"{self.app_label}/img/symbol.svg")
 
+    @classmethod
+    def resolve_graphql_type(cls, root, info, result_type):
+        if not isinstance(root, cls):
+            return None
+        return "CatalogEntry"
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,

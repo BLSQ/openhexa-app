@@ -1,0 +1,62 @@
+type SearchResult {
+    object: SearchResultObject!
+    rank: Float!
+}
+
+union SearchResultObject = CatalogEntry 
+
+
+type CatalogEntryType {
+    id: String!
+    app: String!
+    model: String!
+    name: String!
+}
+
+type CatalogEntry {
+    id: String!
+    name: String!
+    description: String
+    countries: [Country!]!
+    lastSyncedAt: DateTime
+    symbol: URL
+
+    externalId: String
+    externalType: String
+    externalSubtype: String
+    externalName: String
+    externalDescription: String
+
+    type: CatalogEntryType!
+    objectId: String!
+    objectUrl: URL!
+
+    datasource: Datasource
+}
+
+type Datasource {
+    id: String!
+    name: String!
+}
+
+type CatalogPage {
+    items: [CatalogEntry!]!
+    pageNumber: Int!
+    totalPages: Int!
+    totalItems: Int!
+}
+
+type SearchType {
+    value: String!
+    label: String!
+}
+
+type SearchQueryResult {
+    results: [SearchResult!]!
+    types: [SearchType!]!
+}
+
+extend type Query {
+    search(query: String, page: Int, perPage: Int, datasourceIds: [String!], types: [String!]): SearchQueryResult!
+    catalog(path: String, page: Int, perPage: Int): CatalogPage!
+}
