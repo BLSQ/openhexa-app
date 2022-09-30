@@ -235,7 +235,7 @@ def generate_s3_policy(
             {
                 "Sid": "S3RO",
                 "Effect": "Allow",
-                "Action": ["s3:ListBucket", "s3:GetObject*"],
+                "Action": ["s3:ListBucket", "s3:GetObject"],
                 "Resource": [
                     *[f"arn:aws:s3:::{bucket.name}" for bucket in read_only_buckets],
                     *[f"arn:aws:s3:::{bucket.name}/*" for bucket in read_only_buckets],
@@ -246,7 +246,7 @@ def generate_s3_policy(
             {
                 "Sid": "S3RWK",
                 "Effect": "Allow",
-                "Action": "s3:*",
+                "Action": "s3:*Object",
                 "Resource": [
                     f"arn:aws:s3:::{bucket.name}/.s3keep"
                     for bucket in read_only_buckets
@@ -258,7 +258,7 @@ def generate_s3_policy(
             {
                 "Sid": "S3AllActions",
                 "Effect": "Allow",
-                "Action": "s3:*",
+                "Action": ["s3:ListBucket", "s3:*Object"],
                 "Resource": [
                     *[f"arn:aws:s3:::{bucket.name}" for bucket in read_write_buckets],
                     *[f"arn:aws:s3:::{bucket.name}/*" for bucket in read_write_buckets],
