@@ -1,9 +1,5 @@
 import { Combobox as UICombobox, Portal } from "@headlessui/react";
-import {
-  CheckIcon,
-  ChevronUpDownIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Modifier } from "@popperjs/core";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
@@ -20,6 +16,7 @@ import {
   useState,
 } from "react";
 import { usePopper } from "react-popper";
+import CheckOption from "./CheckOption";
 
 export type ComboboxProps<T = {}> = {
   value: T | T[] | null;
@@ -150,8 +147,6 @@ function Combobox<T>(props: ComboboxProps<T>) {
       {...delegated}
       onChange={onChange}
       value={value}
-      as="div"
-      className={className}
       nullable={!required}
       multiple={multiple}
     >
@@ -207,74 +202,6 @@ function Combobox<T>(props: ComboboxProps<T>) {
   );
 }
 
-type CheckOptionsProps = {
-  value: any;
-  className?: string;
-  disabled?: boolean;
-  forceSelected?: boolean;
-  children?:
-    | ReactNode
-    | (({
-        active,
-        selected,
-      }: {
-        active: boolean;
-        selected: boolean;
-      }) => ReactNode);
-};
-
-Combobox.CheckOption = function CheckOption(props: CheckOptionsProps) {
-  const {
-    value,
-    className,
-    children,
-    disabled = false,
-    forceSelected = false,
-  } = props;
-
-  return (
-    <UICombobox.Option
-      value={value}
-      disabled={disabled}
-      className={({ active }) =>
-        clsx(
-          "relative cursor-default select-none px-2 py-2",
-          active ? "bg-blue-500 text-white" : "text-gray-900",
-          className
-        )
-      }
-    >
-      {({ active, selected }) => (
-        <div className="group flex w-full items-center">
-          <span
-            className={clsx(
-              "flex items-center pr-4",
-              !selected && !forceSelected && "invisible",
-              active ? "text-white" : "text-gray-900"
-            )}
-          >
-            <CheckIcon
-              className={clsx(
-                "h-5 w-5",
-                (selected || forceSelected) && !active && "text-blue-500"
-              )}
-              aria-hidden="true"
-            />
-          </span>
-          <span
-            className={clsx(
-              "flex-1 truncate",
-              (selected || forceSelected) && "font-semibold"
-            )}
-          >
-            {typeof children === "function"
-              ? children({ active, selected: selected || forceSelected })
-              : children}
-          </span>
-        </div>
-      )}
-    </UICombobox.Option>
-  );
-};
+Combobox.CheckOption = CheckOption;
 
 export default Combobox;

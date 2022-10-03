@@ -1,5 +1,5 @@
 import { ChangeEventHandler, ReactNode, useMemo, useState } from "react";
-import Combobox, { ComboboxProps } from "./Combobox";
+import Combobox, { ComboboxProps } from "./Combobox/Combobox";
 
 export type SelectOption = {
   label: string;
