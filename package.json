@@ -79,7 +79,7 @@
     "react-popper": "^2.3.0",
     "react-popper-tooltip": "^4.4.2",
     "react-table": "^7.8.0",
-    "typescript": "^4.7.4",
+    "typescript": "^4.8.4",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
