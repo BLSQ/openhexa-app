@@ -1,9 +1,5 @@
 import { gql } from "@apollo/client";
-import {
-  DocumentRemoveIcon,
-  FolderRemoveIcon,
-  TrashIcon,
-} from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";

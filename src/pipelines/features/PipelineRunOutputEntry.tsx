@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { PaperClipIcon } from "@heroicons/react/outline";
+import { PaperClipIcon } from "@heroicons/react/24/outline";
 import Anchor from "core/components/Anchor";
 import Spinner from "core/components/Spinner";
 import { AlertType, displayAlert } from "core/helpers/alert";

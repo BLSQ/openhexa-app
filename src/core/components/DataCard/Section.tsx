@@ -2,7 +2,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   PencilIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { Disclosure, Transition } from "@headlessui/react";
 

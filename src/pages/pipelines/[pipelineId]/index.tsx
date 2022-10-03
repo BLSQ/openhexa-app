@@ -1,15 +1,13 @@
-import { gql, useMutation } from "@apollo/client";
 import {
+  ArrowTopRightOnSquareIcon,
   ClockIcon,
-  ExternalLinkIcon,
   PlayIcon,
-} from "@heroicons/react/outline";
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import CountryProperty from "core/components/DataCard/CountryProperty";
-import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
@@ -104,7 +102,9 @@ const PipelinePage = (props: Props) => {
                     <Button
                       variant="white"
                       size="sm"
-                      leadingIcon={<ExternalLinkIcon className="w-6" />}
+                      leadingIcon={
+                        <ArrowTopRightOnSquareIcon className="w-6" />
+                      }
                     >
                       {t("Open in Airflow")}
                     </Button>

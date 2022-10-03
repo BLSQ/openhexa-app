@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { CollectionIcon } from "@heroicons/react/outline";
+import { CircleStackIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Link from "core/components/Link";
 import { useTranslation } from "next-i18next";
@@ -56,7 +56,7 @@ const SearchResult = (props: SearchResultProps) => {
       {result.object.__typename === "Collection" && (
         <>
           <div className="w-5">
-            <CollectionIcon className="h-5 w-5 flex-shrink-0" />
+            <CircleStackIcon className="h-5 w-5 flex-shrink-0" />
           </div>
 
           <div className="flex-1 truncate">

@@ -1,4 +1,4 @@
-import { QuestionMarkCircleIcon } from "@heroicons/react/solid";
+import { QuestionMarkCircleIcon } from "@heroicons/react/20/solid";
 
 const Comments = () => {
   const user = {

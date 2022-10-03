@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { TrashIcon } from "@heroicons/react/outline";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import Menu from "core/components/Menu";
 import { useTranslation } from "next-i18next";
 import { CollectionActionsMenu_CollectionFragment } from "./CollectionActionsMenu.generated";

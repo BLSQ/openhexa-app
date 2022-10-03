@@ -3,7 +3,7 @@ import { ReactElement, ReactNode } from "react";
 import Input, { InputProps } from "./Input";
 import clsx from "clsx";
 import Tooltip from "core/components/Tooltip";
-import { InformationCircleIcon } from "@heroicons/react/solid";
+import { InformationCircleIcon } from "@heroicons/react/20/solid";
 
 interface CommonProps {
   label?: string;

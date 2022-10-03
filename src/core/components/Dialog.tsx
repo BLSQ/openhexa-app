@@ -1,5 +1,5 @@
 import { Dialog as BaseDialog, Transition } from "@headlessui/react";
-import { XIcon } from "@heroicons/react/outline";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import useEventListener from "core/hooks/useEventListener";
 import { Fragment, ReactElement, ReactNode, useRef } from "react";
@@ -24,7 +24,7 @@ const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
     >
       {props.children}
       {props.onClose && (
-        <XIcon className="h-6 w-6 cursor-pointer" onClick={props.onClose} />
+        <XMarkIcon className="h-6 w-6 cursor-pointer" onClick={props.onClose} />
       )}
     </BaseDialog.Title>
   );

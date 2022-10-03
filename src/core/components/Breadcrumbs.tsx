@@ -1,4 +1,4 @@
-import { HomeIcon } from "@heroicons/react/solid";
+import { HomeIcon } from "@heroicons/react/20/solid";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { ReactNode } from "react";

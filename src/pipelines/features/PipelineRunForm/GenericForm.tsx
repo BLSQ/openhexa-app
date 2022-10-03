@@ -1,4 +1,4 @@
-import { PlayIcon } from "@heroicons/react/outline";
+import { PlayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import CodeEditor from "core/components/CodeEditor";
 import Field from "core/components/forms/Field";

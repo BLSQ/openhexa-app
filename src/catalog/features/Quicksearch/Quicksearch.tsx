@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from "@heroicons/react/outline";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import useSearch from "catalog/hooks/useSearch";
 import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";

@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { ReactElement } from "react";

@@ -1,5 +1,8 @@
 import { gql } from "@apollo/client";
-import { ExternalLinkIcon, PlayIcon } from "@heroicons/react/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  PlayIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import DateProperty from "core/components/DataCard/DateProperty";
@@ -73,7 +76,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
               <Button
                 variant="white"
                 size="sm"
-                leadingIcon={<ExternalLinkIcon className="w-5" />}
+                leadingIcon={<ArrowTopRightOnSquareIcon className="w-5" />}
               >
                 {t("Open in Airflow")}
               </Button>

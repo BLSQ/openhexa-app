@@ -1,5 +1,5 @@
+import { DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import { Story } from "@ladle/react";
-import { DocumentDownloadIcon } from "@heroicons/react/outline";
 
 import ButtonComponent, { ButtonProps } from "../components/Button";
 
@@ -14,7 +14,7 @@ export const Button: Story<ButtonStoryProps> = ({
   leading,
 }) => {
   const leadingIcon = leading ? (
-    <DocumentDownloadIcon className="h-4" />
+    <DocumentArrowDownIcon className="h-4" />
   ) : undefined;
   return (
     <ButtonComponent size={size} variant={variant} leadingIcon={leadingIcon}>

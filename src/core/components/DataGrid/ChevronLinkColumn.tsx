@@ -1,4 +1,4 @@
-import { ChevronRightIcon } from "@heroicons/react/solid";
+import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { useTranslation } from "next-i18next";
 import LinkColumn, { LinkColumnProps } from "./LinkColumn";
 

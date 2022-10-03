@@ -1,5 +1,4 @@
-import { SearchIcon } from "@heroicons/react/outline";
-import clsx from "clsx";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Input, { InputProps } from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
@@ -20,7 +19,7 @@ const SearchInput = (props: SearchInputProps) => {
   } = props;
   return (
     <Input
-      leading={<SearchIcon className="h-5 text-gray-500" />}
+      leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
       autoComplete="off"
       trailingIcon={loading && <Spinner size="xs" />}
       className={className}

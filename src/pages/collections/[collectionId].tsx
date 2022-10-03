@@ -2,8 +2,10 @@ import {
   CheckIcon,
   PencilIcon,
   PlusIcon,
-  XIcon,
-} from "@heroicons/react/outline";
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import Quicksearch from "catalog/features/Quicksearch";
+import { SearchResult_ResultFragment } from "catalog/features/SearchResult.generated";
 import CollectionActionsMenu from "collections/features/CollectionActionsMenu";
 import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
 import CollectionElementsTable from "collections/features/CollectionElementsTable";
@@ -33,8 +35,6 @@ import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
-import Quicksearch from "catalog/features/Quicksearch";
-import { SearchResult_ResultFragment } from "catalog/features/SearchResult.generated";
 
 type Props = {
   collectionId: string;
@@ -78,7 +78,7 @@ const QuickActionAddToCollection = (props: {
       {flag === "done" && <CheckIcon className="w-4" />}
       {flag === "ready" && <PlusIcon className="w-4" />}
       {flag === "loading" && <Spinner size="xs" />}
-      {flag === "error" && <XIcon className="w-4" />}
+      {flag === "error" && <XMarkIcon className="w-4" />}
     </Button>
   );
 };

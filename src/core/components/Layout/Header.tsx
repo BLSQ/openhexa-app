@@ -1,4 +1,3 @@
-import { SearchIcon } from "@heroicons/react/solid";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
 import Toggle from "core/helpers/Toggle";
@@ -11,6 +10,7 @@ import Quicksearch from "catalog/features/Quicksearch";
 import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 type HeaderProps = {
   me: NonNullable<Awaited<ReturnType<typeof getMe>>>;
@@ -49,7 +49,7 @@ const Header = ({ me }: HeaderProps) => {
                 className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
                 onClick={toggle}
               >
-                <SearchIcon className="h-5" />
+                <MagnifyingGlassIcon className="h-5" />
                 <span>{t("Search")}</span>
                 <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
                   ⌘K
