@@ -95,10 +95,11 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
           <div className="flex items-center gap-4">
             {!isFinished && (
               <ProgressPie
-                background="fill-sky-100"
+                background="stroke-sky-100"
                 foreground="stroke-sky-500"
                 progress={dagRun.progress}
-                size={30}
+                textClassName="text-sky-600"
+                className="h-10 w-10"
               />
             )}
             <div title={dagRun.executionDate}>

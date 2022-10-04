@@ -1,35 +1,67 @@
+import clsx from "clsx";
 import { useMemo } from "react";
 
 export type ProgressPieProps = {
   progress: number;
   background?: string;
   foreground?: string;
-  size?: number;
+  textClassName?: string;
+  className?: string;
 };
 
 const ProgressPie = (props: ProgressPieProps) => {
   const {
     progress,
-    background = "fill-gray-100",
+    background = "stroke-gray-100",
     foreground = "stroke-gray-400",
-    size = 20,
+    textClassName = "text-gray-400",
+    className,
   } = props;
 
   const value = useMemo(() => Math.min(100, Math.max(0, progress)), [progress]);
   return (
-    <svg height={size} width={size} viewBox="0 0 20 20">
-      <circle r="10" cx="10" cy="10" id="" className={background} />
-      <circle
-        r="5"
-        cx="10"
-        cy="10"
-        fill="transparent"
-        className={foreground}
-        strokeWidth="10"
-        strokeDasharray={`calc(${value} * 31.4 / 100) 31.4`}
-        transform="rotate(-90) translate(-20)"
-      />
-    </svg>
+    <div
+      className={clsx("relative flex items-center justify-center", className)}
+    >
+      <svg
+        id="svg"
+        width="auto"
+        height="auto"
+        viewBox="-1 -1 34 34"
+        className="absolute inset-0 -rotate-90"
+      >
+        <circle
+          cx="16"
+          cy="16"
+          r="15.9155"
+          fill="none"
+          strokeWidth="2"
+          className={background}
+        />
+
+        <circle
+          cx="16"
+          cy="16"
+          r="15.9155"
+          strokeDasharray={"100 100"}
+          strokeDashoffset={100 - value}
+          strokeLinecap="round"
+          strokeWidth="2"
+          fill="none"
+          className={clsx(
+            "transition-all duration-700 ease-in-out ",
+            foreground
+          )}
+        />
+      </svg>
+      {value !== 0 && (
+        <div
+          className={clsx("z-10 font-mono text-xs font-normal", textClassName)}
+        >
+          {value}%
+        </div>
+      )}
+    </div>
   );
 };
 

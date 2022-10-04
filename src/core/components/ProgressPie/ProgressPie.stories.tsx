@@ -6,9 +6,9 @@ interface ProgressPieStoryProps extends ProgressPieProps {}
 
 export const ProgressPieStory: Story<ProgressPieStoryProps> = () => {
   return (
-    <div>
-      <ProgressPie progress={10} />
-      <ProgressPie progress={30} size={50} />
+    <div className="flex gap-2">
+      <ProgressPie progress={10} className="w-30 h-30" />
+      <ProgressPie progress={30} className="w-30 h-30" />
     </div>
   );
 };
