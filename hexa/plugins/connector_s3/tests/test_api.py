@@ -162,11 +162,36 @@ class ApiTest(TestCase):
             read_write_buckets=[Bucket(name="rw_bucket1"), Bucket(name="rw_bucket2")],
             read_only_buckets=[Bucket(name="ro_bucket1")],
         )
-        self.assertEqual(len(policy["Statement"]), 3)
-        for statement in policy["Statement"]:
-            # invariant: can't have the name of rw_bucket and ro_bucket in the same statement
-            str_statement = json.dumps(statement)
-            self.assertTrue(
-                ("rw_bucket" in str_statement and "ro_bucket" not in str_statement)
-                or ("ro_bucket" in str_statement and "rw_bucket" not in str_statement)
-            )
+
+        expected_policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "S3RO",
+                    "Effect": "Allow",
+                    "Action": ["s3:ListBucket", "s3:GetObject"],
+                    "Resource": [
+                        "arn:aws:s3:::ro_bucket1",
+                        "arn:aws:s3:::ro_bucket1/*",
+                    ],
+                },
+                {
+                    "Sid": "S3RWK",
+                    "Effect": "Allow",
+                    "Action": "s3:*Object",
+                    "Resource": ["arn:aws:s3:::ro_bucket1/.s3keep"],
+                },
+                {
+                    "Sid": "S3AllActions",
+                    "Effect": "Allow",
+                    "Action": ["s3:ListBucket", "s3:*Object"],
+                    "Resource": [
+                        "arn:aws:s3:::rw_bucket1",
+                        "arn:aws:s3:::rw_bucket2",
+                        "arn:aws:s3:::rw_bucket1/*",
+                        "arn:aws:s3:::rw_bucket2/*",
+                    ],
+                },
+            ],
+        }
+        self.assertEqual(policy, expected_policy)

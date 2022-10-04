@@ -226,7 +226,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             {
                 "Statement": [
                     {
-                        "Action": "s3:*",
+                        "Action": ["s3:ListBucket", "s3:*Object"],
                         "Effect": "Allow",
                         "Resource": [
                             "arn:aws:s3:::hexa-test-bucket-1",
@@ -322,7 +322,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             {
                 "Statement": [
                     {
-                        "Action": "s3:*",
+                        "Action": ["s3:ListBucket", "s3:*Object"],
                         "Effect": "Allow",
                         "Resource": [
                             "arn:aws:s3:::hexa-test-bucket-1",
