@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.15](https://github.com/BLSQ/openhexa-frontend/compare/0.7.14...0.7.15) (2022-10-04)
+
+
+### Bug Fixes
+
+* **ProgressPie:** Add the progress in text ([d468152](https://github.com/BLSQ/openhexa-frontend/commit/d4681526ed806c086b6fb5a5a81da141f9b5c258))
+
 ## [0.7.14](https://github.com/BLSQ/openhexa-frontend/compare/0.7.13...0.7.14) (2022-10-04)
 
 
