@@ -1,5 +1,5 @@
-query PipelinesPage {
-  dags {
+query PipelinesPage($page: Int, $perPage: Int = 15) {
+  dags(page: $page, perPage: $perPage) {
     totalPages
     totalItems
     items {

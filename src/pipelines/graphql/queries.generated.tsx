@@ -10,7 +10,10 @@ import { PipelineRunDataCard_DagRunFragmentDoc, PipelineRunDataCard_DagFragmentD
 import { PipelineRunForm_DagFragmentDoc } from '../features/PipelineRunForm/PipelineRunForm.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type PipelinesPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type PipelinesPageQueryVariables = Types.Exact<{
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
+}>;
 
 
 export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', label: string, id: string, externalId: string, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: string, status: Types.DagRunStatus, executionDate?: any | null }> } }> } };
@@ -41,8 +44,8 @@ export type PipelineConfigureRunPageQuery = { __typename?: 'Query', dag?: { __ty
 
 
 export const PipelinesPageDocument = gql`
-    query PipelinesPage {
-  dags {
+    query PipelinesPage($page: Int, $perPage: Int = 15) {
+  dags(page: $page, perPage: $perPage) {
     totalPages
     totalItems
     items {
@@ -82,6 +85,8 @@ ${PipelineRunStatusBadge_DagRunFragmentDoc}`;
  * @example
  * const { data, loading, error } = usePipelinesPageQuery({
  *   variables: {
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */

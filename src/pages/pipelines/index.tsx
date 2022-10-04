@@ -14,6 +14,8 @@ import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
   PipelinesPageDocument,
+  PipelinesPageQuery,
+  PipelinesPageQueryVariables,
   usePipelinesPageQuery,
 } from "pipelines/graphql/queries.generated";
 import { useMemo } from "react";
@@ -27,7 +29,12 @@ const PipelinesPage = (props: Props) => {
   const { t } = useTranslation();
 
   const router = useRouter();
-  const { data } = usePipelinesPageQuery();
+  const { data } = usePipelinesPageQuery({
+    variables: {
+      page: props.page,
+      perPage: props.perPage,
+    },
+  });
 
   const onChangePage = ({ page }: { page: number }) => {
     router.push({ pathname: router.pathname, query: { page } });
@@ -63,7 +70,7 @@ const PipelinesPage = (props: Props) => {
 
           <Block>
             <DataGrid
-              defaultPageSize={15}
+              defaultPageSize={props.perPage}
               data={items}
               totalItems={data.dags.totalItems}
               totalPages={data.dags.totalPages}
@@ -121,9 +128,24 @@ const PipelinesPage = (props: Props) => {
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
-    await client.query({
+    const page = (ctx.query.page as string)
+      ? parseInt(ctx.query.page as string, 10)
+      : 1;
+    const perPage = 15;
+
+    await client.query<PipelinesPageQuery, PipelinesPageQueryVariables>({
       query: PipelinesPageDocument,
+      variables: {
+        page,
+        perPage,
+      },
     });
+    return {
+      props: {
+        page,
+        perPage,
+      },
+    };
   },
 });
 
