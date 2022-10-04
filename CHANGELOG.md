@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.14](https://github.com/BLSQ/openhexa-frontend/compare/0.7.13...0.7.14) (2022-10-04)
+
+
+### Bug Fixes
+
+* **Pipelines:** Pagination of pipelines is not working ([ce9bc26](https://github.com/BLSQ/openhexa-frontend/commit/ce9bc26ec2310896b37e069b1f12917b79acf3a8))
+
 ## [0.7.13](https://github.com/BLSQ/openhexa-frontend/compare/0.7.12...0.7.13) (2022-09-26)
 
 
