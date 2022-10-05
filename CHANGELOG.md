@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.16](https://github.com/BLSQ/openhexa-frontend/compare/0.7.15...0.7.16) (2022-10-05)
+
+
+### Bug Fixes
+
+* **ProgressPie:** Add case for 0 ([8e29d8d](https://github.com/BLSQ/openhexa-frontend/commit/8e29d8d9dac149ed17869eda620581a7ed0a3edd))
+
 ## [0.7.15](https://github.com/BLSQ/openhexa-frontend/compare/0.7.14...0.7.15) (2022-10-04)
 
 
