@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useMemo } from "react";
 
 export type ProgressPieProps = {
-  progress: number;
+  progress?: number;
   background?: string;
   foreground?: string;
   textClassName?: string;
@@ -18,15 +18,17 @@ const ProgressPie = (props: ProgressPieProps) => {
     className,
   } = props;
 
-  const value = useMemo(() => Math.min(100, Math.max(0, progress)), [progress]);
+  const value = useMemo(
+    () =>
+      progress !== undefined ? Math.min(100, Math.max(0, progress)) : undefined,
+    [progress]
+  );
   return (
     <div
       className={clsx("relative flex items-center justify-center", className)}
     >
       <svg
         id="svg"
-        width="auto"
-        height="auto"
         viewBox="-1 -1 34 34"
         className="absolute inset-0 -rotate-90"
       >
@@ -44,7 +46,7 @@ const ProgressPie = (props: ProgressPieProps) => {
           cy="16"
           r="15.9155"
           strokeDasharray={"100 100"}
-          strokeDashoffset={100 - value}
+          strokeDashoffset={100 - (value ?? 0)}
           strokeLinecap="round"
           strokeWidth="2"
           fill="none"
@@ -54,7 +56,7 @@ const ProgressPie = (props: ProgressPieProps) => {
           )}
         />
       </svg>
-      {value !== 0 && (
+      {value !== undefined && (
         <div
           className={clsx("z-10 font-mono text-xs font-normal", textClassName)}
         >
