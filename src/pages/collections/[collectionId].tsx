@@ -108,7 +108,7 @@ const CollectionPage = ({ collectionId }: Props) => {
           id: collection.id,
           name: values.name ?? collection.name,
           description: values.description ?? collection.description ?? "",
-          summary: values.summary,
+          summary: values.summary ?? collection.summary,
           tagIds: (values.tags || collection.tags)?.map(
             (t: { id: string }) => t.id
           ),
