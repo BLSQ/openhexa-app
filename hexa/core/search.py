@@ -20,7 +20,9 @@ def get_search_options(user: User, query: str):
             {
                 "value": source.object.id,
                 "label": f"({source.app_label[10:].capitalize()}) {source.object.display_name}",
-                "selected": f"datasource:{source.object.id}" in query,
+                "selected": f"datasource:{source.object.id}" in query
+                if query
+                else False,
             }
         )
 
@@ -38,7 +40,7 @@ def get_search_options(user: User, query: str):
             {
                 "value": f"{content_code}",
                 "label": content_type.name,
-                "selected": f"type:{content_code}" in query,
+                "selected": f"type:{content_code}" in query if query else False,
             }
         )
 
@@ -47,7 +49,7 @@ def get_search_options(user: User, query: str):
             {
                 "value": "collection",
                 "label": _("Collection"),
-                "selected": "type:collection" in query,
+                "selected": "type:collection" in query if query else False,
             }
         )
     type_options = sorted(type_options, key=lambda e: e["label"])
@@ -56,7 +58,14 @@ def get_search_options(user: User, query: str):
     return type_options, datasource_options
 
 
-def search(user: User, query: str, size: int = 10) -> typing.List[dict]:
+def search(
+    user: User,
+    query: str,
+    types=None,
+    datasource_ids=None,
+    page: int = 1,
+    size: int = 10,
+) -> typing.List[dict]:
     from hexa.catalog.models import Index
     from hexa.data_collections.models import Collection
 
@@ -66,15 +75,19 @@ def search(user: User, query: str, size: int = 10) -> typing.List[dict]:
     results = []
     tokens = tokenize(query, ["type", "datasource"])
     # Filters
-    types = [t.value[5:] for t in tokens if t.value.startswith("type:")]
-    datasources = []
-    for t in tokens:
-        if t.value.startswith("datasource:"):
-            try:
-                datasources.append(uuid.UUID(t.value[11:]))
-            except ValueError:
-                continue
+    if types is None:
+        # Get types from the query tokens "type:my_model"
+        types = [t.value[5:] for t in tokens if t.value.startswith("type:")]
 
+    if datasource_ids is None:
+        datasource_ids = []
+        # Get datasources from the query tokens "datasource:<uuid>"
+        for t in tokens:
+            if t.value.startswith("datasource:"):
+                try:
+                    datasource_ids.append(uuid.UUID(t.value[11:]))
+                except ValueError:
+                    continue
     # As of now we do not index collections so we also search for collections matching the criteria and
     # merge the results with the index results.
     if not (len(types) == 1 and types[0] == "collection"):
@@ -84,17 +97,19 @@ def search(user: User, query: str, size: int = 10) -> typing.List[dict]:
             # filter by resources type
             .filter_for_types(types)
             # filter by datasources
-            .filter_for_datasources(datasources)
+            .filter_for_datasources(datasource_ids)
             # exclude s3keep, artifact of s3content mngt
-            .exclude(external_name=".s3keep")[:size]
+            .exclude(external_name=".s3keep")[: size * page]
         )
 
     # Search for collections if it's enabled and user wants to search in all types or only for collections
-    if user.has_feature_flag("collections") and (
-        len(types) == 0 or "collection" in types
+    if (
+        user.has_feature_flag("collections")
+        and (len(types) == 0 or "collection" in types)
+        and len(datasource_ids) == 0
     ):
         results += list(Collection.objects.filter_for_user(user).search(query)[:size])
         results.sort(key=lambda x: getattr(x, "rank", None), reverse=True)
-        results = results[:size]
 
-    return results
+    # Slice the results to get only results from the page
+    return results[page - 1 * size : size * page]

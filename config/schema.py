@@ -6,9 +6,8 @@ from ariadne import (
     snake_case_fallback_resolvers,
 )
 
+from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
-
-# from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 from hexa.data_collections.schema import collections_bindables, collections_type_defs
 from hexa.plugins.connector_accessmod.schema import (
     accessmod_bindables,
@@ -26,7 +25,7 @@ type_defs = load_schema_from_path(
 schema = make_executable_schema(
     [
         type_defs,
-        # catalog_type_defs,
+        catalog_type_defs,
         identity_type_defs,
         tags_type_defs,
         collections_type_defs,
@@ -37,7 +36,7 @@ schema = make_executable_schema(
         countries_type_defs,
     ],
     [
-        # *catalog_bindables,
+        *catalog_bindables,
         *identity_bindables,
         *tags_bindables,
         *collections_bindables,

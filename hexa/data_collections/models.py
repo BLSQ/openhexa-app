@@ -104,6 +104,12 @@ class Collection(Base):
 
     objects = CollectionManager.from_queryset(CollectionQuerySet)()
 
+    @classmethod
+    def resolve_graphql_type(cls, root, info, result_type):
+        if not isinstance(root, cls):
+            return None
+        return "Collection"
+
     def delete_if_has_perm(
         self,
         principal: UserInterface,

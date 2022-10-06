@@ -1,109 +1,133 @@
-from ariadne import MutationType, ObjectType, QueryType, convert_kwargs_to_snake_case
-from django.contrib.contenttypes.models import ContentType
+import pathlib
+import uuid
+
+from ariadne import (
+    MutationType,
+    ObjectType,
+    QueryType,
+    UnionType,
+    convert_kwargs_to_snake_case,
+    load_schema_from_path,
+)
 from django.http import HttpRequest
-from django.templatetags.static import static
 
 from hexa.catalog.models import Index
 from hexa.core.graphql import result_page
-from hexa.plugins.connector_s3.models import Bucket
-from hexa.tags.models import Tag
+from hexa.core.search import get_search_options, search
 
-catalog_type_defs = """
-    extend type Query {
-        datasources(page: Int!, perPage: Int): CatalogIndexPage!
-        search(page: Int!, perPage: Int, query: String!): CatalogIndexPage!
-        tags: [CatalogTag!]
-    }
-    type CatalogIndexPage {
-        pageNumber: Int!
-        totalPages: Int!
-        totalItems: Int!
-        items: [CatalogIndex!]!
-    }
-    type CatalogIndex {
-        id: String!
-        objectId: String!
-        name: String!
-        icon: String
-        externalName: String!
-        indexType: CatalogIndexType
-        type: String!
-        contentSummary: String!
-        owner: Organization!
-        countries: [Country!]
-        lastSyncedAt: DateTime
-        detailUrl: String!
-    }
-    input CatalogTagInput {
-        id: String
-        name: String
-    }
-    type CatalogTag {
-        id: String!
-        name: String!
-    }
-    enum CatalogIndexType {
-      DATASOURCE
-      CONTENT
-    }
-
-    extend type Mutation {
-        catalogTagCreate(input: CatalogTagInput!): CatalogTag!
-    }
-"""
+catalog_type_defs = load_schema_from_path(
+    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
+)
 
 catalog_query = QueryType()
 
+catalog_entry_object = ObjectType("CatalogEntry")
+datasource_object = ObjectType("Datasource")
+catalog_entry_type_object = ObjectType("CatalogEntryType")
+search_result_object = ObjectType("SearchResult")
+search_type_object = ObjectType("SearchType")
+search_result_object_object = UnionType("SearchResultObject")
 
-@catalog_query.field("tags")
-def resolve_tags(obj, *_):
-    return [tag for tag in Tag.objects.all()]
+
+@search_result_object_object.type_resolver
+def resolve_object_type(obj, info, result_type):
+    if hasattr(obj, "resolve_graphql_type"):
+        return obj.resolve_graphql_type(obj, info, result_type)
+
+    return None
 
 
-@catalog_query.field("datasources")
-@convert_kwargs_to_snake_case
-def resolve_datasources(_, info, page, per_page=None):
-    request: HttpRequest = info.context["request"]
-    queryset = Index.objects.filter_for_user(request.user).roots()
+@catalog_entry_object.field("type")
+def resolve_catalog_entry_type(index: Index, info, **kwargs):
+    return {
+        "id": index.content_type.id,
+        "model": index.content_type.model,
+        "name": index.content_type.name,
+        "app": index.content_type.app_label,
+    }
 
-    return result_page(queryset, page, per_page)
+
+@catalog_entry_object.field("datasource")
+def resolve_catalog_entry_datasource(index: Index, info, **kwargs):
+    return {"id": index.datasource_id, "name": index.datasource_name}
+
+
+@catalog_entry_object.field("objectId")
+def resolve_catalog_entry_object_id(index: Index, info, **kwargs):
+    return index.object_id
+
+
+@catalog_entry_object.field("objectUrl")
+def resolve_catalog_entry_object_url(index: Index, info, **kwargs):
+    return index.object.get_absolute_url() if index.object else None
+
+
+@catalog_entry_object.field("name")
+def resolve_catalog_entry_name(index: Index, info, **kwargs):
+    return index.display_name
+
+
+@search_result_object.field("object")
+def resolve_search_result_object_object(result, info, **kwargs):
+    return result
+
+
+@search_result_object.field("rank")
+def resolve_search_result_object_rank(result, info, **kwargs):
+    return getattr(result, "rank")
 
 
 @catalog_query.field("search")
 @convert_kwargs_to_snake_case
-def resolve_search(_, info, page, query, per_page=None):
+def resolve_search(
+    _, info, query=None, page=1, per_page=15, datasource_ids=None, types=None
+):
     request: HttpRequest = info.context["request"]
-    queryset = Index.objects.filter_for_user(request.user).search(query)[:100]
+    if not request.user.is_authenticated:
+        return {"results": [], "types": []}
 
-    return result_page(queryset, page, per_page)
+    type_options, _ = get_search_options(user=request.user, query=query)
+
+    return {
+        "results": search(
+            request.user,
+            query,
+            datasource_ids=[uuid.UUID(ds) for ds in datasource_ids]
+            if datasource_ids
+            else None,
+            types=types,
+            size=per_page,
+            page=page,
+        )
+        if query is not None
+        else [],
+        "types": type_options,
+    }
 
 
-# Catalog Index
-catalog_index = ObjectType("CatalogIndex")
-catalog_index.set_alias("type", "content_type_name")
-
-
-@catalog_index.field("icon")
-def resolve_icon(obj: Index, info):
+@catalog_query.field("catalog")
+@convert_kwargs_to_snake_case
+def resolve_catalog(_, info, path=None, page=1, per_page=15):
     request: HttpRequest = info.context["request"]
-    return request.build_absolute_uri(static(f"{obj.app_label}/img/symbol.svg"))
+    queryset = Index.objects.filter_for_user(request.user).select_related(
+        "content_type"
+    )
 
-
-@catalog_index.field("detailUrl")
-def resolve_detail_url(obj: Index, *_):
-    # TODO: this is just a temporary workaround, we need to find a good way to handle index routing
-    if ContentType.objects.get_for_model(Bucket) == obj.content_type:
-        return f"s3/{obj.object.s3_name}"
-
-    return obj.detail_url.replace("dhis2", "dhis2/catalog")
+    if path is None:
+        queryset = queryset.roots()
+    return result_page(queryset=queryset, page=page, per_page=per_page)
 
 
 catalog_mutation = MutationType()
 
 
-@catalog_mutation.field("catalogTagCreate")
-def resolve_dhis2_instance_update(_, info, **kwargs):
-    return Tag.objects.create(name=kwargs["input"]["name"])
-
-
-catalog_bindables = [catalog_query, catalog_mutation, catalog_index]
+catalog_bindables = [
+    catalog_query,
+    catalog_mutation,
+    datasource_object,
+    catalog_entry_object,
+    catalog_entry_type_object,
+    search_result_object,
+    search_type_object,
+    search_result_object_object,
+]
