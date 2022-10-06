@@ -821,6 +821,11 @@ type DHIS2Instance {
   url: String
 }
 
+type FeatureFlag {
+  code: String!
+  config: JSON!
+}
+
 scalar JSON
 
 enum LaunchAccessmodAnalysisError {
@@ -854,6 +859,7 @@ type LogoutResult {
 type Me {
   user: User
   authorizedActions: [MeAuthorizedActions!]!
+  features: [FeatureFlag!]!
 }
 
 enum MeAuthorizedActions {

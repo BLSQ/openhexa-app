@@ -34,6 +34,7 @@
   "Created at": "",
   "Created By": "",
   "DAG": "",
+  "Dashboard": "",
   "Data Pipelines": "",
   "Delete": "",
   "Description": "",
@@ -75,6 +76,7 @@
   "No elements to display": "",
   "No logs": "",
   "No results to display.": "",
+  "Notebooks": "",
   "Open in Airflow": "",
   "Outputs": "",
   "Pipeline Metadata": "",
@@ -125,6 +127,7 @@
   "Updated at": "",
   "User": "",
   "View": "",
+  "Visualizations": "",
   "We were unable to create a link for this output.": "",
   "Your account": ""
 }

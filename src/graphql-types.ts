@@ -901,6 +901,12 @@ export type DenyAccessmodAccessRequestResult = {
   success: Scalars['Boolean'];
 };
 
+export type FeatureFlag = {
+  __typename?: 'FeatureFlag';
+  code: Scalars['String'];
+  config: Scalars['JSON'];
+};
+
 export enum LaunchAccessmodAnalysisError {
   LaunchFailed = 'LAUNCH_FAILED'
 }
@@ -935,6 +941,7 @@ export type LogoutResult = {
 export type Me = {
   __typename?: 'Me';
   authorizedActions: Array<MeAuthorizedActions>;
+  features: Array<FeatureFlag>;
   user?: Maybe<User>;
 };
 

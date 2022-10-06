@@ -1,6 +1,10 @@
 query GetUser {
   me {
     authorizedActions
+    features {
+      code
+      config
+    }
     user {
       email
       id

@@ -11,14 +11,15 @@ import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import useMe from "identity/hooks/useMe";
 
-type HeaderProps = {
-  me: NonNullable<Awaited<ReturnType<typeof getMe>>>;
-};
-
-const Header = ({ me }: HeaderProps) => {
+const Header = () => {
+  const me = useMe();
   const router = useRouter();
   const { t } = useTranslation();
+  if (!me.user) {
+    return null;
+  }
   return (
     <div className="bg-gray-800">
       <div

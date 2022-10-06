@@ -8,10 +8,10 @@ type LayoutProps = {
 };
 
 const Layout = (props: LayoutProps) => {
-  const { children, pageProps } = props;
+  const { children } = props;
   return (
     <div className="flex min-h-screen flex-col ">
-      {pageProps.me && <Header me={pageProps.me} />}
+      <Header />
       {children}
     </div>
   );

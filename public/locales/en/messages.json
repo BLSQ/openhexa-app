@@ -34,6 +34,7 @@
   "Created at": "Created at",
   "Created By": "Created By",
   "DAG": "DAG",
+  "Dashboard": "Dashboard",
   "Data Pipelines": "Data Pipelines",
   "Delete": "Delete",
   "Description": "Description",
@@ -75,6 +76,7 @@
   "No elements to display": "No elements to display",
   "No logs": "No logs",
   "No results to display.": "No results to display.",
+  "Notebooks": "Notebooks",
   "Open in Airflow": "Open in Airflow",
   "Outputs": "Outputs",
   "Pipeline Metadata": "Pipeline Metadata",
@@ -125,6 +127,7 @@
   "Updated at": "Updated at",
   "User": "User",
   "View": "View",
+  "Visualizations": "Visualizations",
   "We were unable to create a link for this output.": "We were unable to create a link for this output.",
   "Your account": "Your account"
 }

@@ -10,6 +10,7 @@ import AlertManager from "core/components/AlertManager";
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { Settings } from "luxon";
+import { MeProvider } from "identity/hooks/useMe";
 
 // Set the default locale & timezone to be used on server and client.
 // This should be changed to use the correct lang and tz of the user when it's available.
@@ -19,20 +20,16 @@ Settings.defaultZone = "Europe/Brussels";
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const apolloClient = useApollo(pageProps);
-
+  const { me } = pageProps;
   const getLayout =
     Component.getLayout ??
     ((page) => <Layout pageProps={pageProps}>{page}</Layout>);
 
   useEffect(() => {
-    Sentry.setUser(
-      pageProps?.me?.user
-        ? { email: pageProps.me.user.email, id: pageProps.me.user.id }
-        : null
-    );
-  }, [pageProps.me]);
+    Sentry.setUser(me?.user ? { email: me.user.email, id: me.user.id } : null);
+  }, [me]);
   return (
-    <>
+    <MeProvider me={me}>
       <NavigationProgress color="#002C5F" height={3} />
       <ApolloProvider client={apolloClient}>
         <Head>
@@ -42,7 +39,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
         {getLayout(<Component {...pageProps} />)}
         <AlertManager />
       </ApolloProvider>
-    </>
+    </MeProvider>
   );
 }
 
