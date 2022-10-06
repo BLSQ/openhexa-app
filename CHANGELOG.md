@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/BLSQ/openhexa-frontend/compare/0.7.16...0.8.0) (2022-10-06)
+
+
+### Features
+
+* **Search:** Add search page ([1059452](https://github.com/BLSQ/openhexa-frontend/commit/1059452034e5769a5288b55346f22410e91dcbff))
+
+
+### Bug Fixes
+
+* **Collections:** Summary was erased on update of the description ([7ccc236](https://github.com/BLSQ/openhexa-frontend/commit/7ccc236f54a64af118eb25c5484c007d305801ee))
+
 ## [0.7.16](https://github.com/BLSQ/openhexa-frontend/compare/0.7.15...0.7.16) (2022-10-05)
 
 
