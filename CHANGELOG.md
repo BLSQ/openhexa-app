@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/BLSQ/openhexa-frontend/compare/0.8.0...0.8.1) (2022-10-06)
+
+
+### Bug Fixes
+
+* **Search:** Limit the quicksearch results to 10 entries ([941338c](https://github.com/BLSQ/openhexa-frontend/commit/941338c9f97b056e9f94d005d1f362babf6e4576))
+
 ## [0.8.0](https://github.com/BLSQ/openhexa-frontend/compare/0.7.16...0.8.0) (2022-10-06)
 
 
