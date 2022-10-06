@@ -20,6 +20,7 @@ const Quicksearch = (props: QuicksearchProps) => {
   const debouncedQueryString = useDebounce(queryString, 120);
   const { results, loading } = useSearch({
     query: debouncedQueryString,
+    perPage: 10,
   });
 
   useEffect(() => {
