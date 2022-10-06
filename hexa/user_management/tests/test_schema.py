@@ -6,7 +6,14 @@ from django.utils.http import urlsafe_base64_encode
 
 from hexa.core.test import GraphQLTestCase
 from hexa.core.test.utils import graphql_datetime_format
-from hexa.user_management.models import Membership, MembershipRole, Team, User
+from hexa.user_management.models import (
+    Feature,
+    FeatureFlag,
+    Membership,
+    MembershipRole,
+    Team,
+    User,
+)
 
 
 class SchemaTest(GraphQLTestCase):
@@ -45,6 +52,11 @@ class SchemaTest(GraphQLTestCase):
             user=cls.USER_TAYLOR, team=cls.TEAM_EXTERNAL, role=MembershipRole.ADMIN
         )
 
+        cls.FEATURE = Feature.objects.create(code="nice_feature")
+        cls.TAYLOR_FEATURE_FLAG = FeatureFlag.objects.create(
+            feature=cls.FEATURE, user=cls.USER_TAYLOR, config={"config_argument": 10}
+        )
+
     def test_me_anonymous(self):
         r = self.run_query(
             """
@@ -54,13 +66,16 @@ class SchemaTest(GraphQLTestCase):
                     id
                   }
                   authorizedActions
+                  features {
+                    code
+                  }
                 }
               }
             """,
         )
 
         self.assertEqual(
-            {"user": None, "authorizedActions": []},
+            {"user": None, "authorizedActions": [], "features": []},
             r["data"]["me"],
         )
 
@@ -80,6 +95,10 @@ class SchemaTest(GraphQLTestCase):
                     lastLogin
                   }
                   authorizedActions
+                  features {
+                    code
+                    config
+                  }
                 }
               }
             """,
@@ -94,9 +113,39 @@ class SchemaTest(GraphQLTestCase):
                     "displayName": self.USER_JIM.display_name,
                     "email": self.USER_JIM.email,
                     "dateJoined": graphql_datetime_format(self.USER_JIM.date_joined),
-                    "lastLogin": graphql_datetime_format(self.USER_JIM.last_login),
+                    "lastLogin": graphql_datetime_format(self.USER_JIM.last_login)
+                    if self.USER_JIM.last_login
+                    else None,
                 },
+                "features": [],
                 "authorizedActions": ["CREATE_TEAM", "CREATE_ACCESSMOD_PROJECT"],
+            },
+            r["data"]["me"],
+        )
+
+    def test_me_features(self):
+        self.client.force_login(self.USER_TAYLOR)
+        r = self.run_query(
+            """
+              query {
+                me {
+                  features {
+                    code
+                    config
+                  }
+                }
+              }
+            """,
+        )
+
+        self.assertEqual(
+            {
+                "features": [
+                    {
+                        "code": self.TAYLOR_FEATURE_FLAG.feature.code,
+                        "config": self.TAYLOR_FEATURE_FLAG.config,
+                    }
+                ],
             },
             r["data"]["me"],
         )

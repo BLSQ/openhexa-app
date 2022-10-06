@@ -16,6 +16,7 @@ from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
     CannotDowngradeRole,
+    FeatureFlag,
     Membership,
     Organization,
     Team,
@@ -30,11 +31,30 @@ identity_query = QueryType()
 identity_mutations = MutationType()
 
 
-@identity_query.field("me")
-def resolve_me(_, info):
+me_object = ObjectType("Me")
+feature_flag_object = ObjectType("FeatureFlag")
+
+
+@feature_flag_object.field("code")
+def resolve_feature_flag_code(flag: FeatureFlag, info):
+    return flag.feature.code
+
+
+@feature_flag_object.field("config")
+def resolve_feature_flag_config(flag: FeatureFlag, info):
+    return flag.config
+
+
+@me_object.field("user")
+def resolve_me_user(_, info):
+    request = info.context["request"]
+    return request.user if request.user.is_authenticated else None
+
+
+@me_object.field("authorizedActions")
+def resolve_me_authorized_actions(_, info):
     request = info.context["request"]
     principal = request.user
-
     authorized_actions = []
 
     # Base authorized actions
@@ -52,13 +72,23 @@ def resolve_me(_, info):
         if extra_authorized_actions_resolver is not None:
             authorized_actions += extra_authorized_actions_resolver(_, info)
 
-    return {
-        "user": principal if principal.is_authenticated else None,
-        "authorized_actions": filter(
-            bool,
-            authorized_actions,
-        ),
-    }
+    return authorized_actions
+
+
+@me_object.field("features")
+def resolve_me_features(_, info):
+    request = info.context["request"]
+    principal: User = request.user
+
+    if principal.is_authenticated:
+        return principal.featureflag_set.all()
+    else:
+        return []
+
+
+@identity_query.field("me")
+def resolve_me(_, info):
+    return me_object
 
 
 @identity_query.field("team")
@@ -368,6 +398,8 @@ identity_bindables = [
     identity_query,
     user_object,
     team_object,
+    me_object,
+    feature_flag_object,
     membership_object,
     authorized_actions_object,
     organization_object,
