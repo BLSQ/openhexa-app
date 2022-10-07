@@ -7,6 +7,9 @@ const { i18n } = require("./next-i18next.config");
 const config = {
   publicRuntimeConfig: {
     GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT,
+    SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE
+      ? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE)
+      : 1,
     SENTRY_DSN: process.env.SENTRY_DSN,
     SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
   },

@@ -15,7 +15,7 @@ Sentry.init({
     if (context.location?.pathname === "/ready") {
       return 0;
     }
-    return 0.005;
+    return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
   },
   // ...
   // Note: if you want to override the automatic release value, do not set a
