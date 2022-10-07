@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0](https://github.com/BLSQ/openhexa-frontend/compare/0.8.1...0.9.0) (2022-10-07)
+
+
+### Features
+
+* **Features:** Add features to schema ([8b286ab](https://github.com/BLSQ/openhexa-frontend/commit/8b286ab36a6c56fc3f98707774c45f86d154bbca))
+
+
+### Bug Fixes
+
+* **Search:** Increase padding of search input ([6bc63d1](https://github.com/BLSQ/openhexa-frontend/commit/6bc63d1a3159249c012250fb21ab7f2e2f996d45))
+* **Sentry:** Get sentry sampling traces rate from env ([718074d](https://github.com/BLSQ/openhexa-frontend/commit/718074d2f7ecae1ea42465a2c58d6bd115f54774))
+
 ## [0.8.1](https://github.com/BLSQ/openhexa-frontend/compare/0.8.0...0.8.1) (2022-10-06)
 
 
