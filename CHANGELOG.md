@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/BLSQ/openhexa-frontend/compare/0.9.0...0.9.1) (2022-10-07)
+
+
+### Bug Fixes
+
+* **Search:** Type select on search page is broken ([3c5beac](https://github.com/BLSQ/openhexa-frontend/commit/3c5beac993c7b78638418a5f8ca4913c804df037))
+
 ## [0.9.0](https://github.com/BLSQ/openhexa-frontend/compare/0.8.1...0.9.0) (2022-10-07)
 
 
