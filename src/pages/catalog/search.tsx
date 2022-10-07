@@ -30,7 +30,6 @@ const SearchPage = () => {
       types: null,
     },
     onSubmit(values) {
-      console.log(values);
       setSearchOptions({
         query: values.query,
         datasourceIds: values.datasources?.map((d) => d.id),
@@ -94,7 +93,7 @@ const SearchPage = () => {
                   <Select
                     placeholder="Type"
                     multiple
-                    value={form.formData.types ?? null}
+                    value={form.formData.types ?? []}
                     onChange={(types) => form.setFieldValue("types", types)}
                     options={
                       types?.map((t) => ({ id: t.value, label: t.label })) ?? []
@@ -109,7 +108,7 @@ const SearchPage = () => {
           </Block.Content>
 
           <div id="results">
-            {results?.length === 0 && searchOptions.query && (
+            {!loading && results?.length === 0 && searchOptions.query && (
               <div className="p-4 text-sm text-gray-500">
                 {t("No results to display.")}
               </div>
