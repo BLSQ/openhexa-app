@@ -58,7 +58,7 @@ const SearchPage = () => {
                 value={form.formData.query}
                 loading={loading}
                 required
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-1"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2.5"
                 name="query"
                 onChange={form.handleInputChange}
               />
