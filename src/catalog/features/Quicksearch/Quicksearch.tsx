@@ -4,6 +4,7 @@ import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import SearchInput from "../SearchInput";
 import SearchResult, { SearchResultProps } from "../SearchResult";
@@ -17,11 +18,16 @@ const Quicksearch = (props: QuicksearchProps) => {
   const { open = false, onClose, renderActions } = props;
   const [queryString, setQueryString] = useState("");
   const { t } = useTranslation();
+  const router = useRouter();
   const debouncedQueryString = useDebounce(queryString, 120);
   const { results, loading } = useSearch({
     query: debouncedQueryString,
     perPage: 10,
   });
+
+  useEffect(() => {
+    onClose();
+  }, [router.pathname, onClose]);
 
   useEffect(() => {
     if (!open) {
