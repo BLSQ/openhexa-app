@@ -16,6 +16,7 @@ type Avatar {
 type Me {
     user: User
     authorizedActions: [MeAuthorizedActions!]!
+    features: [FeatureFlag!]!
 }
 # This is our legacy approach : a simple enum that other modules can extend
 # it works fine, but implementing it in the API is complex - see resolve_me to get
@@ -234,6 +235,11 @@ input OrganizationInput {
     type: String
     url: String
     contactInfo: String
+}
+
+type FeatureFlag {
+    code: String!
+    config: JSON!
 }
 extend type Query {
     organizations: [Organization!]!
