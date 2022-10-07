@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/BLSQ/openhexa-frontend/compare/0.9.1...0.9.2) (2022-10-07)
+
+
+### Bug Fixes
+
+* **Search:** Close quicksearch on route change ([1b55be8](https://github.com/BLSQ/openhexa-frontend/commit/1b55be8038c661389d70377d54c477a6ece5cb97))
+
 ## [0.9.1](https://github.com/BLSQ/openhexa-frontend/compare/0.9.0...0.9.1) (2022-10-07)
 
 
