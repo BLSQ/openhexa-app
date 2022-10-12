@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/BLSQ/openhexa-frontend/compare/0.9.2...0.9.3) (2022-10-12)
+
+
+### Bug Fixes
+
+* **Quicksearch:** DO not open the quicksearch on every page ([a66f9ee](https://github.com/BLSQ/openhexa-frontend/commit/a66f9ee18991d433ad5211e39e516cf9f58ecb92))
+
 ## [0.9.2](https://github.com/BLSQ/openhexa-frontend/compare/0.9.1...0.9.2) (2022-10-07)
 
 
