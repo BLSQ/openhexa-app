@@ -49,7 +49,7 @@ build==0.8.0
     # via pip-tools
 cachetools==5.2.0
     # via google-auth
-certifi==2022.6.15
+certifi==2022.9.24
     # via
     #   fiona
     #   pyproj
@@ -324,7 +324,7 @@ s3fs==2022.01.0
     # via -r requirements.in
 s3transfer==0.5.2
     # via boto3
-sentry-sdk==1.6.0
+sentry-sdk==1.9.10
     # via -r requirements.in
 shapely==1.8.2
     # via geopandas
@@ -366,7 +366,7 @@ typing-extensions==4.3.0
     #   django-countries
     #   pydantic
     #   starlette
-urllib3==1.26.9
+urllib3==1.26.12
     # via
     #   botocore
     #   requests
