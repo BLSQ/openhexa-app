@@ -26,8 +26,11 @@ const Quicksearch = (props: QuicksearchProps) => {
   });
 
   useEffect(() => {
-    onClose();
-  }, [router.pathname, onClose]);
+    if (open) {
+      onClose();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.pathname, open]);
 
   useEffect(() => {
     if (!open) {
