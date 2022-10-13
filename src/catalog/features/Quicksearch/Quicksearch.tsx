@@ -3,6 +3,7 @@ import useSearch from "catalog/hooks/useSearch";
 import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";
 import useDebounce from "core/hooks/useDebounce";
+import usePrevious from "core/hooks/usePrevious";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -19,6 +20,7 @@ const Quicksearch = (props: QuicksearchProps) => {
   const [queryString, setQueryString] = useState("");
   const { t } = useTranslation();
   const router = useRouter();
+  const prevPathname = usePrevious(router.pathname);
   const debouncedQueryString = useDebounce(queryString, 120);
 
   const { results, loading } = useSearch({
@@ -28,11 +30,11 @@ const Quicksearch = (props: QuicksearchProps) => {
   });
 
   useEffect(() => {
-    if (open) {
+    if (router.pathname !== prevPathname && open) {
       onClose();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.pathname, open]);
+  }, [router.pathname, prevPathname, open]);
 
   useEffect(() => {
     if (!open) {
