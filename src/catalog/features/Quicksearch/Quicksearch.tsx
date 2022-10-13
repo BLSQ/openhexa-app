@@ -26,7 +26,7 @@ const Quicksearch = (props: QuicksearchProps) => {
   const { results, loading } = useSearch({
     query: debouncedQueryString,
     perPage: 10,
-    skip: !open,
+    skip: !open || !queryString,
   });
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Quicksearch = (props: QuicksearchProps) => {
         )}
 
         {results && results.length !== 0 && (
-          <div className="overflow-y-auto">
+          <div className="overflow-y-auto" data-testid="results">
             {results.map((result) => (
               <SearchResult
                 key={result.object.id}
@@ -79,13 +79,7 @@ const Quicksearch = (props: QuicksearchProps) => {
           {results && (
             <span>{results.length > 0 && t("Showing top 10 results")}</span>
           )}
-          <Link
-            href={{
-              pathname: "/catalog/search",
-              query: { query: queryString },
-            }}
-            className="flex items-center gap-1"
-          >
+          <Link href={"/catalog/search"} className="flex items-center gap-1">
             {t("Go to advanced search")}
             <ArrowRightIcon className="w-3" />
           </Link>

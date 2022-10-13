@@ -20,6 +20,7 @@ const SearchInput = (props: SearchInputProps) => {
   } = props;
   return (
     <Input
+      data-testid="search-input"
       leading={<MagnifyingGlassIcon className="h-5 text-gray-500" />}
       autoComplete="off"
       trailingIcon={loading && <Spinner size="xs" />}

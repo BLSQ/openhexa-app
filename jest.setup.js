@@ -30,6 +30,15 @@ jest.mock("next/router", () => require("next-router-mock"));
 // This is needed for mocking 'next/link':
 jest.mock("next/dist/client/router", () => require("next-router-mock"));
 
+// https://github.com/scottrippey/next-router-mock/issues/58#issuecomment-1182861712
+// Fixes the navigation using links
+jest.mock("next/dist/shared/lib/router-context", () => {
+  const { createContext } = require("react");
+  const router = require("next-router-mock").default;
+  const RouterContext = createContext(router);
+  return { RouterContext };
+});
+
 // Mock the IntersectionObserver
 const intersectionObserverMock = () => ({
   observe: () => null,
@@ -39,3 +48,10 @@ const intersectionObserverMock = () => ({
 window.IntersectionObserver = jest
   .fn()
   .mockImplementation(intersectionObserverMock);
+
+// Mock @headlessui/react to disable animations
+
+jest.mock("@headlessui/react", () => ({
+  __esModule: true,
+  ...jest.requireActual("@headlessui/react"),
+}));
