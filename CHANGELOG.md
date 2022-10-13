@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.4](https://github.com/BLSQ/openhexa-frontend/compare/0.9.3...0.9.4) (2022-10-13)
+
+
+### Bug Fixes
+
+* **Quicksearch:** Directly closes when user clicks on 'add' on a collection page' ([f9a0ce2](https://github.com/BLSQ/openhexa-frontend/commit/f9a0ce2968cc8b814673e4195cfa9628e1362ef8))
+
 ## [0.9.3](https://github.com/BLSQ/openhexa-frontend/compare/0.9.2...0.9.3) (2022-10-12)
 
 
