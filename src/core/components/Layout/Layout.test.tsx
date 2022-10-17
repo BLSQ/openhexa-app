@@ -1,13 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { LOGGED_IN_USER, TestApp } from "core/helpers/testutils";
-import { graphql } from "msw";
-import { setupServer } from "msw/node";
 import mockRouter from "next-router-mock";
 import Layout from "./Layout";
-
-const server = setupServer(
-  graphql.query("SearchQuery", (req, res, ctx) => res(ctx.data({ search: {} })))
-);
 
 let mockMe = jest.fn();
 jest.mock("identity/hooks/useMe", () => ({
@@ -16,12 +10,6 @@ jest.mock("identity/hooks/useMe", () => ({
 }));
 
 describe("Layout", () => {
-  beforeAll(() => server.listen());
-
-  afterAll(() => {
-    server.close();
-  });
-
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");
   });
