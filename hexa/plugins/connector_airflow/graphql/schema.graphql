@@ -17,6 +17,7 @@ type DAGRunOutput {
 
 type DAGRun {
   id: String!
+  label: String
   externalId: String
   externalUrl: URL
   user: User
@@ -30,6 +31,7 @@ type DAGRun {
   messages: [DAGRunMessage!]!
   logs: String
   outputs: [DAGRunOutput!]!
+  isFavorite: Boolean!
 }
 
 enum DAGRunStatus {
@@ -80,7 +82,7 @@ type DAGPage {
 }
 
 extend type Query {
-  dags(page: Int, perPage: Int, ): DAGPage!
+  dags(page: Int, perPage: Int): DAGPage!
   dag(id: String!): DAG
   dagRun(id: String!): DAGRun
 }
@@ -130,8 +132,27 @@ type PrepareDownloadURLResult {
   url: URL
 }
 
+enum SetDAGRunFavoriteError {
+  NOT_FOUND
+  INVALID
+  MISSING_LABEL
+}
+
+input SetDAGRunFavoriteInput {
+  id: String!
+  label: String
+  isFavorite: Boolean!
+}
+
+type SetDAGRunFavoriteResult {
+  success: Boolean!
+  errors: [SetDAGRunFavoriteError!]!
+  dagRun: DAGRun
+}
+
 extend type Mutation {
   runDAG(input: RunDAGInput!): RunDAGResult!
   updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
   prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
+  setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
 }

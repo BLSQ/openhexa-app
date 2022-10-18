@@ -553,9 +553,7 @@ class DAGRun(Base, WithStatus):
                 self.get_run_logs()
             self.save()
 
-    def add_to_favorites(
-        self, *, user: User, name: typing.Optional[str]
-    ) -> "DAGRunFavorite":
+    def add_to_favorites(self, *, user: User, name: str) -> "DAGRunFavorite":
         if self.is_in_favorites(user):
             raise ValueError("DAGRun is already in favorites")
 
