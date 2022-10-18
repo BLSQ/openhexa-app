@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.10.0](https://github.com/BLSQ/openhexa-frontend/compare/0.9.4...0.10.0) (2022-10-18)
+
+
+### Features
+
+* **Favorite:** User can mark runs as favorite ([a2ccb73](https://github.com/BLSQ/openhexa-frontend/commit/a2ccb73e224bb9cb9332517aa56453dbdf672fa5))
+
+
+### Bug Fixes
+
+* **Collections:** Country badge follows the badge while scrolling in a dialog ([3dcf52e](https://github.com/BLSQ/openhexa-frontend/commit/3dcf52eb7c7a1b1f95e0131d66550528033f6f2a))
+* **Header:** User can open quicksearch & use cmd+k to open it ([456432b](https://github.com/BLSQ/openhexa-frontend/commit/456432b4408194e093143bfbc36ea1b42ec2ea10))
+* **Pipelines:** User can go to airflow from a pipeline or a pipeline run ([8e64495](https://github.com/BLSQ/openhexa-frontend/commit/8e64495c628c35763c3fb3dc46f65db7b7d8e9e1))
+
 ## [0.9.4](https://github.com/BLSQ/openhexa-frontend/compare/0.9.3...0.9.4) (2022-10-13)
 
 
