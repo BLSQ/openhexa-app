@@ -1,5 +1,6 @@
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { faker } from "@faker-js/faker";
+import { ByRoleOptions, screen } from "@testing-library/react";
 import { ReactNode } from "react";
 
 type TestAppProps = {
@@ -29,3 +30,8 @@ export const LOGGED_IN_USER = {
     color: "red",
   },
 };
+
+export async function waitForDialog(options?: ByRoleOptions) {
+  const dialog = await screen.getByRole("dialog", options);
+  return dialog;
+}

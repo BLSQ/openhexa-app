@@ -17,7 +17,9 @@ import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";
 import { DagRunStatus, DagRunTrigger } from "graphql-types";
 import { useTranslation } from "next-i18next";
+import { getPipelineRunLabel } from "pipelines/helpers/runs";
 import { useCallback, useMemo } from "react";
+import PipelineRunFavoriteTrigger from "../PipelineRunFavoriteTrigger";
 import PipelineRunReadonlyForm from "../PipelineRunForm/PipelineRunReadonlyForm";
 import PipelineRunOutputEntry from "../PipelineRunOutputEntry";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
@@ -74,7 +76,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
           <div className="flex items-center gap-2.5">
             <a href={item.externalUrl} target="_blank" rel="noreferrer">
               <Button
-                variant="white"
+                variant="outlined"
                 size="sm"
                 leadingIcon={<ArrowTopRightOnSquareIcon className="w-5" />}
               >
@@ -91,6 +93,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
                 {t("Re-run job")}
               </Button>
             </Link>
+            <PipelineRunFavoriteTrigger run={dagRun} />
           </div>
         )}
       >
@@ -106,14 +109,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
               />
             )}
             <div title={dagRun.executionDate}>
-              {dagRun.triggerMode === DagRunTrigger.Manual
-                ? t("Manual run of {{label}} by {{user}}", {
-                    label: dag.label || dag.externalId,
-                    user: dagRun.user?.displayName,
-                  })
-                : t("Scheduled run of {{label}}", {
-                    label: dag.label || dag.externalId,
-                  })}
+              {getPipelineRunLabel(dagRun, dag)}
               <div className="mt-1.5 text-sm font-normal text-gray-500">
                 {dagRun.status === DagRunStatus.Success &&
                   t("succeeded {{relativeTime}} in {{durationStr}}", {
@@ -250,6 +246,7 @@ PipelineRunDataCard.fragments = {
   dagRun: gql`
     fragment PipelineRunDataCard_dagRun on DAGRun {
       id
+      label
       externalId
       externalUrl
       executionDate
@@ -272,6 +269,7 @@ PipelineRunDataCard.fragments = {
       ...RunLogs_dagRun
       ...PipelineRunStatusBadge_dagRun
       ...PipelineRunReadonlyForm_dagRun
+      ...PipelineRunFavoriteTrigger_run
     }
     ${PipelineRunReadonlyForm.fragments.dagRun}
     ${PipelineRunOutputEntry.fragments.output}
@@ -279,6 +277,7 @@ PipelineRunDataCard.fragments = {
     ${RunMessages.fragments.dagRun}
     ${RunLogs.fragments.dagRun}
     ${PipelineRunStatusBadge.fragments.dagRun}
+    ${PipelineRunFavoriteTrigger.fragments.run}
   `,
 };
 

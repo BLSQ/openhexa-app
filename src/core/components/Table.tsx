@@ -6,10 +6,10 @@ export const TableClasses = {
   thead: "bg-gray-50",
   tbody: "divide-y divide-gray-200",
   tr: "",
-  th: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex",
+  th: "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex",
   thCondensed:
     "px-3 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider",
-  td: "px-6 py-5 text-sm text-gray-500 flex items-center w-full h-full",
+  td: "px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full",
   tdCondensed: "px-3 py-2.5 text-left text-sm text-gray-500 whitespace-nowrap",
 };
 

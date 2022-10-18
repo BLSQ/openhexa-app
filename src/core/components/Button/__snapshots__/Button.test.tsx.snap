@@ -15,7 +15,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           >
@@ -25,7 +25,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           >
@@ -35,7 +35,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           >
@@ -45,7 +45,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           >
@@ -55,7 +55,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
           >
@@ -69,7 +69,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           >
@@ -79,7 +79,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           >
@@ -89,7 +89,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           >
@@ -99,7 +99,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           >
@@ -109,7 +109,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
           >
@@ -123,9 +123,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-xs px-2 py-1 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
           >
             white
           </button>
@@ -133,9 +133,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-sm px-3 py-2.5 leading-4 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
           >
             white
           </button>
@@ -143,9 +143,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-sm px-4 py-2.5 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
           >
             white
           </button>
@@ -153,9 +153,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-base px-4 py-2 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
           >
             white
           </button>
@@ -163,9 +163,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-base px-6 py-3 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
           >
             white
           </button>
@@ -177,9 +177,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-xs px-2 py-1 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
           >
             outlined
           </button>
@@ -187,9 +187,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
           >
             outlined
           </button>
@@ -197,9 +197,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-sm px-4 py-2.5 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
           >
             outlined
           </button>
@@ -207,9 +207,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-base px-4 py-2 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
           >
             outlined
           </button>
@@ -217,9 +217,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-base px-6 py-3 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
           >
             outlined
           </button>
@@ -231,7 +231,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1"
           >
@@ -241,7 +241,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4"
           >
@@ -251,7 +251,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5"
           >
@@ -261,7 +261,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2"
           >
@@ -271,7 +271,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
             class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3"
           >
@@ -292,7 +292,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         >
@@ -302,7 +302,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         >
@@ -312,7 +312,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         >
@@ -322,7 +322,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         >
@@ -332,7 +332,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         >
@@ -346,7 +346,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
         >
@@ -356,7 +356,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
         >
@@ -366,7 +366,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
         >
@@ -376,7 +376,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
         >
@@ -386,7 +386,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3 border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500"
         >
@@ -400,9 +400,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-xs px-2 py-1 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
         >
           white
         </button>
@@ -410,9 +410,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-sm px-3 py-2.5 leading-4 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
         >
           white
         </button>
@@ -420,9 +420,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-sm px-4 py-2.5 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
         >
           white
         </button>
@@ -430,9 +430,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-base px-4 py-2 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
         >
           white
         </button>
@@ -440,9 +440,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-gray-800 border-gray-300 bg-white hover:bg-gray-50"
+   text-base px-6 py-3 text-gray-800 border-gray-400 bg-white hover:bg-gray-50"
         >
           white
         </button>
@@ -454,9 +454,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-xs px-2 py-1 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
         >
           outlined
         </button>
@@ -464,9 +464,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-sm px-3 py-2.5 leading-4 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
         >
           outlined
         </button>
@@ -474,9 +474,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-sm px-4 py-2.5 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
         >
           outlined
         </button>
@@ -484,9 +484,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-base px-4 py-2 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
         >
           outlined
         </button>
@@ -494,9 +494,9 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 text-white hover:bg-white hover:text-gray-800 border-white"
+   text-base px-6 py-3 text-gray-800 border-transparent shadow-none hover:bg-gray-100"
         >
           outlined
         </button>
@@ -508,7 +508,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-xs px-2 py-1"
         >
@@ -518,7 +518,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4"
         >
@@ -528,7 +528,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-4 py-2.5"
         >
@@ -538,7 +538,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-4 py-2"
         >
@@ -548,7 +548,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
           class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-base px-6 py-3"
         >
@@ -620,7 +620,7 @@ exports[`Button renders an icon in front of the label 1`] = `
         class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
         disabled=""
@@ -655,7 +655,7 @@ exports[`Button renders an icon in front of the label 1`] = `
       class="relative shadow-sm rounded h-fit
     focus:outline-none focus:ring-2 focus:ring-offset-2
     inline-flex items-center justify-center transition-all
-    border border-transparent font-medium
+    border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
    text-sm px-3 py-2.5 leading-4 border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
       disabled=""

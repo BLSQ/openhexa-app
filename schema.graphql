@@ -608,6 +608,7 @@ type DAGPage {
 
 type DAGRun {
   id: String!
+  label: String
   externalId: String
   externalUrl: URL
   user: User
@@ -621,6 +622,7 @@ type DAGRun {
   messages: [DAGRunMessage!]!
   logs: String
   outputs: [DAGRunOutput!]!
+  isFavorite: Boolean!
 }
 
 type DAGRunMessage {
@@ -917,6 +919,7 @@ type Mutation {
   runDAG(input: RunDAGInput!): RunDAGResult!
   updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
   prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
+  setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
   createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
   updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
   deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
@@ -1115,6 +1118,24 @@ union SearchResultObject = CatalogEntry | Collection
 type SearchType {
   value: String!
   label: String!
+}
+
+enum SetDAGRunFavoriteError {
+  NOT_FOUND
+  INVALID
+  MISSING_LABEL
+}
+
+input SetDAGRunFavoriteInput {
+  id: String!
+  label: String
+  isFavorite: Boolean!
+}
+
+type SetDAGRunFavoriteResult {
+  success: Boolean!
+  errors: [SetDAGRunFavoriteError!]!
+  dagRun: DAGRun
 }
 
 enum SetPasswordError {

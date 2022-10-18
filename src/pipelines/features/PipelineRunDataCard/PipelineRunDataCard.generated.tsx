@@ -8,9 +8,10 @@ import { RunMessages_DagRunFragmentDoc } from '../RunMessages/RunMessages.genera
 import { RunLogs_DagRunFragmentDoc } from '../RunLogs/RunLogs.generated';
 import { PipelineRunStatusBadge_DagRunFragmentDoc } from '../PipelineRunStatusBadge.generated';
 import { PipelineRunReadonlyForm_DagRunFragmentDoc } from '../PipelineRunForm/PipelineRunReadonlyForm.generated';
+import { PipelineRunFavoriteTrigger_RunFragmentDoc } from '../PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated';
 export type PipelineRunDataCard_DagFragment = { __typename?: 'DAG', id: string, externalId: string, label: string, formCode?: string | null };
 
-export type PipelineRunDataCard_DagRunFragment = { __typename?: 'DAGRun', id: string, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, triggerMode?: Types.DagRunTrigger | null, status: Types.DagRunStatus, config?: any | null, duration?: number | null, progress: number, logs?: string | null, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, user?: { __typename?: 'User', displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, messages: Array<{ __typename: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> };
+export type PipelineRunDataCard_DagRunFragment = { __typename?: 'DAGRun', id: string, label?: string | null, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, triggerMode?: Types.DagRunTrigger | null, status: Types.DagRunStatus, config?: any | null, duration?: number | null, progress: number, logs?: string | null, isFavorite: boolean, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, user?: { __typename?: 'User', displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, messages: Array<{ __typename: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> };
 
 export const PipelineRunDataCard_DagFragmentDoc = gql`
     fragment PipelineRunDataCard_dag on DAG {
@@ -23,6 +24,7 @@ export const PipelineRunDataCard_DagFragmentDoc = gql`
 export const PipelineRunDataCard_DagRunFragmentDoc = gql`
     fragment PipelineRunDataCard_dagRun on DAGRun {
   id
+  label
   externalId
   externalUrl
   executionDate
@@ -45,10 +47,12 @@ export const PipelineRunDataCard_DagRunFragmentDoc = gql`
   ...RunLogs_dagRun
   ...PipelineRunStatusBadge_dagRun
   ...PipelineRunReadonlyForm_dagRun
+  ...PipelineRunFavoriteTrigger_run
 }
     ${PipelineRunOutputEntry_OutputFragmentDoc}
 ${UserProperty_UserFragmentDoc}
 ${RunMessages_DagRunFragmentDoc}
 ${RunLogs_DagRunFragmentDoc}
 ${PipelineRunStatusBadge_DagRunFragmentDoc}
-${PipelineRunReadonlyForm_DagRunFragmentDoc}`;
+${PipelineRunReadonlyForm_DagRunFragmentDoc}
+${PipelineRunFavoriteTrigger_RunFragmentDoc}`;

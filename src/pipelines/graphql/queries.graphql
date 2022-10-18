@@ -52,6 +52,7 @@ query PipelinePage($id: String!, $page: Int, $perPage: Int) {
       totalPages
       items {
         id
+        label
         triggerMode
         externalId
         externalUrl
@@ -62,6 +63,7 @@ query PipelinePage($id: String!, $page: Int, $perPage: Int) {
         executionDate
         lastRefreshedAt
         duration
+        ...PipelineRunFavoriteTrigger_run
         ...PipelineRunStatusBadge_dagRun
       }
     }
@@ -71,7 +73,11 @@ query PipelinePage($id: String!, $page: Int, $perPage: Int) {
 query PipelineRunPage($pipelineId: String!, $runId: String!) {
   dagRun(id: $runId) {
     id
-
+    label
+    triggerMode
+    user {
+      displayName
+    }
     ...PipelineRunDataCard_dagRun
   }
 

@@ -9,6 +9,7 @@ import {
   PipelineRunPageDocument,
   usePipelineRunPageQuery,
 } from "pipelines/graphql/queries.generated";
+import { getPipelineRunLabel } from "pipelines/helpers/runs";
 
 type Props = {
   page: number;
@@ -53,7 +54,7 @@ const PipelineRunPage = (props: Props) => {
               query: { pipelineId: dag.id, runId: dagRun.id },
             }}
           >
-            {dagRun.externalId}
+            {getPipelineRunLabel(dagRun, dag)}
           </Breadcrumbs.Part>
         </Breadcrumbs>
         <div className="space-y-12">

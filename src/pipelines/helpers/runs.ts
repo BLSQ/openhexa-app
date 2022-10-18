@@ -1,6 +1,8 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { DagRunTrigger } from "graphql-types";
 import { IncomingMessage } from "http";
+import { i18n } from "next-i18next";
 import {
   GetPipelineRunQuery,
   GetRunOutputDownloadUrlMutation,
@@ -47,4 +49,33 @@ export async function getRunOutputDownloadURL(uri: string) {
   });
 
   return data?.prepareDownloadURL?.url;
+}
+
+export function getPipelineRunLabel(
+  run: {
+    label?: string | null;
+    externalId?: string | null;
+    triggerMode?: DagRunTrigger | null;
+    user?: {
+      displayName: string;
+    } | null;
+  },
+  pipeline: { label: string | null; externalId: string }
+) {
+  if (run.label) {
+    return run.label;
+  } else if (run.triggerMode === DagRunTrigger.Manual) {
+    return i18n!.t("Manual run of {{label}} by {{user}}", {
+      label: pipeline.label || pipeline.externalId,
+      user: run.user?.displayName ?? i18n!.t("a user"),
+    });
+  } else if (run.triggerMode === DagRunTrigger.Scheduled) {
+    return i18n!.t("Scheduled run of {{label}}", {
+      label: pipeline.label || pipeline.externalId,
+    });
+  } else {
+    return i18n!.t("Run of {{label}}", {
+      label: pipeline.label || pipeline.externalId,
+    });
+  }
 }

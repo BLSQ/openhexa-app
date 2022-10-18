@@ -680,6 +680,8 @@ export type DagRun = {
   externalId?: Maybe<Scalars['String']>;
   externalUrl?: Maybe<Scalars['URL']>;
   id: Scalars['String'];
+  isFavorite: Scalars['Boolean'];
+  label?: Maybe<Scalars['String']>;
   lastRefreshedAt?: Maybe<Scalars['DateTime']>;
   logs?: Maybe<Scalars['String']>;
   messages: Array<DagRunMessage>;
@@ -1013,6 +1015,7 @@ export type Mutation = {
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
   runDAG: RunDagResult;
+  setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   setPassword: SetPasswordResult;
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
@@ -1168,6 +1171,11 @@ export type MutationResetPasswordArgs = {
 
 export type MutationRunDagArgs = {
   input: RunDagInput;
+};
+
+
+export type MutationSetDagRunFavoriteArgs = {
+  input: SetDagRunFavoriteInput;
 };
 
 
@@ -1529,6 +1537,25 @@ export type SearchType = {
   __typename?: 'SearchType';
   label: Scalars['String'];
   value: Scalars['String'];
+};
+
+export enum SetDagRunFavoriteError {
+  Invalid = 'INVALID',
+  MissingLabel = 'MISSING_LABEL',
+  NotFound = 'NOT_FOUND'
+}
+
+export type SetDagRunFavoriteInput = {
+  id: Scalars['String'];
+  isFavorite: Scalars['Boolean'];
+  label?: InputMaybe<Scalars['String']>;
+};
+
+export type SetDagRunFavoriteResult = {
+  __typename?: 'SetDAGRunFavoriteResult';
+  dagRun?: Maybe<DagRun>;
+  errors: Array<SetDagRunFavoriteError>;
+  success: Scalars['Boolean'];
 };
 
 export enum SetPasswordError {

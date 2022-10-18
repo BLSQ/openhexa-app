@@ -1,6 +1,7 @@
 import {
   ArrowTopRightOnSquareIcon,
   ClockIcon,
+  PlayCircleIcon,
   PlayIcon,
 } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
@@ -23,6 +24,8 @@ import { Country, DagRunTrigger } from "graphql-types";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTrigger";
+import { PipelineRunFavoriteTrigger_RunFragment } from "pipelines/features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { PipelineRunStatusBadge_DagRunFragment } from "pipelines/features/PipelineRunStatusBadge.generated";
 import { useUpdatePipelineMutation } from "pipelines/graphql/mutations.generated";
@@ -75,6 +78,8 @@ const PipelinePage = (props: Props) => {
   }
 
   const { dag } = data;
+
+  console.log(dag?.runs.items);
 
   return (
     <Page title={t("Pipelines")}>
@@ -185,7 +190,15 @@ const PipelinePage = (props: Props) => {
                 totalPages={dag.runs.totalPages}
                 fetchData={onChangePage}
               >
-                <BaseColumn id="id" label={t("Trigger")}>
+                <BaseColumn<PipelineRunFavoriteTrigger_RunFragment>
+                  id="favorite"
+                  label=""
+                  width={50}
+                  className="pr-0"
+                >
+                  {(item) => <PipelineRunFavoriteTrigger run={item} />}
+                </BaseColumn>
+                <BaseColumn id="id" label={t("Run")}>
                   {(item) => (
                     <Link
                       linkStyle="text-gray-700 hover:text-gray-600"
@@ -194,17 +207,26 @@ const PipelinePage = (props: Props) => {
                         query: { pipelinesId: dag.id, runId: item.id },
                       }}
                     >
-                      {item.triggerMode === DagRunTrigger.Manual ? (
-                        <div className="flex items-center gap-2">
-                          <PlayIcon className="w-6" />
-                          <span>{t("Manual")}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        {item.triggerMode === DagRunTrigger.Manual && (
+                          <PlayCircleIcon className="w-6" />
+                        )}
+                        {item.triggerMode === DagRunTrigger.Scheduled && (
                           <ClockIcon className="w-6" />
-                          <span>{t("Scheduled")}</span>
-                        </div>
-                      )}
+                        )}
+                        {item.label ? item.label : null}
+
+                        {!item.label &&
+                          item.triggerMode === DagRunTrigger.Manual && (
+                            <span>{t("Manual")}</span>
+                          )}
+                        {!item.label &&
+                          item.triggerMode === DagRunTrigger.Scheduled && (
+                            <div className="flex items-center gap-2">
+                              <span>{t("Scheduled")}</span>
+                            </div>
+                          )}
+                      </div>
                     </Link>
                   )}
                 </BaseColumn>

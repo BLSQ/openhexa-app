@@ -20,6 +20,9 @@ setConfig({
 // Set seed for faker
 faker.seed(1);
 
+// Mock browser confirm
+window.confirm = jest.fn();
+
 jest.mock("react-i18next", () => ({
   I18nextProvider: jest.fn(),
   useTranslation: () => ({ t: (key) => key }),
