@@ -10,7 +10,7 @@ from hexa.countries.models import Country
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
-from .models import DAG, DAGRun
+from .models import DAG, DAGRun, DAGRunFavorite
 
 dags_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -68,11 +68,14 @@ def resolve_dag_tags(dag: DAG, info, **kwargs):
 
 @dag_object.field("runs")
 def resolve_dag_runs(dag: DAG, info, **kwargs):
-    qs = dag.dagrun_set.all()
+    request: HttpRequest = info.context["request"]
+    qs = DAGRun.objects.with_favorite(request.user).filter(dag=dag)
 
     order_by = kwargs.get("orderBy", None)
     if order_by is not None:
-        qs = qs.order_by(order_by)
+        qs = qs.order_by("favorite", order_by)
+    else:
+        qs = qs.order_by("favorite")
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -80,6 +83,18 @@ def resolve_dag_runs(dag: DAG, info, **kwargs):
 
 
 dag_run_object = ObjectType("DAGRun")
+
+
+@dag_run_object.field("label")
+def resolve_dag_run_label(run: DAGRun, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if hasattr(run, "favorite") and getattr(run, "favorite") is not None:
+        return getattr(run, "favorite")
+
+    favorite = DAGRunFavorite.objects.filter(dag_run=run, user=request.user).first()
+    if favorite:
+        return favorite.name
+    return None
 
 
 @dag_run_object.field("user")
@@ -97,6 +112,11 @@ def resolve_dag_run_external_url(run: DAGRun, info, **kwargs):
     return run.get_airflow_url()
 
 
+@dag_run_object.field("triggerMode")
+def resolve_dag_run_trigger_mode(run: DAGRun, info, **kwargs):
+    return run.trigger_mode
+
+
 @dag_run_object.field("duration")
 def resolve_dag_run_duration(run: DAGRun, info, **kwargs):
     return int(run.duration.total_seconds()) if run.duration is not None else 0
@@ -105,6 +125,12 @@ def resolve_dag_run_duration(run: DAGRun, info, **kwargs):
 @dag_run_object.field("config")
 def resolve_dag_run_config(run: DAGRun, info, **kwargs):
     return run.conf
+
+
+@dag_run_object.field("isFavorite")
+def resolve_dag_run_favorite(run: DAGRun, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return run.is_in_favorites(request.user)
 
 
 dag_run_object.set_alias("progress", "current_progress")
@@ -226,6 +252,30 @@ def resolve_prepare_download_url(_, info, **kwargs):
         return {"success": True, "url": download_url}
     except ValueError as err:
         return {"success": False}
+
+
+@dags_mutations.field("setDAGRunFavorite")
+def resolve_set_dag_run_favorite(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        dagRun: DAGRun = DAGRun.objects.filter_for_user(request.user).get(
+            id=input["id"]
+        )
+
+        if not input["isFavorite"]:
+            dagRun.remove_from_favorites(user=request.user)
+        elif input.get("label"):
+            dagRun.add_to_favorites(name=input["label"], user=request.user)
+        else:
+            return {"success": False, "errors": ["MISSING_LABEL"], "dag_run": None}
+
+        return {"success": True, "errors": [], "dag_run": dagRun}
+    except DAGRun.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"], "dagRun": None}
+    except ValueError:
+        return {"success": False, "errors": ["INVALID"], "dagRun": None}
 
 
 dags_bindables = [
