@@ -2,13 +2,14 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Quicksearch from "catalog/features/Quicksearch";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
-import Toggle from "core/helpers/Toggle";
+import useToggle from "core/hooks/useToggle";
 import { MeAuthorizedActions } from "graphql-types";
 import { logout } from "identity/helpers/auth";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useHotkeys } from "react-hotkeys-hook";
 import Menu from "../Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
@@ -17,6 +18,8 @@ const Header = () => {
   const me = useMe();
   const router = useRouter();
   const { t } = useTranslation();
+  const [isSearchOpen, { toggle: toggleSearch }] = useToggle(false);
+  useHotkeys("cmd+k,ctrl+k", toggleSearch);
 
   if (!me.user) {
     return null;
@@ -44,20 +47,18 @@ const Header = () => {
           </a>
         </Link>
         <Navbar />
-        <Toggle>
-          {({ isToggled, toggle }) => (
-            <>
-              <a className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex">
-                <MagnifyingGlassIcon className="h-5" />
-                <span>{t("Search")}</span>
-                <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
-                  ⌘K
-                </span>
-              </a>
-              <Quicksearch open={isToggled} onClose={toggle} />
-            </>
-          )}
-        </Toggle>
+        <button
+          onClick={toggleSearch}
+          className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
+        >
+          <MagnifyingGlassIcon className="h-5" />
+          <span>{t("Search")}</span>
+          <span className="inline-flex items-center rounded border border-gray-400 p-1 text-xs font-medium shadow-sm focus:outline-none group-hover:border-white">
+            ⌘K
+          </span>
+        </button>
+        <Quicksearch open={isSearchOpen} onClose={toggleSearch} />
+
         <Menu
           trigger={
             <Avatar

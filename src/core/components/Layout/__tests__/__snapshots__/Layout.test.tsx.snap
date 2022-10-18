@@ -60,7 +60,7 @@ exports[`Layout renders the layout for a authenticated user 1`] = `
             Visualizations
           </a>
         </nav>
-        <a
+        <button
           class="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
         >
           <svg
@@ -86,7 +86,7 @@ exports[`Layout renders the layout for a authenticated user 1`] = `
           >
             ⌘K
           </span>
-        </a>
+        </button>
         <div
           class="relative"
         >

@@ -1,22 +1,28 @@
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { faker } from "@faker-js/faker";
 import { ByRoleOptions, screen } from "@testing-library/react";
+import { MeProvider } from "identity/hooks/useMe";
 import { ReactNode } from "react";
 
 type TestAppProps = {
   children: ReactNode;
   mocks?: MockedResponse[];
+  me?: any;
 };
 
 jest.mock("next/router", () => require("next-router-mock"));
 // This is needed for mocking 'next/link':
 jest.mock("next/dist/client/router", () => require("next-router-mock"));
-jest.mock("identity/hooks/useMe");
 
 export function TestApp(props: TestAppProps) {
+  const me = props.me ?? {
+    features: [],
+    user: LOGGED_IN_USER,
+    authorizedActions: [],
+  };
   return (
     <MockedProvider addTypename={false} mocks={props.mocks ?? []}>
-      {props.children}
+      <MeProvider me={me}>{props.children}</MeProvider>
     </MockedProvider>
   );
 }

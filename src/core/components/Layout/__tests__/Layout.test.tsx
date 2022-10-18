@@ -1,13 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { LOGGED_IN_USER, TestApp } from "core/helpers/testutils";
+import { TestApp } from "core/helpers/testutils";
 import mockRouter from "next-router-mock";
-import Layout from "./Layout";
-
-let mockMe = jest.fn();
-jest.mock("identity/hooks/useMe", () => ({
-  __esModule: true,
-  default: () => mockMe(),
-}));
+import Layout from "../Layout";
 
 describe("Layout", () => {
   beforeEach(() => {
@@ -15,9 +9,8 @@ describe("Layout", () => {
   });
 
   it("renders the layout for an unauthenticated user", async () => {
-    mockMe.mockReturnValue({ user: null });
     const { container, debug } = render(
-      <TestApp>
+      <TestApp me={{ user: null }}>
         <Layout pageProps={{}}>
           <span data-testid="page" />
         </Layout>
@@ -31,11 +24,6 @@ describe("Layout", () => {
   });
 
   it("renders the layout for a authenticated user", async () => {
-    mockMe.mockReturnValue({
-      user: LOGGED_IN_USER,
-      features: [],
-      authorizedActions: [],
-    });
     const { container, debug } = render(
       <TestApp>
         <Layout pageProps={{}}>
