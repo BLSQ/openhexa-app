@@ -68,13 +68,13 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
   );
 
   const executionDateRelative = useRelativeTime(dagRun.executionDate);
-
+  console.log(dagRun.externalUrl);
   return (
     <DataCard item={dagRun}>
       <DataCard.Heading<typeof dagRun>
         renderActions={(item) => (
           <div className="flex items-center gap-2.5">
-            <a href={item.externalUrl} target="_blank" rel="noreferrer">
+            <a target="_blank" rel="noreferrer" href={item.externalUrl}>
               <Button
                 variant="outlined"
                 size="sm"

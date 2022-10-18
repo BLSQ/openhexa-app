@@ -79,7 +79,7 @@ const PipelinePage = (props: Props) => {
 
   const { dag } = data;
 
-  console.log(dag?.runs.items);
+  console.log(dag?.externalUrl);
 
   return (
     <Page title={t("Pipelines")}>
@@ -103,9 +103,9 @@ const PipelinePage = (props: Props) => {
               titleAccessor={(item) => item.label || item.externalId}
               renderActions={(item) => (
                 <div className="flex items-center gap-2">
-                  <Link href={item.externalUrl}>
+                  <a target="_blank" rel="noreferrer" href={item.externalUrl}>
                     <Button
-                      variant="white"
+                      variant="outlined"
                       size="sm"
                       leadingIcon={
                         <ArrowTopRightOnSquareIcon className="w-6" />
@@ -113,7 +113,7 @@ const PipelinePage = (props: Props) => {
                     >
                       {t("Open in Airflow")}
                     </Button>
-                  </Link>
+                  </a>
                   <Link
                     href={{
                       pathname: "/pipelines/[pipelineId]/run",
