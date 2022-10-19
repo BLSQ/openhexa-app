@@ -92,6 +92,8 @@ The following steps will get you up and running:
 cp .env.dist .env
 docker-compose build
 docker-compose run app fixtures
+docker-compose run app manage tailwind build
+docker-compose run app manage tailwind install
 docker-compose up
 ```
 
