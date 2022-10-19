@@ -25,6 +25,7 @@ type Me {
 enum MeAuthorizedActions {
     CREATE_TEAM
     ADMIN_PANEL
+    SUPER_USER
 }
 
 # This is the preferred way of determining the global (not specific to a business object) actions that users can take
