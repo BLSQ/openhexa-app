@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/BLSQ/openhexa-frontend/compare/0.10.0...0.10.1) (2022-10-19)
+
+
+### Bug Fixes
+
+* **Pipelines:** Only display "open in airflow" link if user is admin ([407cd16](https://github.com/BLSQ/openhexa-frontend/commit/407cd165cd4ded5eef3fd173cd7e1ec55d274108))
+
 ## [0.10.0](https://github.com/BLSQ/openhexa-frontend/compare/0.9.4...0.10.0) (2022-10-18)
 
 
