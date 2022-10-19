@@ -40,6 +40,9 @@ class SchemaTest(GraphQLTestCase):
         cls.USER_STAFF_NICO = User.objects.create_user(
             "nico@bluesquarehub.com", "nicodu93", is_staff=True
         )
+        cls.SUPER_USER_ALF = User.objects.create_user(
+            "alf@bluesquarehub.com", "alfdu96", is_superuser=True, is_staff=True
+        )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
         cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
             user=cls.USER_JANE, team=cls.TEAM_CORE, role=MembershipRole.ADMIN
@@ -864,6 +867,37 @@ class SchemaTest(GraphQLTestCase):
                     "CREATE_TEAM",
                     "ADMIN_PANEL",
                     "CREATE_ACCESSMOD_PROJECT",
+                ],
+            },
+            r["data"]["me"],
+        )
+
+    def test_super_user_authorized_action(self):
+        self.client.force_login(self.SUPER_USER_ALF)
+        r = self.run_query(
+            """
+            query {
+              me {
+                user {
+                  id
+                }
+                authorizedActions
+              }
+            }
+          """,
+        )
+
+        self.assertEqual(
+            {
+                "user": {
+                    "id": str(self.SUPER_USER_ALF.id),
+                },
+                "authorizedActions": [
+                    "CREATE_TEAM",
+                    "ADMIN_PANEL",
+                    "SUPER_USER",
+                    "CREATE_ACCESSMOD_PROJECT",
+                    "MANAGE_ACCESSMOD_ACCESS_REQUESTS",
                 ],
             },
             r["data"]["me"],

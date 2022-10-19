@@ -64,6 +64,9 @@ def resolve_me_authorized_actions(_, info):
     if principal.is_staff:
         authorized_actions.append("ADMIN_PANEL")
 
+    if principal.is_superuser:
+        authorized_actions.append("SUPER_USER")
+
     # Loop over plugin configs and check if we have an extra resolver for this field
     for app_config in get_hexa_app_configs(connector_only=True):
         extra_authorized_actions_resolver = (
