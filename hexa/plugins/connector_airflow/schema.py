@@ -69,13 +69,13 @@ def resolve_dag_tags(dag: DAG, info, **kwargs):
 @dag_object.field("runs")
 def resolve_dag_runs(dag: DAG, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    qs = DAGRun.objects.with_favorite(request.user).filter(dag=dag)
+    qs = DAGRun.objects.filter(dag=dag).with_favorite(request.user)
 
     order_by = kwargs.get("orderBy", None)
     if order_by is not None:
         qs = qs.order_by("favorite", order_by)
     else:
-        qs = qs.order_by("favorite")
+        qs = qs.order_by("favorite", "-execution_date")
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
