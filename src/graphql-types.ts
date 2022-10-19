@@ -951,7 +951,8 @@ export enum MeAuthorizedActions {
   AdminPanel = 'ADMIN_PANEL',
   CreateAccessmodProject = 'CREATE_ACCESSMOD_PROJECT',
   CreateTeam = 'CREATE_TEAM',
-  ManageAccessmodAccessRequests = 'MANAGE_ACCESSMOD_ACCESS_REQUESTS'
+  ManageAccessmodAccessRequests = 'MANAGE_ACCESSMOD_ACCESS_REQUESTS',
+  SuperUser = 'SUPER_USER'
 }
 
 export type Membership = {

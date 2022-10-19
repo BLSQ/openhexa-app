@@ -15,7 +15,12 @@ import Spinner from "core/components/Spinner";
 import { formatDuration } from "core/helpers/time";
 import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";
-import { DagRunStatus, DagRunTrigger } from "graphql-types";
+import {
+  DagRunStatus,
+  DagRunTrigger,
+  MeAuthorizedActions,
+} from "graphql-types";
+import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
 import { useCallback, useMemo } from "react";
@@ -38,6 +43,8 @@ type PipelineRunDataCardProps = {
 
 const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
   const { onRefresh, dag, dagRun } = props;
+
+  const me = useMe();
   const { t } = useTranslation();
 
   const intervalDuration = useMemo(() => {
@@ -74,15 +81,17 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
       <DataCard.Heading<typeof dagRun>
         renderActions={(item) => (
           <div className="flex items-center gap-2.5">
-            <a target="_blank" rel="noreferrer" href={item.externalUrl}>
-              <Button
-                variant="outlined"
-                size="sm"
-                leadingIcon={<ArrowTopRightOnSquareIcon className="w-5" />}
-              >
-                {t("Open in Airflow")}
-              </Button>
-            </a>
+            {me?.authorizedActions?.includes(MeAuthorizedActions.SuperUser) && (
+              <a target="_blank" rel="noreferrer" href={item.externalUrl}>
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  leadingIcon={<ArrowTopRightOnSquareIcon className="w-5" />}
+                >
+                  {t("Open in Airflow")}
+                </Button>
+              </a>
+            )}
             <Link
               href={{
                 pathname: "/pipelines/[pipelineId]/run",
