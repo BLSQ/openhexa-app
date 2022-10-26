@@ -1,6 +1,7 @@
 import pathlib
 
 from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, password_validation
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
@@ -253,7 +254,7 @@ def resolve_reset_password(_, info, input, **kwargs):
     request: HttpRequest = info.context["request"]
     form = PasswordResetForm({"email": input["email"]})
     if form.is_valid():
-        form.save(request=request)
+        form.save(request=request, domain_override=settings.NEW_FRONTEND_DOMAIN)
         return {"success": True}
     else:
         return {"success": False}
