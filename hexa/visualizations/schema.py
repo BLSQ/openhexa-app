@@ -1,9 +1,11 @@
 import pathlib
 
-from ariadne import ObjectType, QueryType, load_schema_from_path
+from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from django.http import HttpRequest
 from django.urls import reverse
 
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 
 from .models import ExternalDashboard
 
@@ -70,4 +72,35 @@ def resolve_external_dashboard(_, info, **kwargs):
         return None
 
 
-dashboards_bindables = [dashboard_queries, dashboard_object]
+dashboard_mutations = MutationType()
+
+
+@dashboard_mutations.field("updateExternalDashboard")
+def resolve_update_external_dashboard(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        dashboard: ExternalDashboard = ExternalDashboard.objects.filter_for_user(
+            request.user
+        ).get(id=input.get("id"))
+        index = dashboard.index
+        if input.get("name", None):
+            index.label = input["name"]
+        if input.get("description", None):
+            index.description = input["description"]
+
+        countries = (
+            [Country.objects.get(code=c["code"]) for c in input["countries"]]
+            if "countries" in input
+            else None
+        )
+        if countries is not None:
+            index.countries = countries
+        index.save()
+        dashboard.save()
+        return {"success": True, "errors": [], "external_dashboard": dashboard}
+    except ExternalDashboard.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+
+
+dashboards_bindables = [dashboard_queries, dashboard_object, dashboard_mutations]

@@ -21,3 +21,25 @@ extend type Query {
   externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
   externalDashboard(id: String!): ExternalDashboard
 }
+
+input UpdateExternalDashboardInput {
+  id: String!
+  description: String
+  name: String
+  countries: [CountryInput!] 
+}
+
+enum UpdateExternalDashboardError {
+    INVALID
+    NOT_FOUND
+}
+
+type UpdateExternalDashboardResult {
+  success: Boolean!
+  errors: [UpdateExternalDashboardError!]!
+  externalDashboard: ExternalDashboard
+}
+
+extend type Mutation{
+  updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
+}
