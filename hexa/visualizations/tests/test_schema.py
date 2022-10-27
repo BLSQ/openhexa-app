@@ -23,8 +23,15 @@ class VisualizationTest(GraphQLTestCase):
         cls.VIZ = ExternalDashboard.objects.create(
             url="https://viz.url", picture="__OVERRIDE_TEST__"
         )
+
+        cls.VIZ_1 = ExternalDashboard.objects.create(
+            url="https://viz.url.test", picture="__OVERRIDE_TEST__"
+        )
         ExternalDashboardPermission.objects.create(
             external_dashboard=cls.VIZ, team=cls.TEAM
+        )
+        ExternalDashboardPermission.objects.create(
+            external_dashboard=cls.VIZ_1, team=cls.TEAM
         )
 
     def test_external_dashboard(self):
@@ -43,7 +50,32 @@ class VisualizationTest(GraphQLTestCase):
             """
         )
         self.assertEqual(
-            {"totalPages": 1, "totalItems": 1, "items": [{"id": str(self.VIZ.id)}]},
+            {
+                "totalPages": 1,
+                "totalItems": 2,
+                "items": [{"id": str(self.VIZ_1.id)}, {"id": str(self.VIZ.id)}],
+            },
+            r["data"]["externalDashboards"],
+        )
+
+    def test_external_dashboard_pagination(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            query getExternalDashboards ($page:Int!, $perPage:Int!){
+                externalDashboards (page:$page, perPage:$perPage){
+                    totalPages
+                    totalItems
+                    items {
+                        id
+                    }
+                }
+            }
+            """,
+            {"page": 2, "perPage": 1},
+        )
+        self.assertEqual(
+            {"totalPages": 2, "totalItems": 2, "items": [{"id": str(self.VIZ.id)}]},
             r["data"]["externalDashboards"],
         )
 
@@ -87,4 +119,42 @@ class VisualizationTest(GraphQLTestCase):
                 "url": "https://viz.url",
             },
             r["data"]["externalDashboard"],
+        )
+
+    def test_update_external_dashboard(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation updateDashboard ($input: UpdateExternalDashboardInput!) {
+                updateExternalDashboard(input: $input) {
+                    success
+                    errors
+                    externalDashboard {
+                        id
+                        name
+                        description
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "id": str(self.VIZ.id),
+                    "name": "New name for this dashboard",
+                    "description": "Description",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "externalDashboard": {
+                    "id": str(self.VIZ.id),
+                    "name": "New name for this dashboard",
+                    "description": "Description",
+                },
+            },
+            r["data"]["updateExternalDashboard"],
         )
