@@ -1,5 +1,6 @@
 module.exports = {
   i18n: {
+    localeDetection: false, // Disable locale detection for now. It prevents next to redirect user to /<locale> on /
     defaultLocale: "en",
     locales: ["en", "fr"],
   },
