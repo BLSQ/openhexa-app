@@ -39,7 +39,7 @@ const CollectionPartialForm = (props: CollectionPartialFormProps) => {
         <CountryPicker
           withPortal
           multiple
-          value={formData.countries ?? null}
+          value={formData.countries ?? undefined}
           onChange={(value) => setFieldValue("countries", value)}
         />
       </Field>

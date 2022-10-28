@@ -1,5 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-import Combobox from "core/components/forms/Combobox";
+import { Combobox } from "core/components/forms/Combobox";
 import { ensureArray } from "core/helpers/array";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
@@ -71,7 +71,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
               .join(", ")
           : ""
       }
-      by="externalId" /* FIXME: Upgrade @headlessui/react to > 1.6.6 to fix the comparison criteria */
+      by="externalId"
       onInputChange={useCallback((event) => setQuery(event.target.value), [])}
       placeholder={placeholder}
       value={value}

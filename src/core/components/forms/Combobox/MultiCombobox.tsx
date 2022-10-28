@@ -2,12 +2,12 @@ import { Combobox as UICombobox, Portal } from "@headlessui/react";
 import { ChevronUpDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Modifier } from "@popperjs/core";
 import clsx from "clsx";
+import Badge from "core/components/Badge";
 import Spinner from "core/components/Spinner";
 import { sameWidthModifier } from "core/helpers/popper";
 import {
   ChangeEvent,
   Fragment,
-  ReactElement,
   ReactNode,
   useCallback,
   useMemo,
@@ -18,8 +18,7 @@ import { usePopper } from "react-popper";
 import CheckOption from "./CheckOption";
 import OptionsWrapper from "./OptionsWrapper";
 
-export type ComboboxProps<T> = {
-  renderIcon?(value?: T): ReactElement;
+type MultiComboboxProps<T> = {
   onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   name?: string;
@@ -35,13 +34,13 @@ export type ComboboxProps<T> = {
   loading?: boolean;
   by?: keyof T & string;
   onOpen?: () => void;
-  displayValue(value: T): string;
+  displayValue(value: T): ReactNode;
   onClose?: () => void;
   placeholder?: string;
   withPortal?: boolean;
   className?: string;
-  value?: T;
-  onChange(value?: T): void;
+  value: T[];
+  onChange(value: T[]): void;
 };
 
 const Classes = {
@@ -50,24 +49,26 @@ const Classes = {
   OptionsList: "overflow-auto flex-1",
 };
 
-function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
+function MultiCombobox<T extends { [key: string]: any }>(
+  props: MultiComboboxProps<T>
+) {
   const {
     loading = false,
+    required = false,
     withPortal = false,
     children,
     footer,
     onOpen,
     onClose,
     onInputChange,
-    displayValue,
-    renderIcon,
+    className,
     value,
+    displayValue,
     placeholder,
     onChange,
-    by,
-    required,
     disabled,
-    ...delegated
+    name,
+    by,
   } = props;
 
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -88,8 +89,14 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
     modifiers,
   });
 
-  const onClear = useCallback(() => onChange(), [onChange]);
+  const onClear = useCallback(() => onChange([]), [onChange]);
   const close = useCallback(() => btnRef.current?.click(), [btnRef]);
+  const onRemoveItem = useCallback(
+    (item: T) => {
+      value && onChange(value.filter((x) => x !== item));
+    },
+    [onChange, value]
+  );
 
   const optionsElement = (
     <UICombobox.Options
@@ -104,7 +111,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
           {children}
         </OptionsWrapper>
       </div>
-      {footer && footer({ close, clear: () => onClear })}
+      {footer && footer({ close, clear: onClear })}
     </UICombobox.Options>
   );
 
@@ -112,13 +119,13 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
     <UICombobox
       onChange={onChange}
       value={value}
-      multiple={false}
       disabled={disabled}
-      by={by as any /* Otherwise tyepscript is not happy */}
-      {...delegated}
+      multiple={true}
+      name={name}
+      by={by}
     >
       {({ open }) => (
-        <div className="relative" ref={setReferenceElement}>
+        <div className={clsx("relative", className)} ref={setReferenceElement}>
           <div
             className={clsx(
               "form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300",
@@ -127,12 +134,19 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               open ? "border-blue-500" : "hover:border-gray-400"
             )}
           >
-            <div className="mr-1 flex flex-1 items-center truncate">
-              <UICombobox.Input
-                as={Fragment}
-                onChange={onInputChange}
-                displayValue={displayValue}
-              >
+            <div className="mr-1 flex flex-1 flex-wrap items-center gap-2 truncate">
+              {value?.map((val, i) => (
+                <Badge className="bg-gray-100 py-0 hover:bg-gray-50" key={i}>
+                  {displayValue(val)}
+                  {!disabled && !required && (
+                    <XMarkIcon
+                      className="ml-1 h-3 w-3 cursor-pointer"
+                      onClick={() => onRemoveItem(val)}
+                    />
+                  )}
+                </Badge>
+              ))}
+              <UICombobox.Input as={Fragment} onChange={onInputChange}>
                 <input
                   data-testid="combobox-input"
                   className="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
@@ -141,12 +155,11 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
                 />
               </UICombobox.Input>
             </div>
-            {renderIcon && renderIcon(value)}
             <UICombobox.Button ref={btnRef} data-testid="combobox-button">
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
-                {value && !required && !disabled && (
+                {(Array.isArray(value) ? value?.length > 0 : value) && (
                   <XMarkIcon
-                    onClick={() => onChange()}
+                    onClick={() => onChange([])}
                     className="h-4 w-4 cursor-pointer hover:text-gray-500"
                     aria-hidden="true"
                   />
@@ -170,6 +183,6 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
   );
 }
 
-Combobox.CheckOption = CheckOption;
+MultiCombobox.CheckOption = CheckOption;
 
-export default Combobox;
+export default MultiCombobox;

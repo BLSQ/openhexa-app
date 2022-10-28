@@ -1,4 +1,5 @@
 import { ChangeEventHandler, ReactNode, useMemo, useState } from "react";
+import MultiCombobox from "./Combobox/MultiCombobox";
 import Combobox, { ComboboxProps } from "./Combobox/Combobox";
 
 export type SelectOption = {
@@ -11,9 +12,10 @@ export type SelectProps<O extends SelectOption> = {
   value: O | O[] | null;
   onChange(value: O | O[] | null): void;
   getOptionLabel?(option: O): ReactNode | string;
+  multiple?: boolean;
 } & Pick<
-  ComboboxProps,
-  "placeholder" | "disabled" | "multiple" | "name" | "required" | "className"
+  ComboboxProps<O>,
+  "placeholder" | "disabled" | "name" | "required" | "className"
 >;
 
 function Select<O extends SelectOption>(props: SelectProps<O>) {
@@ -45,12 +47,13 @@ function Select<O extends SelectOption>(props: SelectProps<O>) {
     [options, query]
   );
 
+  const Picker = multiple ? MultiCombobox : Combobox;
+
   return (
-    <Combobox
-      value={value}
+    <Picker
+      value={value as any}
       name={name}
       required={required}
-      multiple={multiple}
       placeholder={placeholder}
       disabled={disabled}
       onInputChange={onInputChange}
@@ -64,7 +67,7 @@ function Select<O extends SelectOption>(props: SelectProps<O>) {
           {getOptionLabel(option)}
         </Combobox.CheckOption>
       ))}
-    </Combobox>
+    </Picker>
   );
 }
 

@@ -7,12 +7,11 @@ describe("CountryPicker", () => {
   it("renders", async () => {
     const onChange = jest.fn();
 
-    const { container } = render(
+    const { container, debug } = render(
       <MockedProvider mocks={[]}>
-        <CountryPicker onChange={onChange} value={null} />
+        <CountryPicker onChange={onChange} value={undefined} />
       </MockedProvider>
     );
-
     expect(container).toMatchSnapshot();
   });
 });

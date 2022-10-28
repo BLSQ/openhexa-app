@@ -89,10 +89,12 @@ exports[`Layout renders the layout for a authenticated user 1`] = `
         </button>
         <div
           class="relative"
+          data-headlessui-state=""
         >
           <button
             aria-expanded="false"
             aria-haspopup="true"
+            data-headlessui-state=""
             id="headlessui-menu-button-:r0:"
             type="button"
           >

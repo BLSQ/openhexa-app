@@ -1,6 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
-import Combobox from "core/components/forms/Combobox";
-import { ensureArray } from "core/helpers/array";
+import { Combobox, MultiCombobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
@@ -14,25 +13,22 @@ type CountryPickerProps = {
   disabled?: boolean;
   placeholder?: string;
   required?: boolean;
-  withPortal?: boolean;
   multiple?: boolean;
-  value: CountryPicker_CountryFragment | CountryPicker_CountryFragment[] | null;
-  onChange: (
-    value:
-      | CountryPicker_CountryFragment
-      | CountryPicker_CountryFragment[]
-      | null
-  ) => void;
+  withPortal?: boolean;
+  value?: CountryPicker_CountryFragment | CountryPicker_CountryFragment[];
+  onChange(
+    value?: CountryPicker_CountryFragment | CountryPicker_CountryFragment[]
+  ): void;
 };
 
-const CountryPicker = (props: CountryPickerProps) => {
+function CountryPicker(props: CountryPickerProps) {
   const { t } = useTranslation();
   const {
     value,
     onChange,
     disabled = false,
-    multiple = false,
     required = false,
+    multiple,
     withPortal,
     placeholder = t("Select a country"),
   } = props;
@@ -63,24 +59,21 @@ const CountryPicker = (props: CountryPickerProps) => {
     );
   }, [data, debouncedQuery]);
 
+  const PickerComponent: any = multiple ? MultiCombobox : Combobox;
   return (
-    <Combobox<CountryPicker_CountryFragment>
+    <PickerComponent
       required={required}
       onChange={onChange}
       loading={loading}
       withPortal={withPortal}
-      displayValue={(value) =>
-        value
-          ? ensureArray(value)
-              .map((v) => v.name)
-              .join(", ")
-          : ""
-      }
-      by="code" /* FIXME: Upgrade @headlessui/react to > 1.6.6 to fix the comparison criteria */
-      onInputChange={useCallback((event) => setQuery(event.target.value), [])}
+      displayValue={(value: { name: any }) => value?.name ?? ""}
+      by="code"
+      onInputChange={useCallback(
+        (event: any) => setQuery(event.target.value),
+        []
+      )}
       placeholder={placeholder}
-      value={value}
-      multiple={multiple}
+      value={value as any}
       onClose={useCallback(() => setQuery(""), [])}
       disabled={disabled}
     >
@@ -99,9 +92,9 @@ const CountryPicker = (props: CountryPickerProps) => {
           </div>
         </Combobox.CheckOption>
       ))}
-    </Combobox>
+    </PickerComponent>
   );
-};
+}
 
 CountryPicker.fragments = {
   country: gql`

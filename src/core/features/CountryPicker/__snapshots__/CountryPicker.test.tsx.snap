@@ -3,7 +3,6 @@
 exports[`CountryPicker renders 1`] = `
 <div>
   <div
-    by="code"
     class="relative"
   >
     <div
@@ -16,6 +15,7 @@ exports[`CountryPicker renders 1`] = `
           aria-expanded="false"
           autocomplete="off"
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
+          data-headlessui-state=""
           data-testid="combobox-input"
           id="headlessui-combobox-input-:r0:"
           placeholder="Select a country"
@@ -26,6 +26,7 @@ exports[`CountryPicker renders 1`] = `
       <button
         aria-expanded="false"
         aria-haspopup="true"
+        data-headlessui-state=""
         data-testid="combobox-button"
         id="headlessui-combobox-button-:r1:"
         tabindex="-1"

@@ -39,7 +39,7 @@ describe("Combobox", () => {
     const { container, debug } = render(
       <ComboboxWrapper
         onChange={onChange}
-        value={null}
+        value={undefined}
         onInputChange={onInputChange}
         displayValue={displayValue}
         data-testid="combobox"
@@ -79,7 +79,7 @@ describe("Combobox", () => {
     const { container, debug } = render(
       <ComboboxWrapper
         onChange={onChange}
-        value={null}
+        value={undefined}
         loading
         onInputChange={onInputChange}
         displayValue={displayValue}
@@ -118,7 +118,7 @@ describe("Combobox", () => {
         ))}
       </ComboboxWrapper>
     );
-    expect(renderIcon).toHaveBeenCalledWith({ value: options[0] });
+    expect(renderIcon).toHaveBeenCalledWith(options[0]);
     expect(displayValue).toHaveBeenCalledWith(options[0]);
   });
 });
