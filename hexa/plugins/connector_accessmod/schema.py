@@ -155,6 +155,14 @@ def resolve_accessmod_project_permissions_update(project: Project, info):
     return request.user.has_perm("connector_accessmod.update_project", project)
 
 
+@project_permissions_object.field("createPermission")
+def resolve_accessmod_project_permissions_create_permission(project: Project, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm(
+        "connector_accessmod.create_project_permission", [project, request.user, None]
+    )
+
+
 @project_permissions_object.field("delete")
 def resolve_accessmod_project_permissions_delete(project: Project, info):
     request: HttpRequest = info.context["request"]
@@ -432,6 +440,11 @@ fileset_object = ObjectType("AccessmodFileset")
 @fileset_object.field("files")
 def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
     return [f for f in fileset.file_set.all()]
+
+
+@fileset_object.field("permissions")
+def resolve_accessmod_fileset_permissions(fileset: Fileset, info, **kwargs):
+    return fileset
 
 
 # FIXME To remove once authorizedActions are completely deprecated
@@ -797,6 +810,11 @@ def resolve_analysis_type(analysis: Analysis, *_):
         return "AccessmodZonalStatistics"
 
     return None
+
+
+@analysis_interface.field("permissions")
+def resolve_analysis_permissions(analysis: Analysis, info, **kwargs):
+    return analysis
 
 
 # FIXME To remove once authorizedActions are completely deprecated

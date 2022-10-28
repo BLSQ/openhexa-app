@@ -29,6 +29,7 @@ type AccessmodProjectPermissions {
     createFileset: Boolean!
     createAnalysis: Boolean!
     createMember: Boolean!
+    createPermission: Boolean!
 }
 
 #FIXME To remove once authorizedActions are completely deprecated

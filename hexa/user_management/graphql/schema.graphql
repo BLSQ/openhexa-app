@@ -175,11 +175,19 @@ type Membership {
     id: String!
     user: User!
     team: Team!
-    authorizedActions: [MembershipAuthorizedActions!]!
+    authorizedActions: [MembershipAuthorizedActions!]!  @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: MembershipPermissions!
     role: MembershipRole!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type MembershipPermissions {
+    update: Boolean!
+    delete: Boolean!
+}
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum MembershipAuthorizedActions {
     UPDATE
     DELETE

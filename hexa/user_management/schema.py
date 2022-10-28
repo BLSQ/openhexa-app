@@ -204,6 +204,7 @@ def resolve_team_permissions_create_membership(team: Team, info):
 
 
 membership_object = ObjectType("Membership")
+membership_permissions_object = ObjectType("MembershipPermissions")
 
 
 # FIXME: To remove once authorizedActions are completely deprecated
@@ -223,6 +224,23 @@ def resolve_membership_authorized_actions(membership: Membership, info, **kwargs
             else None,
         ],
     )
+
+
+@membership_object.field("permissions")
+def resolve_membership_permissions(membership, info, **kwargs):
+    return membership
+
+
+@membership_permissions_object.field("update")
+def resolve_membership_permissions_update(membership: Membership, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.update_membership", membership)
+
+
+@membership_permissions_object.field("delete")
+def resolve_membership_permissions_delete(membership: Membership, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.delete_membership", membership)
 
 
 @identity_query.field("organizations")
@@ -453,6 +471,7 @@ identity_bindables = [
     membership_object,
     me_permissions_object,
     team_permissions_object,
+    membership_permissions_object,
     organization_object,
     identity_mutations,
 ]
