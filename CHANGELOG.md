@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/BLSQ/openhexa-frontend/compare/0.10.1...0.10.2) (2022-10-28)
+
+
+### Bug Fixes
+
+* **i18n:** DO not redirect to /fr when requesting / ([#102](https://github.com/BLSQ/openhexa-frontend/issues/102)) ([65a8c07](https://github.com/BLSQ/openhexa-frontend/commit/65a8c07035b4aa4ceb4ab9c6f79af1907c62c7d4))
+
 ## [0.10.1](https://github.com/BLSQ/openhexa-frontend/compare/0.10.0...0.10.1) (2022-10-19)
 
 
