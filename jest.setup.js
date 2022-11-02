@@ -17,8 +17,10 @@ setConfig({
   },
 });
 
-// Set seed for faker
-faker.seed(1);
+beforeEach(() => {
+  // Set seed for faker
+  faker.seed(1);
+});
 
 // Mock browser confirm
 window.confirm = jest.fn();
