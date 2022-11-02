@@ -18,6 +18,7 @@ from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
 from hexa.user_management.schema import identity_bindables, identity_type_defs
+from hexa.visualizations.schema import dashboards_bindables, dashboards_type_defs
 
 type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -34,6 +35,7 @@ schema = make_executable_schema(
         *s3_type_defs,
         accessmod_type_defs,
         countries_type_defs,
+        dashboards_type_defs,
     ],
     [
         *catalog_bindables,
@@ -45,6 +47,7 @@ schema = make_executable_schema(
         *s3_bindables,
         *accessmod_bindables,
         *countries_bindables,
+        *dashboards_bindables,
         snake_case_fallback_resolvers,
     ],
 )
