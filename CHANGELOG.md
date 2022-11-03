@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/BLSQ/openhexa-frontend/compare/0.10.2...0.11.0) (2022-11-03)
+
+
+### Features
+
+* **Permissions:** New permissions system ([#101](https://github.com/BLSQ/openhexa-frontend/issues/101)) ([e062bc2](https://github.com/BLSQ/openhexa-frontend/commit/e062bc2ed78a2469eca1a64b1f2a748f08029d7c))
+
 ## [0.10.2](https://github.com/BLSQ/openhexa-frontend/compare/0.10.1...0.10.2) (2022-10-28)
 
 
