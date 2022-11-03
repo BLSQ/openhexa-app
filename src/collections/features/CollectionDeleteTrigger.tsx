@@ -43,7 +43,7 @@ const CollectionDeleteTrigger = (props: CollectionDeleteTriggerProps) => {
     }
   }, [collection, clearCache, router, confirmMessage]);
 
-  if (!collection.authorizedActions.canDelete) {
+  if (!collection.permissions.delete) {
     return null;
   }
   return children({ onClick });
@@ -54,8 +54,8 @@ CollectionDeleteTrigger.fragments = {
     fragment CollectionDeleteTrigger_collection on Collection {
       id
       name
-      authorizedActions {
-        canDelete
+      permissions {
+        delete
       }
     }
   `,

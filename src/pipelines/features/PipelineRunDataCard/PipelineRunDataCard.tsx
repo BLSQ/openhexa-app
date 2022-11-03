@@ -15,11 +15,7 @@ import Spinner from "core/components/Spinner";
 import { formatDuration } from "core/helpers/time";
 import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";
-import {
-  DagRunStatus,
-  DagRunTrigger,
-  MeAuthorizedActions,
-} from "graphql-types";
+import { DagRunStatus, DagRunTrigger } from "graphql-types";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
@@ -81,7 +77,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
       <DataCard.Heading<typeof dagRun>
         renderActions={(item) => (
           <div className="flex items-center gap-2.5">
-            {me?.authorizedActions?.includes(MeAuthorizedActions.SuperUser) && (
+            {me?.permissions.superUser && (
               <a target="_blank" rel="noreferrer" href={item.externalUrl}>
                 <Button
                   variant="outlined"

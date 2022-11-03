@@ -71,7 +71,7 @@ const Header = () => {
           <Menu.Item onClick={() => router.push("/user/account")}>
             {t("Your account")}
           </Menu.Item>
-          {me.authorizedActions?.includes(MeAuthorizedActions.AdminPanel) && (
+          {me.permissions.adminPanel && (
             <Menu.Item onClick={() => router.push("/admin")}>
               {t("Admin")}
             </Menu.Item>

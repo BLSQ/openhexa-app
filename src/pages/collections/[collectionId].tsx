@@ -199,7 +199,7 @@ const CollectionPage = ({ collectionId }: Props) => {
             <div className="mb-4 flex w-full items-center justify-between">
               <h3 className="flex-1 font-medium">{t("Elements")}</h3>
               <div className="flex items-center gap-2">
-                {collection.authorizedActions.canUpdate && (
+                {collection.permissions.update && (
                   <Button
                     onClick={toggleSearch}
                     variant="secondary"
@@ -209,7 +209,7 @@ const CollectionPage = ({ collectionId }: Props) => {
                     {t("Add")}
                   </Button>
                 )}
-                {collection.authorizedActions.canUpdate && !isEditingElements && (
+                {collection.permissions.update && !isEditingElements && (
                   <Button
                     onClick={toggleEditingElements}
                     variant="secondary"
@@ -219,7 +219,7 @@ const CollectionPage = ({ collectionId }: Props) => {
                     {t("Edit")}
                   </Button>
                 )}
-                {collection.authorizedActions.canUpdate && isEditingElements && (
+                {collection.permissions.update && isEditingElements && (
                   <Button
                     onClick={toggleEditingElements}
                     variant="secondary"

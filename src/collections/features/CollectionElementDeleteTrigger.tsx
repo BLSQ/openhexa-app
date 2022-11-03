@@ -37,7 +37,7 @@ const CollectionElementDeleteTrigger = (
     }
   }, [element, clearCache, confirmMessage]);
 
-  if (!collection.authorizedActions.canUpdate) {
+  if (!collection.permissions.update) {
     return null;
   }
 
@@ -48,8 +48,8 @@ CollectionElementDeleteTrigger.fragments = {
   collection: gql`
     fragment CollectionElementDeleteTrigger_collection on Collection {
       id
-      authorizedActions {
-        canUpdate
+      permissions {
+        update
       }
     }
   `,

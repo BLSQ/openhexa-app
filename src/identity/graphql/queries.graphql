@@ -1,6 +1,9 @@
 query GetUser {
   me {
-    authorizedActions
+    permissions {
+      adminPanel
+      superUser
+    }
     features {
       code
       config

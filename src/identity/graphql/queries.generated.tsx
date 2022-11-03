@@ -6,13 +6,16 @@ const defaultOptions = {} as const;
 export type GetUserQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', authorizedActions: Array<Types.MeAuthorizedActions>, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
 
 
 export const GetUserDocument = gql`
     query GetUser {
   me {
-    authorizedActions
+    permissions {
+      adminPanel
+      superUser
+    }
     features {
       code
       config

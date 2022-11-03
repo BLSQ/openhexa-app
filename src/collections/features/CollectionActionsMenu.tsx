@@ -13,7 +13,7 @@ const CollectionActionsMenu = ({ collection }: CollectionActionsMenuProps) => {
 
   return (
     <Menu label={t("Actions")}>
-      {collection.authorizedActions.canDelete && (
+      {collection.permissions.delete && (
         <CollectionDeleteTrigger collection={collection}>
           {({ onClick }) => (
             <Menu.Item
@@ -34,9 +34,8 @@ CollectionActionsMenu.fragments = {
   collection: gql`
     fragment CollectionActionsMenu_collection on Collection {
       id
-      authorizedActions {
-        canDelete
-        canUpdate
+      permissions {
+        delete
       }
       ...CollectionDeleteTrigger_collection
     }

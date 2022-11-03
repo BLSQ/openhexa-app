@@ -22,7 +22,7 @@ export type CollectionPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, summary?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, authorizedActions: { __typename?: 'CollectionAuthorizedActions', canUpdate: boolean, canDelete: boolean }, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'CollectionElement', id: string, createdAt: any, updatedAt: any, name: string, type: string, app: string, model: string, url?: any | null, objectId: string }> } } | null };
+export type CollectionPageQuery = { __typename?: 'Query', collection?: { __typename?: 'Collection', id: string, name: string, createdAt: any, updatedAt: any, description?: string | null, summary?: string | null, author?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string, alpha3: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, permissions: { __typename?: 'CollectionPermissions', update: boolean, delete: boolean }, elements: { __typename?: 'CollectionElementPage', items: Array<{ __typename?: 'CollectionElement', id: string, createdAt: any, updatedAt: any, name: string, type: string, app: string, model: string, url?: any | null, objectId: string }> } } | null };
 
 
 export const CollectionsPageDocument = gql`
@@ -104,8 +104,8 @@ export const CollectionPageDocument = gql`
       ...Tag_tag
     }
     ...CollectionElementsTable_collection
-    authorizedActions {
-      canUpdate
+    permissions {
+      update
     }
     elements {
       items {

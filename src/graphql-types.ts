@@ -51,6 +51,7 @@ export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & AccessmodOwners
   __typename?: 'AccessmodAccessibilityAnalysis';
   algorithm?: Maybe<AccessmodAccessibilityAnalysisAlgorithm>;
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   barrier?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
@@ -65,6 +66,7 @@ export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & AccessmodOwners
   movingSpeeds?: Maybe<Scalars['MovingSpeeds']>;
   name: Scalars['String'];
   owner?: Maybe<AccessmodOwner>;
+  permissions: AccessmodAnalysisPermissions;
   stack?: Maybe<AccessmodFileset>;
   stackPriorities?: Maybe<Scalars['StackPriorities']>;
   status: AccessmodAnalysisStatus;
@@ -83,10 +85,12 @@ export enum AccessmodAccessibilityAnalysisAlgorithm {
 
 export type AccessmodAnalysis = {
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
   name: Scalars['String'];
+  permissions: AccessmodAnalysisPermissions;
   status: AccessmodAnalysisStatus;
   type: AccessmodAnalysisType;
   updatedAt: Scalars['DateTime'];
@@ -104,6 +108,13 @@ export type AccessmodAnalysisPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type AccessmodAnalysisPermissions = {
+  __typename?: 'AccessmodAnalysisPermissions';
+  delete: Scalars['Boolean'];
+  run: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export enum AccessmodAnalysisStatus {
@@ -135,6 +146,7 @@ export type AccessmodFile = {
 export type AccessmodFileset = AccessmodOwnership & {
   __typename?: 'AccessmodFileset';
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodFilesetAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   files: Array<AccessmodFile>;
@@ -143,6 +155,7 @@ export type AccessmodFileset = AccessmodOwnership & {
   mode: AccessmodFilesetMode;
   name: Scalars['String'];
   owner?: Maybe<AccessmodOwner>;
+  permissions: AccessmodFilesetPermissions;
   role: AccessmodFilesetRole;
   status: AccessmodFilesetStatus;
   updatedAt: Scalars['DateTime'];
@@ -171,6 +184,13 @@ export type AccessmodFilesetPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type AccessmodFilesetPermissions = {
+  __typename?: 'AccessmodFilesetPermissions';
+  createFile: Scalars['Boolean'];
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export type AccessmodFilesetRole = {
@@ -213,6 +233,7 @@ export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & AccessmodO
   __typename?: 'AccessmodGeographicCoverageAnalysis';
   anisotropic?: Maybe<Scalars['Boolean']>;
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   catchmentAreas?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
@@ -225,6 +246,7 @@ export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & AccessmodO
   maxTravelTime?: Maybe<Scalars['Int']>;
   name: Scalars['String'];
   owner?: Maybe<AccessmodOwner>;
+  permissions: AccessmodAnalysisPermissions;
   population?: Maybe<AccessmodFileset>;
   status: AccessmodAnalysisStatus;
   type: AccessmodAnalysisType;
@@ -240,6 +262,7 @@ export type AccessmodOwnership = {
 export type AccessmodProject = AccessmodOwnership & {
   __typename?: 'AccessmodProject';
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodProjectAuthorizedActions>;
   country: Country;
   createdAt: Scalars['DateTime'];
@@ -248,9 +271,10 @@ export type AccessmodProject = AccessmodOwnership & {
   description: Scalars['String'];
   extent?: Maybe<Array<Array<Scalars['Float']>>>;
   id: Scalars['String'];
+  members: Array<AccessmodProjectMember>;
   name: Scalars['String'];
   owner?: Maybe<AccessmodOwner>;
-  permissions: Array<AccessmodProjectPermission>;
+  permissions: AccessmodProjectPermissions;
   spatialResolution: Scalars['Int'];
   updatedAt: Scalars['DateTime'];
 };
@@ -262,6 +286,26 @@ export enum AccessmodProjectAuthorizedActions {
   Delete = 'DELETE',
   Update = 'UPDATE'
 }
+
+export type AccessmodProjectMember = {
+  __typename?: 'AccessmodProjectMember';
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
+  authorizedActions: Array<AccessmodProjectPermissionAuthorizedActions>;
+  createdAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  mode: PermissionMode;
+  permissions: AccessmodProjectMemberPermissions;
+  project: AccessmodProject;
+  team?: Maybe<Team>;
+  updatedAt: Scalars['DateTime'];
+  user?: Maybe<User>;
+};
+
+export type AccessmodProjectMemberPermissions = {
+  __typename?: 'AccessmodProjectMemberPermissions';
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
+};
 
 export enum AccessmodProjectOrder {
   NameAsc = 'NAME_ASC',
@@ -278,40 +322,31 @@ export type AccessmodProjectPage = {
   totalPages: Scalars['Int'];
 };
 
-export type AccessmodProjectPermission = {
-  __typename?: 'AccessmodProjectPermission';
-  authorizedActions: Array<AccessmodProjectPermissionAuthorizedActions>;
-  createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
-  mode: PermissionMode;
-  project: AccessmodProject;
-  team?: Maybe<Team>;
-  updatedAt: Scalars['DateTime'];
-  user?: Maybe<User>;
-};
-
 export enum AccessmodProjectPermissionAuthorizedActions {
   Delete = 'DELETE',
   Update = 'UPDATE'
 }
 
-export type AccessmodProjectPermissionPage = {
-  __typename?: 'AccessmodProjectPermissionPage';
-  items: Array<AccessmodProjectPermission>;
-  pageNumber: Scalars['Int'];
-  totalItems: Scalars['Int'];
-  totalPages: Scalars['Int'];
+export type AccessmodProjectPermissions = {
+  __typename?: 'AccessmodProjectPermissions';
+  createAnalysis: Scalars['Boolean'];
+  createFileset: Scalars['Boolean'];
+  createMember: Scalars['Boolean'];
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & {
   __typename?: 'AccessmodZonalStatistics';
   author: User;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   boundaries?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
   name: Scalars['String'];
   owner?: Maybe<AccessmodOwner>;
+  permissions: AccessmodAnalysisPermissions;
   population?: Maybe<AccessmodFileset>;
   status: AccessmodAnalysisStatus;
   timeThresholds?: Maybe<Scalars['TimeThresholds']>;
@@ -334,12 +369,6 @@ export type ApproveAccessmodAccessRequestResult = {
   __typename?: 'ApproveAccessmodAccessRequestResult';
   errors: Array<ApproveAccessmodAccessRequestError>;
   success: Scalars['Boolean'];
-};
-
-export type AuthorizedActions = {
-  __typename?: 'AuthorizedActions';
-  createCollection: Scalars['Boolean'];
-  createTeam: Scalars['Boolean'];
 };
 
 export type Avatar = {
@@ -386,6 +415,7 @@ export type CatalogPage = {
 export type Collection = {
   __typename?: 'Collection';
   author?: Maybe<User>;
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: CollectionAuthorizedActions;
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
@@ -393,6 +423,7 @@ export type Collection = {
   elements: CollectionElementPage;
   id: Scalars['String'];
   name: Scalars['String'];
+  permissions: CollectionPermissions;
   summary?: Maybe<Scalars['String']>;
   tags: Array<Tag>;
   updatedAt: Scalars['DateTime'];
@@ -437,6 +468,12 @@ export type CollectionPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type CollectionPermissions = {
+  __typename?: 'CollectionPermissions';
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export type Country = {
@@ -522,24 +559,24 @@ export type CreateAccessmodProjectInput = {
   spatialResolution: Scalars['Int'];
 };
 
-export enum CreateAccessmodProjectPermissionError {
+export enum CreateAccessmodProjectMemberError {
   AlreadyExists = 'ALREADY_EXISTS',
   NotFound = 'NOT_FOUND',
   NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
-export type CreateAccessmodProjectPermissionInput = {
+export type CreateAccessmodProjectMemberInput = {
   mode: PermissionMode;
   projectId: Scalars['String'];
   teamId?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['String']>;
 };
 
-export type CreateAccessmodProjectPermissionResult = {
-  __typename?: 'CreateAccessmodProjectPermissionResult';
-  errors: Array<CreateAccessmodProjectPermissionError>;
-  permission?: Maybe<AccessmodProjectPermission>;
+export type CreateAccessmodProjectMemberResult = {
+  __typename?: 'CreateAccessmodProjectMemberResult';
+  errors: Array<CreateAccessmodProjectMemberError>;
+  member?: Maybe<AccessmodProjectMember>;
   success: Scalars['Boolean'];
 };
 
@@ -807,19 +844,19 @@ export type DeleteAccessmodProjectInput = {
   id: Scalars['String'];
 };
 
-export enum DeleteAccessmodProjectPermissionError {
+export enum DeleteAccessmodProjectMemberError {
   NotFound = 'NOT_FOUND',
   NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
-export type DeleteAccessmodProjectPermissionInput = {
+export type DeleteAccessmodProjectMemberInput = {
   id: Scalars['String'];
 };
 
-export type DeleteAccessmodProjectPermissionResult = {
-  __typename?: 'DeleteAccessmodProjectPermissionResult';
-  errors: Array<DeleteAccessmodProjectPermissionError>;
+export type DeleteAccessmodProjectMemberResult = {
+  __typename?: 'DeleteAccessmodProjectMemberResult';
+  errors: Array<DeleteAccessmodProjectMemberError>;
   success: Scalars['Boolean'];
 };
 
@@ -942,8 +979,10 @@ export type LogoutResult = {
 
 export type Me = {
   __typename?: 'Me';
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<MeAuthorizedActions>;
   features: Array<FeatureFlag>;
+  permissions: MePermissions;
   user?: Maybe<User>;
 };
 
@@ -954,6 +993,16 @@ export enum MeAuthorizedActions {
   ManageAccessmodAccessRequests = 'MANAGE_ACCESSMOD_ACCESS_REQUESTS',
   SuperUser = 'SUPER_USER'
 }
+
+export type MePermissions = {
+  __typename?: 'MePermissions';
+  adminPanel: Scalars['Boolean'];
+  createAccessmodProject: Scalars['Boolean'];
+  createCollection: Scalars['Boolean'];
+  createTeam: Scalars['Boolean'];
+  manageAccessmodAccessRequests: Scalars['Boolean'];
+  superUser: Scalars['Boolean'];
+};
 
 export type Membership = {
   __typename?: 'Membership';
@@ -991,7 +1040,7 @@ export type Mutation = {
   createAccessmodFile: CreateAccessmodFileResult;
   createAccessmodFileset: CreateAccessmodFilesetResult;
   createAccessmodProject: CreateAccessmodProjectResult;
-  createAccessmodProjectPermission: CreateAccessmodProjectPermissionResult;
+  createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
   createCollection: CreateCollectionResult;
   createCollectionElement: CreateCollectionElementResult;
@@ -1000,7 +1049,7 @@ export type Mutation = {
   deleteAccessmodAnalysis: DeleteAccessmodAnalysisResult;
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
-  deleteAccessmodProjectPermission: DeleteAccessmodProjectPermissionResult;
+  deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
   deleteCollection: DeleteCollectionResult;
   deleteCollectionElement: DeleteCollectionElementResult;
   deleteMembership: DeleteMembershipResult;
@@ -1021,7 +1070,7 @@ export type Mutation = {
   updateAccessmodAccessibilityAnalysis: UpdateAccessmodAccessibilityAnalysisResult;
   updateAccessmodFileset: UpdateAccessmodFilesetResult;
   updateAccessmodProject: UpdateAccessmodProjectResult;
-  updateAccessmodProjectPermission: UpdateAccessmodProjectPermissionResult;
+  updateAccessmodProjectMember: UpdateAccessmodProjectMemberResult;
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateCollection: UpdateCollectionResult;
   updateDAG: UpdateDagResult;
@@ -1055,8 +1104,8 @@ export type MutationCreateAccessmodProjectArgs = {
 };
 
 
-export type MutationCreateAccessmodProjectPermissionArgs = {
-  input: CreateAccessmodProjectPermissionInput;
+export type MutationCreateAccessmodProjectMemberArgs = {
+  input: CreateAccessmodProjectMemberInput;
 };
 
 
@@ -1100,8 +1149,8 @@ export type MutationDeleteAccessmodProjectArgs = {
 };
 
 
-export type MutationDeleteAccessmodProjectPermissionArgs = {
-  input: DeleteAccessmodProjectPermissionInput;
+export type MutationDeleteAccessmodProjectMemberArgs = {
+  input: DeleteAccessmodProjectMemberInput;
 };
 
 
@@ -1200,8 +1249,8 @@ export type MutationUpdateAccessmodProjectArgs = {
 };
 
 
-export type MutationUpdateAccessmodProjectPermissionArgs = {
-  input: UpdateAccessmodProjectPermissionInput;
+export type MutationUpdateAccessmodProjectMemberArgs = {
+  input: UpdateAccessmodProjectMemberInput;
 };
 
 
@@ -1587,11 +1636,13 @@ export type Tag = {
 
 export type Team = {
   __typename?: 'Team';
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<TeamAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
   memberships: MembershipPage;
   name: Scalars['String'];
+  permissions: TeamPermissions;
   updatedAt: Scalars['DateTime'];
 };
 
@@ -1613,6 +1664,13 @@ export type TeamPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type TeamPermissions = {
+  __typename?: 'TeamPermissions';
+  createMembership: Scalars['Boolean'];
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export enum UpdateAccessmodAccessibilityAnalysisError {
@@ -1677,21 +1735,21 @@ export type UpdateAccessmodProjectInput = {
   name?: InputMaybe<Scalars['String']>;
 };
 
-export enum UpdateAccessmodProjectPermissionError {
+export enum UpdateAccessmodProjectMemberError {
   NotFound = 'NOT_FOUND',
   NotImplemented = 'NOT_IMPLEMENTED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
-export type UpdateAccessmodProjectPermissionInput = {
+export type UpdateAccessmodProjectMemberInput = {
   id: Scalars['String'];
   mode: PermissionMode;
 };
 
-export type UpdateAccessmodProjectPermissionResult = {
-  __typename?: 'UpdateAccessmodProjectPermissionResult';
-  errors: Array<UpdateAccessmodProjectPermissionError>;
-  permission?: Maybe<AccessmodProjectPermission>;
+export type UpdateAccessmodProjectMemberResult = {
+  __typename?: 'UpdateAccessmodProjectMemberResult';
+  errors: Array<UpdateAccessmodProjectMemberError>;
+  member?: Maybe<AccessmodProjectMember>;
   success: Scalars['Boolean'];
 };
 

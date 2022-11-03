@@ -18,7 +18,9 @@ export function TestApp(props: TestAppProps) {
   const me = props.me ?? {
     features: [],
     user: LOGGED_IN_USER,
-    authorizedActions: [],
+    permissions: {
+      adminPanel: true,
+    },
   };
   return (
     <MockedProvider addTypename={false} mocks={props.mocks ?? []}>

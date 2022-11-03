@@ -20,7 +20,7 @@ import { PageContent } from "core/components/Layout/PageContent";
 import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
-import { Country, DagRunTrigger, MeAuthorizedActions } from "graphql-types";
+import { Country, DagRunTrigger } from "graphql-types";
 import useMe from "identity/hooks/useMe";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
@@ -105,9 +105,7 @@ const PipelinePage = (props: Props) => {
               titleAccessor={(item) => item.label || item.externalId}
               renderActions={(item) => (
                 <div className="flex items-center gap-2">
-                  {me?.authorizedActions?.includes(
-                    MeAuthorizedActions.SuperUser
-                  ) && (
+                  {me?.permissions.superUser && (
                     <a target="_blank" rel="noreferrer" href={item.externalUrl}>
                       <Button
                         variant="outlined"
