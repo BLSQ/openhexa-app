@@ -6,7 +6,7 @@ RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin
 RUN pip install --upgrade pip
 
 # Needed for TailwindCSS
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
 RUN apt-get install -y nodejs
 
 RUN mkdir /code
