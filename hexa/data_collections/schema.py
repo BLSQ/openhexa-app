@@ -109,19 +109,27 @@ def resolve_collection_authorized_actions(collection: Collection, info):
     return collection
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 collection_authorized_actions = ObjectType("CollectionAuthorizedActions")
 
+collection_permissions = ObjectType("CollectionPermissions")
 
-@collection_authorized_actions.field("canUpdate")
-def resolve_collection_can_update(collection: Collection, info):
+
+@collection_permissions.field("update")
+def resolve_collection_update(collection: Collection, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("data_collections.update_collection", collection)
 
 
-@collection_authorized_actions.field("canDelete")
-def resolve_collection_can_delete(collection: Collection, info):
+@collection_permissions.field("delete")
+def resolve_collection_delete(collection: Collection, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("data_collections.delete_collection", collection)
+
+
+@collection_object.field("permissions")
+def resolve_collection_permissions(collection: Collection, info):
+    return collection
 
 
 @collections_mutations.field("createCollection")
@@ -274,4 +282,5 @@ collections_bindables = [
     collection_element_object,
     collections_mutations,
     collection_authorized_actions,
+    collection_permissions,
 ]

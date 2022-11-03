@@ -43,6 +43,9 @@ class SchemaTest(GraphQLTestCase):
         cls.SUPER_USER_ALF = User.objects.create_user(
             "alf@bluesquarehub.com", "alfdu96", is_superuser=True, is_staff=True
         )
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin@blusqaurehub.com", "adminadmin2022", is_staff=True
+        )
         cls.TEAM_CORE = Team.objects.create(name="Core team")
         cls.MEMBERSHIP_JANE_CORE = Membership.objects.create(
             user=cls.USER_JANE, team=cls.TEAM_CORE, role=MembershipRole.ADMIN
@@ -68,9 +71,13 @@ class SchemaTest(GraphQLTestCase):
                   user {
                     id
                   }
-                  authorizedActions
                   features {
                     code
+                  }
+                  permissions {
+                    createTeam
+                    adminPanel
+                    superUser
                   }
                 }
               }
@@ -78,7 +85,15 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"user": None, "authorizedActions": [], "features": []},
+            {
+                "user": None,
+                "permissions": {
+                    "createTeam": False,
+                    "superUser": False,
+                    "adminPanel": False,
+                },
+                "features": [],
+            },
             r["data"]["me"],
         )
 
@@ -97,10 +112,13 @@ class SchemaTest(GraphQLTestCase):
                     dateJoined
                     lastLogin
                   }
-                  authorizedActions
                   features {
                     code
                     config
+                  }
+                  permissions {
+                    createTeam
+                    adminPanel
                   }
                 }
               }
@@ -121,7 +139,7 @@ class SchemaTest(GraphQLTestCase):
                     else None,
                 },
                 "features": [],
-                "authorizedActions": ["CREATE_TEAM", "CREATE_ACCESSMOD_PROJECT"],
+                "permissions": {"createTeam": True, "adminPanel": False},
             },
             r["data"]["me"],
         )
@@ -136,6 +154,9 @@ class SchemaTest(GraphQLTestCase):
                     code
                     config
                   }
+                  user {
+                    id
+                  }
                 }
               }
             """,
@@ -149,6 +170,9 @@ class SchemaTest(GraphQLTestCase):
                         "config": self.TAYLOR_FEATURE_FLAG.config,
                     }
                 ],
+                "user": {
+                    "id": str(self.USER_TAYLOR.id),
+                },
             },
             r["data"]["me"],
         )

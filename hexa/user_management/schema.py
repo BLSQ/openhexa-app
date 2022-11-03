@@ -31,6 +31,26 @@ identity_type_defs = load_schema_from_path(
 identity_query = QueryType()
 identity_mutations = MutationType()
 
+me_permissions_object = ObjectType("MePermissions")
+
+
+@me_permissions_object.field("createTeam")
+def resolve_me_permissions_create_team(obj, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.is_authenticated  # TODO: Implement a real check of permissions
+
+
+@me_permissions_object.field("superUser")
+def resolve_can_superuser(obj, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.is_superuser
+
+
+@me_permissions_object.field("adminPanel")
+def resolve_can_admin_panel(obj, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.is_staff
+
 
 me_object = ObjectType("Me")
 feature_flag_object = ObjectType("FeatureFlag")
@@ -52,6 +72,7 @@ def resolve_me_user(_, info):
     return request.user if request.user.is_authenticated else None
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 @me_object.field("authorizedActions")
 def resolve_me_authorized_actions(_, info):
     request = info.context["request"]
@@ -88,6 +109,11 @@ def resolve_me_features(_, info):
         return principal.featureflag_set.all()
     else:
         return []
+
+
+@me_object.field("permissions")
+def resolve_me_permissions(_, info):
+    return me_permissions_object
 
 
 @identity_query.field("me")
@@ -133,6 +159,7 @@ def resolve_team_memberships(team: Team, *_, **kwargs):
     )
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 @team_object.field("authorizedActions")
 def resolve_team_authorized_actions(team: Team, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -150,9 +177,37 @@ def resolve_team_authorized_actions(team: Team, info, **kwargs):
     )
 
 
+@team_object.field("permissions")
+def resolve_team_permissions(team: Team, info):
+    return team
+
+
+team_permissions_object = ObjectType("TeamPermissions")
+
+
+@team_permissions_object.field("update")
+def resolve_team_permissions_update(team: Team, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.update_team", team)
+
+
+@team_permissions_object.field("delete")
+def resolve_team_permissions_delete(team: Team, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.delete_team", team)
+
+
+@team_permissions_object.field("createMembership")
+def resolve_team_permissions_create_membership(team: Team, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.create_membership", team)
+
+
 membership_object = ObjectType("Membership")
+membership_permissions_object = ObjectType("MembershipPermissions")
 
 
+# FIXME: To remove once authorizedActions are completely deprecated
 @membership_object.field("authorizedActions")
 def resolve_membership_authorized_actions(membership: Membership, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -169,6 +224,23 @@ def resolve_membership_authorized_actions(membership: Membership, info, **kwargs
             else None,
         ],
     )
+
+
+@membership_object.field("permissions")
+def resolve_membership_permissions(membership, info, **kwargs):
+    return membership
+
+
+@membership_permissions_object.field("update")
+def resolve_membership_permissions_update(membership: Membership, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.update_membership", membership)
+
+
+@membership_permissions_object.field("delete")
+def resolve_membership_permissions_delete(membership: Membership, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("user_management.delete_membership", membership)
 
 
 @identity_query.field("organizations")
@@ -390,14 +462,6 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
-authorized_actions_object = ObjectType("AuthorizedActions")
-
-
-@authorized_actions_object.field("createTeam")
-def resolve_can_create_team(team: Team, *_, **kwargs):
-    return True
-
-
 identity_bindables = [
     identity_query,
     user_object,
@@ -405,7 +469,9 @@ identity_bindables = [
     me_object,
     feature_flag_object,
     membership_object,
-    authorized_actions_object,
+    me_permissions_object,
+    team_permissions_object,
+    membership_permissions_object,
     organization_object,
     identity_mutations,
 ]

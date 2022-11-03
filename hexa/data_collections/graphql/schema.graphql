@@ -8,7 +8,8 @@ type Collection {
     description: String
     summary: String
     elements (page: Int, perPage: Int): CollectionElementPage!
-    authorizedActions: CollectionAuthorizedActions!
+    authorizedActions: CollectionAuthorizedActions! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: CollectionPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
@@ -18,10 +19,18 @@ type CollectionPage {
     totalItems: Int!
     items: [Collection!]!
 }
+
+# FIXME: To remove once authorizedActions are completely deprecated
 type CollectionAuthorizedActions {
     canUpdate: Boolean!
     canDelete: Boolean!
 }
+
+type CollectionPermissions {
+    update: Boolean!
+    delete: Boolean!
+}
+
 input CreateCollectionInput {
     name: String!
     authorId: String
@@ -134,6 +143,6 @@ type CollectionElementPage {
 }
 
 # App-specific permissions
-extend type AuthorizedActions {
+extend type MePermissions {
     createCollection: Boolean!
 }

@@ -107,7 +107,7 @@ class ProjectTest(GraphQLTestCase):
                   author {
                     email
                   }
-                  permissions {
+                  members {
                     user { id }
                     team { id }
                     project { id }
@@ -131,7 +131,7 @@ class ProjectTest(GraphQLTestCase):
                 },
                 "author": {"email": "jim@bluesquarehub.com"},
                 "owner": {"__typename": "User", "id": str(self.USER_JIM.id)},
-                "permissions": [
+                "members": [
                     {
                         "user": {"id": str(self.USER_JIM.id)},
                         "team": None,
@@ -557,15 +557,15 @@ class ProjectTest(GraphQLTestCase):
         )
         self.assertIsNone(Project.objects.filter(id=self.SAMPLE_PROJECT.id).first())
 
-    def test_create_accessmod_project_permission(self):
+    def test_create_accessmod_project_member(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
-                  createAccessmodProjectPermission(input: $input) {
+                mutation createAccessmodProjectMember($input: CreateAccessmodProjectMemberInput!) {
+                  createAccessmodProjectMember(input: $input) {
                     success
-                    permission {
+                    member {
                       project {
                         id
                       }
@@ -592,14 +592,14 @@ class ProjectTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": True,
-                "permission": {
+                "member": {
                     "project": {"id": str(self.SAMPLE_PROJECT.id)},
                     "user": None,
                     "team": {"id": str(self.TEAM.id)},
                 },
                 "errors": [],
             },
-            r["data"]["createAccessmodProjectPermission"],
+            r["data"]["createAccessmodProjectMember"],
         )
         # We should end with a single "OWNER" permission
         permission = ProjectPermission.objects.get(project=self.SAMPLE_PROJECT)
@@ -608,15 +608,15 @@ class ProjectTest(GraphQLTestCase):
         self.assertEqual(PermissionMode.OWNER, permission.mode)
         self.assertIsNone(permission.user)
 
-    def test_create_accessmod_project_permission_errors(self):
+    def test_create_accessmod_project_member_errors(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
-                  createAccessmodProjectPermission(input: $input) {
+                mutation createAccessmodProjectMember($input: CreateAccessmodProjectMemberInput!) {
+                  createAccessmodProjectMember(input: $input) {
                     success
-                    permission {
+                    member {
                     id
                     }
                     errors
@@ -635,18 +635,18 @@ class ProjectTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": False,
-                "permission": None,
+                "member": None,
                 "errors": ["PERMISSION_DENIED"],
             },
-            r["data"]["createAccessmodProjectPermission"],
+            r["data"]["createAccessmodProjectMember"],
         )
 
         r = self.run_query(
             """
-                mutation createAccessmodProjectPermission($input: CreateAccessmodProjectPermissionInput!) {
-                  createAccessmodProjectPermission(input: $input) {
+                mutation createAccessmodProjectMember($input: CreateAccessmodProjectMemberInput!) {
+                  createAccessmodProjectMember(input: $input) {
                     success
-                    permission {
+                    member {
                     id
                     }
                     errors
@@ -665,21 +665,21 @@ class ProjectTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": False,
-                "permission": None,
+                "member": None,
                 "errors": ["NOT_IMPLEMENTED"],
             },
-            r["data"]["createAccessmodProjectPermission"],
+            r["data"]["createAccessmodProjectMember"],
         )
 
-    def test_update_accessmod_project_permission(self):
+    def test_update_accessmod_project_member(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation updateAccessmodProjectPermission($input: UpdateAccessmodProjectPermissionInput!) {
-                  updateAccessmodProjectPermission(input: $input) {
+                mutation updateAccessmodProjectMember($input: UpdateAccessmodProjectMemberInput!) {
+                  updateAccessmodProjectMember(input: $input) {
                     success
-                    permission {
+                    member {
                         id
                     }
                     errors
@@ -690,21 +690,21 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["updateAccessmodProjectPermission"],
+            r["data"]["updateAccessmodProjectMember"],
             {
                 "success": False,
-                "permission": None,
+                "member": None,
                 "errors": ["NOT_IMPLEMENTED"],
             },
         )
 
-    def test_delete_accessmod_project_permission(self):
+    def test_delete_accessmod_project_member(self):
         self.client.force_login(self.USER_JIM)
 
         r = self.run_query(
             """
-                mutation deleteAccessmodProjectPermission($input: DeleteAccessmodProjectPermissionInput!) {
-                  deleteAccessmodProjectPermission(input: $input) {
+                mutation deleteAccessmodProjectMember($input: DeleteAccessmodProjectMemberInput!) {
+                  deleteAccessmodProjectMember(input: $input) {
                     success
                     errors
                   }
@@ -718,7 +718,7 @@ class ProjectTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["deleteAccessmodProjectPermission"],
+            r["data"]["deleteAccessmodProjectMember"],
             {
                 "success": False,
                 "errors": ["NOT_IMPLEMENTED"],

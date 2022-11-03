@@ -15,13 +15,16 @@ type Avatar {
 }
 type Me {
     user: User
-    authorizedActions: [MeAuthorizedActions!]!
     features: [FeatureFlag!]!
+    authorizedActions: [MeAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: MePermissions!
 }
+
 # This is our legacy approach : a simple enum that other modules can extend
 # it works fine, but implementing it in the API is complex - see resolve_me to get
 # a glimpse of the added complexity. We are now moving to an alternative approach -
-# see the "AuthorizedActions" type below
+# see the "MePermissions" type below
+#FIXME To remove once authorizedActions are completely deprecated
 enum MeAuthorizedActions {
     CREATE_TEAM
     ADMIN_PANEL
@@ -31,8 +34,10 @@ enum MeAuthorizedActions {
 # This is the preferred way of determining the global (not specific to a business object) actions that users can take
 # This type can be extended in other modules. It is the responsibility of each module to extend this type and provide a
 # resolver for the added fields.
-type AuthorizedActions {
+type MePermissions {
     createTeam: Boolean!
+    adminPanel: Boolean!
+    superUser: Boolean!
 }
 
 input LoginInput {
@@ -88,10 +93,18 @@ type Team {
     id: String!
     name: String!
     memberships(page: Int, perPage: Int): MembershipPage!
-    authorizedActions: [TeamAuthorizedActions!]!
+    authorizedActions: [TeamAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: TeamPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type TeamPermissions {
+    update: Boolean!
+    createMembership: Boolean!
+    delete: Boolean!
+}
+
 type TeamPage {
     pageNumber: Int!
     totalPages: Int!
@@ -162,11 +175,19 @@ type Membership {
     id: String!
     user: User!
     team: Team!
-    authorizedActions: [MembershipAuthorizedActions!]!
+    authorizedActions: [MembershipAuthorizedActions!]!  @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
+    permissions: MembershipPermissions!
     role: MembershipRole!
     createdAt: DateTime!
     updatedAt: DateTime!
 }
+
+type MembershipPermissions {
+    update: Boolean!
+    delete: Boolean!
+}
+
+#FIXME To remove once authorizedActions are completely deprecated
 enum MembershipAuthorizedActions {
     UPDATE
     DELETE
