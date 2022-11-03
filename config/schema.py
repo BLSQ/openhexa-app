@@ -9,6 +9,7 @@ from ariadne import (
 from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.data_collections.schema import collections_bindables, collections_type_defs
+from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
 from hexa.plugins.connector_accessmod.schema import (
     accessmod_bindables,
     accessmod_type_defs,
@@ -36,6 +37,7 @@ schema = make_executable_schema(
         accessmod_type_defs,
         countries_type_defs,
         dashboards_type_defs,
+        notebooks_type_defs,
     ],
     [
         *catalog_bindables,
@@ -48,6 +50,7 @@ schema = make_executable_schema(
         *accessmod_bindables,
         *countries_bindables,
         *dashboards_bindables,
+        *notebooks_bindables,
         snake_case_fallback_resolvers,
     ],
 )
