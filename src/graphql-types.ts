@@ -940,6 +940,27 @@ export type DenyAccessmodAccessRequestResult = {
   success: Scalars['Boolean'];
 };
 
+export type ExternalDashboard = {
+  __typename?: 'ExternalDashboard';
+  countries: Array<Country>;
+  createdAt: Scalars['DateTime'];
+  description?: Maybe<Scalars['String']>;
+  id: Scalars['String'];
+  name: Scalars['String'];
+  pictureUrl: Scalars['URL'];
+  tags: Array<Tag>;
+  updatedAt: Scalars['DateTime'];
+  url: Scalars['URL'];
+};
+
+export type ExternalDashboardPage = {
+  __typename?: 'ExternalDashboardPage';
+  items: Array<ExternalDashboard>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
 export type FeatureFlag = {
   __typename?: 'FeatureFlag';
   code: Scalars['String'];
@@ -1074,6 +1095,7 @@ export type Mutation = {
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateCollection: UpdateCollectionResult;
   updateDAG: UpdateDagResult;
+  updateExternalDashboard: UpdateExternalDashboardResult;
   updateMembership: UpdateMembershipResult;
   updateTeam: UpdateTeamResult;
 };
@@ -1269,6 +1291,11 @@ export type MutationUpdateDagArgs = {
 };
 
 
+export type MutationUpdateExternalDashboardArgs = {
+  input: UpdateExternalDashboardInput;
+};
+
+
 export type MutationUpdateMembershipArgs = {
   input: UpdateMembershipInput;
 };
@@ -1363,6 +1390,8 @@ export type Query = {
   dag?: Maybe<Dag>;
   dagRun?: Maybe<DagRun>;
   dags: DagPage;
+  externalDashboard?: Maybe<ExternalDashboard>;
+  externalDashboards: ExternalDashboardPage;
   me: Me;
   organizations: Array<Organization>;
   search: SearchQueryResult;
@@ -1465,6 +1494,17 @@ export type QueryDagRunArgs = {
 
 
 export type QueryDagsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryExternalDashboardArgs = {
+  id: Scalars['String'];
+};
+
+
+export type QueryExternalDashboardsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
 };
@@ -1820,6 +1860,25 @@ export type UpdateDagResult = {
   __typename?: 'UpdateDAGResult';
   dag?: Maybe<Dag>;
   errors: Array<UpdateDagError>;
+  success: Scalars['Boolean'];
+};
+
+export enum UpdateExternalDashboardError {
+  Invalid = 'INVALID',
+  NotFound = 'NOT_FOUND'
+}
+
+export type UpdateExternalDashboardInput = {
+  countries?: InputMaybe<Array<CountryInput>>;
+  description?: InputMaybe<Scalars['String']>;
+  id: Scalars['String'];
+  name?: InputMaybe<Scalars['String']>;
+};
+
+export type UpdateExternalDashboardResult = {
+  __typename?: 'UpdateExternalDashboardResult';
+  errors: Array<UpdateExternalDashboardError>;
+  externalDashboard?: Maybe<ExternalDashboard>;
   success: Scalars['Boolean'];
 };
 

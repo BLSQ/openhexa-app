@@ -1,0 +1,11 @@
+mutation updateExternalDashboard($input: UpdateExternalDashboardInput!) {
+    updateExternalDashboard(input: $input) {
+        success
+        errors
+        externalDashboard {
+            id
+            name
+            description
+        }
+    }
+}

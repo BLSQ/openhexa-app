@@ -17,6 +17,7 @@ app.prepare().then(async () => {
       filter: function (req) {
         const isNext =
           req.url.startsWith("/collections") ||
+          req.url.startsWith("/visualizations") ||
           req.url.startsWith("/pipelines") ||
           req.url.startsWith("/catalog/search") ||
           req.url.startsWith("/airflow") ||
@@ -25,7 +26,8 @@ app.prepare().then(async () => {
           req.url === "/" ||
           req.url.startsWith("/ready");
 
-        return !isNext;
+        const isLegacy = req.url.search(/^\/visualizations\/[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}\b\/image/)
+        return !isNext || !isLegacy
       },
     })
   );

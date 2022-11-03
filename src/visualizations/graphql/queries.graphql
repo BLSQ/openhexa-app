@@ -1,0 +1,41 @@
+query VisualizationsPage($page: Int, $perPage: Int = 15) {
+  externalDashboards(page: $page, perPage: $perPage) {
+    totalPages
+    totalItems
+    items {
+      id
+      name
+      url
+      description
+      ...VisualizationPicture_visualization
+      createdAt
+      updatedAt
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
+    }
+  }
+}
+
+
+query Visualization($id: String!) {
+  externalDashboard(id:$id) {
+      id
+      name
+      url
+      description
+      ...VisualizationPicture_visualization
+      createdAt
+      updatedAt
+      countries {
+        ...CountryBadge_country
+      }
+      tags {
+        ...Tag_tag
+      }
+    }
+}
+

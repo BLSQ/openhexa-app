@@ -850,6 +850,25 @@ type DHIS2Instance {
   url: String
 }
 
+type ExternalDashboard {
+  id: String!
+  name: String!
+  url: URL!
+  pictureUrl: URL!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  description: String
+  countries: [Country!]!
+  tags: [Tag!]!
+}
+
+type ExternalDashboardPage {
+  items: [ExternalDashboard!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
 type FeatureFlag {
   code: String!
   config: JSON!
@@ -986,6 +1005,7 @@ type Mutation {
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
+  updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
 }
 
 type Organization {
@@ -1072,6 +1092,8 @@ type Query {
   country(code: String, alpha3: String): Country
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
   countries: [Country!]!
+  externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
+  externalDashboard(id: String!): ExternalDashboard
 }
 
 enum RequestAccessmodAccessError {
@@ -1382,6 +1404,24 @@ type UpdateDAGResult {
   success: Boolean!
   errors: [UpdateDAGError!]!
   dag: DAG
+}
+
+enum UpdateExternalDashboardError {
+  INVALID
+  NOT_FOUND
+}
+
+input UpdateExternalDashboardInput {
+  id: String!
+  description: String
+  name: String
+  countries: [CountryInput!]
+}
+
+type UpdateExternalDashboardResult {
+  success: Boolean!
+  errors: [UpdateExternalDashboardError!]!
+  externalDashboard: ExternalDashboard
 }
 
 enum UpdateMembershipError {

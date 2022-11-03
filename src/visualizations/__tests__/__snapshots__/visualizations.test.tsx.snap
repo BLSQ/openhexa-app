@@ -1,0 +1,843 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Visualization renders a visualization info page  1`] = `
+<div>
+  <main
+    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6"
+  >
+    <nav
+      aria-label="Breadcrumbs"
+      class="my-8 px-2"
+    >
+      <ol
+        class="flex items-center"
+        role="list"
+      >
+        <li>
+          <div>
+            <a
+              class="text-gray-400 hover:text-gray-500"
+              href="/"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                  fill-rule="evenodd"
+                />
+              </svg>
+              <span
+                class="sr-only"
+              >
+                Home
+              </span>
+            </a>
+          </div>
+        </li>
+        <li
+          class="ml-3"
+        >
+          <div
+            class="flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"
+              />
+            </svg>
+            <span
+              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              <a
+                href="/visualizations"
+              >
+                External Dashboard
+              </a>
+            </span>
+          </div>
+        </li>
+        <li
+          class="ml-3"
+        >
+          <div
+            class="flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"
+              />
+            </svg>
+            <span
+              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              <a
+                href="/visualizations/351489ac-5bbe-4ed3-aab9-8155024092b4"
+              >
+                Untitled Dashboard
+              </a>
+            </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="space-y-10"
+    >
+      <article
+        class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white divide-y divide-gray-200"
+      >
+        <h3
+          class="px-4 py-5 pt-7 text-lg font-medium leading-4 text-gray-900 sm:px-6 flex items-center justify-between"
+        >
+          <div>
+            <div
+              class="flex items-center"
+            >
+              <div
+                class="flex h-10 w-10 flex-shrink-0 items-center"
+              >
+                <img
+                  alt=""
+                  class="h-10 w-10 rounded-full"
+                />
+              </div>
+              <div
+                class="ml-4 w-full truncate"
+              >
+                <div
+                  class="truncate text-sm font-medium text-gray-900"
+                  title="Untitled Dashboard"
+                >
+                  Untitled Dashboard
+                </div>
+                <div
+                  class="truncate text-sm text-gray-500"
+                >
+                  <span>
+                    External Dashboard
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </h3>
+        <div
+          class="px-4 py-5 sm:px-6"
+        >
+          <div
+            aria-controls="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+            aria-expanded="true"
+            class="-my-7 flex items-center py-7"
+            data-headlessui-state="open"
+            id="headlessui-disclosure-button-6fbe024f-2316-4265-a6e8-d65a837e308a"
+          >
+            <h4
+              class="font-medium"
+            >
+              Information
+            </h4>
+            <div
+              class="flex flex-1 items-center justify-end"
+            >
+              <button
+                title="Hide"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <div
+              class="mt-6"
+              data-headlessui-state="open"
+              id="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+            >
+              <dl
+                class="space-y-6"
+              >
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Url
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    <a
+                      class="flex items-center text-blue-600 hover:text-blue-500 focus:outline-none"
+                      href="https://coronavirus.data.gov.uk/"
+                    >
+                      https://coronavirus.data.gov.uk/
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+        <div
+          class="px-4 py-5 sm:px-6"
+        >
+          <div
+            aria-controls="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
+            aria-expanded="true"
+            class="-my-7 flex items-center py-7"
+            data-headlessui-state="open"
+            id="headlessui-disclosure-button-6af683b4-52ac-4d60-8c9f-ab447c31177e"
+          >
+            <h4
+              class="font-medium"
+            >
+              OpenHexa Metadata
+            </h4>
+            <div>
+              <button
+                class="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+              >
+                Edit
+                <svg
+                  aria-hidden="true"
+                  class="h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              class="flex flex-1 items-center justify-end"
+            >
+              <button
+                title="Hide"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <div
+              class="mt-6"
+              data-headlessui-state="open"
+              id="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
+            >
+              <dl
+                class="space-y-6"
+              >
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Label
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    <div
+                      class="prose text-sm"
+                    >
+                      Untitled Dashboard
+                    </div>
+                  </dd>
+                </div>
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Description
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    <div
+                      class="prose text-sm"
+                    >
+                      -
+                    </div>
+                  </dd>
+                </div>
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Owner
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    -
+                  </dd>
+                </div>
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Tags
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    <div
+                      class="flex flex-wrap items-center gap-1.5"
+                    >
+                      -
+                    </div>
+                  </dd>
+                </div>
+                <div
+                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                >
+                  <dt
+                    class="col-span-1 text-sm font-medium text-gray-500"
+                  >
+                    <span>
+                      Location
+                    </span>
+                  </dt>
+                  <dd
+                    class="col-span-4 text-sm text-gray-900"
+                  >
+                    <div
+                      class="flex flex-wrap items-center gap-1.5"
+                    >
+                      -
+                    </div>
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>
+`;
+
+exports[`Visualization renders null as the visualization does not exist 1`] = `<div />`;
+
+exports[`Visualization renders the visualizations' page 1`] = `
+<div>
+  <main
+    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6"
+  >
+    <nav
+      aria-label="Breadcrumbs"
+      class="my-8 px-2"
+    >
+      <ol
+        class="flex items-center"
+        role="list"
+      >
+        <li>
+          <div>
+            <a
+              class="text-gray-400 hover:text-gray-500"
+              href="/"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                  fill-rule="evenodd"
+                />
+              </svg>
+              <span
+                class="sr-only"
+              >
+                Home
+              </span>
+            </a>
+          </div>
+        </li>
+        <li
+          class="ml-3"
+        >
+          <div
+            class="flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"
+              />
+            </svg>
+            <span
+              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              <a
+                href="/pipelines"
+              >
+                Visualizations
+              </a>
+            </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <h2
+          class="text-xl font-medium"
+        >
+          Visualizations
+        </h2>
+      </div>
+      <article
+        class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+      >
+        <div>
+          <div
+            class="overflow-x-auto"
+          >
+            <div
+              class="overflow-x-auto"
+            >
+              <table
+                class="table-fixed w-full divide-y divide-gray-200 "
+                role="table"
+                style="min-width: 330px;"
+              >
+                <thead
+                  class="bg-gray-50"
+                >
+                  <tr
+                    class=""
+                    role="row"
+                    style="display: flex; flex: 1 0 auto; min-width: 330px;"
+                  >
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 240 0 auto; min-width: 240px; width: 240px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Name
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Location
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Updated at
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 100 0 auto; min-width: 30px; width: 100px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="divide-y divide-gray-200"
+                  role="rowgroup"
+                />
+              </table>
+            </div>
+            <div
+              class="px-6 py-4 text-center text-sm italic text-gray-500"
+            >
+              No elements to display
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>
+`;
+
+exports[`Visualization renders the visualizations' page with data 1`] = `
+<div>
+  <main
+    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6"
+  >
+    <nav
+      aria-label="Breadcrumbs"
+      class="my-8 px-2"
+    >
+      <ol
+        class="flex items-center"
+        role="list"
+      >
+        <li>
+          <div>
+            <a
+              class="text-gray-400 hover:text-gray-500"
+              href="/"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                  fill-rule="evenodd"
+                />
+              </svg>
+              <span
+                class="sr-only"
+              >
+                Home
+              </span>
+            </a>
+          </div>
+        </li>
+        <li
+          class="ml-3"
+        >
+          <div
+            class="flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"
+              />
+            </svg>
+            <span
+              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              <a
+                href="/pipelines"
+              >
+                Visualizations
+              </a>
+            </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="space-y-4"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <h2
+          class="text-xl font-medium"
+        >
+          Visualizations
+        </h2>
+      </div>
+      <article
+        class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+      >
+        <div>
+          <div
+            class="overflow-x-auto"
+          >
+            <div
+              class="overflow-x-auto"
+            >
+              <table
+                class="table-fixed w-full divide-y divide-gray-200 "
+                role="table"
+                style="min-width: 330px;"
+              >
+                <thead
+                  class="bg-gray-50"
+                >
+                  <tr
+                    class=""
+                    role="row"
+                    style="display: flex; flex: 1 0 auto; min-width: 330px;"
+                  >
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 240 0 auto; min-width: 240px; width: 240px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Name
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Location
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      >
+                        Updated at
+                      </div>
+                    </th>
+                    <th
+                      colspan="1"
+                      role="columnheader"
+                      scope="col"
+                      style="box-sizing: border-box; flex: 100 0 auto; min-width: 30px; width: 100px;"
+                    >
+                      <div
+                        class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                      />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="divide-y divide-gray-200"
+                  role="rowgroup"
+                >
+                  <tr
+                    class=""
+                    role="row"
+                    style="display: flex; flex: 1 0 auto; min-width: 330px;"
+                  >
+                    <td
+                      role="cell"
+                      style="box-sizing: border-box; flex: 240 0 auto; min-width: 240px; width: 240px;"
+                    >
+                      <div
+                        class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                      >
+                        <a
+                          class="font-medium text-gray-700"
+                          href="https://coronavirus.data.gov.uk/"
+                        >
+                          <div
+                            class="flex items-center"
+                          >
+                            <div
+                              class="flex h-10 w-10 flex-shrink-0 items-center"
+                            >
+                              <img
+                                alt=""
+                                class="h-10 w-10 rounded-full"
+                              />
+                            </div>
+                            <div
+                              class="ml-4 w-full truncate"
+                            >
+                              <div
+                                class="truncate text-sm font-medium text-gray-900"
+                                title="Untitled Dashboard"
+                              >
+                                Untitled Dashboard
+                              </div>
+                              <div
+                                class="truncate text-sm text-gray-500"
+                              >
+                                https://coronavirus.data.gov.uk/
+                              </div>
+                            </div>
+                          </div>
+                        </a>
+                      </div>
+                    </td>
+                    <td
+                      role="cell"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                      >
+                        <div
+                          class="flex max-w-full flex-wrap items-center gap-2"
+                        >
+                          -
+                        </div>
+                      </div>
+                    </td>
+                    <td
+                      role="cell"
+                      style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                    >
+                      <div
+                        class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                      >
+                        <time
+                          class="whitespace-nowrap truncate"
+                          datetime="2022-10-21T13:35:42.716+02:00"
+                          title="2022-10-21T13:35:42.716+02:00"
+                        >
+                          10 hours ago
+                        </time>
+                      </div>
+                    </td>
+                    <td
+                      role="cell"
+                      style="box-sizing: border-box; flex: 100 0 auto; min-width: 30px; width: 100px;"
+                    >
+                      <div
+                        class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                      >
+                        <div
+                          class="w-full"
+                        >
+                          <a
+                            class="text-blue-600 hover:text-blue-500 cursor-pointer outline-none"
+                          >
+                            <div
+                              class="flex w-full items-center justify-end "
+                            >
+                              View
+                              <svg
+                                aria-hidden="true"
+                                class="inline h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  clip-rule="evenodd"
+                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                  fill-rule="evenodd"
+                                />
+                              </svg>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>
+`;

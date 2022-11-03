@@ -6,6 +6,12 @@
 import "@testing-library/jest-dom/extend-expect";
 import { faker } from "@faker-js/faker";
 import { setConfig } from "next/config";
+import { Settings } from "luxon";
+
+Settings.defaultLocale = "en";
+Settings.defaultZone = "Europe/Brussels";
+Settings.now = jest.fn().mockImplementation(() => Date.now());
+
 // @ts-ignore
 import { publicRuntimeConfig } from "./next.config";
 
@@ -25,10 +31,21 @@ beforeEach(() => {
 // Mock browser confirm
 window.confirm = jest.fn();
 
+jest.mock("react", () => {
+  const actualReact = jest.requireActual("react");
+  return {
+    ...actualReact,
+    useId() {
+      const ref = actualReact.useRef(faker.datatype.uuid());
+      return ref.current;
+    },
+  };
+});
+
 jest.mock("react-i18next", () => ({
   I18nextProvider: jest.fn(),
   useTranslation: () => ({ t: (key) => key }),
-  __esmodule: true,
+  __esModule: true,
 }));
 
 jest.mock("next/router", () => require("next-router-mock"));
