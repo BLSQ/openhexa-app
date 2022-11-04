@@ -21,3 +21,14 @@ query GetUser {
     }
   }
 }
+
+query AccountPage {
+  me {
+    user {
+      firstName
+      lastName
+      dateJoined
+      ...User_user
+    }
+  }
+}
