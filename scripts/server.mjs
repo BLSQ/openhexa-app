@@ -18,6 +18,7 @@ app.prepare().then(async () => {
         const isNext =
           req.url.startsWith("/collections") ||
           req.url.startsWith("/visualizations") ||
+          req.url.startsWith("/notebooks") ||
           req.url.startsWith("/pipelines") ||
           req.url.startsWith("/catalog/search") ||
           req.url.startsWith("/airflow") ||

@@ -332,6 +332,7 @@ export type AccessmodProjectPermissions = {
   createAnalysis: Scalars['Boolean'];
   createFileset: Scalars['Boolean'];
   createMember: Scalars['Boolean'];
+  createPermission: Scalars['Boolean'];
   delete: Scalars['Boolean'];
   update: Scalars['Boolean'];
 };
@@ -1027,9 +1028,11 @@ export type MePermissions = {
 
 export type Membership = {
   __typename?: 'Membership';
+  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<MembershipAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
+  permissions: MembershipPermissions;
   role: MembershipRole;
   team: Team;
   updatedAt: Scalars['DateTime'];
@@ -1047,6 +1050,12 @@ export type MembershipPage = {
   pageNumber: Scalars['Int'];
   totalItems: Scalars['Int'];
   totalPages: Scalars['Int'];
+};
+
+export type MembershipPermissions = {
+  __typename?: 'MembershipPermissions';
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
 };
 
 export enum MembershipRole {
@@ -1393,6 +1402,7 @@ export type Query = {
   externalDashboard?: Maybe<ExternalDashboard>;
   externalDashboards: ExternalDashboardPage;
   me: Me;
+  notebooksUrl: Scalars['URL'];
   organizations: Array<Organization>;
   search: SearchQueryResult;
   team?: Maybe<Team>;

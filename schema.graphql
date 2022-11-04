@@ -1094,6 +1094,7 @@ type Query {
   countries: [Country!]!
   externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
   externalDashboard(id: String!): ExternalDashboard
+  notebooksUrl: URL!
 }
 
 enum RequestAccessmodAccessError {
