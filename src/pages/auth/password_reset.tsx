@@ -7,7 +7,7 @@ import useForm from "core/hooks/useForm";
 import { useResetPasswordMutation } from "identity/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "core/components/Link";
 import { ReactElement, useState } from "react";
 
 interface ResetPasswordForm {
@@ -67,9 +67,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
               </p>
               <div className="text-center">
                 <Link href="/">
-                  <a>
-                    <Button>Go back to login</Button>
-                  </a>
+                  <Button>Go back to login</Button>
                 </Link>
               </div>
             </div>

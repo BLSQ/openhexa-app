@@ -78,7 +78,11 @@ describe("Quicksearch", () => {
       },
     ];
 
-    render(<Quicksearch onClose={onClose} open />);
+    render(
+      <>
+        <Quicksearch onClose={onClose} open />
+      </>
+    );
 
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).toBeInTheDocument();
@@ -129,7 +133,11 @@ describe("Quicksearch", () => {
 
   it("calls onClose when the route changes", async () => {
     mockRouter.setCurrentUrl("/");
-    render(<Quicksearch onClose={onClose} open />);
+    render(
+      <>
+        <Quicksearch onClose={onClose} open />
+      </>
+    );
 
     expect(onClose).not.toHaveBeenCalled();
 
@@ -147,7 +155,11 @@ describe("Quicksearch", () => {
   it("redirects the user to the advanced search and forward the querystring", async () => {
     mockRouter.setCurrentUrl("/");
     const user = await userEvent.setup({ delay: null });
-    render(<Quicksearch onClose={onClose} open />);
+    render(
+      <>
+        <Quicksearch onClose={onClose} open />
+      </>
+    );
 
     expect(screen.queryByRole("dialog")).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();

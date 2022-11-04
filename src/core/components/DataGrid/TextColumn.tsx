@@ -74,8 +74,8 @@ export function TextColumn(props: TextColumnProps) {
 
   if (href) {
     return (
-      <Link href={href}>
-        <a className="max-w-full">{children}</a>
+      <Link href={href} className="max-w-full">
+        {children}
       </Link>
     );
   } else {

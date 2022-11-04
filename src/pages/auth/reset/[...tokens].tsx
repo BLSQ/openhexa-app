@@ -5,9 +5,10 @@ import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
 import { SetPasswordError } from "graphql-types";
 import { useSetPasswordMutation } from "identity/graphql/mutations.generated";
-import Link from "next/link";
+import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useTranslation } from "next-i18next";
 
 type Form = {
   password1: string;
@@ -31,7 +32,7 @@ const SetPasswordPage = () => {
   const router = useRouter();
   const [setPassword] = useSetPasswordMutation();
   const [isDone, setDone] = useState(false);
-
+  const { t } = useTranslation();
   const form = useForm<Form>({
     onSubmit: async (values) => {
       if (router.query.tokens) {
@@ -56,17 +57,17 @@ const SetPasswordPage = () => {
     validate: (values) => {
       const errors = {} as any;
       if (!values.password1) {
-        errors.password1 = "Enter a password";
+        errors.password1 = t("Enter a password");
       }
       if (!values.password2) {
-        errors.password2 = "Enter a password";
+        errors.password2 = t("Enter a password");
       }
       if (
         values.password1 &&
         values.password2 &&
         values.password1 !== values.password2
       ) {
-        errors.password2 = "Passwords are not the same";
+        errors.password2 = t("Passwords are not the same");
       }
       return errors;
     },
@@ -79,25 +80,23 @@ const SetPasswordPage = () => {
           {isDone ? (
             <>
               <h2 className="mb-6 text-center text-3xl font-extrabold text-gray-900">
-                Password changed!
+                {t("Password changed!")}
               </h2>
               <div className="text-center">
                 <Link href="/">
-                  <a>
-                    <Button>Go back to login</Button>
-                  </a>
+                  <Button>{t("Go back to login")}</Button>
                 </Link>
               </div>
             </>
           ) : (
             <form className="flex-1 space-y-6" onSubmit={form.handleSubmit}>
               <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Set a new password
+                {t("Set a new password")}
               </h2>
               <Field
                 name="password1"
                 type="password"
-                label="Password"
+                label={t("Password")}
                 required
                 autoComplete="new-password"
                 value={form.formData.password1}
@@ -108,7 +107,7 @@ const SetPasswordPage = () => {
               <Field
                 name="password2"
                 type="password"
-                label="Password"
+                label={t("Password")}
                 required
                 autoComplete="new-password"
                 value={form.formData.password2}
@@ -126,7 +125,7 @@ const SetPasswordPage = () => {
                 type="submit"
                 className="w-full"
               >
-                Set password
+                {t("Set password")}
               </Button>
             </form>
           )}

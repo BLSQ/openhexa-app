@@ -32,19 +32,20 @@ const Header = () => {
           "flex h-16 items-center gap-6"
         )}
       >
-        <Link href="/dashboard">
-          <a className="relative flex h-8 flex-shrink-0 items-center">
-            <img
-              className="block h-full lg:hidden"
-              src="/images/logo.svg"
-              alt="OpenHexa logo"
-            />
-            <img
-              className="hidden h-full lg:block"
-              src="/images/logo_with_text_white.svg"
-              alt="OpenHexa logo"
-            />
-          </a>
+        <Link
+          href="/dashboard"
+          className="relative flex h-8 flex-shrink-0 items-center"
+        >
+          <img
+            className="block h-full lg:hidden"
+            src="/images/logo.svg"
+            alt="OpenHexa logo"
+          />
+          <img
+            className="hidden h-full lg:block"
+            src="/images/logo_with_text_white.svg"
+            alt="OpenHexa logo"
+          />
         </Link>
         <Navbar />
         <button

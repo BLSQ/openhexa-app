@@ -79,7 +79,7 @@ const PipelinesPage = (props: Props) => {
               <BaseColumn id="name" label={t("Name")} minWidth={240}>
                 {(item) => (
                   <Link
-                    linkStyle="text-gray-700 font-medium"
+                    customStyle="text-gray-700 font-medium"
                     href={{
                       pathname: "/pipelines/[pipelinesId]",
                       query: { pipelinesId: item.id },

@@ -71,7 +71,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
   );
 
   const executionDateRelative = useRelativeTime(dagRun.executionDate);
-  console.log(dagRun.externalUrl);
+
   return (
     <DataCard item={dagRun}>
       <DataCard.Heading<typeof dagRun>

@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
-import Link from "next/link";
+import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
 
@@ -14,14 +14,11 @@ const Classes = {
 const Item = ({ href, children }: { href: string; children: ReactNode }) => {
   const router = useRouter();
   return (
-    <Link href={href}>
-      <a
-        className={clsx(
-          router.asPath === href ? Classes.activeItem : Classes.item
-        )}
-      >
-        {children}
-      </a>
+    <Link
+      href={href}
+      customStyle={router.asPath === href ? Classes.activeItem : Classes.item}
+    >
+      {children}
     </Link>
   );
 };

@@ -7,12 +7,12 @@ import { useCellContext } from "./helpers";
 type URLResolver = (value: any) => LinkProps["href"];
 export type LinkColumnProps = Omit<BaseColumnProps, "children"> & {
   url: LinkProps["href"] | URLResolver;
-  linkStyle?: string;
+  customStyle?: string;
   children?: ReactNode;
 };
 
 const LinkColumn = (props: LinkColumnProps) => {
-  const { className, url, children, linkStyle } = props;
+  const { className, url, children, customStyle } = props;
   const cell = useCellContext();
 
   const href = useMemo(() => {
@@ -24,7 +24,7 @@ const LinkColumn = (props: LinkColumnProps) => {
   }, [cell.value, url]);
 
   return (
-    <Link className={className} linkStyle={linkStyle} href={href}>
+    <Link className={className} customStyle={customStyle} href={href}>
       {children}
     </Link>
   );

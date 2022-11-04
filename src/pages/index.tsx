@@ -6,7 +6,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import Page from "core/components/Layout/Page";
@@ -39,10 +39,10 @@ const LoginPage: NextPageWithLayout = () => {
     validate: (values) => {
       const errors = {} as any;
       if (!values.email) {
-        errors.email = "Please enter an email address";
+        errors.email = t("Please enter an email address");
       }
       if (!values.password) {
-        errors.password = "Enter your password";
+        errors.password = t("Enter your password");
       }
       return errors;
     },
@@ -80,7 +80,7 @@ const LoginPage: NextPageWithLayout = () => {
           </div>
           <div className="-space-y-px pt-2">
             <label className="sr-only" htmlFor="email">
-              Email address
+              {t("Email address")}
             </label>
             <Input
               name="email"
@@ -91,12 +91,12 @@ const LoginPage: NextPageWithLayout = () => {
               className="rounded-b-none"
               onChange={form.handleInputChange}
               autoComplete="email"
-              placeholder="Email address"
+              placeholder={t("Email address")}
               disabled={form.isSubmitting}
               error={form.touched.email && form.errors.email}
             />
             <label className="sr-only" htmlFor="password">
-              Password
+              {t("Password")}
             </label>
             <Input
               name="password"
@@ -104,7 +104,7 @@ const LoginPage: NextPageWithLayout = () => {
               required
               data-testid="password"
               type="password"
-              placeholder="Password"
+              placeholder={t("Password")}
               onChange={form.handleInputChange}
               autoComplete="current-password"
               disabled={form.isSubmitting}
@@ -119,10 +119,11 @@ const LoginPage: NextPageWithLayout = () => {
           </div>
           <div className="flex items-center justify-end">
             <div className="text-sm">
-              <Link href="/auth/password_reset/">
-                <a className="text-blue-600 hover:text-blue-500">
-                  Forgot your password?
-                </a>
+              <Link
+                href="/auth/password_reset/"
+                customStyle="text-blue-600 hover:text-blue-500"
+              >
+                {t("Forgot your password?")}
               </Link>
             </div>
           </div>
@@ -133,7 +134,7 @@ const LoginPage: NextPageWithLayout = () => {
             className="w-full"
           >
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            Sign in
+            {t("Sign in")}
           </Button>
         </form>
       </div>

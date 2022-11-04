@@ -32,7 +32,6 @@ const config = {
   reactStrictMode: true,
   trailingSlash: false,
   i18n,
-  swcMinify: true,
 };
 
 const sentryWebpackPluginOptions = {

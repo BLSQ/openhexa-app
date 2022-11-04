@@ -1,17 +1,16 @@
 import { HomeIcon } from "@heroicons/react/20/solid";
 import { useTranslation } from "next-i18next";
-import Link from "next/link";
+
 import { ReactNode } from "react";
 import { UrlObject } from "url";
+import Link from "./Link";
 
 export const Part = ({
   children,
   href,
-  onClick,
 }: {
   children: ReactNode;
   href?: UrlObject | string;
-  onClick?: () => void;
 }) => {
   return (
     <li className="ml-3">
@@ -27,8 +26,8 @@ export const Part = ({
         </svg>
         <span className="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">
           {href ? (
-            <Link href={href}>
-              <a>{children}</a>
+            <Link customStyle="" href={href}>
+              {children}
             </Link>
           ) : (
             children
@@ -51,11 +50,9 @@ const Breadcrumbs = (props: {
       <ol role="list" className="flex items-center">
         <li>
           <div>
-            <Link href="/">
-              <a className="text-gray-400 hover:text-gray-500">
-                <HomeIcon className="h-5 w-5 flex-shrink-0" />
-                <span className="sr-only">{t("Home")}</span>
-              </a>
+            <Link href="/" customStyle="text-gray-400 hover:text-gray-500">
+              <HomeIcon className="h-5 w-5 flex-shrink-0" />
+              <span className="sr-only">{t("Home")}</span>
             </Link>
           </div>
         </li>

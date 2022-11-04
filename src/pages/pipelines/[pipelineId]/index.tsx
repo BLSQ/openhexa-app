@@ -205,7 +205,7 @@ const PipelinePage = (props: Props) => {
                 <BaseColumn id="id" label={t("Run")}>
                   {(item) => (
                     <Link
-                      linkStyle="text-gray-700 hover:text-gray-600"
+                      customStyle="text-gray-700 hover:text-gray-600"
                       href={{
                         pathname: "/pipelines/[pipelinesId]/runs/[runId]",
                         query: { pipelinesId: dag.id, runId: item.id },
