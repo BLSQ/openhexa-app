@@ -20,6 +20,7 @@ app.prepare().then(async () => {
           req.url.startsWith("/visualizations") ||
           req.url.startsWith("/notebooks") ||
           req.url.startsWith("/pipelines") ||
+          req.url.startsWith("/user/account") ||
           req.url.startsWith("/catalog/search") ||
           req.url.startsWith("/airflow") ||
           req.url.startsWith("/images") ||
@@ -27,8 +28,10 @@ app.prepare().then(async () => {
           req.url === "/" ||
           req.url.startsWith("/ready");
 
-        const isLegacy = req.url.search(/^\/visualizations\/[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}\b\/image/)
-        return !isNext || !isLegacy
+        const isLegacy = req.url.search(
+          /^\/visualizations\/[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}\b\/image/
+        );
+        return !isNext || !isLegacy;
       },
     })
   );
