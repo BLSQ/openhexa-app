@@ -40,6 +40,6 @@ export const LOGGED_IN_USER = {
 };
 
 export async function waitForDialog(options?: ByRoleOptions) {
-  const dialog = await screen.getByRole("dialog", options);
+  const dialog = await screen.findByRole("dialog", options);
   return dialog;
 }

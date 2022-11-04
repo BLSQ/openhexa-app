@@ -2,7 +2,7 @@ import { Portal } from "@headlessui/react";
 import { AlertType } from "core/helpers/alert";
 import { useListener } from "core/hooks/useEmitter";
 import { useMemo, useState } from "react";
-import Alert from "./Alert";
+import Alert from "../Alert";
 
 const AlertManager = () => {
   const [alert, setAlert] = useState<null | {
