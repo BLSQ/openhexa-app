@@ -10,7 +10,7 @@ type UserProps = {
 
 const User = ({ user, subtext, textColor = "text-inherit" }: UserProps) => {
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       <UserAvatar user={user} size="sm" />
       <div className="truncate">
         <div className={textColor}>{user.displayName}</div>
