@@ -8,13 +8,14 @@ import { PropertyDefinition } from "./types";
 
 type DatePropertyProps = PropertyDefinition & {
   format?: DateTimeFormatOptions;
+  relative?: boolean;
   min?: string;
   max?: string;
   markdown?: boolean;
 };
 
 const DateProperty = (props: DatePropertyProps) => {
-  const { format, min, max, ...delegated } = props;
+  const { format, min, max, relative, ...delegated } = props;
 
   const { property, section } = useDataCardProperty(delegated);
 
@@ -36,7 +37,11 @@ const DateProperty = (props: DatePropertyProps) => {
         />
       ) : (
         property.displayValue && (
-          <Time datetime={property.displayValue} format={format} />
+          <Time
+            relative={relative}
+            datetime={property.displayValue}
+            format={format}
+          />
         )
       )}
     </DataCard.Property>
