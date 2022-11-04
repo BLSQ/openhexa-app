@@ -1,0 +1,26 @@
+enum ActivityStatus {
+  SUCCESS
+  PENDING
+  RUNNING
+  ERROR
+  UNKNOWN
+}
+
+type Activity {
+  description: String!
+  occurredAt: DateTime!
+  url: URL!
+  status: ActivityStatus!
+}
+
+
+type CoreDashboard {
+  datasources: Int!
+  notebooks: Int!
+  pipelines: Int!
+  lastActivities: [Activity!]
+}
+
+extend type Query {
+  coreDashboard: CoreDashboard!
+}
