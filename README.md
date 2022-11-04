@@ -28,6 +28,8 @@ OpenHexa is an **open-source data integration platform** that allows users to:
 OpenHexa architecture
 =====================
 
+You will find an overview of OpenHexa in the [main OpenHexa repository](https://github.com/blsq/openhexa).
+
 The OpenHexa platform is composed of **three main components**:
 
 - The **App component**, a Django application that acts as the user-facing part of the OpenHexa platform
