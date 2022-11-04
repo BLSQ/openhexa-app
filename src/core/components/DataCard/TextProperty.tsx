@@ -51,7 +51,7 @@ const TextProperty = (props: TextPropertyProps) => {
             {property.displayValue}
           </ReactMarkdown>
         ) : (
-          <div className="prose text-sm">
+          <div className="prose text-sm text-gray-900">
             {property.displayValue || defaultValue}
           </div>
         )}
