@@ -40,8 +40,8 @@ export type ComboboxProps<T> = {
   placeholder?: string;
   withPortal?: boolean;
   className?: string;
-  value?: T;
-  onChange(value?: T): void;
+  value?: T | null;
+  onChange(value?: T | null): void;
 };
 
 const Classes = {
@@ -114,6 +114,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
       value={value}
       multiple={false}
       disabled={disabled}
+      nullable
       by={by as any /* Otherwise tyepscript is not happy */}
       {...delegated}
     >
@@ -141,7 +142,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
                 />
               </UICombobox.Input>
             </div>
-            {renderIcon && renderIcon(value)}
+            {value && renderIcon && renderIcon(value)}
             <UICombobox.Button ref={btnRef} data-testid="combobox-button">
               <div className="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none">
                 {value && !required && !disabled && (

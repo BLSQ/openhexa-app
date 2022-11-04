@@ -61,6 +61,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               <a
+                class=""
                 href="/visualizations"
               >
                 External Dashboard
@@ -89,6 +90,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               <a
+                class=""
                 href="/visualizations/351489ac-5bbe-4ed3-aab9-8155024092b4"
               >
                 Untitled Dashboard
@@ -451,6 +453,7 @@ exports[`Visualization renders the visualizations' page 1`] = `
               class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               <a
+                class=""
                 href="/pipelines"
               >
                 Visualizations
@@ -623,6 +626,7 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
               class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               <a
+                class=""
                 href="/pipelines"
               >
                 Visualizations
@@ -806,26 +810,24 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
                           class="w-full"
                         >
                           <a
-                            class="text-blue-600 hover:text-blue-500 cursor-pointer outline-none"
+                            accessor="id"
+                            class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
+                            href="/visualizations/351489ac-5bbe-4ed3-aab9-8155024092b4"
                           >
-                            <div
-                              class="flex w-full items-center justify-end "
+                            View
+                            <svg
+                              aria-hidden="true"
+                              class="inline h-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                              xmlns="http://www.w3.org/2000/svg"
                             >
-                              View
-                              <svg
-                                aria-hidden="true"
-                                class="inline h-5"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  clip-rule="evenodd"
-                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                  fill-rule="evenodd"
-                                />
-                              </svg>
-                            </div>
+                              <path
+                                clip-rule="evenodd"
+                                d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                fill-rule="evenodd"
+                              />
+                            </svg>
                           </a>
                         </div>
                       </div>

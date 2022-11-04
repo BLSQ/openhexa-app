@@ -12,16 +12,20 @@ exports[`LoginPage renders the login page 1`] = `
         <div
           class="relative h-16 w-auto"
         >
-          <img
-            alt="OpenHexa logo"
-            class="mx-auto block h-16 w-auto"
-            data-nimg="fill"
-            decoding="async"
-            sizes="100vw"
-            src="/images/logo.svg"
-            srcset="/images/logo.svg 640w, /images/logo.svg 750w, /images/logo.svg 828w, /images/logo.svg 1080w, /images/logo.svg 1200w, /images/logo.svg 1920w, /images/logo.svg 2048w, /images/logo.svg 3840w"
-            style="position: absolute; height: 100%; width: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; color: transparent;"
-          />
+          <span
+            style="box-sizing: border-box; display: block; overflow: hidden; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px;"
+          >
+            <img
+              alt="OpenHexa logo"
+              class="mx-auto block h-16 w-auto"
+              data-nimg="fill"
+              decoding="async"
+              sizes="100vw"
+              src="/images/logo.svg"
+              srcset="/images/logo.svg 640w, /images/logo.svg 750w, /images/logo.svg 828w, /images/logo.svg 1080w, /images/logo.svg 1200w, /images/logo.svg 1920w, /images/logo.svg 2048w, /images/logo.svg 3840w"
+              style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; box-sizing: border-box; padding: 0px; margin: auto; display: block; width: 0px; height: 0px; min-width: 100%; max-width: 100%; min-height: 100%; max-height: 100%;"
+            />
+          </span>
         </div>
         <h2
           class="mt-6 text-center text-3xl font-extrabold text-gray-900"

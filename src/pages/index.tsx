@@ -5,7 +5,7 @@ import { useLoginMutation } from "core/graphql/mutations.generated";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";

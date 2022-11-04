@@ -6,7 +6,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import { useResetPasswordMutation } from "identity/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import Link from "core/components/Link";
 import { ReactElement, useState } from "react";
 

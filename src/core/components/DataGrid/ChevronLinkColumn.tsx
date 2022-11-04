@@ -1,19 +1,28 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import LinkColumn, { LinkColumnProps } from "./LinkColumn";
 
 type ChevronLinkColumnProps = LinkColumnProps;
 
-const ChevronLinkColumn = (props: ChevronLinkColumnProps) => {
+const ChevronLinkColumn = ({
+  className,
+  maxWidth,
+  ...delegated
+}: ChevronLinkColumnProps) => {
   const { t } = useTranslation();
 
   return (
     <div className="w-full">
-      <LinkColumn {...props}>
-        <div className="flex w-full items-center justify-end ">
-          {t("View")}
-          <ChevronRightIcon className="inline h-5" />
-        </div>
+      <LinkColumn
+        {...delegated}
+        className={clsx(
+          className,
+          "flex w-full cursor-pointer items-center justify-end outline-none"
+        )}
+      >
+        {t("View")}
+        <ChevronRightIcon className="inline h-5" />
       </LinkColumn>
     </div>
   );

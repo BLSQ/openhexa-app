@@ -39,7 +39,7 @@ describe("Combobox", () => {
     const { container, debug } = render(
       <ComboboxWrapper
         onChange={onChange}
-        value={undefined}
+        value={null}
         onInputChange={onInputChange}
         displayValue={displayValue}
         data-testid="combobox"
