@@ -187,13 +187,13 @@ exports[`Visualization renders a visualization info page  1`] = `
               id="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
             >
               <dl
-                class="space-y-6"
+                class="grid gap-6"
               >
                 <div
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Url
@@ -282,13 +282,13 @@ exports[`Visualization renders a visualization info page  1`] = `
               id="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
             >
               <dl
-                class="space-y-6"
+                class="grid gap-6"
               >
                 <div
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Label
@@ -298,7 +298,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                     class="col-span-4 text-sm text-gray-900"
                   >
                     <div
-                      class="prose text-sm"
+                      class="prose text-sm text-gray-900"
                     >
                       Untitled Dashboard
                     </div>
@@ -308,7 +308,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Description
@@ -318,7 +318,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                     class="col-span-4 text-sm text-gray-900"
                   >
                     <div
-                      class="prose text-sm"
+                      class="prose text-sm text-gray-900"
                     >
                       -
                     </div>
@@ -328,7 +328,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Owner
@@ -344,7 +344,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Tags
@@ -364,7 +364,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                   class="grid grid-cols-5 gap-2 sm:gap-4"
                 >
                   <dt
-                    class="col-span-1 text-sm font-medium text-gray-500"
+                    class="text-sm font-medium text-gray-500 col-span-1"
                   >
                     <span>
                       Location

@@ -1,10 +1,10 @@
+import { Disclosure, Transition } from "@headlessui/react";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { Disclosure, Transition } from "@headlessui/react";
 
 import useForm, { FormInstance } from "core/hooks/useForm";
 import {
@@ -24,11 +24,11 @@ import {
 } from "react";
 import Block from "../Block";
 import Button from "../Button/Button";
-import DescriptionList from "../DescriptionList";
+import DescriptionList, { DescriptionListProps } from "../DescriptionList";
 import Spinner from "../Spinner";
+import StopClick from "../StopClick";
 import { DataCardSectionContext } from "./context";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
-import StopClick from "../StopClick";
 
 export type OnSaveFn = (
   values: { [key: string]: any },
@@ -44,7 +44,7 @@ type SectionProps = {
   editLabel?: string;
   editIcon?: ReactElement;
   onSave?: OnSaveFn;
-};
+} & Pick<DescriptionListProps, "displayMode" | "columns">;
 
 const getPropertyFlag = (displayValue: any, flag?: PropertyFlag) => {
   if (typeof flag === "function") {
@@ -81,6 +81,8 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
     editIcon,
     right,
     className,
+    displayMode,
+    columns,
     children,
     onSave,
     defaultOpen = true,
@@ -203,7 +205,12 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
                   <Disclosure.Panel static className={clsx(title && "mt-6")}>
                     {isEdited ? (
                       <form onSubmit={form.handleSubmit}>
-                        <DescriptionList>{children}</DescriptionList>
+                        <DescriptionList
+                          columns={columns}
+                          displayMode={displayMode}
+                        >
+                          {children}
+                        </DescriptionList>
 
                         {form.submitError && (
                           <p className={"my-2 text-sm text-red-600"}>
@@ -226,7 +233,12 @@ function Section<F extends { [key: string]: any }>(props: SectionProps) {
                         </div>
                       </form>
                     ) : (
-                      <DescriptionList>{children}</DescriptionList>
+                      <DescriptionList
+                        columns={columns}
+                        displayMode={displayMode}
+                      >
+                        {children}
+                      </DescriptionList>
                     )}
                   </Disclosure.Panel>
                 </Transition>
