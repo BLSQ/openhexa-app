@@ -14,8 +14,8 @@ if (config) {
     dsn: publicRuntimeConfig.SENTRY_DSN,
     environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
     // Adjust this value in production, or use tracesSampler for greater control
-    tracesSampler(context) {
-      if (context.location?.pathname === "/ready") {
+    tracesSampler({ transactionContext }) {
+      if (transactionContext.metadata?.requestPath?.startsWith("/ready")) {
         return 0;
       }
       return publicRuntimeConfig.SENTRY_TRACES_SAMPLE_RATE;
