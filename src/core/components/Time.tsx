@@ -31,6 +31,8 @@ const Time = (props: Props) => {
 
   return (
     <time
+      /* Relative time can quickly change between the server rendering and the client rendering. Let's ignore this while hydrating the dom */
+      suppressHydrationWarning={props.relative}
       title={datetime.toISO()}
       dateTime={datetime.toISO()}
       className={clsx("whitespace-nowrap", props.className)}
