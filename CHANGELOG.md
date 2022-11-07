@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/BLSQ/openhexa-frontend/compare/0.12.2...0.12.3) (2022-11-07)
+
+
+### Bug Fixes
+
+* **Sentry:** Do not record /ready transactions ([56a1e80](https://github.com/BLSQ/openhexa-frontend/commit/56a1e807c2d2defd1ed3b36267955110e7af1dc7))
+
 ## [0.12.2](https://github.com/BLSQ/openhexa-frontend/compare/0.12.1...0.12.2) (2022-11-07)
 
 
