@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/BLSQ/openhexa-frontend/compare/0.11.0...0.12.0) (2022-11-07)
+
+
+### Features
+
+* **Account:** Add the user's account page ([fe49745](https://github.com/BLSQ/openhexa-frontend/commit/fe497457ac7ebdfb8e3822388b90322337ff20f5))
+
 ## [0.11.0](https://github.com/BLSQ/openhexa-frontend/compare/0.10.2...0.11.0) (2022-11-03)
 
 
