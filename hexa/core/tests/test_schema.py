@@ -57,7 +57,7 @@ class CoreDashboardTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-                query coreDashboard {
+                query datasources {
                     datasources
                 }
                 """
@@ -72,22 +72,22 @@ class CoreDashboardTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-                query coreDashboard {
-                    notebooks
+                query totalNotebooks {
+                    totalNotebooks
                 }
                 """
         )
 
         self.assertEqual(
             1,
-            r["data"]["notebooks"],
+            r["data"]["totalNotebooks"],
         )
 
     def test_core_dashboard_pipelines(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-                query coreDashboard {
+                query pipelines {
                     pipelines
                 }
                 """

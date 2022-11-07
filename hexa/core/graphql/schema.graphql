@@ -16,7 +16,7 @@ type Activity {
 
 extend type Query {
   datasources: Int!
-  notebooks: Int!
+  totalNotebooks: Int!
   pipelines: Int!
   lastActivities: [Activity!]
 }

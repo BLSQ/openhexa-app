@@ -48,16 +48,16 @@ def resolve_core_dashboard_datasource(_, info, **kwargs):
     return datasources
 
 
-@core_queries.field("notebooks")
+@core_queries.field("totalNotebooks")
 def resolve_core_dashboard_notebooks(_, info, **kwargs):
     request = info.context["request"]
 
-    notebooks = (
+    totalNotebooks = (
         Object.objects.filter(key__iendswith=".ipynb")
         .filter_for_user(request.user)
         .count()
     )
-    return notebooks
+    return totalNotebooks
 
 
 @core_queries.field("pipelines")
