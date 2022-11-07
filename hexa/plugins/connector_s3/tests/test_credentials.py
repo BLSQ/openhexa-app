@@ -190,16 +190,15 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         )
         cls.BUCKET = Bucket.objects.create(name="hexa-test-bucket-1")
 
-        cls.CLIENT = boto3.client(
-            "iam",
-            aws_access_key_id=cls.CREDENTIALS.access_key_id,
-            aws_secret_access_key=cls.CREDENTIALS.secret_access_key,
-        )
-
     @mock_iam
     @mock_sts
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_new_role(self, _):
+        iam_client = boto3.client(
+            "iam",
+            aws_access_key_id=self.CREDENTIALS.access_key_id,
+            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+        )
         # Setup
         DAGAuthorizedDatasource.objects.create(
             dag=self.PIPELINE, datasource=self.BUCKET
@@ -210,7 +209,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         pipelines_credentials(credentials)
 
         # Check that we did create the role
-        roles_data = self.CLIENT.list_roles()
+        roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
 
         expected_role_name = "hexa-app-test-s3-p-" + str(self.PIPELINE.id)
@@ -218,7 +217,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         self.assertEqual("/", roles_data["Roles"][0]["Path"])
 
         # Check that the role has the correct policies
-        policy_data = self.CLIENT.get_role_policy(
+        policy_data = iam_client.get_role_policy(
             RoleName=expected_role_name, PolicyName="s3-access"
         )
         self.assertEqual(
@@ -292,9 +291,13 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         When the role already exists, we should not create it again
         But the policy should be updated
         """
-
+        iam_client = boto3.client(
+            "iam",
+            aws_access_key_id=self.CREDENTIALS.access_key_id,
+            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+        )
         # Setup
-        self.CLIENT.create_role(
+        iam_client.create_role(
             Path="/hexa-app-unittest/pipelines/",
             RoleName="hexa-app-test-s3-p-" + str(self.PIPELINE.id),
             AssumeRolePolicyDocument="some document",
@@ -309,12 +312,12 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         pipelines_credentials(credentials)
 
         # Check that we did not create a new role
-        roles_data = self.CLIENT.list_roles()
+        roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
 
         # Check that the role has the correct policies
         expected_role_name = "hexa-app-test-s3-p-" + str(self.PIPELINE.id)
-        policy_data = self.CLIENT.get_role_policy(
+        policy_data = iam_client.get_role_policy(
             RoleName=expected_role_name, PolicyName="s3-access"
         )
         self.assertEqual(
