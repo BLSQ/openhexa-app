@@ -1,5 +1,6 @@
 from unittest import mock
 
+import pytz
 from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase
@@ -23,13 +24,7 @@ class CoreDashboardTest(GraphQLTestCase):
             "standardpassword",
         )
 
-        cls.USER_REBECCA = User.objects.create_user(
-            "rebecca@bluesquarehub.com",
-            "standardpassword",
-        )
-
         cls.TEAM_1 = Team.objects.create(name="Test Team 1")
-        cls.TEAM_2 = Team.objects.create(name="Test Team 2")
 
         Membership.objects.create(user=cls.USER_SABRINA, team=cls.TEAM_1)
 
@@ -58,94 +53,81 @@ class CoreDashboardTest(GraphQLTestCase):
 
         DAGPermission.objects.create(dag=cls.DAG, team=cls.TEAM_1)
 
-    def test_core_dashboard(self):
-        with mock.patch.object(timezone, "now", return_value=timezone.now()):
+    def test_core_dashboard_datasources(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                query coreDashboard {
+                    datasources
+                }
+                """
+        )
+
+        self.assertEqual(
+            2,
+            r["data"]["datasources"],
+        )
+
+    def test_core_dashboard_notebooks(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                query coreDashboard {
+                    notebooks
+                }
+                """
+        )
+
+        self.assertEqual(
+            1,
+            r["data"]["notebooks"],
+        )
+
+    def test_core_dashboard_pipelines(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                query coreDashboard {
+                    pipelines
+                }
+                """
+        )
+
+        self.assertEqual(
+            1,
+            r["data"]["pipelines"],
+        )
+
+    def test_core_dashboard_activities(self):
+        with mock.patch.object(
+            timezone,
+            "now",
+            return_value=timezone.datetime(2022, 11, 7, 00, 00, 30, tzinfo=pytz.UTC),
+        ):
             self.client.force_login(self.USER_SABRINA)
             r = self.run_query(
                 """
-                query coreDashboard {
-                    coreDashboard {
-                    datasources
-                    notebooks
-                    pipelines
+                query activities {
                     lastActivities {
                         description
                         status
                         url
                         occurredAt
                     }
-                  }
                 }
                 """
             )
 
             self.assertEqual(
                 {
-                    "datasources": 2,
-                    "notebooks": 1,
-                    "pipelines": 1,
                     "lastActivities": [
                         {
                             "description": "All datasources are up to date!",
                             "status": "SUCCESS",
                             "url": "/catalog/",
-                            "occurredAt": "{}".format(
-                                timezone.now()
-                                .replace(
-                                    hour=0,
-                                    minute=0,
-                                )
-                                .strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
-                                + "Z"
-                            ),
+                            "occurredAt": "2022-11-07T00:00:30Z",
                         }
                     ],
                 },
-                r["data"]["coreDashboard"],
-            )
-
-    def test_core_dashboard_no_access(self):
-        with mock.patch.object(timezone, "now", return_value=timezone.now()):
-            self.client.force_login(self.USER_REBECCA)
-            r = self.run_query(
-                """
-                query coreDashboard {
-                    coreDashboard {
-                    datasources
-                    notebooks
-                    pipelines
-                    lastActivities {
-                        description
-                        status
-                        url
-                        occurredAt
-                    }
-                  }
-                }
-                """
-            )
-
-            self.assertEqual(
-                {
-                    "datasources": 0,
-                    "notebooks": 0,
-                    "pipelines": 0,
-                    "lastActivities": [
-                        {
-                            "description": "All datasources are up to date!",
-                            "status": "SUCCESS",
-                            "url": "/catalog/",
-                            "occurredAt": "{}".format(
-                                timezone.now()
-                                .replace(
-                                    hour=0,
-                                    minute=0,
-                                )
-                                .strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
-                                + "Z"
-                            ),
-                        }
-                    ],
-                },
-                r["data"]["coreDashboard"],
+                r["data"],
             )

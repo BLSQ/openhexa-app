@@ -17,11 +17,12 @@ core_type_defs = load_schema_from_path(
 )
 
 
-core_object = ObjectType("CoreDashboard")
+core_activity_object = ObjectType("Activity")
+core_queries = QueryType()
 
 
-@core_object.field("lastActivities")
-def resolve_last_activities(coreDashboard, info, **kwargs):
+@core_queries.field("lastActivities")
+def resolve_core_dashboard_last_activities(coreDashboard, info, **kwargs):
     request = info.context["request"]
     last_activities = ActivityList(
         [
@@ -39,25 +40,30 @@ def resolve_last_activities(coreDashboard, info, **kwargs):
     return last_activities
 
 
-core_queries = QueryType()
-
-
-@core_queries.field("coreDashboard")
-def resolve_core_dashboard(_, info, **kwargs):
+@core_queries.field("datasources")
+def resolve_core_dashboard_datasource(_, info, **kwargs):
     request = info.context["request"]
     datasources = Index.objects.filter_for_user(request.user).roots().count()
+
+    return datasources
+
+
+@core_queries.field("notebooks")
+def resolve_core_dashboard_notebooks(_, info, **kwargs):
+    request = info.context["request"]
 
     notebooks = (
         Object.objects.filter(key__iendswith=".ipynb")
         .filter_for_user(request.user)
         .count()
     )
-
-    return {
-        "datasources": datasources,
-        "notebooks": notebooks,
-        "pipelines": DAG.objects.filter_for_user(request.user).count(),
-    }
+    return notebooks
 
 
-core_bindables = [core_object, core_queries]
+@core_queries.field("pipelines")
+def resolve_core_dashboard_pipelines(_, info, **kwargs):
+    request = info.context["request"]
+    return DAG.objects.filter_for_user(request.user).count()
+
+
+core_bindables = [core_activity_object, core_queries]

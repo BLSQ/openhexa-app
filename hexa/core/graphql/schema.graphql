@@ -14,13 +14,9 @@ type Activity {
 }
 
 
-type CoreDashboard {
+extend type Query {
   datasources: Int!
   notebooks: Int!
   pipelines: Int!
   lastActivities: [Activity!]
-}
-
-extend type Query {
-  coreDashboard: CoreDashboard!
 }
