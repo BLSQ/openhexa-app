@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/BLSQ/openhexa-frontend/compare/0.12.1...0.12.2) (2022-11-07)
+
+
+### Bug Fixes
+
+* **Time:** Ignore hydration issues  with the Time component ([bb2854b](https://github.com/BLSQ/openhexa-frontend/commit/bb2854be65407a2762f15ef16d3ded2574509935))
+
 ## [0.12.0](https://github.com/BLSQ/openhexa-frontend/compare/0.11.0...0.12.0) (2022-11-07)
 
 
