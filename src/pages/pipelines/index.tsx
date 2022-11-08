@@ -73,7 +73,6 @@ const PipelinesPage = (props: Props) => {
               defaultPageSize={props.perPage}
               data={items}
               totalItems={data.dags.totalItems}
-              totalPages={data.dags.totalPages}
               fetchData={onChangePage}
             >
               <BaseColumn id="name" label={t("Name")} minWidth={240}>

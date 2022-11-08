@@ -62,7 +62,6 @@ const VisualizationsPage = (props: Props) => {
               defaultPageSize={props.perPage}
               data={data.externalDashboards.items}
               totalItems={data.externalDashboards.totalItems}
-              totalPages={data.externalDashboards.totalPages}
               fetchData={onChangePage}
             >
               <BaseColumn id="name" label={t("Name")} minWidth={240}>

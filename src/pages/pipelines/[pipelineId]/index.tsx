@@ -191,7 +191,6 @@ const PipelinePage = (props: Props) => {
                 defaultPageSize={10}
                 data={dag.runs.items}
                 totalItems={dag.runs.totalItems}
-                totalPages={dag.runs.totalPages}
                 fetchData={onChangePage}
               >
                 <BaseColumn<PipelineRunFavoriteTrigger_RunFragment>

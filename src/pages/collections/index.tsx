@@ -73,7 +73,6 @@ const CollectionsPage = (props: Props) => {
               defaultPageSize={15}
               data={data.collections.items}
               totalItems={data.collections.totalItems}
-              totalPages={data.collections.totalPages}
               fetchData={onChangePage}
             >
               <TextColumn

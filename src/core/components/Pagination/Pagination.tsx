@@ -1,9 +1,9 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
-import { useTranslation } from "next-i18next";
-import { ReactElement } from "react";
 import SimpleSelect from "core/components/forms/SimpleSelect";
-import Spinner from "./Spinner";
+import { useTranslation } from "next-i18next";
+import Spinner from "../Spinner";
+import PaginationItem from "./PaginationItem";
 
 type Props = {
   loading?: boolean;
@@ -15,30 +15,6 @@ type Props = {
   totalItems: number;
   className?: string;
   onChange: (page: number, perPage: number) => void;
-};
-
-const PaginationItem = (props: {
-  children: ReactElement | string | ReactElement[];
-  current?: boolean;
-  disabled?: boolean;
-  onClick?: () => void;
-}) => {
-  const { children, current, onClick, disabled = false } = props;
-  return (
-    <button
-      onClick={onClick}
-      aria-current="page"
-      type="button"
-      disabled={disabled}
-      className={clsx(
-        "relative inline-flex cursor-pointer items-center border border-gray-300 bg-white px-3 py-1 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50",
-        current && "border-who-blue-main text-who-blue-main z-10 bg-indigo-50",
-        "first:rounded-tl-md first:rounded-bl-md last:rounded-tr-md last:rounded-br-md"
-      )}
-    >
-      {children}
-    </button>
-  );
 };
 
 const Pagination = (props: Props) => {

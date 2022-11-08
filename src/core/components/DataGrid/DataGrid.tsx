@@ -54,7 +54,6 @@ interface IDataGridProps {
     sortBy: SortingRule<object>[];
   }) => void;
   sortable?: boolean;
-  totalPages?: number;
   totalItems?: number;
   idKey?: string;
   skipPageReset?: boolean;
