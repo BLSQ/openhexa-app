@@ -53,21 +53,6 @@ class CoreDashboardTest(GraphQLTestCase):
 
         DAGPermission.objects.create(dag=cls.DAG, team=cls.TEAM_1)
 
-    def test_core_dashboard_datasources(self):
-        self.client.force_login(self.USER_SABRINA)
-        r = self.run_query(
-            """
-                query datasources {
-                    datasources
-                }
-                """
-        )
-
-        self.assertEqual(
-            2,
-            r["data"]["datasources"],
-        )
-
     def test_core_dashboard_notebooks(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
@@ -81,21 +66,6 @@ class CoreDashboardTest(GraphQLTestCase):
         self.assertEqual(
             1,
             r["data"]["totalNotebooks"],
-        )
-
-    def test_core_dashboard_pipelines(self):
-        self.client.force_login(self.USER_SABRINA)
-        r = self.run_query(
-            """
-                query pipelines {
-                    pipelines
-                }
-                """
-        )
-
-        self.assertEqual(
-            1,
-            r["data"]["pipelines"],
         )
 
     def test_core_dashboard_activities(self):
