@@ -7,15 +7,18 @@ type ChevronLinkColumnProps = LinkColumnProps;
 
 const ChevronLinkColumn = ({
   className,
-  maxWidth,
-  ...delegated
+  customStyle,
+  noStyle,
+  url,
 }: ChevronLinkColumnProps) => {
   const { t } = useTranslation();
 
   return (
     <div className="w-full">
       <LinkColumn
-        {...delegated}
+        customStyle={customStyle}
+        noStyle={noStyle}
+        url={url}
         className={clsx(
           className,
           "flex w-full cursor-pointer items-center justify-end outline-none"
