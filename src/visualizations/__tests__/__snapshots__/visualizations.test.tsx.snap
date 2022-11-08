@@ -775,7 +775,6 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
                         class="w-full"
                       >
                         <a
-                          accessor="id"
                           class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
                           href="/visualizations/351489ac-5bbe-4ed3-aab9-8155024092b4"
                         >

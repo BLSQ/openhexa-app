@@ -21,7 +21,7 @@ const CountryProperty = (props: CountryPropertyProps) => {
     <DataCard.Property property={property}>
       {section.isEdited ? (
         <CountryPicker
-          value={property.formValue}
+          value={property.formValue ?? null}
           onChange={(v) => property.setValue(v)}
           multiple={multiple}
         />
