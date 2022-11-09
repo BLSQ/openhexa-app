@@ -157,7 +157,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               Information
             </h4>
             <div
-              class="flex flex-1 items-center justify-end"
+              class="flex flex-1 flex-shrink items-center justify-end"
             >
               <button
                 title="Hide"
@@ -252,7 +252,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               </button>
             </div>
             <div
-              class="flex flex-1 items-center justify-end"
+              class="flex flex-1 flex-shrink items-center justify-end"
             >
               <button
                 title="Hide"

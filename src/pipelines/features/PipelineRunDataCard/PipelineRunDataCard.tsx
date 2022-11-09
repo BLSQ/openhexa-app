@@ -115,7 +115,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
                 className="h-10 w-10"
               />
             )}
-            <div title={dagRun.executionDate}>
+            <div title={dagRun.executionDate} suppressHydrationWarning={true}>
               {getPipelineRunLabel(dagRun, dag)}
               <div className="mt-1.5 text-sm font-normal text-gray-500">
                 {dagRun.status === DagRunStatus.Success &&
@@ -145,7 +145,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
         )}
       </DataCard.Heading>
       {isFinished && (
-        <DataCard.Section>
+        <DataCard.FormSection>
           <RenderProperty<{ title: string; uri: string }[]>
             readonly
             id="outputs"
@@ -165,28 +165,28 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
               </>
             )}
           </RenderProperty>
-        </DataCard.Section>
+        </DataCard.FormSection>
       )}
       <DataCard.Section
-        right={intervalDuration ? <Spinner size="sm" /> : null}
+        loading={Boolean(intervalDuration)}
         title={t("Messages")}
         defaultOpen
       >
-        {dagRun.messages.length ? <RunMessages dagRun={dagRun} /> : null}
+        {dagRun.messages.length ? () => <RunMessages dagRun={dagRun} /> : null}
       </DataCard.Section>
       <DataCard.Section title={t("Configuration")} defaultOpen>
-        <PipelineRunReadonlyForm dag={dag} dagRun={dagRun} />
+        {(open) => <PipelineRunReadonlyForm dag={dag} dagRun={dagRun} />}
       </DataCard.Section>
       {isFinished && (
         <DataCard.Section
           title={t("Logs")}
           defaultOpen={false}
-          right={intervalDuration ? <Spinner size="sm" /> : null}
+          loading={Boolean(intervalDuration)}
         >
-          <RunLogs dagRun={dagRun} />
+          {() => <RunLogs dagRun={dagRun} />}
         </DataCard.Section>
       )}
-      <DataCard.Section title={t("Metadata")} defaultOpen={false}>
+      <DataCard.FormSection title={t("Metadata")} defaultOpen={false}>
         <TextProperty
           required
           id="externalId"
@@ -235,7 +235,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
             </span>
           )}
         </RenderProperty>
-      </DataCard.Section>
+      </DataCard.FormSection>
     </DataCard>
   );
 };

@@ -34,7 +34,9 @@ describe("Header", () => {
     expect(dialog).toBeInTheDocument();
 
     await user.click(container);
-    expect(dialog).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(dialog).not.toBeInTheDocument();
+    });
   });
 
   it("opens the search on control + k", async () => {

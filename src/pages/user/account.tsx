@@ -42,7 +42,7 @@ function AccountPage() {
           >
             {(item) => <User user={item} />}
           </DataCard.Heading>
-          <DataCard.Section
+          <DataCard.FormSection
             displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
             columns={2}
           >
@@ -63,7 +63,7 @@ function AccountPage() {
               label={t("Joined")}
               accessor="dateJoined"
             />
-          </DataCard.Section>
+          </DataCard.FormSection>
         </DataCard>
       </PageContent>
     </Page>

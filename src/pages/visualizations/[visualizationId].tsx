@@ -1,8 +1,8 @@
 import Breadcrumbs from "core/components/Breadcrumbs";
 import DataCard from "core/components/DataCard";
 import CountryProperty from "core/components/DataCard/CountryProperty";
+import { OnSaveFn } from "core/components/DataCard/FormSection";
 import RenderProperty from "core/components/DataCard/RenderProperty";
-import { OnSaveFn } from "core/components/DataCard/Section";
 import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
@@ -95,7 +95,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
                 </div>
               )}
             </DataCard.Heading>
-            <DataCard.Section title={t("Information")}>
+            <DataCard.FormSection title={t("Information")}>
               <RenderProperty id="url" label={t("Url")}>
                 {() => (
                   <a
@@ -106,8 +106,8 @@ const VisualizationPage = ({ visualizationId }: Props) => {
                   </a>
                 )}
               </RenderProperty>
-            </DataCard.Section>
-            <DataCard.Section
+            </DataCard.FormSection>
+            <DataCard.FormSection
               title={t("OpenHexa Metadata")}
               onSave={onSectionSave}
             >
@@ -139,7 +139,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
                 label={t("Location")}
                 defaultValue="-"
               />
-            </DataCard.Section>
+            </DataCard.FormSection>
           </DataCard>
         </div>
       </PageContent>

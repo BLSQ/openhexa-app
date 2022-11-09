@@ -134,7 +134,10 @@ const PipelinePage = (props: Props) => {
                 </div>
               )}
             />
-            <DataCard.Section title={t("Pipeline Metadata")} onSave={onSave}>
+            <DataCard.FormSection
+              title={t("Pipeline Metadata")}
+              onSave={onSave}
+            >
               <TextProperty
                 id="label"
                 accessor="label"
@@ -155,8 +158,8 @@ const PipelinePage = (props: Props) => {
                 defaultValue="-"
                 markdown
               />
-            </DataCard.Section>
-            <DataCard.Section
+            </DataCard.FormSection>
+            <DataCard.FormSection
               title={t("Airflow Data")}
               onSave={onSave}
               defaultOpen={false}
@@ -182,7 +185,7 @@ const PipelinePage = (props: Props) => {
                 label={t("Template Description")}
                 markdown
               />
-            </DataCard.Section>
+            </DataCard.FormSection>
           </DataCard>
           <div>
             <h3 className="mb-4 text-lg font-medium">{t("Runs")}</h3>

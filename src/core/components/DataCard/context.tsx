@@ -8,7 +8,7 @@ export function useDataCardSection() {
   const section = React.useContext(DataCardSectionContext);
   if (!section) {
     throw new Error(
-      "useDataCardSection must be wrapped by a DataCard.Section."
+      "useDataCardSection must be wrapped by a DataCard.FormSection."
     );
   }
 

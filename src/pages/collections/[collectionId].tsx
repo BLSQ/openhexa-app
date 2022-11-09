@@ -21,7 +21,7 @@ import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import CountryProperty from "core/components/DataCard/CountryProperty";
 import DateProperty from "core/components/DataCard/DateProperty";
-import { OnSaveFn } from "core/components/DataCard/Section";
+import { OnSaveFn } from "core/components/DataCard/FormSection";
 import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
@@ -148,7 +148,10 @@ const CollectionPage = ({ collectionId }: Props) => {
                 <CollectionActionsMenu collection={item} />
               )}
             />
-            <DataCard.Section title={t("Properties")} onSave={onSectionSave}>
+            <DataCard.FormSection
+              title={t("Properties")}
+              onSave={onSectionSave}
+            >
               <TextProperty
                 id="name"
                 accessor="name"
@@ -181,8 +184,11 @@ const CollectionPage = ({ collectionId }: Props) => {
                 label={t("Locations")}
               />
               <TagProperty id="tags" accessor="tags" label={t("Tags")} />
-            </DataCard.Section>
-            <DataCard.Section title={t("Description")} onSave={onSectionSave}>
+            </DataCard.FormSection>
+            <DataCard.FormSection
+              title={t("Description")}
+              onSave={onSectionSave}
+            >
               <TextProperty
                 required
                 id="description"
@@ -190,7 +196,7 @@ const CollectionPage = ({ collectionId }: Props) => {
                 label={t("Description")}
                 markdown
               />
-            </DataCard.Section>
+            </DataCard.FormSection>
           </DataCard>
 
           <section>

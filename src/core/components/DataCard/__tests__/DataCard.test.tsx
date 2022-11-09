@@ -22,9 +22,9 @@ describe("DataCard", () => {
     const { container } = render(
       <DataCard item={item}>
         <DataCard.Heading titleAccessor="name" />
-        <DataCard.Section>
+        <DataCard.FormSection>
           <TextProperty id="name" label="Name" accessor="name" />
-        </DataCard.Section>
+        </DataCard.FormSection>
       </DataCard>
     );
 

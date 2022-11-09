@@ -19,7 +19,7 @@ Hey It's in *italic*!`,
       }}
     >
       <DataCard.Heading titleAccessor="name" />
-      <DataCard.Section title="First Section">
+      <DataCard.FormSection title="First Section">
         <TextProperty id="name" label="Name" accessor="name" />
         <TextProperty
           id="description"
@@ -28,7 +28,7 @@ Hey It's in *italic*!`,
           markdown
         />
         <BadgeProperty id="tags" label="Badges" accessor="tags" />
-      </DataCard.Section>
+      </DataCard.FormSection>
     </DataCard>
   );
 };
