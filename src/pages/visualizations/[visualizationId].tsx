@@ -62,7 +62,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
       <PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/visualizations">
-            {t("External Dashboard")}
+            {t("Visualizations")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             href={{

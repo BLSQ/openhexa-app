@@ -48,7 +48,7 @@ const VisualizationsPage = (props: Props) => {
     <Page title={t("Visualizations")}>
       <PageContent>
         <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/pipelines">
+          <Breadcrumbs.Part href="/visualizations">
             {t("Visualizations")}
           </Breadcrumbs.Part>
         </Breadcrumbs>
