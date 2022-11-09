@@ -19,6 +19,11 @@ core_activity_object = ObjectType("Activity")
 core_queries = QueryType()
 
 
+@core_activity_object.field("status")
+def resolve_activity_status(activity: Activity, info, **kwargs):
+    return activity.status.name
+
+
 @core_queries.field("lastActivities")
 def resolve_core_dashboard_last_activities(coreDashboard, info, **kwargs):
     request = info.context["request"]
@@ -27,7 +32,7 @@ def resolve_core_dashboard_last_activities(coreDashboard, info, **kwargs):
             Activity(
                 occurred_at=timezone.now().replace(hour=0, minute=0),
                 description=gettext_lazy("All datasources are up to date!"),
-                status=Status.SUCCESS.name,
+                status=Status.SUCCESS,
                 url=reverse("catalog:index"),
             )
         ]
