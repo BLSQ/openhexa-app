@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.4](https://github.com/BLSQ/openhexa-frontend/compare/0.12.3...0.12.4) (2022-11-09)
+
+
+### Bug Fixes
+
+* **Visualizations:** fix breadcrumb text and redirect url ([546fc5a](https://github.com/BLSQ/openhexa-frontend/commit/546fc5a7e52a478b91f1b33f620a9007af804cfd))
+
 ## [0.12.3](https://github.com/BLSQ/openhexa-frontend/compare/0.12.2...0.12.3) (2022-11-07)
 
 
