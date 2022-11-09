@@ -64,7 +64,7 @@ exports[`Visualization renders a visualization info page  1`] = `
                 class=""
                 href="/visualizations"
               >
-                External Dashboard
+                Visualizations
               </a>
             </span>
           </div>
@@ -454,7 +454,7 @@ exports[`Visualization renders the visualizations' page 1`] = `
             >
               <a
                 class=""
-                href="/pipelines"
+                href="/visualizations"
               >
                 Visualizations
               </a>
@@ -627,7 +627,7 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
             >
               <a
                 class=""
-                href="/pipelines"
+                href="/visualizations"
               >
                 Visualizations
               </a>
