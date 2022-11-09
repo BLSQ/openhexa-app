@@ -11,16 +11,18 @@ import {
   useDashboardPageQuery,
 } from "dashboards/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
-import { BookmarkSquareIcon, BookOpenIcon } from "@heroicons/react/24/outline";
-import DescriptionList, {
-  DescriptionListDisplayMode,
-} from "core/components/DescriptionList";
-import Link from "next/link";
+import {
+  BeakerIcon,
+  BookmarkSquareIcon,
+  BookOpenIcon,
+} from "@heroicons/react/24/outline";
 import { ActivityStatus } from "graphql-types";
 import Badge from "core/components/Badge";
 import { useMemo } from "react";
 import clsx from "clsx";
-import { capitalize } from "lodash";
+import Title from "core/components/Title";
+import Link from "core/components/Link";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 
 const ActivityStatusBadge = ({ status }: { status: ActivityStatus }) => {
   const { t } = useTranslation();
@@ -36,45 +38,44 @@ const ActivityStatusBadge = ({ status }: { status: ActivityStatus }) => {
         return "bg-emerald-50 text-emerald-500";
     }
   }, [status]);
+
+  const label = (() => {
+    switch (status) {
+      case ActivityStatus.Error:
+        return t("Error");
+      case ActivityStatus.Pending:
+        return t("Pending");
+      case ActivityStatus.Running:
+        return t("Running");
+      case ActivityStatus.Success:
+        return t("Succeeded");
+    }
+  })();
+
   return (
-    <Badge className={clsx(className, "flex items-center")}>
-      {t(capitalize(status))}
-    </Badge>
+    <Badge className={clsx(className, "flex items-center")}>{label}</Badge>
   );
 };
 
-const dummy = [
-  {
-    description: "All datasources are up to date!",
-    occurredAt: "2022-11-09T00:00:39.651Z",
-    url: "/catalog/",
-    status: "ERROR",
-  },
-  {
-    description: "Quentin Did that",
-    occurredAt: "2022-11-09T00:00:39.651Z",
-    url: "/catalog/",
-    status: "ERROR",
-  },
-];
 const DashboardPage = () => {
   const { t } = useTranslation();
   const { data } = useDashboardPageQuery();
+  if (!data) {
+    return null;
+  }
 
   return (
     <Page title={t("Dashboard")}>
       <PageContent>
         <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/pipelines">
+          <Breadcrumbs.Part href="/dashboard">
             {t("Dashboard")}
           </Breadcrumbs.Part>
         </Breadcrumbs>
         <div className="my-12">
-          <div className="flex items-center justify-between">
-            <h3 className="ml-2 mt-2 text-lg leading-6 text-gray-900">
-              {t("Overview")}
-            </h3>
-          </div>
+          <Title level={3} className="text-lg font-medium text-black">
+            {t("Overview")}
+          </Title>
           <div className="mt-4">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <Block>
@@ -84,21 +85,18 @@ const DashboardPage = () => {
                       <BookmarkSquareIcon className="text-cool-gray-400 h-6 w-6" />
                     </div>
                     <div className="ml-5 w-0 flex-1">
-                      <DescriptionList
-                        displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-                      >
-                        <DescriptionList.Item
-                          label={
-                            <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                              {t("Datasources")}
-                            </div>
-                          }
-                        >
+                      <dl>
+                        <dt>
+                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
+                            {t("Datasources")}
+                          </div>
+                        </dt>
+                        <dd>
                           <div className="text-cool-gray-900 text-lg font-medium leading-7">
                             {data?.catalog.totalItems}
                           </div>
-                        </DescriptionList.Item>
-                      </DescriptionList>
+                        </dd>
+                      </dl>
                     </div>
                   </div>
                 </div>
@@ -120,21 +118,18 @@ const DashboardPage = () => {
                       <BookOpenIcon className="text-cool-gray-400 h-6 w-6" />
                     </div>
                     <div className="ml-5 w-0 flex-1">
-                      <DescriptionList
-                        displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-                      >
-                        <DescriptionList.Item
-                          label={
-                            <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                              {t("Notebooks")}
-                            </div>
-                          }
-                        >
+                      <dl>
+                        <dt>
+                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
+                            {t("Notebooks")}
+                          </div>
+                        </dt>
+                        <dd>
                           <div className="text-cool-gray-900 text-lg font-medium leading-7">
                             {data?.totalNotebooks}
                           </div>
-                        </DescriptionList.Item>
-                      </DescriptionList>
+                        </dd>
+                      </dl>
                     </div>
                   </div>
                 </div>
@@ -153,24 +148,21 @@ const DashboardPage = () => {
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <BookmarkSquareIcon className="text-cool-gray-400 h-6 w-6" />
+                      <BeakerIcon className="text-cool-gray-400 h-6 w-6" />
                     </div>
                     <div className="ml-5 w-0 flex-1">
-                      <DescriptionList
-                        displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-                      >
-                        <DescriptionList.Item
-                          label={
-                            <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                              {t("Pipelines")}
-                            </div>
-                          }
-                        >
+                      <dl>
+                        <dt>
+                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
+                            {t("Pipelines")}
+                          </div>
+                        </dt>
+                        <dd>
                           <div className="text-cool-gray-900 text-lg font-medium leading-7">
                             {data?.dags.totalItems}
                           </div>
-                        </DescriptionList.Item>
-                      </DescriptionList>
+                        </dd>
+                      </dl>
                     </div>
                   </div>
                 </div>
@@ -189,24 +181,23 @@ const DashboardPage = () => {
           </div>
 
           <div className="my-12">
-            <div className="flex items-center justify-between">
-              <h3 className="ml-2 mt-2 text-lg leading-6 text-gray-900">
-                {t("Last Activity")}
-              </h3>
-            </div>
+            <Title
+              level={4}
+              className="text-lg font-medium leading-6 text-gray-700"
+            >
+              {t("Last Activity")}
+            </Title>
             <div className="mt-4">
               <Block>
                 <DataGrid data={data?.lastActivities || []}>
-                  <BaseColumn id="name" label={t("Name")}>
-                    {(item) => (
-                      <div
-                        className="truncate text-sm text-gray-900"
-                        title={item.description}
-                      >
-                        {item.description}
-                      </div>
-                    )}
-                  </BaseColumn>
+                  <TextColumn
+                    id="name"
+                    label={t("Name")}
+                    accessor="description"
+                    maxWidth={200}
+                    className="truncate text-sm text-gray-900"
+                  />
+
                   <BaseColumn id="status" label={t("Status")}>
                     {(item) => <ActivityStatusBadge status={item.status} />}
                   </BaseColumn>
@@ -219,7 +210,7 @@ const DashboardPage = () => {
                   <ChevronLinkColumn
                     accessor="url"
                     url={(value: any) => ({
-                      pathname: value || "",
+                      pathname: value,
                     })}
                   />
                 </DataGrid>

@@ -62,7 +62,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             >
               <a
                 class=""
-                href="/pipelines"
+                href="/dashboard"
               >
                 Dashboard
               </a>
@@ -74,15 +74,11 @@ exports[`Dashboard renders the dashboards' page 1`] = `
     <div
       class="my-12"
     >
-      <div
-        class="flex items-center justify-between"
+      <h3
+        class="text-lg font-medium text-black font-medium text-xl mb-3"
       >
-        <h3
-          class="ml-2 mt-2 text-lg leading-6 text-gray-900"
-        >
-          Overview
-        </h3>
-      </div>
+        Overview
+      </h3>
       <div
         class="mt-4"
       >
@@ -120,31 +116,21 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <div
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl
-                    class="grid gap-6"
-                  >
-                    <div
-                      class="space-y-1"
-                    >
-                      <dt
-                        class="text-sm font-medium text-gray-500 col-span-5"
+                  <dl>
+                    <dt>
+                      <div
+                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
                       >
-                        <span>
-                          <div
-                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                          >
-                            Datasources
-                          </div>
-                        </span>
-                      </dt>
-                      <dd
-                        class="col-span-4 text-sm text-gray-900"
+                        Datasources
+                      </div>
+                    </dt>
+                    <dd>
+                      <div
+                        class="text-cool-gray-900 text-lg font-medium leading-7"
                       >
-                        <div
-                          class="text-cool-gray-900 text-lg font-medium leading-7"
-                        />
-                      </dd>
-                    </div>
+                        6
+                      </div>
+                    </dd>
                   </dl>
                 </div>
               </div>
@@ -156,7 +142,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 class="text-sm leading-5"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/catalog"
                 >
                   View all
@@ -195,31 +181,21 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <div
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl
-                    class="grid gap-6"
-                  >
-                    <div
-                      class="space-y-1"
-                    >
-                      <dt
-                        class="text-sm font-medium text-gray-500 col-span-5"
+                  <dl>
+                    <dt>
+                      <div
+                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
                       >
-                        <span>
-                          <div
-                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                          >
-                            Notebooks
-                          </div>
-                        </span>
-                      </dt>
-                      <dd
-                        class="col-span-4 text-sm text-gray-900"
+                        Notebooks
+                      </div>
+                    </dt>
+                    <dd>
+                      <div
+                        class="text-cool-gray-900 text-lg font-medium leading-7"
                       >
-                        <div
-                          class="text-cool-gray-900 text-lg font-medium leading-7"
-                        />
-                      </dd>
-                    </div>
+                        0
+                      </div>
+                    </dd>
                   </dl>
                 </div>
               </div>
@@ -231,7 +207,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 class="text-sm leading-5"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/notebooks"
                 >
                   View all
@@ -261,7 +237,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9"
+                      d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
@@ -270,31 +246,21 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <div
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl
-                    class="grid gap-6"
-                  >
-                    <div
-                      class="space-y-1"
-                    >
-                      <dt
-                        class="text-sm font-medium text-gray-500 col-span-5"
+                  <dl>
+                    <dt>
+                      <div
+                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
                       >
-                        <span>
-                          <div
-                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                          >
-                            Pipelines
-                          </div>
-                        </span>
-                      </dt>
-                      <dd
-                        class="col-span-4 text-sm text-gray-900"
+                        Pipelines
+                      </div>
+                    </dt>
+                    <dd>
+                      <div
+                        class="text-cool-gray-900 text-lg font-medium leading-7"
                       >
-                        <div
-                          class="text-cool-gray-900 text-lg font-medium leading-7"
-                        />
-                      </dd>
-                    </div>
+                        0
+                      </div>
+                    </dd>
                   </dl>
                 </div>
               </div>
@@ -306,7 +272,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 class="text-sm leading-5"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/pipelines"
                 >
                   View all
@@ -319,15 +285,11 @@ exports[`Dashboard renders the dashboards' page 1`] = `
       <div
         class="my-12"
       >
-        <div
-          class="flex items-center justify-between"
+        <h4
+          class="text-lg font-medium leading-6 text-gray-700 font-medium text-lg mb-2.5"
         >
-          <h3
-            class="ml-2 mt-2 text-lg leading-6 text-gray-900"
-          >
-            Last Activity
-          </h3>
-        </div>
+          Last Activity
+        </h4>
         <div
           class="mt-4"
         >
@@ -405,13 +367,101 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                     <tbody
                       class="divide-y divide-gray-200"
                       role="rowgroup"
-                    />
+                    >
+                      <tr
+                        class=""
+                        role="row"
+                        style="display: flex; flex: 1 0 auto; min-width: 120px;"
+                      >
+                        <td
+                          role="cell"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full truncate text-sm text-gray-900 whitespace-nowrap"
+                          >
+                            <div
+                              class="flex items-center gap-4"
+                            >
+                              <div
+                                class="truncate"
+                              >
+                                <div
+                                  class="flex-1 truncate lg:whitespace-nowrap"
+                                  title="All datasources are up to date!"
+                                >
+                                  All datasources are up to date!
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td
+                          role="cell"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                          >
+                            <span
+                              class="inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium px-2 py-0.5 text-xs bg-emerald-50 text-emerald-500 flex items-center"
+                            >
+                              Succeeded
+                            </span>
+                          </div>
+                        </td>
+                        <td
+                          role="cell"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                          >
+                            <time
+                              class="whitespace-nowrap truncate"
+                              datetime="2022-11-09T01:00:39.651+01:00"
+                              title="2022-11-09T01:00:39.651+01:00"
+                            >
+                              in 18 days
+                            </time>
+                          </div>
+                        </td>
+                        <td
+                          role="cell"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
+                          >
+                            <div
+                              class="w-full"
+                            >
+                              <a
+                                accessor="url"
+                                class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
+                                href="/catalog"
+                              >
+                                View
+                                <svg
+                                  aria-hidden="true"
+                                  class="inline h-5"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    clip-rule="evenodd"
+                                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                    fill-rule="evenodd"
+                                  />
+                                </svg>
+                              </a>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
                   </table>
-                </div>
-                <div
-                  class="px-6 py-4 text-center text-sm italic text-gray-500"
-                >
-                  No elements to display
                 </div>
               </div>
             </div>
