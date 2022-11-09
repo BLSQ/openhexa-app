@@ -319,6 +319,21 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   zonalStatisticsGeo: AccessmodFileset
 }
 
+type Activity {
+  description: String!
+  occurredAt: DateTime!
+  url: URL!
+  status: ActivityStatus!
+}
+
+enum ActivityStatus {
+  SUCCESS
+  PENDING
+  RUNNING
+  ERROR
+  UNKNOWN
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -1095,6 +1110,8 @@ type Query {
   externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
   externalDashboard(id: String!): ExternalDashboard
   notebooksUrl: URL!
+  totalNotebooks: Int!
+  lastActivities: [Activity!]!
 }
 
 enum RequestAccessmodAccessError {

@@ -358,6 +358,22 @@ export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & 
   zonalStatisticsTable?: Maybe<AccessmodFileset>;
 };
 
+export type Activity = {
+  __typename?: 'Activity';
+  description: Scalars['String'];
+  occurredAt: Scalars['DateTime'];
+  status: ActivityStatus;
+  url: Scalars['URL'];
+};
+
+export enum ActivityStatus {
+  Error = 'ERROR',
+  Pending = 'PENDING',
+  Running = 'RUNNING',
+  Success = 'SUCCESS',
+  Unknown = 'UNKNOWN'
+}
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -1401,12 +1417,14 @@ export type Query = {
   dags: DagPage;
   externalDashboard?: Maybe<ExternalDashboard>;
   externalDashboards: ExternalDashboardPage;
+  lastActivities: Array<Activity>;
   me: Me;
   notebooksUrl: Scalars['URL'];
   organizations: Array<Organization>;
   search: SearchQueryResult;
   team?: Maybe<Team>;
   teams: TeamPage;
+  totalNotebooks: Scalars['Int'];
 };
 
 

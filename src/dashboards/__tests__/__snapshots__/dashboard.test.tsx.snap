@@ -1,0 +1,424 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Dashboard renders the dashboards' page 1`] = `
+<div>
+  <main
+    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6"
+  >
+    <nav
+      aria-label="Breadcrumbs"
+      class="my-8 px-2"
+    >
+      <ol
+        class="flex items-center"
+        role="list"
+      >
+        <li>
+          <div>
+            <a
+              class="text-gray-400 hover:text-gray-500"
+              href="/"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  clip-rule="evenodd"
+                  d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                  fill-rule="evenodd"
+                />
+              </svg>
+              <span
+                class="sr-only"
+              >
+                Home
+              </span>
+            </a>
+          </div>
+        </li>
+        <li
+          class="ml-3"
+        >
+          <div
+            class="flex items-center"
+          >
+            <svg
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-gray-300"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"
+              />
+            </svg>
+            <span
+              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              <a
+                class=""
+                href="/pipelines"
+              >
+                Dashboard
+              </a>
+            </span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+    <div
+      class="my-12"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <h3
+          class="ml-2 mt-2 text-lg leading-6 text-gray-900"
+        >
+          Overview
+        </h3>
+      </div>
+      <div
+        class="mt-4"
+      >
+        <div
+          class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <article
+            class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          >
+            <div
+              class="p-5"
+            >
+              <div
+                class="flex items-center"
+              >
+                <div
+                  class="flex-shrink-0"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="text-cool-gray-400 h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="ml-5 w-0 flex-1"
+                >
+                  <dl
+                    class="grid gap-6"
+                  >
+                    <div
+                      class="space-y-1"
+                    >
+                      <dt
+                        class="text-sm font-medium text-gray-500 col-span-5"
+                      >
+                        <span>
+                          <div
+                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
+                          >
+                            Datasources
+                          </div>
+                        </span>
+                      </dt>
+                      <dd
+                        class="col-span-4 text-sm text-gray-900"
+                      >
+                        <div
+                          class="text-cool-gray-900 text-lg font-medium leading-7"
+                        />
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-cool-gray-50 px-5 py-3"
+            >
+              <div
+                class="text-sm leading-5"
+              >
+                <a
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  href="/catalog"
+                >
+                  View all
+                </a>
+              </div>
+            </div>
+          </article>
+          <article
+            class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          >
+            <div
+              class="p-5"
+            >
+              <div
+                class="flex items-center"
+              >
+                <div
+                  class="flex-shrink-0"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="text-cool-gray-400 h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="ml-5 w-0 flex-1"
+                >
+                  <dl
+                    class="grid gap-6"
+                  >
+                    <div
+                      class="space-y-1"
+                    >
+                      <dt
+                        class="text-sm font-medium text-gray-500 col-span-5"
+                      >
+                        <span>
+                          <div
+                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
+                          >
+                            Notebooks
+                          </div>
+                        </span>
+                      </dt>
+                      <dd
+                        class="col-span-4 text-sm text-gray-900"
+                      >
+                        <div
+                          class="text-cool-gray-900 text-lg font-medium leading-7"
+                        />
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-cool-gray-50 px-5 py-3"
+            >
+              <div
+                class="text-sm leading-5"
+              >
+                <a
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  href="/notebooks"
+                >
+                  View all
+                </a>
+              </div>
+            </div>
+          </article>
+          <article
+            class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          >
+            <div
+              class="p-5"
+            >
+              <div
+                class="flex items-center"
+              >
+                <div
+                  class="flex-shrink-0"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="text-cool-gray-400 h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div
+                  class="ml-5 w-0 flex-1"
+                >
+                  <dl
+                    class="grid gap-6"
+                  >
+                    <div
+                      class="space-y-1"
+                    >
+                      <dt
+                        class="text-sm font-medium text-gray-500 col-span-5"
+                      >
+                        <span>
+                          <div
+                            class="text-cool-gray-500 truncate text-sm font-medium leading-5"
+                          >
+                            Pipelines
+                          </div>
+                        </span>
+                      </dt>
+                      <dd
+                        class="col-span-4 text-sm text-gray-900"
+                      >
+                        <div
+                          class="text-cool-gray-900 text-lg font-medium leading-7"
+                        />
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-cool-gray-50 px-5 py-3"
+            >
+              <div
+                class="text-sm leading-5"
+              >
+                <a
+                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                  href="/pipelines"
+                >
+                  View all
+                </a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div
+        class="my-12"
+      >
+        <div
+          class="flex items-center justify-between"
+        >
+          <h3
+            class="ml-2 mt-2 text-lg leading-6 text-gray-900"
+          >
+            Last Activity
+          </h3>
+        </div>
+        <div
+          class="mt-4"
+        >
+          <article
+            class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+          >
+            <div>
+              <div
+                class="overflow-x-auto"
+              >
+                <div
+                  class="overflow-x-auto"
+                >
+                  <table
+                    class="table-fixed w-full divide-y divide-gray-200 "
+                    role="table"
+                    style="min-width: 120px;"
+                  >
+                    <thead
+                      class="bg-gray-50"
+                    >
+                      <tr
+                        class=""
+                        role="row"
+                        style="display: flex; flex: 1 0 auto; min-width: 120px;"
+                      >
+                        <th
+                          colspan="1"
+                          role="columnheader"
+                          scope="col"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                          >
+                            Name
+                          </div>
+                        </th>
+                        <th
+                          colspan="1"
+                          role="columnheader"
+                          scope="col"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                          >
+                            Status
+                          </div>
+                        </th>
+                        <th
+                          colspan="1"
+                          role="columnheader"
+                          scope="col"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                          >
+                            Date
+                          </div>
+                        </th>
+                        <th
+                          colspan="1"
+                          role="columnheader"
+                          scope="col"
+                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                        >
+                          <div
+                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
+                          />
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      class="divide-y divide-gray-200"
+                      role="rowgroup"
+                    />
+                  </table>
+                </div>
+                <div
+                  class="px-6 py-4 text-center text-sm italic text-gray-500"
+                >
+                  No elements to display
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+`;

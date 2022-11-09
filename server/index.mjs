@@ -18,6 +18,7 @@ app.prepare().then(async () => {
         const isNext =
           req.path.startsWith("/collections") ||
           req.path.startsWith("/visualizations") ||
+          req.path.startsWith("/dashboard") ||
           req.path.startsWith("/notebooks") ||
           req.path.startsWith("/pipelines") ||
           req.path.startsWith("/user/account") ||

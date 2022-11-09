@@ -1,0 +1,15 @@
+query DashboardPage {
+  totalNotebooks
+  catalog {
+    totalItems
+  }
+  dags {
+    totalItems
+  }
+  lastActivities {
+    description
+    occurredAt
+    url
+    status
+  }
+}
