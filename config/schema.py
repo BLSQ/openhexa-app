@@ -7,6 +7,7 @@ from ariadne import (
 )
 
 from hexa.catalog.schema import catalog_bindables, catalog_type_defs
+from hexa.core.schema import core_bindables, core_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.data_collections.schema import collections_bindables, collections_type_defs
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
@@ -38,6 +39,7 @@ schema = make_executable_schema(
         countries_type_defs,
         dashboards_type_defs,
         notebooks_type_defs,
+        core_type_defs,
     ],
     [
         *catalog_bindables,
@@ -51,6 +53,7 @@ schema = make_executable_schema(
         *countries_bindables,
         *dashboards_bindables,
         *notebooks_bindables,
+        *core_bindables,
         snake_case_fallback_resolvers,
     ],
 )

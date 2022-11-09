@@ -1,0 +1,20 @@
+enum ActivityStatus {
+  SUCCESS
+  PENDING
+  RUNNING
+  ERROR
+  UNKNOWN
+}
+
+type Activity {
+  description: String!
+  occurredAt: DateTime!
+  url: URL!
+  status: ActivityStatus!
+}
+
+
+extend type Query {
+  totalNotebooks: Int!
+  lastActivities: [Activity!]!
+}
