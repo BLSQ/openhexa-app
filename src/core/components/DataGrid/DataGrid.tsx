@@ -119,7 +119,7 @@ function DataGrid(props: DataGridProps) {
         Cell: () => React.cloneElement(column),
       };
       ["minWidth", "width", "maxWidth"].forEach((field) => {
-        if (!fixedLayout) {
+        if (!fixedLayout && column.props[field]) {
           console.warn(
             `"${field}" is only used when DataGrid is in fixedLayout mode.`
           );
