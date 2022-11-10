@@ -43,6 +43,7 @@ interface IDataGridProps {
   data: object[];
   manualSortBy?: boolean;
   extraTableProps?: object;
+  fixedLayout?: boolean;
   onSelectionChange?: (
     pageRows: object[],
     allIds: Record<string, boolean>
@@ -62,7 +63,6 @@ interface IDataGridProps {
   emptyLabel?: string;
   defaultSortBy?: SortingRule<object>[];
   pageSizeOptions?: number[];
-  wide?: boolean;
 }
 
 type DataGridProps = IDataGridProps;
@@ -72,6 +72,7 @@ function DataGrid(props: DataGridProps) {
   const {
     children,
     data,
+    fixedLayout = true,
     onSelectionChange,
     emptyLabel = t("No elements to display"),
     skipPageReset = false,
@@ -84,7 +85,6 @@ function DataGrid(props: DataGridProps) {
     extraTableProps = {},
     defaultSortBy = [],
     defaultPageSize = 10,
-    wide = false,
   } = props;
 
   const [loading, setLoading] = useState(false);
@@ -93,14 +93,16 @@ function DataGrid(props: DataGridProps) {
       useSortBy,
       usePagination,
       useRowSelect,
-      useFlexLayout,
       useRowState,
     ];
     if (onSelectionChange) {
       hooks.push(useCheckboxColumn);
     }
+    if (fixedLayout) {
+      hooks.push(useFlexLayout);
+    }
     return hooks;
-  }, [onSelectionChange]);
+  }, [onSelectionChange, fixedLayout]);
 
   const columns = useMemo(() => {
     const cols: Column[] = [];
@@ -117,6 +119,11 @@ function DataGrid(props: DataGridProps) {
         Cell: () => React.cloneElement(column),
       };
       ["minWidth", "width", "maxWidth"].forEach((field) => {
+        if (!fixedLayout) {
+          console.warn(
+            `"${field}" is only used when DataGrid is in fixedLayout mode.`
+          );
+        }
         if (column.props[field]) {
           def[field] = column.props[field];
         }
@@ -125,7 +132,7 @@ function DataGrid(props: DataGridProps) {
     });
 
     return cols;
-  }, [children]);
+  }, [children, fixedLayout]);
 
   const {
     getTableProps,
@@ -151,10 +158,10 @@ function DataGrid(props: DataGridProps) {
       // Row selection
       autoResetSelectedRows: false,
 
-      // Column width
+      // Column width (used in fixedLayout configuration)
       defaultColumn: {
         minWidth: 30,
-        width: wide ? 220 : 150,
+        width: 150,
         maxWidth: 400,
       },
 
@@ -232,7 +239,10 @@ function DataGrid(props: DataGridProps) {
   return (
     <div className={className}>
       <div className="overflow-x-auto">
-        <Table {...getTableProps()} className="table-fixed">
+        <Table
+          {...getTableProps()}
+          className={clsx(fixedLayout && "table-fixed")}
+        >
           <TableHead>
             {headerGroups.map((headerGroup, i) => (
               <TableRow {...headerGroup.getHeaderGroupProps()}>
