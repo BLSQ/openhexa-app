@@ -99,7 +99,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    class="text-cool-gray-400 h-6 w-6"
+                    class="h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="1.5"
@@ -113,36 +113,34 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                     />
                   </svg>
                 </div>
-                <div
+                <dl
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl>
-                    <dt>
-                      <div
-                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                      >
-                        Datasources
-                      </div>
-                    </dt>
-                    <dd>
-                      <div
-                        class="text-cool-gray-900 text-lg font-medium leading-7"
-                      >
-                        6
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+                  <dt>
+                    <div
+                      class="text-sm font-medium"
+                    >
+                      Datasources
+                    </div>
+                  </dt>
+                  <dd>
+                    <div
+                      class="text-lg font-medium"
+                    >
+                      6
+                    </div>
+                  </dd>
+                </dl>
               </div>
             </div>
             <div
-              class="bg-cool-gray-50 px-5 py-3"
+              class="px-5 py-3"
             >
               <div
-                class="text-sm leading-5"
+                class="text-sm"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
+                  class="font-medium text-blue-600 hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/catalog"
                 >
                   View all
@@ -164,7 +162,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    class="text-cool-gray-400 h-6 w-6"
+                    class="h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="1.5"
@@ -178,36 +176,30 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                     />
                   </svg>
                 </div>
-                <div
+                <dl
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl>
-                    <dt>
-                      <div
-                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                      >
-                        Notebooks
-                      </div>
-                    </dt>
-                    <dd>
-                      <div
-                        class="text-cool-gray-900 text-lg font-medium leading-7"
-                      >
-                        0
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+                  <dt
+                    class="text-sm font-medium"
+                  >
+                    Notebooks
+                  </dt>
+                  <dd
+                    class="text-lg font-medium"
+                  >
+                    0
+                  </dd>
+                </dl>
               </div>
             </div>
             <div
-              class="bg-cool-gray-50 px-5 py-3"
+              class="px-5 py-3"
             >
               <div
-                class="text-sm leading-5"
+                class="text-sm"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
+                  class="font-medium text-blue-600 hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/notebooks"
                 >
                   View all
@@ -229,7 +221,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 >
                   <svg
                     aria-hidden="true"
-                    class="text-cool-gray-400 h-6 w-6"
+                    class="h-6 w-6"
                     fill="none"
                     stroke="currentColor"
                     stroke-width="1.5"
@@ -243,36 +235,34 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                     />
                   </svg>
                 </div>
-                <div
+                <dl
                   class="ml-5 w-0 flex-1"
                 >
-                  <dl>
-                    <dt>
-                      <div
-                        class="text-cool-gray-500 truncate text-sm font-medium leading-5"
-                      >
-                        Pipelines
-                      </div>
-                    </dt>
-                    <dd>
-                      <div
-                        class="text-cool-gray-900 text-lg font-medium leading-7"
-                      >
-                        0
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+                  <dt>
+                    <div
+                      class="truncate text-sm font-medium"
+                    >
+                      Pipelines
+                    </div>
+                  </dt>
+                  <dd>
+                    <div
+                      class="text-lg font-medium "
+                    >
+                      0
+                    </div>
+                  </dd>
+                </dl>
               </div>
             </div>
             <div
-              class="bg-cool-gray-50 px-5 py-3"
+              class=" px-5 py-3"
             >
               <div
-                class="text-sm leading-5"
+                class="text-sm"
               >
                 <a
-                  class="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900 text-blue-600 hover:text-blue-500"
+                  class="font-medium text-blue-600 hover:text-blue-900 text-blue-600 hover:text-blue-500"
                   href="/pipelines"
                 >
                   View all
@@ -306,7 +296,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                   <table
                     class="table-fixed w-full divide-y divide-gray-200 "
                     role="table"
-                    style="min-width: 120px;"
+                    style="min-width: 340px;"
                   >
                     <thead
                       class="bg-gray-50"
@@ -314,13 +304,13 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                       <tr
                         class=""
                         role="row"
-                        style="display: flex; flex: 1 0 auto; min-width: 120px;"
+                        style="display: flex; flex: 1 0 auto; min-width: 340px;"
                       >
                         <th
                           colspan="1"
                           role="columnheader"
                           scope="col"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                          style="box-sizing: border-box; flex: 250 0 auto; min-width: 250px; width: 250px;"
                         >
                           <div
                             class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
@@ -371,14 +361,14 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                       <tr
                         class=""
                         role="row"
-                        style="display: flex; flex: 1 0 auto; min-width: 120px;"
+                        style="display: flex; flex: 1 0 auto; min-width: 340px;"
                       >
                         <td
                           role="cell"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
+                          style="box-sizing: border-box; flex: 250 0 auto; min-width: 250px; width: 250px;"
                         >
                           <div
-                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full truncate text-sm text-gray-900 whitespace-nowrap"
+                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full ... truncate whitespace-nowrap"
                           >
                             <div
                               class="flex items-center gap-4"
