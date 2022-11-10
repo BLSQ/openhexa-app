@@ -181,7 +181,11 @@ const DashboardPage = () => {
                   <TextColumn
                     id="name"
                     label={t("Name")}
-                    accessor="description"
+                    accessor={(value) => (
+                      <div
+                        dangerouslySetInnerHTML={{ __html: value.description }}
+                      />
+                    )}
                     className="... truncate"
                     minWidth={250}
                   />
