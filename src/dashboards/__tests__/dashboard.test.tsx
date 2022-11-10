@@ -41,7 +41,7 @@ describe("Dashboard", () => {
         <DashboardPage />
       </TestApp>
     );
-    const elm = await screen.findByText("Overview", { selector: "h3" });
+    const elm = await screen.findByText("Overview");
     expect(elm).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });

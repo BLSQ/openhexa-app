@@ -9,7 +9,7 @@ type TitleProps = {
 
 const Classes = {
   1: "font-semibold text-2xl mb-6",
-  2: "font-semibold text-xl  mb-4",
+  2: "font-semibold text-xl mb-4",
   3: "font-medium text-xl mb-3",
   4: "font-medium text-lg mb-2.5",
   5: "font-medium text-md mb-2",
