@@ -36,6 +36,7 @@ const RunMessages = (props: RunMessagesProps) => {
     <DataGrid
       data={dagRun.messages}
       sortable
+      totalItems={dagRun.messages.length}
       className="overflow-hidden rounded-md border"
     >
       <DateColumn
