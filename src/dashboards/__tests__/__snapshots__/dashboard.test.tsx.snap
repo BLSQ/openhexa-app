@@ -294,9 +294,8 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                   class="overflow-x-auto"
                 >
                   <table
-                    class="table-fixed w-full divide-y divide-gray-200 "
+                    class="w-full divide-y divide-gray-200 "
                     role="table"
-                    style="min-width: 340px;"
                   >
                     <thead
                       class="bg-gray-50"
@@ -304,54 +303,37 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                       <tr
                         class=""
                         role="row"
-                        style="display: flex; flex: 1 0 auto; min-width: 340px;"
                       >
                         <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                           colspan="1"
                           role="columnheader"
                           scope="col"
-                          style="box-sizing: border-box; flex: 250 0 auto; min-width: 250px; width: 250px;"
                         >
-                          <div
-                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
-                          >
-                            Name
-                          </div>
+                          Name
                         </th>
                         <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                           colspan="1"
                           role="columnheader"
                           scope="col"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                         >
-                          <div
-                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
-                          >
-                            Status
-                          </div>
+                          Status
                         </th>
                         <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                           colspan="1"
                           role="columnheader"
                           scope="col"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
                         >
-                          <div
-                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
-                          >
-                            Date
-                          </div>
+                          Date
                         </th>
                         <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                           colspan="1"
                           role="columnheader"
                           scope="col"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
-                        >
-                          <div
-                            class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex whitespace-nowrap"
-                          />
-                        </th>
+                        />
                       </tr>
                     </thead>
                     <tbody
@@ -361,94 +343,66 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                       <tr
                         class=""
                         role="row"
-                        style="display: flex; flex: 1 0 auto; min-width: 340px;"
                       >
                         <td
+                          class="px-4 py-5 text-sm text-gray-500 h-full max-w-[250px] text-sm text-gray-900 lg:max-w-[400px] whitespace-nowrap"
                           role="cell"
-                          style="box-sizing: border-box; flex: 250 0 auto; min-width: 250px; width: 250px;"
                         >
                           <div
-                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full ... truncate whitespace-nowrap"
+                            class="truncate"
                           >
-                            <div
-                              class="flex items-center gap-4"
+                            All datasources are up to date!
+                          </div>
+                        </td>
+                        <td
+                          class="px-4 py-5 text-sm text-gray-500 h-full whitespace-nowrap"
+                          role="cell"
+                        >
+                          <span
+                            class="inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium px-2 py-0.5 text-xs bg-emerald-50 text-emerald-500 flex items-center"
+                          >
+                            Succeeded
+                          </span>
+                        </td>
+                        <td
+                          class="px-4 py-5 text-sm text-gray-500 h-full whitespace-nowrap"
+                          role="cell"
+                        >
+                          <time
+                            class="whitespace-nowrap truncate"
+                            datetime="2022-11-09T01:00:39.651+01:00"
+                            title="2022-11-09T01:00:39.651+01:00"
+                          >
+                            in 18 days
+                          </time>
+                        </td>
+                        <td
+                          class="px-4 py-5 text-sm text-gray-500 h-full whitespace-nowrap"
+                          role="cell"
+                        >
+                          <div
+                            class="w-full"
+                          >
+                            <a
+                              accessor="url"
+                              class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
+                              href="/catalog"
                             >
-                              <div
-                                class="truncate"
+                              View
+                              <svg
+                                aria-hidden="true"
+                                class="inline h-5"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
                               >
-                                <div
-                                  class="flex-1 truncate lg:whitespace-nowrap"
-                                  title="[object Object]"
-                                >
-                                  <div>
-                                    All datasources are up to date!
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td
-                          role="cell"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
-                        >
-                          <div
-                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
-                          >
-                            <span
-                              class="inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium px-2 py-0.5 text-xs bg-emerald-50 text-emerald-500 flex items-center"
-                            >
-                              Succeeded
-                            </span>
-                          </div>
-                        </td>
-                        <td
-                          role="cell"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
-                        >
-                          <div
-                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
-                          >
-                            <time
-                              class="whitespace-nowrap truncate"
-                              datetime="2022-11-09T01:00:39.651+01:00"
-                              title="2022-11-09T01:00:39.651+01:00"
-                            >
-                              in 18 days
-                            </time>
-                          </div>
-                        </td>
-                        <td
-                          role="cell"
-                          style="box-sizing: border-box; flex: 150 0 auto; min-width: 30px; width: 150px;"
-                        >
-                          <div
-                            class="px-4 py-5 text-sm text-gray-500 flex items-center w-full h-full whitespace-nowrap"
-                          >
-                            <div
-                              class="w-full"
-                            >
-                              <a
-                                accessor="url"
-                                class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
-                                href="/catalog"
-                              >
-                                View
-                                <svg
-                                  aria-hidden="true"
-                                  class="inline h-5"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    clip-rule="evenodd"
-                                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                    fill-rule="evenodd"
-                                  />
-                                </svg>
-                              </a>
-                            </div>
+                                <path
+                                  clip-rule="evenodd"
+                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                  fill-rule="evenodd"
+                                />
+                              </svg>
+                            </a>
                           </div>
                         </td>
                       </tr>

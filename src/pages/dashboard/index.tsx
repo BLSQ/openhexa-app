@@ -177,18 +177,20 @@ const DashboardPage = () => {
             </Title>
             <div className="mt-4">
               <Block>
-                <DataGrid data={data?.lastActivities || []}>
-                  <TextColumn
-                    id="name"
+                <DataGrid data={data?.lastActivities || []} fixedLayout={false}>
+                  <BaseColumn
+                    id="description"
                     label={t("Name")}
-                    accessor={(value) => (
+                    accessor="description"
+                    className="max-w-[250px] text-sm text-gray-900 lg:max-w-[400px]"
+                  >
+                    {(value) => (
                       <div
-                        dangerouslySetInnerHTML={{ __html: value.description }}
-                      />
+                        className="truncate"
+                        dangerouslySetInnerHTML={{ __html: value }}
+                      ></div>
                     )}
-                    className="... truncate"
-                    minWidth={250}
-                  />
+                  </BaseColumn>
 
                   <BaseColumn id="status" label={t("Status")}>
                     {(item) => <ActivityStatusBadge status={item.status} />}
