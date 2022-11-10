@@ -7,7 +7,6 @@ import {
 import Quicksearch from "catalog/features/Quicksearch";
 import { SearchResult_ResultFragment } from "catalog/features/SearchResult.generated";
 import CollectionActionsMenu from "collections/features/CollectionActionsMenu";
-import CollectionDataSourceViewerDialog from "collections/features/CollectionDataSourceViewerDialog";
 import CollectionElementsTable from "collections/features/CollectionElementsTable";
 import { useUpdateCollectionMutation } from "collections/graphql/mutations.generated";
 import {
@@ -85,7 +84,6 @@ const QuickActionAddToCollection = (props: {
 
 const CollectionPage = ({ collectionId }: Props) => {
   const { t } = useTranslation();
-  const [isDialogOpen, { toggle: toggleDialog }] = useToggle();
   const [isSearchOpen, { toggle: toggleSearch }] = useToggle();
   const [isEditingElements, { toggle: toggleEditingElements }] = useToggle();
 
@@ -240,11 +238,6 @@ const CollectionPage = ({ collectionId }: Props) => {
           </section>
         </div>
       </PageContent>
-
-      <CollectionDataSourceViewerDialog
-        open={isDialogOpen}
-        onClose={toggleDialog}
-      />
 
       <Quicksearch
         renderActions={(element) => (
