@@ -49,7 +49,7 @@ export function TextColumn(props: TextColumnProps) {
   }, [cell.value, url]);
 
   const children = (
-    <div className="flex items-center gap-4">
+    <div className="flex max-w-full items-center gap-4">
       {symbol && (
         <div className="w-8">
           <img src={symbol} alt={text} />
@@ -58,10 +58,7 @@ export function TextColumn(props: TextColumnProps) {
       <div className="truncate">
         <div
           title={text}
-          className={clsx(
-            "flex-1 truncate lg:whitespace-nowrap",
-            textClassName
-          )}
+          className={clsx("truncate lg:whitespace-nowrap", textClassName)}
         >
           {text || defaultValue}
         </div>
