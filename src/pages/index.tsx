@@ -30,7 +30,7 @@ const LoginPage: NextPageWithLayout = () => {
         },
       });
       if (data?.login.success) {
-        router.push((router.query.next as string) ?? "/dashboard");
+        await router.push((router.query.next as string) ?? "/dashboard");
       } else {
         throw new Error(t("Wrong email address and/or password."));
       }
@@ -66,15 +66,15 @@ const LoginPage: NextPageWithLayout = () => {
               />
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Sign in
+              {t("Sign in")}
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              No account yet?{" "}
+              {t("No account yet?")}&nbsp;
               <a
                 href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                Contact us!
+                {t("Contact us!")}
               </a>
             </p>
           </div>

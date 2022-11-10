@@ -16,19 +16,19 @@ app.prepare().then(async () => {
     proxy(fallback_url, {
       filter: function (req) {
         const isNext =
-          req.url.startsWith("/collections") ||
-          req.url.startsWith("/visualizations") ||
-          req.url.startsWith("/notebooks") ||
-          req.url.startsWith("/pipelines") ||
-          req.url.startsWith("/user/account") ||
-          req.url.startsWith("/catalog/search") ||
-          req.url.startsWith("/airflow") ||
-          req.url.startsWith("/images") ||
-          req.url.startsWith("/_next") ||
-          req.url === "/" ||
-          req.url.startsWith("/ready");
+          req.path.startsWith("/collections") ||
+          req.path.startsWith("/visualizations") ||
+          req.path.startsWith("/notebooks") ||
+          req.path.startsWith("/pipelines") ||
+          req.path.startsWith("/user/account") ||
+          req.path.startsWith("/catalog/search") ||
+          req.path.startsWith("/airflow") ||
+          req.path.startsWith("/images") ||
+          req.path.startsWith("/_next") ||
+          req.path === "/" ||
+          req.path.startsWith("/ready");
 
-        const isLegacy = req.url.search(
+        const isLegacy = req.path.search(
           /^\/visualizations\/[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}\b\/image/
         );
         return !isNext || !isLegacy;

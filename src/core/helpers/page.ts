@@ -48,7 +48,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       return {
         ...res,
         redirect: {
-          destination: `/?returnTo=${encodeURIComponent(ctx.resolvedUrl)}`,
+          destination: `/?next=${encodeURIComponent(ctx.resolvedUrl)}`,
           permanent: false,
         },
       };
