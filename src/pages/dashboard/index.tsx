@@ -39,7 +39,7 @@ const ActivityStatusBadge = ({ status }: { status: ActivityStatus }) => {
     }
   }, [status]);
 
-  const label = (() => {
+  const label = useMemo(() => {
     switch (status) {
       case ActivityStatus.Error:
         return t("Error");
@@ -50,7 +50,7 @@ const ActivityStatusBadge = ({ status }: { status: ActivityStatus }) => {
       case ActivityStatus.Success:
         return t("Succeeded");
     }
-  })();
+  }, [status, t]);
 
   return (
     <Badge className={clsx(className, "flex items-center")}>{label}</Badge>
@@ -82,29 +82,27 @@ const DashboardPage = () => {
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <BookmarkSquareIcon className="text-cool-gray-400 h-6 w-6" />
+                      <BookmarkSquareIcon className="h-6 w-6" />
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt>
-                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                            {t("Datasources")}
-                          </div>
-                        </dt>
-                        <dd>
-                          <div className="text-cool-gray-900 text-lg font-medium leading-7">
-                            {data?.catalog.totalItems}
-                          </div>
-                        </dd>
-                      </dl>
-                    </div>
+                    <dl className="ml-5 w-0 flex-1">
+                      <dt>
+                        <div className="text-sm font-medium">
+                          {t("Datasources")}
+                        </div>
+                      </dt>
+                      <dd>
+                        <div className="text-lg font-medium">
+                          {data?.catalog.totalItems}
+                        </div>
+                      </dd>
+                    </dl>
                   </div>
                 </div>
-                <div className="bg-cool-gray-50 px-5 py-3">
-                  <div className="text-sm leading-5">
+                <div className="px-5 py-3">
+                  <div className="text-sm">
                     <Link
                       href="/catalog"
-                      className="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                      className="font-medium text-blue-600 hover:text-blue-900"
                     >
                       {t("View all")}
                     </Link>
@@ -115,29 +113,21 @@ const DashboardPage = () => {
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <BookOpenIcon className="text-cool-gray-400 h-6 w-6" />
+                      <BookOpenIcon className="h-6 w-6" />
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt>
-                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                            {t("Notebooks")}
-                          </div>
-                        </dt>
-                        <dd>
-                          <div className="text-cool-gray-900 text-lg font-medium leading-7">
-                            {data?.totalNotebooks}
-                          </div>
-                        </dd>
-                      </dl>
-                    </div>
+                    <dl className="ml-5 w-0 flex-1">
+                      <dt className="text-sm font-medium">{t("Notebooks")}</dt>
+                      <dd className="text-lg font-medium">
+                        {data?.totalNotebooks}
+                      </dd>
+                    </dl>
                   </div>
                 </div>
-                <div className="bg-cool-gray-50 px-5 py-3">
-                  <div className="text-sm leading-5">
+                <div className="px-5 py-3">
+                  <div className="text-sm">
                     <Link
                       href="/notebooks"
-                      className="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                      className="font-medium text-blue-600 hover:text-blue-900"
                     >
                       {t("View all")}
                     </Link>
@@ -148,29 +138,27 @@ const DashboardPage = () => {
                 <div className="p-5">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <BeakerIcon className="text-cool-gray-400 h-6 w-6" />
+                      <BeakerIcon className="h-6 w-6" />
                     </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt>
-                          <div className="text-cool-gray-500 truncate text-sm font-medium leading-5">
-                            {t("Pipelines")}
-                          </div>
-                        </dt>
-                        <dd>
-                          <div className="text-cool-gray-900 text-lg font-medium leading-7">
-                            {data?.dags.totalItems}
-                          </div>
-                        </dd>
-                      </dl>
-                    </div>
+                    <dl className="ml-5 w-0 flex-1">
+                      <dt>
+                        <div className="truncate text-sm font-medium">
+                          {t("Pipelines")}
+                        </div>
+                      </dt>
+                      <dd>
+                        <div className="text-lg font-medium ">
+                          {data?.dags.totalItems}
+                        </div>
+                      </dd>
+                    </dl>
                   </div>
                 </div>
-                <div className="bg-cool-gray-50 px-5 py-3">
-                  <div className="text-sm leading-5">
+                <div className=" px-5 py-3">
+                  <div className="text-sm">
                     <Link
                       href="/pipelines"
-                      className="font-medium text-blue-600 transition duration-150 ease-in-out hover:text-blue-900"
+                      className="font-medium text-blue-600 hover:text-blue-900"
                     >
                       {t("View all")}
                     </Link>
@@ -194,14 +182,13 @@ const DashboardPage = () => {
                     id="name"
                     label={t("Name")}
                     accessor="description"
-                    maxWidth={200}
-                    className="truncate text-sm text-gray-900"
+                    className="... truncate"
+                    minWidth={250}
                   />
 
                   <BaseColumn id="status" label={t("Status")}>
                     {(item) => <ActivityStatusBadge status={item.status} />}
                   </BaseColumn>
-
                   <DateColumn
                     label={t("Date")}
                     relative
