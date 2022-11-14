@@ -88,16 +88,18 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
                 </Button>
               </a>
             )}
-            <Link
-              href={{
-                pathname: "/pipelines/[pipelineId]/run",
-                query: { pipelineId: dag.id, fromRun: dagRun.id },
-              }}
-            >
-              <Button size="sm" leadingIcon={<PlayIcon className="w-5" />}>
-                {t("Re-run job")}
-              </Button>
-            </Link>
+            {isFinished && (
+              <Link
+                href={{
+                  pathname: "/pipelines/[pipelineId]/run",
+                  query: { pipelineId: dag.id, fromRun: dagRun.id },
+                }}
+              >
+                <Button size="sm" leadingIcon={<PlayIcon className="w-5" />}>
+                  {t("Re-run job")}
+                </Button>
+              </Link>
+            )}
             <PipelineRunFavoriteTrigger run={dagRun} />
           </div>
         )}
