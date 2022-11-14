@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.12.5](https://github.com/BLSQ/openhexa-frontend/compare/0.12.4...0.12.5) (2022-11-14)
+
+
+### Bug Fixes
+
+* **Login:** Use path instead of url to match urls handled by the frontend and the ones handled by the backend. ([0dc9fe1](https://github.com/BLSQ/openhexa-frontend/commit/0dc9fe1fe54896b5fe1757a391b4d2daa32cb345))
+* **Pipelines:** add pagination on dag run messages table ([37c4d28](https://github.com/BLSQ/openhexa-frontend/commit/37c4d284b825dacad53f1e6879b665c438df718c))
+* **TextColumn:** Truncate correctly the text ([9032aef](https://github.com/BLSQ/openhexa-frontend/commit/9032aef96d6ff11c600181bc64f7e0de29ee0468))
+
 ## [0.12.4](https://github.com/BLSQ/openhexa-frontend/compare/0.12.3...0.12.4) (2022-11-09)
 
 
