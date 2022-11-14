@@ -126,7 +126,8 @@ def generate_sts_user_s3_credentials(
     """
 
     if principal_credentials.endpoint_url:
-        # We are pointing to a MinIO instance, keep it simple
+        # We are pointing to a MinIO instance, that doesn't support all this.
+        # All we can do is generating temporary credentials using the app role.
         return (
             generate_sts_app_s3_credentials(
                 principal_credentials=principal_credentials,
@@ -294,6 +295,7 @@ def _build_app_s3_client(*, principal_credentials: models.Credentials):
     )
     return boto3.client(
         "s3",
+        region_name=principal_credentials.default_region,
         endpoint_url=(
             None
             if not principal_credentials.endpoint_url
