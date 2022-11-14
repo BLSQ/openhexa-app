@@ -353,7 +353,6 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                         class="w-full"
                       >
                         <a
-                          accessor="url"
                           class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
                           href="/catalog"
                         >
