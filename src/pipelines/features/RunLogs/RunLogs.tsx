@@ -19,8 +19,8 @@ const RunLogs = (props: RunLogsProps) => {
   }
 
   return (
-    <code className="contents">
-      <pre className="max-h-96 overflow-y-auto whitespace-pre-line text-xs">
+    <code>
+      <pre className="max-h-96 overflow-y-auto whitespace-pre-line break-all text-xs">
         {dagRun.logs}
       </pre>
     </code>
