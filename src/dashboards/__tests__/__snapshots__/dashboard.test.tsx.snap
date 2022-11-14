@@ -3,7 +3,7 @@
 exports[`Dashboard renders the dashboards' page 1`] = `
 <div>
   <main
-    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6 space-y-12"
+    class="w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pb-6"
   >
     <nav
       aria-label="Breadcrumbs"
@@ -244,7 +244,9 @@ exports[`Dashboard renders the dashboards' page 1`] = `
         </article>
       </div>
     </div>
-    <div>
+    <div
+      class="mt-12"
+    >
       <h2
         class="text-gray-700 font-semibold text-xl mb-4"
       >

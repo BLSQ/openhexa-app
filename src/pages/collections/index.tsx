@@ -20,6 +20,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { DateTime } from "luxon";
 import Page from "core/components/Layout/Page";
+import Title from "core/components/Title";
 
 type Props = {
   page: number;
@@ -55,7 +56,10 @@ const CollectionsPage = (props: Props) => {
           </Breadcrumbs.Part>
         </Breadcrumbs>
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+            <Title level={2} className="mb-0 text-gray-700">
+              {t("Collections")}
+            </Title>
             <Toggle>
               {({ isToggled, toggle }) => (
                 <>

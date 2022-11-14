@@ -66,7 +66,7 @@ const DashboardPage = () => {
 
   return (
     <Page title={t("Dashboard")}>
-      <PageContent className="space-y-12">
+      <PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/dashboard">
             {t("Dashboard")}
@@ -102,7 +102,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div>
+        <div className="mt-12">
           <Title level={2} className="text-gray-700">
             {t("Last Activity")}
           </Title>
