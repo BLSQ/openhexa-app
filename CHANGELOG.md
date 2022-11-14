@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.6](https://github.com/BLSQ/openhexa-frontend/compare/0.12.5...0.12.6) (2022-11-14)
+
+
+### Bug Fixes
+
+* **PipelinesRun:** Only display re-run action when job is finished ([ce85ea1](https://github.com/BLSQ/openhexa-frontend/commit/ce85ea12675b2beebbbaad72e4df3bda7ee72c1a))
+* **Title:** add missing titles on search and notebooks page ([38d69a0](https://github.com/BLSQ/openhexa-frontend/commit/38d69a0c1125eebaac6a7904d830160124f88a09))
+
 ## [0.12.5](https://github.com/BLSQ/openhexa-frontend/compare/0.12.4...0.12.5) (2022-11-14)
 
 
