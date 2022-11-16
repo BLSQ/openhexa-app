@@ -51,6 +51,11 @@ class Credentials(Base):
     )
     user_arn = models.CharField(max_length=200)
     app_role_arn = models.CharField(max_length=200)
+    endpoint_url = models.CharField(
+        blank=True,
+        max_length=200,
+        help_text="The URL of your MinIO server. Let it blank when using real Amazon S3",
+    )
 
     @property
     def display_name(self):

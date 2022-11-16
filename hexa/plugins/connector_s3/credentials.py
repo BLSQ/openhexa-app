@@ -39,6 +39,7 @@ def _generate_credentials(
     )
 
     json_config = {
+        "AWS_ENDPOINT": principal_s3_credentials.endpoint_url,
         "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
         "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
         "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],

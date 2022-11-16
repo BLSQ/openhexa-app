@@ -38,6 +38,12 @@ def generate_sts_app_s3_credentials(
 
     sts_client = boto3.client(
         "sts",
+        region_name=principal_credentials.default_region,
+        endpoint_url=(
+            None
+            if not principal_credentials.endpoint_url
+            else principal_credentials.endpoint_url
+        ),
         aws_access_key_id=principal_credentials.access_key_id,
         aws_secret_access_key=principal_credentials.secret_access_key,
     )
@@ -118,6 +124,16 @@ def generate_sts_user_s3_credentials(
         4. Generates a fresh S3 policy and sets it on the role (replacing the existing one)
         5. Assume the team/pipeline/.. role
     """
+
+    if principal_credentials.endpoint_url:
+        # We are pointing to a MinIO instance, that doesn't support all this.
+        # All we can do is generating temporary credentials using the app role.
+        return (
+            generate_sts_app_s3_credentials(
+                principal_credentials=principal_credentials,
+            ),
+            False,
+        )
 
     if not principal_credentials.user_arn or not principal_credentials.app_role_arn:
         raise S3ApiError(
@@ -279,7 +295,12 @@ def _build_app_s3_client(*, principal_credentials: models.Credentials):
     )
     return boto3.client(
         "s3",
-        principal_credentials.default_region,
+        region_name=principal_credentials.default_region,
+        endpoint_url=(
+            None
+            if not principal_credentials.endpoint_url
+            else principal_credentials.endpoint_url
+        ),
         aws_access_key_id=sts_credentials["AccessKeyId"],
         aws_secret_access_key=sts_credentials["SecretAccessKey"],
         aws_session_token=sts_credentials["SessionToken"],

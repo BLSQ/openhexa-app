@@ -31,3 +31,4 @@ class AWSRegion(models.TextChoices):
     AP_SOUTHEAST_3 = "ap-southeast-3", "ap-southeast-3"
     ME_SOUTH_2 = "me-south-2", "me-south-2"
     ME_WEST_1 = "me-west-1", "me-west-1"
+    MINIO = "minio", "minio"
