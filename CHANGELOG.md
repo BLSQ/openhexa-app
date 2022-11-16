@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.7](https://github.com/BLSQ/openhexa-frontend/compare/0.12.6...0.12.7) (2022-11-16)
+
+
+### Bug Fixes
+
+* Pass props by name directly to LinkColumn ([e881473](https://github.com/BLSQ/openhexa-frontend/commit/e881473183f4f5290b922c7860d6a3b550b516ac))
+
 ## [0.12.6](https://github.com/BLSQ/openhexa-frontend/compare/0.12.5...0.12.6) (2022-11-14)
 
 
