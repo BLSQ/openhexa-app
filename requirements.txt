@@ -82,6 +82,8 @@ colorhash==1.2.1
     # via -r requirements.in
 coverage[toml]==6.5.0
     # via -r requirements.in
+croniter==1.3.7
+    # via -r requirements.in
 cryptography==38.0.3
     # via
     #   -r requirements.in
@@ -288,6 +290,7 @@ pyproj==3.4.0
 python-dateutil==2.8.2
     # via
     #   botocore
+    #   croniter
     #   moto
     #   pandas
 python-slugify==6.1.2

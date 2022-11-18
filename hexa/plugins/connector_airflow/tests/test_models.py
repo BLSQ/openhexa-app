@@ -190,7 +190,7 @@ class DagTemplateTest(TestCase):
                         "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
                     },
                     "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 * * 0",
+                    "schedule": None,  # Was '0 12 * * 0', but we have our own scheduer now
                 },
                 {
                     "dag_id": "chirps_extract_ct2",
@@ -205,7 +205,7 @@ class DagTemplateTest(TestCase):
                         "download_output_dir": "s3://invalid@/africa/chirps/rainfall/",
                     },
                     "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 * * 0",
+                    "schedule": None,  # We '0 12 * * 0', but we have our own scheduer now
                 },
             ],
         )
@@ -251,7 +251,7 @@ class DagTemplateTest(TestCase):
                         "out_notebook": "s3://invalid-bucket/code/output/prj1_{{ execution_date }}.ipynb",
                     },
                     "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 25 * *",
+                    "schedule": None,  # Was '0 12 25 * *', but we have our own scheduer now
                 },
                 {
                     "dag_id": "prj2_update",
@@ -263,7 +263,7 @@ class DagTemplateTest(TestCase):
                         "out_notebook": "s3://invalid-bucket/code/output/ct1_dqa_{{ execution_date }}.ipynb",
                     },
                     "report_email": "jim@bluesquarehub.com",
-                    "schedule": "0 12 20 * *",
+                    "schedule": None,  # Was '0 12 20 * *' , but we have our own scheduer now
                 },
             ],
         )

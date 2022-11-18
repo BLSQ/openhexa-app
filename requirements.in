@@ -22,6 +22,7 @@ tblib
 whitenoise
 sentry-sdk
 tqdm
+croniter
 
 # production
 google-cloud-logging

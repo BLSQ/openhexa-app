@@ -184,22 +184,6 @@ class Cluster(Environment):
                 hexa_dag.template.description = dag_info["description"]
                 hexa_dag.template.save()
 
-                # check schedule
-                if not (
-                    (
-                        dag_info["schedule_interval"] is None
-                        and hexa_dag.schedule is None
-                    )
-                    or (
-                        dag_info["schedule_interval"]
-                        and dag_info["schedule_interval"]["value"] == hexa_dag.schedule
-                    )
-                ):
-                    logger.error(
-                        "DAG %s schedule missmatch between openhexa/airflow",
-                        hexa_dag.dag_id,
-                    )
-
                 if dag_info["is_active"] is False:
                     logger.error("DAG %s inactive in airflow", hexa_dag.dag_id)
 
@@ -333,27 +317,44 @@ class DAG(Pipeline):
         conf: typing.Mapping[str, typing.Any] = None,
         webhook_path: str = None,
     ):
+        return self.common_run(
+            user=request.user,
+            run_type=DAGRunTrigger.MANUAL,
+            conf=conf,
+            webhook_path=webhook_path,
+        )
+
+    def run_scheduled(self):
+        self.common_run(user=self.user, run_type=DAGRunTrigger.SCHEDULED)
+
+    def common_run(
+        self,
+        user: User,
+        run_type: DAGRunTrigger,
+        conf: typing.Mapping[str, typing.Any] = None,
+        webhook_path: str = None,
+    ):
         if conf is None:
             conf = {}
 
         client = self.template.cluster.get_api_client()
         # add report email to feedback user
-        conf["_report_email"] = request.user.email
+        conf["_report_email"] = user.email
 
         if webhook_path is None:
             webhook_path = reverse("connector_airflow:webhook")
         raw_token, signed_token = self.build_webhook_token()
         conf["_webhook_token"] = signed_token
-        conf["_webhook_url"] = request.build_absolute_uri(webhook_path)
+        conf["_webhook_url"] = f"{settings.BASE_URL}{webhook_path}"
 
-        dag_run_data = client.trigger_dag_run(self.dag_id, conf=conf)
+        dag_run_data = client.trigger_dag_run(self.dag_id, run_type=run_type, conf=conf)
 
         # don't save private information in past run, like email, tokens...
         public_conf = {k: v for k, v in conf.items() if not k.startswith("_")}
 
         return DAGRun.objects.create(
             dag=self,
-            user=request.user,
+            user=user,
             run_id=dag_run_data["dag_run_id"],
             execution_date=parse_datetime(dag_run_data["execution_date"]),
             state=DAGRunState.QUEUED,
@@ -368,7 +369,7 @@ class DAG(Pipeline):
             "credentials_url": f'{settings.BASE_URL}{reverse("pipelines:credentials")}',
             "static_config": self.config,
             "report_email": self.user.email if self.user else None,
-            "schedule": self.schedule if self.schedule else None,
+            "schedule": None,
         }
 
     @staticmethod

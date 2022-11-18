@@ -42,14 +42,17 @@ class AirflowAPIClient:
         return response.text
 
     def trigger_dag_run(
-        self, dag_id: str, conf: typing.Mapping[str, typing.Any]
+        self, dag_id: str, run_type: str, conf: typing.Mapping[str, typing.Any]
     ) -> typing.Dict:
         url = urljoin(self._url, f"dags/{dag_id}/dagRuns")
+        formated_time = timezone.now().isoformat()
+        dag_run_id = f"{run_type.lower()}__{formated_time}"
         response = self._session.post(
             url,
             json={
-                "execution_date": timezone.now().isoformat(),
+                "execution_date": formated_time,
                 "conf": conf,
+                "dag_run_id": dag_run_id,
             },
             allow_redirects=False,
         )
