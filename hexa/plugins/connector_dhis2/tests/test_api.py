@@ -37,8 +37,7 @@ class Dhis2Test(TestCase):
             json=mock_data_elements_response,
             status=200,
         )
-        results = self.dhis2_client.fetch_data_elements()
-        self.assertIsInstance(results, list)
+        results = list(self.dhis2_client.fetch_data_elements())
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], DataElementResult)
 
@@ -50,7 +49,7 @@ class Dhis2Test(TestCase):
             json=mock_indicator_types_response,
             status=200,
         )
-        results = self.dhis2_client.fetch_indicator_types()
+        results = list(self.dhis2_client.fetch_indicator_types())
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], IndicatorTypeResult)
@@ -63,7 +62,7 @@ class Dhis2Test(TestCase):
             json=mock_orgunits_response,
             status=200,
         )
-        results = self.dhis2_client.fetch_organisation_units()
+        results = list(self.dhis2_client.fetch_organisation_units())
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], OrganisationUnitResult)
@@ -76,7 +75,7 @@ class Dhis2Test(TestCase):
             json=mock_indicators_response,
             status=200,
         )
-        results = self.dhis2_client.fetch_indicators()
+        results = list(self.dhis2_client.fetch_indicators())
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], IndicatorResult)
@@ -89,7 +88,7 @@ class Dhis2Test(TestCase):
             json=mock_datasets_response,
             status=200,
         )
-        results = self.dhis2_client.fetch_datasets()
+        results = list(self.dhis2_client.fetch_datasets())
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
         self.assertIsInstance(results[0], DataSetResult)
