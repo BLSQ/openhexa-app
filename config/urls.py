@@ -18,7 +18,6 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
-from django.views.generic import TemplateView
 
 from hexa.app import get_hexa_app_configs
 
@@ -60,9 +59,7 @@ urlpatterns = [
         r"^graphql/([\w+\/]*?)?$",
         GraphQLView.as_view(
             schema=schema, playground_options={"request.credentials": "include"}
-        )
-        if settings.ENABLE_GRAPHQL is True
-        else TemplateView.as_view(template_name="404.html"),
+        ),
         name="graphql",
     ),
 ]
