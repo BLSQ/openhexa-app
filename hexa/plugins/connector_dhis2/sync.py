@@ -34,9 +34,7 @@ def sync_from_dhis2_results(*, model_class, instance, results):
     """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
     model_name = model_class._meta.model_name
-    instance.sync_log(
-        "start sync_from_dhis2_results model %s, results %s", model_name, len(results)
-    )
+    instance.sync_log("start sync_from_dhis2_results model %s", model_name)
 
     created = 0
     updated = 0

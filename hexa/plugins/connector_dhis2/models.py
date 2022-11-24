@@ -135,45 +135,49 @@ class Instance(Datasource):
         self.sync_log("fetch info done: %s", info)
         self.name = info["systemName"]
 
-        self.sync_log("start fetch data_elements")
-
-        results += sync_from_dhis2_results(
-            model_class=DataElement,
-            instance=self,
-            results=client.fetch_data_elements(),
-        )
+        with transaction.atomic(savepoint=False, durable=True):
+            self.sync_log("start fetch data_elements")
+            results += sync_from_dhis2_results(
+                model_class=DataElement,
+                instance=self,
+                results=client.fetch_data_elements(),
+            )
 
         # Sync indicator types
-        self.sync_log("start fetch indicator_types")
-        results += sync_from_dhis2_results(
-            model_class=IndicatorType,
-            instance=self,
-            results=client.fetch_indicator_types(),
-        )
+        with transaction.atomic(savepoint=False, durable=True):
+            self.sync_log("start fetch indicator_types")
+            results += sync_from_dhis2_results(
+                model_class=IndicatorType,
+                instance=self,
+                results=client.fetch_indicator_types(),
+            )
 
         # Sync indicators
-        self.sync_log("start fetch indicators")
-        results += sync_from_dhis2_results(
-            model_class=Indicator,
-            instance=self,
-            results=client.fetch_indicators(),
-        )
+        with transaction.atomic(savepoint=False, durable=True):
+            self.sync_log("start fetch indicators")
+            results += sync_from_dhis2_results(
+                model_class=Indicator,
+                instance=self,
+                results=client.fetch_indicators(),
+            )
 
         # Sync datasets
-        self.sync_log("start fetch datasets")
-        results += sync_from_dhis2_results(
-            model_class=DataSet,
-            instance=self,
-            results=client.fetch_datasets(),
-        )
+        with transaction.atomic(savepoint=False, durable=True):
+            self.sync_log("start fetch datasets")
+            results += sync_from_dhis2_results(
+                model_class=DataSet,
+                instance=self,
+                results=client.fetch_datasets(),
+            )
 
         # Sync organisation units
-        self.sync_log("start fetch organisation_units")
-        results += sync_from_dhis2_results(
-            model_class=OrganisationUnit,
-            instance=self,
-            results=client.fetch_organisation_units(),
-        )
+        with transaction.atomic(savepoint=False, durable=True):
+            self.sync_log("start fetch organisation_units")
+            results += sync_from_dhis2_results(
+                model_class=OrganisationUnit,
+                instance=self,
+                results=client.fetch_organisation_units(),
+            )
 
         # Flag the datasource as synced
         self.sync_log("end of fetching resources")
