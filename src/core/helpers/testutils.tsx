@@ -15,12 +15,13 @@ jest.mock("next/router", () => require("next-router-mock"));
 jest.mock("next/dist/client/router", () => require("next-router-mock"));
 
 export function TestApp(props: TestAppProps) {
-  const me = props.me ?? {
+  const me = {
     features: [],
     user: LOGGED_IN_USER,
     permissions: {
       adminPanel: true,
     },
+    ...(props.me ?? {}),
   };
   return (
     <MockedProvider addTypename={false} mocks={props.mocks ?? []}>
