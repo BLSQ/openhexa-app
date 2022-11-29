@@ -7,10 +7,10 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Field from "core/components/forms/Field";
 import Select from "core/components/forms/Select";
-import Page from "core/components/Layout/Page";
-import { PageContent } from "core/components/Layout/PageContent";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useForm from "core/hooks/useForm";
+import { PageContent } from "core/layouts/default";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
 

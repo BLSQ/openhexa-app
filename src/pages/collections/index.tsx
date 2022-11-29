@@ -13,13 +13,13 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import TagColumn from "core/components/DataGrid/TagColumn";
 import CreateCollectionDialog from "collections/features/CreateCollectionDialog";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import { PageContent } from "core/components/Layout/PageContent";
+import DefaultLayout from "core/layouts/default";
 import { createGetServerSideProps } from "core/helpers/page";
 import Toggle from "core/helpers/Toggle";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { DateTime } from "luxon";
-import Page from "core/components/Layout/Page";
+import Page from "core/components/Page";
 import Title from "core/components/Title";
 
 type Props = {
@@ -49,7 +49,7 @@ const CollectionsPage = (props: Props) => {
 
   return (
     <Page title={t("Collections")}>
-      <PageContent>
+      <DefaultLayout.PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/collections">
             {t("Collections")}
@@ -124,7 +124,7 @@ const CollectionsPage = (props: Props) => {
             </DataGrid>
           </Block>
         </div>
-      </PageContent>
+      </DefaultLayout.PageContent>
     </Page>
   );
 };

@@ -6,8 +6,8 @@ import RenderProperty from "core/components/DataCard/RenderProperty";
 import TagProperty from "core/components/DataCard/TagProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
-import Page from "core/components/Layout/Page";
-import { PageContent } from "core/components/Layout/PageContent";
+import Page from "core/components/Page";
+import DefaultLayout from "core/layouts/default";
 import { ensureArray } from "core/helpers/array";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
@@ -59,7 +59,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
 
   return (
     <Page title={externalDashboard.name}>
-      <PageContent>
+      <DefaultLayout.PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/visualizations">
             {t("Visualizations")}
@@ -142,7 +142,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
             </DataCard.FormSection>
           </DataCard>
         </div>
-      </PageContent>
+      </DefaultLayout.PageContent>
     </Page>
   );
 };

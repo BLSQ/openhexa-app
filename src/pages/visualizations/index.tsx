@@ -4,21 +4,18 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import CountryColumn from "core/components/DataGrid/CountryColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Page from "core/components/Layout/Page";
-import { PageContent } from "core/components/Layout/PageContent";
-import Link from "core/components/Link";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import DefaultLayout from "core/layouts/default";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import VisualizationPicture from "visualizations/features/VisualizationPicture";
 import {
+  useVisualizationsPageQuery,
   VisualizationsPageDocument,
   VisualizationsPageQuery,
   VisualizationsPageQueryVariables,
-  useVisualizationsPageQuery,
 } from "visualizations/graphql/queries.generated";
-import { useMemo } from "react";
-import VisualizationPicture from "visualizations/features/VisualizationPicture";
 
 type Props = {
   page: number;
@@ -46,7 +43,7 @@ const VisualizationsPage = (props: Props) => {
 
   return (
     <Page title={t("Visualizations")}>
-      <PageContent>
+      <DefaultLayout.PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/visualizations">
             {t("Visualizations")}
@@ -105,7 +102,7 @@ const VisualizationsPage = (props: Props) => {
             </DataGrid>
           </Block>
         </div>
-      </PageContent>
+      </DefaultLayout.PageContent>
     </Page>
   );
 };

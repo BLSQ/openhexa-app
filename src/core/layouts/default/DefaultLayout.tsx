@@ -1,6 +1,7 @@
 import { CustomApolloClient } from "core/helpers/apollo";
 import type { ReactElement } from "react";
 import Header from "./Header";
+import PageContent from "./PageContent";
 
 type LayoutProps = {
   children: ReactElement;
@@ -16,6 +17,8 @@ const Layout = (props: LayoutProps) => {
     </div>
   );
 };
+
+Layout.PageContent = PageContent;
 
 Layout.prefetch = async (client: CustomApolloClient) => {};
 

@@ -1,5 +1,4 @@
-import Page from "core/components/Layout/Page";
-import { PageContent } from "core/components/Layout/PageContent";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
 import {

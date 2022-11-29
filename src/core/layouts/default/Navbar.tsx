@@ -1,7 +1,6 @@
-import clsx from "clsx";
+import Link from "core/components/Link";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
-import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
 

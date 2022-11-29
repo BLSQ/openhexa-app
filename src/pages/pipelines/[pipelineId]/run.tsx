@@ -1,7 +1,7 @@
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import Page from "core/components/Layout/Page";
-import { PageContent } from "core/components/Layout/PageContent";
+import Page from "core/components/Page";
+import DefaultLayout from "core/layouts/default";
 import Title from "core/components/Title";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -56,7 +56,7 @@ const PipelineConfigureRunPage = (props: Props) => {
 
   return (
     <Page title={t("Configure Pipeline")}>
-      <PageContent>
+      <DefaultLayout.PageContent>
         <Breadcrumbs className="my-8 px-2">
           <Breadcrumbs.Part href="/pipelines">
             {t("Data Pipelines")}
@@ -104,7 +104,7 @@ const PipelineConfigureRunPage = (props: Props) => {
             </Block>
           )}
         </div>
-      </PageContent>
+      </DefaultLayout.PageContent>
     </Page>
   );
 };

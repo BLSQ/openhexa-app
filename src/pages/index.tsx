@@ -9,7 +9,7 @@ import Image from "next/legacy/image";
 import Link from "core/components/Link";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
-import Page from "core/components/Layout/Page";
+import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
 
 interface LoginForm {

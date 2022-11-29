@@ -3,8 +3,8 @@ import type { NextPage } from "next";
 import type { ReactElement } from "react";
 import { CustomApolloClient } from "./apollo";
 
-export type NextPageWithLayout<T = any> = NextPage<T> & {
-  getLayout?: (page: ReactElement) => ReactElement;
+export type NextPageWithLayout<PP extends PageProps = any> = NextPage<PP> & {
+  getLayout?: (page: ReactElement, pageProps: PP) => ReactElement;
 };
 
 export type NextPageWithFragments<T = any> = NextPage<T> & {
@@ -21,7 +21,7 @@ export type NextPageWithPrefetch<T = any> = NextPage<T> & {
 type PageProps = { [key: string]: any };
 
 export type AppPropsWithLayout<P extends PageProps = any> = AppProps<P> & {
-  Component: NextPageWithLayout;
+  Component: NextPageWithLayout<P>;
 };
 
 export type Unpacked<T> = T extends (infer U)[] ? U : T;

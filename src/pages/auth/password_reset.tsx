@@ -1,6 +1,6 @@
 import Button from "core/components/Button";
 import Field from "core/components/forms/Field";
-import Page from "core/components/Layout/Page";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";

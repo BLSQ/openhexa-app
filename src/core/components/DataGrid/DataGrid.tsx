@@ -258,23 +258,23 @@ function DataGrid(props: DataGridProps) {
                       <>
                         {column.render("Header")}
                         {column.isSorted && i === headerGroups.length - 1 && (
-                          <span
+                          <div
                             className={clsx(
-                              "ml-2 inline-block w-4 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300"
+                              "ml-2 inline-block w-3 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300"
                             )}
                           >
                             {column.isSortedDesc ? (
                               <ChevronDownIcon
-                                className="h-4 w-4"
+                                className="h-3 w-3"
                                 aria-hidden="true"
                               />
                             ) : (
                               <ChevronUpIcon
-                                className="h-4 w-4"
+                                className="h-3 w-3"
                                 aria-hidden="true"
                               />
                             )}
-                          </span>
+                          </div>
                         )}
                       </>
                     )}
@@ -313,7 +313,7 @@ function DataGrid(props: DataGridProps) {
       {totalItems !== undefined && (
         <Pagination
           onChange={onPaginationChange}
-          className="px-6"
+          className="px-4"
           loading={loading}
           totalItems={totalItems}
           countItems={page.length}

@@ -1,7 +1,7 @@
 import ManageCollectionItemDialog from "collections/features/ManageCollectionItemDialog";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import { PageContent } from "core/components/Layout/PageContent";
+import DefaultLayout from "core/layouts/default";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
@@ -21,7 +21,7 @@ const AddToCollectionsPage = () => {
   };
 
   return (
-    <PageContent>
+    <DefaultLayout.PageContent>
       <Breadcrumbs className="my-8 px-2">
         <Breadcrumbs.Part href="/collections">
           {t("Collections")}
@@ -36,7 +36,7 @@ const AddToCollectionsPage = () => {
           />
         </Block>
       </div>
-    </PageContent>
+    </DefaultLayout.PageContent>
   );
 };
 

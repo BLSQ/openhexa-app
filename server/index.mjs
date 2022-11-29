@@ -21,6 +21,7 @@ app.prepare().then(async () => {
           req.path.startsWith("/dashboard") ||
           req.path.startsWith("/notebooks") ||
           req.path.startsWith("/pipelines") ||
+          req.path.startsWith("/workspaces") ||
           req.path.startsWith("/user/account") ||
           req.path.startsWith("/catalog/search") ||
           req.path.startsWith("/airflow") ||

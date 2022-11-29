@@ -1,19 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import mockRouter from "next-router-mock";
-import Layout from "../Layout";
+import DefaultLayout from "../DefaultLayout";
 
-describe("Layout", () => {
+describe("DefaultLayout", () => {
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");
   });
 
   it("renders the layout for an unauthenticated user", async () => {
     const { container, debug } = render(
-      <TestApp me={{ user: null }}>
-        <Layout pageProps={{}}>
+      <TestApp me={{ user: null, features: [] }}>
+        <DefaultLayout pageProps={{}}>
           <span data-testid="page" />
-        </Layout>
+        </DefaultLayout>
       </TestApp>
     );
 
@@ -26,9 +26,9 @@ describe("Layout", () => {
   it("renders the layout for a authenticated user", async () => {
     const { container, debug } = render(
       <TestApp>
-        <Layout pageProps={{}}>
+        <DefaultLayout pageProps={{}}>
           <span data-testid="page" />
-        </Layout>
+        </DefaultLayout>
       </TestApp>
     );
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
