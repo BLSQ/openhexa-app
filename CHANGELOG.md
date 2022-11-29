@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/BLSQ/openhexa-frontend/compare/0.13.0...0.13.1) (2022-11-29)
+
+
+### Bug Fixes
+
+* Include workspaces changes ([0f751c2](https://github.com/BLSQ/openhexa-frontend/commit/0f751c298fcdb883fb2ef6a060a749c4a7696fac))
+
 ## [0.13.0](https://github.com/BLSQ/openhexa-frontend/compare/0.12.7...0.13.0) (2022-11-29)
 
 
