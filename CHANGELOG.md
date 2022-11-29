@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/BLSQ/openhexa-frontend/compare/0.12.7...0.13.0) (2022-11-29)
+
+
+### Features
+
+* Release of the workspace prototype ([4a79b22](https://github.com/BLSQ/openhexa-frontend/commit/4a79b22f2aa9134184178373d9cbf0613bfb6123))
+
 ## [0.12.7](https://github.com/BLSQ/openhexa-frontend/compare/0.12.6...0.12.7) (2022-11-16)
 
 
