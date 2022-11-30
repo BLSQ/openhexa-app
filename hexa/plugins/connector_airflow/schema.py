@@ -144,7 +144,7 @@ dags_query = QueryType()
 def resolve_dags(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    qs = DAG.objects.filter_for_user(request.user)
+    qs = DAG.objects.with_label(request.user).order_by("label", "dag_id")
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
