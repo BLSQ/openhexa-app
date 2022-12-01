@@ -1,12 +1,14 @@
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
+from django.db.models import OuterRef, Prefetch, Subquery
 from django.http import HttpRequest
 
 import hexa.plugins.connector_gcs.api as gcs_api
 import hexa.plugins.connector_s3.api as s3_api
 from hexa.core.graphql import result_page
 from hexa.countries.models import Country
+from hexa.pipelines.models import Index
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
@@ -143,8 +145,24 @@ dags_query = QueryType()
 @dags_query.field("dags")
 def resolve_dags(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-
-    qs = DAG.objects.with_label(request.user).order_by("label", "dag_id")
+    qs = (
+        DAG.objects.prefetch_related(
+            Prefetch(
+                "indexes",
+                queryset=Index.objects.filter_for_user(request.user),
+            )
+        )
+        .annotate(
+            label=Subquery(
+                Index.objects.filter_for_user(request.user)
+                .filter(
+                    object_id=OuterRef("id"),
+                )
+                .values("label")[:1]
+            ),
+        )
+        .order_by("label", "dag_id")
+    )
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")

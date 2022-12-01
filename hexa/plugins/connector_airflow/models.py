@@ -280,22 +280,6 @@ class DAGQuerySet(BaseQuerySet):
             Q(dagpermission__team__in=Team.objects.filter_for_user(user)),
         )
 
-    def with_label(self, user: User):
-        return DAG.objects.prefetch_related(
-            Prefetch(
-                "indexes",
-                queryset=Index.objects.filter_for_user(user),
-            )
-        ).annotate(
-            label=Subquery(
-                Index.objects.filter_for_user(user)
-                .filter(
-                    object_id=OuterRef("id"),
-                )
-                .values("label")[:1]
-            ),
-        )
-
 
 class DAG(Pipeline):
     class Meta:
