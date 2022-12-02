@@ -15,7 +15,7 @@ class DatabaseSection(Section):
     hostname = TextProperty(text="hostname", translate=False)
     database = TextProperty(text="database", translate=False)
     username = TextProperty(text="username", translate=False)
-    url = TextProperty(text="url", translate=False)
+    url = TextProperty(text="url", translate=False, secret=True)
 
 
 class UsageSection(Section):

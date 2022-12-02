@@ -1,11 +1,30 @@
 {% extends "ui/datacard/property.html" %}
 
 {% block value %}
-    {% if markdown %}
-        <div class="prose prose-sm" {% if not translate %}translate="no"{% endif %}>
-            {{ text|default:"-" }}
-        </div>
+{% if markdown %}
+<div class="prose prose-sm" {% if not translate %}translate="no" {% endif %}>
+    {{ text|default:"-" }}
+</div>
+{% else %}
+<div x-data="SecretSection()">
+    {% if secret%}
+    <p x-show="secret" class="flex w-fit">
+        <span class="text-md text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
+            @click="showSecret()">
+            {% include "ui/icons/eye.html" with w=4 h=4 ml=1 %}
+        </span>
+    </p>
+    <p x-show="!secret" class="flex gap-2" {% if not translate %}translate="no" {% endif %}>{{ text|default:"-" }}
+        <span class="text-md text-blue-600 hover:text-blue-500 flex focus:outline-none cursor-pointer"
+            @click="showSecret()">
+            {% include "ui/icons/eye_slash.html" with w=4 h=4 ml=1 %}
+        </span>
+    </p>
+
     {% else %}
-        <p {% if not translate %}translate="no"{% endif %}>{{ text|default:"-" }}</p>
+    <p {% if not translate %}translate="no" {% endif %}>{{ text|default:"-" }}</p>
     {% endif %}
+</div>
+
+{% endif %}
 {% endblock %}

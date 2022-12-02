@@ -48,7 +48,7 @@ function QuickSearch(advancedSearchUrl) {
             try {
                 const response = await fetch(`${this.$refs.form.action}?query=${this.query}`, {
                     method: this.$refs.form.method,
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     signal: abortController.signal
                 });
                 const responeData = await response.json();
@@ -173,6 +173,7 @@ function Editable(key, value, originalValue) {
                 (originalValue !== "" ? originalValue : "-");
         },
         toggle() {
+            console.log("edit called")
             this.editing = !this.editing;
             if (this.editing) {
                 setTimeout(() => {
@@ -248,6 +249,7 @@ function CardSection(url, contentTypeKey, objectId) {
     return {
         editing: false,
         toggle($event) {
+            console.log("edit called")
             this.editing = !this.editing
         },
     }
@@ -260,7 +262,7 @@ function TomSelectable(multiple = true) {
                 optionClass: 'option',
                 itemClass: 'item',
                 onChange: function (value) {
-                    $dispatch('select-change', {value});
+                    $dispatch('select-change', { value });
                 },
                 render: {
                     option: function (data, escape) {
@@ -409,7 +411,7 @@ function AdvancedSearch(initialQuery) {
                 this.textQuery = parts.filter(part => !part.includes(":")).join(" ");
                 parts.filter(part => part.includes(":")).forEach(filter => {
                     const filterKey = filter.split(":", 1);
-                    this.filters = Object.assign({[filterKey]: []}, this.filters);
+                    this.filters = Object.assign({ [filterKey]: [] }, this.filters);
                     this.filters[filterKey].push(filter);
                 })
             }
@@ -421,5 +423,18 @@ function AdvancedSearch(initialQuery) {
             this.filters[eventData.key] = eventData.value.map(value => `${eventData.key}:${value}`);
             this.recomputeQuery();
         }
+    }
+}
+
+/**
+ * 
+ * Display text property secret
+ */
+function SecretSection() {
+    return {
+        secret: true,
+        showSecret($event) {
+            this.secret = !this.secret
+        },
     }
 }
