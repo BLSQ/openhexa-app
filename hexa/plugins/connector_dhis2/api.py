@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Any, Callable
 
 from dhis2 import Api
+from django import db
 from django.utils import dateparse, timezone
 
 logger = getLogger(__name__)
@@ -190,6 +191,7 @@ class Dhis2Client:
 
             for data in page["dataElements"]:
                 yield DataElementResult(data)
+            db.close_old_connections()
 
     def fetch_datasets(self):
         for page in self._api.get_paged(
@@ -201,6 +203,7 @@ class Dhis2Client:
                 )
             for data in page["dataSets"]:
                 yield DataSetResult(data)
+            db.close_old_connections()
 
     def fetch_indicator_types(self):
         for page in self._api.get_paged(
@@ -214,6 +217,7 @@ class Dhis2Client:
                 )
             for data in page["indicatorTypes"]:
                 yield IndicatorTypeResult(data)
+            db.close_old_connections()
 
     def fetch_indicators(self):
         for page in self._api.get_paged(
@@ -225,6 +229,7 @@ class Dhis2Client:
                 )
             for data in page["indicators"]:
                 yield IndicatorResult(data)
+            db.close_old_connections()
 
     def fetch_organisation_units(self):
         for page in self._api.get_paged(
@@ -243,3 +248,4 @@ class Dhis2Client:
                     data["path"] = data["path"].replace("/", ".").strip(".")
 
                 yield OrganisationUnitResult(data)
+            db.close_old_connections()
