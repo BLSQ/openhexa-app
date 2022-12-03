@@ -5,6 +5,7 @@ import typing
 import stringcase
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 
 import hexa.plugins.connector_dhis2.models
 from hexa.catalog.sync import DatasourceSyncResult
@@ -33,6 +34,7 @@ def _match_reference(
 def sync_from_dhis2_results(*, model_class, instance, results):
     """Iterate over the DEs in the response and create, update or ignore depending on local data"""
 
+    connection = transaction.get_connection()
     model_name = model_class._meta.model_name
     instance.sync_log("start sync_from_dhis2_results model %s", model_name)
 
@@ -42,6 +44,19 @@ def sync_from_dhis2_results(*, model_class, instance, results):
     seen_results = set()
 
     for i, result in enumerate(results):
+        if i % 300 == 0:
+            # cycle DB connection, but cant do that in transaction (eg: tests)
+            if connection.in_atomic_block:
+                instance.sync_log(
+                    "sync_from_dhis2_results model %s, want to cycle DB but in transaction",
+                    model_name,
+                )
+            else:
+                instance.sync_log(
+                    "sync_from_dhis2_results model %s, cycle DB", model_name
+                )
+                connection.close()
+
         instance.sync_log(
             "loop sync_from_dhis2_results model %s, position %s, results %s, created %s, updated %s, identical %s",
             model_name,
