@@ -1,3 +1,4 @@
+from datetime import timedelta
 from logging import getLogger
 from unittest.mock import patch
 
@@ -226,7 +227,15 @@ class DHIS2SyncTest(TestCase):
         ).first()
         self.assertEqual(
             first_data_element.index.last_synced_at,
-            self.DHIS2_INSTANCE_PLAY.last_synced_at,
+            self.DHIS2_INSTANCE_PLAY.start_synced_at,
+        )
+        # sync should take less than 10s
+        self.assertTrue(
+            (
+                self.DHIS2_INSTANCE_PLAY.last_synced_at
+                - self.DHIS2_INSTANCE_PLAY.start_synced_at
+            )
+            < timedelta(seconds=10)
         )
 
 
