@@ -173,7 +173,6 @@ function Editable(key, value, originalValue) {
                 (originalValue !== "" ? originalValue : "-");
         },
         toggle() {
-            console.log("edit called")
             this.editing = !this.editing;
             if (this.editing) {
                 setTimeout(() => {
@@ -249,7 +248,6 @@ function CardSection(url, contentTypeKey, objectId) {
     return {
         editing: false,
         toggle($event) {
-            console.log("edit called")
             this.editing = !this.editing
         },
     }
