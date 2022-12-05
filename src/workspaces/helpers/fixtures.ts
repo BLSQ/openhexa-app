@@ -4,9 +4,17 @@ import { DateTime } from "luxon";
 
 faker.seed(0);
 
-export const WORKSPACES = Array.from({ length: 8 }, () => ({
+const SAMPLE_PROJECTS = [
+  "CMR PNLP",
+  "BFA Malaria Data Repository",
+  "SEN Master Facility List",
+  "NER Malaria Risk Modelling",
+  "COD Accessibility to Health Services",
+];
+
+export const WORKSPACES = SAMPLE_PROJECTS.map((project) => ({
   id: faker.datatype.uuid(),
-  name: faker.animal.insect(),
+  name: project,
   description: `# Malaria Data Repository for Cameroon
 
 
