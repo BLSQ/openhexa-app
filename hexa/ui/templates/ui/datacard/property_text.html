@@ -1,11 +1,33 @@
 {% extends "ui/datacard/property.html" %}
+{% load static i18n %}
 
-{% block value %}
-    {% if markdown %}
-        <div class="prose prose-sm" {% if not translate %}translate="no"{% endif %}>
+{% block value %} {% if markdown %}
+<div class="prose prose-sm" {% if not translate %}translate="no" {% endif %}>
+    {{ text|default:"-" }}
+</div>
+{% else %}
+<div>
+    {% if secret%}
+    <div x-data="SecretProperty()">
+        <p x-show="secret">
+            <button type="button" class="inline text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
+                @click="toggleSecret()" title="{% translate 'Show value' %}">
+                {% include "ui/icons/eye.html" with w=4 h=4 ml=1 %}
+            </button>
+        </p>
+        <p x-show="!secret" {% if not translate %}translate="no" {% endif %}>
             {{ text|default:"-" }}
-        </div>
+            <button type="button" title="{% translate 'Hide value' %}"
+                class="inline align-middle text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
+                @click="toggleSecret()">
+                {% include "ui/icons/eye_slash.html" with w=4 h=4 ml=1 %}
+            </button>
+        </p>
+    </div>
+
     {% else %}
-        <p {% if not translate %}translate="no"{% endif %}>{{ text|default:"-" }}</p>
+    <p {% if not translate %}translate="no" {% endif %}>{{ text|default:"-" }}</p>
     {% endif %}
-{% endblock %}
+</div>
+
+{% endif %} {% endblock %}

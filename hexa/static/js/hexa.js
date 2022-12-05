@@ -48,7 +48,7 @@ function QuickSearch(advancedSearchUrl) {
             try {
                 const response = await fetch(`${this.$refs.form.action}?query=${this.query}`, {
                     method: this.$refs.form.method,
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     signal: abortController.signal
                 });
                 const responeData = await response.json();
@@ -260,7 +260,7 @@ function TomSelectable(multiple = true) {
                 optionClass: 'option',
                 itemClass: 'item',
                 onChange: function (value) {
-                    $dispatch('select-change', {value});
+                    $dispatch('select-change', { value });
                 },
                 render: {
                     option: function (data, escape) {
@@ -409,7 +409,7 @@ function AdvancedSearch(initialQuery) {
                 this.textQuery = parts.filter(part => !part.includes(":")).join(" ");
                 parts.filter(part => part.includes(":")).forEach(filter => {
                     const filterKey = filter.split(":", 1);
-                    this.filters = Object.assign({[filterKey]: []}, this.filters);
+                    this.filters = Object.assign({ [filterKey]: [] }, this.filters);
                     this.filters[filterKey].push(filter);
                 })
             }
@@ -421,5 +421,18 @@ function AdvancedSearch(initialQuery) {
             this.filters[eventData.key] = eventData.value.map(value => `${eventData.key}:${value}`);
             this.recomputeQuery();
         }
+    }
+}
+
+/**
+ * 
+ * Display text property secret
+ */
+function SecretProperty() {
+    return {
+        secret: true,
+        toggleSecret($event) {
+            this.secret = !this.secret
+        },
     }
 }
