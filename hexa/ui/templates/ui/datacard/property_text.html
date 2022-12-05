@@ -1,30 +1,30 @@
-{% extends "ui/datacard/property.html" %}
-
-{% block value %}
-{% if markdown %}
+{% extends "ui/datacard/property.html" %} {% block value %} {% if markdown %}
 <div class="prose prose-sm" {% if not translate %}translate="no" {% endif %}>
     {{ text|default:"-" }}
 </div>
 {% else %}
-<div x-data="SecretSection()">
+<div>
     {% if secret%}
-    <p x-show="secret" class="flex w-fit">
-        <span class="text-md text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
-            @click="showSecret()">
-            {% include "ui/icons/eye.html" with w=4 h=4 ml=1 %}
-        </span>
-    </p>
-    <p x-show="!secret" class="flex gap-2" {% if not translate %}translate="no" {% endif %}>{{ text|default:"-" }}
-        <span class="text-md text-blue-600 hover:text-blue-500 flex focus:outline-none cursor-pointer"
-            @click="showSecret()">
-            {% include "ui/icons/eye_slash.html" with w=4 h=4 ml=1 %}
-        </span>
-    </p>
+    <div x-data="SecretProperty()">
+        <p x-show="secret">
+            <span class="text-md text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
+                @click="toggleSecret()">
+                {% include "ui/icons/eye.html" with w=4 h=4 ml=1 %}
+            </span>
+        </p>
+        <p x-show="!secret" {% if not translate %}translate="no" {% endif %}>
+            {{ text|default:"-" }}
+            <button type="button"
+                class="inline align-middle text-blue-600 hover:text-blue-500 focus:outline-none cursor-pointer"
+                @click="toggleSecret()">
+                {% include "ui/icons/eye_slash.html" with w=4 h=4 ml=1 %}
+            </button>
+        </p>
+    </div>
 
     {% else %}
     <p {% if not translate %}translate="no" {% endif %}>{{ text|default:"-" }}</p>
     {% endif %}
 </div>
 
-{% endif %}
-{% endblock %}
+{% endif %} {% endblock %}

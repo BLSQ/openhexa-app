@@ -428,10 +428,10 @@ function AdvancedSearch(initialQuery) {
  * 
  * Display text property secret
  */
-function SecretSection() {
+function SecretProperty() {
     return {
         secret: true,
-        showSecret($event) {
+        toggleSecret($event) {
             this.secret = !this.secret
         },
     }
