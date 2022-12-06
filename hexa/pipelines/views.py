@@ -4,6 +4,7 @@ from logging import getLogger
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import authenticate
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import BadSignature, Signer
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
@@ -108,5 +109,32 @@ def credentials(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse(
         pipeline_credentials.to_dict(),
+        status=200,
+    )
+
+
+@require_POST
+@csrf_exempt
+def get_token(request: HttpRequest) -> HttpResponse:
+    username = request.POST.get("username", "")
+    password = request.POST.get("password", "")
+    pipeline_name = request.POST.get("pipeline", "")
+
+    user = authenticate(username=username, password=password)
+    if user is None:
+        return JsonResponse(
+            {"error": "Bad login/password"},
+            status=401,
+        )
+
+    indexes = Index.objects.filter_for_user(user).filter(external_id=pipeline_name)
+    if len(indexes) != 1:
+        return JsonResponse(
+            {"error": "Bad pipeline name"},
+            status=500,
+        )
+
+    return JsonResponse(
+        {"token": indexes[0].object.get_token()},
         status=200,
     )

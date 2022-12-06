@@ -12,4 +12,5 @@ urlpatterns = [
         name="environment_sync",
     ),
     path("credentials/", views.credentials, name="credentials"),
+    path("get_token/", views.get_token, name="get_token"),
 ]
