@@ -69,6 +69,7 @@
   "Executed on": "Executed on",
   "Execution Date": "Execution Date",
   "Existing collections": "Existing collections",
+  "Exit workspaces": "Exit workspaces",
   "External Dashboard": "External Dashboard",
   "Failed": "Failed",
   "failed {{relativeTime}} in {{durationStr}}": "failed {{relativeTime}} in {{durationStr}}",

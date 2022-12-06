@@ -1,14 +1,8 @@
-import {
-  MagnifyingGlassIcon,
-  TableCellsIcon,
-} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import CodeEditor from "core/components/CodeEditor";
-import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import DateColumn from "core/components/DataGrid/DateColumn";
+import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Tabs from "core/components/Tabs";
 import Title from "core/components/Title";

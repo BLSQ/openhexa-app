@@ -2,6 +2,7 @@ import { PlusCircleIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
+import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -45,17 +46,22 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
-        <div className="flex w-full justify-end">
-          <Button
-            leadingIcon={<PlusCircleIcon className="w-6" />}
-            onClick={() => setOpenModal(true)}
-          >
-            {t("Add connection")}
-          </Button>
+        <div className="flex flex-1 items-center justify-between">
+          <Title level={2} className="mb-0">
+            Connections
+          </Title>
+          <div>
+            <Button
+              leadingIcon={<PlusCircleIcon className="w-6" />}
+              onClick={() => setOpenModal(true)}
+            >
+              {t("Add connection")}
+            </Button>
+          </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-5 sm:grid-cols-3">
           {workspace.connections.map((connection, index) => (
-            <div key={index} className="col-start-1 col-end-4">
+            <div key={index} className="col-sspan-1">
               <ConnectionDataCard
                 workspaceId={workspace.id}
                 connection={connection}

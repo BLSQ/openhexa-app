@@ -45,9 +45,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent className="space-y-8">
-        <div className="flex flex-1 items-center justify-between">
-          <Title level={2}>{t("Database")}</Title>
-        </div>
+        <Title level={2}>{t("Database")}</Title>
         <div>
           <Title level={5}> {t("Workspace tables")}</Title>
           <DataGrid

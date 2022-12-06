@@ -4,6 +4,7 @@ import Page from "core/components/Page";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import { capitalize } from "lodash";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import IHPForm from "pipelines/features/PipelineRunForm/IHPForm";
@@ -57,7 +58,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       <WorkspaceLayout.PageContent>
         <Block className="p-4">
           <div>
-            <Title level={2}>{dag.label}</Title>
+            <Title level={2}>{capitalize(dag.label)}</Title>
             <p className="truncate text-sm text-gray-700">{dag.description}</p>
           </div>
           <div className="mt-5 grid grid-cols-3 sm:grid-cols-3 ">

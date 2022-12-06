@@ -1,6 +1,7 @@
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import Tabs from "core/components/Tabs";
+import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -41,6 +42,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
+        <Title level={2}>{t("Pipelines")}</Title>
         <div>
           <Tabs defaultIndex={0}>
             <Tabs.Tab

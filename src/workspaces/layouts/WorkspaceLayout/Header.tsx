@@ -52,6 +52,15 @@ const Header = (props: HeaderProps) => {
           </Menu.Item>
         )}
 
+        <Menu.Item
+          onClick={() =>
+            router.push({
+              pathname: "/",
+            })
+          }
+        >
+          {t("Exit workspaces")}
+        </Menu.Item>
         <Menu.Item onClick={() => logout()}>{t("Sign out")}</Menu.Item>
       </Menu>
     </div>

@@ -44,11 +44,12 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
+        <Title level={2}>{t("Settings")}</Title>
         <Tabs defaultIndex={0}>
           <Tabs.Tab className="mt-4" label={t("Members")}>
             <div className="mt-5 grid grid-cols-2 gap-5">
               <div className="col-span-2 flex justify-between">
-                <Title level={3}>{t("Workspace members")}</Title>
+                <Title level={4}>{t("Workspace members")}</Title>
                 <Button>
                   <PlusCircleIcon className="mr-1 h-6 w-6" />
                   <span>{t("Invite member")}</span>
