@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.13.2](https://github.com/BLSQ/openhexa-frontend/compare/0.13.1...0.13.2) (2022-12-12)
+
+
+### Bug Fixes
+
+* load favicon file ([#151](https://github.com/BLSQ/openhexa-frontend/issues/151)) ([ac99af0](https://github.com/BLSQ/openhexa-frontend/commit/ac99af04850793275662c1ca701f2e3c55e4925e))
+* **Logout:** Logout has to be done using the page on django ([#144](https://github.com/BLSQ/openhexa-frontend/issues/144)) ([517a456](https://github.com/BLSQ/openhexa-frontend/commit/517a456a97049286897114ded36d7b6ac270567a))
+* **Pipelines:** Display an error when user types an invalid json configuration ([#145](https://github.com/BLSQ/openhexa-frontend/issues/145)) ([d63ed22](https://github.com/BLSQ/openhexa-frontend/commit/d63ed229e3fad233eda3550138b6489379e2514a))
+
 ## [0.13.1](https://github.com/BLSQ/openhexa-frontend/compare/0.13.0...0.13.1) (2022-11-29)
 
 
