@@ -67,9 +67,9 @@ const GenericForm = (props: GenericFormProps) => {
           <Button
             disabled={!form.isValid}
             type="submit"
-            leadingIcon={<PlayIcon className="w-6" />}
+            leadingIcon={<PlayIcon className="w-4" />}
           >
-            {t("Configure & run")}
+            {t("Run")}
           </Button>
         </div>
       )}
