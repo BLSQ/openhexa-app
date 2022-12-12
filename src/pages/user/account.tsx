@@ -33,7 +33,7 @@ function AccountPage() {
             renderActions={(item) => (
               <Button
                 variant="primary"
-                onClick={() => logout("/")}
+                onClick={() => logout()}
                 leadingIcon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
               >
                 {t("Logout")}

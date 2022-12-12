@@ -1,14 +1,10 @@
-import {
-  LogoutDocument,
-  LogoutMutation,
-} from "identity/graphql/mutations.generated";
+import { getApolloClient } from "core/helpers/apollo";
 import {
   GetUserDocument,
   GetUserQuery,
 } from "identity/graphql/queries.generated";
 import { GetServerSidePropsContext } from "next";
 import Router from "next/router";
-import { getApolloClient } from "core/helpers/apollo";
 
 export async function getMe(ctx?: GetServerSidePropsContext) {
   const client = getApolloClient({ headers: ctx?.req.headers });
@@ -21,12 +17,6 @@ export async function getMe(ctx?: GetServerSidePropsContext) {
   return me;
 }
 
-export async function logout(redirectTo: string = "/") {
-  const client = getApolloClient();
-  const res: any = await client.mutate<LogoutMutation>({
-    mutation: LogoutDocument,
-  });
-  if (res?.data?.logout?.success) {
-    Router.push(redirectTo);
-  }
+export async function logout() {
+  return Router.push("/auth/logout");
 }

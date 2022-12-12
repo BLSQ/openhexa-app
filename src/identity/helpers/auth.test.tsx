@@ -9,22 +9,9 @@ const getApolloClientMock = getApolloClient as jest.Mock & {
 };
 
 describe("logout", () => {
-  it("redirects the user on success", async () => {
+  it("redirects the user to the logout page", async () => {
     const spyPush = jest.spyOn(router, "push");
-    getApolloClientMock.mutate.mockReturnValue({
-      data: { logout: { success: true } },
-    });
-    await logout("/outer-space");
-    expect(getApolloClientMock.mutate).toHaveBeenCalled();
-    expect(spyPush).toHaveBeenCalledWith("/outer-space");
-  });
-  it("does nothing on error", async () => {
-    const spyPush = jest.spyOn(router, "push");
-    getApolloClientMock.mutate.mockReturnValue({
-      data: { logout: { success: false } },
-    });
-    await logout("/outer-space");
-    expect(getApolloClientMock.mutate).toHaveBeenCalled();
-    expect(spyPush).not.toHaveBeenCalled();
+    await logout();
+    expect(spyPush).toHaveBeenCalledWith("/auth/logout");
   });
 });
