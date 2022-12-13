@@ -81,8 +81,6 @@ const PipelinePage = (props: Props) => {
 
   const { dag } = data;
 
-  console.log(dag?.externalUrl);
-
   return (
     <Page title={t("Pipelines")}>
       <DefaultLayout.PageContent>

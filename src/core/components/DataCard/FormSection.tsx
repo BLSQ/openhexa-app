@@ -26,7 +26,7 @@ import DescriptionList, { DescriptionListProps } from "../DescriptionList";
 import Spinner from "../Spinner";
 import StopClick from "../StopClick";
 import { DataCardSectionContext } from "./context";
-import Section from "./Section";
+import { BlockSection } from "core/components/Block";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
 
 export type OnSaveFn = (
@@ -41,7 +41,7 @@ type FormSectionProps = {
   title?: string;
   children: ReactNode;
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
-  Omit<React.ComponentProps<typeof Section>, "title" | "children">;
+  Omit<React.ComponentProps<typeof BlockSection>, "title" | "children">;
 
 const getPropertyFlag = (displayValue: any, flag?: PropertyFlag) => {
   if (typeof flag === "function") {
@@ -155,7 +155,7 @@ function FormSection<F extends { [key: string]: any }>(
 
   return (
     <DataCardSectionContext.Provider value={section}>
-      <Section
+      <BlockSection
         className={className}
         title={({ open }) => (
           <>
@@ -214,7 +214,7 @@ function FormSection<F extends { [key: string]: any }>(
             </DescriptionList>
           )
         }
-      </Section>
+      </BlockSection>
     </DataCardSectionContext.Provider>
   );
 }

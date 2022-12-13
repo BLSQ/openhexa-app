@@ -41,7 +41,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
           </div>
         </li>
         <li
-          class="ml-3"
+          class="ml-2"
         >
           <div
             class="flex items-center"
@@ -58,7 +58,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
               />
             </svg>
             <span
-              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="ml-3 text-sm hover:text-gray-700 font-medium text-gray-500"
             >
               <a
                 class=""
@@ -260,7 +260,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             class="overflow-x-auto"
           >
             <div
-              class="overflow-x-auto"
+              class="overflow-x-auto overflow-y-hidden"
             >
               <table
                 class="w-full divide-y divide-gray-200 "

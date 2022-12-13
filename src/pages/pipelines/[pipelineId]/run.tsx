@@ -80,11 +80,11 @@ const PipelineConfigureRunPage = (props: Props) => {
         </Breadcrumbs>
         <div className="flex flex-col gap-4 md:flex-row">
           <Block className="flex-1 flex-shrink-0 basis-7/12">
-            <Block.Title>
+            <Block.Header>
               {t("Create a new run of {{externalId}}", {
                 externalId: dag.externalId,
               })}
-            </Block.Title>
+            </Block.Header>
             <Block.Content className="">
               <PipelineRunForm
                 fromConfig={run?.config}
@@ -95,7 +95,7 @@ const PipelineConfigureRunPage = (props: Props) => {
           </Block>
           {description && (
             <Block className="basis-5/12">
-              <Block.Title>{t("Description")}</Block.Title>
+              <Block.Header>{t("Description")}</Block.Header>
               <Block.Content>
                 <ReactMarkdown className="prose max-w-3xl text-sm">
                   {description}

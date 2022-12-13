@@ -31,7 +31,8 @@ export const Classes: { [key: string]: string } = {
     "border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
   secondary:
     "border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500",
-  white: "text-gray-800 border-gray-400 bg-white hover:bg-gray-50",
+  white:
+    "text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400",
   outlined: "text-gray-800 border-transparent shadow-none hover:bg-gray-100",
 
   // Sizes

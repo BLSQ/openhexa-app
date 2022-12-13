@@ -1,11 +1,10 @@
 import clsx from "clsx";
 import { ItemProvider } from "core/hooks/useItemContext";
 import { ReactNode } from "react";
-import Block from "../Block";
+import Block, { BlockSection } from "../Block";
 import FormSection from "./FormSection";
 import Heading from "./Heading";
 import PropertyDisplay from "./PropertyDisplay";
-import Section from "./Section";
 
 export type DataCardProps = {
   item: any;
@@ -24,7 +23,7 @@ const DataCard = (props: DataCardProps) => {
   );
 };
 
-DataCard.Section = Section;
+DataCard.Section = BlockSection;
 DataCard.FormSection = FormSection;
 DataCard.Property = PropertyDisplay;
 DataCard.Heading = Heading;

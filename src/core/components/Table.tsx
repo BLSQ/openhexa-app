@@ -11,7 +11,7 @@ export const TableClasses = {
 };
 
 export const Table = (props: HTMLAttributes<HTMLTableElement>) => (
-  <div className="overflow-x-auto">
+  <div className="overflow-x-auto overflow-y-hidden">
     <table {...props} className={clsx(props.className, TableClasses.table)} />
   </div>
 );

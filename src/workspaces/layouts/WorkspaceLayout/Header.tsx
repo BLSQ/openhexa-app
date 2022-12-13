@@ -1,21 +1,13 @@
 import clsx from "clsx";
-import Avatar from "core/components/Avatar";
-import Menu from "core/components/Menu";
-import { logout } from "identity/helpers/auth";
-import useMe from "identity/hooks/useMe";
-import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { ReactNode } from "react";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
 
 type HeaderProps = {
   children?: ReactNode;
+  className?: string;
 };
 
 const Header = (props: HeaderProps) => {
-  const me = useMe();
-  const router = useRouter();
-  const { t } = useTranslation();
+  const { className, children } = props;
   return (
     <div
       className={clsx(
@@ -23,46 +15,7 @@ const Header = (props: HeaderProps) => {
         "px-4 md:px-6 xl:px-10 2xl:px-12"
       )}
     >
-      <div className="flex-1">{props.children}</div>
-      <Menu
-        trigger={
-          <Avatar
-            initials={me.user?.avatar.initials ?? ""}
-            color={me.user ? me.user.avatar.color : undefined}
-            size="sm"
-          />
-        }
-      >
-        <Menu.Item onClick={() => router.push("/user/account")}>
-          {t("Your account")}
-        </Menu.Item>
-        <Menu.Item
-          onClick={() =>
-            router.push({
-              pathname: "/workspaces/[workspaceId]",
-              query: { workspaceId: WORKSPACES[0].id },
-            })
-          }
-        >
-          {t("Your workspaces")}
-        </Menu.Item>
-        {me.permissions.adminPanel && (
-          <Menu.Item onClick={() => router.push("/admin")}>
-            {t("Administration")}
-          </Menu.Item>
-        )}
-
-        <Menu.Item
-          onClick={() =>
-            router.push({
-              pathname: "/",
-            })
-          }
-        >
-          {t("Exit workspaces")}
-        </Menu.Item>
-        <Menu.Item onClick={() => logout()}>{t("Sign out")}</Menu.Item>
-      </Menu>
+      <div className={clsx("flex-1", className)}>{children}</div>
     </div>
   );
 };

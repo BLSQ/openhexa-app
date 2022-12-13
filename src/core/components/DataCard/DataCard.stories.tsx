@@ -2,7 +2,6 @@ import { Story } from "@ladle/react";
 import BadgeProperty from "./BadgeProperty";
 
 import DataCard, { DataCardProps } from "./DataCard";
-import Section from "./Section";
 import TextProperty from "./TextProperty";
 
 interface DataCardStoryProps extends DataCardProps {}

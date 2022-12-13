@@ -12,76 +12,78 @@ exports[`DataCard renders 1`] = `
         Regional
       </div>
     </h3>
-    <div
+    <section
       class="px-4 py-5 sm:px-6"
     >
-      <div
-        aria-controls="headlessui-disclosure-panel-67862f3c-cbfc-451b-8ede-d1d0420ea196"
-        aria-expanded="true"
-        class="-my-7 flex items-center py-7"
-        data-headlessui-state="open"
-        id="headlessui-disclosure-button-fbe024f2-3162-465a-ae8d-65a837e308ae"
-      >
-        <h4
-          class="font-medium"
-        />
-        <div
-          class="flex flex-1 flex-shrink items-center justify-end"
-        >
-          <button
-            title="Hide"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
       <div>
         <div
-          class="mt-6"
+          aria-controls="headlessui-disclosure-panel-67862f3c-cbfc-451b-8ede-d1d0420ea196"
+          aria-expanded="true"
+          class="-my-7 flex items-center py-7"
           data-headlessui-state="open"
-          id="headlessui-disclosure-panel-67862f3c-cbfc-451b-8ede-d1d0420ea196"
+          id="headlessui-disclosure-button-fbe024f2-3162-465a-ae8d-65a837e308ae"
         >
-          <dl
-            class="grid gap-6"
+          <h4
+            class="font-medium"
+          />
+          <div
+            class="flex flex-1 flex-shrink items-center justify-end"
           >
-            <div
-              class="grid grid-cols-5 gap-2 sm:gap-4"
+            <button
+              title="Hide"
             >
-              <dt
-                class="text-sm font-medium text-gray-500 col-span-1"
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <span>
-                  Name
-                </span>
-              </dt>
-              <dd
-                class="col-span-4 text-sm text-gray-900"
+                <path
+                  d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div>
+          <div
+            class="mt-6"
+            data-headlessui-state="open"
+            id="headlessui-disclosure-panel-67862f3c-cbfc-451b-8ede-d1d0420ea196"
+          >
+            <dl
+              class="grid gap-6"
+            >
+              <div
+                class="grid grid-cols-5 gap-2 sm:gap-4"
               >
-                <div
-                  class="prose text-sm text-gray-900"
+                <dt
+                  class="text-sm font-medium text-gray-500 col-span-1"
                 >
-                  Regional
-                </div>
-              </dd>
-            </div>
-          </dl>
+                  <span>
+                    Name
+                  </span>
+                </dt>
+                <dd
+                  class="col-span-4 text-sm text-gray-900"
+                >
+                  <div
+                    class="prose text-sm text-gray-900"
+                  >
+                    Regional
+                  </div>
+                </dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </article>
 </div>
 `;

@@ -4,7 +4,6 @@ import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useNotebooksPageQuery } from "notebooks/graphql/queries.generated";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -23,7 +22,6 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header></WorkspaceLayout.Header>
       <iframe className="h-full w-full flex-1" src={data.notebooksUrl}></iframe>
     </Page>
   );

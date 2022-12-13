@@ -15,6 +15,7 @@ import Button from "core/components/Button";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { DateTime } from "luxon";
 import { PlusCircleIcon } from "@heroicons/react/24/outline";
+import Block from "core/components/Block";
 
 type Props = {
   page: number;
@@ -40,58 +41,60 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           >
             {workspace.name}
           </Breadcrumbs.Part>
-          <Breadcrumbs.Part>{t("Settings")}</Breadcrumbs.Part>
+          <Breadcrumbs.Part isLast>{t("Settings")}</Breadcrumbs.Part>
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
         <Title level={2}>{t("Settings")}</Title>
         <Tabs defaultIndex={0}>
           <Tabs.Tab className="mt-4" label={t("Members")}>
-            <div className="mt-5 grid grid-cols-2 gap-5">
-              <div className="col-span-2 flex justify-between">
-                <Title level={4}>{t("Workspace members")}</Title>
-                <Button>
-                  <PlusCircleIcon className="mr-1 h-6 w-6" />
-                  <span>{t("Invite member")}</span>
-                </Button>
-              </div>
-              <div className="col-span-2">
-                <DataGrid
-                  className="bg-white shadow-md"
-                  defaultPageSize={5}
-                  totalItems={workspace.members.length}
-                  fixedLayout={false}
-                  data={workspace.members}
-                >
-                  <TextColumn
-                    className="max-w-[50ch] py-3 "
-                    accessor="name"
-                    id="name"
-                    label="Name"
-                  />
-                  <TextColumn
-                    className="max-w-[50ch] py-3 "
-                    accessor="email"
-                    id="email"
-                    label="Email"
-                  />
-                  <TextColumn
-                    className="max-w-[50ch] py-3 "
-                    accessor="role"
-                    label="Role"
-                    id="member_role"
-                  />
-                  <DateColumn
-                    className="max-w-[50ch] py-3 "
-                    accessor="createdAt"
-                    id="createdAt"
-                    label="Joined"
-                    format={DateTime.DATE_FULL}
-                  />
-                  <BaseColumn>{() => <Button>Edit</Button>}</BaseColumn>
-                </DataGrid>
-              </div>
+            <div className="mb-4 flex justify-end">
+              <Button leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}>
+                {t("Invite member")}
+              </Button>
             </div>
+            <Block>
+              <DataGrid
+                className="bg-white shadow-md"
+                defaultPageSize={5}
+                totalItems={workspace.members.length}
+                fixedLayout={false}
+                data={workspace.members}
+              >
+                <TextColumn
+                  className="max-w-[50ch] py-3 "
+                  accessor="name"
+                  id="name"
+                  label="Name"
+                />
+                <TextColumn
+                  className="max-w-[50ch] py-3 "
+                  accessor="email"
+                  id="email"
+                  label="Email"
+                />
+                <TextColumn
+                  className="max-w-[50ch] py-3 "
+                  accessor="role"
+                  label="Role"
+                  id="member_role"
+                />
+                <DateColumn
+                  className="max-w-[50ch] py-3 "
+                  accessor="createdAt"
+                  id="createdAt"
+                  label="Joined"
+                  format={DateTime.DATE_FULL}
+                />
+                <BaseColumn>
+                  {() => (
+                    <Button size="sm" variant="secondary">
+                      {t("Edit")}
+                    </Button>
+                  )}
+                </BaseColumn>
+              </DataGrid>
+            </Block>
           </Tabs.Tab>
           <Tabs.Tab
             className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3"

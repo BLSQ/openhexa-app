@@ -1,12 +1,12 @@
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
 import Page from "core/components/Page";
-import Tabs from "core/components/Tabs";
-import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import PipelineDataCard from "workspaces/features/PipelineDataCard";
+import PipelineCard from "workspaces/features/PipelineCard";
 import { WORKSPACES } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -26,8 +26,8 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
-        <Breadcrumbs withHome={false}>
+      <WorkspaceLayout.Header className="flex items-center gap-2">
+        <Breadcrumbs withHome={false} className="flex-1">
           <Breadcrumbs.Part
             isFirst
             href={`/workspaces/${encodeURIComponent(workspace.id)}`}
@@ -35,32 +35,22 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
+            isLast
             href={`/workspaces/${encodeURIComponent(workspace.id)}/pipelines`}
           >
             {t("Pipelines")}
           </Breadcrumbs.Part>
         </Breadcrumbs>
+        <Button leadingIcon={<PlusIcon className="h-4 w-4" />}>
+          {t("Create")}
+        </Button>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
-        <Title level={2}>{t("Pipelines")}</Title>
-        <div>
-          <Tabs defaultIndex={0}>
-            <Tabs.Tab
-              className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3"
-              label={t("All pipelines")}
-            >
-              {workspace.dags.map((dag, index) => (
-                <PipelineDataCard
-                  workspaceId={workspace.id}
-                  key={index}
-                  dag={dag}
-                />
-              ))}
-            </Tabs.Tab>
-          </Tabs>
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+          {workspace.dags.map((dag, index) => (
+            <PipelineCard workspaceId={workspace.id} key={index} dag={dag} />
+          ))}
         </div>
-
-        <div></div>
       </WorkspaceLayout.PageContent>
     </Page>
   );

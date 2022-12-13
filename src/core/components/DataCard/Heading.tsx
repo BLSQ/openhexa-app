@@ -36,7 +36,7 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
   );
 
   return (
-    <Block.Title
+    <Block.Header
       className={clsx(className, "flex items-center justify-between")}
     >
       {children ? (
@@ -52,7 +52,7 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
         </div>
       )}
       {renderActions ? renderActions(item) : null}
-    </Block.Title>
+    </Block.Header>
   );
 }
 

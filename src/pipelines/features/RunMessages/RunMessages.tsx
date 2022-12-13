@@ -43,6 +43,7 @@ const RunMessages = (props: RunMessagesProps) => {
         accessor="timestamp"
         label={t("Timestamp")}
         format={DateTime.DATETIME_SHORT_WITH_SECONDS}
+        defaultValue="-"
       />
       <BaseColumn accessor="priority" label={t("Priority")}>
         {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}

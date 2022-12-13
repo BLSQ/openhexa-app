@@ -11,3 +11,10 @@
     @apply overflow-x-hidden;
   }
 }
+
+@layer components {
+  .prose li p {
+    margin: 0;
+
+  }
+}

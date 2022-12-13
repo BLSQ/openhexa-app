@@ -1,11 +1,12 @@
+import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import Link from "core/components/Link";
+import Button from "core/components/Button";
+import MarkdownViewer from "core/components/MarkdownViewer";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import ReactMarkdown from "react-markdown";
 import { WORKSPACES } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -25,7 +26,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
+      <WorkspaceLayout.Header className="flex items-center justify-between">
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
@@ -34,21 +35,14 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
             {workspace.name}
           </Breadcrumbs.Part>
         </Breadcrumbs>
+        <Button>{t("Edit")}</Button>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
-        <ReactMarkdown
-          className="prose-xl text-sm"
-          components={{
-            a: ({ node, ...props }) => (
-              <Link href={props.href || ""}>{props.children}</Link>
-            ),
-            ul: ({ node, ...props }) => (
-              <ul className="list-disc">{props.children}</ul>
-            ),
-          }}
-        >
-          {workspace.description}
-        </ReactMarkdown>
+        <Block>
+          <Block.Content>
+            <MarkdownViewer>{workspace.description}</MarkdownViewer>
+          </Block.Content>
+        </Block>
       </WorkspaceLayout.PageContent>
     </Page>
   );

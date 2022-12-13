@@ -6,6 +6,9 @@ import {
   HTMLAttributes,
   ReactNode,
 } from "react";
+import BlockContent from "./BlockContent";
+import BlockHeader from "./BlockHeader";
+import BlockSection from "./BlockSection";
 
 type Props = {
   as?: string | FunctionComponent | ComponentClass;
@@ -28,27 +31,8 @@ const Block = (props: Props) => {
   );
 };
 
-Block.Content = function BlockContent({
-  children,
-  className,
-}: HTMLAttributes<HTMLDivElement>) {
-  return <div className={clsx("px-4 py-5 sm:px-6", className)}>{children}</div>;
-};
-
-Block.Title = function BlockTitle({
-  className,
-  children,
-}: HTMLAttributes<HTMLHeadingElement>) {
-  return (
-    <h3
-      className={clsx(
-        "px-4 py-5 pt-7 text-lg font-medium leading-4 text-gray-900 sm:px-6",
-        className
-      )}
-    >
-      {children}
-    </h3>
-  );
-};
+Block.Content = BlockContent;
+Block.Section = BlockSection;
+Block.Header = BlockHeader;
 
 export default Block;

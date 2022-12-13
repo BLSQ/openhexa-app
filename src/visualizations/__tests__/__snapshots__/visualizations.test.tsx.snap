@@ -41,7 +41,7 @@ exports[`Visualization renders a visualization info page  1`] = `
           </div>
         </li>
         <li
-          class="ml-3"
+          class="ml-2"
         >
           <div
             class="flex items-center"
@@ -58,7 +58,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               />
             </svg>
             <span
-              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="ml-3 text-sm hover:text-gray-700 font-medium text-gray-500"
             >
               <a
                 class=""
@@ -70,7 +70,7 @@ exports[`Visualization renders a visualization info page  1`] = `
           </div>
         </li>
         <li
-          class="ml-3"
+          class="ml-2"
         >
           <div
             class="flex items-center"
@@ -87,7 +87,7 @@ exports[`Visualization renders a visualization info page  1`] = `
               />
             </svg>
             <span
-              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="ml-3 text-sm hover:text-gray-700 font-medium text-gray-500"
             >
               <a
                 class=""
@@ -141,249 +141,253 @@ exports[`Visualization renders a visualization info page  1`] = `
             </div>
           </div>
         </h3>
-        <div
+        <section
           class="px-4 py-5 sm:px-6"
         >
-          <div
-            aria-controls="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
-            aria-expanded="true"
-            class="-my-7 flex items-center py-7"
-            data-headlessui-state="open"
-            id="headlessui-disclosure-button-6fbe024f-2316-4265-a6e8-d65a837e308a"
-          >
-            <h4
-              class="font-medium"
-            >
-              Information
-            </h4>
-            <div
-              class="flex flex-1 flex-shrink items-center justify-end"
-            >
-              <button
-                title="Hide"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
           <div>
             <div
-              class="mt-6"
+              aria-controls="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+              aria-expanded="true"
+              class="-my-7 flex items-center py-7"
               data-headlessui-state="open"
-              id="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
+              id="headlessui-disclosure-button-6fbe024f-2316-4265-a6e8-d65a837e308a"
             >
-              <dl
-                class="grid gap-6"
+              <h4
+                class="font-medium"
               >
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                Information
+              </h4>
+              <div
+                class="flex flex-1 flex-shrink items-center justify-end"
+              >
+                <button
+                  title="Hide"
                 >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
+                  <svg
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <span>
-                      Url
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
-                  >
-                    <a
-                      class="flex items-center text-blue-600 hover:text-blue-500 focus:outline-none"
-                      href="https://coronavirus.data.gov.uk/"
-                    >
-                      https://coronavirus.data.gov.uk/
-                    </a>
-                  </dd>
-                </div>
-              </dl>
+                    <path
+                      d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-        <div
-          class="px-4 py-5 sm:px-6"
-        >
-          <div
-            aria-controls="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
-            aria-expanded="true"
-            class="-my-7 flex items-center py-7"
-            data-headlessui-state="open"
-            id="headlessui-disclosure-button-6af683b4-52ac-4d60-8c9f-ab447c31177e"
-          >
-            <h4
-              class="font-medium"
-            >
-              OpenHexa Metadata
-            </h4>
             <div>
-              <button
-                class="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+              <div
+                class="mt-6"
+                data-headlessui-state="open"
+                id="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
               >
-                Edit
-                <svg
-                  aria-hidden="true"
-                  class="h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+                <dl
+                  class="grid gap-6"
                 >
-                  <path
-                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="flex flex-1 flex-shrink items-center justify-end"
-            >
-              <button
-                title="Hide"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </button>
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
+                  >
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
+                    >
+                      <span>
+                        Url
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
+                    >
+                      <a
+                        class="flex items-center text-blue-600 hover:text-blue-500 focus:outline-none"
+                        href="https://coronavirus.data.gov.uk/"
+                      >
+                        https://coronavirus.data.gov.uk/
+                      </a>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           </div>
+        </section>
+        <section
+          class="px-4 py-5 sm:px-6"
+        >
           <div>
             <div
-              class="mt-6"
+              aria-controls="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
+              aria-expanded="true"
+              class="-my-7 flex items-center py-7"
               data-headlessui-state="open"
-              id="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
+              id="headlessui-disclosure-button-6af683b4-52ac-4d60-8c9f-ab447c31177e"
             >
-              <dl
-                class="grid gap-6"
+              <h4
+                class="font-medium"
               >
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
+                OpenHexa Metadata
+              </h4>
+              <div>
+                <button
+                  class="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
                 >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
+                  Edit
+                  <svg
+                    aria-hidden="true"
+                    class="h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <span>
-                      Label
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
+                    <path
+                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="flex flex-1 flex-shrink items-center justify-end"
+              >
+                <button
+                  title="Hide"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
-                    <div
-                      class="prose text-sm text-gray-900"
+                    <path
+                      d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <div
+                class="mt-6"
+                data-headlessui-state="open"
+                id="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
+              >
+                <dl
+                  class="grid gap-6"
+                >
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
+                  >
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
                     >
-                      Untitled Dashboard
-                    </div>
-                  </dd>
-                </div>
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
-                >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
+                      <span>
+                        Label
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
+                    >
+                      <div
+                        class="prose text-sm text-gray-900"
+                      >
+                        Untitled Dashboard
+                      </div>
+                    </dd>
+                  </div>
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
                   >
-                    <span>
-                      Description
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
+                    >
+                      <span>
+                        Description
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
+                    >
+                      <div
+                        class="prose text-sm text-gray-900"
+                      >
+                        -
+                      </div>
+                    </dd>
+                  </div>
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
                   >
-                    <div
-                      class="prose text-sm text-gray-900"
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
+                    >
+                      <span>
+                        Owner
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
                     >
                       -
-                    </div>
-                  </dd>
-                </div>
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
-                >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
+                    </dd>
+                  </div>
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
                   >
-                    <span>
-                      Owner
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
-                  >
-                    -
-                  </dd>
-                </div>
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
-                >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
-                  >
-                    <span>
-                      Tags
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
-                  >
-                    <div
-                      class="flex flex-wrap items-center gap-1.5"
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
                     >
-                      -
-                    </div>
-                  </dd>
-                </div>
-                <div
-                  class="grid grid-cols-5 gap-2 sm:gap-4"
-                >
-                  <dt
-                    class="text-sm font-medium text-gray-500 col-span-1"
-                  >
-                    <span>
-                      Location
-                    </span>
-                  </dt>
-                  <dd
-                    class="col-span-4 text-sm text-gray-900"
-                  >
-                    <div
-                      class="flex flex-wrap items-center gap-1.5"
+                      <span>
+                        Tags
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
                     >
-                      -
-                    </div>
-                  </dd>
-                </div>
-              </dl>
+                      <div
+                        class="flex flex-wrap items-center gap-1.5"
+                      >
+                        -
+                      </div>
+                    </dd>
+                  </div>
+                  <div
+                    class="grid grid-cols-5 gap-2 sm:gap-4"
+                  >
+                    <dt
+                      class="text-sm font-medium text-gray-500 col-span-1"
+                    >
+                      <span>
+                        Location
+                      </span>
+                    </dt>
+                    <dd
+                      class="col-span-4 text-sm text-gray-900"
+                    >
+                      <div
+                        class="flex flex-wrap items-center gap-1.5"
+                      >
+                        -
+                      </div>
+                    </dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
       </article>
     </div>
   </main>
@@ -433,7 +437,7 @@ exports[`Visualization renders the visualizations' page 1`] = `
           </div>
         </li>
         <li
-          class="ml-3"
+          class="ml-2"
         >
           <div
             class="flex items-center"
@@ -450,7 +454,7 @@ exports[`Visualization renders the visualizations' page 1`] = `
               />
             </svg>
             <span
-              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="ml-3 text-sm hover:text-gray-700 font-medium text-gray-500"
             >
               <a
                 class=""
@@ -483,7 +487,7 @@ exports[`Visualization renders the visualizations' page 1`] = `
             class="overflow-x-auto"
           >
             <div
-              class="overflow-x-auto"
+              class="overflow-x-auto overflow-y-hidden"
             >
               <table
                 class="table-fixed w-full divide-y divide-gray-200 "
@@ -594,7 +598,7 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
           </div>
         </li>
         <li
-          class="ml-3"
+          class="ml-2"
         >
           <div
             class="flex items-center"
@@ -611,7 +615,7 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
               />
             </svg>
             <span
-              class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="ml-3 text-sm hover:text-gray-700 font-medium text-gray-500"
             >
               <a
                 class=""
@@ -644,7 +648,7 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
             class="overflow-x-auto"
           >
             <div
-              class="overflow-x-auto"
+              class="overflow-x-auto overflow-y-hidden"
             >
               <table
                 class="table-fixed w-full divide-y divide-gray-200 "

@@ -31,7 +31,10 @@ const SimpleSelect = (props: SimpleSelectProps) => {
       defaultValue={multiple ? [] : ""}
       ref={selectRef}
       multiple={multiple}
-      className={clsx(className)}
+      className={clsx(
+        "form-select w-full rounded-md border border-gray-300 shadow-sm focus-within:outline-none focus:border-blue-500 focus:ring-blue-500  focus-visible:border-blue-500 disabled:cursor-not-allowed sm:text-sm",
+        className
+      )}
       required={required}
       {...delegated}
     >

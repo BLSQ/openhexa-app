@@ -3,25 +3,36 @@ import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 
 import { useTranslation } from "next-i18next";
-import { ReactElement } from "react";
-import Block from "../Block";
+import { ReactElement, ReactNode } from "react";
+import BlockContent from "./BlockContent";
 import Spinner from "../Spinner";
 
-type SectionProps = {
+type BlockSectionProps = {
   className?: string;
-  children?: null | (({ open }: { open: boolean }) => ReactElement | null);
+  collapsible?: boolean;
+  children?:
+    | null
+    | (({ open }: { open: boolean }) => ReactElement | null)
+    | ReactNode;
   defaultOpen?: boolean;
   loading?: boolean;
   title?: string | (({ open }: { open: boolean }) => ReactElement);
 };
 
-function Section(props: SectionProps) {
+function BlockSection(props: BlockSectionProps) {
   const { t } = useTranslation();
-  const { title, className, children, defaultOpen = true, loading } = props;
+  const {
+    title,
+    collapsible = true,
+    className,
+    children,
+    defaultOpen = true,
+    loading,
+  } = props;
 
   return (
-    <Block.Content className={className}>
-      <Disclosure defaultOpen={defaultOpen}>
+    <BlockContent className={className}>
+      <Disclosure defaultOpen={defaultOpen || !collapsible}>
         {({ open }) => (
           <>
             {title && (
@@ -62,15 +73,17 @@ function Section(props: SectionProps) {
                 leaveTo="transform opacity-0"
               >
                 <Disclosure.Panel static className={clsx(title && "mt-6")}>
-                  {children({ open })}
+                  {typeof children === "function"
+                    ? children({ open })
+                    : children}
                 </Disclosure.Panel>
               </Transition>
             )}
           </>
         )}
       </Disclosure>
-    </Block.Content>
+    </BlockContent>
   );
 }
 
-export default Section;
+export default BlockSection;

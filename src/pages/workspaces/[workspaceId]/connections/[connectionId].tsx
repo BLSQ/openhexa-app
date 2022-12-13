@@ -1,7 +1,9 @@
+import Badge from "core/components/Badge";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
 import CodeEditor from "core/components/CodeEditor";
-import DataGrid from "core/components/DataGrid";
+import DescriptionList from "core/components/DescriptionList";
 import Page from "core/components/Page";
 import {
   Table,
@@ -10,13 +12,13 @@ import {
   TableHead,
   TableRow,
 } from "core/components/Table";
-import Tabs from "core/components/Tabs";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { capitalize } from "lodash";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import ReactMarkdown from "react-markdown";
+import { TYPES } from "workspaces/features/CreateConnectionDialog/CreateConnectionDialog";
 import { WORKSPACES } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -37,13 +39,14 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const connection = workspace.connections.find(
     (c) => c.id === router.query.connectionId
   );
+
   if (!connection) {
     return null;
   }
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
+      <WorkspaceLayout.Header className="flex items-center justify-between">
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
@@ -57,6 +60,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             {t("Connections")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
+            isLast
             href={`/workspaces/${encodeURIComponent(
               workspace.id
             )}/pipelines/${encodeURIComponent(connection.id)}`}
@@ -64,71 +68,53 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             {connection.name}
           </Breadcrumbs.Part>
         </Breadcrumbs>
+        <Button>{t("Edit")}</Button>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
-        <div className="space-y-1">
-          <div
-            className="text-lg font-medium text-gray-900"
-            title={connection.name}
-          >
-            {capitalize(connection.name)}
-          </div>
-          <div className="text-sm text-gray-700">
-            <span>{connection.type}</span>
-          </div>
-          <div className="h-10 text-sm italic text-gray-600">
-            <span>
-              {t("This Data source is owned by ")}
-              {connection.owner}
-            </span>
-          </div>
-        </div>
-        <Block className="mt-2 p-4">
-          <Tabs defaultIndex={0}>
-            <Tabs.Tab className="mt-4" label={t("Information")}>
-              <div>
-                <Title level={5} className="font-medium ">
-                  {t("Usage")}
-                </Title>
-                <p className="text-sm text-gray-600">
-                  {connection.description}
-                </p>
-              </div>
-            </Tabs.Tab>
-            <Tabs.Tab className="mt-4 " label={t("Code samples")}>
-              <div className="mt-5">
-                <CodeEditor
-                  readonly
-                  lang="json"
-                  value={workspace.database.workspaceTables[0].codeSample[0]}
-                />
-              </div>
-            </Tabs.Tab>
-            <Tabs.Tab className="mt-4" label={t("Variables")}>
-              <div className="mt-5">
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell> {t("Name")} </TableCell>
-                      <TableCell>{t("Value")}</TableCell>
+        <Block className="divide-y-2 divide-gray-100">
+          <Block.Content title={t("Information")} className="space-y-4">
+            <DescriptionList>
+              <DescriptionList.Item label={t("Type")}>
+                <Badge className={connection.type.color}>
+                  {connection.type?.label ?? "custom"}
+                </Badge>
+              </DescriptionList.Item>
+            </DescriptionList>
+            <ReactMarkdown className="prose text-sm">
+              {connection.description}
+            </ReactMarkdown>
+          </Block.Content>
+          <Block.Section title={t("Code samples")}>
+            <CodeEditor
+              readonly
+              lang="json"
+              value={workspace.database.workspaceTables[0].codeSample[0]}
+            />
+          </Block.Section>
+          <Block.Section title={t("Variables")}>
+            <div className="overflow-hidden rounded border border-gray-100">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell className="py-3">{t("Name")}</TableCell>
+                    <TableCell className="py-3">{t("Value")}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {connection.credentials.map((creds, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="py-3 font-medium">
+                        {creds.label}
+                      </TableCell>
+                      <TableCell className="py-3">
+                        {creds.secret ? "***********" : creds.value}
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Object.entries(connection.credentials).map(
-                      ([key, value]) => (
-                        <TableRow key={key}>
-                          <TableCell className="font-medium text-gray-800">
-                            {key}
-                          </TableCell>
-                          <TableCell>{value}</TableCell>
-                        </TableRow>
-                      )
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Tabs.Tab>
-          </Tabs>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Block.Section>
         </Block>
       </WorkspaceLayout.PageContent>
     </Page>

@@ -108,23 +108,29 @@ function Dialog(props: DialogProps) {
           </span>
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
+            enter="transition-all transform ease-out duration-300"
             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             enterTo="opacity-100 translate-y-0 sm:scale-100"
-            leave="ease-in duration-200"
+            leave="transition-all transform ease-in duration-200"
             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
             <div
               className={clsx(
-                "inline-block transform overflow-hidden rounded-lg bg-white  text-left text-gray-600 shadow-2xl transition-all sm:my-24 sm:w-full ",
+                "inline-block transform px-2 transition-all sm:my-24 sm:w-full sm:px-4",
                 maxWidth ?? "max-w-lg",
-                padding ?? "px-4 py-5 sm:p-6",
-                centered && "sm:align-middle",
-                className
+                centered && "sm:align-middle"
               )}
             >
-              {children}
+              <div
+                className={clsx(
+                  "overflow-hidden rounded-lg bg-white text-left text-gray-600 shadow-2xl",
+                  padding ?? "px-4 py-5 sm:p-6",
+                  className
+                )}
+              >
+                {children}
+              </div>
             </div>
           </Transition.Child>
         </div>

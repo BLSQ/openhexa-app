@@ -6,15 +6,13 @@ import {
   FolderOpenIcon,
   HomeIcon,
   SwatchIcon,
-  UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Link from "core/components/Link";
-import Menu from "core/components/Menu";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { ReactNode, useMemo } from "react";
+import SidebarMenu from "workspaces/features/SidebarMenu";
 import { WORKSPACES } from "workspaces/helpers/fixtures";
 
 type SidebarProps = {
@@ -47,7 +45,7 @@ const NavItem = (props: {
       href={href}
       noStyle
       className={clsx(
-        "group flex items-center gap-3 border-l-4 px-2 py-2 text-sm font-medium",
+        "text-md group flex items-center gap-3 border-l-4 px-2 py-2 font-medium",
         isCurrent
           ? " border-pink-500 text-white"
           : "border-transparent text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -80,30 +78,8 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className="fixed inset-y-0 flex w-64 flex-col">
       <div className="flex flex-grow flex-col overflow-y-auto border-r border-gray-200 bg-gray-800">
-        <div className="flex h-16 flex-shrink-0 items-center justify-between py-3 px-4 text-white">
-          <Link
-            noStyle
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
-            className="flex-1 font-medium"
-          >
-            {workspace.name}
-            <div className="text-sm font-normal text-gray-50 text-opacity-70">
-              Country
-            </div>
-          </Link>
-          <Menu trigger={<ChevronDownIcon className="h-6 w-6" />}>
-            {WORKSPACES.map((item) => (
-              <Menu.Item
-                onClick={() =>
-                  router.push(`/workspaces/${encodeURIComponent(item.id)}`)
-                }
-                key={item.id}
-              >
-                {item.name}
-              </Menu.Item>
-            ))}
-          </Menu>
-        </div>
+        <SidebarMenu workspace={workspace} />
+
         <div className="mt-5 flex flex-grow flex-col">
           <nav className="flex-1 space-y-1 px-0 pb-4">
             <NavItem

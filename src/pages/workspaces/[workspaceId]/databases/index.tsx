@@ -3,9 +3,8 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
+import Link from "core/components/Link";
 import Page from "core/components/Page";
-import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -38,6 +37,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
+            isLast
             href={`/workspaces/${encodeURIComponent(workspace.id)}/databases`}
           >
             {t("Database")}
@@ -45,112 +45,63 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
         </Breadcrumbs>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent className="space-y-8">
-        <Title level={2}>{t("Database")}</Title>
-        <div>
-          <Title level={5}> {t("Workspace tables")}</Title>
-          <DataGrid
-            className="bg-white shadow"
-            data={workspace.database.workspaceTables}
-            defaultPageSize={5}
-            sortable
-            totalItems={workspace.database.workspaceTables.length}
-            fixedLayout={false}
+        <DataGrid
+          className="overflow-hidden rounded-md bg-white shadow"
+          data={workspace.database.workspaceTables}
+          defaultPageSize={5}
+          sortable
+          totalItems={workspace.database.workspaceTables.length}
+          fixedLayout={false}
+        >
+          <BaseColumn
+            className="max-w-[50ch] py-3"
+            textClassName="font-medium text-gray-600"
+            id="name"
+            label="Name"
           >
-            <TextColumn
-              className="max-w-[50ch] py-3"
-              textClassName="font-medium text-gray-600"
-              accessor={(value) => (
-                <>
-                  <div className="flex space-x-2">
-                    <TableCellsIcon className="h-6 w-6" />
-                    <span className="font-medium text-gray-800">
-                      {value.name}
-                    </span>
-                  </div>
-                </>
-              )}
-              id="name"
-              label="Name"
-            />
-
-            <BaseColumn
-              className="py-3"
-              accessor="content"
-              id="content"
-              label="Content"
-            >
-              {(value) => <span>{`${value} row(s)`}</span>}
-            </BaseColumn>
-
-            <DateColumn
-              className="py-3"
-              accessor="updatedAt"
-              relative
-              id="updatedAt"
-              label="Last modified"
-            />
-            <ChevronLinkColumn
-              maxWidth="100"
-              accessor="id"
-              url={(value: any) => ({
-                pathname: `${router.asPath}/[tableId]`,
-                query: { tableId: value },
-              })}
-            />
-          </DataGrid>
-        </div>
-
-        <div>
-          <Title level={5}>{t("Shared tables")}</Title>
-          <DataGrid
-            className="bg-white shadow-md"
-            data={workspace.database.sharedTables}
-            defaultPageSize={5}
-            sortable
-            totalItems={workspace.database.sharedTables.length}
-            fixedLayout={false}
+            {(value) => (
+              <Link
+                href={{
+                  pathname: "/workspaces/[workspaceId]/databases/[tableId]",
+                  query: { workspaceId: workspace.id, tableId: value.id },
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <TableCellsIcon className="h-6 w-6 text-gray-500" />
+                  <span className="font-medium text-gray-700">
+                    {value.name}
+                  </span>
+                </div>
+              </Link>
+            )}
+          </BaseColumn>
+          <BaseColumn
+            className="py-3"
+            accessor="content"
+            id="content"
+            label="Content"
           >
-            <TextColumn
-              className="max-w-[50ch] py-3 "
-              textClassName="font-medium text-gray-600"
-              accessor={(value) => (
-                <>
-                  <div className="flex space-x-2">
-                    <TableCellsIcon className="h-6 w-6" />
-                    <span className="font-medium text-gray-800">
-                      {value.name}
-                    </span>
-                  </div>
-                </>
-              )}
-              id="name"
-              label="Name"
-            />
-            <BaseColumn
-              className="py-3"
-              accessor="content"
-              id="content"
-              label="Content"
-            >
-              {(value) => <div>{`${value} row(s)`}</div>}
-            </BaseColumn>
-            <DateColumn
-              className="py-3"
-              relative
-              accessor="updatedAt"
-              id="updatedAt"
-              label="Last modified"
-            />
-            <ChevronLinkColumn
-              maxWidth="100"
-              accessor="id"
-              url={(value: any) => ({
-                pathname: "/databases/[tableId]",
-                query: { tableId: value },
-              })}
-            />
-          </DataGrid>
-        </div>
+            {(value) => <span>{`${value} row(s)`}</span>}
+          </BaseColumn>
+
+          <DateColumn
+            className="py-3"
+            accessor="updatedAt"
+            relative
+            id="updatedAt"
+            label="Last modified"
+          />
+          <ChevronLinkColumn
+            maxWidth="100"
+            accessor="id"
+            url={(value: any) => ({
+              pathname: `/workspaces/${encodeURIComponent(
+                workspace.id
+              )}/databases/[tableId]`,
+              query: { tableId: value },
+            })}
+          />
+        </DataGrid>
       </WorkspaceLayout.PageContent>
     </Page>
   );

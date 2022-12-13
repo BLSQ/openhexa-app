@@ -9,14 +9,18 @@ import Link from "./Link";
 export const Part = ({
   children,
   href,
+  isLast = false,
   isFirst = false,
+  small = false,
 }: {
   children: ReactNode;
   isFirst?: boolean;
+  isLast?: boolean;
+  small?: boolean;
   href?: UrlObject | string;
 }) => {
   return (
-    <li className={clsx(!isFirst && "ml-3")}>
+    <li className={clsx(!isFirst && !small && "ml-2")}>
       <div className="flex items-center">
         {!isFirst && (
           <svg
@@ -31,8 +35,9 @@ export const Part = ({
         )}
         <span
           className={clsx(
-            !isFirst && "ml-3",
-            "text-sm font-medium text-gray-500 hover:text-gray-700"
+            !isFirst && !small && "ml-3",
+            "text-sm hover:text-gray-700",
+            isLast ? "font-semibold text-gray-800" : "font-medium text-gray-500"
           )}
         >
           {href ? (
