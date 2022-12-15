@@ -146,7 +146,6 @@ exports[`Visualization renders a visualization info page  1`] = `
         >
           <div>
             <div
-              aria-controls="headlessui-disclosure-panel-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"
               aria-expanded="true"
               class="-my-7 flex items-center py-7"
               data-headlessui-state="open"
@@ -221,7 +220,6 @@ exports[`Visualization renders a visualization info page  1`] = `
         >
           <div>
             <div
-              aria-controls="headlessui-disclosure-panel-14e41280-1ae3-4e44-b909-992f94b3186f"
               aria-expanded="true"
               class="-my-7 flex items-center py-7"
               data-headlessui-state="open"

@@ -4,7 +4,7 @@ import Select, {
   SelectProps,
 } from "core/components/forms/Select";
 import { useTranslation } from "next-i18next";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { DatasourcePickerQuery } from "./DatasourcePicker.generated";
 
 type Option = SelectOption & { symbol?: string; app?: string };
@@ -71,7 +71,7 @@ const DatasourcePicker = (props: DatasourcePickerProps) => {
   return (
     <Select<Option>
       {...delegated}
-      placeholder={placeholder}
+      placeholder={placeholder ?? undefined}
       value={value}
       onChange={onChange}
       options={options}

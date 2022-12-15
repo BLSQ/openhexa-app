@@ -106,7 +106,9 @@ export const WORKSPACES = SAMPLE_PROJECTS.map((project, i) => ({
   country: project.country,
   description: `# Cameroon PNLP
 
-  Welcome to the Cameroon PNLP workspace !
+
+  Welcome to the Cameroon Malaria Data Repository workspace !
+  ^
   
   This workspace contains :
   

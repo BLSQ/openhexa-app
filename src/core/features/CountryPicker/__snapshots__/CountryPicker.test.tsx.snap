@@ -21,6 +21,7 @@ exports[`CountryPicker renders 1`] = `
           placeholder="Select a country"
           role="combobox"
           type="text"
+          value=""
         />
       </div>
       <button

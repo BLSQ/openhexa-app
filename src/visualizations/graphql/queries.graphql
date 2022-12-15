@@ -20,22 +20,20 @@ query VisualizationsPage($page: Int, $perPage: Int = 15) {
   }
 }
 
-
 query Visualization($id: String!) {
-  externalDashboard(id:$id) {
-      id
-      name
-      url
-      description
-      ...VisualizationPicture_visualization
-      createdAt
-      updatedAt
-      countries {
-        ...CountryBadge_country
-      }
-      tags {
-        ...Tag_tag
-      }
+  externalDashboard(id: $id) {
+    id
+    name
+    url
+    description
+    ...VisualizationPicture_visualization
+    createdAt
+    updatedAt
+    countries {
+      ...CountryBadge_country
     }
+    tags {
+      ...Tag_tag
+    }
+  }
 }
-
