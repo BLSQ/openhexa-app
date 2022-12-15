@@ -4,6 +4,7 @@ import base64
 import enum
 import json
 import typing
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
@@ -19,11 +20,10 @@ from django_countries.fields import Country, CountryField
 from dpq.models import BaseJob
 from model_utils.managers import InheritanceManager, InheritanceQuerySet
 
-from hexa.catalog.models import Datasource, Entry
+from hexa.catalog.models import Entry
 from hexa.core import mimetypes
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.pipelines.models import Pipeline
 from hexa.plugins.connector_airflow import models as airflow_models
 from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
@@ -80,12 +80,16 @@ class ProjectManager(models.Manager):
         return project
 
 
-class Project(Datasource):
+class Project(models.Model):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint("name", "author", name="project_unique_name_author")
         ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     name = models.TextField(verbose_name="project name")
     country = CountryField()
@@ -118,20 +122,8 @@ class Project(Datasource):
     def display_name(self):
         return self.name
 
-    def sync(self):
-        pass  # No need to sync, source of truth is OpenHexa
-
-    def get_pipeline_credentials(self):
-        pass
-
     def get_permission_set(self):
         return self.projectpermission_set.all()
-
-    def populate_index(self, index):
-        raise NotImplementedError  # Skip indexing for now
-
-    def get_absolute_url(self):
-        raise NotImplementedError
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("connector_accessmod.update_project", self):
@@ -239,7 +231,7 @@ class ProjectPermission(Permission):
         return self.project.owner
 
     def index_object(self):
-        self.project.build_index()
+        pass
 
     def update_if_has_perm(self, principal: User, **kwargs):
         raise NotImplementedError(
@@ -534,7 +526,7 @@ class AnalysisManager(InheritanceManager):
         return self.create(author=principal, project=project, **kwargs)
 
 
-class Analysis(Pipeline):
+class Analysis(models.Model):
     """Base analysis class
 
     NOTE: This model is impacted by a signal (see signals.py in the current module)
@@ -556,6 +548,10 @@ class Analysis(Pipeline):
         airflow_models.DAGRunState.SUCCESS: AnalysisStatus.SUCCESS,
         airflow_models.DAGRunState.FAILED: AnalysisStatus.FAILED,
     }
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     author = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL

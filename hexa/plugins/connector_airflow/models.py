@@ -14,7 +14,7 @@ from urllib.parse import quote_plus, urljoin
 import django.apps
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import Signer
@@ -32,7 +32,7 @@ from hexa.core.models import Base, WithStatus
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.pipelines.models import Environment, Index, Pipeline
+from hexa.pipelines.models import Environment, Index, IndexableMixin
 from hexa.pipelines.sync import EnvironmentSyncResult
 from hexa.plugins.connector_airflow.api import AirflowAPIClient, AirflowAPIError
 from hexa.user_management.models import Permission, Team, User
@@ -265,10 +265,16 @@ class DAGQuerySet(BaseQuerySet):
         )
 
 
-class DAG(Pipeline):
+class DAG(IndexableMixin, models.Model):
     class Meta:
         verbose_name = "DAG"
         ordering = ["dag_id"]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    indexes = GenericRelation("pipelines.Index")
 
     template = models.ForeignKey(DAGTemplate, on_delete=models.CASCADE)
     dag_id = models.CharField(max_length=200)
@@ -326,6 +332,19 @@ class DAG(Pipeline):
 
     def run_scheduled(self):
         self.common_run(user=self.user, run_type=DAGRunTrigger.SCHEDULED)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.build_index()
+
+    def get_token(self):
+        return Signer().sign_object(
+            {
+                "id": str(self.id),
+                "model": self._meta.model_name,
+                "app_label": self._meta.app_label,
+            }
+        )
 
     def common_run(
         self,
