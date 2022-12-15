@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
 from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
-from hexa.pipelines.models import Environment, Index
+from hexa.pipelines.models import Environment, Index, Pipeline, PipelineRun
 
 from .credentials import PipelinesCredentials
 from .queue import environment_sync_queue
@@ -44,6 +44,24 @@ def index(request: HttpRequest) -> HttpResponse:
             "environment_grid": environment_grid,
             "breadcrumbs": breadcrumbs,
         },
+    )
+
+
+def pipeline_detail(request: HttpRequest, p_id: uuid.UUID) -> HttpResponse:
+    pipeline = get_object_or_404(
+        Pipeline.objects.prefetch_related().filter_for_user(request.user), pk=p_id
+    )
+    qs = PipelineRun.objects.filter_for_user(request.user).filter(pipeline=pipeline)
+
+    runs = []
+    for r in qs:
+        runs.append(
+            {"id": r.run_id, "execution_date": r.execution_date, "status": r.state}
+        )
+
+    return JsonResponse(
+        {"name": pipeline.name, "schedule": pipeline.schedule, "runs": runs},
+        status=200,
     )
 
 

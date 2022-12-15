@@ -58,10 +58,14 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     in the pipelines component.
     """
 
-    authorized_datasources = credentials.pipeline.authorized_datasources.filter(
-        datasource_type=ContentType.objects.get_for_model(Bucket)
-    )
-    buckets = [x.datasource for x in authorized_datasources]
+    if hasattr(credentials.pipeline, "authorized_datasources"):
+        authorized_datasources = credentials.pipeline.authorized_datasources.filter(
+            datasource_type=ContentType.objects.get_for_model(Bucket)
+        )
+        buckets = [x.datasource for x in authorized_datasources]
+    else:
+        # Pipelines V2
+        buckets = Bucket.objects.filter_for_user(credentials.pipeline.user)
 
     if buckets:
         try:

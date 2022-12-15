@@ -23,6 +23,9 @@ class PipelinesCredentials(HexaCredentials):
 
     def to_dict(self):
         return {
+            "entrypoint": self.pipeline.entrypoint
+            if hasattr(self.pipeline, "entrypoint")
+            else "",
             "env": self.env,
             "files": {k: base64.b64encode(v).decode() for k, v in self.files.items()},
         }

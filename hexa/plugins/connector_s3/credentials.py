@@ -107,19 +107,23 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     Provides the pipelines credentials data that allows users to access S3 buckets
     in the pipelines component.
     """
-    authorized_buckets = credentials.pipeline.authorized_datasources.filter(
-        datasource_type=ContentType.objects.get_for_model(Bucket)
-    )
-    buckets = []
 
-    for authorized_bucket in authorized_buckets:
-        buckets.append(authorized_bucket.datasource)
-        if authorized_bucket.slug:
-            label = authorized_bucket.slug.replace("-", "_").upper()
-            credentials.update_env(
-                {f"AWS_BUCKET_{label}_NAME": authorized_bucket.datasource.name}
-            )
-
-    role_identifier = f"p-{credentials.reference_id}"
+    if hasattr(credentials.pipeline, "authorized_datasources"):
+        authorized_buckets = credentials.pipeline.authorized_datasources.filter(
+            datasource_type=ContentType.objects.get_for_model(Bucket)
+        )
+        buckets = []
+        for authorized_bucket in authorized_buckets:
+            buckets.append(authorized_bucket.datasource)
+            if authorized_bucket.slug:
+                label = authorized_bucket.slug.replace("-", "_").upper()
+                credentials.update_env(
+                    {f"AWS_BUCKET_{label}_NAME": authorized_bucket.datasource.name}
+                )
+        role_identifier = f"p-{credentials.reference_id}"
+    else:
+        # Pipelines V2
+        buckets = Bucket.objects.filter_for_user(credentials.pipeline.user)
+        role_identifier = "superuser"
 
     return _generate_credentials(credentials, role_identifier, [], buckets)

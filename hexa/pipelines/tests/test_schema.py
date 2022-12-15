@@ -1,0 +1,126 @@
+from hexa.core.test import GraphQLTestCase
+from hexa.pipelines.models import Pipeline, PipelineRun, PipelineRunState
+from hexa.user_management.models import User
+
+
+class PipelinesV2Test(GraphQLTestCase):
+    USER_ROOT = None
+    USER_NOOB = None
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_ROOT = User.objects.create_user(
+            "root@bluesquarehub.com",
+            "standardpassword",
+            is_superuser=True,
+        )
+        cls.USER_NOOB = User.objects.create_user(
+            "noob@bluesquarehub.com",
+            "standardpassword",
+        )
+
+    def test_create_pipeline(self):
+
+        self.assertEqual(0, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_NOOB)
+        r = self.run_query(
+            """
+              mutation {
+                  createPipeline(
+                      name: "MonBeauPipeline",
+                      entrypoint: "hello_world",
+                      ui: {}
+                  )
+                  {
+                      success
+                      errors
+                      pipeline {
+                          id
+                      }
+                  }
+              }
+            """
+        )
+        self.assertEqual(True, r["data"]["createPipeline"]["success"])
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+              mutation {
+                  createPipeline(
+                      name: "UnBienJoliTuyau",
+                      entrypoint: "pm",
+                      ui: {}
+                  )
+                  {
+                      success
+                      errors
+                      pipeline {
+                          id
+                      }
+                  }
+              }
+            """
+        )
+        self.assertEqual(True, r["data"]["createPipeline"]["success"])
+        self.assertEqual(2, len(Pipeline.objects.all()))
+
+        self.assertEqual(2, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
+        self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_NOOB)))
+
+    def test_delete_pipeline(self):
+
+        self.test_create_pipeline()
+        self.assertEqual(2, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_NOOB)
+        r = self.run_query(
+            """
+              mutation { deletePipeline(name: "UnBienJoliTuyau") { success errors } }
+            """
+        )
+        self.assertEqual(False, r["data"]["deletePipeline"]["success"])
+        self.assertEqual(["PIPELINE_NOT_FOUND"], r["data"]["deletePipeline"]["errors"])
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+              mutation { deletePipeline(name: "UnBienJoliTuyau") { success errors } }
+            """
+        )
+        self.assertEqual(True, r["data"]["deletePipeline"]["success"])
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+    def test_pipeline_new_run(self):
+
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+
+        self.test_create_pipeline()
+        self.assertEqual(2, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_NOOB)
+        r = self.run_query(
+            """
+              mutation {
+                pipelineNewRun(name: "MonBeauPipeline", config: "--cool-option") {
+                  success
+                  errors
+                  run {
+                    id
+                    status
+                  }
+                }
+              }
+            """
+        )
+        self.assertEqual(True, r["data"]["pipelineNewRun"]["success"])
+        self.assertEqual(
+            PipelineRunState.QUEUED, r["data"]["pipelineNewRun"]["run"]["status"]
+        )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+
+        id = r["data"]["pipelineNewRun"]["run"]["id"]
+        run = PipelineRun.objects.get(id=id)
+        self.assertEqual("--cool-option", run.config)
