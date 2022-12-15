@@ -4,7 +4,6 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Card from "core/components/Card";
 import Page from "core/components/Page";
-import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -100,8 +99,8 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                   },
                 }}
               >
-                <Card.Content className="text-gray-600 line-clamp-3">
-                  {connection.description}
+                <Card.Content className="line-clamp-3">
+                  {connection.shortDescription}
                 </Card.Content>
               </Card>
             ))}

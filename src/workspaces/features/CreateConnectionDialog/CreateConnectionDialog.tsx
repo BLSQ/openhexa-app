@@ -70,7 +70,7 @@ const ConnectionTypePanel = ({
         className="border-1 flex h-24 w-32 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-md border border-gray-100 p-2 text-center shadow-md hover:border-gray-200 hover:bg-gray-100"
       >
         <Cog6ToothIcon className="h-16 w-16 text-gray-500" />
-        <div className="text-sm">{t("Custom connection")}</div>
+        <div className="text-sm">{t("Custom")}</div>
       </button>
     </div>
   );

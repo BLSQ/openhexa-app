@@ -20,7 +20,11 @@ import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { getWorkspaceFile, WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  getWorkspaceFile,
+  WORKSPACES,
+  SAMPLE_README_CONTENT,
+} from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -148,9 +152,10 @@ const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         )}
         {!item && (
           <Block className="divide divide-y divide-gray-100">
+            <Block.Header>README.md</Block.Header>
             <Block.Content>
               <MarkdownViewer className="prose-sm">
-                {workspace.description}
+                {SAMPLE_README_CONTENT}
               </MarkdownViewer>
             </Block.Content>
           </Block>

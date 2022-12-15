@@ -1,11 +1,12 @@
 import Card from "core/components/Card";
 import { Dag, DagRun } from "graphql-types";
-import { capitalize } from "lodash";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 
 interface PipelineCardProps {
   workspaceId: string;
   dag: Pick<Dag, "id" | "label" | "description"> & {
+    shortDescription: String;
+    triggerInfo: String;
     runs: Array<
       Pick<DagRun, "id" | "triggerMode" | "status" | "executionDate">
     >;
@@ -25,14 +26,10 @@ const PipelineCard = ({ dag, workspaceId }: PipelineCardProps) => {
           <PipelineRunStatusBadge dagRun={dag.runs[0]} />
         </div>
       }
-      subtitle={
-        <div className="flex justify-between">
-          {dag.runs && capitalize(dag.runs[0]?.triggerMode || "")}
-        </div>
-      }
+      subtitle={<div className="flex justify-between">{dag.triggerInfo}</div>}
     >
-      <Card.Content className="line-clamp-2" title={dag.description ?? ""}>
-        {dag.description}
+      <Card.Content className="line-clamp-3" title={dag.description ?? ""}>
+        {dag.shortDescription}
       </Card.Content>
     </Card>
   );

@@ -72,8 +72,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
         )}
         <div
           className={clsx(
-            "tight flex-1 truncate text-sm text-gray-50",
-            workspace.name.length < 30 ? "tracking-tight" : "tracking-tighter"
+            "flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
           )}
           title={workspace.name}
         >
@@ -83,6 +82,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               {me.user.email}
             </div>
           )}
+          {/* This will be pushed outside of the block if there is not enough space to display it */}
         </div>
         <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100" />
       </button>
