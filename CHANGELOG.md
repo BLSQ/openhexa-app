@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1](https://github.com/BLSQ/openhexa-frontend/compare/0.14.0...0.14.1) (2022-12-15)
+
+
+### Bug Fixes
+
+* More realistic fixtures ([#156](https://github.com/BLSQ/openhexa-frontend/issues/156)) ([99981ca](https://github.com/BLSQ/openhexa-frontend/commit/99981ca3f1a5253e41a934395047df3c97e5126c))
+
 ## [0.14.0](https://github.com/BLSQ/openhexa-frontend/compare/0.13.2...0.14.0) (2022-12-13)
 
 
