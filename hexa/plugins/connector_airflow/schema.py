@@ -146,7 +146,8 @@ dags_query = QueryType()
 def resolve_dags(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     qs = (
-        DAG.objects.prefetch_related(
+        DAG.objects.filter_for_user(request.user)
+        .prefetch_related(
             Prefetch(
                 "indexes",
                 queryset=Index.objects.filter_for_user(request.user),
