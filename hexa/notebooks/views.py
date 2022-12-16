@@ -1,17 +1,9 @@
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
 from hexa.notebooks.credentials import NotebooksCredentials
-
-
-def index(request: HttpRequest) -> HttpResponse:
-    return render(
-        request, "notebooks/index.html", {"notebooks_url": settings.NOTEBOOKS_URL}
-    )
 
 
 @require_POST

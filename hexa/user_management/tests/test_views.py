@@ -26,7 +26,7 @@ class ViewsTest(TestCase):
         self.client.login(email="john@bluesquarehub.com", password="regular")
         response = self.client.get(reverse("core:dashboard"))
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
 
     def test_logout_302(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
@@ -65,7 +65,6 @@ class AceptTosTest(TestCase):
         # without validation -> page should ask to accept tos
         response = self.client.get(reverse("core:dashboard"))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, True)
 
         # let's accept -> should redirect to index
         response = self.client.post(reverse("user:accept_tos"))
@@ -73,8 +72,7 @@ class AceptTosTest(TestCase):
 
         # let's retry to load the dashboard -> not an accept_tos page
         response = self.client.get(reverse("core:dashboard"))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, False)
+        self.assertEqual(response.status_code, 302)
 
 
 class InviteUserAdminTest(TestCase):
