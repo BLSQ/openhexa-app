@@ -65,6 +65,7 @@ class AceptTosTest(TestCase):
         # without validation -> page should ask to accept tos
         response = self.client.get(reverse("core:dashboard"))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, True)
 
         # let's accept -> should redirect to index
         response = self.client.post(reverse("user:accept_tos"))
