@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_postgresql",
     "hexa.plugins.connector_accessmod",
     "hexa.plugins.connector_iaso",
+    "hexa.workspace",
 ]
 
 MIDDLEWARE = [
