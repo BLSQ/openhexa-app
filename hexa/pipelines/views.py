@@ -7,44 +7,18 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import BadSignature, Signer
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
-from hexa.pipelines.datagrids import EnvironmentGrid, PipelineIndexGrid
-from hexa.pipelines.models import Environment, Index
+from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
-
-
-def index(request: HttpRequest) -> HttpResponse:
-    breadcrumbs = [
-        (_("Data Pipelines"), "pipelines:index"),
-    ]
-    pipelines = (
-        Index.objects.filter_for_user(request.user).prefetch_related("object").leaves(1)
-    )
-    pipeline_grid = PipelineIndexGrid(
-        pipelines, page=int(request.GET.get("page", "1")), request=request
-    )
-
-    environments = Index.objects.filter_for_user(request.user).roots()
-    environment_grid = EnvironmentGrid(environments, request=request)
-
-    return render(
-        request,
-        "pipelines/index.html",
-        {
-            "pipeline_grid": pipeline_grid,
-            "environment_grid": environment_grid,
-            "breadcrumbs": breadcrumbs,
-        },
-    )
 
 
 @require_POST

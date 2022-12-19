@@ -1,87 +1,9 @@
 from logging import getLogger
 
-from django.contrib.auth import authenticate, login
 from django.db import connection
 from django.http import HttpRequest, HttpResponse, HttpResponseServerError
-from django.shortcuts import redirect, render
-from django.urls import reverse
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
-
-from hexa.app import get_hexa_app_configs
-from hexa.catalog.models import Index
-from hexa.core.activities import Activity, ActivityList
-from hexa.core.datagrids import ActivityGrid
-from hexa.core.models.behaviors import Status
-from hexa.plugins.connector_airflow.models import DAG
-from hexa.plugins.connector_s3.models import Object
 
 logger = getLogger(__name__)
-
-
-def index(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect(reverse("core:dashboard"))
-
-    if request.method == "POST":
-        username = request.POST["username"]
-        password = request.POST["password"]
-        next_url = request.POST["next"]
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-
-            return redirect(next_url)
-        else:
-            errors = True
-    else:
-        errors = False
-        next_url = request.GET.get("next", reverse("core:dashboard"))
-
-    return render(request, "core/index.html", {"errors": errors, "next_url": next_url})
-
-
-def dashboard(request: HttpRequest) -> HttpResponse:
-    breadcrumbs = [(_("Dashboard"), "core:dashboard")]
-    accessible_datasources = Index.objects.filter_for_user(request.user).roots()
-
-    # TODO: We should instead filter on "executable file"-like on the index to avoid referencing a plugin here
-    accessible_notebooks = Object.objects.filter(
-        key__iendswith=".ipynb"
-    ).filter_for_user(request.user)
-
-    # Build latest activity
-    last_activities = ActivityList(
-        [
-            Activity(
-                occurred_at=timezone.now().replace(hour=0, minute=0),
-                description=_("All datasources are up to date!"),
-                status=Status.SUCCESS,
-                url=reverse("catalog:index"),
-            )
-        ]
-    )
-    for app_config in get_hexa_app_configs(connector_only=True):
-        last_activities += app_config.get_last_activities(request)
-
-    last_activity_grid = ActivityGrid(
-        last_activities, paginate=False, request=request, per_page=10
-    )
-
-    return render(
-        request,
-        "core/dashboard.html",
-        {
-            "counts": {
-                "datasources": accessible_datasources.count(),
-                "notebooks": accessible_notebooks.count(),
-                "pipelines": DAG.objects.filter_for_user(request.user).count(),
-            },
-            "last_activity_grid": last_activity_grid,
-            "breadcrumbs": breadcrumbs,
-        },
-    )
 
 
 def ready(request: HttpRequest) -> HttpResponse:

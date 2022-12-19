@@ -44,7 +44,7 @@ class AsyncRefreshTest(TestCase):
                     self.CLUSTER_1.id,
                 ],
             )
-            response = self.client.post(url, HTTP_REFERER="/", follow=True)
+            response = self.client.post(url, follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(synced)
@@ -73,7 +73,7 @@ class AsyncRefreshTest(TestCase):
                     self.CLUSTER_1.id,
                 ],
             )
-            response = self.client.post(url, HTTP_REFERER="/", follow=True)
+            response = self.client.post(url, follow=True)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(synced)
