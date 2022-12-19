@@ -1,0 +1,43 @@
+type Workspace {
+  id: String!
+  name: String!
+  description: String!
+  memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
+  createdAt: DateTime!
+  updateAt: DateTime!
+  createdBy: DateTime!
+}
+
+type WorkspacePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [Workspace!]!
+}
+
+type WorkspaceMembershipPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [WorkspaceMemberShip!]!
+}
+
+enum WorkspaceMemberShipRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+type WorkspaceMemberShip {
+  id: String!
+  user: User!
+  workspace: Workspace!
+  roles: WorkspaceMemberShipRole!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+extend type Query {
+  workspace(id: String!): Workspace
+  workspaces(page: Int, perPage: Int): WorkspacePage!
+}
