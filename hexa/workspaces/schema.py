@@ -8,7 +8,7 @@ from hexa.core.graphql import result_page
 
 from .models import Workspace
 
-workspace_type_def = load_schema_from_path(
+workspaces_type_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
 
