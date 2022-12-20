@@ -1,4 +1,4 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
@@ -11,6 +11,7 @@ from hexa.workspaces.models import (
 
 class WorkspaceTest(TestCase):
     USER_SERENA = None
+    USER_ADMIN = None
 
     @classmethod
     def setUpTestData(cls):
@@ -19,17 +20,33 @@ class WorkspaceTest(TestCase):
             "serena's password",
         )
 
-    def test_create_workspace(self):
-        self.assertEqual(0, Workspace.objects.all().count())
-        workspace = Workspace(
-            name="Senegal Workspace", description="This is test for creating workspace"
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin@bluesquarehub.com", "admin", is_superuser=True
+        )
+
+    def test_create_workspace_regular_user(self):
+        with self.assertRaises(PermissionDenied):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_SERENA,
+                name="Senegal Workspace",
+                description="This is test for creating workspace",
+            )
+            workspace.save()
+
+    def test_create_workspace_admin_user(self):
+        workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Senegal Workspace",
+            description="This is test for creating workspace",
         )
         workspace.save()
         self.assertEqual(1, Workspace.objects.all().count())
 
     def test_get_workspace_by_id(self):
-        workspace = Workspace(
-            name="Senegal Workspace", description="This is test for creating workspace"
+        workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Senegal Workspace",
+            description="This is test for creating workspace",
         )
         workspace.save()
         self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
@@ -39,19 +56,16 @@ class WorkspaceTest(TestCase):
             Workspace.objects.get(pk="7bf4c750-f74b-4ed6-b7f7-b23e4cac4e2c")
 
     def test_add_member(self):
-        workspace = Workspace(
-            name="Senegal Workspace", description="This is test for creating workspace"
+        workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Senegal Workspace",
+            description="This is test for creating workspace",
         )
         workspace.save()
-        workspace_member_ship = WorkspaceMembership.objects.create(
-            workspace=workspace,
-            user=self.USER_SERENA,
-            role=WorkspaceMembershipRole.ADMIN,
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_ADMIN,
+                workspace=workspace,
+                role=WorkspaceMembershipRole.ADMIN,
+            ).exists()
         )
-        workspace_member_ship.save()
-        self.assertEqual(
-            workspace_member_ship,
-            WorkspaceMembership.objects.get(id=workspace_member_ship.id),
-        )
-        self.assertEqual(self.USER_SERENA, workspace_member_ship.user)
-        self.assertEqual(WorkspaceMembershipRole.ADMIN, workspace_member_ship.role)

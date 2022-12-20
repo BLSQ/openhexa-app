@@ -1,11 +1,11 @@
 type Workspace {
   id: String!
   name: String!
-  description: String!
+  description: String
   memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
   createdAt: DateTime!
-  updateAt: DateTime!
-  createdBy: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
 }
 
 type WorkspacePage {
@@ -15,29 +15,48 @@ type WorkspacePage {
   items: [Workspace!]!
 }
 
-type WorkspaceMembershipPage {
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-  items: [WorkspaceMemberShip!]!
-}
-
-enum WorkspaceMemberShipRole {
+enum WorkspaceMembershipRole {
   ADMIN
   EDITOR
   VIEWER
 }
 
-type WorkspaceMemberShip {
+type WorkspaceMembership {
   id: String!
   user: User!
   workspace: Workspace!
-  roles: WorkspaceMemberShipRole!
+  role: WorkspaceMembershipRole!
   createdAt: DateTime!
-  updatedAt: DateTime!
+  updatedAt: DateTime
+}
+
+type WorkspaceMembershipPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [WorkspaceMembership!]!
 }
 
 extend type Query {
   workspace(id: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
+}
+
+enum CreateWorkspaceError {
+  PERMISSION_DENIED
+}
+
+type CreateWorkspaceResult {
+  success: Boolean!
+  errors: [CreateWorkspaceError!]!
+  workspace: Workspace
+}
+
+input CreateWorkspaceInput {
+  name: String!
+  description: String
+}
+
+extend type Mutation {
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
 }
