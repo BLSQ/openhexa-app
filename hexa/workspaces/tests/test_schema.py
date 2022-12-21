@@ -21,11 +21,13 @@ class WorkspaceTest(GraphQLTestCase):
             cls.USER_ADMIN,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
+            country="",
         )
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
+            country="",
         )
 
     def test_create_workspace_denied(self):
@@ -85,6 +87,46 @@ class WorkspaceTest(GraphQLTestCase):
                 "workspace": {
                     "name": "Cameroon workspace",
                     "description": "Description",
+                },
+            },
+            r["data"]["createWorkspace"],
+        )
+
+    def test_create_workspace_with_country(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                        country {
+                          code
+                        }
+                    }
+                   
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                    "country": {"code": "AD"},
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                    "country": {"code": "AD"},
                 },
             },
             r["data"]["createWorkspace"],

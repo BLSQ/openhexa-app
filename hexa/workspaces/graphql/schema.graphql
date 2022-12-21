@@ -3,6 +3,7 @@ type Workspace {
   name: String!
   description: String
   memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
+  country: Country
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
@@ -55,6 +56,7 @@ type CreateWorkspaceResult {
 input CreateWorkspaceInput {
   name: String!
   description: String
+  country: CountryInput
 }
 
 extend type Mutation {

@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.countries.models import Country
 
 from .models import Workspace
 
@@ -38,16 +39,20 @@ def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
+    country = ""
+    if (create_input.get("country") is not None) and (create_input["country"]["code"]):
+        country = Country.objects.get(code=create_input["country"]["code"])
 
     try:
         workspace = Workspace.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
             description=create_input.get("description", ""),
+            country=country,
         )
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
-workspace_bindables = [workspace_queries, workspace_object, worskspace_mutations]
+workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]

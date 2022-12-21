@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django_countries.fields import Country, CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
@@ -13,11 +14,13 @@ from hexa.user_management.models import User
 
 
 class WorkspaceManager(models.Manager):
-    def create_if_has_perm(self, principal: User, *, name: str, description: str):
+    def create_if_has_perm(
+        self, principal: User, *, name: str, description: str, country: Country
+    ):
         if not principal.has_perm("workspaces.create_workspace"):
             raise PermissionDenied
 
-        workspace = self.create(name=name, description=description)
+        workspace = self.create(name=name, description=description, country=country)
         WorkspaceMembership.objects.create(
             user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
         )
@@ -41,6 +44,7 @@ class Workspace(Base):
         through="WorkspaceMembership",
         related_name="workspace_members",
     )
+    country = CountryField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
