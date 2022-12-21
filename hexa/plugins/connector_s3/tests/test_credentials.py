@@ -18,7 +18,6 @@ from hexa.plugins.connector_s3.credentials import (
 )
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
 from hexa.user_management.models import (
-    Feature,
     Membership,
     MembershipRole,
     PermissionMode,
@@ -86,7 +85,6 @@ class NotebooksCredentialsTest(TestCase):
         BucketPermission.objects.create(
             bucket=b2, team=cls.TEAM_SECRET, mode=PermissionMode.VIEWER
         )
-        cls.S3FS = Feature.objects.create(code="s3fs")
 
     @mock_iam
     @mock_sts
