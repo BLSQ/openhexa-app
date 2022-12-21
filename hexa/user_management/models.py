@@ -295,7 +295,7 @@ class FeatureFlag(Base):
     class Meta:
         db_table = "identity_featureflag"
 
-    feature = models.ForeignKey("Feature", on_delete=models.CharField)
+    feature = models.ForeignKey("Feature", on_delete=models.CASCADE)
     user = models.ForeignKey("User", on_delete=models.CASCADE)
     config = models.JSONField(blank=True, default=dict)
 
