@@ -4,7 +4,6 @@ from django.shortcuts import redirect
 
 
 def redirect_to_new_frontend(request: HttpRequest, *_, **__):
-    print(request.get_full_path())
     if settings.NEW_FRONTEND_DOMAIN is not None:
         return redirect(
             request.build_absolute_uri(
