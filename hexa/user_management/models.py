@@ -300,7 +300,7 @@ class FeatureFlag(Base):
     config = models.JSONField(blank=True, default=dict)
 
     def __str__(self):
-        return f"{self.feature.code} - {self.user.username}"
+        return f"{self.feature.code} - {self.user.display_name}"
 
 
 class PermissionMode(models.TextChoices):
