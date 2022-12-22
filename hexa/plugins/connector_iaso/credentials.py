@@ -28,10 +28,15 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 def pipelines_credentials(credentials: PipelinesCredentials):
     """Provides the pipelines credentials data that allows users to access IASO instance in the pipelines component."""
 
-    authorized_datasources = credentials.pipeline.authorized_datasources.filter(
-        datasource_type=ContentType.objects.get_for_model(Account)
-    )
-    accounts = [x.datasource for x in authorized_datasources]
+    if hasattr(credentials.pipeline, "authorized_datasources"):
+        authorized_datasources = credentials.pipeline.authorized_datasources.filter(
+            datasource_type=ContentType.objects.get_for_model(Account)
+        )
+        accounts = [x.datasource for x in authorized_datasources]
+    else:
+        # Pipelines V2
+        accounts = Account.objects.filter_for_user(credentials.pipeline.user)
+
     env = {}
     for a in accounts:
         iaso_tokens = ApiToken.objects.filter(

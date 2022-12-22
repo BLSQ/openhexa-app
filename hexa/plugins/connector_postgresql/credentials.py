@@ -67,10 +67,17 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     in the pipelines component.
     """
 
-    authorized_datasource = credentials.pipeline.authorized_datasources.filter(
-        datasource_type=ContentType.objects.get_for_model(Database)
-    )
-    databases = [(x.datasource, x.slug) for x in authorized_datasource]
+    if hasattr(credentials.pipeline, "authorized_datasources"):
+        authorized_datasource = credentials.pipeline.authorized_datasources.filter(
+            datasource_type=ContentType.objects.get_for_model(Database)
+        )
+        databases = [(x.datasource, x.slug) for x in authorized_datasource]
+    else:
+        # Pipelines V2
+        authorized_datasource = Database.objects.filter_for_user(
+            credentials.pipeline.user
+        )
+        databases = [(x, None) for x in authorized_datasource]
 
     env, files = get_env(databases)
 

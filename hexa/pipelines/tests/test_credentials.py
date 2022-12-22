@@ -72,6 +72,7 @@ class CredentialsTestCase(BaseCredentialsTestCase):
         self.assertJSONEqual(
             response.content,
             {
+                "entrypoint": "",
                 "env": {
                     "TEST_PIPELINE_ID": str(self.PIPELINE.pk),
                 },

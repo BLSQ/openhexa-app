@@ -11,6 +11,7 @@ from hexa.core.schema import core_bindables, core_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.data_collections.schema import collections_bindables, collections_type_defs
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
+from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
 from hexa.plugins.connector_accessmod.schema import (
     accessmod_bindables,
     accessmod_type_defs,
@@ -40,9 +41,11 @@ schema = make_executable_schema(
         dashboards_type_defs,
         notebooks_type_defs,
         core_type_defs,
+        pipelines_type_defs,
     ],
     [
         *catalog_bindables,
+        *pipelines_bindables,
         *identity_bindables,
         *tags_bindables,
         *collections_bindables,

@@ -1,0 +1,134 @@
+enum MessagePriority {
+  DEBUG
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+type PipelineRunMessage {
+  message: String!
+  priority: MessagePriority!
+  timestamp: DateTime
+}
+
+enum PipelineRunTrigger {
+  SCHEDULED
+  MANUAL
+}
+
+type PipelineRunOutput {
+  title: String!
+  uri: String!
+}
+
+enum PipelineRunStatus {
+  success
+  running
+  failed
+  queued
+}
+
+type PipelineRun {
+  id: String!
+  user: User
+  config: String!
+  status: PipelineRunStatus!
+  executionDate: DateTime
+  duration: Int
+  progress: Int!
+  triggerMode: PipelineRunTrigger
+  messages: [PipelineRunMessage!]!
+  logs: String
+  outputs: [PipelineRunOutput!]!
+}
+
+enum PipelineRunOrderBy {
+  EXECUTION_DATE_DESC
+  EXECUTION_DATE_ASC
+}
+
+type PipelineRunPage {
+  items: [PipelineRun!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type Pipeline {
+  id: String!
+  name: String!
+  entrypoint: String!
+  parameters: JSON!
+  config: String!
+  schedule: String
+  user: User
+  runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
+}
+
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+enum PipelineError {
+  PIPELINE_NOT_FOUND
+  INVALID_CONFIG
+}
+
+extend type Query {
+  pipelines(page: Int, perPage: Int): PipelinesPage!
+  pipeline(id: String, name: String): Pipeline
+  pipelineRun(id: String!): PipelineRun
+}
+
+input createPipelineInput {
+  name: String!
+  entrypoint: String!
+  parameters: JSON!
+}
+
+type createPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  pipeline: Pipeline
+}
+
+input deletePipelineInput {
+  id: String!
+}
+
+type deletePipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+input runPipelineInput {
+  id: String!
+  config: String
+}
+
+type runPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  run: PipelineRun
+}
+
+input pipelineTokenInput {
+  name: String!
+}
+
+type PipelineTokenResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  token: String
+}
+
+extend type Mutation {
+  createPipeline(input: createPipelineInput): createPipelineResult!
+  deletePipeline(input: deletePipelineInput): deletePipelineResult!
+  runPipeline(input: runPipelineInput): runPipelineResult!
+  pipelineToken(input: pipelineTokenInput): PipelineTokenResult!
+}
