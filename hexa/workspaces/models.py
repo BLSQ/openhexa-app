@@ -15,12 +15,21 @@ from hexa.user_management.models import User
 
 class WorkspaceManager(models.Manager):
     def create_if_has_perm(
-        self, principal: User, *, name: str, description: str, country: Country
+        self,
+        principal: User,
+        *,
+        name: str,
+        description: str,
+        countries: typing.Sequence[Country] = None
     ):
         if not principal.has_perm("workspaces.create_workspace"):
             raise PermissionDenied
 
-        workspace = self.create(name=name, description=description, country=country)
+        create_kwargs = {"name": name, "description": description}
+        if countries is not None:
+            create_kwargs["countries"] = countries
+
+        workspace = self.create(**create_kwargs)
         WorkspaceMembership.objects.create(
             user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
         )
@@ -44,7 +53,7 @@ class Workspace(Base):
         through="WorkspaceMembership",
         related_name="workspace_members",
     )
-    country = CountryField(blank=True)
+    countries = CountryField(multiple=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(

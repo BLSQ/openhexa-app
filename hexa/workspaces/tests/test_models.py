@@ -30,7 +30,6 @@ class WorkspaceTest(TestCase):
                 self.USER_SERENA,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
-                country="",
             )
             workspace.save()
 
@@ -39,7 +38,6 @@ class WorkspaceTest(TestCase):
             self.USER_ADMIN,
             name="Senegal Workspace",
             description="This is test for creating workspace",
-            country="",
         )
         workspace.save()
         self.assertEqual(1, Workspace.objects.all().count())
@@ -49,7 +47,6 @@ class WorkspaceTest(TestCase):
             self.USER_ADMIN,
             name="Senegal Workspace",
             description="This is test for creating workspace",
-            country="",
         )
         workspace.save()
         self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
@@ -63,7 +60,6 @@ class WorkspaceTest(TestCase):
             self.USER_ADMIN,
             name="Senegal Workspace",
             description="This is test for creating workspace",
-            country="",
         )
         workspace.save()
         self.assertTrue(

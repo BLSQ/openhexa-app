@@ -39,16 +39,17 @@ def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
-    country = ""
-    if (create_input.get("country") is not None) and (create_input["country"]["code"]):
-        country = Country.objects.get(code=create_input["country"]["code"])
 
     try:
         workspace = Workspace.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
             description=create_input.get("description", ""),
-            country=country,
+            countries=[
+                Country.objects.get(code=c["code"]) for c in create_input["countries"]
+            ]
+            if "countries" in create_input
+            else None,
         )
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
