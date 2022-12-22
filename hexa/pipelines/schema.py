@@ -83,7 +83,7 @@ def resolve_pipeline(_, info, **kwargs):
     return pipeline
 
 
-@pipelines_query.field("pipelineGetRun")
+@pipelines_query.field("pipelineRun")
 def resolve_pipeline_get_run(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
@@ -93,35 +93,23 @@ def resolve_pipeline_get_run(_, info, **kwargs):
     )
 
 
-@pipelines_query.field("pipelineToken")
-def resolve_pipelineToken(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    qs = Pipeline.objects.filter_for_user(request.user).filter(name=kwargs.get("name"))
-    if len(list(qs)) != 1:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_NOT_FOUND"],
-        }
-
-    return {"success": True, "errors": [], "token": qs.first().get_token()}
-
-
 pipelines_mutations = MutationType()
 
 
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    qs = Pipeline.objects.filter(name=kwargs.get("name"))
+    input = kwargs["input"]
+    qs = Pipeline.objects.filter(name=input.get("name"))
     if len(list(qs)) != 0:
         return {
             "success": False,
             "errors": ["INVALID_CONFIG"],
         }
     pipeline = Pipeline.objects.create(
-        name=kwargs.get("name"),
-        entrypoint=kwargs.get("entrypoint"),
-        parameters=kwargs.get("ui"),
+        name=input.get("name"),
+        entrypoint=input.get("entrypoint"),
+        parameters=input.get("parameters"),
         user=request.user,
     )
     return {"pipeline": pipeline, "success": True, "errors": []}
@@ -130,10 +118,9 @@ def resolve_create_pipeline(_, info, **kwargs):
 @pipelines_mutations.field("deletePipeline")
 def resolve_delete_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
     try:
-        pipeline = Pipeline.objects.filter(user=request.user).get(
-            name=kwargs.get("name", "")
-        )
+        pipeline = Pipeline.objects.filter(user=request.user).get(id=input.get("id"))
     except Pipeline.DoesNotExist:
         return {
             "success": False,
@@ -147,31 +134,41 @@ def resolve_delete_pipeline(_, info, **kwargs):
     }
 
 
-@pipelines_mutations.field("pipelineNewRun")
-def resolve_pipeline_new_run(_, info, **kwargs):
+@pipelines_mutations.field("runPipeline")
+def resolve_run_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
     try:
-        if kwargs.get("id", None):
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                id=kwargs.get("id")
-            )
-        else:
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                name=kwargs.get("name", "")
-            )
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.get("id")
+        )
     except Pipeline.DoesNotExist:
         return {
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    run = pipeline.run(config=kwargs.get("config", None), user=request.user)
+    run = pipeline.run(config=input.get("config", None), user=request.user)
 
     return {
         "success": True,
         "errors": [],
         "run": run,
     }
+
+
+@pipelines_mutations.field("pipelineToken")
+def resolve_pipelineToken(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    qs = Pipeline.objects.filter_for_user(request.user).filter(name=input.get("name"))
+    if len(list(qs)) != 1:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    return {"success": True, "errors": [], "token": qs.first().get_token()}
 
 
 pipelines_bindables = [

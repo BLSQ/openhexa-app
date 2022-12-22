@@ -7,11 +7,6 @@ app_name = "pipelines"
 urlpatterns = [
     path("", views.index, name="index"),
     path(
-        "<uuid:p_id>/",
-        views.pipeline_detail,
-        name="pipeline_detail",
-    ),
-    path(
         "sync/<int:environment_contenttype_id>/<uuid:environment_id>",
         views.environment_sync,
         name="environment_sync",

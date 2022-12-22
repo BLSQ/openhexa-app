@@ -85,15 +85,13 @@ class PipelineQuerySet(BaseQuerySet):
         )
 
 
-class Pipeline(IndexableMixin, models.Model):
+class Pipeline(models.Model):
     class Meta:
         verbose_name = "Pipeline v2"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    indexes = GenericRelation("pipelines.Index")
 
     name = models.CharField(unique=True, max_length=200, default="")
     description = models.TextField(blank=True)
@@ -107,22 +105,6 @@ class Pipeline(IndexableMixin, models.Model):
     )
 
     objects = PipelineQuerySet.as_manager()
-
-    def get_permission_set(self):
-        return []
-
-    def populate_index(self, index: Index):
-        index.external_name = self.name
-        index.external_type = "pipeline_v2"
-        index.path = f"v2.{self.id.hex}"
-        index.external_id = f"{self.name}"
-        index.search = f"{self.name}"
-
-    def get_absolute_url(self) -> str:
-        return reverse(
-            "pipelines:pipeline_detail",
-            args=(self.id,),
-        )
 
     def run(
         self,
@@ -148,10 +130,6 @@ class Pipeline(IndexableMixin, models.Model):
         # need to export f"{settings.BASE_URL}{webhook_path}" as HEXA_WEBHOOK_URL
 
         return run
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        self.build_index()
 
     @property
     def last_run(self) -> "PipelineRun":
@@ -243,7 +221,7 @@ class PipelineRun(Base, WithStatus):
     def log_message(self, priority: str, message: str):
         self.messages.append(
             {
-                "priority": priority if priority else "info",
+                "priority": priority if priority else "INFO",
                 "message": message,
                 "timestamp": datetime.utcnow().isoformat(),
             }

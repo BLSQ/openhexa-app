@@ -27,11 +27,11 @@ class PipelinesV2Test(GraphQLTestCase):
         r = self.run_query(
             """
               mutation {
-                  createPipeline(
+                  createPipeline(input: {
                       name: "MonBeauPipeline",
                       entrypoint: "hello_world",
-                      ui: {}
-                  )
+                      parameters: {}
+                  })
                   {
                       success
                       errors
@@ -49,11 +49,11 @@ class PipelinesV2Test(GraphQLTestCase):
         r = self.run_query(
             """
               mutation {
-                  createPipeline(
+                  createPipeline(input: {
                       name: "UnBienJoliTuyau",
                       entrypoint: "pm",
-                      ui: {}
-                  )
+                      parameters: {}
+                  })
                   {
                       success
                       errors
@@ -75,20 +75,19 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline()
         self.assertEqual(2, len(Pipeline.objects.all()))
 
+        id1 = Pipeline.objects.filter(user=self.USER_ROOT).first().id
+
         self.client.force_login(self.USER_NOOB)
         r = self.run_query(
-            """
-              mutation { deletePipeline(name: "UnBienJoliTuyau") { success errors } }
-            """
+            f'mutation {{ deletePipeline(input: {{ id: "{id1}" }}) {{ success errors }} }}'
         )
+
         self.assertEqual(False, r["data"]["deletePipeline"]["success"])
         self.assertEqual(["PIPELINE_NOT_FOUND"], r["data"]["deletePipeline"]["errors"])
 
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
-            """
-              mutation { deletePipeline(name: "UnBienJoliTuyau") { success errors } }
-            """
+            f'mutation {{ deletePipeline(input: {{ id: "{id1}" }}) {{ success errors }} }}'
         )
         self.assertEqual(True, r["data"]["deletePipeline"]["success"])
         self.assertEqual(1, len(Pipeline.objects.all()))
@@ -100,27 +99,35 @@ class PipelinesV2Test(GraphQLTestCase):
         self.test_create_pipeline()
         self.assertEqual(2, len(Pipeline.objects.all()))
 
+        id1 = Pipeline.objects.filter(user=self.USER_NOOB).first().id
+
         self.client.force_login(self.USER_NOOB)
         r = self.run_query(
-            """
-              mutation {
-                pipelineNewRun(name: "MonBeauPipeline", config: "--cool-option") {
+            f"""
+              mutation {{
+                runPipeline(
+                  input: {{
+                    id: "{id1}" ,
+                    config: "--cool-option"
+                  }}
+                )
+                {{
                   success
                   errors
-                  run {
+                  run {{
                     id
                     status
-                  }
-                }
-              }
+                  }}
+                }}
+              }}
             """
         )
-        self.assertEqual(True, r["data"]["pipelineNewRun"]["success"])
+        self.assertEqual(True, r["data"]["runPipeline"]["success"])
         self.assertEqual(
-            PipelineRunState.QUEUED, r["data"]["pipelineNewRun"]["run"]["status"]
+            PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
 
-        id = r["data"]["pipelineNewRun"]["run"]["id"]
+        id = r["data"]["runPipeline"]["run"]["id"]
         run = PipelineRun.objects.get(id=id)
         self.assertEqual("--cool-option", run.config)

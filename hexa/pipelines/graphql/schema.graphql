@@ -1,6 +1,14 @@
+enum MessagePriority {
+  DEBUG
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
 type PipelineRunMessage {
   message: String!
-  priority: String!
+  priority: MessagePriority!
   timestamp: DateTime
 }
 
@@ -65,43 +73,62 @@ type PipelinesPage {
   totalItems: Int!
 }
 
-enum pipelineError {
+enum PipelineError {
   PIPELINE_NOT_FOUND
   INVALID_CONFIG
-}
-
-type PipelineTokenResult {
-  success: Boolean!
-  errors: [pipelineError!]!
-  token: String
 }
 
 extend type Query {
   pipelines(page: Int, perPage: Int): PipelinesPage!
   pipeline(id: String, name: String): Pipeline
-  pipelineToken(name: String!): PipelineTokenResult!
-  pipelineGetRun(id: String!): PipelineRun
+  pipelineRun(id: String!): PipelineRun
+}
+
+input createPipelineInput {
+  name: String!
+  entrypoint: String!
+  parameters: JSON!
 }
 
 type createPipelineResult {
   success: Boolean!
-  errors: [pipelineError!]!
+  errors: [PipelineError!]!
   pipeline: Pipeline
+}
+
+input deletePipelineInput {
+  id: String!
 }
 
 type deletePipelineResult {
   success: Boolean!
-  errors: [pipelineError!]!
+  errors: [PipelineError!]!
 }
 
-type PipelineNewRunResult {
+input runPipelineInput {
+  id: String!
+  config: String
+}
+
+type runPipelineResult {
   success: Boolean!
-  errors: [pipelineError!]!
+  errors: [PipelineError!]!
   run: PipelineRun
 }
 
+input pipelineTokenInput {
+  name: String!
+}
+
+type PipelineTokenResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  token: String
+}
+
 extend type Mutation {
-  createPipeline(name: String!, entrypoint: String!, ui: JSON!): createPipelineResult!
-  deletePipeline(name: String!): deletePipelineResult!
-  pipelineNewRun(name: String!, config: String): PipelineNewRunResult!
+  createPipeline(input: createPipelineInput): createPipelineResult!
+  deletePipeline(input: deletePipelineInput): deletePipelineResult!
+  runPipeline(input: runPipelineInput): runPipelineResult!
+  pipelineToken(input: pipelineTokenInput): PipelineTokenResult!
 }
