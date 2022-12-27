@@ -44,7 +44,9 @@ def resolve_create_workspace(_, info, **kwargs):
         workspace = Workspace.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
-            description=create_input.get("description", ""),
+            description=create_input.get(
+                "description", "This is a workspace for {}".format(create_input["name"])
+            ),
             countries=[
                 Country.objects.get(code=c["code"]) for c in create_input["countries"]
             ]
