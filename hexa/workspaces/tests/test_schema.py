@@ -149,7 +149,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["workspace"],
         )
 
-    def test_get_workspace_empty(self):
+    def test_get_workspace(self):
         self.client.force_login(self.USER_ADMIN)
         r = self.run_query(
             """
@@ -194,4 +194,64 @@ class WorkspaceTest(GraphQLTestCase):
                 ],
             },
             r["data"]["workspaces"],
+        )
+
+    def test_update_workspace_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+                updateWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": "c02704ff-541f-4519-8619-34da7acc010b",
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["NOT_FOUND"], "workspace": None},
+            r["data"]["updateWorkspace"],
+        )
+
+    def test_update_workspace(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspace($input:UpdateWorkspaceInput!) {
+                updateWorkspace(input: $input) {
+                    success
+                    workspace {
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WORKSPACE.id),
+                    "description": "This is a test for updating workspace description",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "description": "This is a test for updating workspace description"
+                },
+            },
+            r["data"]["updateWorkspace"],
         )

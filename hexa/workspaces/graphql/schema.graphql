@@ -47,9 +47,22 @@ enum CreateWorkspaceError {
   PERMISSION_DENIED
 }
 
+enum UpdateWorkspaceError {
+  PERMISSION_DENIED
+  NOT_FOUND
+  INVALID
+}
+
+
 type CreateWorkspaceResult {
   success: Boolean!
   errors: [CreateWorkspaceError!]!
+  workspace: Workspace
+}
+
+type UpdateWorkspaceResult {
+  success: Boolean!
+  errors: [UpdateWorkspaceError!]!
   workspace: Workspace
 }
 
@@ -59,6 +72,14 @@ input CreateWorkspaceInput {
   countries: [CountryInput!]
 }
 
+input UpdateWorkspaceInput {
+  id: String!
+  name: String
+  description: String
+  countries: [CountryInput!]
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
 }

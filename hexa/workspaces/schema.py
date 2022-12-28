@@ -58,4 +58,33 @@ def resolve_create_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@worskspace_mutations.field("updateWorkspace")
+def resolve_update_workspace(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["id"]
+        )
+        args = {}
+        if input.get("name", None):
+            args["name"] = input["name"]
+        if input.get("description", None):
+            args["description"] = input["description"]
+
+        if "countries" in input:
+            countries = [
+                Country.objects.get(code=c["code"]) for c in input["countries"]
+            ]
+            args["countries"] = countries
+
+        workspace.update_if_has_perm(principal=request.user, **args)
+
+        return {"success": True, "workspace": workspace, "errors": []}
+    except Workspace.DoesNotExist:
+        return {"success": False, "workspace": None, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
+
+
 workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]

@@ -63,6 +63,16 @@ class Workspace(Base):
     )
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
+    def update_if_has_perm(self, *, principal: User, **kwargs):
+        if not principal.has_perm("workspaces.update_workspace"):
+            raise PermissionDenied
+
+        for key in ["name", "countries", "description"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
 
 class WorkspaceMembershipRole(models.TextChoices):
     ADMIN = "ADMIN", _("Admin")
