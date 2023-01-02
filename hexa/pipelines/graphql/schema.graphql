@@ -85,40 +85,40 @@ extend type Query {
   pipelineRun(id: String!): PipelineRun
 }
 
-input createPipelineInput {
+input CreatePipelineInput {
   name: String!
   entrypoint: String!
   parameters: JSON!
 }
 
-type createPipelineResult {
+type CreatePipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
   pipeline: Pipeline
 }
 
-input deletePipelineInput {
+input DeletePipelineInput {
   id: String!
 }
 
-type deletePipelineResult {
+type DeletePipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
 }
 
-input runPipelineInput {
+input RunPipelineInput {
   id: String!
   version: Int
   config: String
 }
 
-type runPipelineResult {
+type RunPipelineResult {
   success: Boolean!
   errors: [PipelineError!]!
   run: PipelineRun
 }
 
-input pipelineTokenInput {
+input PipelineTokenInput {
   name: String!
 }
 
@@ -128,21 +128,21 @@ type PipelineTokenResult {
   token: String
 }
 
-input uploadPipelineInput {
+input UploadPipelineInput {
   name: String!
   zipfile: String!
 }
 
-type uploadPipelineResult {
+type UploadPipelineResult {
   success: Boolean!
   version: Int
   errors: [PipelineError!]!
 }
 
 extend type Mutation {
-  createPipeline(input: createPipelineInput): createPipelineResult!
-  deletePipeline(input: deletePipelineInput): deletePipelineResult!
-  runPipeline(input: runPipelineInput): runPipelineResult!
-  pipelineToken(input: pipelineTokenInput): PipelineTokenResult!
-  uploadPipeline(input: uploadPipelineInput): uploadPipelineResult!
+  createPipeline(input: CreatePipelineInput): CreatePipelineResult!
+  deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
+  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
 }

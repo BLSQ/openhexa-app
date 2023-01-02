@@ -4,8 +4,8 @@ from hexa.pipelines.models import (
     Index,
     IndexPermission,
     Pipeline,
-    PipelineCode,
     PipelineRun,
+    PipelineVersion,
 )
 
 
@@ -20,8 +20,8 @@ class PipelineRunAdmin(admin.ModelAdmin):
     list_filter = ("state", "execution_date", "pipeline")
 
 
-@admin.register(PipelineCode)
-class PipelineCodeAdmin(admin.ModelAdmin):
+@admin.register(PipelineVersion)
+class PipelineVersionAdmin(admin.ModelAdmin):
     list_display = ("display_name",)
 
 
