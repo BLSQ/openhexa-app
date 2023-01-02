@@ -1,10 +1,11 @@
+import base64
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.pipelines.models import Pipeline, PipelineRun
+from hexa.pipelines.models import Pipeline, PipelineCode, PipelineRun
 
 pipelines_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -148,7 +149,23 @@ def resolve_run_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    run = pipeline.run(config=input.get("config", None), user=request.user)
+    try:
+        code = PipelineCode.objects.filter_for_user(request.user).get(
+            pipeline=input.get("id")
+        )
+        version = input.get("version", pipeline.last_code.version)
+        code = PipelineCode.objects.filter_for_user(request.user).get(
+            pipeline=input.get("id"), version=version
+        )
+    except PipelineCode.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_VERSION_NOT_FOUND"],
+        }
+
+    run = pipeline.run(
+        user=request.user, pipeline_code=code, config=input.get("config", None)
+    )
 
     return {
         "success": True,
@@ -169,6 +186,22 @@ def resolve_pipelineToken(_, info, **kwargs):
         }
 
     return {"success": True, "errors": [], "token": qs.first().get_token()}
+
+
+@pipelines_mutations.field("uploadPipeline")
+def resolve_uploadPipeline(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    qs = Pipeline.objects.filter_for_user(request.user).filter(name=input.get("name"))
+    if len(list(qs)) != 1:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    zipfile = base64.b64decode(input.get("zipfile").encode("ascii"))
+    newpipelinecode = qs.first().uploadNewCode(request.user, zipfile)
+    return {"success": True, "errors": [], "version": newpipelinecode.version}
 
 
 pipelines_bindables = [

@@ -75,6 +75,7 @@ type PipelinesPage {
 
 enum PipelineError {
   PIPELINE_NOT_FOUND
+  PIPELINE_VERSION_NOT_FOUND
   INVALID_CONFIG
 }
 
@@ -107,6 +108,7 @@ type deletePipelineResult {
 
 input runPipelineInput {
   id: String!
+  version: Int
   config: String
 }
 
@@ -126,9 +128,21 @@ type PipelineTokenResult {
   token: String
 }
 
+input uploadPipelineInput {
+  name: String!
+  zipfile: String!
+}
+
+type uploadPipelineResult {
+  success: Boolean!
+  version: Int
+  errors: [PipelineError!]!
+}
+
 extend type Mutation {
   createPipeline(input: createPipelineInput): createPipelineResult!
   deletePipeline(input: deletePipelineInput): deletePipelineResult!
   runPipeline(input: runPipelineInput): runPipelineResult!
   pipelineToken(input: pipelineTokenInput): PipelineTokenResult!
+  uploadPipeline(input: uploadPipelineInput): uploadPipelineResult!
 }

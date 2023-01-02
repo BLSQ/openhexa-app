@@ -76,6 +76,35 @@ class Environment(IndexableMixin, models.Model):
         raise NotImplementedError
 
 
+class PipelineCodeQuerySet(BaseQuerySet):
+    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+        return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
+
+
+class PipelineCode(models.Model):
+    class Meta:
+        ordering = ("-version",)
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(
+        "user_management.User", null=True, on_delete=models.SET_NULL
+    )
+    pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
+    version = models.SmallIntegerField()
+    zipfile = models.BinaryField()
+
+    objects = PipelineCodeQuerySet.as_manager()
+
+    @property
+    def display_name(self):
+        return f"{self.pipeline.name} - v{self.version}"
+
+    def __str__(self):
+        return self.display_name
+
+
 class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
@@ -109,6 +138,7 @@ class Pipeline(models.Model):
     def run(
         self,
         user: User,
+        pipeline_code: PipelineCode,
         config: typing.Mapping[str, typing.Any] = None,
     ):
 
@@ -118,6 +148,7 @@ class Pipeline(models.Model):
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
+            pipeline_code=pipeline_code,
             run_id="manual__" + str(time.time()),
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
@@ -134,6 +165,24 @@ class Pipeline(models.Model):
     @property
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
+
+    def uploadNewCode(self, user: User, zipfile):
+        if self.last_code:
+            newversion = self.last_code.version + 1
+        else:
+            newversion = 1
+
+        code = PipelineCode.objects.create(
+            user=user,
+            pipeline=self,
+            version=newversion,
+            zipfile=zipfile,
+        )
+        return code
+
+    @property
+    def last_code(self) -> "PipelineCode":
+        return self.pipelinecode_set.first()
 
     @staticmethod
     def build_webhook_token() -> typing.Tuple[str, typing.Any]:
@@ -183,6 +232,7 @@ class PipelineRun(Base, WithStatus):
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
     pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
+    pipeline_code = models.ForeignKey("PipelineCode", on_delete=models.CASCADE)
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     state = models.CharField(
