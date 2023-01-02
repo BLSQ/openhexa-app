@@ -149,13 +149,10 @@ def resolve_run_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
+    version = input.get("version", pipeline.last_code.version)
     try:
         code = PipelineCode.objects.filter_for_user(request.user).get(
-            pipeline=input.get("id")
-        )
-        version = input.get("version", pipeline.last_code.version)
-        code = PipelineCode.objects.filter_for_user(request.user).get(
-            pipeline=input.get("id"), version=version
+            pipeline=pipeline, version=version
         )
     except PipelineCode.DoesNotExist:
         return {
@@ -192,16 +189,22 @@ def resolve_pipelineToken(_, info, **kwargs):
 def resolve_uploadPipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    qs = Pipeline.objects.filter_for_user(request.user).filter(name=input.get("name"))
-    if len(list(qs)) != 1:
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            name=input.get("name")
+        )
+    except Pipeline.DoesNotExist:
         return {
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
     zipfile = base64.b64decode(input.get("zipfile").encode("ascii"))
-    newpipelinecode = qs.first().uploadNewCode(request.user, zipfile)
-    return {"success": True, "errors": [], "version": newpipelinecode.version}
+    try:
+        newpipelinecode = pipeline.uploadNewCode(request.user, zipfile)
+        return {"success": True, "errors": [], "version": newpipelinecode.version}
+    except Exception as e:
+        return {"success": False, "errors": [str(e)]}
 
 
 pipelines_bindables = [

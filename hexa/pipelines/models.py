@@ -85,6 +85,14 @@ class PipelineCode(models.Model):
     class Meta:
         ordering = ("-version",)
 
+        constraints = [
+            models.UniqueConstraint(
+                "id",
+                "version",
+                name="pipeline_unique_version",
+            ),
+        ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
