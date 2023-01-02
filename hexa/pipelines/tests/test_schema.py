@@ -20,7 +20,6 @@ class PipelinesV2Test(GraphQLTestCase):
         )
 
     def test_create_pipeline(self):
-
         self.assertEqual(0, len(Pipeline.objects.all()))
 
         self.client.force_login(self.USER_NOOB)
@@ -70,8 +69,31 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(2, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
         self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_NOOB)))
 
-    def test_delete_pipeline(self):
+    def test_create_pipeline_version(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        self.test_create_pipeline()
+        self.assertEqual(2, len(Pipeline.objects.all()))
 
+        name1 = Pipeline.objects.filter(user=self.USER_NOOB).first().name
+        self.client.force_login(self.USER_NOOB)
+
+        r = self.run_query(
+            f"""
+            mutation {{
+              uploadPipeline(
+                input: {{
+                    name: "{name1}",
+                    zipfile: ""
+                }}
+              )
+              {{ success errors version }}
+            }}
+            """
+        )
+        self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
+
+    def test_delete_pipeline(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
         self.assertEqual(2, len(Pipeline.objects.all()))
 
@@ -93,10 +115,8 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(1, len(Pipeline.objects.all()))
 
     def test_pipeline_new_run(self):
-
         self.assertEqual(0, len(PipelineRun.objects.all()))
-
-        self.test_create_pipeline()
+        self.test_create_pipeline_version()
         self.assertEqual(2, len(Pipeline.objects.all()))
 
         id1 = Pipeline.objects.filter(user=self.USER_NOOB).first().id

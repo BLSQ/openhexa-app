@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from hexa.pipelines.models import Index, IndexPermission, Pipeline, PipelineRun
+from hexa.pipelines.models import (
+    Index,
+    IndexPermission,
+    Pipeline,
+    PipelineRun,
+    PipelineVersion,
+)
 
 
 @admin.register(Pipeline)
@@ -12,6 +18,11 @@ class PipelineAdmin(admin.ModelAdmin):
 class PipelineRunAdmin(admin.ModelAdmin):
     list_display = ("run_id", "state", "execution_date", "pipeline")
     list_filter = ("state", "execution_date", "pipeline")
+
+
+@admin.register(PipelineVersion)
+class PipelineVersionAdmin(admin.ModelAdmin):
+    list_display = ("display_name",)
 
 
 @admin.register(Index)
