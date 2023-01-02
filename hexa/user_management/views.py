@@ -14,4 +14,4 @@ def accept_tos(request: HttpRequest) -> HttpResponse:
         request.user.accepted_tos = True
         request.user.save()
 
-    return redirect(reverse("core:index"))
+    return redirect(reverse("core:login"))

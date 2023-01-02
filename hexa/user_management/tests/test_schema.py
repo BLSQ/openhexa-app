@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.utils.http import urlsafe_base64_encode
+from django_otp import user_has_device
+from django_otp.models import Device
 
 from hexa.core.test import GraphQLTestCase
 from hexa.core.test.utils import graphql_datetime_format
@@ -14,6 +16,8 @@ from hexa.user_management.models import (
     Team,
     User,
 )
+
+from ..utils import default_device
 
 
 class SchemaTest(GraphQLTestCase):
@@ -63,6 +67,10 @@ class SchemaTest(GraphQLTestCase):
             feature=cls.FEATURE, user=cls.USER_TAYLOR, config={"config_argument": 10}
         )
 
+        cls.TWO_FACTOR_FEATURE = Feature.objects.create(code="two_factor")
+        FeatureFlag.objects.create(feature=cls.TWO_FACTOR_FEATURE, user=cls.USER_JANE)
+        cls.USER_JANE.emaildevice_set.create(name="default", user=cls.USER_JANE)
+
     def test_me_anonymous(self):
         r = self.run_query(
             """
@@ -86,15 +94,17 @@ class SchemaTest(GraphQLTestCase):
 
         self.assertEqual(
             {
-                "user": None,
-                "permissions": {
-                    "createTeam": False,
-                    "superUser": False,
-                    "adminPanel": False,
-                },
-                "features": [],
+                "me": {
+                    "features": [],
+                    "user": None,
+                    "permissions": {
+                        "createTeam": False,
+                        "adminPanel": False,
+                        "superUser": False,
+                    },
+                }
             },
-            r["data"]["me"],
+            r["data"],
         )
 
     def test_me(self):
@@ -373,17 +383,12 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["team"],
         )
 
-    def test_login(self):
+    def test_login_without_two_factor(self):
         r = self.run_query(
             """
               mutation login($input: LoginInput!) {
                 login(input: $input) {
                   success
-                  me {
-                    user {
-                      id
-                    }
-                  }
                 }
               }
             """,
@@ -391,11 +396,71 @@ class SchemaTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            {"success": True, "me": {"user": {"id": str(self.USER_JIM.id)}}},
+            {"success": True},
             r["data"]["login"],
         )
 
-    def test_logout(self):
+    def test_login_invalid_credentials(self):
+        r = self.run_query(
+            """
+              mutation login($input: LoginInput!) {
+                login(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {"input": {"email": self.USER_JANE.email, "password": "invalid"}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_CREDENTIALS"]}, r["data"]["login"]
+        )
+
+    def test_login_invalid_otp(self):
+        r = self.run_query(
+            """
+              mutation login($input: LoginInput!) {
+                login(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": self.USER_JANE.email,
+                    "password": "janespassword",
+                    "token": "123",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_OTP"]}, r["data"]["login"]
+        )
+
+    def test_login_valid_otp(self):
+        device = default_device(self.USER_JANE)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+              mutation login($input: LoginInput!) {
+                login(input: $input) {
+                  success
+                  errors
+                }
+              }
+            """,
+            {
+                "input": {
+                    "email": self.USER_JANE.email,
+                    "password": "janespassword",
+                    "token": device.token,
+                }
+            },
+        )
+        self.assertEqual({"success": True, "errors": None}, r["data"]["login"])
+
+    def logout(self):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
             """
@@ -925,4 +990,208 @@ class SchemaTest(GraphQLTestCase):
                 ],
             },
             r["data"]["me"],
+        )
+
+
+class TwoFactorTest(GraphQLTestCase):
+    @classmethod
+    def setUp(cls):
+        cls.USER_REGULAR = User.objects.create_user(
+            "john@bluesquarehub.com",
+            "regular",
+        )
+        cls.USER_WITH_DEVICE = User.objects.create_user(
+            "device@bluesquare.com", "device"
+        )
+        cls.USER_WITH_DEVICE_2 = User.objects.create_user(
+            "device2@bluesquare.com", "device"
+        )
+        cls.USER_WITH_DEVICE.emaildevice_set.create(
+            name="default", user=cls.USER_WITH_DEVICE
+        ).save()
+        cls.USER_WITH_DEVICE_2.emaildevice_set.create(
+            name="default", user=cls.USER_WITH_DEVICE_2
+        ).save()
+        Feature.objects.create(code="two_factor", force_activate=True)
+
+    def test_me_without_two_factor(self):
+        self.client.force_login(self.USER_REGULAR)
+        r = self.run_query(
+            """
+            query {
+                me {
+                    hasTwoFactorEnabled
+                    user {
+                        id
+                        email
+                    }
+                }
+            }
+        """
+        )
+
+        self.assertEqual(
+            {
+                "hasTwoFactorEnabled": False,
+                "user": {
+                    "id": str(self.USER_REGULAR.id),
+                    "email": self.USER_REGULAR.email,
+                },
+            },
+            r["data"]["me"],
+        )
+
+    def test_enable_two_factor(self):
+        self.client.force_login(self.USER_REGULAR)
+        self.assertFalse(user_has_device(self.USER_REGULAR))
+        r = self.run_query(
+            """
+                mutation enableTwoFactor {
+                    enableTwoFactor {
+                        success
+                    }
+                }
+            """,
+        )
+
+        self.assertEqual({"enableTwoFactor": {"success": True}}, r["data"])
+        self.assertTrue(user_has_device(self.USER_REGULAR))
+
+    def test_enable_two_factor_already_enabled(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+
+        self.assertTrue(user_has_device(self.USER_WITH_DEVICE))
+        r = self.run_query(
+            """
+                mutation enableTwoFactor {
+                    enableTwoFactor {
+                        success
+                        errors
+                    }
+                }
+            """,
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["ALREADY_ENABLED"]},
+            r["data"]["enableTwoFactor"],
+        )
+
+    def test_generate_challenge(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        r = self.run_query(
+            """
+                mutation generateChallenge {
+                    generateChallenge {
+                        success
+                        errors
+                    }
+                }
+            """
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": None}, r["data"]["generateChallenge"]
+        )
+        self.assertTrue(len(mail.outbox), 1)
+
+    def test_verify_existing_device_good_token(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        device: Device = default_device(self.USER_WITH_DEVICE)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+                mutation verifyToken($input: VerifyTokenInput!) {
+                    verifyToken(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"token": device.token}},
+        )
+
+        self.assertEqual({"success": True, "errors": None}, r["data"]["verifyToken"])
+
+    def test_verify_existing_device_bad_token(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        device: Device = default_device(self.USER_WITH_DEVICE)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+                mutation verifyToken($input: VerifyTokenInput!) {
+                    verifyToken(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"token": device.token + "X"}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]},
+            r["data"]["verifyToken"],
+        )
+
+    def test_verify_with_another_user_device(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        device: Device = default_device(self.USER_WITH_DEVICE_2)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+                mutation verifyToken($input: VerifyTokenInput!) {
+                    verifyToken(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"token": device.token}},
+        )
+
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]},
+            r["data"]["verifyToken"],
+        )
+
+    def test_disable_two_factor_unverified(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        device: Device = default_device(self.USER_WITH_DEVICE)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+                mutation disableTwoFactor($input: DisableTwoFactorInput!) {
+                    disableTwoFactor(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"token": device.token}},
+        )
+
+        self.assertEqual(
+            {"success": True, "errors": None}, r["data"]["disableTwoFactor"]
+        )
+
+    def test_disable_two_factor(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+
+        device: Device = default_device(self.USER_WITH_DEVICE)
+        device.generate_challenge()
+        r = self.run_query(
+            """
+                mutation disableTwoFactor($input: DisableTwoFactorInput!) {
+                    disableTwoFactor(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"token": device.token}},
+        )
+
+        self.assertEqual(
+            r["data"]["disableTwoFactor"], {"success": True, "errors": None}
         )

@@ -18,8 +18,8 @@ type ExternalDashboardPage {
 }
 
 extend type Query {
-  externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
-  externalDashboard(id: String!): ExternalDashboard
+  externalDashboards(page: Int, perPage: Int): ExternalDashboardPage! @login_required
+  externalDashboard(id: String!): ExternalDashboard @login_required
 }
 
 input UpdateExternalDashboardInput {
@@ -41,5 +41,5 @@ type UpdateExternalDashboardResult {
 }
 
 extend type Mutation{
-  updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
+  updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult! @login_required
 }

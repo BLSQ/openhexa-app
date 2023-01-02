@@ -74,6 +74,9 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_accessmod",
     "hexa.plugins.connector_iaso",
     "hexa.workspaces",
+    "django_otp",
+    "django_otp.plugins.otp_static",
+    "django_otp.plugins.otp_email",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +87,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "hexa.user_management.middlewares.TwoFactorMiddleware",
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -128,9 +132,10 @@ DATABASES = {
     }
 }
 
+
 # Auth settings
-LOGIN_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "core:login"
+LOGOUT_REDIRECT_URL = "core:login"
 
 # Custom user model
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#substituting-a-custom-user-model
@@ -162,6 +167,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "hexa.user_management.backends.PermissionsBackend",
 ]
+
 
 # Additional security settings
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
@@ -391,3 +397,8 @@ PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kuber
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
+
+# Two Factor Authentication
+OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
+OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
+OTP_EMAIL_SUBJECT = "OpenHexa login token"

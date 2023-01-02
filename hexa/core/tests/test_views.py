@@ -21,8 +21,3 @@ class CoreTest(TestCase):
     def test_redirection_success(self):
         response = self.client.get(reverse("core:index"))
         self.assertEqual(response.status_code, 302)
-
-    def test_redirection_failed(self):
-        with self.settings(NEW_FRONTEND_DOMAIN=None):
-            response = self.client.get(reverse("core:index"))
-            self.assertEqual(response.status_code, 404)

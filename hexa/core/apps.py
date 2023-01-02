@@ -6,6 +6,6 @@ class CoreConfig(CoreAppConfig):
     label = "core"
 
     ANONYMOUS_URLS = [
-        "core:index",
+        "core:login",
         "core:ready",
     ]

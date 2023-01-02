@@ -159,3 +159,12 @@ You can run the lint tools manually using `pre-commit run --all`.
 
 OpenHexa uses [TailwindUI](https://tailwindui.com/), [TailwindCSS](https://tailwindcss.com/)
 and [Heroicons](https://heroicons.com/) for the user interface.
+
+
+### Two factor authentication
+
+The two factor authentication implemented in OpenHexa is optional and can be enabled per user.
+
+In order to enable the two factor authentication you need to create a `Feature` with the code `two_factor`.
+You can then link this `Feature` to specific users by creating the corresponding `FeatureFlag` of by setting `force_activate` on the `Feature` to `True` to enable it for everyone.
+
