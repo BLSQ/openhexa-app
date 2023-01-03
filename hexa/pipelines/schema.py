@@ -5,7 +5,9 @@ from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_f
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
+
+from .authentication import PipelineRunUser
+from .models import Pipeline, PipelineRun, PipelineRunState, PipelineVersion
 
 pipelines_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -92,6 +94,25 @@ def resolve_pipeline_get_run(_, info, **kwargs):
         .filter(id=kwargs.get("id"))
         .first()
     )
+
+
+@pipelines_query.field("pipelineRunCode")
+def resolve_pipeline_get_run_code(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return None
+
+    try:
+        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    except PipelineRun.DoesNotExist:
+        return None
+
+    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+        return "Pipeline already completed"
+
+    return base64.b64encode(pipeline_run.get_code()).decode("ascii")
 
 
 pipelines_mutations = MutationType()
@@ -205,6 +226,66 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except Exception as e:
         return {"success": False, "errors": [str(e)]}
+
+
+@pipelines_mutations.field("pipelineLogMessage")
+def resolve_pipeline_log_message(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    try:
+        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    except PipelineRun.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_ALREADY_COMPLETED"],
+        }
+
+    input = kwargs["input"]
+    pipeline_run.log_message(input.get("priority"), input.get("message"))
+    return {"success": True, "errors": []}
+
+
+@pipelines_mutations.field("pipelineProgress")
+def resolve_pipeline_progress(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    try:
+        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    except PipelineRun.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_ALREADY_COMPLETED"],
+        }
+
+    input = kwargs["input"]
+    pipeline_run.progress_update(input.get("percent"))
+    return {"success": True, "errors": []}
 
 
 pipelines_bindables = [

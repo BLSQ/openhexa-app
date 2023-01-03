@@ -165,8 +165,8 @@ class Pipeline(models.Model):
         )
 
         # TODO: Object in DB is created, now we need to really launch k8s/docker
-        # need to export "signed_token" as HEXA_WEBHOOK_TOKEN
-        # need to export f"{settings.BASE_URL}{webhook_path}" as HEXA_WEBHOOK_URL
+        # need to export "signed_token" as HEXA_PIPELINERUN_TOKEN
+        # need to export f"{settings.BASE_URL}{webhook_path}" as HEXA_PIPELINERUN_URL
 
         return run
 
@@ -276,6 +276,9 @@ class PipelineRun(Base, WithStatus):
             args=(self.pipeline.id, self.id),
         )
 
+    def get_code(self):
+        return self.pipeline_version.zipfile
+
     def log_message(self, priority: str, message: str):
         self.messages.append(
             {
@@ -284,10 +287,6 @@ class PipelineRun(Base, WithStatus):
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )
-        self.save()
-
-    def set_output(self, title: str, uri: str):
-        self.outputs.append({"title": title, "uri": uri})
         self.save()
 
     def progress_update(self, percent: int):

@@ -77,12 +77,14 @@ enum PipelineError {
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
   INVALID_CONFIG
+  PIPELINE_ALREADY_COMPLETED
 }
 
 extend type Query {
   pipelines(page: Int, perPage: Int): PipelinesPage!
   pipeline(id: String, name: String): Pipeline
   pipelineRun(id: String!): PipelineRun
+  pipelineRunCode(id: String): String
 }
 
 input CreatePipelineInput {
@@ -139,10 +141,31 @@ type UploadPipelineResult {
   errors: [PipelineError!]!
 }
 
+input PipelineLogMessageInput {
+  priority: MessagePriority!
+  message: String!
+}
+
+type PipelineLogMessageResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+input PipelineProgressInput {
+  percent: Int!
+}
+
+type PipelineProgressResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
 extend type Mutation {
   createPipeline(input: CreatePipelineInput): CreatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
+  pipelineLogMessage(input: PipelineLogMessageInput): PipelineLogMessageResult!
+  pipelineProgress(input: PipelineProgressInput): PipelineProgressResult!
 }
