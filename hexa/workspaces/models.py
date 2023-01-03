@@ -28,6 +28,8 @@ class WorkspaceManager(models.Manager):
         create_kwargs = {"name": name, "description": description}
         if countries is not None:
             create_kwargs["countries"] = countries
+        if description is None:
+            create_kwargs["description"] = "This is a workspace for {}".format(name)
 
         workspace = self.create(**create_kwargs)
         WorkspaceMembership.objects.create(

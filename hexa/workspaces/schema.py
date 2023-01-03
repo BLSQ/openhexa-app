@@ -18,6 +18,13 @@ workspace_queries = QueryType()
 worskspace_mutations = MutationType()
 
 
+@workspace_object.field("memberships")
+def resolve_workspace_memberships(_, info, **kwargs):
+    return result_page(
+        queryset=[], page=kwargs.get("page", 1), per_page=kwargs.get("perPage", 1)
+    )
+
+
 @workspace_queries.field("workspaces")
 def resolve_workspaces(_, info, page=1, perPage=15):
     request = info.context["request"]
@@ -44,9 +51,7 @@ def resolve_create_workspace(_, info, **kwargs):
         workspace = Workspace.objects.create_if_has_perm(
             principal,
             name=create_input["name"],
-            description=create_input.get(
-                "description", "This is a workspace for {}".format(create_input["name"])
-            ),
+            description=create_input.get("description"),
             countries=[
                 Country.objects.get(code=c["code"]) for c in create_input["countries"]
             ]
