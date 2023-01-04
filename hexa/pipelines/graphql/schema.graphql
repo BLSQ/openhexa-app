@@ -29,9 +29,20 @@ enum PipelineRunStatus {
   queued
 }
 
-type PipelineRun {
+type PipelineVersion {
   id: String!
   user: User
+  pipeline: Pipeline!
+  number: Int!
+  zipfile: String!
+}
+
+type PipelineRun {
+  id: String!
+  run_id: String!
+  user: User
+  pipeline: Pipeline!
+  version: PipelineVersion!
   config: String!
   status: PipelineRunStatus!
   executionDate: DateTime
@@ -41,6 +52,7 @@ type PipelineRun {
   messages: [PipelineRunMessage!]!
   logs: String
   outputs: [PipelineRunOutput!]!
+  code: String!
 }
 
 enum PipelineRunOrderBy {
@@ -141,21 +153,21 @@ type UploadPipelineResult {
   errors: [PipelineError!]!
 }
 
-input PipelineLogMessageInput {
+input LogPipelineMessageInput {
   priority: MessagePriority!
   message: String!
 }
 
-type PipelineLogMessageResult {
+type LogPipelineMessageResult {
   success: Boolean!
   errors: [PipelineError!]!
 }
 
-input PipelineProgressInput {
+input UpdatePipelineProgressInput {
   percent: Int!
 }
 
-type PipelineProgressResult {
+type UpdatePipelineProgressResult {
   success: Boolean!
   errors: [PipelineError!]!
 }
@@ -166,6 +178,6 @@ extend type Mutation {
   runPipeline(input: RunPipelineInput): RunPipelineResult!
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
-  pipelineLogMessage(input: PipelineLogMessageInput): PipelineLogMessageResult!
-  pipelineProgress(input: PipelineProgressInput): PipelineProgressResult!
+  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
+  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
 }

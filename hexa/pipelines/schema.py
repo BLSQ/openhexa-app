@@ -48,12 +48,27 @@ def resolve_pipeline_run_duration(run: PipelineRun, info, **kwargs):
 
 
 @pipeline_run_object.field("config")
-def resolve_dag_run_config(run: PipelineRun, info, **kwargs):
+def resolve_pipeline_run_config(run: PipelineRun, info, **kwargs):
     return run.conf
+
+
+@pipeline_run_object.field("code")
+def resolve_pipeline_run_code(run: PipelineRun, info, **kwargs):
+    return base64.b64encode(run.get_code()).decode("ascii")
 
 
 pipeline_run_object.set_alias("progress", "current_progress")
 pipeline_run_object.set_alias("logs", "run_logs")
+pipeline_run_object.set_alias("version", "pipeline_version")
+
+
+pipeline_version_object = ObjectType("PipelineVersion")
+
+
+@pipeline_version_object.field("zipfile")
+def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
+    return base64.b64encode(version.zipfile).decode("ascii")
+
 
 pipelines_query = QueryType()
 
@@ -89,30 +104,29 @@ def resolve_pipeline(_, info, **kwargs):
 @pipelines_query.field("pipelineRun")
 def resolve_pipeline_get_run(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    return (
-        PipelineRun.objects.filter_for_user(request.user)
-        .filter(id=kwargs.get("id"))
-        .first()
-    )
+    pipelinerun_id = kwargs.get("id")
 
+    if pipelinerun_id != "":
+        return (
+            PipelineRun.objects.filter_for_user(request.user)
+            .filter(id=pipelinerun_id)
+            .first()
+        )
+    else:
+        if not request.user.is_authenticated or not isinstance(
+            request.user, PipelineRunUser
+        ):
+            return None
 
-@pipelines_query.field("pipelineRunCode")
-def resolve_pipeline_get_run_code(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    if not request.user.is_authenticated or not isinstance(
-        request.user, PipelineRunUser
-    ):
-        return None
+        try:
+            pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+        except PipelineRun.DoesNotExist:
+            return None
 
-    try:
-        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
-    except PipelineRun.DoesNotExist:
-        return None
+        if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+            return None
 
-    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
-        return "Pipeline already completed"
-
-    return base64.b64encode(pipeline_run.get_code()).decode("ascii")
+        return pipeline_run
 
 
 pipelines_mutations = MutationType()
@@ -228,7 +242,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": False, "errors": [str(e)]}
 
 
-@pipelines_mutations.field("pipelineLogMessage")
+@pipelines_mutations.field("logPipelineMessage")
 def resolve_pipeline_log_message(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     if not request.user.is_authenticated or not isinstance(
@@ -258,7 +272,7 @@ def resolve_pipeline_log_message(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
-@pipelines_mutations.field("pipelineProgress")
+@pipelines_mutations.field("updatePipelineProgress")
 def resolve_pipeline_progress(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     if not request.user.is_authenticated or not isinstance(
@@ -294,4 +308,5 @@ pipelines_bindables = [
     pipeline_object,
     pipeline_run_object,
     pipeline_run_status_enum,
+    pipeline_version_object,
 ]
