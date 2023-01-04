@@ -29,9 +29,20 @@ enum PipelineRunStatus {
   queued
 }
 
-type PipelineRun {
+type PipelineVersion {
   id: String!
   user: User
+  pipeline: Pipeline!
+  number: Int!
+  zipfile: String!
+}
+
+type PipelineRun {
+  id: String!
+  run_id: String!
+  user: User
+  pipeline: Pipeline!
+  version: PipelineVersion!
   config: String!
   status: PipelineRunStatus!
   executionDate: DateTime
@@ -41,6 +52,7 @@ type PipelineRun {
   messages: [PipelineRunMessage!]!
   logs: String
   outputs: [PipelineRunOutput!]!
+  code: String!
 }
 
 enum PipelineRunOrderBy {
@@ -77,12 +89,14 @@ enum PipelineError {
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
   INVALID_CONFIG
+  PIPELINE_ALREADY_COMPLETED
 }
 
 extend type Query {
   pipelines(page: Int, perPage: Int): PipelinesPage!
   pipeline(id: String, name: String): Pipeline
   pipelineRun(id: String!): PipelineRun
+  pipelineRunCode(id: String): String
 }
 
 input CreatePipelineInput {
@@ -139,10 +153,31 @@ type UploadPipelineResult {
   errors: [PipelineError!]!
 }
 
+input LogPipelineMessageInput {
+  priority: MessagePriority!
+  message: String!
+}
+
+type LogPipelineMessageResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+input UpdatePipelineProgressInput {
+  percent: Int!
+}
+
+type UpdatePipelineProgressResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
 extend type Mutation {
   createPipeline(input: CreatePipelineInput): CreatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
+  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
+  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
 }

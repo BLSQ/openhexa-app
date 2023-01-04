@@ -84,6 +84,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
+    "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
