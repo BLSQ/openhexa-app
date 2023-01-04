@@ -255,3 +255,53 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["updateWorkspace"],
         )
+
+    def test_delete_workspace_not_found(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+                deleteWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WORKSPACE.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NOT_FOUND"],
+            },
+            r["data"]["deleteWorkspace"],
+        )
+
+    def test_delete_workspace(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+                deleteWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WORKSPACE.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["deleteWorkspace"],
+        )

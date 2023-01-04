@@ -9,3 +9,8 @@ def create_workspace(principal: User):
 def update_workspace(principal: User):
     """Only superusers can update a workspace"""
     return principal.is_superuser
+
+
+def delete_workspace(principal: User):
+    """Only superusers can delte a workspace"""
+    return principal.is_superuser

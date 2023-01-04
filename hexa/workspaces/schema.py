@@ -92,4 +92,21 @@ def resolve_update_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@worskspace_mutations.field("deleteWorkspace")
+def resolve_delete_workspace(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["id"]
+        )
+        workspace.delete_if_has_perm(principal=request.user)
+
+        return {"success": True, "errors": []}
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]

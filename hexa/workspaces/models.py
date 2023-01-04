@@ -75,6 +75,12 @@ class Workspace(Base):
 
         return self.save()
 
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("workspaces.delete_workspace"):
+            raise PermissionDenied
+
+        self.delete()
+
 
 class WorkspaceMembershipRole(models.TextChoices):
     ADMIN = "ADMIN", _("Admin")
