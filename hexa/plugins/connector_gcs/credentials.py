@@ -79,9 +79,15 @@ def pipelines_credentials(credentials: PipelinesCredentials):
             )
 
         token = _build_app_short_lived_credentials(credentials=gcs_credentials)
-        env = {}
-        env["GCS_TOKEN"] = token.access_token
-        env["GCS_BUCKET_NAMES"] = ",".join(b.name for b in buckets)
-        env["GOOGLE_CLOUD_PROJECT"] = gcs_credentials.project_id
+        json_buckets = {
+            "buckets": [{"name": b.name, "mode": "RW"} for b in buckets],
+        }
 
-        credentials.env.update(env)
+        credentials.update_env(
+            {
+                "GCS_BUCKETS": base64.b64encode(
+                    json.dumps(json_buckets).encode()
+                ).decode(),
+                "GCS_TOKEN": token.access_token,
+            }
+        )
