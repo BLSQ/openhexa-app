@@ -19,7 +19,7 @@ def pipeline_run_authentication_middleware(get_response):
             auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
                 token = Signer().unsign_object(token)
-                pipeline_run = PipelineRun.objects.get(webhook_token=token)
+                pipeline_run = PipelineRun.objects.get(access_token=token)
                 request.user = PipelineRunUser(pipeline_run=pipeline_run)
         except KeyError:
             pass  # No Authorization header

@@ -7,7 +7,13 @@ from django.http import HttpRequest
 from hexa.core.graphql import result_page
 
 from .authentication import PipelineRunUser
-from .models import Pipeline, PipelineRun, PipelineRunState, PipelineVersion
+from .models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
 
 pipelines_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -196,7 +202,10 @@ def resolve_run_pipeline(_, info, **kwargs):
         }
 
     run = pipeline.run(
-        user=request.user, pipeline_version=version, config=input.get("config", None)
+        user=request.user,
+        pipeline_version=version,
+        run_type=PipelineRunTrigger.MANUAL,
+        config=input.get("config", None),
     )
 
     return {
