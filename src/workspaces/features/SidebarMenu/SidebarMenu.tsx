@@ -179,7 +179,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               {t("Exit preview")}
             </Link>
             <Link
-              href="/logout"
+              href="/auth/logout"
               noStyle
               className="group flex gap-2 px-4 py-2.5 text-red-600 transition-all hover:bg-gray-100 hover:text-gray-800"
             >
