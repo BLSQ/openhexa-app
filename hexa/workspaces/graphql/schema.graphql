@@ -1,0 +1,99 @@
+type Workspace {
+  id: String!
+  name: String!
+  description: String
+  memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
+  countries: [Country!]
+  createdAt: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
+}
+
+type WorkspacePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [Workspace!]!
+}
+
+enum WorkspaceMembershipRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+type WorkspaceMembership {
+  id: String!
+  user: User!
+  workspace: Workspace!
+  role: WorkspaceMembershipRole!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type WorkspaceMembershipPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [WorkspaceMembership!]!
+}
+
+extend type Query {
+  workspace(id: String!): Workspace
+  workspaces(page: Int, perPage: Int): WorkspacePage!
+}
+
+enum CreateWorkspaceError {
+  PERMISSION_DENIED
+}
+
+enum UpdateWorkspaceError {
+  PERMISSION_DENIED
+  NOT_FOUND
+  INVALID
+}
+
+enum DeleteWorkspaceError {
+  PERMISSION_DENIED
+  NOT_FOUND
+}
+
+type CreateWorkspaceResult {
+  success: Boolean!
+  errors: [CreateWorkspaceError!]!
+  workspace: Workspace
+}
+
+type UpdateWorkspaceResult {
+  success: Boolean!
+  errors: [UpdateWorkspaceError!]!
+  workspace: Workspace
+}
+
+type DeleteWorkspaceResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceError!]!
+}
+
+input CreateWorkspaceInput {
+  name: String!
+  description: String
+  countries: [CountryInput!]
+}
+
+input UpdateWorkspaceInput {
+  id: String!
+  name: String
+  description: String
+  countries: [CountryInput!]
+}
+
+input DeleteWorkspaceInput {
+  id: String!
+}
+
+extend type Mutation {
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
+  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
+}

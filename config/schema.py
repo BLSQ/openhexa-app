@@ -22,6 +22,7 @@ from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
 from hexa.user_management.schema import identity_bindables, identity_type_defs
 from hexa.visualizations.schema import dashboards_bindables, dashboards_type_defs
+from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -42,6 +43,7 @@ schema = make_executable_schema(
         notebooks_type_defs,
         core_type_defs,
         pipelines_type_defs,
+        workspaces_type_def,
     ],
     [
         *catalog_bindables,
@@ -57,6 +59,7 @@ schema = make_executable_schema(
         *dashboards_bindables,
         *notebooks_bindables,
         *core_bindables,
+        *workspaces_bindables,
         snake_case_fallback_resolvers,
     ],
 )
