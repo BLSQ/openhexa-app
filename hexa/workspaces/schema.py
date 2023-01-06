@@ -124,7 +124,9 @@ def resolve_create_workspace_member(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             id=input["workspaceId"]
         )
-        user = User.objects.get(email=input["email"]) if "email" in input else None
+        user = (
+            User.objects.get(email=input["userEmail"]) if "userEmail" in input else None
+        )
 
         workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
             principal=request.user, workspace=workspace, user=user, role=input["role"]

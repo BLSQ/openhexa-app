@@ -328,7 +328,7 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "input": {
                     "workspaceId": "657f282c-13ef-40e4-96d3-d3fe1d25d87e",
-                    "email": "root@openhexa.com",
+                    "userEmail": "root@openhexa.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
             },
@@ -358,7 +358,7 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "input": {
                     "workspaceId": str(self.WORKSPACE.id),
-                    "email": "rebecca@bluesquarehub.com",
+                    "userEmail": "rebecca@bluesquarehub.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
             },
@@ -392,7 +392,7 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "input": {
                     "workspaceId": str(self.WORKSPACE.id),
-                    "email": self.USER_SABRINA.email,
+                    "userEmail": self.USER_SABRINA.email,
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
             },

@@ -106,7 +106,7 @@ input DeleteWorkspaceInput {
 
 input CreateWorkspaceMemberInput {
   workspaceId: String!
-  email: String!
+  userEmail: String!
   role: WorkspaceMembershipRole!
 }
 
