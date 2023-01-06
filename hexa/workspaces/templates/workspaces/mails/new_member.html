@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}
+{% blocktranslate %}Your have been added to an OpenHexa Workspace.{% endblocktranslate %}
+
+{% translate "Please go to the following page to access it:" %}
+{% block workspace_link %}
+{{ur}}
+{% endblock %}
+
+{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+
+{% endautoescape %}

@@ -4,10 +4,13 @@ from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
+from config import settings
 from hexa.core.graphql import result_page
+from hexa.core.utils import send_mail
 from hexa.countries.models import Country
+from hexa.user_management.models import User
 
-from .models import Workspace
+from .models import AlreadyExists, Workspace, WorkspaceMembership
 
 workspaces_type_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -19,9 +22,13 @@ worskspace_mutations = MutationType()
 
 
 @workspace_object.field("memberships")
-def resolve_workspace_memberships(_, info, **kwargs):
+def resolve_workspace_members(workspace: Workspace, info, **kwargs):
+    request = info.context["request"]
+    qs = WorkspaceMembership.objects.filter_for_user(request.user).filter(
+        workspace=workspace
+    )
     return result_page(
-        queryset=[], page=kwargs.get("page", 1), per_page=kwargs.get("perPage", 1)
+        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage", 1)
     )
 
 
@@ -107,6 +114,51 @@ def resolve_delete_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@worskspace_mutations.field("createWorkspaceMember")
+def resolve_create_workspace_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["workspaceId"]
+        )
+        user = User.objects.get(email=input["email"]) if "email" in input else None
+
+        workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
+            principal=request.user, workspace=workspace, user=user, role=input["role"]
+        )
+
+        send_mail(
+            title="You've been added to a Workspace",
+            template_name="workspaces/mails/new_member",
+            template_variables={
+                "url": "{url}/workspaces/{workspace_id}".format(
+                    url=settings.NEW_FRONTEND_DOMAIN, workspace_id=workspace.id
+                ),
+            },
+            recipient_list=[user.email],
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "workspace_membership": workspace_membership,
+        }
+    except (Workspace.DoesNotExist, User.DoesNotExist):
+        return {"success": False, "errors": ["NOT_FOUND"], "workspace_membership": None}
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+            "workspace_membership": None,
+        }
+    except AlreadyExists:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+            "workspace_membership": None,
+        }
 
 
 workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]

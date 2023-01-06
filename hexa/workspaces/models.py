@@ -13,6 +13,10 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.user_management.models import User
 
 
+class AlreadyExists(Exception):
+    pass
+
+
 class WorkspaceManager(models.Manager):
     def create_if_has_perm(
         self,
@@ -20,7 +24,7 @@ class WorkspaceManager(models.Manager):
         *,
         name: str,
         description: str,
-        countries: typing.Sequence[Country] = None
+        countries: typing.Sequence[Country] = None,
     ):
         if not principal.has_perm("workspaces.create_workspace"):
             raise PermissionDenied
@@ -43,18 +47,15 @@ class WorkspaceQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(user, Q(members=user))
+        return self._filter_for_user_and_query_object(
+            user, Q(workspacemembership__user=user)
+        )
 
 
 class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField(blank=True)
-    members = models.ManyToManyField(
-        "user_management.User",
-        through="WorkspaceMembership",
-        related_name="workspace_members",
-    )
     countries = CountryField(multiple=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -82,10 +83,38 @@ class Workspace(Base):
         self.delete()
 
 
+class WorkspaceMembershipQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User]
+    ) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(user, Q(members=user))
+
+
 class WorkspaceMembershipRole(models.TextChoices):
     ADMIN = "ADMIN", _("Admin")
     EDITOR = "EDITOR", _("Editor")
     VIEWER = "VIEWER", _("Viewer")
+
+
+class WorkspaceMembershipManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        workspace: Workspace,
+        user: User,
+        role: WorkspaceMembershipRole,
+    ):
+        if not principal.has_perm("workspaces.create_workspace_member"):
+            raise PermissionDenied
+
+        if WorkspaceMembership.objects.filter(user=user, workspace=workspace).exists():
+            raise AlreadyExists(
+                f"Already got a membership for user {user.id} and workspace {workspace.name}"
+            )
+
+        workspace_membership = self.create(user=user, workspace=workspace, role=role)
+        return workspace_membership
 
 
 class WorkspaceMembership(models.Model):
@@ -101,3 +130,4 @@ class WorkspaceMembership(models.Model):
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()

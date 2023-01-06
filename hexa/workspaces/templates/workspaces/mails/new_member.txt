@@ -1,0 +1,5 @@
+Your Have been added to an OpenHexa Workspace
+
+Please go to the following page to access it:
+
+{{ur}}
