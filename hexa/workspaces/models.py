@@ -87,7 +87,14 @@ class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(user, Q(members=user))
+
+        return (
+            self.all()
+            if WorkspaceMembership.objects.filter(
+                user=user, role=WorkspaceMembershipRole.ADMIN
+            )
+            else self._filter_for_user_and_query_object(user, Q(user=user))
+        )
 
 
 class WorkspaceMembershipRole(models.TextChoices):
@@ -105,7 +112,9 @@ class WorkspaceMembershipManager(models.Manager):
         user: User,
         role: WorkspaceMembershipRole,
     ):
-        if not principal.has_perm("workspaces.create_workspace_member"):
+        if not WorkspaceMembership.objects.filter(
+            user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
+        ).exists():
             raise PermissionDenied
 
         if WorkspaceMembership.objects.filter(user=user, workspace=workspace).exists():
