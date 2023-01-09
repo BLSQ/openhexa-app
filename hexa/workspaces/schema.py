@@ -21,6 +21,13 @@ workspace_queries = QueryType()
 worskspace_mutations = MutationType()
 
 
+@workspace_object.field("countries")
+def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
+    if workspace.countries is not None:
+        return workspace.countries
+    return []
+
+
 @workspace_object.field("memberships")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
     request = info.context["request"]

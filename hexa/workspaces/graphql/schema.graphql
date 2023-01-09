@@ -3,7 +3,7 @@ type Workspace {
   name: String!
   description: String
   memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
-  countries: [Country!]
+  countries: [Country!]!
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
