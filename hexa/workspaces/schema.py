@@ -3,6 +3,7 @@ import pathlib
 from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from django.utils.translation import gettext_lazy
 
 from config import settings
 from hexa.core.graphql import result_page
@@ -28,14 +29,16 @@ def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
     return []
 
 
-@workspace_object.field("memberships")
+@workspace_object.field("members")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
     request = info.context["request"]
     qs = WorkspaceMembership.objects.filter_for_user(request.user).filter(
         workspace=workspace
     )
     return result_page(
-        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage", 1)
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("perPage", qs.count()),
     )
 
 
@@ -138,11 +141,14 @@ def resolve_create_workspace_member(_, info, **kwargs):
         workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
             principal=request.user, workspace=workspace, user=user, role=input["role"]
         )
-
         send_mail(
-            title="You've been added to a Workspace",
-            template_name="workspaces/mails/new_member",
+            title=gettext_lazy("You've been added to a Workspace"),
+            template_name="workspaces/mails/invite_member",
             template_variables={
+                "workspace": workspace.name,
+                "owner": "{} {}".format(
+                    request.user.first_name, request.user.last_name
+                ),
                 "url": "{url}/workspaces/{workspace_id}".format(
                     url=settings.NEW_FRONTEND_DOMAIN, workspace_id=workspace.id
                 ),

@@ -92,7 +92,7 @@ class WorkspaceMembershipQuerySet(BaseQuerySet):
             self.all()
             if WorkspaceMembership.objects.filter(
                 user=user, role=WorkspaceMembershipRole.ADMIN
-            )
+            ).exists()
             else self._filter_for_user_and_query_object(user, Q(user=user))
         )
 
