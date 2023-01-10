@@ -58,7 +58,7 @@ enum DeleteWorkspaceError {
   NOT_FOUND
 }
 
-enum CreateWorkspaceMembershipError {
+enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
   NOT_FOUND
@@ -81,9 +81,9 @@ type DeleteWorkspaceResult {
   errors: [DeleteWorkspaceError!]!
 }
 
-type CreateWorkspaceMemberResult{
+type InviteWorkspaceMemberResult{
   success: Boolean!
-  errors: [CreateWorkspaceMembershipError!]!
+  errors: [InviteWorkspaceMembershipError!]!
   workspaceMembership: WorkspaceMembership
 }
 
@@ -104,7 +104,7 @@ input DeleteWorkspaceInput {
   id: String!
 }
 
-input CreateWorkspaceMemberInput {
+input InviteWorkspaceMemberInput {
   workspaceId: String!
   userEmail: String!
   role: WorkspaceMembershipRole!
@@ -114,5 +114,5 @@ extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
-  createWorkspaceMember(input: CreateWorkspaceMemberInput!): CreateWorkspaceMemberResult!
+  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
 }

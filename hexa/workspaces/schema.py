@@ -126,7 +126,7 @@ def resolve_delete_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("createWorkspaceMember")
+@worskspace_mutations.field("inviteWorkspaceMember")
 def resolve_create_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]

@@ -311,8 +311,8 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_ADMIN)
         r = self.run_query(
             """
-            mutation createWorkspaceMember($input: CreateWorkspaceMemberInput!) {
-                createWorkspaceMember(input: $input) {
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -335,15 +335,15 @@ class WorkspaceTest(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": False, "errors": ["NOT_FOUND"], "workspaceMembership": None},
-            r["data"]["createWorkspaceMember"],
+            r["data"]["inviteWorkspaceMember"],
         )
 
     def test_create_workspace_member_workspace_already_exist(self):
         self.client.force_login(self.USER_ADMIN)
         r = self.run_query(
             """
-            mutation createWorkspaceMember($input: CreateWorkspaceMemberInput!) {
-                createWorkspaceMember(input: $input) {
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -369,15 +369,15 @@ class WorkspaceTest(GraphQLTestCase):
                 "errors": ["ALREADY_EXISTS"],
                 "workspaceMembership": None,
             },
-            r["data"]["createWorkspaceMember"],
+            r["data"]["inviteWorkspaceMember"],
         )
 
     def test_create_workspace_member_workspace(self):
         self.client.force_login(self.USER_ADMIN)
         r = self.run_query(
             """
-            mutation createWorkspaceMember($input: CreateWorkspaceMemberInput!) {
-                createWorkspaceMember(input: $input) {
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -403,5 +403,5 @@ class WorkspaceTest(GraphQLTestCase):
                 "errors": [],
                 "workspaceMembership": {"user": {"email": self.USER_SABRINA.email}},
             },
-            r["data"]["createWorkspaceMember"],
+            r["data"]["inviteWorkspaceMember"],
         )
