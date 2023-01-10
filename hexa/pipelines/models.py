@@ -1,4 +1,3 @@
-import enum
 import time
 import typing
 import uuid
@@ -76,9 +75,9 @@ class Environment(IndexableMixin, models.Model):
         raise NotImplementedError
 
 
-class PipelineRunTrigger(str, enum.Enum):
-    SCHEDULED = "SCHEDULED"
-    MANUAL = "MANUAL"
+class PipelineRunTrigger(models.TextChoices):
+    SCHEDULED = "scheduled", _("Scheduled")
+    MANUAL = "manual", _("Manual")
 
 
 class PipelineVersionQuerySet(BaseQuerySet):
@@ -152,7 +151,7 @@ class Pipeline(models.Model):
         self,
         user: User,
         pipeline_version: PipelineVersion,
-        run_type: PipelineRunTrigger,
+        trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
     ):
 
@@ -160,7 +159,8 @@ class Pipeline(models.Model):
             user=user,
             pipeline=self,
             pipeline_version=pipeline_version,
-            run_id=str(run_type.value) + "__" + str(time.time()),
+            run_id=str(trigger_mode.value) + "__" + str(time.time()),
+            trigger_mode=trigger_mode,
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
             config=config if config else self.config,
@@ -232,6 +232,9 @@ class PipelineRun(Base, WithStatus):
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
     last_heartbeat = models.DateTimeField(auto_now_add=True)
+    trigger_mode = models.CharField(
+        max_length=200, blank=False, choices=PipelineRunTrigger.choices
+    )
     state = models.CharField(
         max_length=200, blank=False, choices=PipelineRunState.choices
     )
@@ -251,13 +254,6 @@ class PipelineRun(Base, WithStatus):
             return self.STATUS_MAPPINGS[self.state]
         except KeyError:
             return Status.UNKNOWN
-
-    @property
-    def trigger_mode(self):
-        if self.run_id.startswith("MANUAL"):
-            return PipelineRunTrigger.MANUAL
-        if self.run_id.startswith("SCHEDULED"):
-            return PipelineRunTrigger.SCHEDULED
 
     def get_absolute_url(self) -> str:
         return reverse(

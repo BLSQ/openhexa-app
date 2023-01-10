@@ -46,7 +46,7 @@ class Command(BaseCommand):
                 pipeline.run(
                     user=pipeline.user,
                     pipeline_version=pipeline.last_version,
-                    run_type=PipelineRunTrigger.SCHEDULED,
+                    trigger_mode=PipelineRunTrigger.SCHEDULED,
                 )
 
             empty_delay = cutoff - (timezone.now() - start_time).total_seconds()

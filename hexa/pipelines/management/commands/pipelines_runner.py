@@ -46,8 +46,8 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             restart_policy="Never",
             containers=[
                 k8s.V1Container(
-                    image="blsq/openhexa-pipelines_v2",
-                    name="pipelines_v2",
+                    image="blsq/openhexa-pipelines-v2",
+                    name=slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str),
                     image_pull_policy="Always",
                     args=[
                         "run",
@@ -154,7 +154,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     )
 
 
-def run_pipeline_local(run: PipelineRun, env_var: dict):
+def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
     docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --rm pipelines_v2 run {run.pipeline.entrypoint}'
@@ -195,7 +195,7 @@ def run_pipeline(run: PipelineRun):
     time_start = timezone.now()
 
     if settings.PIPELINE_SCHEDULER_SPAWNER == "docker":
-        success, logs = run_pipeline_local(run, env_var)
+        success, logs = run_pipeline_docker(run, env_var)
     elif settings.PIPELINE_SCHEDULER_SPAWNER == "kubernetes":
         success, logs = run_pipeline_kube(run, env_var)
     else:

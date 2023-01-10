@@ -204,7 +204,7 @@ def resolve_run_pipeline(_, info, **kwargs):
     run = pipeline.run(
         user=request.user,
         pipeline_version=version,
-        run_type=PipelineRunTrigger.MANUAL,
+        trigger_mode=PipelineRunTrigger.MANUAL,
         config=input.get("config", None),
     )
 
