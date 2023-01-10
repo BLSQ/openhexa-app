@@ -87,14 +87,7 @@ class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
-
-        return (
-            self.all()
-            if WorkspaceMembership.objects.filter(
-                user=user, role=WorkspaceMembershipRole.ADMIN
-            ).exists()
-            else self._filter_for_user_and_query_object(user, Q(user=user))
-        )
+        return self._filter_for_user_and_query_object(user, Q(user=user))
 
 
 class WorkspaceMembershipRole(models.TextChoices):

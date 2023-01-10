@@ -1,5 +1,5 @@
-Your Have been added to an OpenHexa Workspace
+Your have been added to the workspace {{workspace}} by {{owner}}.
 
-Please go to the following page to access it:
+Please go to the following page to access it: {{ workspace_url }}
 
-{{ur}}
+The OpenHexa team

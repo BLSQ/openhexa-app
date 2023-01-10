@@ -19,7 +19,7 @@ workspaces_type_def = load_schema_from_path(
 
 workspace_object = ObjectType("Workspace")
 workspace_queries = QueryType()
-worskspace_mutations = MutationType()
+workspace_mutations = MutationType()
 
 
 @workspace_object.field("countries")
@@ -32,8 +32,10 @@ def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
 @workspace_object.field("members")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
     request = info.context["request"]
-    qs = WorkspaceMembership.objects.filter_for_user(request.user).filter(
-        workspace=workspace
+    qs = (
+        WorkspaceMembership.objects.filter_for_user(request.user)
+        .filter(workspace=workspace)
+        .order_by("-updated_at")
     )
     return result_page(
         queryset=qs,
@@ -58,7 +60,7 @@ def resolve_workspace(_, info, **kwargs):
         return None
 
 
-@worskspace_mutations.field("createWorkspace")
+@workspace_mutations.field("createWorkspace")
 def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
@@ -80,7 +82,7 @@ def resolve_create_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("updateWorkspace")
+@workspace_mutations.field("updateWorkspace")
 def resolve_update_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -109,7 +111,7 @@ def resolve_update_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("deleteWorkspace")
+@workspace_mutations.field("deleteWorkspace")
 def resolve_delete_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -126,7 +128,7 @@ def resolve_delete_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("inviteWorkspaceMember")
+@workspace_mutations.field("inviteWorkspaceMember")
 def resolve_create_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -134,22 +136,18 @@ def resolve_create_workspace_member(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             id=input["workspaceId"]
         )
-        user = (
-            User.objects.get(email=input["userEmail"]) if "userEmail" in input else None
-        )
+        user = User.objects.get(email=input["userEmail"])
 
         workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
             principal=request.user, workspace=workspace, user=user, role=input["role"]
         )
         send_mail(
-            title=gettext_lazy("You've been added to a Workspace"),
+            title=gettext_lazy("You've been added to the workspace '{workspace.name}'"),
             template_name="workspaces/mails/invite_member",
             template_variables={
                 "workspace": workspace.name,
-                "owner": "{} {}".format(
-                    request.user.first_name, request.user.last_name
-                ),
-                "url": "{url}/workspaces/{workspace_id}".format(
+                "owner": request.user.display_name,
+                "workspace_url": "{url}/workspaces/{workspace_id}".format(
                     url=settings.NEW_FRONTEND_DOMAIN, workspace_id=workspace.id
                 ),
             },
@@ -176,4 +174,4 @@ def resolve_create_workspace_member(_, info, **kwargs):
         }
 
 
-workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]
+workspaces_bindables = [workspace_queries, workspace_object, workspace_mutations]

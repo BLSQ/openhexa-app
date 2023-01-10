@@ -405,3 +405,29 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["inviteWorkspaceMember"],
         )
+
+    def test_get_workspace_members(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            query workspaceById($id: String!) {
+                workspace(id: $id) {
+                    members {
+                        items {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"id": str(self.WORKSPACE.id)},
+        )
+
+        self.assertEqual(
+            {
+                "items": [{"user": {"id": str(self.USER_ADMIN.id)}}],
+            },
+            r["data"]["workspace"]["members"],
+        )
