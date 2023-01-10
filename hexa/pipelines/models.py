@@ -1,4 +1,3 @@
-import enum
 import time
 import typing
 import uuid
@@ -76,6 +75,11 @@ class Environment(IndexableMixin, models.Model):
         raise NotImplementedError
 
 
+class PipelineRunTrigger(models.TextChoices):
+    SCHEDULED = "scheduled", _("Scheduled")
+    MANUAL = "manual", _("Manual")
+
+
 class PipelineVersionQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
@@ -147,26 +151,21 @@ class Pipeline(models.Model):
         self,
         user: User,
         pipeline_version: PipelineVersion,
+        trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
     ):
-
-        raw_token, signed_token = self.build_webhook_token()
-        #        webhook_path = reverse("pipelines:webhook")
 
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
             pipeline_version=pipeline_version,
-            run_id="manual__" + str(time.time()),
+            run_id=str(trigger_mode.value) + "__" + str(time.time()),
+            trigger_mode=trigger_mode,
             execution_date=timezone.now(),
             state=PipelineRunState.QUEUED,
             config=config if config else self.config,
-            webhook_token=raw_token,
+            access_token=str(uuid.uuid4()),
         )
-
-        # TODO: Object in DB is created, now we need to really launch k8s/docker
-        # need to export "signed_token" as HEXA_PIPELINERUN_TOKEN
-        # need to export f"{settings.BASE_URL}{webhook_path}" as HEXA_PIPELINERUN_URL
 
         return run
 
@@ -192,12 +191,6 @@ class Pipeline(models.Model):
     def last_version(self) -> "PipelineVersion":
         return self.pipelineversion_set.first()
 
-    @staticmethod
-    def build_webhook_token() -> typing.Tuple[str, typing.Any]:
-        unsigned = str(uuid.uuid4())
-
-        return unsigned, Signer().sign_object(unsigned)
-
     def get_token(self):
         return Signer().sign_object(
             {
@@ -220,11 +213,6 @@ class PipelineRunState(models.TextChoices):
     QUEUED = "queued", _("Queued")
 
 
-class PipelineRunTrigger(str, enum.Enum):
-    SCHEDULED = "SCHEDULED"
-    MANUAL = "MANUAL"
-
-
 class PipelineRun(Base, WithStatus):
     STATUS_MAPPINGS = {
         PipelineRunState.SUCCESS: Status.SUCCESS,
@@ -243,12 +231,16 @@ class PipelineRun(Base, WithStatus):
     pipeline_version = models.ForeignKey("PipelineVersion", on_delete=models.CASCADE)
     run_id = models.CharField(max_length=200, blank=False)
     execution_date = models.DateTimeField()
+    last_heartbeat = models.DateTimeField(auto_now_add=True)
+    trigger_mode = models.CharField(
+        max_length=200, blank=False, choices=PipelineRunTrigger.choices
+    )
     state = models.CharField(
         max_length=200, blank=False, choices=PipelineRunState.choices
     )
     duration = models.DurationField(null=True)
     config = models.CharField(max_length=200, blank=True)
-    webhook_token = models.CharField(max_length=200, blank=True)
+    access_token = models.CharField(max_length=200, blank=True)
     messages = models.JSONField(null=True, blank=True, default=list)
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
@@ -263,13 +255,6 @@ class PipelineRun(Base, WithStatus):
         except KeyError:
             return Status.UNKNOWN
 
-    @property
-    def trigger_mode(self):
-        if self.run_id.startswith("manual"):
-            return PipelineRunTrigger.MANUAL
-        if self.run_id.startswith("scheduled"):
-            return PipelineRunTrigger.SCHEDULED
-
     def get_absolute_url(self) -> str:
         return reverse(
             "pipelines:pipeline_run_detail",
@@ -280,6 +265,7 @@ class PipelineRun(Base, WithStatus):
         return self.pipeline_version.zipfile
 
     def log_message(self, priority: str, message: str):
+        self.refresh_from_db()
         self.messages.append(
             {
                 "priority": priority if priority else "INFO",
@@ -290,6 +276,7 @@ class PipelineRun(Base, WithStatus):
         self.save()
 
     def progress_update(self, percent: int):
+        self.refresh_from_db()
         self.current_progress = percent
         self.save()
 

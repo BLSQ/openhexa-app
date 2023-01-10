@@ -386,6 +386,8 @@ AIRFLOW_SYNC_WAIT = 61
 
 GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 
+PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
+
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
