@@ -14,6 +14,7 @@ class SyncTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         cls.bucket = Bucket.objects.create(name="test-bucket")
 

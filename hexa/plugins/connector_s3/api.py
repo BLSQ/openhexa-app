@@ -187,6 +187,7 @@ def generate_sts_user_s3_credentials(
             AssumeRolePolicyDocument=assume_role_policy_doc,
             Description="OpenHexa auto role for notebooks/pipelines",
             Path="/",
+            PermissionsBoundary=principal_credentials.permissions_boundary_policy_arn,
         )
 
     policy_doc = json.dumps(

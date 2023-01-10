@@ -71,6 +71,7 @@ class NotebooksCredentialsTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
         )
         b1 = Bucket.objects.create(name="hexa-test-bucket-1")
         b2 = Bucket.objects.create(name="hexa-test-bucket-2")
@@ -185,6 +186,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
             default_region="eu-central-1",
             user_arn="arn:aws:iam::111:user/hexa-app-unittest",
             app_role_arn="arn:aws:iam::222:role/hexa-app-unittest",
+            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
         )
         cls.BUCKET = Bucket.objects.create(name="hexa-test-bucket-1")
 
