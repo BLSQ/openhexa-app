@@ -3,10 +3,17 @@ type Workspace {
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
+  permissions: WorkspacePermissions!
   countries: [Country!]!
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+}
+
+type WorkspacePermissions {
+  update: Boolean!
+  delete: Boolean!
+  managerMembers: Boolean!
 }
 
 type WorkspacePage {
@@ -115,4 +122,9 @@ extend type Mutation {
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
+}
+
+
+extend type MePermissions {
+    createWorkspace: Boolean!
 }

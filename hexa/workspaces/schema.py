@@ -10,6 +10,7 @@ from hexa.core.graphql import result_page
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import User
+from hexa.user_management.schema import me_permissions_object
 
 from .models import AlreadyExists, Workspace, WorkspaceMembership
 
@@ -20,6 +21,37 @@ workspaces_type_def = load_schema_from_path(
 workspace_object = ObjectType("Workspace")
 workspace_queries = QueryType()
 workspace_mutations = MutationType()
+
+workspace_permissions = ObjectType("WorkspacePermissions")
+
+
+@me_permissions_object.field("createWorkspace")
+def resolve_me_permissions_create_workspace(me, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.create_workspace")
+
+
+@workspace_permissions.field("update")
+def resolve_workspace_permission_update(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.update_workspace", workspace)
+
+
+@workspace_permissions.field("delete")
+def resolve_workspace_permission_delete(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.delete_workspace", workspace)
+
+
+@workspace_permissions.field("managerMembers")
+def resolve_workspace_permission_edit(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.manage_members", workspace)
+
+
+@workspace_object.field("permissions")
+def resolve_workspace_permissions(workspace: Workspace, info):
+    return workspace
 
 
 @workspace_object.field("countries")
@@ -174,4 +206,9 @@ def resolve_create_workspace_member(_, info, **kwargs):
         }
 
 
-workspaces_bindables = [workspace_queries, workspace_object, workspace_mutations]
+workspaces_bindables = [
+    workspace_queries,
+    workspace_object,
+    workspace_mutations,
+    workspace_permissions,
+]
