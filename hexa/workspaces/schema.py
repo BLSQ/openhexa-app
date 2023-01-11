@@ -43,7 +43,7 @@ def resolve_workspace_permission_delete(workspace: Workspace, info):
     return request.user.has_perm("workspaces.delete_workspace", workspace)
 
 
-@workspace_permissions.field("managerMembers")
+@workspace_permissions.field("manageMembers")
 def resolve_workspace_permission_edit(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("workspaces.manage_members", workspace)
