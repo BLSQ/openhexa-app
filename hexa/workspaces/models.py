@@ -69,7 +69,7 @@ class Workspace(Base):
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
-        if not principal.has_perm("workspaces.update_workspace"):
+        if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
         for key in ["name", "countries", "description"]:
@@ -79,7 +79,7 @@ class Workspace(Base):
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
-        if not principal.has_perm("workspaces.delete_workspace"):
+        if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
 
         self.delete()
@@ -107,9 +107,7 @@ class WorkspaceMembershipManager(models.Manager):
         user: User,
         role: WorkspaceMembershipRole,
     ):
-        if not WorkspaceMembership.objects.filter(
-            user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
-        ).exists():
+        if not principal.has_perm("workspaces.manage_members", self):
             raise PermissionDenied
 
         if WorkspaceMembership.objects.filter(user=user, workspace=workspace).exists():
