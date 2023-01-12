@@ -44,7 +44,7 @@ def resolve_workspace_permission_delete(workspace: Workspace, info):
 
 
 @workspace_permissions.field("manageMembers")
-def resolve_workspace_permission_edit(workspace: Workspace, info):
+def resolve_workspace_permission_manage(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("workspaces.manage_members", workspace)
 
@@ -63,12 +63,7 @@ def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
 
 @workspace_object.field("members")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
-    request = info.context["request"]
-    qs = (
-        WorkspaceMembership.objects.filter_for_user(request.user)
-        .filter(workspace=workspace)
-        .order_by("-updated_at")
-    )
+    qs = workspace.workspacemembership_set.all().order_by("-updated_at")
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),

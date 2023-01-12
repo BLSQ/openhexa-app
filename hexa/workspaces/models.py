@@ -56,6 +56,7 @@ class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     description = models.TextField(blank=True)
+    members = models.ManyToManyField(User, through="WorkspaceMembership")
     countries = CountryField(multiple=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -63,6 +64,7 @@ class Workspace(Base):
         "user_management.User",
         null=True,
         on_delete=models.SET_NULL,
+        related_name="workspace_created_by",
     )
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
