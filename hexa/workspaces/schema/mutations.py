@@ -1,91 +1,16 @@
-import pathlib
-
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
-from django.core.exceptions import PermissionDenied
+from ariadne import MutationType
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
 from config import settings
-from hexa.core.graphql import result_page
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import User
-from hexa.user_management.schema import me_permissions_object
 
-from .models import AlreadyExists, Workspace, WorkspaceMembership
+from ..models import AlreadyExists, Connection, Workspace, WorkspaceMembership
 
-workspaces_type_def = load_schema_from_path(
-    f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
-)
-
-workspace_object = ObjectType("Workspace")
-workspace_queries = QueryType()
 workspace_mutations = MutationType()
-workspace_permissions = ObjectType("WorkspacePermissions")
-
-
-@me_permissions_object.field("createWorkspace")
-def resolve_me_permissions_create_workspace(me, info):
-    request: HttpRequest = info.context["request"]
-    return request.user.is_authenticated and request.user.has_perm(
-        "workspaces.create_workspace"
-    )
-
-
-@workspace_permissions.field("update")
-def resolve_workspace_permission_update(workspace: Workspace, info):
-    request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.update_workspace", workspace)
-
-
-@workspace_permissions.field("delete")
-def resolve_workspace_permission_delete(workspace: Workspace, info):
-    request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.delete_workspace", workspace)
-
-
-@workspace_permissions.field("manageMembers")
-def resolve_workspace_permission_manage(workspace: Workspace, info):
-    request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.manage_members", workspace)
-
-
-@workspace_object.field("permissions")
-def resolve_workspace_permissions(workspace: Workspace, info):
-    return workspace
-
-
-@workspace_object.field("countries")
-def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
-    if workspace.countries is not None:
-        return workspace.countries
-    return []
-
-
-@workspace_object.field("members")
-def resolve_workspace_members(workspace: Workspace, info, **kwargs):
-    qs = workspace.workspacemembership_set.all().order_by("-updated_at")
-    return result_page(
-        queryset=qs,
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", qs.count()),
-    )
-
-
-@workspace_queries.field("workspaces")
-def resolve_workspaces(_, info, page=1, perPage=15):
-    request = info.context["request"]
-    queryset = Workspace.objects.filter_for_user(request.user).order_by("-updated_at")
-    return result_page(queryset=queryset, page=page, per_page=perPage)
-
-
-@workspace_queries.field("workspace")
-def resolve_workspace(_, info, **kwargs):
-    request = info.context["request"]
-    try:
-        return Workspace.objects.filter_for_user(request.user).get(slug=kwargs["slug"])
-    except Workspace.DoesNotExist:
-        return None
 
 
 @workspace_mutations.field("createWorkspace")
@@ -258,9 +183,68 @@ def resolve_delete_workspace_member(_, info, **kwargs):
         }
 
 
-workspaces_bindables = [
-    workspace_queries,
-    workspace_object,
+@workspace_mutations.field("createConnection")
+def resolve_create_workspace_connection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=mutation_input.pop("workspaceSlug")
+        )
+        mutation_input["connection_type"] = mutation_input.pop("type")
+
+        connection = Connection.objects.create_if_has_perm(
+            request.user, workspace, **mutation_input
+        )
+
+        return {"success": True, "errors": [], "connection": connection}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_SLUG"]}
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@workspace_mutations.field("updateConnection")
+def resolve_update_workspace_connection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        connection_id = mutation_input.pop("id")
+        connection = Connection.objects.filter_for_user(request.user).get(
+            id=connection_id
+        )
+
+        connection.update_if_has_perm(request.user, **mutation_input)
+        return {"success": True, "errors": [], "connection": connection}
+    except ValidationError as e:
+        return {"success": False, "errors": ["INVALID_SLUG"]}
+    except Connection.DoesNotExist:
+        return {"success": False, "errors": ["WORKSPACE_CONNECTION_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@workspace_mutations.field("deleteConnection")
+def resolve_delete_workspace_connection(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        connection = Connection.objects.filter_for_user(request.user).get(
+            id=mutation_input.pop("id")
+        )
+        connection.delete_if_has_perm(request.user)
+        return {"success": True, "errors": []}
+    except Connection.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+bindables = [
     workspace_mutations,
-    workspace_permissions,
 ]
