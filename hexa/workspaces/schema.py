@@ -185,8 +185,13 @@ def resolve_create_workspace_member(_, info, **kwargs):
             "errors": [],
             "workspace_membership": workspace_membership,
         }
-    except (Workspace.DoesNotExist, User.DoesNotExist):
-        return {"success": False, "errors": ["NOT_FOUND"], "workspace_membership": None}
+    except (Workspace.DoesNotExist, User.DoesNotExist) as e:
+        error = (
+            "WORKSPACE_NOT_FOUND"
+            if isinstance(e, Workspace.DoesNotExist)
+            else "USER_NOT_FOUND"
+        )
+        return {"success": False, "errors": [error], "workspace_membership": None}
     except PermissionDenied:
         return {
             "success": False,

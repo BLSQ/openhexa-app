@@ -334,7 +334,11 @@ class WorkspaceTest(GraphQLTestCase):
             },
         )
         self.assertEqual(
-            {"success": False, "errors": ["NOT_FOUND"], "workspaceMembership": None},
+            {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
             r["data"]["inviteWorkspaceMember"],
         )
 

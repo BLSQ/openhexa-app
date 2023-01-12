@@ -68,7 +68,8 @@ enum DeleteWorkspaceError {
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
-  NOT_FOUND
+  USER_NOT_FOUND
+  WORKSPACE_NOT_FOUND
 }
 
 type CreateWorkspaceResult {
