@@ -50,11 +50,9 @@ const Menu = ({ label, trigger, className, children }: MenuProps) => {
           />
         </HeadlessMenu.Button>
       )}
-      <Transition as={Fragment} {...TRANSITION}>
-        <HeadlessMenu.Items className={MenuClasses.Items}>
-          <div className="px-1 py-1">{children}</div>
-        </HeadlessMenu.Items>
-      </Transition>
+      <HeadlessMenu.Items className={MenuClasses.Items}>
+        <div className="px-1 py-1">{children}</div>
+      </HeadlessMenu.Items>
     </HeadlessMenu>
   );
 };
@@ -79,27 +77,23 @@ const Item = ({
   href,
 }: ItemProps) => (
   <HeadlessMenu.Item>
-    {({ active }) => (
-      <>
-        {onClick && (
-          <button
-            onClick={onClick}
-            className={clsx(className, active && activeClassName)}
-          >
-            {children}
-          </button>
-        )}
-
-        {href && (
-          <Link
-            href={href}
-            className={clsx(className, active && activeClassName)}
-          >
-            {children}
-          </Link>
-        )}
-      </>
-    )}
+    {({ active }) =>
+      onClick ? (
+        <button
+          onClick={onClick}
+          className={clsx(className, active && activeClassName)}
+        >
+          {children}
+        </button>
+      ) : (
+        <Link
+          href={href}
+          className={clsx(className, active && activeClassName)}
+        >
+          {children}
+        </Link>
+      )
+    }
   </HeadlessMenu.Item>
 );
 
