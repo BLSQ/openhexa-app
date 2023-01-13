@@ -311,6 +311,36 @@ def resolve_pipeline_progress(_, info, **kwargs):
     return {"success": True, "errors": []}
 
 
+@pipelines_mutations.field("addPipelineOutput")
+def resolve_pipeline_output(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated or not isinstance(
+        request.user, PipelineRunUser
+    ):
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    try:
+        pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
+    except PipelineRun.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+
+    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_ALREADY_COMPLETED"],
+        }
+
+    input = kwargs["input"]
+    pipeline_run.add_output(input.get("output_uri"), input.get("output_type"))
+    return {"success": True, "errors": []}
+
+
 pipelines_bindables = [
     pipelines_query,
     pipelines_mutations,

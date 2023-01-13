@@ -172,6 +172,16 @@ type UpdatePipelineProgressResult {
   errors: [PipelineError!]!
 }
 
+input AddPipelineOutputInput {
+  output_type: String!
+  output_uri: String!
+}
+
+type AddPipelineOutputResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
 extend type Mutation {
   createPipeline(input: CreatePipelineInput): CreatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
@@ -180,4 +190,5 @@ extend type Mutation {
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
+  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
 }
