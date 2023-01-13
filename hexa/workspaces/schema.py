@@ -169,7 +169,7 @@ def resolve_create_workspace_member(_, info, **kwargs):
             principal=request.user, workspace=workspace, user=user, role=input["role"]
         )
         send_mail(
-            title=gettext_lazy("You've been added to the workspace '{workspace.name}'"),
+            title=gettext_lazy(f"You've been added to the workspace {workspace.name}"),
             template_name="workspaces/mails/invite_member",
             template_variables={
                 "workspace": workspace.name,
