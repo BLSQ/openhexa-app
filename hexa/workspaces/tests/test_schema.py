@@ -342,6 +342,41 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["inviteWorkspaceMember"],
         )
 
+    def test_create_workspace_member_member_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "userEmail": "unknown@openhexa.com",
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["USER_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
     def test_create_workspace_member_workspace_already_exist(self):
         self.client.force_login(self.USER_ADMIN)
         r = self.run_query(
