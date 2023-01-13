@@ -13,7 +13,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { ReactNode, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import { useWorkspacePageQuery } from "workspaces/graphql/queries.generated";
 
 type SidebarProps = {
   workspaceId: string;
@@ -70,11 +70,17 @@ const NavItem = (props: {
 const Sidebar = (props: SidebarProps) => {
   const { workspaceId } = props;
   const { t } = useTranslation();
-  const router = useRouter();
-  const workspace = WORKSPACES.find((x) => x.id === workspaceId);
-  if (!workspace) {
+
+  const { data } = useWorkspacePageQuery({
+    variables: { id: workspaceId },
+  });
+
+  if (!data?.workspace) {
     return null;
   }
+
+  const { workspace } = data;
+
   return (
     <div className="fixed inset-y-0 flex w-64 flex-col">
       <div className="flex flex-grow flex-col overflow-y-auto border-r border-gray-200 bg-gray-800">
@@ -121,12 +127,14 @@ const Sidebar = (props: SidebarProps) => {
               <BookOpenIcon className="h-5 w-5" />
               {t("JupyterHub")}
             </NavItem>
-            <NavItem
-              href={`/workspaces/${encodeURIComponent(workspaceId)}/settings`}
-            >
-              <Cog6ToothIcon className="h-5 w-5" />
-              {t("Settings")}
-            </NavItem>
+            {workspace.permissions.manageMembers && (
+              <NavItem
+                href={`/workspaces/${encodeURIComponent(workspaceId)}/settings`}
+              >
+                <Cog6ToothIcon className="h-5 w-5" />
+                {t("Settings")}
+              </NavItem>
+            )}
           </nav>
         </div>
         <div className="mb-5 flex flex-shrink-0 flex-col items-center px-4">

@@ -68,37 +68,35 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
-        <div className="flex items-center justify-between">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.id)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(workspace.id)}/databases`}
-            >
-              {t("Database")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.id
-              )}/databases/${router.query.tableId}`}
-            >
-              {capitalize(table.name)}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleOpenModal}
-              leadingIcon={<EyeIcon className="w-4" />}
-            >
-              {t("Preview data")}
-            </Button>
-          </div>
+      <WorkspaceLayout.Header className="flex items-center justify-between">
+        <Breadcrumbs withHome={false}>
+          <Breadcrumbs.Part
+            isFirst
+            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+          >
+            {workspace.name}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            href={`/workspaces/${encodeURIComponent(workspace.id)}/databases`}
+          >
+            {t("Database")}
+          </Breadcrumbs.Part>
+          <Breadcrumbs.Part
+            isLast
+            href={`/workspaces/${encodeURIComponent(workspace.id)}/databases/${
+              router.query.tableId
+            }`}
+          >
+            {capitalize(table.name)}
+          </Breadcrumbs.Part>
+        </Breadcrumbs>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleOpenModal}
+            leadingIcon={<EyeIcon className="w-4" />}
+          >
+            {t("Preview data")}
+          </Button>
         </div>
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent className="space-y-4">

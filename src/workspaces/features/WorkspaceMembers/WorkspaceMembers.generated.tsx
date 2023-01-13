@@ -1,0 +1,64 @@
+import * as Types from '../../../graphql-types';
+
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
+const defaultOptions = {} as const;
+export type WorskspaceMembersQueryVariables = Types.Exact<{
+  id: Types.Scalars['String'];
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
+}>;
+
+
+export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', members: { __typename?: 'WorkspaceMembershipPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, createdAt: any, user: { __typename?: 'User', id: string, displayName: string, email: string } }> } } | null };
+
+
+export const WorskspaceMembersDocument = gql`
+    query WorskspaceMembers($id: String!, $page: Int, $perPage: Int) {
+  workspace(id: $id) {
+    members(page: $page, perPage: $perPage) {
+      totalItems
+      items {
+        id
+        role
+        user {
+          id
+          displayName
+          email
+        }
+        createdAt
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useWorskspaceMembersQuery__
+ *
+ * To run a query within a React component, call `useWorskspaceMembersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorskspaceMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorskspaceMembersQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useWorskspaceMembersQuery(baseOptions: Apollo.QueryHookOptions<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
+      }
+export function useWorskspaceMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
+        }
+export type WorskspaceMembersQueryHookResult = ReturnType<typeof useWorskspaceMembersQuery>;
+export type WorskspaceMembersLazyQueryHookResult = ReturnType<typeof useWorskspaceMembersLazyQuery>;
+export type WorskspaceMembersQueryResult = Apollo.QueryResult<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>;

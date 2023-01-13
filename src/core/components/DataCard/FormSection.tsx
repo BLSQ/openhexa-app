@@ -24,7 +24,7 @@ import {
 import Button from "../Button/Button";
 import DescriptionList, { DescriptionListProps } from "../DescriptionList";
 import Spinner from "../Spinner";
-import StopClick from "../StopClick";
+import DisableClickPropagation from "../DisableClickPropagation";
 import { DataCardSectionContext } from "./context";
 import { BlockSection } from "core/components/Block";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
@@ -161,7 +161,7 @@ function FormSection<F extends { [key: string]: any }>(
           <>
             <h4 className="font-medium">{title}</h4>
             {onSave && open && !isEdited && (
-              <StopClick>
+              <DisableClickPropagation>
                 <button
                   className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
                   onClick={toggleEdit}
@@ -169,7 +169,7 @@ function FormSection<F extends { [key: string]: any }>(
                   {editLabel ?? t("Edit")}
                   {editIcon ?? <PencilIcon className="h-4" />}
                 </button>
-              </StopClick>
+              </DisableClickPropagation>
             )}
             <div className="flex flex-1 flex-shrink items-center justify-end">
               <button title={open ? t("Hide") : t("Show")}>
@@ -195,7 +195,7 @@ function FormSection<F extends { [key: string]: any }>(
                   {form.submitError}
                 </p>
               )}
-              <div className="mt-2 flex items-center justify-end gap-2">
+              <div className="mt-6 flex items-center justify-end gap-2">
                 <Button
                   type="submit"
                   disabled={form.isSubmitting || !form.isValid}

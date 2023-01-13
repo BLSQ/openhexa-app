@@ -3,6 +3,7 @@ query GetUser {
     permissions {
       adminPanel
       superUser
+      createWorkspace
     }
     features {
       code

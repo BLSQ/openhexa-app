@@ -2,18 +2,11 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { useNotebooksPageQuery } from "notebooks/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
-type Props = {
-  page: number;
-  perPage: number;
-};
-
-const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
+const WorkspaceNotebooksPage: NextPageWithLayout = () => {
   const { t } = useTranslation();
-  const router = useRouter();
   const { data } = useNotebooksPageQuery();
 
   if (!data) {

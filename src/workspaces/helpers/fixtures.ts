@@ -103,7 +103,14 @@ Paths:
 export const WORKSPACES = SAMPLE_PROJECTS.map((project, i) => ({
   id: faker.datatype.uuid(),
   name: project.name,
-  country: project.country,
+  countries: [
+    {
+      code: "AL",
+      alpha3: "AL",
+      name: "Alabama",
+      flag: "AL",
+    },
+  ],
   description: `# Cameroon PNLP
 
 

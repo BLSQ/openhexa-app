@@ -1,0 +1,50 @@
+mutation createWorkspace($input: CreateWorkspaceInput!) {
+  createWorkspace(input: $input) {
+    success
+    workspace {
+      id
+      name
+      description
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+
+mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    workspace {
+      id
+      name
+      description
+      countries {
+        code
+        alpha3
+        name
+      }
+    }
+    errors
+  }
+}
+
+mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+  deleteWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+  inviteWorkspaceMember(input: $input) {
+    success
+    errors
+    workspaceMembership {
+      id
+    }
+  }
+}

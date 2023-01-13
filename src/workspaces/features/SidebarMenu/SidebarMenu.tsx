@@ -1,3 +1,4 @@
+import { useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
 import {
   ArrowRightOnRectangleIcon,
@@ -9,7 +10,9 @@ import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Link from "core/components/Link";
 import User from "core/features/User";
+import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
+import { Country, Workspace } from "graphql-types";
 import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
@@ -17,19 +20,26 @@ import { useRouter } from "next/router";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import useOnClickOutside from "use-onclickoutside";
+import {
+  WorkspacesPageDocument,
+  WorkspacesPageQuery,
+  WorkspacesPageQueryVariables,
+} from "workspaces/graphql/queries.generated";
 
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
 
-type SidebarMenuProps = {
-  workspace: typeof WORKSPACES[0];
-};
-
+interface SidebarMenuProps {
+  workspace: Pick<Workspace, "name"> & {
+    countries: Array<Pick<Country, "code" | "flag">>;
+  };
+}
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
 const SidebarMenu = (props: SidebarMenuProps) => {
   const { workspace } = props;
   const { t } = useTranslation();
   const me = useMe();
+  const [isDialogOpen, setDialogOpen] = useState(false);
   const isAdmin = useFeature("adminPanel");
 
   const [isOpen, { toggle, setFalse }] = useToggle();
@@ -44,15 +54,42 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     modifiers: POPPER_MODIFIERS,
   });
   const innerMenuRef = useRef<HTMLDivElement>(null);
+
   useOnClickOutside(innerMenuRef, () => {
-    setFalse();
+    if (!isDialogOpen) {
+      // Do not close the menu if the user click in the dialog
+      setFalse();
+    }
   });
+
   useEffect(() => {
     if (isOpen) {
       setFalse();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.asPath]);
+
+  const { data, loading, refetch } = useQuery<
+    WorkspacesPageQuery,
+    WorkspacesPageQueryVariables
+  >(WorkspacesPageDocument, {
+    variables: { page: 1, perPage: 5 },
+  });
+
+  useCacheKey("workspaces", () => {
+    refetch();
+  });
+
+  const showMore = () => {
+    refetch({
+      page: 1,
+      perPage: data?.workspaces.totalItems,
+    });
+  };
+
+  if (!workspace) {
+    return null;
+  }
 
   return (
     <div className="w-full" ref={innerMenuRef}>
@@ -61,12 +98,13 @@ const SidebarMenu = (props: SidebarMenuProps) => {
         ref={setReferenceElement}
         onClick={toggle}
       >
-        {workspace.country && (
+        {workspace.countries.length === 1 && (
           <div className="mr-2.5 flex h-full items-center">
             <img
               alt="Country flag"
-              className="w-5 flex-shrink rounded-sm"
-              src={`/static/flags/${workspace.country.code}.gif`}
+              loading="lazy"
+              className="w-5 rounded-sm"
+              src={workspace.countries[0].flag}
             />
           </div>
         )}
@@ -106,39 +144,59 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           <section>
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
               {t("Your workspaces")}
+
               <button
                 type="button"
+                onClick={() => setDialogOpen(true)}
                 title={t("Create a new workspace")}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <PlusCircleIcon className="h-5 w-5 " />
               </button>
+              <CreateWorkspaceDialog
+                open={isDialogOpen}
+                onClose={() => setDialogOpen(false)}
+              />
             </div>
 
-            {WORKSPACES.map((item) => (
-              <Link
-                noStyle
-                href={{
-                  pathname: "/workspaces/[workspaceId]",
-                  query: { workspaceId: item.id },
-                }}
-                className="flex items-center py-2.5 px-4 hover:bg-gray-100"
-                key={item.id}
-              >
-                {item.country && (
-                  <div className="mr-2.5 flex h-full items-center">
-                    <img
-                      alt="Country flag"
-                      className="h-4 flex-shrink rounded-sm"
-                      src={`/static/flags/${item.country.code}.gif`}
-                    />
-                  </div>
-                )}
-                <span className="text-sm leading-tight tracking-tight">
-                  {item.name}
-                </span>
-              </Link>
-            ))}
+            <div className="max-h-96 overflow-y-auto">
+              {data?.workspaces.items.map((workspace, index) => (
+                <Link
+                  noStyle
+                  href={{
+                    pathname: "/workspaces/[workspaceId]",
+                    query: { workspaceId: workspace.id },
+                  }}
+                  className="flex items-center py-2.5 px-4 hover:bg-gray-100"
+                  key={index}
+                >
+                  {workspace.countries && workspace.countries.length === 1 && (
+                    <div className="mr-2.5 flex h-full items-center">
+                      <img
+                        alt="Country flag"
+                        className="h-4 flex-shrink rounded-sm"
+                        src={workspace.countries[0].flag}
+                      />
+                    </div>
+                  )}
+                  <span className="text-sm leading-tight tracking-tight">
+                    {workspace.name}
+                  </span>
+                </Link>
+              ))}
+              {data?.workspaces.totalItems !==
+                data?.workspaces.items.length && (
+                <div className="pb-2 text-center">
+                  <button
+                    onClick={() => showMore()}
+                    className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+                  >
+                    {t("Show more")}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {false && (
               <div className="text-center">
                 <button

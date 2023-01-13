@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Workspaces hides the edit button when user have not update permission  1`] = `<div />`;
+
+exports[`Workspaces renders null as workspace doesn't exist 1`] = `<div />`;
+
+exports[`Workspaces renders the workspace page 1`] = `
+<div>
+  <div
+    class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white py-3 shadow px-4 md:px-6 xl:px-10 2xl:px-12"
+  >
+    <div
+      class="flex-1 flex items-center justify-between"
+    >
+      <nav
+        aria-label="Breadcrumbs"
+      >
+        <ol
+          class="flex items-center"
+          role="list"
+        >
+          <li
+            class=""
+          >
+            <div
+              class="flex items-center"
+            >
+              <span
+                class="text-sm hover:text-gray-700 font-medium text-gray-500"
+              >
+                <a
+                  class=""
+                  href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                >
+                  Rwanda Workspace
+                </a>
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  <div
+    class="py-6 xl:py-8"
+  >
+    <div
+      class="mx-auto px-4 md:px-6 xl:px-10  2xl:px-12"
+    >
+      <article
+        class="sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white"
+      >
+        <section
+          class="px-4 py-5 sm:px-6"
+        >
+          <div>
+            <div
+              class="prose prose-headings:font-medium max-w-3xl"
+            >
+              <p>
+                This is a description
+              </p>
+            </div>
+          </div>
+        </section>
+      </article>
+    </div>
+  </div>
+</div>
+`;

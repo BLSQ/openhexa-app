@@ -54,6 +54,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     CatalogEntryType: {
       merge: true,
     },
+    Workspace: {
+      merge: true,
+    },
   },
 };
 

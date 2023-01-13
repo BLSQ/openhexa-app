@@ -6,7 +6,9 @@ import { useDataCardProperty } from "./context";
 import DataCard from "./DataCard";
 import { PropertyDefinition } from "./types";
 
-type CountryPropertyProps = { multiple?: boolean } & PropertyDefinition;
+type CountryPropertyProps = {
+  multiple?: boolean;
+} & PropertyDefinition;
 
 const CountryProperty = (props: CountryPropertyProps) => {
   const { multiple, defaultValue, ...delegated } = props;
@@ -21,6 +23,7 @@ const CountryProperty = (props: CountryPropertyProps) => {
     <DataCard.Property property={property}>
       {section.isEdited ? (
         <CountryPicker
+          withPortal
           value={property.formValue ?? null}
           onChange={(v) => property.setValue(v)}
           multiple={multiple}

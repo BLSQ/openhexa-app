@@ -1,0 +1,34 @@
+query WorkspacesPage($page: Int, $perPage: Int) {
+  workspaces(page: $page, perPage: $perPage) {
+    totalItems
+    items {
+      id
+      name
+      countries {
+        code
+        flag
+      }
+    }
+  }
+}
+
+query WorkspacePage($id: String!) {
+  workspace(id: $id) {
+    id
+    name
+    description
+    countries {
+      code
+      flag
+      name
+    }
+    permissions {
+      delete
+      update
+      manageMembers
+    }
+    ...DeleteWorkspace_workspace
+    ...InviteMemberWorkspace_workspace
+    ...UpdateWorkspaceDescription_workspace
+  }
+}
