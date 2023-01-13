@@ -208,6 +208,81 @@ def resolve_create_workspace_member(_, info, **kwargs):
         }
 
 
+@workspace_mutations.field("updateWorkspaceMemberRole")
+def resolver_update_workspace_member_role(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["workspaceId"]
+        )
+        workspace_membership: WorkspaceMembership = (
+            workspace.workspacemembership_set.get(id=input["membershipId"])
+        )
+
+        workspace_membership.update_if_has_perm(
+            principal=request.user, role=input["role"]
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "workspace_membership": workspace_membership,
+        }
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
+            "workspace_membership": None,
+        }
+    except WorkspaceMembership.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["MEMBERSHIP_NOT_FOUND"],
+            "workspace_membership": None,
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+            "workspace_membership": None,
+        }
+
+
+@workspace_mutations.field("deleteWorkspaceMember")
+def resolve_delete_workspace_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["workspaceId"]
+        )
+        workspace_membership: WorkspaceMembership = (
+            workspace.workspacemembership_set.get(id=input["membershipId"])
+        )
+
+        workspace_membership.delete_if_has_perm(principal=request.user)
+
+        return {"success": True, "errors": []}
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
+            "workspace_membership": None,
+        }
+    except WorkspaceMembership.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["MEMBERSHIP_NOT_FOUND"],
+            "workspace_membership": None,
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+            "workspace_membership": None,
+        }
+
+
 workspaces_bindables = [
     workspace_queries,
     workspace_object,

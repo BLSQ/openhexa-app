@@ -72,6 +72,18 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+enum DeleteWorkspaceMemberError {
+  WORKSPACE_NOT_FOUND
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+enum UpdateWorkspaceMemberRoleError {
+  WORKSPACE_NOT_FOUND
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
 type CreateWorkspaceResult {
   success: Boolean!
   errors: [CreateWorkspaceError!]!
@@ -95,6 +107,17 @@ type InviteWorkspaceMemberResult{
   workspaceMembership: WorkspaceMembership
 }
 
+type DeleteWorkspaceMemberResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceMemberError!]!
+}
+
+type UpdateWorkspaceMemberRoleResult {
+  success: Boolean!
+  errors:[UpdateWorkspaceMemberRoleError!]!
+  workspaceMembership: WorkspaceMembership
+}
+
 input CreateWorkspaceInput {
   name: String!
   description: String
@@ -115,6 +138,17 @@ input DeleteWorkspaceInput {
 input InviteWorkspaceMemberInput {
   workspaceId: String!
   userEmail: String!
+  role: WorkspaceMembershipRole!
+}
+
+input DeleteWorkspaceMemberInput {
+  workspaceId: String!
+  membershipId: String!
+}
+
+input UpdateWorkspaceMemberRoleInput {
+  workspaceId: String!
+  membershipId: String!
   role: WorkspaceMembershipRole!
 }
 

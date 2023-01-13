@@ -1,10 +1,17 @@
+import uuid
+
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class WorkspaceTest(GraphQLTestCase):
     USER_SABRINA = None
+    USER_REBECCA = None
     USER_ADMIN = None
 
     @classmethod
@@ -14,7 +21,12 @@ class WorkspaceTest(GraphQLTestCase):
             "standardpassword",
         )
         cls.USER_ADMIN = User.objects.create_user(
-            "rebecca@bluesquarehub.com", "standardpassword", is_superuser=True
+            "root@openhexa.org", "root", is_superuser=True
+        )
+
+        cls.USER_REBECCA = User.objects.create_user(
+            "rebecca@bluesquarehub.com",
+            "standardpassword",
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
@@ -29,6 +41,12 @@ class WorkspaceTest(GraphQLTestCase):
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
+        )
+
+        cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
+            user=cls.USER_REBECCA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
         )
 
     def test_create_workspace_denied(self):
@@ -466,7 +484,253 @@ class WorkspaceTest(GraphQLTestCase):
 
         self.assertEqual(
             {
-                "items": [{"user": {"id": str(self.USER_ADMIN.id)}}],
+                "items": [
+                    {"user": {"id": str(self.USER_REBECCA.id)}},
+                    {"user": {"id": str(self.USER_ADMIN.id)}},
+                ],
             },
             r["data"]["workspace"]["members"],
+        )
+
+    def test_delete_workspace_member_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+                deleteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(uuid.uuid4()),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["MEMBERSHIP_NOT_FOUND"],
+            },
+            r["data"]["deleteWorkspaceMember"],
+        )
+
+    def test_delete_workspace_member_workspace_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+                deleteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(uuid.uuid4()),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+            },
+            r["data"]["deleteWorkspaceMember"],
+        )
+
+    def test_delete_workspace_member_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+                deleteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["deleteWorkspaceMember"],
+        )
+
+    def test_delete_workspace_member(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
+                deleteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["deleteWorkspaceMember"],
+        )
+
+    def test_update_workspace_member_role_membership_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
+                updateWorkspaceMemberRole(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        role
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(uuid.uuid4()),
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["MEMBERSHIP_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
+            r["data"]["updateWorkspaceMemberRole"],
+        )
+
+    def test_update_workspace_member_role_workspace_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
+                updateWorkspaceMemberRole(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        role
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(uuid.uuid4()),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
+            r["data"]["updateWorkspaceMemberRole"],
+        )
+
+    def test_update_workspace_member_role_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
+                updateWorkspaceMemberRole(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        role
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+                "workspaceMembership": None,
+            },
+            r["data"]["updateWorkspaceMemberRole"],
+        )
+
+    def test_update_workspace_member_role(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
+                updateWorkspaceMemberRole(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        role
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspaceMembership": {
+                    "id": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "role": WorkspaceMembershipRole.EDITOR,
+                },
+            },
+            r["data"]["updateWorkspaceMemberRole"],
         )
