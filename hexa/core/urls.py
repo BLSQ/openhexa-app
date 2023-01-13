@@ -7,6 +7,6 @@ app_name = "core"
 urlpatterns = [
     path("", views_utils.redirect_to_new_frontend, name="index"),
     path("ready", views.ready, name="ready"),
-    path("dashboard/", views_utils.redirect_to_new_frontend, name="dashboard"),
+    path("login", views_utils.redirect_to_new_frontend, name="login"),
     path("test_logger", views.test_logger, name="test_logger"),
 ]

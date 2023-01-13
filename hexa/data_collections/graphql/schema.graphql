@@ -76,18 +76,18 @@ enum DeleteCollectionError {
     INVALID
 }
 extend type Query {
-    collection(id: String!): Collection
-    collections(page: Int, perPage: Int): CollectionPage!
+    collection(id: String!): Collection @login_required
+    collections(page: Int, perPage: Int): CollectionPage! @login_required
 }
 
 extend union SearchResultObject = Collection
 
 extend type Mutation {
-    createCollection(input: CreateCollectionInput!): CreateCollectionResult!
-    updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
-    deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
-    createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult!
-    deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult!
+    createCollection(input: CreateCollectionInput!): CreateCollectionResult! @login_required
+    updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult! @login_required
+    deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult! @login_required
+    createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult! @login_required
+    deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult! @login_required
 }
 
 input CreateCollectionElementInput {
@@ -119,7 +119,6 @@ enum DeleteCollectionElementError {
     NOT_FOUND
     INVALID
 }
-
 
 
 # Collection items

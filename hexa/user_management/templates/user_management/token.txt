@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}
+{% blocktranslate %}Here is the code you need to login to your account:{% endblocktranslate %}
+
+{{ token }}
+
+{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+
+{% endautoescape %}

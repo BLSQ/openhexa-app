@@ -1,3 +1,4 @@
+import logging
 from functools import cache
 from typing import Callable
 
@@ -7,8 +8,13 @@ from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django_otp.middleware import OTPMiddleware
 
 from hexa.app import get_hexa_app_configs
+
+from .utils import has_configured_two_factor
+
+logger = logging.getLogger(__name__)
 
 
 @cache
@@ -52,8 +58,15 @@ def login_required_middleware(
     Mostly: logout, index, ready and some API endpoints (that implement their own authentication)"""
 
     def middleware(request: HttpRequest) -> HttpResponse:
-        if not request.user.is_authenticated and is_protected_routes(request.path):
-            return redirect("{}?next={}".format(reverse("core:index"), request.path))
+        if not is_protected_routes(request.path):
+            return get_response(request)
+
+        if not request.user.is_authenticated or (
+            has_configured_two_factor(request.user) and not request.user.is_verified()
+        ):
+            return redirect(
+                "{}?next={}".format(reverse(settings.LOGIN_URL), request.path)
+            )
 
         return get_response(request)
 
@@ -81,3 +94,10 @@ def accepted_tos_required_middleware(
             return get_response(request)
 
     return middleware
+
+
+class TwoFactorMiddleware(OTPMiddleware):
+    """
+    This must be installed after
+    :class:`~django.contrib.auth.middleware.AuthenticationMiddleware`.
+    """

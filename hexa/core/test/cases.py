@@ -7,9 +7,12 @@ from django.http import HttpRequest
 
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
 from hexa.user_management.models import User
+from hexa.user_management.tests.cases import TwoFactorClient
 
 
 class TestCase(test.TestCase):
+    client_class = TwoFactorClient
+
     def _pre_setup(self):
         _pre_setup = super()._pre_setup()
         self.client.defaults = {
