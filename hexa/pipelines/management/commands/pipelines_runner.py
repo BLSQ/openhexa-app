@@ -24,6 +24,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 
     exec_time_str = timezone.now().isoformat()
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
+    container_name = slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str)
 
     config.load_incluster_config()
     v1 = CoreV1Api()
@@ -39,7 +40,8 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                 # in "unconfined" mode. Beware, you might think you are already in
                 # "unconfined" mode by default. You are not. If you get a "fuse: mount
                 # failed: Permission denied" error, you did something wrong over here.
-                "container.apparmor.security.beta.kubernetes.io/pipelines_v2": "unconfined",
+                "container.apparmor.security.beta.kubernetes.io/"
+                + container_name: "unconfined",
             },
         ),
         spec=k8s.V1PodSpec(
@@ -47,7 +49,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             containers=[
                 k8s.V1Container(
                     image="blsq/openhexa-pipelines-v2",
-                    name=slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str),
+                    name=container_name,
                     image_pull_policy="Always",
                     args=[
                         "cloudrun",
