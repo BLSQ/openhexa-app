@@ -24,6 +24,7 @@ whitenoise
 sentry-sdk
 tqdm
 croniter
+kubernetes
 
 # production
 google-cloud-logging

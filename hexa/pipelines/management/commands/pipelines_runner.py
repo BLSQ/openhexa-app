@@ -31,7 +31,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         api_version="v1",
         kind="Pod",
         metadata=k8s.V1ObjectMeta(
-            namespace="default",
+            namespace=os.environ.get("PIPELINE_NAMESPACE", "default"),
             name=slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str),
             annotations={
                 # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
@@ -100,7 +100,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             ],
         ),
     )
-    v1.create_namespaced_pod(namespace="default", body=pod)
+    v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
 
     # monitore the pod
     while True:
