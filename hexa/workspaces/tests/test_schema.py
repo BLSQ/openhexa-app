@@ -1,6 +1,6 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
 class WorkspaceTest(GraphQLTestCase):
@@ -23,6 +23,7 @@ class WorkspaceTest(GraphQLTestCase):
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
         )
+
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Burundi Workspace",
@@ -304,4 +305,168 @@ class WorkspaceTest(GraphQLTestCase):
                 "errors": [],
             },
             r["data"]["deleteWorkspace"],
+        )
+
+    def test_create_workspace_member_workspace_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": "657f282c-13ef-40e4-96d3-d3fe1d25d87e",
+                    "userEmail": "root@openhexa.com",
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["WORKSPACE_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_create_workspace_member_member_not_found(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        id
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "userEmail": "unknown@openhexa.com",
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["USER_NOT_FOUND"],
+                "workspaceMembership": None,
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_create_workspace_member_workspace_already_exist(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "userEmail": "rebecca@bluesquarehub.com",
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["ALREADY_EXISTS"],
+                "workspaceMembership": None,
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_create_workspace_member_workspace(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceId": str(self.WORKSPACE.id),
+                    "userEmail": self.USER_SABRINA.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspaceMembership": {"user": {"email": self.USER_SABRINA.email}},
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+    def test_get_workspace_members(self):
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            query workspaceById($id: String!) {
+                workspace(id: $id) {
+                    members {
+                        items {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"id": str(self.WORKSPACE.id)},
+        )
+
+        self.assertEqual(
+            {
+                "items": [{"user": {"id": str(self.USER_ADMIN.id)}}],
+            },
+            r["data"]["workspace"]["members"],
         )

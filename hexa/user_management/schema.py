@@ -1,6 +1,14 @@
+import logging
 import pathlib
 
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+import django_otp
+from ariadne import (
+    MutationType,
+    ObjectType,
+    QueryType,
+    SchemaDirectiveVisitor,
+    load_schema_from_path,
+)
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, password_validation
 from django.contrib.auth.forms import PasswordResetForm
@@ -9,6 +17,9 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
+from django_otp import devices_for_user
+from django_otp.plugins.otp_email.models import EmailDevice
+from graphql import default_field_resolver
 
 from hexa.app import get_hexa_app_configs
 from hexa.core.graphql import result_page
@@ -24,9 +35,37 @@ from hexa.user_management.models import (
     User,
 )
 
+from .utils import default_device, has_configured_two_factor
+
+logger = logging.getLogger(__name__)
+
 identity_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
+
+
+class AuthenticationError(PermissionDenied):
+    extensions = {"code": "UNAUTHENTICATED"}
+    message = "Resolver requires an authenticated user"
+
+
+class LoginRequiredDirective(SchemaDirectiveVisitor):
+    def visit_field_definition(self, field, object_type):
+        original_resolver = field.resolve or default_field_resolver
+
+        def resolve(obj, info, **kwargs):
+            request = info.context["request"]
+            principal = request.user
+            if not principal.is_authenticated or (
+                has_configured_two_factor(principal) and not principal.is_verified()
+            ):
+                raise AuthenticationError
+
+            return original_resolver(obj, info, **kwargs)
+
+        field.resolve = resolve
+        return field
+
 
 identity_query = QueryType()
 identity_mutations = MutationType()
@@ -70,6 +109,12 @@ def resolve_feature_flag_config(flag: FeatureFlag, info):
 def resolve_me_user(_, info):
     request = info.context["request"]
     return request.user if request.user.is_authenticated else None
+
+
+@me_object.field("hasTwoFactorEnabled")
+def resolve_me_has_two_factor_enabled(_, info):
+    request = info.context["request"]
+    return has_configured_two_factor(request.user)
 
 
 # FIXME: To remove once authorizedActions are completely deprecated
@@ -297,18 +342,29 @@ def resolve_delete_team(_, info, **kwargs):
 
 
 @identity_mutations.field("login")
+@transaction.atomic
 def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
     user_candidate = authenticate(
-        request, email=kwargs["input"]["email"], password=kwargs["input"]["password"]
+        request, email=mutation_input["email"], password=mutation_input["password"]
     )
 
-    if user_candidate is not None:
-        login(request, user_candidate)
+    if user_candidate is None:
+        return {"success": False, "errors": ["INVALID_CREDENTIALS"]}
 
-        return {"success": True, "me": resolve_me(_, info)}
-    else:
-        return {"success": False, "me": resolve_me(_, info)}
+    if has_configured_two_factor(user_candidate):
+        device = default_device(user_candidate)
+        if not mutation_input.get("token"):
+            device.generate_challenge()
+            return {"success": False, "errors": ["OTP_REQUIRED"]}
+        if not device.verify_token(mutation_input["token"]):
+            return {"success": False, "errors": ["INVALID_OTP"]}
+        user_candidate.otp_device = device
+
+    login(request, user_candidate)
+    return {"success": True}
 
 
 @identity_mutations.field("logout")
@@ -462,6 +518,73 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
+@identity_mutations.field("verifyToken")
+def resolve_verify_token(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    device = django_otp.match_token(request.user, mutation_input["token"])
+    if device is None:
+        return {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]}
+
+    django_otp.login(request, device)
+    return {"success": True}
+
+
+@identity_mutations.field("generateChallenge")
+def resolve_generate_challenge(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    device = default_device(request.user)
+
+    if device is None or device.user != request.user:
+        return {"success": False, "errors": ["DEVICE_NOT_FOUND"]}
+
+    try:
+        device.generate_challenge()
+    except Exception:
+        return {"success": False, "errors": ["CHALLENGE_ERROR"]}
+
+    return {"success": True}
+
+
+@identity_mutations.field("disableTwoFactor")
+def resolve_disable_two_factor(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+    token = mutation_input["token"]
+
+    if not django_otp.match_token(request.user, token):
+        return {"success": False, "errors": ["INVALID_OTP"]}
+
+    devices = devices_for_user(request.user)
+    if devices is None:
+        return {"success": False, "errors": ["NOT_ENABLED"]}
+
+    for device in devices:
+        device.delete()
+
+    return {"success": True}
+
+
+@identity_mutations.field("enableTwoFactor")
+def resolve_enable_two_factor(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs.get("input", {})
+
+    if has_configured_two_factor(request.user):
+        return {"success": False, "errors": ["ALREADY_ENABLED"]}
+
+    if "email" in mutation_input and request.user.email != mutation_input["email"]:
+        return {"success": False, "errors": ["EMAIL_MISMATCH"]}
+
+    device = EmailDevice(
+        user=request.user, email=mutation_input.get("email", None), name="default"
+    )
+    device.save()
+
+    return {"success": True}
+
+
 identity_bindables = [
     identity_query,
     user_object,
@@ -475,3 +598,5 @@ identity_bindables = [
     organization_object,
     identity_mutations,
 ]
+
+identity_directives = {"login_required": LoginRequiredDirective}

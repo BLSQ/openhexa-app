@@ -3,11 +3,16 @@ import pathlib
 from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from django.utils.translation import gettext_lazy
 
+from config import settings
 from hexa.core.graphql import result_page
+from hexa.core.utils import send_mail
 from hexa.countries.models import Country
+from hexa.user_management.models import User
+from hexa.user_management.schema import me_permissions_object
 
-from .models import Workspace
+from .models import AlreadyExists, Workspace, WorkspaceMembership
 
 workspaces_type_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -15,13 +20,54 @@ workspaces_type_def = load_schema_from_path(
 
 workspace_object = ObjectType("Workspace")
 workspace_queries = QueryType()
-worskspace_mutations = MutationType()
+workspace_mutations = MutationType()
+
+workspace_permissions = ObjectType("WorkspacePermissions")
 
 
-@workspace_object.field("memberships")
-def resolve_workspace_memberships(_, info, **kwargs):
+@me_permissions_object.field("createWorkspace")
+def resolve_me_permissions_create_workspace(me, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.create_workspace")
+
+
+@workspace_permissions.field("update")
+def resolve_workspace_permission_update(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.update_workspace", workspace)
+
+
+@workspace_permissions.field("delete")
+def resolve_workspace_permission_delete(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.delete_workspace", workspace)
+
+
+@workspace_permissions.field("manageMembers")
+def resolve_workspace_permission_manage(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.manage_members", workspace)
+
+
+@workspace_object.field("permissions")
+def resolve_workspace_permissions(workspace: Workspace, info):
+    return workspace
+
+
+@workspace_object.field("countries")
+def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
+    if workspace.countries is not None:
+        return workspace.countries
+    return []
+
+
+@workspace_object.field("members")
+def resolve_workspace_members(workspace: Workspace, info, **kwargs):
+    qs = workspace.workspacemembership_set.all().order_by("-updated_at")
     return result_page(
-        queryset=[], page=kwargs.get("page", 1), per_page=kwargs.get("perPage", 1)
+        queryset=qs,
+        page=kwargs.get("page", 1),
+        per_page=kwargs.get("perPage", qs.count()),
     )
 
 
@@ -41,7 +87,7 @@ def resolve_workspace(_, info, **kwargs):
         return None
 
 
-@worskspace_mutations.field("createWorkspace")
+@workspace_mutations.field("createWorkspace")
 def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
@@ -63,7 +109,7 @@ def resolve_create_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("updateWorkspace")
+@workspace_mutations.field("updateWorkspace")
 def resolve_update_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -92,7 +138,7 @@ def resolve_update_workspace(_, info, **kwargs):
         return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@worskspace_mutations.field("deleteWorkspace")
+@workspace_mutations.field("deleteWorkspace")
 def resolve_delete_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -109,4 +155,62 @@ def resolve_delete_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
-workspaces_bindables = [workspace_queries, workspace_object, worskspace_mutations]
+@workspace_mutations.field("inviteWorkspaceMember")
+def resolve_create_workspace_member(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            id=input["workspaceId"]
+        )
+        user = User.objects.get(email=input["userEmail"])
+
+        workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
+            principal=request.user, workspace=workspace, user=user, role=input["role"]
+        )
+        send_mail(
+            title=gettext_lazy(f"You've been added to the workspace {workspace.name}"),
+            template_name="workspaces/mails/invite_member",
+            template_variables={
+                "workspace": workspace.name,
+                "owner": request.user.display_name,
+                "workspace_url": "{url}/workspaces/{workspace_id}".format(
+                    url=settings.NEW_FRONTEND_DOMAIN, workspace_id=workspace.id
+                ),
+            },
+            recipient_list=[user.email],
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "workspace_membership": workspace_membership,
+        }
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
+        }
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["USER_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except AlreadyExists:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+            "workspace_membership": None,
+        }
+
+
+workspaces_bindables = [
+    workspace_queries,
+    workspace_object,
+    workspace_mutations,
+    workspace_permissions,
+]

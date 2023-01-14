@@ -2,11 +2,18 @@ type Workspace {
   id: String!
   name: String!
   description: String
-  memberships(page: Int, perPage: Int): WorkspaceMembershipPage!
-  countries: [Country!]
+  members(page: Int, perPage: Int): WorkspaceMembershipPage!
+  permissions: WorkspacePermissions!
+  countries: [Country!]!
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+}
+
+type WorkspacePermissions {
+  update: Boolean!
+  delete: Boolean!
+  manageMembers: Boolean!
 }
 
 type WorkspacePage {
@@ -39,8 +46,8 @@ type WorkspaceMembershipPage {
 }
 
 extend type Query {
-  workspace(id: String!): Workspace
-  workspaces(page: Int, perPage: Int): WorkspacePage!
+  workspace(id: String!): Workspace @login_required
+  workspaces(page: Int, perPage: Int): WorkspacePage! @login_required
 }
 
 enum CreateWorkspaceError {
@@ -56,6 +63,13 @@ enum UpdateWorkspaceError {
 enum DeleteWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
+}
+
+enum InviteWorkspaceMembershipError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+  USER_NOT_FOUND
+  WORKSPACE_NOT_FOUND
 }
 
 type CreateWorkspaceResult {
@@ -75,6 +89,12 @@ type DeleteWorkspaceResult {
   errors: [DeleteWorkspaceError!]!
 }
 
+type InviteWorkspaceMemberResult{
+  success: Boolean!
+  errors: [InviteWorkspaceMembershipError!]!
+  workspaceMembership: WorkspaceMembership
+}
+
 input CreateWorkspaceInput {
   name: String!
   description: String
@@ -92,8 +112,20 @@ input DeleteWorkspaceInput {
   id: String!
 }
 
+input InviteWorkspaceMemberInput {
+  workspaceId: String!
+  userEmail: String!
+  role: WorkspaceMembershipRole!
+}
+
 extend type Mutation {
-  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
-  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
-  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @login_required
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @login_required
+  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @login_required
+  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @login_required
+}
+
+
+extend type MePermissions {
+    createWorkspace: Boolean!
 }

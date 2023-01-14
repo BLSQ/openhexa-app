@@ -1,0 +1,12 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktranslate %}Your have been added to the workspace <b>{{workspace}}</b> by {{owner}}.{% endblocktranslate %}
+
+{% translate "Please go to the following page to access it:" %}
+
+<a href="{{ workspace_url }}"> {% translate "Open the Workspace" %}</a>
+
+
+{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+
+{% endautoescape %}

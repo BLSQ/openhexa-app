@@ -93,10 +93,10 @@ enum PipelineError {
 }
 
 extend type Query {
-  pipelines(page: Int, perPage: Int): PipelinesPage!
-  pipeline(id: String, name: String): Pipeline
-  pipelineRun(id: String!): PipelineRun
-  pipelineRunCode(id: String): String
+  pipelines(page: Int, perPage: Int): PipelinesPage! @login_required
+  pipeline(id: String, name: String): Pipeline @login_required
+  pipelineRun(id: String!): PipelineRun @login_required
+  pipelineRunCode(id: String): String @login_required
 }
 
 input CreatePipelineInput {
@@ -183,12 +183,12 @@ type AddPipelineOutputResult {
 }
 
 extend type Mutation {
-  createPipeline(input: CreatePipelineInput): CreatePipelineResult!
-  deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
-  runPipeline(input: RunPipelineInput): RunPipelineResult!
-  pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
-  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
-  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
-  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
-  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
+  createPipeline(input: CreatePipelineInput): CreatePipelineResult! @login_required
+  deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @login_required
+  runPipeline(input: RunPipelineInput): RunPipelineResult! @login_required
+  pipelineToken(input: PipelineTokenInput): PipelineTokenResult! @login_required
+  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult! @login_required
+  logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult! @login_required
+  updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult! @login_required
+  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult! @login_required
 }

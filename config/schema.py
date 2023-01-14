@@ -20,7 +20,11 @@ from hexa.plugins.connector_airflow.schema import dags_bindables, dags_type_defs
 from hexa.plugins.connector_dhis2.schema import dhis2_bindables, dhis2_type_defs
 from hexa.plugins.connector_s3.schema import s3_bindables, s3_type_defs
 from hexa.tags.schema import tags_bindables, tags_type_defs
-from hexa.user_management.schema import identity_bindables, identity_type_defs
+from hexa.user_management.schema import (
+    identity_bindables,
+    identity_directives,
+    identity_type_defs,
+)
 from hexa.visualizations.schema import dashboards_bindables, dashboards_type_defs
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
@@ -62,4 +66,5 @@ schema = make_executable_schema(
         *workspaces_bindables,
         snake_case_fallback_resolvers,
     ],
+    directives=identity_directives,
 )
