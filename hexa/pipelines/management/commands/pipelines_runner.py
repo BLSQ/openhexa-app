@@ -148,7 +148,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     # download termination message and logs
     try:
         containers = {c.name: c.state for c in remote_pod.status.container_statuses}
-        termination_message = containers["papermill"].terminated.message
+        termination_message = containers[container_name].terminated.message
     except (KeyError, AttributeError, TypeError):
         logger.exception("get termination_message")
         termination_message = ""
@@ -157,7 +157,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         stdout = v1.read_namespaced_pod_log(
             name=pod.metadata.name,
             namespace=pod.metadata.namespace,
-            container="papermill",
+            container=container_name,
         )
     except Exception:
         logger.exception("get logs")

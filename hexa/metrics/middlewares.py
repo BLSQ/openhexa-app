@@ -19,6 +19,7 @@ def track_request_event(
         if (
             settings.SAVE_REQUESTS
             and request.user.is_authenticated
+            and hasattr(request.user, "id")
             and request.method in ("GET", "POST")
             and not request.META.get("PATH_INFO", "").startswith("/admin")
             and not request.META.get("HEXA_DO_NOT_TRACK", "false") == "true"
