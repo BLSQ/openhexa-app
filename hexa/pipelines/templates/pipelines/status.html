@@ -1,0 +1,104 @@
+<html>
+  <header>
+    <title>Pipeline Status</title>
+    <meta http-equiv="refresh" content="10">
+    <style>
+      body {
+        font-family: Verdana;
+        font-size: 10px;
+        padding: 30px;
+      }
+      table {
+        border-collapse: collapse;
+        font-size: 10px;
+      }
+      td, th {
+        border: 1px solid black;
+        padding: 10px;
+      }
+    </style>
+  </header>
+  <body>
+    <h1>Pipelines</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Created</th>
+          <th>Name</th>
+          <th>Entrypoint</th>
+          <th>Parameters</th>
+          <th>Config</th>
+          <th>Schedule</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pipeline in pipelines %}
+        <tr>
+          <td>{{ pipeline.id }}</td>
+          <td>{{ pipeline.created_at }}</td>
+          <td>{{ pipeline.name }}</td>
+          <td>{{ pipeline.entrypoint }}</td>
+          <td>{{ pipeline.parameters }}</td>
+          <td>{{ pipeline.config }}</td>
+          <td>{{ pipeline.schedule }}</td>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h1 style="margin-top: 50px">Pipeline Runs</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>User</th>
+          <th>PipelineName</th>
+          <th>PipelineVersion</th>
+          <th>RunId</th>
+          <th>Trigger</th>
+          <th>ExecutionTime</th>
+          <th>LastHeartbeat</th>
+          <th>Duration</th>
+          <th>Config</th>
+          <th>Messages</th>
+          <th>Outputs</th>
+          <th>Logs</th>
+          <th>State</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in pipeline_runs %}
+        <tr>
+          <td>{{ run.id }}</td>
+          <td>{{ run.user.email }}</td>
+          <td>{{ run.pipeline.name }}</td>
+          <td>{{ run.pipeline_version.number }}</td>
+          <td>{{ run.run_id }}</td>
+          <td>{{ run.trigger }}</td>
+          <td>{{ run.execution_time }}</td>
+          <td>{{ run.last_heartbeat }}</td>
+          <td>{{ run.duration }}</td>
+          <td>{{ run.config }}</td>
+          <td>
+            <ul style="padding-left: 5px">
+              {% for message in run.messages %}
+                <li>{{ message.timestamp }}, {{ message.priority }}: {{ message.message }}</li>
+              {% endfor %}
+            </ul>
+          </td>
+          <td>
+            <ul style="padding-left: 5px">
+              {% for output in run.outputs %}
+                <li>{{ output.timestamp }}, {{ output.output_type }}: {{ output.output_uri }}</li>
+              {% endfor %}
+            </ul>
+          </td>
+          <td>
+            <pre style="margin: 0px">{{ run.run_logs }}</pre>
+          </td>
+          <td>{{ run.state }}</td>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

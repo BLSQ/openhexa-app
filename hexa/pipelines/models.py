@@ -266,10 +266,25 @@ class PipelineRun(Base, WithStatus):
 
     def log_message(self, priority: str, message: str):
         self.refresh_from_db()
+        if self.messages is None:
+            self.messages = []
         self.messages.append(
             {
                 "priority": priority if priority else "INFO",
                 "message": message,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
+        self.save()
+
+    def add_output(self, output_uri: str, output_type: str):
+        self.refresh_from_db()
+        if self.outputs is None:
+            self.outputs = []
+        self.outputs.append(
+            {
+                "output_uri": output_uri,
+                "output_type": output_type,
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )

@@ -50,7 +50,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     name=slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str),
                     image_pull_policy="Always",
                     args=[
-                        "run",
+                        "cloudrun",
                         run.pipeline.entrypoint,
                     ]
                     + run.config.split(),
