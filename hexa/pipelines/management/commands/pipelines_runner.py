@@ -22,7 +22,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     from kubernetes.client import models as k8s
     from kubernetes.client.rest import ApiException
 
-    exec_time_str = timezone.now().isoformat()
+    exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
     container_name = slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str)
 
@@ -46,6 +46,31 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         ),
         spec=k8s.V1PodSpec(
             restart_policy="Never",
+            tolerations=[
+                k8s.V1Toleration(
+                    key="hub.jupyter.org_dedicated",
+                    operator="Equal",
+                    value="user",
+                    effect="NoSchedule",
+                ),
+            ],
+            affinity=k8s.V1Affinity(
+                node_affinity=k8s.V1NodeAffinity(
+                    required_during_scheduling_ignored_during_execution=k8s.V1NodeSelector(
+                        node_selector_terms=[
+                            k8s.V1NodeSelectorTerm(
+                                match_expressions=[
+                                    k8s.V1NodeSelectorRequirement(
+                                        key="hub.jupyter.org/node-purpose",
+                                        operator="In",
+                                        values=["user"],
+                                    )
+                                ],
+                            ),
+                        ],
+                    ),
+                ),
+            ),
             containers=[
                 k8s.V1Container(
                     image="blsq/openhexa-pipelines-v2",
