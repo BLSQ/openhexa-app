@@ -18,3 +18,6 @@ class PipelineRunUser(UserInterface):
 
     def has_perm(self, perm, obj=None):
         return False
+
+    def has_feature_flag(self, *args, **kwargs):
+        return False
