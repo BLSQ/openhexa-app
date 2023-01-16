@@ -42,7 +42,7 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
     if (data.deleteWorkspace.success) {
       clearCache();
       setIsSubmitting(false);
-      router.push("/dashboard");
+      router.push("/");
     }
     if (
       data.deleteWorkspace.errors.includes(

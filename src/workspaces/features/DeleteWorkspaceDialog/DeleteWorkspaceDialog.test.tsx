@@ -100,7 +100,7 @@ describe("DeleteWorkspaceDialog", () => {
     const deleteButton = screen.getByRole("button", { name: "Delete" });
     await user.click(deleteButton);
     waitFor(() => {
-      expect(pushSpy).toHaveBeenCalledWith("/dashboard");
+      expect(pushSpy).toHaveBeenCalledWith("/");
     });
   });
 });

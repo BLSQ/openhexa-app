@@ -114,7 +114,7 @@ export const getServerSideProps = createGetServerSideProps({
       return {
         redirect: {
           permanent: false,
-          destination: (ctx.query.next as string) || "/dashboard",
+          destination: (ctx.query.next as string) || "/",
         },
       };
     }

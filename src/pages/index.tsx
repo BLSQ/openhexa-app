@@ -67,9 +67,7 @@ const DashboardPage = () => {
     <Page title={t("Dashboard")}>
       <DefaultLayout.PageContent>
         <Breadcrumbs className="my-8 px-2">
-          <Breadcrumbs.Part href="/dashboard">
-            {t("Dashboard")}
-          </Breadcrumbs.Part>
+          <Breadcrumbs.Part href="/">{t("Dashboard")}</Breadcrumbs.Part>
         </Breadcrumbs>
 
         <div>

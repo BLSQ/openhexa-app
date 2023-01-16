@@ -229,7 +229,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               </Link>
             )}
             <Link
-              href="/dashboard"
+              href="/"
               noStyle
               className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
             >

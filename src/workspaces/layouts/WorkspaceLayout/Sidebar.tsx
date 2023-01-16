@@ -140,7 +140,7 @@ const Sidebar = (props: SidebarProps) => {
         <div className="mb-5 flex flex-shrink-0 flex-col items-center px-4">
           <Link
             noStyle
-            href="/dashboard"
+            href="/"
             className="relative flex h-8 flex-shrink-0 items-center"
           >
             <img

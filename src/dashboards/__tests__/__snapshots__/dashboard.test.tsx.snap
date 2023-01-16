@@ -62,7 +62,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             >
               <a
                 class=""
-                href="/dashboard"
+                href="/"
               >
                 Dashboard
               </a>

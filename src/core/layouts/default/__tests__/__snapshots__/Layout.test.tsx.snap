@@ -13,7 +13,7 @@ exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
       >
         <a
           class="relative flex h-8 flex-shrink-0 items-center"
-          href="/dashboard"
+          href="/"
         >
           <img
             alt="OpenHexa logo"

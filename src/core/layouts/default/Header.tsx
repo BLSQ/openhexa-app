@@ -32,10 +32,7 @@ const Header = () => {
           "flex h-16 items-center gap-6"
         )}
       >
-        <Link
-          href="/dashboard"
-          className="relative flex h-8 flex-shrink-0 items-center"
-        >
+        <Link href="/" className="relative flex h-8 flex-shrink-0 items-center">
           <img
             className="block h-full lg:hidden"
             src="/images/logo.svg"
