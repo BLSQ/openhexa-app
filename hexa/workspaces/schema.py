@@ -106,7 +106,7 @@ def resolve_create_workspace(_, info, **kwargs):
         )
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
-        return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @workspace_mutations.field("updateWorkspace")
@@ -133,9 +133,9 @@ def resolve_update_workspace(_, info, **kwargs):
 
         return {"success": True, "workspace": workspace, "errors": []}
     except Workspace.DoesNotExist:
-        return {"success": False, "workspace": None, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": ["NOT_FOUND"]}
     except PermissionDenied:
-        return {"success": False, "workspace": None, "errors": ["PERMISSION_DENIED"]}
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
 @workspace_mutations.field("deleteWorkspace")
@@ -204,22 +204,18 @@ def resolve_create_workspace_member(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["ALREADY_EXISTS"],
-            "workspace_membership": None,
         }
 
 
-@workspace_mutations.field("updateWorkspaceMemberRole")
-def resolver_update_workspace_member_role(_, info, **kwargs):
+@workspace_mutations.field("updateWorkspaceMember")
+def resolver_update_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            id=input["workspaceId"]
-        )
-        workspace_membership: WorkspaceMembership = (
-            workspace.workspacemembership_set.get(id=input["membershipId"])
-        )
 
+        workspace_membership = WorkspaceMembership.objects.filter_for_user(
+            request.user
+        ).get(id=input["membershipId"])
         workspace_membership.update_if_has_perm(
             principal=request.user, role=input["role"]
         )
@@ -232,19 +228,16 @@ def resolver_update_workspace_member_role(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
-            "workspace_membership": None,
         }
     except WorkspaceMembership.DoesNotExist:
         return {
             "success": False,
             "errors": ["MEMBERSHIP_NOT_FOUND"],
-            "workspace_membership": None,
         }
     except PermissionDenied:
         return {
             "success": False,
             "errors": ["PERMISSION_DENIED"],
-            "workspace_membership": None,
         }
 
 
@@ -253,13 +246,7 @@ def resolve_delete_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            id=input["workspaceId"]
-        )
-        workspace_membership: WorkspaceMembership = (
-            workspace.workspacemembership_set.get(id=input["membershipId"])
-        )
-
+        workspace_membership = WorkspaceMembership.objects.get(id=input["membershipId"])
         workspace_membership.delete_if_has_perm(principal=request.user)
 
         return {"success": True, "errors": []}
@@ -267,19 +254,16 @@ def resolve_delete_workspace_member(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
-            "workspace_membership": None,
         }
     except WorkspaceMembership.DoesNotExist:
         return {
             "success": False,
             "errors": ["MEMBERSHIP_NOT_FOUND"],
-            "workspace_membership": None,
         }
     except PermissionDenied:
         return {
             "success": False,
             "errors": ["PERMISSION_DENIED"],
-            "workspace_membership": None,
         }
 
 

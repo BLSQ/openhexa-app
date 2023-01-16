@@ -12,6 +12,7 @@ from hexa.workspaces.models import (
 class WorkspaceTest(GraphQLTestCase):
     USER_SABRINA = None
     USER_REBECCA = None
+    USER_WORKSPACE_ADMIN = None
     USER_ADMIN = None
 
     @classmethod
@@ -27,6 +28,11 @@ class WorkspaceTest(GraphQLTestCase):
         cls.USER_REBECCA = User.objects.create_user(
             "rebecca@bluesquarehub.com",
             "standardpassword",
+        )
+
+        cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
+            "workspaceroot@bluesquarehub.com",
+            "workspace",
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
@@ -47,6 +53,12 @@ class WorkspaceTest(GraphQLTestCase):
             user=cls.USER_REBECCA,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        cls.WORKSPACE_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
+            user=cls.USER_WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
     def test_create_workspace_denied(self):
@@ -169,7 +181,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_get_workspace(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             query workspaceById($id: String!) {
@@ -187,7 +199,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_get_workspaces(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             query workspaces($page:Int!, $perPage:Int!) {
@@ -206,17 +218,15 @@ class WorkspaceTest(GraphQLTestCase):
 
         self.assertEqual(
             {
-                "totalItems": 2,
-                "totalPages": 2,
-                "items": [
-                    {"id": str(self.WORKSPACE_2.id), "name": self.WORKSPACE_2.name}
-                ],
+                "totalItems": 1,
+                "totalPages": 1,
+                "items": [{"id": str(self.WORKSPACE.id), "name": self.WORKSPACE.name}],
             },
             r["data"]["workspaces"],
         )
 
     def test_update_workspace_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation updateWorkspace($input:UpdateWorkspaceInput!) {
@@ -244,7 +254,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_update_workspace(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation updateWorkspace($input:UpdateWorkspaceInput!) {
@@ -301,7 +311,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_delete_workspace(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
@@ -326,7 +336,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_member_workspace_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
@@ -345,7 +355,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": "657f282c-13ef-40e4-96d3-d3fe1d25d87e",
+                    "workspaceId": str(uuid.uuid4()),
                     "userEmail": "root@openhexa.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -361,7 +371,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_member_member_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
@@ -396,18 +406,13 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_member_workspace_already_exist(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
                 inviteWorkspaceMember(input: $input) {
                     success
                     errors
-                    workspaceMembership {
-                        user {
-                          email
-                        }
-                    }
                 }
             }
 
@@ -424,47 +429,12 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "success": False,
                 "errors": ["ALREADY_EXISTS"],
-                "workspaceMembership": None,
-            },
-            r["data"]["inviteWorkspaceMember"],
-        )
-
-    def test_create_workspace_member_workspace(self):
-        self.client.force_login(self.USER_ADMIN)
-        r = self.run_query(
-            """
-            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
-                inviteWorkspaceMember(input: $input) {
-                    success
-                    errors
-                    workspaceMembership {
-                        user {
-                          email
-                        }
-                    }
-                }
-            }
-
-            """,
-            {
-                "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
-                    "userEmail": self.USER_SABRINA.email,
-                    "role": WorkspaceMembershipRole.EDITOR,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "workspaceMembership": {"user": {"email": self.USER_SABRINA.email}},
             },
             r["data"]["inviteWorkspaceMember"],
         )
 
     def test_get_workspace_members(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             query workspaceById($id: String!) {
@@ -485,6 +455,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "items": [
+                    {"user": {"id": str(self.USER_WORKSPACE_ADMIN.id)}},
                     {"user": {"id": str(self.USER_REBECCA.id)}},
                     {"user": {"id": str(self.USER_ADMIN.id)}},
                 ],
@@ -493,7 +464,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_delete_workspace_member_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
@@ -506,7 +477,6 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
                     "membershipId": str(uuid.uuid4()),
                 }
             },
@@ -515,33 +485,6 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "success": False,
                 "errors": ["MEMBERSHIP_NOT_FOUND"],
-            },
-            r["data"]["deleteWorkspaceMember"],
-        )
-
-    def test_delete_workspace_member_workspace_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
-        r = self.run_query(
-            """
-            mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
-                deleteWorkspaceMember(input: $input) {
-                    success
-                    errors
-                }
-            }
-
-            """,
-            {
-                "input": {
-                    "workspaceId": str(uuid.uuid4()),
-                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["WORKSPACE_NOT_FOUND"],
             },
             r["data"]["deleteWorkspaceMember"],
         )
@@ -560,7 +503,6 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
                     "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
                 }
             },
@@ -574,7 +516,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_delete_workspace_member(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
             mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
@@ -587,7 +529,6 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
                     "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
                 }
             },
@@ -601,11 +542,11 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_update_workspace_member_role_membership_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
-                updateWorkspaceMemberRole(input: $input) {
+            mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
+                updateWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -618,7 +559,6 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
                     "membershipId": str(uuid.uuid4()),
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -630,48 +570,15 @@ class WorkspaceTest(GraphQLTestCase):
                 "errors": ["MEMBERSHIP_NOT_FOUND"],
                 "workspaceMembership": None,
             },
-            r["data"]["updateWorkspaceMemberRole"],
-        )
-
-    def test_update_workspace_member_role_workspace_not_found(self):
-        self.client.force_login(self.USER_ADMIN)
-        r = self.run_query(
-            """
-            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
-                updateWorkspaceMemberRole(input: $input) {
-                    success
-                    errors
-                    workspaceMembership {
-                        id
-                        role
-                    }
-                }
-            }
-
-            """,
-            {
-                "input": {
-                    "workspaceId": str(uuid.uuid4()),
-                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
-                    "role": WorkspaceMembershipRole.EDITOR,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["WORKSPACE_NOT_FOUND"],
-                "workspaceMembership": None,
-            },
-            r["data"]["updateWorkspaceMemberRole"],
+            r["data"]["updateWorkspaceMember"],
         )
 
     def test_update_workspace_member_role_permission_denied(self):
         self.client.force_login(self.USER_REBECCA)
         r = self.run_query(
             """
-            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
-                updateWorkspaceMemberRole(input: $input) {
+            mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
+                updateWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -684,7 +591,6 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
                     "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -696,15 +602,15 @@ class WorkspaceTest(GraphQLTestCase):
                 "errors": ["PERMISSION_DENIED"],
                 "workspaceMembership": None,
             },
-            r["data"]["updateWorkspaceMemberRole"],
+            r["data"]["updateWorkspaceMember"],
         )
 
     def test_update_workspace_member_role(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            mutation updateWorkspaceMemberRole($input: UpdateWorkspaceMemberRoleInput!) {
-                updateWorkspaceMemberRole(input: $input) {
+            mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
+                updateWorkspaceMember(input: $input) {
                     success
                     errors
                     workspaceMembership {
@@ -717,8 +623,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
-                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP_2.id),
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
             },
@@ -728,9 +633,9 @@ class WorkspaceTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "workspaceMembership": {
-                    "id": str(self.WORKSPACE_MEMBERSHIP.id),
+                    "id": str(self.WORKSPACE_MEMBERSHIP_2.id),
                     "role": WorkspaceMembershipRole.EDITOR,
                 },
             },
-            r["data"]["updateWorkspaceMemberRole"],
+            r["data"]["updateWorkspaceMember"],
         )
