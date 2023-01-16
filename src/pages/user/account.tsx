@@ -105,7 +105,6 @@ export const getServerSideProps = createGetServerSideProps({
     const { data } = await client.query<AccountPageQuery>({
       query: AccountPageDocument,
     });
-
     if (!data.me.user) {
       return {
         notFound: true,

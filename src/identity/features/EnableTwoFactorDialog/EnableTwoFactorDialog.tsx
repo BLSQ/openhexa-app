@@ -21,7 +21,6 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
   const onClick = async () => {
     try {
       await enableTwoFactor();
-      onClose();
       router.reload();
     } catch (err) {}
   };

@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import { enableTwoFactor, generateChallenge } from "identity/helpers/auth";
+import router from "next/router";
 
 jest.mock("identity/helpers/auth", () => ({
   __esModule: true,
@@ -34,6 +35,7 @@ describe("EnableTwoFactorDialog", () => {
   it("enables the user on submit", async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
+    const reload = jest.spyOn(router, "reload");
     const { container } = render(
       <TestApp
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
@@ -46,7 +48,7 @@ describe("EnableTwoFactorDialog", () => {
     await user.click(await screen.findByText("Enable", { selector: "button" }));
 
     expect(enableTwoFactorMock).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+    expect(reload).toHaveBeenCalled();
   });
 
   it("does nothing on click on 'cancel'", async () => {

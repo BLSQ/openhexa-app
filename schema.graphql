@@ -1,4 +1,4 @@
-directive @login_required on FIELD_DEFINITION
+directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
 """Exposes a URL that specifies the behaviour of this scalar."""
 directive @specifiedBy(
