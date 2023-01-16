@@ -224,11 +224,6 @@ def resolver_update_workspace_member(_, info, **kwargs):
             "errors": [],
             "workspace_membership": workspace_membership,
         }
-    except Workspace.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-        }
     except WorkspaceMembership.DoesNotExist:
         return {
             "success": False,
@@ -250,11 +245,6 @@ def resolve_delete_workspace_member(_, info, **kwargs):
         workspace_membership.delete_if_has_perm(principal=request.user)
 
         return {"success": True, "errors": []}
-    except Workspace.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-        }
     except WorkspaceMembership.DoesNotExist:
         return {
             "success": False,

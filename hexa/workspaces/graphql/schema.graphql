@@ -159,5 +159,5 @@ extend type Mutation {
 
 
 extend type MePermissions {
-    createWorkspace: Boolean!
+  createWorkspace: Boolean!
 }
