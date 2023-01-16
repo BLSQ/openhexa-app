@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.0](https://github.com/BLSQ/openhexa-frontend/compare/0.14.1...0.15.0) (2023-01-16)
+
+
+### Features
+
+* **2FA:** Setup two factor authentication on the frontend ([876fae7](https://github.com/BLSQ/openhexa-frontend/commit/876fae72cdeaab49a8e34e48cf3e51caa59594ec))
+* **2FA:** Setup two factor authentication on the frontend ([876fae7](https://github.com/BLSQ/openhexa-frontend/commit/876fae72cdeaab49a8e34e48cf3e51caa59594ec))
+* **Workspaces:** Invite member, update workspace ([aa080b7](https://github.com/BLSQ/openhexa-frontend/commit/aa080b780f53ccd1c19521eef4c7c1d9ca978d5f))
+
+
+### Bug Fixes
+
+* **Header:** Auto-close menu on header on click ([6b8cead](https://github.com/BLSQ/openhexa-frontend/commit/6b8ceadcd29cba91b586e67f70d42c183976a5e4))
+
 ## [0.14.1](https://github.com/BLSQ/openhexa-frontend/compare/0.14.0...0.14.1) (2022-12-15)
 
 
