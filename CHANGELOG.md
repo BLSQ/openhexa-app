@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/BLSQ/openhexa-frontend/compare/0.15.0...0.15.1) (2023-01-16)
+
+
+### Bug Fixes
+
+* **2FA:** Fix send new token on login page ([#170](https://github.com/BLSQ/openhexa-frontend/issues/170)) ([fb77a66](https://github.com/BLSQ/openhexa-frontend/commit/fb77a667e2f7a69ee58cc565650a5c8793c938a8))
+
 ## [0.15.0](https://github.com/BLSQ/openhexa-frontend/compare/0.14.1...0.15.0) (2023-01-16)
 
 
