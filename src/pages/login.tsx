@@ -77,6 +77,25 @@ const LoginPage: NextPageWithLayout = () => {
     },
   });
 
+  const sendNewCode = () => {
+    form.setFieldValue("token", null);
+    if (form.formData.email && form.formData.password) {
+      doLogin({
+        variables: {
+          input: {
+            email: form.formData.email,
+            password: form.formData.password,
+          },
+        },
+      });
+    }
+  };
+
+  const onBack = () => {
+    setOTPForm(false);
+    form.setFieldValue("token", null);
+  };
+
   return (
     <Page>
       <form
@@ -132,7 +151,7 @@ const LoginPage: NextPageWithLayout = () => {
                 <button
                   type="button"
                   className="text-blue-600"
-                  onClick={() => generateChallenge()}
+                  onClick={sendNewCode}
                 >
                   {t("Send a new code")}
                 </button>
@@ -208,7 +227,7 @@ const LoginPage: NextPageWithLayout = () => {
               type="reset"
               size="sm"
               className="w-full"
-              onClick={() => setOTPForm(false)}
+              onClick={onBack}
             >
               {t("Back")}
             </Button>
