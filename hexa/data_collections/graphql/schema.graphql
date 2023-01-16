@@ -76,18 +76,18 @@ enum DeleteCollectionError {
     INVALID
 }
 extend type Query {
-    collection(id: String!): Collection @login_required
-    collections(page: Int, perPage: Int): CollectionPage! @login_required
+    collection(id: String!): Collection @loginRequired
+    collections(page: Int, perPage: Int): CollectionPage! @loginRequired
 }
 
 extend union SearchResultObject = Collection
 
 extend type Mutation {
-    createCollection(input: CreateCollectionInput!): CreateCollectionResult! @login_required
-    updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult! @login_required
-    deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult! @login_required
-    createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult! @login_required
-    deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult! @login_required
+    createCollection(input: CreateCollectionInput!): CreateCollectionResult! @loginRequired
+    updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult! @loginRequired
+    deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult! @loginRequired
+    createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult! @loginRequired
+    deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult! @loginRequired
 }
 
 input CreateCollectionElementInput {
