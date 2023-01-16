@@ -30,38 +30,43 @@ function BlockSection(props: BlockSectionProps) {
     loading,
   } = props;
 
+  const renderHeader = (open: boolean) => {
+    const header =
+      typeof title === "function" ? (
+        title({ open })
+      ) : (
+        <>
+          <h4 className="font-medium">{title}</h4>
+          <div className="flex flex-1 flex-shrink items-center justify-end">
+            {loading && <Spinner size="sm" />}
+            {!loading && collapsible && (
+              <button title={open ? t("Hide") : t("Show")}>
+                {open ? (
+                  <ChevronDownIcon className="h-5 w-5" />
+                ) : (
+                  <ChevronRightIcon className="h-5 w-5" />
+                )}
+              </button>
+            )}
+          </div>
+        </>
+      );
+
+    return collapsible ? (
+      <Disclosure.Button as="div" className="-my-7 flex items-center py-7">
+        {header}
+      </Disclosure.Button>
+    ) : (
+      <div className="-my-7 flex items-center py-7">{header}</div>
+    );
+  };
+
   return (
     <BlockContent className={className}>
       <Disclosure defaultOpen={defaultOpen || !collapsible}>
         {({ open }) => (
           <>
-            {title && (
-              <Disclosure.Button
-                as="div"
-                className="-my-7 flex items-center py-7"
-              >
-                {typeof title === "function" ? (
-                  title({ open })
-                ) : (
-                  <>
-                    <h4 className="font-medium">{title}</h4>
-                    <div className="flex flex-1 flex-shrink items-center justify-end">
-                      {loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        <button title={open ? t("Hide") : t("Show")}>
-                          {open ? (
-                            <ChevronDownIcon className="h-5 w-5" />
-                          ) : (
-                            <ChevronRightIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
-              </Disclosure.Button>
-            )}
+            {title && renderHeader(open)}
             {children && (
               <Transition
                 show={open}

@@ -374,6 +374,17 @@ export enum ActivityStatus {
   Unknown = 'UNKNOWN'
 }
 
+export type AddPipelineOutputInput = {
+  output_type: Scalars['String'];
+  output_uri: Scalars['String'];
+};
+
+export type AddPipelineOutputResult = {
+  __typename?: 'AddPipelineOutputResult';
+  errors: Array<PipelineError>;
+  success: Scalars['Boolean'];
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -1012,6 +1023,36 @@ export type DenyAccessmodAccessRequestResult = {
   success: Scalars['Boolean'];
 };
 
+export enum DisableTwoFactorError {
+  InvalidOtp = 'INVALID_OTP',
+  NotEnabled = 'NOT_ENABLED'
+}
+
+export type DisableTwoFactorInput = {
+  token: Scalars['String'];
+};
+
+export type DisableTwoFactorResult = {
+  __typename?: 'DisableTwoFactorResult';
+  errors?: Maybe<Array<DisableTwoFactorError>>;
+  success: Scalars['Boolean'];
+};
+
+export enum EnableTwoFactorError {
+  AlreadyEnabled = 'ALREADY_ENABLED',
+  EmailMismatch = 'EMAIL_MISMATCH'
+}
+
+export type EnableTwoFactorInput = {
+  email?: InputMaybe<Scalars['String']>;
+};
+
+export type EnableTwoFactorResult = {
+  __typename?: 'EnableTwoFactorResult';
+  errors?: Maybe<Array<EnableTwoFactorError>>;
+  success: Scalars['Boolean'];
+};
+
 export type ExternalDashboard = {
   __typename?: 'ExternalDashboard';
   countries: Array<Country>;
@@ -1037,6 +1078,17 @@ export type FeatureFlag = {
   __typename?: 'FeatureFlag';
   code: Scalars['String'];
   config: Scalars['JSON'];
+};
+
+export enum GenerateChallengeError {
+  ChallengeError = 'CHALLENGE_ERROR',
+  DeviceNotFound = 'DEVICE_NOT_FOUND'
+}
+
+export type GenerateChallengeResult = {
+  __typename?: 'GenerateChallengeResult';
+  errors?: Maybe<Array<GenerateChallengeError>>;
+  success: Scalars['Boolean'];
 };
 
 export type InviteWorkspaceMemberInput = {
@@ -1085,14 +1137,21 @@ export type LogPipelineMessageResult = {
   success: Scalars['Boolean'];
 };
 
+export enum LoginError {
+  InvalidCredentials = 'INVALID_CREDENTIALS',
+  InvalidOtp = 'INVALID_OTP',
+  OtpRequired = 'OTP_REQUIRED'
+}
+
 export type LoginInput = {
   email: Scalars['String'];
   password: Scalars['String'];
+  token?: InputMaybe<Scalars['String']>;
 };
 
 export type LoginResult = {
   __typename?: 'LoginResult';
-  me?: Maybe<Me>;
+  errors?: Maybe<Array<LoginError>>;
   success: Scalars['Boolean'];
 };
 
@@ -1106,6 +1165,7 @@ export type Me = {
   /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<MeAuthorizedActions>;
   features: Array<FeatureFlag>;
+  hasTwoFactorEnabled: Scalars['Boolean'];
   permissions: MePermissions;
   user?: Maybe<User>;
 };
@@ -1176,6 +1236,7 @@ export enum MessagePriority {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addPipelineOutput: AddPipelineOutputResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
@@ -1200,6 +1261,9 @@ export type Mutation = {
   deleteTeam: DeleteTeamResult;
   deleteWorkspace: DeleteWorkspaceResult;
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
+  disableTwoFactor: DisableTwoFactorResult;
+  enableTwoFactor: EnableTwoFactorResult;
+  generateChallenge: GenerateChallengeResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   logPipelineMessage: LogPipelineMessageResult;
@@ -1229,6 +1293,12 @@ export type Mutation = {
   updateTeam: UpdateTeamResult;
   updateWorkspace: UpdateWorkspaceResult;
   uploadPipeline: UploadPipelineResult;
+  verifyToken: VerifyTokenResult;
+};
+
+
+export type MutationAddPipelineOutputArgs = {
+  input?: InputMaybe<AddPipelineOutputInput>;
 };
 
 
@@ -1349,6 +1419,16 @@ export type MutationDeleteWorkspaceArgs = {
 
 export type MutationDenyAccessmodAccessRequestArgs = {
   input: DenyAccessmodAccessRequestInput;
+};
+
+
+export type MutationDisableTwoFactorArgs = {
+  input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationEnableTwoFactorArgs = {
+  input?: InputMaybe<EnableTwoFactorInput>;
 };
 
 
@@ -1489,6 +1569,11 @@ export type MutationUpdateWorkspaceArgs = {
 
 export type MutationUploadPipelineArgs = {
   input?: InputMaybe<UploadPipelineInput>;
+};
+
+
+export type MutationVerifyTokenArgs = {
+  input: VerifyTokenInput;
 };
 
 export type Organization = {
@@ -2322,6 +2407,20 @@ export type User = {
   id: Scalars['String'];
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName?: Maybe<Scalars['String']>;
+};
+
+export enum VerifyTokenError {
+  InvalidOtpOrDevice = 'INVALID_OTP_OR_DEVICE'
+}
+
+export type VerifyTokenInput = {
+  token: Scalars['String'];
+};
+
+export type VerifyTokenResult = {
+  __typename?: 'VerifyTokenResult';
+  errors?: Maybe<Array<VerifyTokenError>>;
+  success: Scalars['Boolean'];
 };
 
 export type WhoBoundary = {

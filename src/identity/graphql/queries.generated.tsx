@@ -7,17 +7,18 @@ const defaultOptions = {} as const;
 export type GetUserQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean, createWorkspace: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean, createWorkspace: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
 
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
 
 
 export const GetUserDocument = gql`
     query GetUser {
   me {
+    hasTwoFactorEnabled
     permissions {
       adminPanel
       superUser
@@ -71,6 +72,7 @@ export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVa
 export const AccountPageDocument = gql`
     query AccountPage {
   me {
+    hasTwoFactorEnabled
     user {
       firstName
       lastName

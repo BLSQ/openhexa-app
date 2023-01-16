@@ -11,8 +11,43 @@ mutation SetPassword($input: SetPasswordInput!) {
   }
 }
 
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation Logout {
   logout {
     success
+  }
+}
+
+mutation GenerateChallenge {
+  generateChallenge {
+    success
+    errors
+  }
+}
+
+mutation VerifyToken($input: VerifyTokenInput!) {
+  verifyToken(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation DisableTwoFactor($input: DisableTwoFactorInput!) {
+  disableTwoFactor(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation EnableTwoFactor {
+  enableTwoFactor {
+    success
+    errors
   }
 }

@@ -1,3 +1,5 @@
+directive @login_required on FIELD_DEFINITION
+
 """Exposes a URL that specifies the behaviour of this scalar."""
 directive @specifiedBy(
   """The URL that specifies the behaviour of this scalar."""
@@ -332,6 +334,16 @@ enum ActivityStatus {
   RUNNING
   ERROR
   UNKNOWN
+}
+
+input AddPipelineOutputInput {
+  output_type: String!
+  output_uri: String!
+}
+
+type AddPipelineOutputResult {
+  success: Boolean!
+  errors: [PipelineError!]!
 }
 
 enum ApproveAccessmodAccessRequestError {
@@ -916,6 +928,34 @@ type DHIS2Instance {
   url: String
 }
 
+enum DisableTwoFactorError {
+  INVALID_OTP
+  NOT_ENABLED
+}
+
+input DisableTwoFactorInput {
+  token: String!
+}
+
+type DisableTwoFactorResult {
+  success: Boolean!
+  errors: [DisableTwoFactorError!]
+}
+
+enum EnableTwoFactorError {
+  ALREADY_ENABLED
+  EMAIL_MISMATCH
+}
+
+input EnableTwoFactorInput {
+  email: String
+}
+
+type EnableTwoFactorResult {
+  success: Boolean!
+  errors: [EnableTwoFactorError!]
+}
+
 type ExternalDashboard {
   id: String!
   name: String!
@@ -938,6 +978,16 @@ type ExternalDashboardPage {
 type FeatureFlag {
   code: String!
   config: JSON!
+}
+
+enum GenerateChallengeError {
+  DEVICE_NOT_FOUND
+  CHALLENGE_ERROR
+}
+
+type GenerateChallengeResult {
+  success: Boolean!
+  errors: [GenerateChallengeError!]
 }
 
 input InviteWorkspaceMemberInput {
@@ -975,14 +1025,21 @@ type LaunchAccessmodAnalysisResult {
   errors: [LaunchAccessmodAnalysisError!]!
 }
 
+enum LoginError {
+  OTP_REQUIRED
+  INVALID_CREDENTIALS
+  INVALID_OTP
+}
+
 input LoginInput {
   email: String!
   password: String!
+  token: String
 }
 
 type LoginResult {
   success: Boolean!
-  me: Me
+  errors: [LoginError!]
 }
 
 type LogoutResult {
@@ -1004,6 +1061,7 @@ type Me {
   features: [FeatureFlag!]!
   authorizedActions: [MeAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: MePermissions!
+  hasTwoFactorEnabled: Boolean!
 }
 
 enum MeAuthorizedActions {
@@ -1072,6 +1130,10 @@ type Mutation {
   logout: LogoutResult!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
   setPassword(input: SetPasswordInput!): SetPasswordResult!
+  verifyToken(input: VerifyTokenInput!): VerifyTokenResult!
+  generateChallenge: GenerateChallengeResult!
+  enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
+  disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
   createTeam(input: CreateTeamInput!): CreateTeamResult!
   updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
   deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
@@ -1117,6 +1179,7 @@ type Mutation {
   uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
+  addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
@@ -1740,6 +1803,19 @@ type User {
   avatar: Avatar!
   dateJoined: DateTime!
   lastLogin: DateTime
+}
+
+enum VerifyTokenError {
+  INVALID_OTP_OR_DEVICE
+}
+
+input VerifyTokenInput {
+  token: String!
+}
+
+type VerifyTokenResult {
+  success: Boolean!
+  errors: [VerifyTokenError!]
 }
 
 type WHOBoundary {

@@ -1,160 +1,152 @@
-import Input from "core/components/forms/Input";
-import Spinner from "core/components/Spinner";
-import Button from "core/components/Button";
-import { useLoginMutation } from "core/graphql/mutations.generated";
-import { createGetServerSideProps } from "core/helpers/page";
-import { NextPageWithLayout } from "core/helpers/types";
-import useForm from "core/hooks/useForm";
-import Image from "next/legacy/image";
-import Link from "core/components/Link";
-import { useRouter } from "next/router";
-import { ReactElement } from "react";
+import {
+  BeakerIcon,
+  BookOpenIcon,
+  CircleStackIcon,
+} from "@heroicons/react/24/outline";
+import clsx from "clsx";
+import Badge from "core/components/Badge";
+import Block from "core/components/Block";
+import Breadcrumbs from "core/components/Breadcrumbs";
+import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
+import DateColumn from "core/components/DataGrid/DateColumn";
 import Page from "core/components/Page";
+import Stats from "core/components/Stats";
+import Title from "core/components/Title";
+import { createGetServerSideProps } from "core/helpers/page";
+import DefaultLayout from "core/layouts/default";
+import {
+  DashboardPageDocument,
+  useDashboardPageQuery,
+} from "dashboards/graphql/queries.generated";
+import { ActivityStatus } from "graphql-types";
 import { useTranslation } from "next-i18next";
+import { useMemo } from "react";
 
-interface LoginForm {
-  email: string;
-  password: string;
-}
-
-const LoginPage: NextPageWithLayout = () => {
-  const router = useRouter();
-  const [doLogin] = useLoginMutation();
+const ActivityStatusBadge = ({ status }: { status: ActivityStatus }) => {
   const { t } = useTranslation();
+  let className = useMemo(() => {
+    switch (status) {
+      case ActivityStatus.Error:
+        return "bg-red-100 text-red-500";
+      case ActivityStatus.Pending:
+        return "bg-gray-100 text-gray-600";
+      case ActivityStatus.Running:
+        return "bg-sky-100 text-sky-600";
+      case ActivityStatus.Success:
+        return "bg-emerald-50 text-emerald-500";
+    }
+  }, [status]);
 
-  const form = useForm<LoginForm>({
-    onSubmit: async (values) => {
-      const { data } = await doLogin({
-        variables: {
-          input: { email: values.email, password: values.password },
-        },
-      });
-      if (data?.login.success) {
-        await router.push((router.query.next as string) ?? "/dashboard");
-      } else {
-        throw new Error(t("Wrong email address and/or password."));
-      }
-    },
-    initialState: {},
-    validate: (values) => {
-      const errors = {} as any;
-      if (!values.email) {
-        errors.email = t("Please enter an email address");
-      }
-      if (!values.password) {
-        errors.password = t("Enter your password");
-      }
-      return errors;
-    },
-  });
+  const label = useMemo(() => {
+    switch (status) {
+      case ActivityStatus.Error:
+        return t("Error");
+      case ActivityStatus.Pending:
+        return t("Pending");
+      case ActivityStatus.Running:
+        return t("Running");
+      case ActivityStatus.Success:
+        return t("Succeeded");
+    }
+  }, [status, t]);
 
   return (
-    <Page>
-      <div className="flex min-h-screen items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <form
-          className="max-w-md flex-1 space-y-6"
-          onSubmit={form.handleSubmit}
-        >
-          <div>
-            <div className="relative h-16 w-auto">
-              <Image
-                priority
-                src="/images/logo.svg"
-                layout="fill"
-                className="mx-auto block h-16 w-auto"
-                alt="OpenHexa logo"
+    <Badge className={clsx(className, "flex items-center")}>{label}</Badge>
+  );
+};
+
+const DashboardPage = () => {
+  const { t } = useTranslation();
+  const { data } = useDashboardPageQuery();
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <Page title={t("Dashboard")}>
+      <DefaultLayout.PageContent>
+        <Breadcrumbs className="my-8 px-2">
+          <Breadcrumbs.Part href="/dashboard">
+            {t("Dashboard")}
+          </Breadcrumbs.Part>
+        </Breadcrumbs>
+
+        <div>
+          <Title level={2} className="text-gray-700">
+            {t("Overview")}
+          </Title>
+
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3">
+            <Stats
+              count={data.catalog.totalItems}
+              url="/catalog"
+              label={t("Datasources")}
+              icon={<CircleStackIcon className="h-8 w-8" />}
+            />
+
+            <Stats
+              count={data.totalNotebooks}
+              url="/notebooks"
+              label={t("Notebooks")}
+              icon={<BookOpenIcon className="h-8 w-8" />}
+            />
+
+            <Stats
+              count={data.dags.totalItems}
+              url="/pipelines"
+              label={t("Pipelines")}
+              icon={<BeakerIcon className="h-8 w-8" />}
+            />
+          </div>
+        </div>
+
+        <div className="mt-12">
+          <Title level={2} className="text-gray-700">
+            {t("Last Activity")}
+          </Title>
+
+          <Block>
+            <DataGrid data={data.lastActivities} fixedLayout={false}>
+              <BaseColumn
+                id="description"
+                label={t("Name")}
+                accessor="description"
+                className="max-w-[250px] text-sm text-gray-900 lg:max-w-[400px]"
+              >
+                {(value) => (
+                  <div
+                    className="truncate"
+                    dangerouslySetInnerHTML={{ __html: value }}
+                  ></div>
+                )}
+              </BaseColumn>
+
+              <BaseColumn id="status" label={t("Status")}>
+                {(item) => <ActivityStatusBadge status={item.status} />}
+              </BaseColumn>
+              <DateColumn label={t("Date")} relative accessor="occurredAt" />
+              <ChevronLinkColumn
+                accessor="url"
+                url={(value: any) => ({
+                  pathname: value,
+                })}
               />
-            </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              {t("Sign in")}
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              {t("No account yet?")}&nbsp;
-              <a
-                href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
-                className="font-medium text-blue-600 hover:text-blue-500"
-              >
-                {t("Contact us!")}
-              </a>
-            </p>
-          </div>
-          <div className="-space-y-px pt-2">
-            <label className="sr-only" htmlFor="email">
-              {t("Email address")}
-            </label>
-            <Input
-              name="email"
-              data-testid="email"
-              value={form.formData.email}
-              required
-              type="text"
-              className="rounded-b-none"
-              onChange={form.handleInputChange}
-              autoComplete="email"
-              placeholder={t("Email address")}
-              disabled={form.isSubmitting}
-              error={form.touched.email && form.errors.email}
-            />
-            <label className="sr-only" htmlFor="password">
-              {t("Password")}
-            </label>
-            <Input
-              name="password"
-              value={form.formData.password}
-              required
-              data-testid="password"
-              type="password"
-              placeholder={t("Password")}
-              onChange={form.handleInputChange}
-              autoComplete="current-password"
-              disabled={form.isSubmitting}
-              error={form.touched.password && form.errors.password}
-              className="rounded-t-none"
-            />
-            {form.submitError && (
-              <p data-testid="error" className={"my-2 text-sm text-red-600"}>
-                {form.submitError}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center justify-end">
-            <div className="text-sm">
-              <Link
-                href="/auth/password_reset/"
-                customStyle="text-blue-600 hover:text-blue-500"
-              >
-                {t("Forgot your password?")}
-              </Link>
-            </div>
-          </div>
-          <Button
-            data-testid="submit"
-            disabled={form.isSubmitting || !form.isValid}
-            type="submit"
-            className="w-full"
-          >
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Sign in")}
-          </Button>
-        </form>
-      </div>
+            </DataGrid>
+          </Block>
+        </div>
+      </DefaultLayout.PageContent>
     </Page>
   );
 };
 
-LoginPage.getLayout = (page: ReactElement) => page;
-
 export const getServerSideProps = createGetServerSideProps({
-  getServerSideProps: (ctx) => {
-    if (ctx.me?.user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: (ctx.query.next as string) || "/dashboard",
-        },
-      };
-    }
+  requireAuth: true,
+  getServerSideProps: async (ctx, client) => {
+    await client.query({
+      query: DashboardPageDocument,
+    });
   },
 });
 
-export default LoginPage;
+export default DashboardPage;

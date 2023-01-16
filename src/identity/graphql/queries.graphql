@@ -1,5 +1,6 @@
 query GetUser {
   me {
+    hasTwoFactorEnabled
     permissions {
       adminPanel
       superUser
@@ -25,6 +26,7 @@ query GetUser {
 
 query AccountPage {
   me {
+    hasTwoFactorEnabled
     user {
       firstName
       lastName

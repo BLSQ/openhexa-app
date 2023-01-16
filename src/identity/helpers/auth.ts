@@ -1,5 +1,14 @@
 import { getApolloClient } from "core/helpers/apollo";
 import {
+  DisableTwoFactorDocument,
+  DisableTwoFactorMutation,
+  DisableTwoFactorMutationVariables,
+  EnableTwoFactorDocument,
+  EnableTwoFactorMutation,
+  GenerateChallengeDocument,
+  GenerateChallengeMutation,
+} from "identity/graphql/mutations.generated";
+import {
   GetUserDocument,
   GetUserQuery,
 } from "identity/graphql/queries.generated";
@@ -11,12 +20,45 @@ export async function getMe(ctx?: GetServerSidePropsContext) {
   const payload = await client.query<GetUserQuery>({
     query: GetUserDocument,
   });
-
-  const me = payload?.data.me;
+  const me = payload?.data.me ?? {};
   if (!me) return null;
-  return me;
+  return { ...me };
 }
 
 export async function logout() {
   return Router.push("/auth/logout");
+}
+
+export async function generateChallenge(ctx?: GetServerSidePropsContext) {
+  const client = getApolloClient({ headers: ctx?.req.headers });
+
+  const payload = await client.mutate<GenerateChallengeMutation>({
+    mutation: GenerateChallengeDocument,
+  });
+
+  return payload.data?.generateChallenge.success ?? false;
+}
+
+export async function disableTwoFactor(token: string) {
+  const client = getApolloClient();
+
+  const payload = await client.mutate<
+    DisableTwoFactorMutation,
+    DisableTwoFactorMutationVariables
+  >({
+    mutation: DisableTwoFactorDocument,
+    variables: { input: { token } },
+  });
+
+  return payload.data?.disableTwoFactor.success ?? false;
+}
+
+export async function enableTwoFactor() {
+  const client = getApolloClient();
+
+  const payload = await client.mutate<EnableTwoFactorMutation>({
+    mutation: EnableTwoFactorDocument,
+  });
+
+  return payload.data?.enableTwoFactor.success ?? false;
 }

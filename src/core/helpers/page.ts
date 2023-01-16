@@ -1,5 +1,5 @@
-import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { getMe } from "identity/helpers/auth";
+import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { addApolloState, CustomApolloClient, getApolloClient } from "./apollo";
 
@@ -34,40 +34,42 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   return async function (
     ctx: GetServerSidePropsContextWithUser
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
-    const me = await getMe(ctx);
-    ctx.me = me;
-    const res = {
-      props: {
-        me,
-        // Replace ctx.locale by user.lang when implemented
-        ...(await serverSideTranslations(ctx.locale ?? "en", i18n)),
-      },
-    };
+    const translations = await serverSideTranslations("en", i18n);
 
-    if (requireAuth && !res.props.me?.user) {
+    let result = {
+      props: {
+        ...translations,
+      },
+    } as any;
+    ctx.me = await getMe(ctx);
+
+    if (!ctx.me?.user && requireAuth) {
       return {
-        ...res,
         redirect: {
-          destination: `/?next=${encodeURIComponent(ctx.resolvedUrl)}`,
           permanent: false,
+          destination: `/login?next=${encodeURIComponent(ctx.resolvedUrl)}`,
         },
       };
     }
+    result.props = {
+      ...result.props,
+      me: ctx.me,
+    };
 
     if (getServerSideProps) {
       const client = getApolloClient(ctx.req);
       const nextRes = await getServerSideProps(ctx, client);
       return {
-        ...res,
+        ...result,
         ...(nextRes ?? {}),
         props: {
-          ...res.props,
+          ...(result.props ?? {}),
           ...addApolloState(client).props,
           ...(nextRes && "props" in nextRes ? nextRes.props : {}),
         },
       };
     }
 
-    return res;
+    return result;
   };
 }

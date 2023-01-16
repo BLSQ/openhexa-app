@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import { DashboardPageDocument } from "dashboards/graphql/queries.generated";
 import { DateTime, Settings } from "luxon";
-import DashboardPage from "pages/dashboard";
+import DashboardPage from "pages";
 
 describe("Dashboard", () => {
   it("renders the dashboards' page", async () => {

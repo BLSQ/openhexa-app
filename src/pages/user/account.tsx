@@ -1,36 +1,44 @@
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
+import Block from "core/components/Block";
 import Button from "core/components/Button";
-import DataCard from "core/components/DataCard";
-import DateProperty from "core/components/DataCard/DateProperty";
-import TextProperty from "core/components/DataCard/TextProperty";
-import { DescriptionListDisplayMode } from "core/components/DescriptionList";
+import DescriptionList, {
+  DescriptionListDisplayMode,
+} from "core/components/DescriptionList";
 import Page from "core/components/Page";
-import DefaultLayout from "core/layouts/default";
+import Time from "core/components/Time";
 import User from "core/features/User";
-import { User_UserFragment } from "core/features/User/User.generated";
 import { createGetServerSideProps } from "core/helpers/page";
+import useToggle from "core/hooks/useToggle";
+import DefaultLayout from "core/layouts/default";
+import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
+import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
 import {
   AccountPageDocument,
   AccountPageQuery,
   useAccountPageQuery,
 } from "identity/graphql/queries.generated";
 import { logout } from "identity/helpers/auth";
+import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 
 function AccountPage() {
   const { t } = useTranslation();
-
   const { data } = useAccountPageQuery();
-  if (!data) {
+  const [twoFactorEnabled] = useFeature("two_factor");
+  const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
+
+  if (!data?.me.user) {
     return null;
   }
 
+  const { user } = data.me;
   return (
-    <Page title={t("Account")}>
-      <DefaultLayout.PageContent className="my-6">
-        <DataCard item={data.me.user}>
-          <DataCard.Heading<User_UserFragment>
-            renderActions={(item) => (
+    <>
+      <Page title={t("Account")}>
+        <DefaultLayout.PageContent className="my-6">
+          <Block className="divide-y divide-gray-100">
+            <Block.Header className="flex items-center justify-between">
+              <User user={user} />
               <Button
                 variant="primary"
                 onClick={() => logout()}
@@ -38,35 +46,56 @@ function AccountPage() {
               >
                 {t("Logout")}
               </Button>
+            </Block.Header>
+            <Block.Content>
+              <DescriptionList
+                columns={2}
+                displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+              >
+                <DescriptionList.Item label={t("First name")}>
+                  {user.firstName}
+                </DescriptionList.Item>
+                <DescriptionList.Item label={t("Last name")}>
+                  {user.lastName}
+                </DescriptionList.Item>
+                <DescriptionList.Item label={t("Email")}>
+                  {user.email}
+                </DescriptionList.Item>
+                <DescriptionList.Item label={t("Joined")}>
+                  <Time relative datetime={user.dateJoined} />
+                </DescriptionList.Item>
+              </DescriptionList>
+            </Block.Content>
+            {twoFactorEnabled && (
+              <Block.Section title={t("Security")} collapsible={false}>
+                <DescriptionList
+                  columns={2}
+                  displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+                >
+                  <DescriptionList.Item label={t("Two-Factor Authentication")}>
+                    <Button size="sm" onClick={toggleTwoFactorDialog}>
+                      {data.me.hasTwoFactorEnabled ? t("Disable") : t("Setup")}
+                    </Button>
+                  </DescriptionList.Item>
+                </DescriptionList>
+              </Block.Section>
             )}
-          >
-            {(item) => <User user={item} />}
-          </DataCard.Heading>
-          <DataCard.FormSection
-            displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-            columns={2}
-          >
-            <TextProperty
-              id="firstName"
-              label={t("First name")}
-              accessor="firstName"
-            />
-            <TextProperty
-              id="lastName"
-              label={t("Last name")}
-              accessor="lastName"
-            />
-            <TextProperty id="email" label={t("Email")} accessor="email" />
-            <DateProperty
-              relative
-              id="joinedAt"
-              label={t("Joined")}
-              accessor="dateJoined"
-            />
-          </DataCard.FormSection>
-        </DataCard>
-      </DefaultLayout.PageContent>
-    </Page>
+          </Block>
+        </DefaultLayout.PageContent>
+      </Page>
+
+      {data.me.hasTwoFactorEnabled ? (
+        <DisableTwoFactorDialog
+          open={showTwoFactorDialog}
+          onClose={toggleTwoFactorDialog}
+        />
+      ) : (
+        <EnableTwoFactorDialog
+          open={showTwoFactorDialog}
+          onClose={toggleTwoFactorDialog}
+        />
+      )}
+    </>
   );
 }
 

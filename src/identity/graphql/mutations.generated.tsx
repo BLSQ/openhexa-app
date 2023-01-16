@@ -17,10 +17,41 @@ export type SetPasswordMutationVariables = Types.Exact<{
 
 export type SetPasswordMutation = { __typename?: 'Mutation', setPassword: { __typename?: 'SetPasswordResult', success: boolean, error?: Types.SetPasswordError | null } };
 
+export type LoginMutationVariables = Types.Exact<{
+  input: Types.LoginInput;
+}>;
+
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResult', success: boolean, errors?: Array<Types.LoginError> | null } };
+
 export type LogoutMutationVariables = Types.Exact<{ [key: string]: never; }>;
 
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'LogoutResult', success: boolean } };
+
+export type GenerateChallengeMutationVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type GenerateChallengeMutation = { __typename?: 'Mutation', generateChallenge: { __typename?: 'GenerateChallengeResult', success: boolean, errors?: Array<Types.GenerateChallengeError> | null } };
+
+export type VerifyTokenMutationVariables = Types.Exact<{
+  input: Types.VerifyTokenInput;
+}>;
+
+
+export type VerifyTokenMutation = { __typename?: 'Mutation', verifyToken: { __typename?: 'VerifyTokenResult', success: boolean, errors?: Array<Types.VerifyTokenError> | null } };
+
+export type DisableTwoFactorMutationVariables = Types.Exact<{
+  input: Types.DisableTwoFactorInput;
+}>;
+
+
+export type DisableTwoFactorMutation = { __typename?: 'Mutation', disableTwoFactor: { __typename?: 'DisableTwoFactorResult', success: boolean, errors?: Array<Types.DisableTwoFactorError> | null } };
+
+export type EnableTwoFactorMutationVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type EnableTwoFactorMutation = { __typename?: 'Mutation', enableTwoFactor: { __typename?: 'EnableTwoFactorResult', success: boolean, errors?: Array<Types.EnableTwoFactorError> | null } };
 
 
 export const ResetPasswordDocument = gql`
@@ -90,6 +121,40 @@ export function useSetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<
 export type SetPasswordMutationHookResult = ReturnType<typeof useSetPasswordMutation>;
 export type SetPasswordMutationResult = Apollo.MutationResult<SetPasswordMutation>;
 export type SetPasswordMutationOptions = Apollo.BaseMutationOptions<SetPasswordMutation, SetPasswordMutationVariables>;
+export const LoginDocument = gql`
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
+
+/**
+ * __useLoginMutation__
+ *
+ * To run a mutation, you first call `useLoginMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoginMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loginMutation, { data, loading, error }] = useLoginMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+      }
+export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
+export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
+export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const LogoutDocument = gql`
     mutation Logout {
   logout {
@@ -122,3 +187,137 @@ export function useLogoutMutation(baseOptions?: Apollo.MutationHookOptions<Logou
 export type LogoutMutationHookResult = ReturnType<typeof useLogoutMutation>;
 export type LogoutMutationResult = Apollo.MutationResult<LogoutMutation>;
 export type LogoutMutationOptions = Apollo.BaseMutationOptions<LogoutMutation, LogoutMutationVariables>;
+export const GenerateChallengeDocument = gql`
+    mutation GenerateChallenge {
+  generateChallenge {
+    success
+    errors
+  }
+}
+    `;
+export type GenerateChallengeMutationFn = Apollo.MutationFunction<GenerateChallengeMutation, GenerateChallengeMutationVariables>;
+
+/**
+ * __useGenerateChallengeMutation__
+ *
+ * To run a mutation, you first call `useGenerateChallengeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateChallengeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateChallengeMutation, { data, loading, error }] = useGenerateChallengeMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGenerateChallengeMutation(baseOptions?: Apollo.MutationHookOptions<GenerateChallengeMutation, GenerateChallengeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateChallengeMutation, GenerateChallengeMutationVariables>(GenerateChallengeDocument, options);
+      }
+export type GenerateChallengeMutationHookResult = ReturnType<typeof useGenerateChallengeMutation>;
+export type GenerateChallengeMutationResult = Apollo.MutationResult<GenerateChallengeMutation>;
+export type GenerateChallengeMutationOptions = Apollo.BaseMutationOptions<GenerateChallengeMutation, GenerateChallengeMutationVariables>;
+export const VerifyTokenDocument = gql`
+    mutation VerifyToken($input: VerifyTokenInput!) {
+  verifyToken(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type VerifyTokenMutationFn = Apollo.MutationFunction<VerifyTokenMutation, VerifyTokenMutationVariables>;
+
+/**
+ * __useVerifyTokenMutation__
+ *
+ * To run a mutation, you first call `useVerifyTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyTokenMutation, { data, loading, error }] = useVerifyTokenMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useVerifyTokenMutation(baseOptions?: Apollo.MutationHookOptions<VerifyTokenMutation, VerifyTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyTokenMutation, VerifyTokenMutationVariables>(VerifyTokenDocument, options);
+      }
+export type VerifyTokenMutationHookResult = ReturnType<typeof useVerifyTokenMutation>;
+export type VerifyTokenMutationResult = Apollo.MutationResult<VerifyTokenMutation>;
+export type VerifyTokenMutationOptions = Apollo.BaseMutationOptions<VerifyTokenMutation, VerifyTokenMutationVariables>;
+export const DisableTwoFactorDocument = gql`
+    mutation DisableTwoFactor($input: DisableTwoFactorInput!) {
+  disableTwoFactor(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type DisableTwoFactorMutationFn = Apollo.MutationFunction<DisableTwoFactorMutation, DisableTwoFactorMutationVariables>;
+
+/**
+ * __useDisableTwoFactorMutation__
+ *
+ * To run a mutation, you first call `useDisableTwoFactorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDisableTwoFactorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [disableTwoFactorMutation, { data, loading, error }] = useDisableTwoFactorMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDisableTwoFactorMutation(baseOptions?: Apollo.MutationHookOptions<DisableTwoFactorMutation, DisableTwoFactorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DisableTwoFactorMutation, DisableTwoFactorMutationVariables>(DisableTwoFactorDocument, options);
+      }
+export type DisableTwoFactorMutationHookResult = ReturnType<typeof useDisableTwoFactorMutation>;
+export type DisableTwoFactorMutationResult = Apollo.MutationResult<DisableTwoFactorMutation>;
+export type DisableTwoFactorMutationOptions = Apollo.BaseMutationOptions<DisableTwoFactorMutation, DisableTwoFactorMutationVariables>;
+export const EnableTwoFactorDocument = gql`
+    mutation EnableTwoFactor {
+  enableTwoFactor {
+    success
+    errors
+  }
+}
+    `;
+export type EnableTwoFactorMutationFn = Apollo.MutationFunction<EnableTwoFactorMutation, EnableTwoFactorMutationVariables>;
+
+/**
+ * __useEnableTwoFactorMutation__
+ *
+ * To run a mutation, you first call `useEnableTwoFactorMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEnableTwoFactorMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [enableTwoFactorMutation, { data, loading, error }] = useEnableTwoFactorMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useEnableTwoFactorMutation(baseOptions?: Apollo.MutationHookOptions<EnableTwoFactorMutation, EnableTwoFactorMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<EnableTwoFactorMutation, EnableTwoFactorMutationVariables>(EnableTwoFactorDocument, options);
+      }
+export type EnableTwoFactorMutationHookResult = ReturnType<typeof useEnableTwoFactorMutation>;
+export type EnableTwoFactorMutationResult = Apollo.MutationResult<EnableTwoFactorMutation>;
+export type EnableTwoFactorMutationOptions = Apollo.BaseMutationOptions<EnableTwoFactorMutation, EnableTwoFactorMutationVariables>;

@@ -21,7 +21,7 @@ const Header = () => {
 
   const [hasWorkspacesEnabled] = useFeature("workspaces");
 
-  if (!me.user) {
+  if (!me?.user) {
     return null;
   }
   return (

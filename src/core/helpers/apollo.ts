@@ -14,6 +14,8 @@ import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
 import { useMemo } from "react";
 import getConfig from "next/config";
+import router from "next/router";
+import { GraphQLError } from "graphql";
 
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 
@@ -75,13 +77,13 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
   const link = ApolloLink.from([
     onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
-        graphQLErrors.forEach(({ message, locations, path }) =>
+        graphQLErrors.forEach(({ message, locations, path, extensions }) => {
           console.error(
             `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
               locations
-            )}, Path: ${path}`
-          )
-        );
+            )}, Path: ${path}, Extension Code: ${extensions.code}`
+          );
+        });
       }
       if (networkError) {
         console.error(
