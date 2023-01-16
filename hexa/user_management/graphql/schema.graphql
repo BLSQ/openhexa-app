@@ -93,9 +93,9 @@ extend type Mutation {
     setPassword(input: SetPasswordInput!): SetPasswordResult!
 
     verifyToken(input: VerifyTokenInput!): VerifyTokenResult! 
-    generateChallenge: GenerateChallengeResult! @login_required
-    enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult! @login_required
-    disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult! @login_required
+    generateChallenge: GenerateChallengeResult! @loginRequired(withoutTwoFactor: false)
+    enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult! @loginRequired
+    disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult! @loginRequired
 }
 
 # Teams
@@ -170,9 +170,9 @@ extend type Query {
     teams(term: String, page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {
-    createTeam(input: CreateTeamInput!): CreateTeamResult! @login_required
-    updateTeam(input: UpdateTeamInput!): UpdateTeamResult! @login_required
-    deleteTeam(input: DeleteTeamInput!): DeleteTeamResult! @login_required
+    createTeam(input: CreateTeamInput!): CreateTeamResult! @loginRequired
+    updateTeam(input: UpdateTeamInput!): UpdateTeamResult! @loginRequired
+    deleteTeam(input: DeleteTeamInput!): DeleteTeamResult! @loginRequired
 }
 
 # Memberships
@@ -284,7 +284,7 @@ extend type Query {
 
 # Two Factor
 
-directive @login_required on FIELD_DEFINITION
+directive @loginRequired(withoutTwoFactor: Boolean) on FIELD_DEFINITION
 
 extend type Me {
     hasTwoFactorEnabled: Boolean!

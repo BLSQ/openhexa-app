@@ -51,12 +51,16 @@ class AuthenticationError(PermissionDenied):
 
 class LoginRequiredDirective(SchemaDirectiveVisitor):
     def visit_field_definition(self, field, object_type):
+        withoutTwoFactor = self.args.get("withoutTwoFactor")
         original_resolver = field.resolve or default_field_resolver
 
         def resolve(obj, info, **kwargs):
             request = info.context["request"]
             principal = request.user
-            if not principal.is_authenticated or (
+            if not principal.is_authenticated:
+                raise AuthenticationError
+
+            if not withoutTwoFactor and (
                 has_configured_two_factor(principal) and not principal.is_verified()
             ):
                 raise AuthenticationError
@@ -108,7 +112,11 @@ def resolve_feature_flag_config(flag: FeatureFlag, info):
 @me_object.field("user")
 def resolve_me_user(_, info):
     request = info.context["request"]
-    return request.user if request.user.is_authenticated else None
+    if has_configured_two_factor(request.user):
+        return request.user if request.user.is_verified() else None
+    elif request.user.is_authenticated:
+        return request.user
+    return None
 
 
 @me_object.field("hasTwoFactorEnabled")
@@ -599,4 +607,4 @@ identity_bindables = [
     identity_mutations,
 ]
 
-identity_directives = {"login_required": LoginRequiredDirective}
+identity_directives = {"loginRequired": LoginRequiredDirective}

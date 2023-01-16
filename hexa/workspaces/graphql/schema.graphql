@@ -46,8 +46,8 @@ type WorkspaceMembershipPage {
 }
 
 extend type Query {
-  workspace(id: String!): Workspace @login_required
-  workspaces(page: Int, perPage: Int): WorkspacePage! @login_required
+  workspace(id: String!): Workspace @loginRequired
+  workspaces(page: Int, perPage: Int): WorkspacePage! @loginRequired
 }
 
 enum CreateWorkspaceError {
@@ -119,10 +119,10 @@ input InviteWorkspaceMemberInput {
 }
 
 extend type Mutation {
-  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @login_required
-  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @login_required
-  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @login_required
-  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @login_required
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
+  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
+  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
 }
 
 

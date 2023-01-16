@@ -15,6 +15,6 @@ type Activity {
 
 
 extend type Query {
-  totalNotebooks: Int! @login_required
-  lastActivities: [Activity!]! @login_required
+  totalNotebooks: Int! @loginRequired
+  lastActivities: [Activity!]! @loginRequired
 }
