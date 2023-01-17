@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.5](https://github.com/BLSQ/openhexa-frontend/compare/0.15.4...0.15.5) (2023-01-17)
+
+
+### Bug Fixes
+
+* **server:** Do not proxy urls starting by '/' ([#180](https://github.com/BLSQ/openhexa-frontend/issues/180)) ([6a7fed6](https://github.com/BLSQ/openhexa-frontend/commit/6a7fed6e10ab57e922661d531db837a252eb952d))
+
 ## [0.15.4](https://github.com/BLSQ/openhexa-frontend/compare/0.15.3...0.15.4) (2023-01-17)
 
 
