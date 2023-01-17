@@ -21,7 +21,6 @@ app.prepare().then(async () => {
           req.path.startsWith("/two_factor") ||
           req.path.startsWith("/collections") ||
           req.path.startsWith("/visualizations") ||
-          req.path.startsWith("/") ||
           req.path.startsWith("/notebooks") ||
           req.path.startsWith("/pipelines") ||
           req.path.startsWith("/workspaces") ||
