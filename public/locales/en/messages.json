@@ -71,6 +71,7 @@
   "Download": "Download",
   "Duration": "Duration",
   "Edit": "Edit",
+  "Edit member": "",
   "Edit workspace's description": "",
   "Editor": "",
   "Elements": "Elements",
@@ -179,6 +180,7 @@
   "Re-use existing extract": "Re-use existing extract",
   "Remove": "Remove",
   "Remove from favorites": "Remove from favorites",
+  "Remove member": "",
   "Report to": "Report to",
   "Reset password": "Reset password",
   "Resources": "Resources",
@@ -260,6 +262,7 @@
   "You can create a connection based on our supported integrations": "You can create a connection based on our supported integrations",
   "You will have to log in again ro your account.": "",
   "You're about to delete this workspace and all its content.": "",
+  "You're about to remove {{name}} from this workspace.": "",
   "Your account": "Your account",
   "Your workspaces": "Your workspaces"
 }

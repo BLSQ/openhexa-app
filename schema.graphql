@@ -888,6 +888,20 @@ input DeleteWorkspaceInput {
   id: String!
 }
 
+enum DeleteWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteWorkspaceMemberInput {
+  membershipId: String!
+}
+
+type DeleteWorkspaceMemberResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceMemberError!]!
+}
+
 type DeleteWorkspaceResult {
   success: Boolean!
   errors: [DeleteWorkspaceError!]!
@@ -1184,6 +1198,8 @@ type Mutation {
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
+  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
+  deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
 }
 
 type Organization {
@@ -1773,6 +1789,22 @@ input UpdateWorkspaceInput {
   name: String
   description: String
   countries: [CountryInput!]
+}
+
+enum UpdateWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input UpdateWorkspaceMemberInput {
+  membershipId: String!
+  role: WorkspaceMembershipRole!
+}
+
+type UpdateWorkspaceMemberResult {
+  success: Boolean!
+  errors: [UpdateWorkspaceMemberError!]!
+  workspaceMembership: WorkspaceMembership
 }
 
 type UpdateWorkspaceResult {

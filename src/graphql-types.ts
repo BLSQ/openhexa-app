@@ -1003,6 +1003,21 @@ export type DeleteWorkspaceInput = {
   id: Scalars['String'];
 };
 
+export enum DeleteWorkspaceMemberError {
+  MembershipNotFound = 'MEMBERSHIP_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteWorkspaceMemberInput = {
+  membershipId: Scalars['String'];
+};
+
+export type DeleteWorkspaceMemberResult = {
+  __typename?: 'DeleteWorkspaceMemberResult';
+  errors: Array<DeleteWorkspaceMemberError>;
+  success: Scalars['Boolean'];
+};
+
 export type DeleteWorkspaceResult = {
   __typename?: 'DeleteWorkspaceResult';
   errors: Array<DeleteWorkspaceError>;
@@ -1260,6 +1275,7 @@ export type Mutation = {
   deletePipeline: DeletePipelineResult;
   deleteTeam: DeleteTeamResult;
   deleteWorkspace: DeleteWorkspaceResult;
+  deleteWorkspaceMember: DeleteWorkspaceMemberResult;
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   disableTwoFactor: DisableTwoFactorResult;
   enableTwoFactor: EnableTwoFactorResult;
@@ -1292,6 +1308,7 @@ export type Mutation = {
   updatePipelineProgress: UpdatePipelineProgressResult;
   updateTeam: UpdateTeamResult;
   updateWorkspace: UpdateWorkspaceResult;
+  updateWorkspaceMember: UpdateWorkspaceMemberResult;
   uploadPipeline: UploadPipelineResult;
   verifyToken: VerifyTokenResult;
 };
@@ -1414,6 +1431,11 @@ export type MutationDeleteTeamArgs = {
 
 export type MutationDeleteWorkspaceArgs = {
   input: DeleteWorkspaceInput;
+};
+
+
+export type MutationDeleteWorkspaceMemberArgs = {
+  input: DeleteWorkspaceMemberInput;
 };
 
 
@@ -1564,6 +1586,11 @@ export type MutationUpdateTeamArgs = {
 
 export type MutationUpdateWorkspaceArgs = {
   input: UpdateWorkspaceInput;
+};
+
+
+export type MutationUpdateWorkspaceMemberArgs = {
+  input: UpdateWorkspaceMemberInput;
 };
 
 
@@ -2376,6 +2403,23 @@ export type UpdateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']>;
   id: Scalars['String'];
   name?: InputMaybe<Scalars['String']>;
+};
+
+export enum UpdateWorkspaceMemberError {
+  MembershipNotFound = 'MEMBERSHIP_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdateWorkspaceMemberInput = {
+  membershipId: Scalars['String'];
+  role: WorkspaceMembershipRole;
+};
+
+export type UpdateWorkspaceMemberResult = {
+  __typename?: 'UpdateWorkspaceMemberResult';
+  errors: Array<UpdateWorkspaceMemberError>;
+  success: Scalars['Boolean'];
+  workspaceMembership?: Maybe<WorkspaceMembership>;
 };
 
 export type UpdateWorkspaceResult = {

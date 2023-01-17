@@ -84,6 +84,8 @@ describe("CreateWorkspaceDialog", () => {
     const workspace = {
       id: faker.datatype.uuid(),
       name: "Workspace's name",
+      description: faker.lorem.lines(),
+      countries: [],
     };
     const mocks = [
       {
