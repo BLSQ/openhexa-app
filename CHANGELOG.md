@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.3](https://github.com/BLSQ/openhexa-frontend/compare/0.15.2...0.15.3) (2023-01-16)
+
+
+### Bug Fixes
+
+* **Workspaces:** check workspace featureFlag and permission on server… ([#174](https://github.com/BLSQ/openhexa-frontend/issues/174)) ([5456999](https://github.com/BLSQ/openhexa-frontend/commit/5456999d7f964ffca6e1de0c4887ca39bab87c2f))
+
 ## [0.15.2](https://github.com/BLSQ/openhexa-frontend/compare/0.15.1...0.15.2) (2023-01-16)
 
 
