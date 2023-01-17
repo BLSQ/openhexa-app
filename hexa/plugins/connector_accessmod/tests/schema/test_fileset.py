@@ -92,6 +92,7 @@ class FilesetTest(GraphQLTestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
         cls.BUCKET = Bucket.objects.create(name=bucket_name)

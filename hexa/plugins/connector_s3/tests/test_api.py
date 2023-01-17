@@ -24,6 +24,7 @@ class ApiTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         self.bucket = Bucket.objects.create(name=self.bucket_name)
 
@@ -70,6 +71,7 @@ class ApiTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         credentials = generate_sts_app_s3_credentials(
             principal_credentials=principal_credentials
@@ -88,6 +90,7 @@ class ApiTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         bucket = Bucket.objects.create(name="hexa-test-bucket")
         credentials = generate_sts_app_s3_credentials(
@@ -107,6 +110,7 @@ class ApiTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
         )
         credentials, _ = generate_sts_user_s3_credentials(
             role_identifier="test",
@@ -132,6 +136,7 @@ class ApiTest(TestCase):
             default_region="eu-central-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
         )
         # activate hash mode for session name with a very long session identifier
         credentials, _ = generate_sts_user_s3_credentials(

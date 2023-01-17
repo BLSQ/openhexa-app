@@ -50,6 +50,7 @@ class Credentials(Base):
         max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
     )
     user_arn = models.CharField(max_length=200)
+    permissions_boundary_policy_arn = models.CharField(max_length=200)
     app_role_arn = models.CharField(max_length=200)
     endpoint_url = models.CharField(
         blank=True,

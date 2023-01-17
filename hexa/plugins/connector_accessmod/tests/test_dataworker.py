@@ -177,6 +177,7 @@ class AccessmodDataWorkerTest(TestCase):
             default_region="us-east-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
@@ -508,6 +509,7 @@ class AccessmodAnalysisUpdateTest(TestCase):
             default_region="us-east-1",
             user_arn="test-user-arn-arn-arn",
             app_role_arn="test-app-arn-arn-arn",
+            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
