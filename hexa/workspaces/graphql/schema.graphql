@@ -149,12 +149,12 @@ input UpdateWorkspaceMemberInput {
 }
 
 extend type Mutation {
-  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
-  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
-  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
-  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
-  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
-  deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
+  createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
+  updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
+  deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
+  inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
+  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
+  deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
 }
 
 
