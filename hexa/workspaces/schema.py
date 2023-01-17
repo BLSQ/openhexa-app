@@ -174,8 +174,8 @@ def resolve_create_workspace_member(_, info, **kwargs):
             template_variables={
                 "workspace": workspace.name,
                 "owner": request.user.display_name,
-                "workspace_url": "{url}/workspaces/{workspace_id}".format(
-                    url=settings.NEW_FRONTEND_DOMAIN, workspace_id=workspace.id
+                "workspace_url": request.build_absolute_uri(
+                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.id}"
                 ),
             },
             recipient_list=[user.email],
