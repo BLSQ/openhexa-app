@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.4](https://github.com/BLSQ/openhexa-frontend/compare/0.15.3...0.15.4) (2023-01-17)
+
+
+### Bug Fixes
+
+* **Workspaces:** Mock unimplemented features for workspaces ([2c24a1e](https://github.com/BLSQ/openhexa-frontend/commit/2c24a1eee1f96209cfa7893c3a44c58e31466731))
+
 ## [0.15.3](https://github.com/BLSQ/openhexa-frontend/compare/0.15.2...0.15.3) (2023-01-16)
 
 
