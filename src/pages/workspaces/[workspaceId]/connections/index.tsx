@@ -11,7 +11,11 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import CreateConnectionDialog from "workspaces/features/CreateConnectionDialog";
 import { TYPES } from "workspaces/features/CreateConnectionDialog/CreateConnectionDialog";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspaceConnectionsPageQuery,
+  WorkspaceConnectionsPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -22,12 +26,15 @@ type Props = {
 const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
   const [openModal, setOpenModal] = useState(false);
+  const { data } = useWorkspaceConnectionsPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
   return (
     <>
@@ -61,7 +68,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-            {workspace.connections.map((connection) => (
+            {FAKE_WORKSPACE.connections.map((connection) => (
               <Card
                 key={connection.id}
                 title={
@@ -122,6 +129,18 @@ WorkspaceConnectionsPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspaceConnectionsPageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspaceConnectionsPage;

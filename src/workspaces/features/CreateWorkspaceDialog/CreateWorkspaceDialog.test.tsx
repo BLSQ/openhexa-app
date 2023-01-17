@@ -1,21 +1,19 @@
+import { faker } from "@faker-js/faker";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { TestApp } from "core/helpers/testutils";
+import router from "next/router";
 import {
   CreateWorkspaceDocument,
   useCreateWorkspaceMutation,
 } from "workspaces/graphql/mutations.generated";
-import { TestApp } from "core/helpers/testutils";
-import router from "next/router";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
   __esModule: true,
   useCreateWorkspaceMutation: jest.fn().mockReturnValue([]),
 }));
-
-const { id, description, name, countries, ...rest } = WORKSPACES[0];
 
 const useCreateWorkspaceMutationMock = useCreateWorkspaceMutation as jest.Mock;
 
@@ -83,6 +81,10 @@ describe("CreateWorkspaceDialog", () => {
     const pushSpy = jest.spyOn(router, "push");
 
     const user = userEvent.setup();
+    const workspace = {
+      id: faker.datatype.uuid(),
+      name: "Workspace's name",
+    };
     const mocks = [
       {
         request: {
@@ -98,12 +100,7 @@ describe("CreateWorkspaceDialog", () => {
           data: {
             createWorkspace: {
               success: true,
-              workspace: {
-                id,
-                name,
-                description,
-                countries,
-              },
+              workspace,
               errors: [],
             },
           },
@@ -125,7 +122,7 @@ describe("CreateWorkspaceDialog", () => {
     waitFor(() => {
       expect(pushSpy).toHaveBeenCalledWith({
         pathname: "/workspaces/[id]",
-        query: { id: WORKSPACES[0].id },
+        query: { id: workspace.id },
       });
     });
   });

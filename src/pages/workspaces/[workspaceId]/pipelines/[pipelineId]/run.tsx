@@ -8,7 +8,11 @@ import { capitalize } from "lodash";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import IHPForm from "pipelines/features/PipelineRunForm/IHPForm";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspacePipelineStartPageQuery,
+  WorkspacePipelineStartPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -19,13 +23,16 @@ type Props = {
 const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspacePipelineStartPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const dag = workspace.dags.find((d) => d.id === router.query.pipelineId);
+  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === router.query.pipelineId);
 
   if (!dag) {
     return null;
@@ -89,6 +96,18 @@ WorkspacePipelineRunPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspacePipelineStartPageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspacePipelineRunPage;

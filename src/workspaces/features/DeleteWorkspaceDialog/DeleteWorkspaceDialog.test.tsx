@@ -1,15 +1,13 @@
+import { faker } from "@faker-js/faker";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { TestApp } from "core/helpers/testutils";
+import router from "next/router";
 import {
   DeleteWorkspaceDocument,
   useDeleteWorkspaceMutation,
 } from "workspaces/graphql/mutations.generated";
-import { TestApp } from "core/helpers/testutils";
-import router from "next/router";
 import DeleteWorkspaceDialog from "./DeleteWorkspaceDialog";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
-
-const { id, description, name, countries, ...rest } = WORKSPACES[0];
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
@@ -17,6 +15,10 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
   useDeleteWorkspaceMutation: jest.fn().mockReturnValue([]),
 }));
 
+const WORKSPACE = {
+  id: faker.datatype.uuid(),
+  name: faker.commerce.productName(),
+};
 const useDeleteWorkspaceMutationMock = useDeleteWorkspaceMutation as jest.Mock;
 
 describe("DeleteWorkspaceDialog", () => {
@@ -29,7 +31,7 @@ describe("DeleteWorkspaceDialog", () => {
     const { container } = render(
       <DeleteWorkspaceDialog
         open={false}
-        workspace={WORKSPACES[0]}
+        workspace={WORKSPACE}
         onClose={() => {}}
       />
     );
@@ -44,7 +46,7 @@ describe("DeleteWorkspaceDialog", () => {
       <TestApp mocks={[]}>
         <DeleteWorkspaceDialog
           open={true}
-          workspace={WORKSPACES[0]}
+          workspace={WORKSPACE}
           onClose={() => {}}
         />
       </TestApp>
@@ -72,7 +74,7 @@ describe("DeleteWorkspaceDialog", () => {
           query: DeleteWorkspaceDocument,
           variables: {
             input: {
-              id: WORKSPACES[0].id,
+              id: WORKSPACE.id,
             },
           },
         },
@@ -90,7 +92,7 @@ describe("DeleteWorkspaceDialog", () => {
       <TestApp mocks={mocks}>
         <DeleteWorkspaceDialog
           open={true}
-          workspace={WORKSPACES[0]}
+          workspace={WORKSPACE}
           onClose={() => {}}
         />
       </TestApp>

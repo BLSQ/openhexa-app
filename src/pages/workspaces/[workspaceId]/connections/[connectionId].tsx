@@ -12,14 +12,16 @@ import {
   TableHead,
   TableRow,
 } from "core/components/Table";
-import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import ReactMarkdown from "react-markdown";
-import { TYPES } from "workspaces/features/CreateConnectionDialog/CreateConnectionDialog";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspaceConnectionPageQuery,
+  WorkspaceConnectionsPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -30,14 +32,17 @@ type Props = {
 const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspaceConnectionPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const connection = workspace.connections.find(
-    (c) => c.id === router.query.connectionId
+  const connection = FAKE_WORKSPACE.connections.find(
+    (t) => t.id === router.query.connectionId
   );
 
   if (!connection) {
@@ -88,7 +93,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             <CodeEditor
               readonly
               lang="json"
-              value={workspace.database.workspaceTables[0].codeSample[0]}
+              value={FAKE_WORKSPACE.database.workspaceTables[0].codeSample[0]}
             />
           </Block.Section>
           <Block.Section title={t("Variables")}>
@@ -127,6 +132,18 @@ WorkspacePipelinePage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspaceConnectionsPageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspacePipelinePage;

@@ -4,14 +4,6 @@ import { DateTime } from "luxon";
 
 faker.seed(0);
 
-const SAMPLE_PROJECTS = [
-  { name: "CMR PNLP", country: { code: "cm" } },
-  { name: "BFA Malaria Data Repository", country: { code: "bf" } },
-  { name: "SEN Master Facility List", country: null },
-  { name: "NER Malaria Risk Modelling", country: null },
-  { name: "COD Accessibility to Health Services", country: { code: "cd" } },
-];
-
 function searchForFile(files: any, searchId: any) {
   for (const f of files) {
     if (f.id === searchId) return f;
@@ -22,14 +14,8 @@ function searchForFile(files: any, searchId: any) {
   }
 }
 
-export const getWorkspaceFile = (workspaceId: any, fileId: any) => {
-  const workspace = WORKSPACES.find(
-    (workspace) => workspace.id === workspaceId
-  );
-
-  if (!workspace) return null;
-
-  return searchForFile(workspace.files, fileId);
+export const getWorkspaceFile = (fileId: any) => {
+  return searchForFile(FAKE_WORKSPACE.files, fileId);
 };
 
 function generateDagRuns() {
@@ -100,41 +86,7 @@ Paths:
 - \`moving-speeds\`: a valid s3 path to download the scenario file
 `;
 
-export const WORKSPACES = SAMPLE_PROJECTS.map((project, i) => ({
-  id: faker.datatype.uuid(),
-  name: project.name,
-  countries: [
-    {
-      code: "AL",
-      alpha3: "AL",
-      name: "Alabama",
-      flag: "AL",
-    },
-  ],
-  description: `# Cameroon PNLP
-
-
-  Welcome to the Cameroon Malaria Data Repository workspace !
-  ^
-  
-  This workspace contains :
-  
-  - The data produced by Bluesquare in the context of this project
-  - The different notebooks used for exploration and visualisation purposes
-  - The DHIS2 extraction pipelines
-  - The pipeline used to update the PNLP dashboard
-  - The risk-based verification pipelines
-  
-  ## Overview of the data in the repository
-  
-  Nunc fringilla, nisi eu hendrerit ornare, lacus massa accumsan eros, quis auctor nibh lorem sed ligula. Praesent ac rhoncus mi. Cras fermentum ultrices pellentesque. Maecenas odio ex, euismod sit amet odio ut, tristique cursus massa. 
-  
-  Nam congue mi eu metus sagittis rutrum sit amet suscipit nisi. Donec a consectetur orci, nec tempus dui. Proin tristique ex nec magna porttitor feugiat ut vel est. Pellentesque feugiat aliquet augue. Pellentesque a risus id dolor interdum convallis. Suspendisse condimentum in diam tempus dapibus. Mauris blandit dolor non felis dignissim, et tincidunt justo efficitur.
-  
-  ## External links
-  
-  - [PNLP Tableau dashboard](https://google.com)
-  `,
+export const FAKE_WORKSPACE = {
   files: [
     {
       type: "folder",
@@ -359,7 +311,6 @@ export const WORKSPACES = SAMPLE_PROJECTS.map((project, i) => ({
       runs: generateDagRuns(),
     },
   ],
-  notebooksUrl: faker.internet.url(),
   members: Array.from({ length: 5 }, () => ({
     name: faker.name.fullName(),
     email: faker.internet.email(),
@@ -478,4 +429,4 @@ export const WORKSPACES = SAMPLE_PROJECTS.map((project, i) => ({
       },
     ],
   })),
-}));
+};

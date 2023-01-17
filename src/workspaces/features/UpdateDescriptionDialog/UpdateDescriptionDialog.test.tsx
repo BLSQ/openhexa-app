@@ -6,7 +6,7 @@ import {
 } from "workspaces/graphql/mutations.generated";
 import { TestApp } from "core/helpers/testutils";
 import WorkspaceDescriptionDialog from "./UpdateDescriptionDialog";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import { faker } from "@faker-js/faker";
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
@@ -14,7 +14,10 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
   useUpdateWorkspaceMutation: jest.fn().mockReturnValue([]),
 }));
 
-const { id, description, name, countries, ...rest } = WORKSPACES[0];
+const WORKSPACE = {
+  id: faker.datatype.uuid(),
+  name: faker.commerce.productName(),
+};
 
 const useUpdateWorkspaceMutationMock = useUpdateWorkspaceMutation as jest.Mock;
 
@@ -27,7 +30,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
   it("is not displayed ", async () => {
     const { container } = render(
       <WorkspaceDescriptionDialog
-        workspace={WORKSPACES[0]}
+        workspace={WORKSPACE}
         open={false}
         onClose={() => {}}
       />
@@ -42,7 +45,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
     const { container } = render(
       <TestApp mocks={[]}>
         <WorkspaceDescriptionDialog
-          workspace={WORKSPACES[0]}
+          workspace={WORKSPACE}
           open={true}
           onClose={() => {}}
         />
@@ -70,7 +73,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
           query: UpdateWorkspaceDocument,
           variables: {
             input: {
-              id: WORKSPACES[0].id,
+              id: WORKSPACE.id,
             },
           },
         },
@@ -88,7 +91,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
     const { container } = render(
       <TestApp>
         <WorkspaceDescriptionDialog
-          workspace={WORKSPACES[0]}
+          workspace={WORKSPACE}
           open={true}
           onClose={() => {}}
         />

@@ -9,7 +9,11 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspaceDatabasesPageQuery,
+  WorkspaceDatabasesPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -20,11 +24,14 @@ type Props = {
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspaceDatabasesPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
   return (
     <Page title={t("Workspace")}>
@@ -47,10 +54,10 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
       <WorkspaceLayout.PageContent className="space-y-8">
         <DataGrid
           className="overflow-hidden rounded-md bg-white shadow"
-          data={workspace.database.workspaceTables}
+          data={FAKE_WORKSPACE.database.workspaceTables}
           defaultPageSize={5}
           sortable
-          totalItems={workspace.database.workspaceTables.length}
+          totalItems={FAKE_WORKSPACE.database.workspaceTables.length}
           fixedLayout={false}
         >
           <BaseColumn
@@ -113,6 +120,18 @@ WorkspaceDatabasesPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspaceDatabasesPageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspaceDatabasesPage;

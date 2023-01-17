@@ -7,22 +7,25 @@ import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineCard from "workspaces/features/PipelineCard";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspacePipelinesPageQuery,
+  WorkspacePipelinesPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
-type Props = {
-  page: number;
-  perPage: number;
-};
-
-const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
+const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspacePipelinesPageQuery({
+    variables: { id: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+
+  const { workspace } = data;
 
   return (
     <Page title={t("Workspace")}>
@@ -47,7 +50,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-          {workspace.dags.map((dag, index) => (
+          {FAKE_WORKSPACE.dags.map((dag, index) => (
             <PipelineCard workspaceId={workspace.id} key={index} dag={dag} />
           ))}
         </div>
@@ -62,6 +65,18 @@ WorkspacePipelinesPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspacePipelinesPageDocument,
+      variables: { id: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspacePipelinesPage;

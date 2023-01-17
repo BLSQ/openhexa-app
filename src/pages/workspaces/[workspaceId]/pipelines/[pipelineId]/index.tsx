@@ -3,29 +3,33 @@ import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
+import DateColumn from "core/components/DataGrid/DateColumn";
+import UserColumn from "core/components/DataGrid/UserColumn";
+import DescriptionList from "core/components/DescriptionList";
+import Dialog from "core/components/Dialog";
+import Checkbox from "core/components/forms/Checkbox";
+import Field from "core/components/forms/Field";
+import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Tabs from "core/components/Tabs";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
-import { NextPageWithLayout } from "core/helpers/types";
-import { useTranslation } from "next-i18next";
-import Link from "core/components/Link";
-import { useRouter } from "next/router";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
-import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-import DateColumn from "core/components/DataGrid/DateColumn";
-import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import UserColumn from "core/components/DataGrid/UserColumn";
 import { formatDuration } from "core/helpers/time";
-import { DateTime } from "luxon";
-import ReactMarkdown from "react-markdown";
-import DescriptionList from "core/components/DescriptionList";
-import Dialog from "core/components/Dialog";
+import { NextPageWithLayout } from "core/helpers/types";
 import { Dag } from "graphql-types";
+import { DateTime } from "luxon";
+import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
+import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useState } from "react";
-import Field from "core/components/forms/Field";
-import Checkbox from "core/components/forms/Checkbox";
+import ReactMarkdown from "react-markdown";
+import {
+  useWorkspacePipelinePageQuery,
+  WorkspacePipelinePageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
+import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 const ConfigurePipelineModal = ({
   open,
@@ -99,13 +103,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspacePipelinePageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const dag = workspace.dags.find((d) => d.id === router.query.pipelineId);
+  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === router.query.pipelineId);
 
   if (!dag) {
     return null;
@@ -257,6 +264,18 @@ WorkspacePipelinePage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspacePipelinePageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspacePipelinePage;

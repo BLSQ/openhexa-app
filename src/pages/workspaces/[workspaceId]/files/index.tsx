@@ -21,8 +21,12 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 import {
+  useWorkspaceFilesPageQuery,
+  WorkspaceFilesPageDocument,
+} from "workspaces/graphql/queries.generated";
+import {
+  FAKE_WORKSPACE,
   getWorkspaceFile,
-  WORKSPACES,
   SAMPLE_README_CONTENT,
 } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
@@ -35,19 +39,20 @@ type Props = {
 const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
 
+  const { data } = useWorkspaceFilesPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
   const item = useMemo(() => {
-    return workspace && router.query.id
-      ? getWorkspaceFile(workspace.id, router.query.id)
-      : null;
-  }, [workspace, router.query.id]);
+    return router.query.id ? getWorkspaceFile(router.query.id) : null;
+  }, [router.query.id]);
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const files = item?.children ?? workspace.files;
+  const files = item?.children ?? FAKE_WORKSPACE.files;
   return (
     <Page title={t("Workspace")}>
       <WorkspaceLayout.Header className="flex items-center justify-between">
@@ -171,6 +176,18 @@ WorkspaceFilesPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspaceFilesPageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspaceFilesPage;

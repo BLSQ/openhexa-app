@@ -16,7 +16,11 @@ import { capitalize } from "lodash";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { ReactNode, useState } from "react";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspaceDatabaseTablePageQuery,
+  WorkspaceDatabaseTablePageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 const DataPreviewModal = ({
@@ -49,13 +53,16 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspaceDatabaseTablePageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const table = workspace.database.workspaceTables.find(
+  const table = FAKE_WORKSPACE.database.workspaceTables.find(
     (t) => t.id === router.query.tableId
   );
   if (!table) {
@@ -172,6 +179,18 @@ WorkspaceDatabaseTableViewPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspaceDatabaseTablePageDocument,
+      variables: { workspaceId: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspaceDatabaseTableViewPage;

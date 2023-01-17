@@ -32,3 +32,64 @@ query WorkspacePage($id: String!) {
     ...UpdateWorkspaceDescription_workspace
   }
 }
+
+query WorkspacePipelinesPage($id: String!) {
+  workspace(id: $id) {
+    id
+    name
+  }
+}
+
+query WorkspacePipelinePage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+
+query WorkspacePipelineStartPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+query WorkspacePipelineRunPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+
+query WorkspaceFilesPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+
+query WorkspaceDatabasesPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+
+query WorkspaceDatabaseTablePage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+
+query WorkspaceConnectionsPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+query WorkspaceConnectionPage($workspaceId: String!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}

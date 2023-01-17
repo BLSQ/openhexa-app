@@ -1,18 +1,11 @@
-import {
-  ArrowTopRightOnSquareIcon,
-  PlayIcon,
-} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
-import Button from "core/components/Button";
-import CodeEditor from "core/components/CodeEditor";
 import DataCard from "core/components/DataCard";
 import DateProperty from "core/components/DataCard/DateProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import UserProperty from "core/components/DataCard/UserProperty";
 import DescriptionList from "core/components/DescriptionList";
-import Field from "core/components/forms/Field";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -22,13 +15,16 @@ import { DagRunStatus, DagRunTrigger } from "graphql-types";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTrigger";
 import GenericForm from "pipelines/features/PipelineRunForm/GenericForm";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
-import { WORKSPACES } from "workspaces/helpers/fixtures";
+import {
+  useWorkspacePipelineRunPageQuery,
+  WorkspacePipelineRunPageDocument,
+} from "workspaces/graphql/queries.generated";
+import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -39,13 +35,16 @@ type Props = {
 const WorkspacePipelineRunDetailsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const workspace = WORKSPACES.find((w) => w.id === router.query.workspaceId);
+  const { data } = useWorkspacePipelineRunPageQuery({
+    variables: { workspaceId: router.query.workspaceId as string },
+  });
 
-  if (!workspace) {
+  if (!data?.workspace) {
     return null;
   }
+  const { workspace } = data;
 
-  const dag = workspace.dags.find((d) => d.id === router.query.pipelineId);
+  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === router.query.pipelineId);
 
   if (!dag) {
     return null;
@@ -228,6 +227,18 @@ WorkspacePipelineRunDetailsPage.getLayout = (page, pageProps) => {
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
+  async getServerSideProps(ctx, client) {
+    const { data } = await client.query({
+      query: WorkspacePipelineRunPageDocument,
+      variables: { id: ctx.params?.workspaceId },
+    });
+
+    if (!data.workspace) {
+      return {
+        notFound: true,
+      };
+    }
+  },
 });
 
 export default WorkspacePipelineRunDetailsPage;

@@ -54,6 +54,7 @@ const LoginPage: NextPageWithLayout = () => {
       } else if (
         data.login.errors?.some((error) => error === LoginError.InvalidOtp)
       ) {
+        form.setFieldValue("token", "");
         throw new Error(t("Invalid token"));
       } else if (
         data.login.errors?.some((error) => error === LoginError.OtpRequired)
@@ -78,7 +79,7 @@ const LoginPage: NextPageWithLayout = () => {
   });
 
   const sendNewCode = () => {
-    form.setFieldValue("token", null);
+    form.setFieldValue("token", "");
     if (form.formData.email && form.formData.password) {
       doLogin({
         variables: {
@@ -93,7 +94,7 @@ const LoginPage: NextPageWithLayout = () => {
 
   const onBack = () => {
     setOTPForm(false);
-    form.setFieldValue("token", null);
+    form.setFieldValue("token", "");
   };
 
   return (
@@ -142,21 +143,20 @@ const LoginPage: NextPageWithLayout = () => {
               onChange={form.handleInputChange}
               required
             />
-            {form.submitError && (
-              <div
-                data-testid="error"
-                className="my-2 flex items-center justify-between gap-2 text-sm text-red-600"
+            <div className="my-2 flex items-center justify-between gap-2">
+              {form.submitError && (
+                <div data-testid="error" className="text-sm text-red-600">
+                  <span>{form.submitError}</span>
+                </div>
+              )}
+              <button
+                type="button"
+                className="text-blue-600"
+                onClick={sendNewCode}
               >
-                <span>{form.submitError}</span>
-                <button
-                  type="button"
-                  className="text-blue-600"
-                  onClick={sendNewCode}
-                >
-                  {t("Send a new code")}
-                </button>
-              </div>
-            )}
+                {t("Send a new code")}
+              </button>
+            </div>
           </>
         ) : (
           <>
