@@ -72,6 +72,16 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+enum DeleteWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+enum UpdateWorkspaceMemberError {
+  MEMBERSHIP_NOT_FOUND
+  PERMISSION_DENIED
+}
+
 type CreateWorkspaceResult {
   success: Boolean!
   errors: [CreateWorkspaceError!]!
@@ -92,6 +102,17 @@ type DeleteWorkspaceResult {
 type InviteWorkspaceMemberResult{
   success: Boolean!
   errors: [InviteWorkspaceMembershipError!]!
+  workspaceMembership: WorkspaceMembership
+}
+
+type DeleteWorkspaceMemberResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceMemberError!]!
+}
+
+type UpdateWorkspaceMemberResult {
+  success: Boolean!
+  errors:[UpdateWorkspaceMemberError!]!
   workspaceMembership: WorkspaceMembership
 }
 
@@ -118,14 +139,25 @@ input InviteWorkspaceMemberInput {
   role: WorkspaceMembershipRole!
 }
 
+input DeleteWorkspaceMemberInput {
+  membershipId: String!
+}
+
+input UpdateWorkspaceMemberInput {
+  membershipId: String!
+  role: WorkspaceMembershipRole!
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
+  updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
+  deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
 }
 
 
 extend type MePermissions {
-    createWorkspace: Boolean!
+  createWorkspace: Boolean!
 }
