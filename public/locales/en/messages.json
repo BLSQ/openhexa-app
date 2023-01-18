@@ -150,6 +150,7 @@
   "No elements to display": "No elements to display",
   "No logs": "No logs",
   "No results to display.": "No results to display.",
+  "No workspace available at the moment": "",
   "Notebooks": "Notebooks",
   "Open in Airflow": "Open in Airflow",
   "OpenHexa Metadata": "OpenHexa Metadata",

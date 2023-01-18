@@ -1,5 +1,8 @@
+import Alert from "core/components/Alert";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import useMe from "identity/hooks/useMe";
+import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
@@ -10,8 +13,17 @@ import {
 
 const WorkspacesHome = () => {
   const { t } = useTranslation();
-
+  const me = useMe();
+  const router = useRouter();
   const handleClose = () => {};
+
+  if (!me.permissions.createWorkspace) {
+    return (
+      <Alert onClose={() => router.push("/")} icon="warning">
+        {t("No workspace available at the moment")}
+      </Alert>
+    );
+  }
 
   return (
     <Page title={t("New workspace")}>
@@ -31,10 +43,7 @@ export const getServerSideProps = createGetServerSideProps({
     });
 
     if (!data.workspaces || !data.workspaces.items.length) {
-      if (
-        ctx.me?.features.filter((f) => f.code === "workspaces")[0] &&
-        ctx.me.permissions.createWorkspace
-      ) {
+      if (ctx.me?.features.filter((f) => f.code === "workspaces")[0]) {
         return {
           props: {},
         };
