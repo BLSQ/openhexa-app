@@ -1,5 +1,5 @@
 type Workspace {
-  id: String!
+  id: UUID!
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
@@ -46,7 +46,7 @@ type WorkspaceMembershipPage {
 }
 
 extend type Query {
-  workspace(id: String!): Workspace @loginRequired
+  workspace(id: UUID!): Workspace @loginRequired
   workspaces(page: Int, perPage: Int): WorkspacePage! @loginRequired
 }
 
