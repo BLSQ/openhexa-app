@@ -193,7 +193,7 @@ class DAGRunFavoriteTest(GraphQLTestCase):
         self.client.force_login(self.USER_REGULAR)
         r = self.run_query(
             """
-            query dag($id: String!) {
+            query dag($id: UUID!) {
               dag (id: $id) {
                   id
                   runs {

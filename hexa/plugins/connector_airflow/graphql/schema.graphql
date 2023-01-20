@@ -83,8 +83,8 @@ type DAGPage {
 
 extend type Query {
   dags(page: Int, perPage: Int): DAGPage!
-  dag(id: String!): DAG
-  dagRun(id: String!): DAGRun
+  dag(id: UUID!): DAG
+  dagRun(id: UUID!): DAGRun
 }
 
 enum RunDAGError {

@@ -100,7 +100,7 @@ class VisualizationTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-            query getExternalDashboardById ($id: String!) {
+            query getExternalDashboardById ($id: UUID!) {
                 externalDashboard(id: $id) {
                     id
                     name

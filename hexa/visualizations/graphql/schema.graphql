@@ -19,7 +19,7 @@ type ExternalDashboardPage {
 
 extend type Query {
   externalDashboards(page: Int, perPage: Int): ExternalDashboardPage! @loginRequired
-  externalDashboard(id: String!): ExternalDashboard @loginRequired
+  externalDashboard(id: UUID!): ExternalDashboard @loginRequired
 }
 
 input UpdateExternalDashboardInput {

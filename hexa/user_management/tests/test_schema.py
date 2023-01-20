@@ -335,7 +335,7 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query team($id: String!) {
+              query team($id: UUID!) {
                 team(id: $id) {
                   id
                   name
@@ -359,7 +359,7 @@ class SchemaTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query team($id: String!) {
+              query team($id: UUID!) {
                 team(id: $id) {
                   id
                   name

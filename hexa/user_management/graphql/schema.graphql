@@ -166,7 +166,7 @@ enum DeleteTeamError {
     PERMISSION_DENIED
 }
 extend type Query {
-    team(id: String!): Team
+    team(id: UUID!): Team
     teams(term: String, page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {

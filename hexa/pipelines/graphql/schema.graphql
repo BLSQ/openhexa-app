@@ -94,9 +94,9 @@ enum PipelineError {
 
 extend type Query {
   pipelines(page: Int, perPage: Int): PipelinesPage! @loginRequired
-  pipeline(id: String, name: String): Pipeline @loginRequired
-  pipelineRun(id: String!): PipelineRun @loginRequired
-  pipelineRunCode(id: String): String @loginRequired
+  pipeline(id: UUID, name: String): Pipeline @loginRequired
+  pipelineRun(id: UUID!): PipelineRun @loginRequired
+  pipelineRunCode(id: UUID): String @loginRequired
 }
 
 input CreatePipelineInput {

@@ -89,7 +89,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query accessmodProject($id: String!) {
+              query accessmodProject($id: UUID!) {
                 accessmodProject(id: $id) {
                   id
                   name
@@ -147,7 +147,7 @@ class ProjectTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodProject($id: String!) {
+                query accessmodProject($id: UUID!) {
                   accessmodProject(id: $id) {
                     id
                   }

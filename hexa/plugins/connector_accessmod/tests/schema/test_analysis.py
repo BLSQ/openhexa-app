@@ -254,7 +254,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query accessmodAnalysis($id: String!) {
+              query accessmodAnalysis($id: UUID!) {
                 accessmodAnalysis(id: $id) {
                   id
                   type
@@ -339,7 +339,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalysis($id: String!) {
+                query accessmodAnalysis($id: UUID!) {
                   accessmodAnalysis(id: $id) {
                     id
                   }
@@ -358,7 +358,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query accessmodAnalysis($id: String!) {
+              query accessmodAnalysis($id: UUID!) {
                 accessmodAnalysis(id: $id) {
                   id
                   type
@@ -417,7 +417,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses($projectId: String!) {
+                query accessmodAnalyses($projectId: UUID!) {
                     accessmodAnalyses(projectId: $projectId) {
                         pageNumber
                         totalPages
@@ -483,7 +483,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses($projectId: String!) {
+                query accessmodAnalyses($projectId: UUID!) {
                   accessmodAnalyses(projectId: $projectId, page: 1, perPage: 10) {
                     pageNumber
                     totalPages
@@ -518,7 +518,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses($projectId: String!) {
+                query accessmodAnalyses($projectId: UUID!) {
                   accessmodAnalyses(projectId: $projectId) {
                     pageNumber
                     totalPages
@@ -547,7 +547,7 @@ class AnalysisTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodAnalyses($projectId: String!) {
+                query accessmodAnalyses($projectId: UUID!) {
                     accessmodAnalyses(projectId: $projectId) {
                         totalItems
                         items {
