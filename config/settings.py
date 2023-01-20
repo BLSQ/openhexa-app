@@ -399,6 +399,6 @@ PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kuber
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 
 # Two Factor Authentication
-OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
+OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.html"
 OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
-OTP_EMAIL_SUBJECT = "OpenHexa login token"
+OTP_EMAIL_SUBJECT = "OpenHexa Verification Token"
