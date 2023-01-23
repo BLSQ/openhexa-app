@@ -163,7 +163,7 @@ enum AccessmodProjectOrder {
 }
 
 extend type Query {
-    accessmodProject(id: UUID): AccessmodProject
+    accessmodProject(id: String): AccessmodProject
     accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
@@ -341,9 +341,9 @@ type PrepareAccessmodFilesetVisualizationDownloadResult {
     url: String
 }
 extend type Query {
-    accessmodFileset(id: UUID): AccessmodFileset
-    accessmodFilesets(projectId: UUID!, roleId: UUID, term: String, mode: AccessmodFilesetMode, page: Int, perPage: Int): AccessmodFilesetPage!
-    accessmodFilesetRole(id: UUID!): AccessmodFilesetRole
+    accessmodFileset(id: String): AccessmodFileset
+    accessmodFilesets(projectId: String!, roleId: String, term: String, mode: AccessmodFilesetMode, page: Int, perPage: Int): AccessmodFilesetPage!
+    accessmodFilesetRole(id: String!): AccessmodFilesetRole
     accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }
 extend type Mutation {
@@ -567,8 +567,8 @@ enum DeleteAccessmodAnalysisError {
     DELETE_FAILED
 }
 extend type Query {
-    accessmodAnalysis(id: UUID): AccessmodAnalysis
-    accessmodAnalyses(projectId: UUID!, page: Int, perPage: Int): AccessmodAnalysisPage!
+    accessmodAnalysis(id: String): AccessmodAnalysis
+    accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
 }
 extend type Mutation {
     createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!

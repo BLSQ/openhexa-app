@@ -16,7 +16,7 @@ type DAGRunOutput {
 }
 
 type DAGRun {
-  id: String!
+  id: UUID!
   label: String
   externalId: String
   externalUrl: URL
@@ -60,7 +60,7 @@ type DAGTemplate {
 }
 
 type DAG {
-  id: String!
+  id: UUID!
   label: String!
   tags: [Tag!]!
   formCode: String
@@ -100,12 +100,12 @@ type RunDAGResult {
 }
 
 input RunDAGInput {
-  dagId: String!
+  dagId: UUID!
   config: JSON!
 }
 
 input UpdateDAGInput {
-  id: String!
+  id: UUID!
   label: String
   description: String
   schedule: String
@@ -139,7 +139,7 @@ enum SetDAGRunFavoriteError {
 }
 
 input SetDAGRunFavoriteInput {
-  id: String!
+  id: UUID!
   label: String
   isFavorite: Boolean!
 }

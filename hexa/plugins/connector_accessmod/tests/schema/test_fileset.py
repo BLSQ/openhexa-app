@@ -102,7 +102,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFileset($id: UUID!) {
+                query accessmodFileset($id: String!) {
                   accessmodFileset(id: $id) {
                     id
                     name
@@ -148,7 +148,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFileset($id: UUID!) {
+                query accessmodFileset($id: String!) {
                   accessmodFileset(id: $id) {
                     id
                   }
@@ -167,7 +167,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!) {
+                query accessmodFilesets($projectId: String!) {
                   accessmodFilesets(projectId: $projectId) {
                     pageNumber
                     totalPages
@@ -209,7 +209,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!, $roleId: UUID!) {
+                query accessmodFilesets($projectId: String!, $roleId: String!) {
                   accessmodFilesets(projectId: $projectId, roleId: $roleId) {
                     pageNumber
                     totalPages
@@ -249,7 +249,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!, $term: String!) {
+                query accessmodFilesets($projectId: String!, $term: String!) {
                   accessmodFilesets(projectId: $projectId, term: $term) {
                     pageNumber
                     totalPages
@@ -282,7 +282,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!, $term: String!) {
+                query accessmodFilesets($projectId: String!, $term: String!) {
                   accessmodFilesets(projectId: $projectId, term: $term) {
                     pageNumber
                     totalPages
@@ -314,7 +314,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!, $mode: AccessmodFilesetMode!) {
+                query accessmodFilesets($projectId: String!, $mode: AccessmodFilesetMode!) {
                   accessmodFilesets(projectId: $projectId, mode: $mode) {
                     pageNumber
                     totalPages
@@ -347,7 +347,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!, $term: String!) {
+                query accessmodFilesets($projectId: String!, $term: String!) {
                   accessmodFilesets(projectId: $projectId, term: $term) {
                     pageNumber
                     totalPages
@@ -379,7 +379,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!) {
+                query accessmodFilesets($projectId: String!) {
                   accessmodFilesets(projectId: $projectId, page: 1, perPage: 10) {
                     pageNumber
                     totalPages
@@ -411,7 +411,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesets($projectId: UUID!) {
+                query accessmodFilesets($projectId: String!) {
                   accessmodFilesets(projectId: $projectId) {
                     pageNumber
                     totalPages
@@ -817,7 +817,7 @@ class FilesetTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-                query accessmodFilesetRole($id: UUID!) {
+                query accessmodFilesetRole($id: String!) {
                   accessmodFilesetRole(id: $id) {
                     id
                     code

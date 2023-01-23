@@ -1,5 +1,5 @@
 type ExternalDashboard {
-  id: String!
+  id: UUID!
   name: String!
   url: URL!
   pictureUrl: URL!
@@ -23,7 +23,7 @@ extend type Query {
 }
 
 input UpdateExternalDashboardInput {
-  id: String!
+  id: UUID!
   description: String
   name: String
   countries: [CountryInput!] 

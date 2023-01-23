@@ -7,14 +7,14 @@ union SearchResultObject = CatalogEntry
 
 
 type CatalogEntryType {
-    id: String!
+    id: UUID!
     app: String!
     model: String!
     name: String!
 }
 
 type CatalogEntry {
-    id: String!
+    id: UUID!
     name: String!
     description: String
     countries: [Country!]!
@@ -35,7 +35,7 @@ type CatalogEntry {
 }
 
 type Datasource {
-    id: String!
+    id: UUID!
     name: String!
 }
 
