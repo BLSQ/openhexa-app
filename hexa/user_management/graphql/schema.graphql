@@ -92,8 +92,8 @@ extend type Mutation {
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
     setPassword(input: SetPasswordInput!): SetPasswordResult!
 
-    verifyToken(input: VerifyTokenInput!): VerifyTokenResult! 
-    generateChallenge: GenerateChallengeResult! @loginRequired(withoutTwoFactor: false)
+    verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult! 
+    generateChallenge: GenerateChallengeResult! @loginRequired(withoutTwoFactor: true)
     enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult! @loginRequired
     disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult! @loginRequired
 }
@@ -290,17 +290,18 @@ extend type Me {
     hasTwoFactorEnabled: Boolean!
 }
 
-input VerifyTokenInput {
-    token: String!
+input VerifyDeviceInput {
+    token: String
 }
 
-enum VerifyTokenError {
-    INVALID_OTP_OR_DEVICE
+enum VerifyDeviceError {
+    NO_DEVICE
+    INVALID_OTP
 }
 
-type VerifyTokenResult {
+type VerifyDeviceResult {
     success: Boolean!
-    errors: [VerifyTokenError!]
+    errors: [VerifyDeviceError!]
 }
 
 enum GenerateChallengeError {
@@ -338,5 +339,6 @@ enum EnableTwoFactorError {
 
 type EnableTwoFactorResult {
     success: Boolean!
+    verified: Boolean
     errors: [EnableTwoFactorError!]
 }

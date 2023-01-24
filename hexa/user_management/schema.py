@@ -35,7 +35,7 @@ from hexa.user_management.models import (
     User,
 )
 
-from .utils import default_device, has_configured_two_factor
+from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
 
 logger = logging.getLogger(__name__)
 
@@ -526,23 +526,29 @@ def resolve_delete_membership(_, info, **kwargs):
         return {"success": False, "membership": None, "errors": ["PERMISSION_DENIED"]}
 
 
-@identity_mutations.field("verifyToken")
+@identity_mutations.field("verifyDevice")
 def resolve_verify_token(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
+    token = mutation_input.get("token")
 
-    device = django_otp.match_token(request.user, mutation_input["token"])
-    if device is None:
-        return {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]}
+    user_device = default_device(request.user, confirmed=False)
 
-    django_otp.login(request, device)
-    return {"success": True}
+    if user_device is None:
+        return {"success": False, "errors": ["NO_DEVICE"]}
+    elif user_device.verify_token(token):
+        user_device.confirmed = True
+        user_device.save()
+        django_otp.login(request, user_device)
+        return {"success": True, "errors": []}
+
+    return {"success": False, "errors": ["INVALID_OTP"]}
 
 
 @identity_mutations.field("generateChallenge")
 def resolve_generate_challenge(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    device = default_device(request.user)
+    device = default_device(request.user) or default_device(request.user, None)
 
     if device is None or device.user != request.user:
         return {"success": False, "errors": ["DEVICE_NOT_FOUND"]}
@@ -585,12 +591,18 @@ def resolve_enable_two_factor(_, info, **kwargs):
     if "email" in mutation_input and request.user.email != mutation_input["email"]:
         return {"success": False, "errors": ["EMAIL_MISMATCH"]}
 
-    device = EmailDevice(
-        user=request.user, email=mutation_input.get("email", None), name="default"
-    )
+    device = default_device(request.user, confirmed=None)
+    if device is None:
+        device = EmailDevice(
+            user=request.user,
+            email=mutation_input.get("email", None),
+            name=DEVICE_DEFAULT_NAME,
+            confirmed=False,  # Do not confirm the device yet as user has to verify it.
+        )
+    device.generate_challenge()
     device.save()
 
-    return {"success": True}
+    return {"success": True, "verified": False, "errors": []}
 
 
 identity_bindables = [

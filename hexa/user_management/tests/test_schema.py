@@ -17,7 +17,7 @@ from hexa.user_management.models import (
     User,
 )
 
-from ..utils import default_device
+from ..utils import default_device, devices_for_user
 
 
 class SchemaTest(GraphQLTestCase):
@@ -438,6 +438,11 @@ class SchemaTest(GraphQLTestCase):
             {"success": False, "errors": ["INVALID_OTP"]}, r["data"]["login"]
         )
 
+    def test_login_unconfirmed_device(self):
+        """
+        It should act as a normal login without two factor
+        """
+
     def test_login_valid_otp(self):
         device = default_device(self.USER_JANE)
         device.generate_challenge()
@@ -460,7 +465,7 @@ class SchemaTest(GraphQLTestCase):
         )
         self.assertEqual({"success": True, "errors": None}, r["data"]["login"])
 
-    def logout(self):
+    def test_logout(self):
         self.client.force_login(self.USER_JIM)
         r = self.run_query(
             """
@@ -1006,6 +1011,9 @@ class TwoFactorTest(GraphQLTestCase):
         cls.USER_WITH_DEVICE_2 = User.objects.create_user(
             "device2@bluesquare.com", "device"
         )
+        cls.USER_WITHOUT_DEVICE = User.objects.create_user(
+            "rebecca@bluesquare.com", "device"
+        )
         cls.USER_WITH_DEVICE.emaildevice_set.create(
             name="default", user=cls.USER_WITH_DEVICE
         ).save()
@@ -1043,7 +1051,8 @@ class TwoFactorTest(GraphQLTestCase):
 
     def test_enable_two_factor(self):
         self.client.force_login(self.USER_REGULAR)
-        self.assertFalse(user_has_device(self.USER_REGULAR))
+        self.assertFalse(user_has_device(self.USER_REGULAR, confirmed=False))
+        self.assertFalse(user_has_device(self.USER_REGULAR, confirmed=True))
         r = self.run_query(
             """
                 mutation enableTwoFactor {
@@ -1055,7 +1064,9 @@ class TwoFactorTest(GraphQLTestCase):
         )
 
         self.assertEqual({"enableTwoFactor": {"success": True}}, r["data"])
-        self.assertTrue(user_has_device(self.USER_REGULAR))
+        self.assertTrue(user_has_device(self.USER_REGULAR, confirmed=False))
+        self.assertFalse(user_has_device(self.USER_REGULAR, confirmed=True))
+        self.assertTrue(len(mail.outbox), 1)
 
     def test_enable_two_factor_already_enabled(self):
         self.client.force_login(self.USER_WITH_DEVICE)
@@ -1077,6 +1088,30 @@ class TwoFactorTest(GraphQLTestCase):
             r["data"]["enableTwoFactor"],
         )
 
+    def test_enable_two_factor_unconfirmed_device_present(self):
+        self.client.force_login(self.USER_WITH_DEVICE)
+        device = default_device(self.USER_WITH_DEVICE)
+        device.confirmed = False
+        device.save()
+        r = self.run_query(
+            """
+                mutation enableTwoFactor {
+                    enableTwoFactor {
+                        success
+                        errors
+                        verified
+                    }
+                }
+            """,
+        )
+        self.assertEqual(
+            {"success": True, "verified": False, "errors": []},
+            r["data"]["enableTwoFactor"],
+        )
+        self.assertEqual(
+            1, len(list(devices_for_user(self.USER_WITH_DEVICE, confirmed=None)))
+        )
+
     def test_generate_challenge(self):
         self.client.force_login(self.USER_WITH_DEVICE)
         r = self.run_query(
@@ -1095,14 +1130,23 @@ class TwoFactorTest(GraphQLTestCase):
         )
         self.assertTrue(len(mail.outbox), 1)
 
-    def test_verify_existing_device_good_token(self):
-        self.client.force_login(self.USER_WITH_DEVICE)
-        device: Device = default_device(self.USER_WITH_DEVICE)
-        device.generate_challenge()
+    def test_verify_unconfirmed_device(self):
+        self.client.force_login(self.USER_WITHOUT_DEVICE)
         r = self.run_query(
             """
-                mutation verifyToken($input: VerifyTokenInput!) {
-                    verifyToken(input: $input) {
+            mutation {
+              enableTwoFactor{
+                success
+              }
+            }
+          """
+        )
+        self.assertEqual({"success": True}, r["data"]["enableTwoFactor"])
+        device = default_device(self.USER_WITHOUT_DEVICE, confirmed=False)
+        r = self.run_query(
+            """
+                mutation verifyDevice($input: VerifyDeviceInput!) {
+                    verifyDevice(input: $input) {
                         success
                         errors
                     }
@@ -1111,37 +1155,38 @@ class TwoFactorTest(GraphQLTestCase):
             {"input": {"token": device.token}},
         )
 
-        self.assertEqual({"success": True, "errors": None}, r["data"]["verifyToken"])
+        self.assertEqual({"success": True, "errors": []}, r["data"]["verifyDevice"])
 
     def test_verify_existing_device_bad_token(self):
         self.client.force_login(self.USER_WITH_DEVICE)
         device: Device = default_device(self.USER_WITH_DEVICE)
-        device.generate_challenge()
+        device.confirmed = False
+        device.save()
         r = self.run_query(
             """
-                mutation verifyToken($input: VerifyTokenInput!) {
-                    verifyToken(input: $input) {
+                mutation verifyDevice($input: VerifyDeviceInput!) {
+                    verifyDevice(input: $input) {
                         success
                         errors
                     }
                 }
             """,
-            {"input": {"token": device.token + "X"}},
+            {"input": {"token": "X"}},
         )
 
         self.assertEqual(
-            {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]},
-            r["data"]["verifyToken"],
+            {"success": False, "errors": ["INVALID_OTP"]},
+            r["data"]["verifyDevice"],
         )
 
     def test_verify_with_another_user_device(self):
-        self.client.force_login(self.USER_WITH_DEVICE)
+        self.client.force_login(self.USER_WITHOUT_DEVICE)
         device: Device = default_device(self.USER_WITH_DEVICE_2)
         device.generate_challenge()
         r = self.run_query(
             """
-                mutation verifyToken($input: VerifyTokenInput!) {
-                    verifyToken(input: $input) {
+                mutation verifyDevice($input: VerifyDeviceInput!) {
+                    verifyDevice(input: $input) {
                         success
                         errors
                     }
@@ -1149,10 +1194,9 @@ class TwoFactorTest(GraphQLTestCase):
             """,
             {"input": {"token": device.token}},
         )
-
         self.assertEqual(
-            {"success": False, "errors": ["INVALID_OTP_OR_DEVICE"]},
-            r["data"]["verifyToken"],
+            {"success": False, "errors": ["NO_DEVICE"]},
+            r["data"]["verifyDevice"],
         )
 
     def test_disable_two_factor_unverified(self):
