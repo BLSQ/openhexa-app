@@ -31,8 +31,8 @@ mutation GenerateChallenge {
   }
 }
 
-mutation VerifyToken($input: VerifyTokenInput!) {
-  verifyToken(input: $input) {
+mutation VerifyDevice($input: VerifyDeviceInput!) {
+  verifyDevice(input: $input) {
     success
     errors
   }
@@ -48,6 +48,7 @@ mutation DisableTwoFactor($input: DisableTwoFactorInput!) {
 mutation EnableTwoFactor {
   enableTwoFactor {
     success
+    verified
     errors
   }
 }

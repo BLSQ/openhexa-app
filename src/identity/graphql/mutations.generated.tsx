@@ -34,12 +34,12 @@ export type GenerateChallengeMutationVariables = Types.Exact<{ [key: string]: ne
 
 export type GenerateChallengeMutation = { __typename?: 'Mutation', generateChallenge: { __typename?: 'GenerateChallengeResult', success: boolean, errors?: Array<Types.GenerateChallengeError> | null } };
 
-export type VerifyTokenMutationVariables = Types.Exact<{
-  input: Types.VerifyTokenInput;
+export type VerifyDeviceMutationVariables = Types.Exact<{
+  input: Types.VerifyDeviceInput;
 }>;
 
 
-export type VerifyTokenMutation = { __typename?: 'Mutation', verifyToken: { __typename?: 'VerifyTokenResult', success: boolean, errors?: Array<Types.VerifyTokenError> | null } };
+export type VerifyDeviceMutation = { __typename?: 'Mutation', verifyDevice: { __typename?: 'VerifyDeviceResult', success: boolean, errors?: Array<Types.VerifyDeviceError> | null } };
 
 export type DisableTwoFactorMutationVariables = Types.Exact<{
   input: Types.DisableTwoFactorInput;
@@ -51,7 +51,7 @@ export type DisableTwoFactorMutation = { __typename?: 'Mutation', disableTwoFact
 export type EnableTwoFactorMutationVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type EnableTwoFactorMutation = { __typename?: 'Mutation', enableTwoFactor: { __typename?: 'EnableTwoFactorResult', success: boolean, errors?: Array<Types.EnableTwoFactorError> | null } };
+export type EnableTwoFactorMutation = { __typename?: 'Mutation', enableTwoFactor: { __typename?: 'EnableTwoFactorResult', success: boolean, verified?: boolean | null, errors?: Array<Types.EnableTwoFactorError> | null } };
 
 
 export const ResetPasswordDocument = gql`
@@ -220,40 +220,40 @@ export function useGenerateChallengeMutation(baseOptions?: Apollo.MutationHookOp
 export type GenerateChallengeMutationHookResult = ReturnType<typeof useGenerateChallengeMutation>;
 export type GenerateChallengeMutationResult = Apollo.MutationResult<GenerateChallengeMutation>;
 export type GenerateChallengeMutationOptions = Apollo.BaseMutationOptions<GenerateChallengeMutation, GenerateChallengeMutationVariables>;
-export const VerifyTokenDocument = gql`
-    mutation VerifyToken($input: VerifyTokenInput!) {
-  verifyToken(input: $input) {
+export const VerifyDeviceDocument = gql`
+    mutation VerifyDevice($input: VerifyDeviceInput!) {
+  verifyDevice(input: $input) {
     success
     errors
   }
 }
     `;
-export type VerifyTokenMutationFn = Apollo.MutationFunction<VerifyTokenMutation, VerifyTokenMutationVariables>;
+export type VerifyDeviceMutationFn = Apollo.MutationFunction<VerifyDeviceMutation, VerifyDeviceMutationVariables>;
 
 /**
- * __useVerifyTokenMutation__
+ * __useVerifyDeviceMutation__
  *
- * To run a mutation, you first call `useVerifyTokenMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useVerifyTokenMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useVerifyDeviceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyDeviceMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [verifyTokenMutation, { data, loading, error }] = useVerifyTokenMutation({
+ * const [verifyDeviceMutation, { data, loading, error }] = useVerifyDeviceMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useVerifyTokenMutation(baseOptions?: Apollo.MutationHookOptions<VerifyTokenMutation, VerifyTokenMutationVariables>) {
+export function useVerifyDeviceMutation(baseOptions?: Apollo.MutationHookOptions<VerifyDeviceMutation, VerifyDeviceMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<VerifyTokenMutation, VerifyTokenMutationVariables>(VerifyTokenDocument, options);
+        return Apollo.useMutation<VerifyDeviceMutation, VerifyDeviceMutationVariables>(VerifyDeviceDocument, options);
       }
-export type VerifyTokenMutationHookResult = ReturnType<typeof useVerifyTokenMutation>;
-export type VerifyTokenMutationResult = Apollo.MutationResult<VerifyTokenMutation>;
-export type VerifyTokenMutationOptions = Apollo.BaseMutationOptions<VerifyTokenMutation, VerifyTokenMutationVariables>;
+export type VerifyDeviceMutationHookResult = ReturnType<typeof useVerifyDeviceMutation>;
+export type VerifyDeviceMutationResult = Apollo.MutationResult<VerifyDeviceMutation>;
+export type VerifyDeviceMutationOptions = Apollo.BaseMutationOptions<VerifyDeviceMutation, VerifyDeviceMutationVariables>;
 export const DisableTwoFactorDocument = gql`
     mutation DisableTwoFactor($input: DisableTwoFactorInput!) {
   disableTwoFactor(input: $input) {
@@ -292,6 +292,7 @@ export const EnableTwoFactorDocument = gql`
     mutation EnableTwoFactor {
   enableTwoFactor {
     success
+    verified
     errors
   }
 }

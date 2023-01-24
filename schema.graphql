@@ -967,6 +967,7 @@ input EnableTwoFactorInput {
 
 type EnableTwoFactorResult {
   success: Boolean!
+  verified: Boolean
   errors: [EnableTwoFactorError!]
 }
 
@@ -1144,7 +1145,7 @@ type Mutation {
   logout: LogoutResult!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
   setPassword(input: SetPasswordInput!): SetPasswordResult!
-  verifyToken(input: VerifyTokenInput!): VerifyTokenResult!
+  verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
   generateChallenge: GenerateChallengeResult!
   enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
   disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
@@ -1837,17 +1838,19 @@ type User {
   lastLogin: DateTime
 }
 
-enum VerifyTokenError {
-  INVALID_OTP_OR_DEVICE
+enum VerifyDeviceError {
+  NO_DEVICE
+  INVALID_OTP
 }
 
-input VerifyTokenInput {
-  token: String!
+input VerifyDeviceInput {
+  token: String
+  sendChallenge: Boolean
 }
 
-type VerifyTokenResult {
+type VerifyDeviceResult {
   success: Boolean!
-  errors: [VerifyTokenError!]
+  errors: [VerifyDeviceError!]
 }
 
 type WHOBoundary {

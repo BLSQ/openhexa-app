@@ -7,6 +7,9 @@ import {
   EnableTwoFactorMutation,
   GenerateChallengeDocument,
   GenerateChallengeMutation,
+  VerifyDeviceDocument,
+  VerifyDeviceMutation,
+  VerifyDeviceMutationVariables,
 } from "identity/graphql/mutations.generated";
 import {
   GetUserDocument,
@@ -60,5 +63,27 @@ export async function enableTwoFactor() {
     mutation: EnableTwoFactorDocument,
   });
 
-  return payload.data?.enableTwoFactor.success ?? false;
+  if (!payload.data) {
+    throw new Error("Unable to enable two factor authentication");
+  }
+
+  return payload.data.enableTwoFactor;
+}
+
+export async function verifyDevice(token?: string) {
+  const client = getApolloClient();
+
+  const payload = await client.mutate<
+    VerifyDeviceMutation,
+    VerifyDeviceMutationVariables
+  >({
+    mutation: VerifyDeviceDocument,
+    variables: { input: { token } },
+  });
+
+  if (!payload.data) {
+    throw new Error("Unable to enable two factor authentication");
+  }
+
+  return payload.data.verifyDevice.success;
 }

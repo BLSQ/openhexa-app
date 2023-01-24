@@ -1066,6 +1066,7 @@ export type EnableTwoFactorResult = {
   __typename?: 'EnableTwoFactorResult';
   errors?: Maybe<Array<EnableTwoFactorError>>;
   success: Scalars['Boolean'];
+  verified?: Maybe<Scalars['Boolean']>;
 };
 
 export type ExternalDashboard = {
@@ -1310,7 +1311,7 @@ export type Mutation = {
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
   uploadPipeline: UploadPipelineResult;
-  verifyToken: VerifyTokenResult;
+  verifyDevice: VerifyDeviceResult;
 };
 
 
@@ -1599,8 +1600,8 @@ export type MutationUploadPipelineArgs = {
 };
 
 
-export type MutationVerifyTokenArgs = {
-  input: VerifyTokenInput;
+export type MutationVerifyDeviceArgs = {
+  input: VerifyDeviceInput;
 };
 
 export type Organization = {
@@ -2453,17 +2454,19 @@ export type User = {
   lastName?: Maybe<Scalars['String']>;
 };
 
-export enum VerifyTokenError {
-  InvalidOtpOrDevice = 'INVALID_OTP_OR_DEVICE'
+export enum VerifyDeviceError {
+  InvalidOtp = 'INVALID_OTP',
+  NoDevice = 'NO_DEVICE'
 }
 
-export type VerifyTokenInput = {
-  token: Scalars['String'];
+export type VerifyDeviceInput = {
+  sendChallenge?: InputMaybe<Scalars['Boolean']>;
+  token?: InputMaybe<Scalars['String']>;
 };
 
-export type VerifyTokenResult = {
-  __typename?: 'VerifyTokenResult';
-  errors?: Maybe<Array<VerifyTokenError>>;
+export type VerifyDeviceResult = {
+  __typename?: 'VerifyDeviceResult';
+  errors?: Maybe<Array<VerifyDeviceError>>;
   success: Scalars['Boolean'];
 };
 

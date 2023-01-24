@@ -1,11 +1,17 @@
+import Alert from "core/components/Alert";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
-import { enableTwoFactor } from "identity/helpers/auth";
+import {
+  enableTwoFactor,
+  generateChallenge,
+  verifyDevice,
+} from "identity/helpers/auth";
 import { useRouter } from "next/router";
-import Alert from "core/components/Alert";
 
-import { useTranslation } from "react-i18next";
 import useMe from "identity/hooks/useMe";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import Input from "core/components/forms/Input";
 
 type EnableTwoFactorDialogProps = {
   open: boolean;
@@ -14,15 +20,39 @@ type EnableTwoFactorDialogProps = {
 
 const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
   const { open, onClose } = props;
+  const [isVerificationNeeded, setVerificationNeeded] = useState(false);
+  const [token, setToken] = useState<string>("");
+  const [error, setError] = useState<null | string>(null);
   const { t } = useTranslation();
   const me = useMe();
   const router = useRouter();
 
-  const onClick = async () => {
-    try {
-      await enableTwoFactor();
+  useEffect(() => {
+    if (!open) {
+      setToken("");
+      setVerificationNeeded(false);
+      setError(null);
+    }
+  }, [open]);
+
+  const onEnableTwoFactor = async () => {
+    const { success, verified } = await enableTwoFactor();
+    if (!success) {
+      throw new Error("Unable to enable two factor authentication");
+    }
+    if (verified) {
       router.reload();
-    } catch (err) {}
+    } else {
+      setVerificationNeeded(true);
+    }
+  };
+
+  const onConfirmToken = async () => {
+    if (await verifyDevice(token)) {
+      router.reload();
+    } else {
+      setError(t("Invalid code"));
+    }
   };
 
   if (me?.hasTwoFactorEnabled && open) {
@@ -39,22 +69,56 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
         {t("Enable Two-Factor Authentication")}
       </Dialog.Title>
 
-      <Dialog.Content className="space-y-4">
-        <p>
-          {t(
-            "This will enable the two-factor authentication using your email address. A one-time code will be sent to you every time you try to log in."
-          )}
-        </p>
-        <p>{t("You will have to log in again ro your account.")}</p>
-      </Dialog.Content>
+      {isVerificationNeeded ? (
+        <Dialog.Content className="space-y-4">
+          <p>
+            {t(
+              "Check your inbox and type the token you received to disable the two-factor authentication."
+            )}
+          </p>
+          <Input
+            placeholder="123456"
+            data-testid="token-input"
+            type="number"
+            required
+            value={token}
+            onChange={(event) => setToken(event.target.value)}
+          />
+          <div className="flex items-center justify-between gap-2">
+            {error && <span className="text-sm text-red-600">{error}</span>}
+            <button
+              type="button"
+              className="text-blue-600"
+              onClick={() => generateChallenge()}
+            >
+              {t("Send a new code")}
+            </button>
+          </div>
+        </Dialog.Content>
+      ) : (
+        <Dialog.Content className="space-y-4">
+          <p>
+            {t(
+              "This will enable the two-factor authentication using your email address. A one-time code will be sent to you every time you try to log in."
+            )}
+          </p>
+          <p>{t("You will have to log in again to your account.")}</p>
+        </Dialog.Content>
+      )}
 
       <Dialog.Actions>
         <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>
-        <Button variant="primary" onClick={onClick}>
-          {t("Enable")}
-        </Button>
+        {isVerificationNeeded ? (
+          <Button variant="primary" onClick={onConfirmToken} disabled={!token}>
+            {t("Confirm")}
+          </Button>
+        ) : (
+          <Button variant="primary" onClick={onEnableTwoFactor}>
+            {t("Enable")}
+          </Button>
+        )}
       </Dialog.Actions>
     </Dialog>
   );
