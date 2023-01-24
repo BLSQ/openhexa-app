@@ -1,0 +1,9 @@
+{% load i18n %}{% autoescape off %}
+
+{% blocktranslate %}Enter this OTP code to verify your account:{% endblocktranslate %} {{ token }}
+
+{% blocktranslate %}If you weren’t expecting this email, you can safely ignore it.{% endblocktranslate %}
+
+{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+
+{% endautoescape %}
