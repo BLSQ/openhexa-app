@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0](https://github.com/BLSQ/openhexa-frontend/compare/0.15.5...0.16.0) (2023-01-24)
+
+
+### Features
+
+* **2fa:** Add verification step to two factor ([#185](https://github.com/BLSQ/openhexa-frontend/issues/185)) ([2130260](https://github.com/BLSQ/openhexa-frontend/commit/213026017b1a7192f3e0cad7990242bb4992888a))
+
+
+### Bug Fixes
+
+* **Workspaces:** display warning when user can't create workspace ([#183](https://github.com/BLSQ/openhexa-frontend/issues/183)) ([6ca2d6d](https://github.com/BLSQ/openhexa-frontend/commit/6ca2d6da40c551dd55704697c225e3042a3b45ba))
+
 ## [0.15.5](https://github.com/BLSQ/openhexa-frontend/compare/0.15.4...0.15.5) (2023-01-17)
 
 
