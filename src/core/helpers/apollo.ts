@@ -81,7 +81,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
           console.error(
             `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
               locations
-            )}, Path: ${path}, Extension Code: ${extensions.code}`
+            )}, Path: ${path}, Extension Code: ${extensions?.code}`
           );
         });
       }
