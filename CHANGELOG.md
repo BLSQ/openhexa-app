@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.2](https://github.com/BLSQ/openhexa-frontend/compare/0.16.1...0.16.2) (2023-01-25)
+
+
+### Bug Fixes
+
+* **Graphql:** Define a new scalar (UUID) for graphql objects. ([#186](https://github.com/BLSQ/openhexa-frontend/issues/186)) ([33c3250](https://github.com/BLSQ/openhexa-frontend/commit/33c3250badc84fcce8b90b158ec9a9deed6a4741))
+
 ## [0.16.1](https://github.com/BLSQ/openhexa-frontend/compare/0.16.0...0.16.1) (2023-01-25)
 
 
