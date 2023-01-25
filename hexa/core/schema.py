@@ -1,6 +1,7 @@
 import pathlib
+from uuid import UUID
 
-from ariadne import ObjectType, QueryType, load_schema_from_path
+from ariadne import ObjectType, QueryType, ScalarType, load_schema_from_path
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy
@@ -17,6 +18,17 @@ core_type_defs = load_schema_from_path(
 
 core_activity_object = ObjectType("Activity")
 core_queries = QueryType()
+
+uuid_scalar = ScalarType("UUID")
+
+
+@uuid_scalar.value_parser
+def parse_uuid_value(value):
+    try:
+        UUID(value, version=4)
+        return str(value).upper()
+    except (ValueError, TypeError):
+        raise ValueError(f'"{value}" is not a valid uuid')
 
 
 @core_activity_object.field("status")
@@ -55,4 +67,8 @@ def resolve_core_dashboard_notebooks(_, info, **kwargs):
     return totalNotebooks
 
 
-core_bindables = [core_activity_object, core_queries]
+core_bindables = [
+    core_activity_object,
+    core_queries,
+    uuid_scalar,
+]
