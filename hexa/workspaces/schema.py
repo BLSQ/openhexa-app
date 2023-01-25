@@ -39,7 +39,7 @@ def parse_uuid_value(value):
         UUID(value, version=4)
         return str(value).upper()
     except (ValueError, TypeError):
-        raise ValueError(f'"{value}" is not a valid input')
+        raise ValueError(f'"{value}" is not a valid uuid')
 
 
 @me_permissions_object.field("createWorkspace")
