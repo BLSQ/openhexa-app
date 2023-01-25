@@ -53,7 +53,7 @@ class DAGRunFavoriteTest(GraphQLTestCase):
 
         r = self.run_query(
             """
-              query run ($id: String!) {
+              query run ($id: UUID!) {
                 dagRun (id: $id) {
                   id
                   isFavorite

@@ -30,7 +30,7 @@ enum PipelineRunStatus {
 }
 
 type PipelineVersion {
-  id: String!
+  id: UUID!
   user: User
   pipeline: Pipeline!
   number: Int!
@@ -38,8 +38,8 @@ type PipelineVersion {
 }
 
 type PipelineRun {
-  id: String!
-  run_id: String!
+  id: UUID!
+  run_id: UUID!
   user: User
   pipeline: Pipeline!
   version: PipelineVersion!
@@ -68,7 +68,7 @@ type PipelineRunPage {
 }
 
 type Pipeline {
-  id: String!
+  id: UUID!
   name: String!
   entrypoint: String!
   parameters: JSON!
@@ -94,9 +94,9 @@ enum PipelineError {
 
 extend type Query {
   pipelines(page: Int, perPage: Int): PipelinesPage! @loginRequired
-  pipeline(id: String, name: String): Pipeline @loginRequired
-  pipelineRun(id: String!): PipelineRun @loginRequired
-  pipelineRunCode(id: String): String @loginRequired
+  pipeline(id: UUID, name: String): Pipeline @loginRequired
+  pipelineRun(id: UUID!): PipelineRun @loginRequired
+  pipelineRunCode(id: UUID): String @loginRequired
 }
 
 input CreatePipelineInput {
@@ -112,7 +112,7 @@ type CreatePipelineResult {
 }
 
 input DeletePipelineInput {
-  id: String!
+  id: UUID!
 }
 
 type DeletePipelineResult {
@@ -121,7 +121,7 @@ type DeletePipelineResult {
 }
 
 input RunPipelineInput {
-  id: String!
+  id: UUID!
   version: Int
   config: String
 }

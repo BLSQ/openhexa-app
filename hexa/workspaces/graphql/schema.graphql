@@ -1,5 +1,5 @@
 type Workspace {
-  id: String!
+  id: UUID!
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
@@ -30,7 +30,7 @@ enum WorkspaceMembershipRole {
 }
 
 type WorkspaceMembership {
-  id: String!
+  id: UUID!
   user: User!
   workspace: Workspace!
   role: WorkspaceMembershipRole!
@@ -46,7 +46,7 @@ type WorkspaceMembershipPage {
 }
 
 extend type Query {
-  workspace(id: String!): Workspace @loginRequired
+  workspace(id: UUID!): Workspace @loginRequired
   workspaces(page: Int, perPage: Int): WorkspacePage! @loginRequired
 }
 
@@ -123,7 +123,7 @@ input CreateWorkspaceInput {
 }
 
 input UpdateWorkspaceInput {
-  id: String!
+  id: UUID!
   name: String
   description: String
   countries: [CountryInput!]
@@ -134,17 +134,17 @@ input DeleteWorkspaceInput {
 }
 
 input InviteWorkspaceMemberInput {
-  workspaceId: String!
+  workspaceId: UUID!
   userEmail: String!
   role: WorkspaceMembershipRole!
 }
 
 input DeleteWorkspaceMemberInput {
-  membershipId: String!
+  membershipId: UUID!
 }
 
 input UpdateWorkspaceMemberInput {
-  membershipId: String!
+  membershipId: UUID!
   role: WorkspaceMembershipRole!
 }
 

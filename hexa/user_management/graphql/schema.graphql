@@ -1,6 +1,6 @@
 # Users
 type User {
-    id: String!
+    id: UUID!
     email: String!
     firstName: String
     lastName: String
@@ -105,7 +105,7 @@ enum TeamAuthorizedActions {
     CREATE_MEMBERSHIP
 }
 type Team {
-    id: String!
+    id: UUID!
     name: String!
     memberships(page: Int, perPage: Int): MembershipPage!
     authorizedActions: [TeamAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
@@ -140,7 +140,7 @@ enum CreateTeamError {
 }
 
 input UpdateTeamInput {
-    id: String!
+    id: UUID!
     name: String
 }
 type UpdateTeamResult {
@@ -155,7 +155,7 @@ enum UpdateTeamError {
 }
 
 input DeleteTeamInput {
-    id: String!
+    id: UUID!
 }
 type DeleteTeamResult {
     success: Boolean!
@@ -166,7 +166,7 @@ enum DeleteTeamError {
     PERMISSION_DENIED
 }
 extend type Query {
-    team(id: String!): Team
+    team(id: UUID!): Team
     teams(term: String, page: Int, perPage: Int): TeamPage!
 }
 extend type Mutation {
@@ -187,7 +187,7 @@ type MembershipPage {
     items: [Membership!]!
 }
 type Membership {
-    id: String!
+    id: UUID!
     user: User!
     team: Team!
     authorizedActions: [MembershipAuthorizedActions!]!  @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
@@ -214,7 +214,7 @@ enum PermissionMode {
 }
 input CreateMembershipInput {
     userEmail: String!
-    teamId: String!
+    teamId: UUID!
     role: MembershipRole!
 }
 type CreateMembershipResult {
@@ -228,7 +228,7 @@ enum CreateMembershipError {
     NOT_FOUND
 }
 input UpdateMembershipInput {
-    id: String!
+    id: UUID!
     role: MembershipRole!
 }
 type UpdateMembershipResult {
@@ -242,7 +242,7 @@ enum UpdateMembershipError {
     INVALID_ROLE
 }
 input DeleteMembershipInput {
-    id: String!
+    id: UUID!
 }
 type DeleteMembershipResult {
     success: Boolean!
@@ -260,14 +260,14 @@ extend type Mutation {
 
 # Organizations
 type Organization {
-    id: String!
+    id: UUID!
     name: String!
     type: String!
     url: String!
     contactInfo: String!
 }
 input OrganizationInput {
-    id: String!
+    id: UUID!
     name: String
     type: String
     url: String

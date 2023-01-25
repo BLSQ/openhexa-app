@@ -1,6 +1,13 @@
 import pathlib
+from uuid import UUID
 
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from ariadne import (
+    MutationType,
+    ObjectType,
+    QueryType,
+    ScalarType,
+    load_schema_from_path,
+)
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
@@ -21,8 +28,18 @@ workspaces_type_def = load_schema_from_path(
 workspace_object = ObjectType("Workspace")
 workspace_queries = QueryType()
 workspace_mutations = MutationType()
-
 workspace_permissions = ObjectType("WorkspacePermissions")
+
+uuid_scalar = ScalarType("UUID")
+
+
+@uuid_scalar.value_parser
+def parse_uuid_value(value):
+    try:
+        UUID(value, version=4)
+        return str(value).upper()
+    except (ValueError, TypeError):
+        raise ValueError(f'"{value}" is not a valid uuid')
 
 
 @me_permissions_object.field("createWorkspace")
@@ -264,4 +281,5 @@ workspaces_bindables = [
     workspace_object,
     workspace_mutations,
     workspace_permissions,
+    uuid_scalar,
 ]

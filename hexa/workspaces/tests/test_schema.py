@@ -171,7 +171,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-            query workspaceById($id: String!) {
+            query workspaceById($id: UUID!) {
                 workspace(id: $id) {
                     id
                     name
@@ -188,7 +188,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            query workspaceById($id: String!) {
+            query workspaceById($id: UUID!) {
                 workspace(id: $id) {
                     id
                     name
@@ -441,7 +441,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            query workspaceById($id: String!) {
+            query workspaceById($id: UUID!) {
                 workspace(id: $id) {
                     members {
                         items {

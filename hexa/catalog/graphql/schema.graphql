@@ -7,14 +7,14 @@ union SearchResultObject = CatalogEntry
 
 
 type CatalogEntryType {
-    id: String!
+    id: UUID!
     app: String!
     model: String!
     name: String!
 }
 
 type CatalogEntry {
-    id: String!
+    id: UUID!
     name: String!
     description: String
     countries: [Country!]!
@@ -35,7 +35,7 @@ type CatalogEntry {
 }
 
 type Datasource {
-    id: String!
+    id: UUID!
     name: String!
 }
 
@@ -57,6 +57,6 @@ type SearchQueryResult {
 }
 
 extend type Query {
-    search(query: String, page: Int, perPage: Int, datasourceIds: [String!], types: [String!]): SearchQueryResult! @loginRequired
+    search(query: String, page: Int, perPage: Int, datasourceIds: [UUID!], types: [String!]): SearchQueryResult! @loginRequired
     catalog(path: String, page: Int, perPage: Int): CatalogPage! @loginRequired
 }
