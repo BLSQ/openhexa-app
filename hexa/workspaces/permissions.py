@@ -5,7 +5,7 @@ from .models import Workspace, WorkspaceMembershipRole
 
 def create_workspace(principal: User):
     """Only superusers can create a workspace"""
-    return principal.is_superuser
+    return principal.has_feature_flag("workspaces")
 
 
 def update_workspace(principal: User, workspace: Workspace):
