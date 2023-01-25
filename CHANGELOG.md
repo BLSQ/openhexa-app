@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/BLSQ/openhexa-frontend/compare/0.16.0...0.16.1) (2023-01-25)
+
+
+### Bug Fixes
+
+* **2fa:** fix typo & add 2fa status on account page ([#188](https://github.com/BLSQ/openhexa-frontend/issues/188)) ([b512ebf](https://github.com/BLSQ/openhexa-frontend/commit/b512ebf493c3c9fb70a1cec68a501cd8ece1749f))
+
 ## [0.16.0](https://github.com/BLSQ/openhexa-frontend/compare/0.15.5...0.16.0) (2023-01-24)
 
 
