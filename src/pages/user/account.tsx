@@ -73,8 +73,15 @@ function AccountPage() {
                   displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
                 >
                   <DescriptionList.Item label={t("Two-Factor Authentication")}>
-                    <Button size="sm" onClick={toggleTwoFactorDialog}>
-                      {data.me.hasTwoFactorEnabled ? t("Disable") : t("Setup")}
+                    {data.me.hasTwoFactorEnabled
+                      ? t("Currently enabled")
+                      : t("Currently disabled")}
+                    <Button
+                      size="sm"
+                      className="ml-2"
+                      onClick={toggleTwoFactorDialog}
+                    >
+                      {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
                     </Button>
                   </DescriptionList.Item>
                 </DescriptionList>

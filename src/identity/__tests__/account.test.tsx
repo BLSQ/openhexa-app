@@ -100,7 +100,9 @@ describe("AccountPage", () => {
     const securitySection = screen.queryByText("Security");
     expect(securitySection).toBeInTheDocument();
 
-    const twoFactorButton = screen.queryByText("Setup", { selector: "button" });
+    const twoFactorButton = screen.queryByText("Enable", {
+      selector: "button",
+    });
     expect(twoFactorButton).toBeInTheDocument();
   });
 });
