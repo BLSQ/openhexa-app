@@ -1,7 +1,7 @@
 import uuid
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -12,8 +12,9 @@ from hexa.workspaces.models import (
 class WorkspaceTest(GraphQLTestCase):
     USER_SABRINA = None
     USER_REBECCA = None
+    USER_JULIA = None
     USER_WORKSPACE_ADMIN = None
-    USER_ADMIN = None
+    WORKSPACE = None
 
     @classmethod
     def setUpTestData(cls):
@@ -21,13 +22,16 @@ class WorkspaceTest(GraphQLTestCase):
             "sabrina@bluesquarehub.com",
             "standardpassword",
         )
-        cls.USER_ADMIN = User.objects.create_user(
-            "root@openhexa.org", "root", is_superuser=True
-        )
 
         cls.USER_REBECCA = User.objects.create_user(
             "rebecca@bluesquarehub.com",
             "standardpassword",
+        )
+        cls.USER_JULIA = User.objects.create_user(
+            "julia@bluesquarehub.com", "juliaspassword"
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
         )
 
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
@@ -36,14 +40,14 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
+            cls.USER_JULIA,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
         )
 
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN,
+            cls.USER_JULIA,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
@@ -90,7 +94,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_JULIA)
         r = self.run_query(
             """
             mutation createWorkspace($input:CreateWorkspaceInput!) {
@@ -124,7 +128,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_create_workspace_with_country(self):
-        self.client.force_login(self.USER_ADMIN)
+        self.client.force_login(self.USER_JULIA)
         r = self.run_query(
             """
             mutation createWorkspace($input:CreateWorkspaceInput!) {
@@ -457,7 +461,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "items": [
                     {"user": {"id": str(self.USER_WORKSPACE_ADMIN.id)}},
                     {"user": {"id": str(self.USER_REBECCA.id)}},
-                    {"user": {"id": str(self.USER_ADMIN.id)}},
+                    {"user": {"id": str(self.USER_JULIA.id)}},
                 ],
             },
             r["data"]["workspace"]["members"],
