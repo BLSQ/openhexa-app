@@ -19,6 +19,7 @@ export type Scalars = {
   StackPriorities: any;
   TimeThresholds: any;
   URL: any;
+  UUID: any;
 };
 
 export type AccessmodAccessRequest = {
@@ -415,7 +416,7 @@ export type CatalogEntry = {
   externalName?: Maybe<Scalars['String']>;
   externalSubtype?: Maybe<Scalars['String']>;
   externalType?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   lastSyncedAt?: Maybe<Scalars['DateTime']>;
   name: Scalars['String'];
   objectId: Scalars['String'];
@@ -427,7 +428,7 @@ export type CatalogEntry = {
 export type CatalogEntryType = {
   __typename?: 'CatalogEntryType';
   app: Scalars['String'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   model: Scalars['String'];
   name: Scalars['String'];
 };
@@ -449,7 +450,7 @@ export type Collection = {
   createdAt: Scalars['DateTime'];
   description?: Maybe<Scalars['String']>;
   elements: CollectionElementPage;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name: Scalars['String'];
   permissions: CollectionPermissions;
   summary?: Maybe<Scalars['String']>;
@@ -473,10 +474,10 @@ export type CollectionElement = {
   __typename?: 'CollectionElement';
   app: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   model: Scalars['String'];
   name: Scalars['String'];
-  objectId: Scalars['String'];
+  objectId: Scalars['UUID'];
   type: Scalars['String'];
   updatedAt: Scalars['DateTime'];
   url?: Maybe<Scalars['URL']>;
@@ -639,9 +640,9 @@ export enum CreateCollectionElementError {
 
 export type CreateCollectionElementInput = {
   app: Scalars['String'];
-  collectionId: Scalars['String'];
+  collectionId: Scalars['UUID'];
   model: Scalars['String'];
-  objectId: Scalars['String'];
+  objectId: Scalars['UUID'];
 };
 
 export type CreateCollectionElementResult = {
@@ -656,7 +657,7 @@ export enum CreateCollectionError {
 }
 
 export type CreateCollectionInput = {
-  authorId?: InputMaybe<Scalars['String']>;
+  authorId?: InputMaybe<Scalars['UUID']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];
@@ -679,7 +680,7 @@ export enum CreateMembershipError {
 
 export type CreateMembershipInput = {
   role: MembershipRole;
-  teamId: Scalars['String'];
+  teamId: Scalars['UUID'];
   userEmail: Scalars['String'];
 };
 
@@ -743,7 +744,7 @@ export type Dag = {
   externalId: Scalars['String'];
   externalUrl?: Maybe<Scalars['URL']>;
   formCode?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   label: Scalars['String'];
   runs: DagRunPage;
   schedule?: Maybe<Scalars['String']>;
@@ -774,7 +775,7 @@ export type DagRun = {
   executionDate?: Maybe<Scalars['DateTime']>;
   externalId?: Maybe<Scalars['String']>;
   externalUrl?: Maybe<Scalars['URL']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   isFavorite: Scalars['Boolean'];
   label?: Maybe<Scalars['String']>;
   lastRefreshedAt?: Maybe<Scalars['DateTime']>;
@@ -859,7 +860,7 @@ export type Dhis2Instance = {
 
 export type Datasource = {
   __typename?: 'Datasource';
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name: Scalars['String'];
 };
 
@@ -930,7 +931,7 @@ export enum DeleteCollectionElementError {
 }
 
 export type DeleteCollectionElementInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 export type DeleteCollectionElementResult = {
@@ -945,7 +946,7 @@ export enum DeleteCollectionError {
 }
 
 export type DeleteCollectionInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 export type DeleteCollectionResult = {
@@ -960,7 +961,7 @@ export enum DeleteMembershipError {
 }
 
 export type DeleteMembershipInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 export type DeleteMembershipResult = {
@@ -970,7 +971,7 @@ export type DeleteMembershipResult = {
 };
 
 export type DeletePipelineInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 export type DeletePipelineResult = {
@@ -985,7 +986,7 @@ export enum DeleteTeamError {
 }
 
 export type DeleteTeamInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 export type DeleteTeamResult = {
@@ -1009,7 +1010,7 @@ export enum DeleteWorkspaceMemberError {
 }
 
 export type DeleteWorkspaceMemberInput = {
-  membershipId: Scalars['String'];
+  membershipId: Scalars['UUID'];
 };
 
 export type DeleteWorkspaceMemberResult = {
@@ -1074,7 +1075,7 @@ export type ExternalDashboard = {
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
   description?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name: Scalars['String'];
   pictureUrl: Scalars['URL'];
   tags: Array<Tag>;
@@ -1110,7 +1111,7 @@ export type GenerateChallengeResult = {
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String'];
-  workspaceId: Scalars['String'];
+  workspaceId: Scalars['UUID'];
 };
 
 export type InviteWorkspaceMemberResult = {
@@ -1210,7 +1211,7 @@ export type Membership = {
   /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<MembershipAuthorizedActions>;
   createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   permissions: MembershipPermissions;
   role: MembershipRole;
   team: Team;
@@ -1607,7 +1608,7 @@ export type MutationVerifyDeviceArgs = {
 export type Organization = {
   __typename?: 'Organization';
   contactInfo: Scalars['String'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name: Scalars['String'];
   type: Scalars['String'];
   url: Scalars['String'];
@@ -1615,7 +1616,7 @@ export type Organization = {
 
 export type OrganizationInput = {
   contactInfo?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
   type?: InputMaybe<Scalars['String']>;
   url?: InputMaybe<Scalars['String']>;
@@ -1631,7 +1632,7 @@ export type Pipeline = {
   __typename?: 'Pipeline';
   config: Scalars['String'];
   entrypoint: Scalars['String'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name: Scalars['String'];
   parameters: Scalars['JSON'];
   runs: PipelineRunPage;
@@ -1659,13 +1660,13 @@ export type PipelineRun = {
   config: Scalars['String'];
   duration?: Maybe<Scalars['Int']>;
   executionDate?: Maybe<Scalars['DateTime']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   logs?: Maybe<Scalars['String']>;
   messages: Array<PipelineRunMessage>;
   outputs: Array<PipelineRunOutput>;
   pipeline: Pipeline;
   progress: Scalars['Int'];
-  run_id: Scalars['String'];
+  run_id: Scalars['UUID'];
   status: PipelineRunStatus;
   triggerMode?: Maybe<PipelineRunTrigger>;
   user?: Maybe<User>;
@@ -1723,7 +1724,7 @@ export type PipelineTokenResult = {
 
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   number: Scalars['Int'];
   pipeline: Pipeline;
   user?: Maybe<User>;
@@ -1886,7 +1887,7 @@ export type QueryCatalogArgs = {
 
 
 export type QueryCollectionArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
@@ -1903,12 +1904,12 @@ export type QueryCountryArgs = {
 
 
 export type QueryDagArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
 export type QueryDagRunArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
@@ -1919,7 +1920,7 @@ export type QueryDagsArgs = {
 
 
 export type QueryExternalDashboardArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
@@ -1930,18 +1931,18 @@ export type QueryExternalDashboardsArgs = {
 
 
 export type QueryPipelineArgs = {
-  id?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['UUID']>;
   name?: InputMaybe<Scalars['String']>;
 };
 
 
 export type QueryPipelineRunArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
 export type QueryPipelineRunCodeArgs = {
-  id?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['UUID']>;
 };
 
 
@@ -1952,7 +1953,7 @@ export type QueryPipelinesArgs = {
 
 
 export type QuerySearchArgs = {
-  datasourceIds?: InputMaybe<Array<Scalars['String']>>;
+  datasourceIds?: InputMaybe<Array<Scalars['UUID']>>;
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
   query?: InputMaybe<Scalars['String']>;
@@ -1961,7 +1962,7 @@ export type QuerySearchArgs = {
 
 
 export type QueryTeamArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
@@ -1973,7 +1974,7 @@ export type QueryTeamsArgs = {
 
 
 export type QueryWorkspaceArgs = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
 };
 
 
@@ -2017,7 +2018,7 @@ export enum RunDagError {
 
 export type RunDagInput = {
   config: Scalars['JSON'];
-  dagId: Scalars['String'];
+  dagId: Scalars['UUID'];
 };
 
 export type RunDagResult = {
@@ -2030,7 +2031,7 @@ export type RunDagResult = {
 
 export type RunPipelineInput = {
   config?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   version?: InputMaybe<Scalars['Int']>;
 };
 
@@ -2101,7 +2102,7 @@ export enum SetDagRunFavoriteError {
 }
 
 export type SetDagRunFavoriteInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   isFavorite: Scalars['Boolean'];
   label?: InputMaybe<Scalars['String']>;
 };
@@ -2144,7 +2145,7 @@ export type Team = {
   /** @deprecated authorizedActions is deprecated. Use permissions instead. */
   authorizedActions: Array<TeamAuthorizedActions>;
   createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   memberships: MembershipPage;
   name: Scalars['String'];
   permissions: TeamPermissions;
@@ -2292,10 +2293,10 @@ export enum UpdateCollectionError {
 }
 
 export type UpdateCollectionInput = {
-  authorId?: InputMaybe<Scalars['String']>;
+  authorId?: InputMaybe<Scalars['UUID']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
   summary?: InputMaybe<Scalars['String']>;
   tagIds?: InputMaybe<Array<Scalars['String']>>;
@@ -2316,7 +2317,7 @@ export enum UpdateDagError {
 export type UpdateDagInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   label?: InputMaybe<Scalars['String']>;
   schedule?: InputMaybe<Scalars['String']>;
 };
@@ -2336,7 +2337,7 @@ export enum UpdateExternalDashboardError {
 export type UpdateExternalDashboardInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
 };
 
@@ -2354,7 +2355,7 @@ export enum UpdateMembershipError {
 }
 
 export type UpdateMembershipInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   role: MembershipRole;
 };
 
@@ -2382,7 +2383,7 @@ export enum UpdateTeamError {
 }
 
 export type UpdateTeamInput = {
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
 };
 
@@ -2402,7 +2403,7 @@ export enum UpdateWorkspaceError {
 export type UpdateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
 };
 
@@ -2412,7 +2413,7 @@ export enum UpdateWorkspaceMemberError {
 }
 
 export type UpdateWorkspaceMemberInput = {
-  membershipId: Scalars['String'];
+  membershipId: Scalars['UUID'];
   role: WorkspaceMembershipRole;
 };
 
@@ -2449,7 +2450,7 @@ export type User = {
   displayName: Scalars['String'];
   email: Scalars['String'];
   firstName?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName?: Maybe<Scalars['String']>;
 };
@@ -2460,7 +2461,6 @@ export enum VerifyDeviceError {
 }
 
 export type VerifyDeviceInput = {
-  sendChallenge?: InputMaybe<Scalars['Boolean']>;
   token?: InputMaybe<Scalars['String']>;
 };
 
@@ -2499,7 +2499,7 @@ export type Workspace = {
   createdAt: Scalars['DateTime'];
   createdBy: User;
   description?: Maybe<Scalars['String']>;
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   members: WorkspaceMembershipPage;
   name: Scalars['String'];
   permissions: WorkspacePermissions;
@@ -2515,7 +2515,7 @@ export type WorkspaceMembersArgs = {
 export type WorkspaceMembership = {
   __typename?: 'WorkspaceMembership';
   createdAt: Scalars['DateTime'];
-  id: Scalars['String'];
+  id: Scalars['UUID'];
   role: WorkspaceMembershipRole;
   updatedAt?: Maybe<Scalars['DateTime']>;
   user: User;

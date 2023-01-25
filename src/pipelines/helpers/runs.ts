@@ -14,7 +14,7 @@ export async function getPipelineRun(runId: string, req: IncomingMessage) {
   try {
     const { data } = await client.query<GetPipelineRunQuery>({
       query: gql`
-        query GetPipelineRun($runId: String!) {
+        query GetPipelineRun($runId: UUID!) {
           dagRun(id: $runId) {
             config
             externalUrl

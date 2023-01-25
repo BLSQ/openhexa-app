@@ -19,7 +19,7 @@ function useSearch(options: UseSearchOptions) {
       query SearchQuery(
         $query: String
         $types: [String!]
-        $datasourceIds: [String!]
+        $datasourceIds: [UUID!]
         $page: Int
         $perPage: Int
       ) {

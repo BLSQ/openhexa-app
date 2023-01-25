@@ -18,7 +18,7 @@ export type CollectionsPageQueryVariables = Types.Exact<{
 export type CollectionsPageQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Collection', id: string, name: string, summary?: string | null, createdAt: any, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, author?: { __typename?: 'User', displayName: string } | null }> } };
 
 export type CollectionPageQueryVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars['UUID'];
 }>;
 
 
@@ -82,7 +82,7 @@ export type CollectionsPageQueryHookResult = ReturnType<typeof useCollectionsPag
 export type CollectionsPageLazyQueryHookResult = ReturnType<typeof useCollectionsPageLazyQuery>;
 export type CollectionsPageQueryResult = Apollo.QueryResult<CollectionsPageQuery, CollectionsPageQueryVariables>;
 export const CollectionPageDocument = gql`
-    query CollectionPage($id: String!) {
+    query CollectionPage($id: UUID!) {
   collection(id: $id) {
     id
     name

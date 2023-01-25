@@ -12,7 +12,7 @@ query WorkspacesPage($page: Int, $perPage: Int) {
   }
 }
 
-query WorkspacePage($id: String!) {
+query WorkspacePage($id: UUID!) {
   workspace(id: $id) {
     id
     name
@@ -33,61 +33,61 @@ query WorkspacePage($id: String!) {
   }
 }
 
-query WorkspacePipelinesPage($id: String!) {
+query WorkspacePipelinesPage($id: UUID!) {
   workspace(id: $id) {
     id
     name
   }
 }
 
-query WorkspacePipelinePage($workspaceId: String!) {
+query WorkspacePipelinePage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
 
-query WorkspacePipelineStartPage($workspaceId: String!) {
+query WorkspacePipelineStartPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
-query WorkspacePipelineRunPage($workspaceId: String!) {
-  workspace(id: $workspaceId) {
-    id
-    name
-  }
-}
-
-query WorkspaceFilesPage($workspaceId: String!) {
+query WorkspacePipelineRunPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
 
-query WorkspaceDatabasesPage($workspaceId: String!) {
+query WorkspaceFilesPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
 
-query WorkspaceDatabaseTablePage($workspaceId: String!) {
+query WorkspaceDatabasesPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
 
-query WorkspaceConnectionsPage($workspaceId: String!) {
+query WorkspaceDatabaseTablePage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
   }
 }
-query WorkspaceConnectionPage($workspaceId: String!) {
+
+query WorkspaceConnectionsPage($workspaceId: UUID!) {
+  workspace(id: $workspaceId) {
+    id
+    name
+  }
+}
+query WorkspaceConnectionPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name

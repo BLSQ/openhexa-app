@@ -365,7 +365,7 @@ type Avatar {
 }
 
 type CatalogEntry {
-  id: String!
+  id: UUID!
   name: String!
   description: String
   countries: [Country!]!
@@ -383,7 +383,7 @@ type CatalogEntry {
 }
 
 type CatalogEntryType {
-  id: String!
+  id: UUID!
   app: String!
   model: String!
   name: String!
@@ -397,7 +397,7 @@ type CatalogPage {
 }
 
 type Collection {
-  id: String!
+  id: UUID!
   name: String!
   author: User
   countries: [Country!]!
@@ -417,12 +417,12 @@ type CollectionAuthorizedActions {
 }
 
 type CollectionElement {
-  id: String!
+  id: UUID!
   app: String!
   model: String!
   type: String!
   name: String!
-  objectId: String!
+  objectId: UUID!
   url: URL
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -574,10 +574,10 @@ enum CreateCollectionElementError {
 }
 
 input CreateCollectionElementInput {
-  collectionId: String!
+  collectionId: UUID!
   app: String!
   model: String!
-  objectId: String!
+  objectId: UUID!
 }
 
 type CreateCollectionElementResult {
@@ -592,7 +592,7 @@ enum CreateCollectionError {
 
 input CreateCollectionInput {
   name: String!
-  authorId: String
+  authorId: UUID
   countries: [CountryInput!]
   tagIds: [String!]
   summary: String
@@ -613,7 +613,7 @@ enum CreateMembershipError {
 
 input CreateMembershipInput {
   userEmail: String!
-  teamId: String!
+  teamId: UUID!
   role: MembershipRole!
 }
 
@@ -667,7 +667,7 @@ type CreateWorkspaceResult {
 }
 
 type DAG {
-  id: String!
+  id: UUID!
   label: String!
   tags: [Tag!]!
   formCode: String
@@ -689,7 +689,7 @@ type DAGPage {
 }
 
 type DAGRun {
-  id: String!
+  id: UUID!
   label: String
   externalId: String
   externalUrl: URL
@@ -749,7 +749,7 @@ type DAGTemplate {
 }
 
 type Datasource {
-  id: String!
+  id: UUID!
   name: String!
 }
 
@@ -820,7 +820,7 @@ enum DeleteCollectionElementError {
 }
 
 input DeleteCollectionElementInput {
-  id: String!
+  id: UUID!
 }
 
 type DeleteCollectionElementResult {
@@ -834,7 +834,7 @@ enum DeleteCollectionError {
 }
 
 input DeleteCollectionInput {
-  id: String!
+  id: UUID!
 }
 
 type DeleteCollectionResult {
@@ -848,7 +848,7 @@ enum DeleteMembershipError {
 }
 
 input DeleteMembershipInput {
-  id: String!
+  id: UUID!
 }
 
 type DeleteMembershipResult {
@@ -857,7 +857,7 @@ type DeleteMembershipResult {
 }
 
 input DeletePipelineInput {
-  id: String!
+  id: UUID!
 }
 
 type DeletePipelineResult {
@@ -871,7 +871,7 @@ enum DeleteTeamError {
 }
 
 input DeleteTeamInput {
-  id: String!
+  id: UUID!
 }
 
 type DeleteTeamResult {
@@ -894,7 +894,7 @@ enum DeleteWorkspaceMemberError {
 }
 
 input DeleteWorkspaceMemberInput {
-  membershipId: String!
+  membershipId: UUID!
 }
 
 type DeleteWorkspaceMemberResult {
@@ -972,7 +972,7 @@ type EnableTwoFactorResult {
 }
 
 type ExternalDashboard {
-  id: String!
+  id: UUID!
   name: String!
   url: URL!
   pictureUrl: URL!
@@ -1006,7 +1006,7 @@ type GenerateChallengeResult {
 }
 
 input InviteWorkspaceMemberInput {
-  workspaceId: String!
+  workspaceId: UUID!
   userEmail: String!
   role: WorkspaceMembershipRole!
 }
@@ -1088,7 +1088,7 @@ enum MeAuthorizedActions {
 }
 
 type Membership {
-  id: String!
+  id: UUID!
   user: User!
   team: Team!
   authorizedActions: [MembershipAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
@@ -1204,7 +1204,7 @@ type Mutation {
 }
 
 type Organization {
-  id: String!
+  id: UUID!
   name: String!
   type: String!
   url: String!
@@ -1212,7 +1212,7 @@ type Organization {
 }
 
 input OrganizationInput {
-  id: String!
+  id: UUID!
   name: String
   type: String
   url: String
@@ -1226,7 +1226,7 @@ enum PermissionMode {
 }
 
 type Pipeline {
-  id: String!
+  id: UUID!
   name: String!
   entrypoint: String!
   parameters: JSON!
@@ -1244,8 +1244,8 @@ enum PipelineError {
 }
 
 type PipelineRun {
-  id: String!
-  run_id: String!
+  id: UUID!
+  run_id: UUID!
   user: User
   pipeline: Pipeline!
   version: PipelineVersion!
@@ -1314,7 +1314,7 @@ type PipelineTokenResult {
 }
 
 type PipelineVersion {
-  id: String!
+  id: UUID!
   user: User
   pipeline: Pipeline!
   number: Int!
@@ -1360,17 +1360,17 @@ type PrepareDownloadURLResult {
 }
 
 type Query {
-  search(query: String, page: Int, perPage: Int, datasourceIds: [String!], types: [String!]): SearchQueryResult!
+  search(query: String, page: Int, perPage: Int, datasourceIds: [UUID!], types: [String!]): SearchQueryResult!
   catalog(path: String, page: Int, perPage: Int): CatalogPage!
   me: Me!
-  team(id: String!): Team
+  team(id: UUID!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
   organizations: [Organization!]!
-  collection(id: String!): Collection
+  collection(id: UUID!): Collection
   collections(page: Int, perPage: Int): CollectionPage!
   dags(page: Int, perPage: Int): DAGPage!
-  dag(id: String!): DAG
-  dagRun(id: String!): DAGRun
+  dag(id: UUID!): DAG
+  dagRun(id: UUID!): DAGRun
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
   accessmodFileset(id: String): AccessmodFileset
@@ -1384,15 +1384,15 @@ type Query {
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
   countries: [Country!]!
   externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
-  externalDashboard(id: String!): ExternalDashboard
+  externalDashboard(id: UUID!): ExternalDashboard
   notebooksUrl: URL!
   totalNotebooks: Int!
   lastActivities: [Activity!]!
   pipelines(page: Int, perPage: Int): PipelinesPage!
-  pipeline(id: String, name: String): Pipeline
-  pipelineRun(id: String!): PipelineRun
-  pipelineRunCode(id: String): String
-  workspace(id: String!): Workspace
+  pipeline(id: UUID, name: String): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
+  pipelineRunCode(id: UUID): String
+  workspace(id: UUID!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
 }
 
@@ -1428,7 +1428,7 @@ enum RunDAGError {
 }
 
 input RunDAGInput {
-  dagId: String!
+  dagId: UUID!
   config: JSON!
 }
 
@@ -1440,7 +1440,7 @@ type RunDAGResult {
 }
 
 input RunPipelineInput {
-  id: String!
+  id: UUID!
   version: Int
   config: String
 }
@@ -1505,7 +1505,7 @@ enum SetDAGRunFavoriteError {
 }
 
 input SetDAGRunFavoriteInput {
-  id: String!
+  id: UUID!
   label: String
   isFavorite: Boolean!
 }
@@ -1545,7 +1545,7 @@ type Tag {
 }
 
 type Team {
-  id: String!
+  id: UUID!
   name: String!
   memberships(page: Int, perPage: Int): MembershipPage!
   authorizedActions: [TeamAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
@@ -1684,10 +1684,10 @@ enum UpdateCollectionError {
 }
 
 input UpdateCollectionInput {
-  id: String!
+  id: UUID!
   name: String
   summary: String
-  authorId: String
+  authorId: UUID
   countries: [CountryInput!]
   tagIds: [String!]
   description: String
@@ -1705,7 +1705,7 @@ enum UpdateDAGError {
 }
 
 input UpdateDAGInput {
-  id: String!
+  id: UUID!
   label: String
   description: String
   schedule: String
@@ -1724,7 +1724,7 @@ enum UpdateExternalDashboardError {
 }
 
 input UpdateExternalDashboardInput {
-  id: String!
+  id: UUID!
   description: String
   name: String
   countries: [CountryInput!]
@@ -1743,7 +1743,7 @@ enum UpdateMembershipError {
 }
 
 input UpdateMembershipInput {
-  id: String!
+  id: UUID!
   role: MembershipRole!
 }
 
@@ -1769,7 +1769,7 @@ enum UpdateTeamError {
 }
 
 input UpdateTeamInput {
-  id: String!
+  id: UUID!
   name: String
 }
 
@@ -1786,7 +1786,7 @@ enum UpdateWorkspaceError {
 }
 
 input UpdateWorkspaceInput {
-  id: String!
+  id: UUID!
   name: String
   description: String
   countries: [CountryInput!]
@@ -1798,7 +1798,7 @@ enum UpdateWorkspaceMemberError {
 }
 
 input UpdateWorkspaceMemberInput {
-  membershipId: String!
+  membershipId: UUID!
   role: WorkspaceMembershipRole!
 }
 
@@ -1828,7 +1828,7 @@ type UploadPipelineResult {
 scalar URL
 
 type User {
-  id: String!
+  id: UUID!
   email: String!
   firstName: String
   lastName: String
@@ -1838,6 +1838,8 @@ type User {
   lastLogin: DateTime
 }
 
+scalar UUID
+
 enum VerifyDeviceError {
   NO_DEVICE
   INVALID_OTP
@@ -1845,7 +1847,6 @@ enum VerifyDeviceError {
 
 input VerifyDeviceInput {
   token: String
-  sendChallenge: Boolean
 }
 
 type VerifyDeviceResult {
@@ -1874,7 +1875,7 @@ type WHORegion {
 }
 
 type Workspace {
-  id: String!
+  id: UUID!
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
@@ -1886,7 +1887,7 @@ type Workspace {
 }
 
 type WorkspaceMembership {
-  id: String!
+  id: UUID!
   user: User!
   workspace: Workspace!
   role: WorkspaceMembershipRole!

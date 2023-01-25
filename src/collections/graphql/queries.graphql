@@ -23,7 +23,7 @@ query CollectionsPage($page: Int = 1, $perPage: Int = 15) {
   }
 }
 
-query CollectionPage($id: String!) {
+query CollectionPage($id: UUID!) {
   collection(id: $id) {
     id
     name

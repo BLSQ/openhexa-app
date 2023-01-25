@@ -15,7 +15,7 @@ export type VisualizationsPageQueryVariables = Types.Exact<{
 export type VisualizationsPageQuery = { __typename?: 'Query', externalDashboards: { __typename?: 'ExternalDashboardPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'ExternalDashboard', id: string, name: string, url: any, description?: string | null, createdAt: any, updatedAt: any, pictureUrl: any, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }> }> } };
 
 export type VisualizationQueryVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars['UUID'];
 }>;
 
 
@@ -77,7 +77,7 @@ export type VisualizationsPageQueryHookResult = ReturnType<typeof useVisualizati
 export type VisualizationsPageLazyQueryHookResult = ReturnType<typeof useVisualizationsPageLazyQuery>;
 export type VisualizationsPageQueryResult = Apollo.QueryResult<VisualizationsPageQuery, VisualizationsPageQueryVariables>;
 export const VisualizationDocument = gql`
-    query Visualization($id: String!) {
+    query Visualization($id: UUID!) {
   externalDashboard(id: $id) {
     id
     name

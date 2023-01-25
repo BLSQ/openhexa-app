@@ -15,70 +15,70 @@ export type WorkspacesPageQueryVariables = Types.Exact<{
 export type WorkspacesPageQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', id: string, name: string, countries: Array<{ __typename?: 'Country', code: string, flag: string }> }> } };
 
 export type WorkspacePageQueryVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, flag: string, name: string }>, permissions: { __typename?: 'WorkspacePermissions', delete: boolean, update: boolean, manageMembers: boolean } } | null };
 
 export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspacePipelinePageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspacePipelineStartPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspacePipelineStartPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspacePipelineRunPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspaceFilesPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspaceConnectionsPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
 export type WorkspaceConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', id: string, name: string } | null };
 
 export type WorkspaceConnectionPageQueryVariables = Types.Exact<{
-  workspaceId: Types.Scalars['String'];
+  workspaceId: Types.Scalars['UUID'];
 }>;
 
 
@@ -130,7 +130,7 @@ export type WorkspacesPageQueryHookResult = ReturnType<typeof useWorkspacesPageQ
 export type WorkspacesPageLazyQueryHookResult = ReturnType<typeof useWorkspacesPageLazyQuery>;
 export type WorkspacesPageQueryResult = Apollo.QueryResult<WorkspacesPageQuery, WorkspacesPageQueryVariables>;
 export const WorkspacePageDocument = gql`
-    query WorkspacePage($id: String!) {
+    query WorkspacePage($id: UUID!) {
   workspace(id: $id) {
     id
     name
@@ -182,7 +182,7 @@ export type WorkspacePageQueryHookResult = ReturnType<typeof useWorkspacePageQue
 export type WorkspacePageLazyQueryHookResult = ReturnType<typeof useWorkspacePageLazyQuery>;
 export type WorkspacePageQueryResult = Apollo.QueryResult<WorkspacePageQuery, WorkspacePageQueryVariables>;
 export const WorkspacePipelinesPageDocument = gql`
-    query WorkspacePipelinesPage($id: String!) {
+    query WorkspacePipelinesPage($id: UUID!) {
   workspace(id: $id) {
     id
     name
@@ -218,7 +218,7 @@ export type WorkspacePipelinesPageQueryHookResult = ReturnType<typeof useWorkspa
 export type WorkspacePipelinesPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelinesPageLazyQuery>;
 export type WorkspacePipelinesPageQueryResult = Apollo.QueryResult<WorkspacePipelinesPageQuery, WorkspacePipelinesPageQueryVariables>;
 export const WorkspacePipelinePageDocument = gql`
-    query WorkspacePipelinePage($workspaceId: String!) {
+    query WorkspacePipelinePage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -254,7 +254,7 @@ export type WorkspacePipelinePageQueryHookResult = ReturnType<typeof useWorkspac
 export type WorkspacePipelinePageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelinePageLazyQuery>;
 export type WorkspacePipelinePageQueryResult = Apollo.QueryResult<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>;
 export const WorkspacePipelineStartPageDocument = gql`
-    query WorkspacePipelineStartPage($workspaceId: String!) {
+    query WorkspacePipelineStartPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -290,7 +290,7 @@ export type WorkspacePipelineStartPageQueryHookResult = ReturnType<typeof useWor
 export type WorkspacePipelineStartPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineStartPageLazyQuery>;
 export type WorkspacePipelineStartPageQueryResult = Apollo.QueryResult<WorkspacePipelineStartPageQuery, WorkspacePipelineStartPageQueryVariables>;
 export const WorkspacePipelineRunPageDocument = gql`
-    query WorkspacePipelineRunPage($workspaceId: String!) {
+    query WorkspacePipelineRunPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -326,7 +326,7 @@ export type WorkspacePipelineRunPageQueryHookResult = ReturnType<typeof useWorks
 export type WorkspacePipelineRunPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineRunPageLazyQuery>;
 export type WorkspacePipelineRunPageQueryResult = Apollo.QueryResult<WorkspacePipelineRunPageQuery, WorkspacePipelineRunPageQueryVariables>;
 export const WorkspaceFilesPageDocument = gql`
-    query WorkspaceFilesPage($workspaceId: String!) {
+    query WorkspaceFilesPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -362,7 +362,7 @@ export type WorkspaceFilesPageQueryHookResult = ReturnType<typeof useWorkspaceFi
 export type WorkspaceFilesPageLazyQueryHookResult = ReturnType<typeof useWorkspaceFilesPageLazyQuery>;
 export type WorkspaceFilesPageQueryResult = Apollo.QueryResult<WorkspaceFilesPageQuery, WorkspaceFilesPageQueryVariables>;
 export const WorkspaceDatabasesPageDocument = gql`
-    query WorkspaceDatabasesPage($workspaceId: String!) {
+    query WorkspaceDatabasesPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -398,7 +398,7 @@ export type WorkspaceDatabasesPageQueryHookResult = ReturnType<typeof useWorkspa
 export type WorkspaceDatabasesPageLazyQueryHookResult = ReturnType<typeof useWorkspaceDatabasesPageLazyQuery>;
 export type WorkspaceDatabasesPageQueryResult = Apollo.QueryResult<WorkspaceDatabasesPageQuery, WorkspaceDatabasesPageQueryVariables>;
 export const WorkspaceDatabaseTablePageDocument = gql`
-    query WorkspaceDatabaseTablePage($workspaceId: String!) {
+    query WorkspaceDatabaseTablePage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -434,7 +434,7 @@ export type WorkspaceDatabaseTablePageQueryHookResult = ReturnType<typeof useWor
 export type WorkspaceDatabaseTablePageLazyQueryHookResult = ReturnType<typeof useWorkspaceDatabaseTablePageLazyQuery>;
 export type WorkspaceDatabaseTablePageQueryResult = Apollo.QueryResult<WorkspaceDatabaseTablePageQuery, WorkspaceDatabaseTablePageQueryVariables>;
 export const WorkspaceConnectionsPageDocument = gql`
-    query WorkspaceConnectionsPage($workspaceId: String!) {
+    query WorkspaceConnectionsPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name
@@ -470,7 +470,7 @@ export type WorkspaceConnectionsPageQueryHookResult = ReturnType<typeof useWorks
 export type WorkspaceConnectionsPageLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionsPageLazyQuery>;
 export type WorkspaceConnectionsPageQueryResult = Apollo.QueryResult<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>;
 export const WorkspaceConnectionPageDocument = gql`
-    query WorkspaceConnectionPage($workspaceId: String!) {
+    query WorkspaceConnectionPage($workspaceId: UUID!) {
   workspace(id: $workspaceId) {
     id
     name

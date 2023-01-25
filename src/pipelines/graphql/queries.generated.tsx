@@ -20,7 +20,7 @@ export type PipelinesPageQueryVariables = Types.Exact<{
 export type PipelinesPageQuery = { __typename?: 'Query', dags: { __typename?: 'DAGPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DAG', label: string, id: string, externalId: string, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, runs: { __typename?: 'DAGRunPage', items: Array<{ __typename?: 'DAGRun', id: string, status: Types.DagRunStatus, executionDate?: any | null }> } }> } };
 
 export type PipelinePageQueryVariables = Types.Exact<{
-  id: Types.Scalars['String'];
+  id: Types.Scalars['UUID'];
   page?: Types.InputMaybe<Types.Scalars['Int']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
@@ -29,15 +29,15 @@ export type PipelinePageQueryVariables = Types.Exact<{
 export type PipelinePageQuery = { __typename?: 'Query', dag?: { __typename?: 'DAG', id: string, label: string, externalId: string, schedule?: string | null, externalUrl?: any | null, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, template: { __typename?: 'DAGTemplate', code: string, description?: string | null, sampleConfig?: any | null }, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, runs: { __typename?: 'DAGRunPage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'DAGRun', id: string, label?: string | null, triggerMode?: Types.DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, status: Types.DagRunStatus, executionDate?: any | null, lastRefreshedAt?: any | null, duration?: number | null, isFavorite: boolean, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
 
 export type PipelineRunPageQueryVariables = Types.Exact<{
-  pipelineId: Types.Scalars['String'];
-  runId: Types.Scalars['String'];
+  pipelineId: Types.Scalars['UUID'];
+  runId: Types.Scalars['UUID'];
 }>;
 
 
 export type PipelineRunPageQuery = { __typename?: 'Query', dagRun?: { __typename?: 'DAGRun', id: string, label?: string | null, triggerMode?: Types.DagRunTrigger | null, externalId?: string | null, externalUrl?: any | null, executionDate?: any | null, status: Types.DagRunStatus, config?: any | null, duration?: number | null, progress: number, logs?: string | null, isFavorite: boolean, user?: { __typename?: 'User', displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, outputs: Array<{ __typename?: 'DAGRunOutput', title: string, uri: string }>, messages: Array<{ __typename: 'DAGRunMessage', message: string, timestamp?: any | null, priority: string }> } | null, dag?: { __typename?: 'DAG', id: string, externalId: string, label: string, formCode?: string | null } | null };
 
 export type PipelineConfigureRunPageQueryVariables = Types.Exact<{
-  pipelineId: Types.Scalars['String'];
+  pipelineId: Types.Scalars['UUID'];
 }>;
 
 
@@ -103,7 +103,7 @@ export type PipelinesPageQueryHookResult = ReturnType<typeof usePipelinesPageQue
 export type PipelinesPageLazyQueryHookResult = ReturnType<typeof usePipelinesPageLazyQuery>;
 export type PipelinesPageQueryResult = Apollo.QueryResult<PipelinesPageQuery, PipelinesPageQueryVariables>;
 export const PipelinePageDocument = gql`
-    query PipelinePage($id: String!, $page: Int, $perPage: Int) {
+    query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
   dag(id: $id) {
     id
     label
@@ -185,7 +185,7 @@ export type PipelinePageQueryHookResult = ReturnType<typeof usePipelinePageQuery
 export type PipelinePageLazyQueryHookResult = ReturnType<typeof usePipelinePageLazyQuery>;
 export type PipelinePageQueryResult = Apollo.QueryResult<PipelinePageQuery, PipelinePageQueryVariables>;
 export const PipelineRunPageDocument = gql`
-    query PipelineRunPage($pipelineId: String!, $runId: String!) {
+    query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
   dagRun(id: $runId) {
     id
     label
@@ -234,7 +234,7 @@ export type PipelineRunPageQueryHookResult = ReturnType<typeof usePipelineRunPag
 export type PipelineRunPageLazyQueryHookResult = ReturnType<typeof usePipelineRunPageLazyQuery>;
 export type PipelineRunPageQueryResult = Apollo.QueryResult<PipelineRunPageQuery, PipelineRunPageQueryVariables>;
 export const PipelineConfigureRunPageDocument = gql`
-    query PipelineConfigureRunPage($pipelineId: String!) {
+    query PipelineConfigureRunPage($pipelineId: UUID!) {
   dag(id: $pipelineId) {
     id
     label

@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetPipelineRunQueryVariables = Types.Exact<{
-  runId: Types.Scalars['String'];
+  runId: Types.Scalars['UUID'];
 }>;
 
 
@@ -19,7 +19,7 @@ export type GetRunOutputDownloadUrlMutation = { __typename?: 'Mutation', prepare
 
 
 export const GetPipelineRunDocument = gql`
-    query GetPipelineRun($runId: String!) {
+    query GetPipelineRun($runId: UUID!) {
   dagRun(id: $runId) {
     config
     externalUrl

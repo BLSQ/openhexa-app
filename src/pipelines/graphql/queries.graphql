@@ -24,7 +24,7 @@ query PipelinesPage($page: Int, $perPage: Int = 15) {
   }
 }
 
-query PipelinePage($id: String!, $page: Int, $perPage: Int) {
+query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
   dag(id: $id) {
     id
     label
@@ -70,7 +70,7 @@ query PipelinePage($id: String!, $page: Int, $perPage: Int) {
   }
 }
 
-query PipelineRunPage($pipelineId: String!, $runId: String!) {
+query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
   dagRun(id: $runId) {
     id
     label
@@ -89,7 +89,7 @@ query PipelineRunPage($pipelineId: String!, $runId: String!) {
   }
 }
 
-query PipelineConfigureRunPage($pipelineId: String!) {
+query PipelineConfigureRunPage($pipelineId: UUID!) {
   dag(id: $pipelineId) {
     id
     label

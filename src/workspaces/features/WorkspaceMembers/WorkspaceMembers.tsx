@@ -32,7 +32,7 @@ export default function WorkspaceMembers({
 
   const { data, refetch } = useQuery<WorskspaceMembersQuery>(
     gql`
-      query WorskspaceMembers($id: String!, $page: Int, $perPage: Int) {
+      query WorskspaceMembers($id: UUID!, $page: Int, $perPage: Int) {
         workspace(id: $id) {
           members(page: $page, perPage: $perPage) {
             totalItems
