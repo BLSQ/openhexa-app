@@ -28,7 +28,9 @@ workspace_permissions = ObjectType("WorkspacePermissions")
 @me_permissions_object.field("createWorkspace")
 def resolve_me_permissions_create_workspace(me, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.create_workspace")
+    return request.user.is_authenticated and request.user.has_perm(
+        "workspaces.create_workspace"
+    )
 
 
 @workspace_permissions.field("update")
