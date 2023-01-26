@@ -10,6 +10,7 @@ from django_countries.fields import Country, CountryField
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.user_management.models import User
 
 
@@ -146,3 +147,11 @@ class WorkspaceMembership(models.Model):
             raise PermissionDenied
 
         return self.delete()
+
+
+class WorkspaceDBConfig(models.Model):
+    _singleton = models.BooleanField(default=True, primary_key=True, editable=False)
+    hostname = models.CharField(max_length=200)
+    username = models.CharField(max_length=200)
+    password = EncryptedTextField(max_length=200)
+    port = models.IntegerField(default=5432)

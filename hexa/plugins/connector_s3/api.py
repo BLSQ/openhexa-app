@@ -329,6 +329,33 @@ def _build_iam_client(*, principal_credentials: models.Credentials):
     )
 
 
+def create_bucket(bucketName: str):
+    principal_credentials = _get_credentials()
+    client = boto3.client(
+        "s3",
+        region_name=principal_credentials.default_region,
+        endpoint_url=(
+            None
+            if not principal_credentials.endpoint_url
+            else principal_credentials.endpoint_url
+        ),
+        aws_access_key_id=principal_credentials.access_key_id,
+        aws_secret_access_key=principal_credentials.secret_access_key,
+    )
+    try:
+        client.create_bucket(
+            Bucket=bucketName,
+            CreateBucketConfiguration={
+                "LocationConstraint": principal_credentials.default_region
+            },
+        )
+        models.Bucket.objects.create(
+            name=bucketName, region=principal_credentials.default_region
+        )
+    except ClientError as e:
+        print("S3: Bucket {} already exists!".format(e.response["Error"]["BucketName"]))
+
+
 def head_bucket(
     *,
     principal_credentials: models.Credentials,

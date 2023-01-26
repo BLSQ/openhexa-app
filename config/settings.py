@@ -394,6 +394,8 @@ GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
 
+WORKSPACE_PREFIX = os.environ.get("WORKSPACE_PREFIX", "hexa-workspace")
+
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")

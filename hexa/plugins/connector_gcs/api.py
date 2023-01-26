@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from google.cloud import storage
+from google.cloud.exceptions import Conflict
 from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
@@ -37,6 +39,28 @@ def _build_app_short_lived_credentials(*, credentials: models.Credentials):
         lifetime=duration_pb2.Duration(seconds=token_lifetime),
     )
     return token
+
+
+def _get_credentials():
+    try:
+        return models.Credentials.objects.get()
+    except (
+        models.Credentials.DoesNotExist,
+        models.Credentials.MultipleObjectsReturned,
+    ):
+        raise ImproperlyConfigured(
+            "The GCS connector plugin should have a single credentials entry"
+        )
+
+
+def create_bucket(bucketName: str):
+    google_credentials = _build_app_gcs_credentials(credentials=_get_credentials())
+    client = storage.Client(credentials=google_credentials)
+    try:
+        bucket = client.create_bucket(bucketName)
+        models.Bucket.objects.create(name=bucketName)
+    except Conflict as e:
+        print(f"GCS: Bucket {bucket.name} already exists!")
 
 
 def generate_download_url(*, bucket: models.Bucket, target_key: str):

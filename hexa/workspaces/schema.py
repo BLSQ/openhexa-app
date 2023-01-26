@@ -8,14 +8,17 @@ from ariadne import (
     ScalarType,
     load_schema_from_path,
 )
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
+from slugify import slugify
 
 from config import settings
 from hexa.core.graphql import result_page
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
+from hexa.plugins.connector_gcs.api import create_bucket as GCS_api_create_bucket
+from hexa.plugins.connector_postgresql.api import create_db as psql_api_create_db
 from hexa.user_management.models import User
 from hexa.user_management.schema import me_permissions_object
 
@@ -123,6 +126,21 @@ def resolve_create_workspace(_, info, **kwargs):
             if "countries" in create_input
             else None,
         )
+
+        # Create Bucket & DB
+        # to create a s3 bucket instead of GCS: import create_bucket from
+        # connector_s3/api.py
+        slug = slugify(create_input["name"])
+        try:
+            GCS_api_create_bucket(f"{settings.WORKSPACE_PREFIX}-{slug}")
+        except ImproperlyConfigured:
+            return {"success": False, "errors": ["BUCKET_CREATE_ERROR"]}
+        try:
+            psql_api_create_db(f"{settings.WORKSPACE_PREFIX}-{slug}")
+        except ImproperlyConfigured:
+            return {"success": False, "errors": ["DB_CREATE_ERROR"]}
+        # TODO: catch more error like duplicate dbname, ...
+
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
@@ -166,6 +184,8 @@ def resolve_delete_workspace(_, info, **kwargs):
             id=input["id"]
         )
         workspace.delete_if_has_perm(principal=request.user)
+
+        # TODO: Disable Bucket & DB
 
         return {"success": True, "errors": []}
     except Workspace.DoesNotExist:
