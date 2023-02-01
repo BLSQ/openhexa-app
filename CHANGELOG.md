@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.3](https://github.com/BLSQ/openhexa-frontend/compare/0.16.2...0.16.3) (2023-01-25)
+
+
+### Bug Fixes
+
+* Graphql extensions may not be provided ([#191](https://github.com/BLSQ/openhexa-frontend/issues/191)) ([87b796b](https://github.com/BLSQ/openhexa-frontend/commit/87b796b7cae6b8f8e181cead8f0becbf9abc4ba6))
+
 ## [0.16.2](https://github.com/BLSQ/openhexa-frontend/compare/0.16.1...0.16.2) (2023-01-25)
 
 
