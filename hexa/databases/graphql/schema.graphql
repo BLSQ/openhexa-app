@@ -1,0 +1,30 @@
+type Database {
+  tables(page:Int, perPage:Int): DatabaseTablePage!
+}
+
+type TableColumn {
+  name: String!
+  type: String!
+  sample: [[String]]
+}
+
+
+type DatabaseTable{
+  name: String!
+  totalCount: Int!
+  columns: [TableColumn!]!
+  sample:[[String]]
+  database: Database!
+}
+
+type DatabaseTablePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DatabaseTable!]!
+}
+
+
+extend type Query{
+  databaseTable(id:String!,databaseId:String!): DatabaseTable @loginRequired
+}

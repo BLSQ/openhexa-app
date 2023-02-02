@@ -1,0 +1,88 @@
+from unittest import mock
+
+from psycopg2.extras import DictRow
+
+from hexa.core.test import TestCase
+from hexa.databases.utils import get_database_tables_summary, get_table_summary
+from hexa.plugins.connector_postgresql.models import Database
+
+
+class DictRowMock:
+    def __init__(self, my_dict):
+        # we need to set these 2 attributes so that
+        # it auto populates our indexes
+        self.index = {key: i for i, key in enumerate(my_dict)}
+        self.description = my_dict
+
+
+def dictrow_from_dict(my_dict):
+    # this is just a little helper function
+    # so you don't always need to go through
+    # the steps to recreate a DictRow
+    fake_cursor = DictRowMock(my_dict)
+
+    dick_row = DictRow(fake_cursor)
+
+    for k, v in my_dict.items():
+        dick_row[k] = v
+
+    return dick_row
+
+
+class DatabaseUtilsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.DB1 = Database.objects.create(
+            hostname="host", username="user", password="pwd", database="db1"
+        )
+
+    @mock.patch("psycopg2.connect")
+    def test_get_database_table_not_found(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = []
+
+        result = get_database_tables_summary(self.DB1, "test_table")
+        self.assertEqual(0, len(result))
+
+    @mock.patch("psycopg2.connect")
+    def test_get_database_tables(self, mock_connect):
+        table_name = "database_tutorial"
+        row_count = 2
+        schema = {"table_name": table_name, "row_count": row_count}
+
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [dictrow_from_dict(schema)]
+        cursor.fetchone.return_value = {"row_count": 2}
+
+        result = get_database_tables_summary(self.DB1)
+
+        self.assertEqual(1, len(result))
+        self.assertEqual(row_count, result[0]["total_count"])
+        self.assertEqual(table_name, result[0]["name"])
+        self.assertEqual(table_name, result[0]["name"])
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_summary_not_found(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = []
+
+        result = get_table_summary(self.DB1, "test_table")
+        self.assertEqual(0, len(result))
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_summary(self, mock_connect):
+        table_schema = {"name": "id", "type": "int"}
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [dictrow_from_dict(table_schema)]
+
+        result = get_table_summary(self.DB1, "test_table")
+        self.assertEqual(1, len(result))
+        self.assertEqual(table_schema, result[0])

@@ -5,6 +5,7 @@ type Workspace {
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
   permissions: WorkspacePermissions!
   countries: [Country!]!
+  database: Database!
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!

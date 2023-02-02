@@ -9,6 +9,7 @@ from config import settings
 from hexa.core.graphql import result_page
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
+from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.user_management.schema import me_permissions_object
 
@@ -53,6 +54,11 @@ def resolve_workspace_permission_manage(workspace: Workspace, info):
 @workspace_object.field("permissions")
 def resolve_workspace_permissions(workspace: Workspace, info):
     return workspace
+
+
+@workspace_object.field("database")
+def resolve_workspace_database(workspace: Workspace, info, **kwargs):
+    return Database.objects.get(database="hexa-explore-demo")
 
 
 @workspace_object.field("countries")
