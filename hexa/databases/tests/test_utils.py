@@ -3,8 +3,14 @@ from unittest import mock
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
-from hexa.databases.utils import get_database_tables_summary, get_table_summary
+from hexa.databases.utils import get_database_definition, get_table_definition
 from hexa.plugins.connector_postgresql.models import Database
+from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class DictRowMock:
@@ -30,27 +36,85 @@ def dictrow_from_dict(my_dict):
 
 
 class DatabaseUtilsTest(TestCase):
+    USER_SABRINA = None
+
     @classmethod
     def setUpTestData(cls):
         cls.DB1 = Database.objects.create(
             hostname="host", username="user", password="pwd", database="db1"
         )
+        cls.USER_SABRINA = User.objects.create_user(
+            "sabrina@bluesquarehub.com",
+            "standardpassword",
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
+        )
+
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_SABRINA,
+            name="Test Workspace",
+            description="Test workspace",
+            countries=[],
+        )
+
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_SABRINA,
+            name="Test Workspace",
+            description="Test workspace",
+            countries=[],
+        )
+        setattr(cls.WORKSPACE, "database", cls.DB1)
+        WorkspaceMembership.objects.create(
+            user=cls.USER_SABRINA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
 
     @mock.patch("psycopg2.connect")
-    def test_get_database_table_not_found(self, mock_connect):
+    def test_get_database_tables_empty(self, mock_connect):
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = []
 
-        result = get_database_tables_summary(self.DB1, "test_table")
-        self.assertEqual(0, len(result))
+        result = get_database_definition(self.WORKSPACE)
+        self.assertEqual(0, result["total_items"])
 
     @mock.patch("psycopg2.connect")
     def test_get_database_tables(self, mock_connect):
         table_name = "database_tutorial"
         row_count = 2
-        schema = {"table_name": table_name, "row_count": row_count}
+        table = {"table_name": table_name, "columns": [], "row_count": row_count}
+        sample = [{"name": "test", "value": "test"}]
+
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = [dictrow_from_dict(table)]
+        cursor.fetchone.return_value = {"row_count": 2}
+
+        with mock.patch("hexa.databases.utils.get_table_data") as mocked_get_table_data:
+            mocked_get_table_data.return_value = sample
+            result = get_database_definition(self.WORKSPACE)
+
+        self.assertEqual(1, result["total_items"])
+        self.assertEqual(table_name, result["items"][0]["name"])
+        self.assertEqual(sample, result["items"][0]["sample"])
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_definition_not_found(self, mock_connect):
+        mock_connection = mock_connect.return_value
+        mock_context_object = mock_connection.__enter__.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+        cursor.fetchall.return_value = []
+
+        result = get_database_definition(self.WORKSPACE)
+        self.assertEqual(0, result["total_items"])
+
+    @mock.patch("psycopg2.connect")
+    def test_get_table_definition(self, mock_connect):
+        schema = {"name": "id", "type": "int"}
 
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
@@ -58,31 +122,7 @@ class DatabaseUtilsTest(TestCase):
         cursor.fetchall.return_value = [dictrow_from_dict(schema)]
         cursor.fetchone.return_value = {"row_count": 2}
 
-        result = get_database_tables_summary(self.DB1)
-
-        self.assertEqual(1, len(result))
-        self.assertEqual(row_count, result[0]["total_count"])
-        self.assertEqual(table_name, result[0]["name"])
-        self.assertEqual(table_name, result[0]["name"])
-
-    @mock.patch("psycopg2.connect")
-    def test_get_table_summary_not_found(self, mock_connect):
-        mock_connection = mock_connect.return_value
-        mock_context_object = mock_connection.__enter__.return_value
-        cursor = mock_context_object.cursor.return_value.__enter__.return_value
-        cursor.fetchall.return_value = []
-
-        result = get_table_summary(self.DB1, "test_table")
-        self.assertEqual(0, len(result))
-
-    @mock.patch("psycopg2.connect")
-    def test_get_table_summary(self, mock_connect):
-        table_schema = {"name": "id", "type": "int"}
-        mock_connection = mock_connect.return_value
-        mock_context_object = mock_connection.__enter__.return_value
-        cursor = mock_context_object.cursor.return_value.__enter__.return_value
-        cursor.fetchall.return_value = [dictrow_from_dict(table_schema)]
-
-        result = get_table_summary(self.DB1, "test_table")
-        self.assertEqual(1, len(result))
-        self.assertEqual(table_schema, result[0])
+        result = get_table_definition(self.WORKSPACE, "test_table")
+        self.assertEqual(
+            {"name": "test_table", "columns": [schema], "count": 2}, result
+        )

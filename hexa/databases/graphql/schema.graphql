@@ -1,30 +1,33 @@
 type Database {
   tables(page:Int, perPage:Int): DatabaseTablePage!
+  table(name: String!): DatabaseTable
+}
+
+extend type Workspace {
+  database: Database!
 }
 
 type TableColumn {
   name: String!
   type: String!
-  sample: [[String]]
 }
 
+type TableValue{
+  column: String!
+  value: String
+}
 
 type DatabaseTable{
   name: String!
-  totalCount: Int!
+  count: Int
   columns: [TableColumn!]!
-  sample:[[String]]
-  database: Database!
+  sample: [[TableValue!]!]!
 }
+
 
 type DatabaseTablePage {
   pageNumber: Int!
   totalPages: Int!
   totalItems: Int!
   items: [DatabaseTable!]!
-}
-
-
-extend type Query{
-  databaseTable(id:String!,databaseId:String!): DatabaseTable @loginRequired
 }

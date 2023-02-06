@@ -58,7 +58,8 @@ def resolve_workspace_permissions(workspace: Workspace, info):
 
 @workspace_object.field("database")
 def resolve_workspace_database(workspace: Workspace, info, **kwargs):
-    return Database.objects.get(database="hexa-explore-demo")
+    setattr(workspace, "database", Database.objects.get(database="hexa-explore-demo"))
+    return workspace
 
 
 @workspace_object.field("countries")

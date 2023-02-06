@@ -1,8 +1,14 @@
+import uuid
 from unittest import mock
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_postgresql.models import Database
-from hexa.user_management.models import User
+from hexa.user_management.models import Feature, FeatureFlag, User
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class DatabaseTest(GraphQLTestCase):
@@ -15,111 +21,165 @@ class DatabaseTest(GraphQLTestCase):
             "standardpassword",
         )
         cls.DB1 = Database.objects.create(
-            hostname="host", username="user", password="pwd", database="db1"
+            hostname="host",
+            username="user",
+            password="pwd",
+            database="hexa-explore-demo",
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER_SABRINA,
+            name="Test Workspace",
+            description="Test workspace",
+            countries=[],
+        )
+        setattr(cls.WORKSPACE, "database", cls.DB1)
+        WorkspaceMembership.objects.create(
+            user=cls.USER_SABRINA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
         )
 
-    def test_get_database_table_db_not_found(self):
+    def test_get_database_tables_empty(self):
         self.client.force_login(self.USER_SABRINA)
-        r = self.run_query(
-            """
-            query databaseTable($tableId:String!, $databaseId:String!) {
-                databaseTable(id: $tableId, databaseId: $databaseId) {
-                    name
-                    totalCount
-                }
+        with mock.patch(
+            "hexa.databases.schema.get_database_definition"
+        ) as mocked_get_database_definition:
+            mocked_get_database_definition.return_value = {
+                "totalItems": 0,
+                "totalPages": 0,
+                "pageNumber": 0,
+                "items": [],
             }
-            """,
-            {
-                "tableId": "test_db",
-                "databaseId": "test",
-            },
-        )
-        self.assertIsNone(r["data"]["databaseTable"])
+            r = self.run_query(
+                """
+                query workspaceById($id: UUID!) {
+                    workspace(id: $id) {
+                        id
+                        database {
+                           tables {
+                             items {
+                                name
+                            }
+                          }
+                        }
+                    }
+                }
+                """,
+                {"id": str(self.WORKSPACE.id)},
+            )
+            self.assertEqual(
+                {"tables": {"items": []}}, r["data"]["workspace"]["database"]
+            )
+
+    def test_get_database_tables(self):
+        self.client.force_login(self.USER_SABRINA)
+        table_name = "test_table"
+        count = 2
+        with mock.patch(
+            "hexa.databases.schema.get_database_definition"
+        ) as mocked_get_database_definition:
+            mocked_get_database_definition.return_value = {
+                "totalItems": 1,
+                "totalPages": 1,
+                "pageNumber": 1,
+                "items": [{"name": table_name, "count": count}],
+            }
+
+            r = self.run_query(
+                """
+                query workspaceById($id: UUID!) {
+                    workspace(id: $id) {
+                        id
+                        database {
+                           tables {
+                             items {
+                                name
+                                count
+                            }
+                          }
+                        }
+                    }
+                }
+                """,
+                {"id": str(self.WORKSPACE.id)},
+            )
+            self.assertEqual(
+                {"tables": {"items": [{"name": table_name, "count": count}]}},
+                r["data"]["workspace"]["database"],
+            )
 
     def test_get_database_table_not_found(self):
         self.client.force_login(self.USER_SABRINA)
-        r = self.run_query(
-            """
-            query databaseTable($tableId:String!, $databaseId:String!) {
-                databaseTable(id: $tableId, databaseId: $databaseId) {
-                    name
-                    totalCount
-                }
-            }
-            """,
-            {"tableId": "test", "databaseId": self.DB1.database},
-        )
-
-        self.assertEqual(None, r["data"]["databaseTable"])
-
-    @mock.patch("hexa.databases.schema.get_database_tables_summary")
-    def test_get_database_table(self, mocked_get_database_tables_summary):
-        self.client.force_login(self.USER_SABRINA)
         table_name = "test_table"
-        total_count = 2
-        mocked_get_database_tables_summary.return_value = [
-            {"name": table_name, "total_count": total_count}
-        ]
-        r = self.run_query(
-            """
-                query databaseTable($tableId:String!, $databaseId:String!) {
-                    databaseTable(id: $tableId, databaseId: $databaseId) {
-                        name
-                        totalCount
-                    }
-                }
-                """,
-            {
-                "tableId": table_name,
-                "databaseId": self.DB1.database,
-            },
-        )
-        self.assertEqual(
-            {"name": table_name, "totalCount": total_count},
-            r["data"]["databaseTable"],
-        )
-
-    def test_get_database_table_columns(
-        self,
-    ):
-        self.client.force_login(self.USER_SABRINA)
-        table_name = "test_table"
-        total_count = 2
-        column = {"name": "id", "type": "int"}
-
+        count = 2
         with mock.patch(
-            "hexa.databases.schema.get_database_tables_summary"
-        ) as mocked_get_database_tables_summary:
-            mocked_get_database_tables_summary.return_value = [
-                {"name": table_name, "total_count": total_count, "database": self.DB1}
-            ]
-            with mock.patch(
-                "hexa.databases.schema.get_table_summary"
-            ) as mocked_get_table_summary:
-                mocked_get_table_summary.return_value = [column]
-                r = self.run_query(
-                    """
-                    query databaseTable($tableId:String!, $databaseId:String!) {
-                        databaseTable(id: $tableId, databaseId: $databaseId) {
-                            name
-                            totalCount
-                            columns {
-                                name
-                                type
-                            }
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_database_definition:
+            mocked_get_database_definition.return_value = {}
+            r = self.run_query(
+                """
+                query workspaceById($id: UUID!,$tableName:String!) {
+                    workspace(id: $id) {
+                        id
+                        database {
+                           table(name:$tableName) {
+                              name
+                              count
+                          }
                         }
                     }
+                }
                 """,
-                    {
-                        "tableId": table_name,
-                        "databaseId": self.DB1.database,
-                    },
-                )
-                self.assertEqual(
-                    {
-                        "name": table_name,
-                        "totalCount": total_count,
-                        "columns": [column],
-                    },
-                    r["data"]["databaseTable"],
-                )
+                {"id": str(self.WORKSPACE.id), "tableName": table_name},
+            )
+            self.assertEqual(
+                {"table": None},
+                r["data"]["workspace"]["database"],
+            )
+
+    def test_get_database_table(self):
+        self.client.force_login(self.USER_SABRINA)
+        table_name = "test_table"
+        count = 2
+        schema = {"name": "id", "type": "int"}
+        table = {
+            "name": table_name,
+            "count": count,
+            "columns": [schema],
+            "sample": [[{"column": "id", "value": str(uuid.uuid4())}]],
+        }
+        with mock.patch(
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.return_value = table
+            r = self.run_query(
+                """
+                query workspaceById($id: UUID!,$tableName:String!) {
+                    workspace(id: $id) {
+                        id
+                        database {
+                        table(name:$tableName) {
+                            name
+                            count
+                            columns {
+                              name
+                              type
+                            }
+                            sample {
+                              column
+                              value
+                            }
+                          }
+                        }
+                    }
+                }
+                """,
+                {"id": str(self.WORKSPACE.id), "tableName": table_name},
+            )
+            self.assertEqual(
+                {"table": table},
+                r["data"]["workspace"]["database"],
+            )

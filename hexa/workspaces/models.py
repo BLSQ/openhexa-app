@@ -14,6 +14,7 @@ from slugify import slugify
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
+from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 
 
@@ -84,6 +85,7 @@ class Workspace(Base):
     description = models.TextField(blank=True)
     members = models.ManyToManyField(User, through="WorkspaceMembership")
     countries = CountryField(multiple=True, blank=True)
+    database = models.ForeignKey(Database, null=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
