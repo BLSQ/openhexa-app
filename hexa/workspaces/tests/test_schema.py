@@ -73,7 +73,6 @@ class WorkspaceTest(GraphQLTestCase):
                 createWorkspace(input: $input) {
                     success
                     workspace {
-                        id
                         name
                         description
                     }
@@ -171,14 +170,13 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-            query workspaceById($id: UUID!) {
-                workspace(id: $id) {
-                    id
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
                     name
                 }
             }
             """,
-            {"id": str(self.WORKSPACE.id)},
+            {"slug": self.WORKSPACE.slug},
         )
         self.assertIsNone(
             r["data"]["workspace"],
@@ -188,17 +186,16 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            query workspaceById($id: UUID!) {
-                workspace(id: $id) {
-                    id
+            query workspace($slug: String!) {
+                workspace(slug: $slug) {
                     name
                 }
             }
             """,
-            {"id": str(self.WORKSPACE.id)},
+            {"slug": self.WORKSPACE.slug},
         )
         self.assertEqual(
-            {"id": str(self.WORKSPACE.id), "name": self.WORKSPACE.name},
+            {"name": self.WORKSPACE.name},
             r["data"]["workspace"],
         )
 
@@ -211,8 +208,8 @@ class WorkspaceTest(GraphQLTestCase):
                    totalItems
                    totalPages
                    items {
-                    id
-                    name
+                        slug
+                        name
                    }
                 }
             }
@@ -224,7 +221,7 @@ class WorkspaceTest(GraphQLTestCase):
             {
                 "totalItems": 1,
                 "totalPages": 1,
-                "items": [{"id": str(self.WORKSPACE.id), "name": self.WORKSPACE.name}],
+                "items": [{"slug": self.WORKSPACE.slug, "name": self.WORKSPACE.name}],
             },
             r["data"]["workspaces"],
         )
@@ -246,7 +243,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": "c02704ff-541f-4519-8619-34da7acc010b",
+                    "slug": "c02704ff-541f-4519-8619-34da7acc010b",
                     "name": "Cameroon workspace",
                     "description": "Description",
                 }
@@ -273,7 +270,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.WORKSPACE.id),
+                    "slug": self.WORKSPACE.slug,
                     "description": "This is a test for updating workspace description",
                 }
             },
@@ -302,7 +299,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.WORKSPACE.id),
+                    "slug": self.WORKSPACE.slug,
                 }
             },
         )
@@ -327,7 +324,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "id": str(self.WORKSPACE.id),
+                    "slug": self.WORKSPACE.slug,
                 }
             },
         )
@@ -359,7 +356,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(uuid.uuid4()),
+                    "workspaceSlug": str(uuid.uuid4()),
                     "userEmail": "root@openhexa.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -394,7 +391,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": self.WORKSPACE.slug,
                     "userEmail": "unknown@openhexa.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -423,7 +420,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": self.WORKSPACE.slug,
                     "userEmail": "rebecca@bluesquarehub.com",
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
@@ -441,8 +438,8 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            query workspaceById($id: UUID!) {
-                workspace(id: $id) {
+            query workspaceById($slug: String!) {
+                workspace(slug: $slug) {
                     members {
                         items {
                             user {
@@ -453,7 +450,7 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             }
             """,
-            {"id": str(self.WORKSPACE.id)},
+            {"slug": self.WORKSPACE.slug},
         )
 
         self.assertEqual(

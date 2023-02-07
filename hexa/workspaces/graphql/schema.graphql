@@ -1,5 +1,5 @@
 type Workspace {
-  id: UUID!
+  slug: String!
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
@@ -46,18 +46,18 @@ type WorkspaceMembershipPage {
 }
 
 extend type Query {
-  workspace(id: UUID!): Workspace @loginRequired
+  workspace(slug: String!): Workspace @loginRequired
   workspaces(page: Int, perPage: Int): WorkspacePage! @loginRequired
 }
 
 enum CreateWorkspaceError {
   PERMISSION_DENIED
+  INVALID_SLUG
 }
 
 enum UpdateWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
-  INVALID
 }
 
 enum DeleteWorkspaceError {
@@ -118,23 +118,24 @@ type UpdateWorkspaceMemberResult {
 
 input CreateWorkspaceInput {
   name: String!
+  slug: String
   description: String
   countries: [CountryInput!]
 }
 
 input UpdateWorkspaceInput {
-  id: UUID!
+  slug: String!
   name: String
   description: String
   countries: [CountryInput!]
 }
 
 input DeleteWorkspaceInput {
-  id: String!
+  slug: String!
 }
 
 input InviteWorkspaceMemberInput {
-  workspaceId: UUID!
+  workspaceSlug: String!
   userEmail: String!
   role: WorkspaceMembershipRole!
 }
