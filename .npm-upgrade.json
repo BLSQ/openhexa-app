@@ -1,0 +1,8 @@
+{
+  "ignore": {
+    "@ladle/react": {
+      "versions": "2.5.3",
+      "reason": ""
+    }
+  }
+}
