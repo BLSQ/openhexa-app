@@ -12,6 +12,7 @@ exports[`CountryPicker renders 1`] = `
         class="mr-1 flex flex-1 items-center truncate"
       >
         <input
+          aria-autocomplete="list"
           aria-expanded="false"
           autocomplete="off"
           class="flex-1 placeholder-gray-600 placeholder-opacity-70 outline-none"
@@ -21,12 +22,11 @@ exports[`CountryPicker renders 1`] = `
           placeholder="Select a country"
           role="combobox"
           type="text"
-          value=""
         />
       </div>
       <button
         aria-expanded="false"
-        aria-haspopup="true"
+        aria-haspopup="listbox"
         data-headlessui-state=""
         data-testid="combobox-button"
         id="headlessui-combobox-button-e67862f3-ccbf-4c51-b8ed-ed1d0420ea19"

@@ -93,7 +93,7 @@ exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
         >
           <button
             aria-expanded="false"
-            aria-haspopup="true"
+            aria-haspopup="menu"
             data-headlessui-state=""
             id="headlessui-menu-button-6fbe024f-2316-4265-a6e8-d65a837e308a"
             type="button"
