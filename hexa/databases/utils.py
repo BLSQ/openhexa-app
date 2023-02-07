@@ -105,7 +105,6 @@ def get_table_definition(workspace: Workspace, table):
 
 def get_table_data(workspace: Workspace, table_name: str, rows: int = 4):
     database = Database.objects.get(database="hexa-explore-demo")
-    # url = workspace.database.url
     url = database.url
     with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:

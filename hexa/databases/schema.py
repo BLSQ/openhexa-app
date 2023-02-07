@@ -23,12 +23,14 @@ def resolve_database_tables(workspace, info, **kwargs):
 
 @database_object.field("table")
 def resolve_database_table(workspace, info, **kwargs):
-    return get_table_definition(workspace, kwargs.get("name"))
+    res = get_table_definition(workspace, kwargs.get("name"))
+    res["workspace"] = workspace
+    return res
 
 
 @database_table_object.field("sample")
-def resolve_database_table_sample(table, info, **kwargs):
-    return get_table_data(None, table["name"])
+def resolve_database_table_sample(obj, info, **kwargs):
+    return get_table_data(obj["workspace"], obj["name"])
 
 
 databases_bindables = [database_object, database_table_object]
