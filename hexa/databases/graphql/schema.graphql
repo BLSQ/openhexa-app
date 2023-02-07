@@ -12,12 +12,12 @@ type TableColumn {
   type: String!
 }
 
-type TableValue{
+type TableValue {
   column: String!
   value: String
 }
 
-type DatabaseTable{
+type DatabaseTable {
   name: String!
   count: Int
   columns: [TableColumn!]!

@@ -145,18 +145,22 @@ class DatabaseTest(GraphQLTestCase):
         table_name = "test_table"
         count = 2
         schema = {"name": "id", "type": "int"}
+        sample = [[{"column": "id", "value": str(uuid.uuid4())}]]
         table = {
             "name": table_name,
             "count": count,
             "columns": [schema],
-            "sample": [[{"column": "id", "value": str(uuid.uuid4())}]],
         }
         with mock.patch(
             "hexa.databases.schema.get_table_definition"
         ) as mocked_get_table_definition:
             mocked_get_table_definition.return_value = table
-            r = self.run_query(
-                """
+            with mock.patch(
+                "hexa.databases.schema.get_table_data"
+            ) as mocked_get_table_data:
+                mocked_get_table_data.return_value = sample
+                r = self.run_query(
+                    """
                 query workspaceById($id: UUID!,$tableName:String!) {
                     workspace(id: $id) {
                         id
@@ -177,9 +181,9 @@ class DatabaseTest(GraphQLTestCase):
                     }
                 }
                 """,
-                {"id": str(self.WORKSPACE.id), "tableName": table_name},
-            )
+                    {"id": str(self.WORKSPACE.id), "tableName": table_name},
+                )
             self.assertEqual(
-                {"table": table},
+                {"table": {**table, "sample": sample}},
                 r["data"]["workspace"]["database"],
             )

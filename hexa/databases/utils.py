@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2 import sql
 
 from hexa.core.graphql import result_page
+from hexa.plugins.connector_postgresql.models import Database
 from hexa.workspaces.models import Workspace
 
 
@@ -11,7 +12,7 @@ def format_sample_data(columns, samples):
     res = []
     for sample in samples:
         res.append(
-            [{"name": columns[j], "value": sample[j]} for j in range(len(sample))]
+            [{"column": columns[j], "value": sample[j]} for j in range(len(sample))]
         )
     return res
 
@@ -22,7 +23,10 @@ def get_database_definition(
     tables_summary = []
     IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
-    with psycopg2.connect(workspace.database.url) as conn:
+    database = Database.objects.get(database="hexa-explore-demo")
+    url = database.url
+    # url = workspace.database.url
+    with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute(
                 """
@@ -40,7 +44,6 @@ def get_database_definition(
 
             for name, data in tables.items():
                 row_count = data["row_count"]
-
                 if data["row_count"] < 10_000:
                     cursor.execute(
                         sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
@@ -49,23 +52,15 @@ def get_database_definition(
                     )
                     response = cursor.fetchone()
                     row_count = response["row_count"]
-
-                tables_summary.append(
-                    {
-                        "name": name,
-                        "count": row_count,
-                        "sample": get_table_data(
-                            workspace, data["table_name"], limit_per_table
-                        ),
-                    }
-                )
+                tables_summary.append({"name": name, "count": row_count})
 
     return result_page(queryset=tables_summary, page=page, per_page=per_page)
 
 
 def get_table_definition(workspace: Workspace, table):
-    url = workspace.database.url
-    row_count = 0
+    database = Database.objects.get(database="hexa-explore-demo")
+    # url = workspace.database.url
+    url = database.url
     columns = []
     with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
@@ -83,19 +78,36 @@ def get_table_definition(workspace: Workspace, table):
             columns: List[Dict[str, str]] = [
                 {"name": x[0], "type": x[1]} for x in response
             ]
+
             cursor.execute(
-                sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
-                    sql.Identifier(table)
-                ),
+                """
+                    SELECT pg_class.reltuples as row_count
+                    FROM information_schema.tables
+                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                    WHERE table_schema = 'public'
+                    AND table_name=(%s);
+                """,
+                (table,),
             )
-            response = cursor.fetchone()
-            row_count = response["row_count"]
+            res = cursor.fetchone()
+            row_count = res["row_count"]
+            if row_count < 10_000:
+                cursor.execute(
+                    sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
+                        sql.Identifier(table)
+                    ),
+                )
+                response = cursor.fetchone()
+                row_count = response["row_count"]
 
     return {"name": table, "columns": columns, "count": row_count}
 
 
 def get_table_data(workspace: Workspace, table_name: str, rows: int = 4):
-    with psycopg2.connect(workspace.database.url) as conn:
+    database = Database.objects.get(database="hexa-explore-demo")
+    # url = workspace.database.url
+    url = database.url
+    with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
