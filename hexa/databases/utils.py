@@ -43,16 +43,7 @@ def get_database_definition(
             }
 
             for name, data in tables.items():
-                row_count = data["row_count"]
-                if data["row_count"] < 10_000:
-                    cursor.execute(
-                        sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
-                            sql.Identifier(data["table_name"])
-                        ),
-                    )
-                    response = cursor.fetchone()
-                    row_count = response["row_count"]
-                tables_summary.append({"name": name, "count": row_count})
+                tables_summary.append({"name": name, "count": data["row_count"]})
 
     return result_page(queryset=tables_summary, page=page, per_page=per_page)
 
@@ -91,14 +82,6 @@ def get_table_definition(workspace: Workspace, table):
             )
             res = cursor.fetchone()
             row_count = res["row_count"]
-            if row_count < 10_000:
-                cursor.execute(
-                    sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
-                        sql.Identifier(table)
-                    ),
-                )
-                response = cursor.fetchone()
-                row_count = response["row_count"]
 
     return {"name": table, "columns": columns, "count": row_count}
 
