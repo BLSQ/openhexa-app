@@ -16,7 +16,6 @@ type AccessmodProject implements AccessmodOwnership {
     owner: AccessmodOwner
     extent: [[Float!]!]
     dem: AccessmodFileset
-    authorizedActions: [AccessmodProjectAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodProjectPermissions!
     members: [AccessmodProjectMember!]!
     createdAt: DateTime!
@@ -32,14 +31,6 @@ type AccessmodProjectPermissions {
     createPermission: Boolean!
 }
 
-#FIXME To remove once authorizedActions are completely deprecated
-enum AccessmodProjectAuthorizedActions {
-    UPDATE
-    DELETE
-    CREATE_FILESET
-    CREATE_ANALYSIS
-    CREATE_PERMISSION
-}
 type AccessmodProjectPage {
     pageNumber: Int!
     totalPages: Int!
@@ -95,7 +86,6 @@ type AccessmodProjectMember {
     team: Team
     project: AccessmodProject!
     mode: PermissionMode!
-    authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodProjectMemberPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -106,11 +96,6 @@ type AccessmodProjectMemberPermissions {
     delete: Boolean!
 }
 
-#FIXME To remove once authorizedActions are completely deprecated
-enum AccessmodProjectPermissionAuthorizedActions {
-    UPDATE
-    DELETE
-}
 input CreateAccessmodProjectMemberInput {
     userId: String
     teamId: String
@@ -186,7 +171,6 @@ type AccessmodFileset implements AccessmodOwnership {
     owner: AccessmodOwner
     files: [AccessmodFile!]!
     metadata: AccessmodFilesetMetadata!
-    authorizedActions: [AccessmodFilesetAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodFilesetPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -211,12 +195,7 @@ enum AccessmodFilesetStatus {
 }
 scalar AccessmodFilesetMetadata
 
-#FIXME To remove once authorizedActions are completely deprecated
-enum AccessmodFilesetAuthorizedActions {
-    UPDATE
-    DELETE
-    CREATE_FILE
-}
+
 type AccessmodFilesetPage {
     pageNumber: Int!
     totalPages: Int!
@@ -377,7 +356,6 @@ interface AccessmodAnalysis {
     status: AccessmodAnalysisStatus!
     name: String!
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -389,12 +367,6 @@ type AccessmodAnalysisPermissions {
     run: Boolean!
 }
 
-#FIXME To remove once authorizedActions are completely deprecated
-enum AccessmodAnalysisAuthorizedActions {
-    UPDATE
-    DELETE
-    RUN
-}
 enum AccessmodAccessibilityAnalysisAlgorithm {
     ANISOTROPIC
     ISOTROPIC
@@ -409,7 +381,6 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -437,7 +408,6 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & Accessmo
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -504,7 +474,6 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
     name: String!
     owner: AccessmodOwner
     author: User!
-    authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
     permissions: AccessmodAnalysisPermissions!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -648,11 +617,4 @@ extend type Mutation {
 extend type MePermissions {
     createAccessmodProject: Boolean!
     manageAccessmodAccessRequests: Boolean!
-}
-
-# Connector-specific permissions
-#FIXME To remove once authorizedActions are completely deprecated
-extend enum MeAuthorizedActions {
-    CREATE_ACCESSMOD_PROJECT
-    MANAGE_ACCESSMOD_ACCESS_REQUESTS
 }

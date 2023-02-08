@@ -946,7 +946,11 @@ class SchemaTest(GraphQLTestCase):
                 user {
                   id
                 }
-                authorizedActions
+                permissions {
+                    createTeam
+                    adminPanel
+                    createAccessmodProject
+                }
               }
             }
           """,
@@ -957,11 +961,11 @@ class SchemaTest(GraphQLTestCase):
                 "user": {
                     "id": str(self.USER_STAFF_NICO.id),
                 },
-                "authorizedActions": [
-                    "CREATE_TEAM",
-                    "ADMIN_PANEL",
-                    "CREATE_ACCESSMOD_PROJECT",
-                ],
+                "permissions": {
+                    "createTeam": True,
+                    "adminPanel": True,
+                    "createAccessmodProject": True,
+                },
             },
             r["data"]["me"],
         )
@@ -975,7 +979,13 @@ class SchemaTest(GraphQLTestCase):
                 user {
                   id
                 }
-                authorizedActions
+                permissions {
+                    createTeam
+                    adminPanel
+                    superUser
+                    createAccessmodProject
+                    manageAccessmodAccessRequests
+                }
               }
             }
           """,
@@ -986,13 +996,13 @@ class SchemaTest(GraphQLTestCase):
                 "user": {
                     "id": str(self.SUPER_USER_ALF.id),
                 },
-                "authorizedActions": [
-                    "CREATE_TEAM",
-                    "ADMIN_PANEL",
-                    "SUPER_USER",
-                    "CREATE_ACCESSMOD_PROJECT",
-                    "MANAGE_ACCESSMOD_ACCESS_REQUESTS",
-                ],
+                "permissions": {
+                    "createTeam": True,
+                    "adminPanel": True,
+                    "superUser": True,
+                    "createAccessmodProject": True,
+                    "manageAccessmodAccessRequests": True,
+                },
             },
             r["data"]["me"],
         )

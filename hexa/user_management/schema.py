@@ -21,7 +21,6 @@ from django_otp import devices_for_user
 from django_otp.plugins.otp_email.models import EmailDevice
 from graphql import default_field_resolver
 
-from hexa.app import get_hexa_app_configs
 from hexa.core.graphql import result_page
 from hexa.core.templatetags.colors import hash_color
 from hexa.user_management.models import (
@@ -125,34 +124,6 @@ def resolve_me_has_two_factor_enabled(_, info):
     return has_configured_two_factor(request.user)
 
 
-# FIXME: To remove once authorizedActions are completely deprecated
-@me_object.field("authorizedActions")
-def resolve_me_authorized_actions(_, info):
-    request = info.context["request"]
-    principal = request.user
-    authorized_actions = []
-
-    # Base authorized actions
-    if principal.has_perm("user_management.create_team"):
-        authorized_actions.append("CREATE_TEAM")
-
-    if principal.is_staff:
-        authorized_actions.append("ADMIN_PANEL")
-
-    if principal.is_superuser:
-        authorized_actions.append("SUPER_USER")
-
-    # Loop over plugin configs and check if we have an extra resolver for this field
-    for app_config in get_hexa_app_configs(connector_only=True):
-        extra_authorized_actions_resolver = (
-            app_config.get_extra_graphql_me_authorized_actions_resolver()
-        )
-        if extra_authorized_actions_resolver is not None:
-            authorized_actions += extra_authorized_actions_resolver(_, info)
-
-    return authorized_actions
-
-
 @me_object.field("features")
 def resolve_me_features(_, info):
     request = info.context["request"]
@@ -212,24 +183,6 @@ def resolve_team_memberships(team: Team, *_, **kwargs):
     )
 
 
-# FIXME: To remove once authorizedActions are completely deprecated
-@team_object.field("authorizedActions")
-def resolve_team_authorized_actions(team: Team, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    user = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE" if user.has_perm("user_management.update_team", team) else None,
-            "DELETE" if user.has_perm("user_management.delete_team", team) else None,
-            "CREATE_MEMBERSHIP"
-            if user.has_perm("user_management.create_membership", team)
-            else None,
-        ],
-    )
-
-
 @team_object.field("permissions")
 def resolve_team_permissions(team: Team, info):
     return team
@@ -258,25 +211,6 @@ def resolve_team_permissions_create_membership(team: Team, info):
 
 membership_object = ObjectType("Membership")
 membership_permissions_object = ObjectType("MembershipPermissions")
-
-
-# FIXME: To remove once authorizedActions are completely deprecated
-@membership_object.field("authorizedActions")
-def resolve_membership_authorized_actions(membership: Membership, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    user = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE"
-            if user.has_perm("user_management.update_membership", membership)
-            else None,
-            "DELETE"
-            if user.has_perm("user_management.delete_membership", membership)
-            else None,
-        ],
-    )
 
 
 @membership_object.field("permissions")

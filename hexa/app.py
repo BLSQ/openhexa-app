@@ -66,9 +66,6 @@ class ConnectorAppConfig(AppConfig):
     NOTEBOOKS_CREDENTIALS = []
     PIPELINES_CREDENTIALS = []
     LAST_ACTIVITIES = None
-    EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER = (
-        None  # FIXME: To remove once authorizedActions are completely deprecated
-    )
 
     def __init_subclass__(cls) -> None:
         """Django does not play super nicely with multiple nested AppConfig subclasses. To make sure that a "concrete"
@@ -139,30 +136,6 @@ class ConnectorAppConfig(AppConfig):
         from hexa.core.activities import ActivityList
 
         return ActivityList()
-
-    # FIXME: To remove once authorizedActions are completely deprecated
-    def get_extra_graphql_me_authorized_actions_resolver(self):
-        """Check if this app has an extra resolver for the "authorizedActions" field on the "Me" type.
-        The base resolver will loop through all plugins and extend the authorized actions list with any extra
-        resolver found.
-        """
-
-        if self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER is None:
-            return None
-
-        (
-            module_name,
-            function_name,
-        ) = self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER.rsplit(".", 1)
-        schema_module = import_module(module_name)
-        extra_resolver = getattr(schema_module, function_name)
-
-        if not callable(extra_resolver):
-            raise TypeError(
-                f"{self.EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER} is not callable"
-            )
-
-        return extra_resolver
 
 
 @cache
