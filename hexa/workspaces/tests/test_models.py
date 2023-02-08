@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
@@ -35,6 +37,27 @@ class WorkspaceTest(TestCase):
                 description="This is test for creating workspace",
             )
             workspace.save()
+
+    def test_create_workspace_no_slug(self):
+        with patch("secrets.token_hex", lambda _: "mock"):
+
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="this is a very long workspace name",
+                description="Description",
+            )
+        self.assertEqual(workspace.slug, "this-is-a-very-long-wor-mock")
+        self.assertTrue(len(workspace.slug) <= 30)
+
+    def test_create_workspace_with_underscore(self):
+        with patch("secrets.token_hex", lambda _: "mock"):
+
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Worksp?ace_wi😱th_und~ersc!/ore",
+                description="Description",
+            )
+        self.assertEqual(workspace.slug, "worksp-ace-with-und-er-mock")
 
     def test_create_workspace_admin_user(self):
         workspace = Workspace.objects.create_if_has_perm(

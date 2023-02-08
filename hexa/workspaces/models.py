@@ -1,12 +1,16 @@
+import secrets
 import typing
 import uuid
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
+from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
+from slugify import slugify
 
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
@@ -15,6 +19,20 @@ from hexa.user_management.models import User
 
 class AlreadyExists(Exception):
     pass
+
+
+def create_workspace_slug(name):
+    suffix = secrets.token_hex(3)
+    prefix = slugify(name[:23])
+    return prefix[:23] + "-" + suffix
+
+
+validate_workspace_slug = RegexValidator(
+    _lazy_re_compile(r"^[-a-z0-9]+\Z"),
+    # Translators: "letters" means latin letters: a-z.
+    _("Enter a valid “slug” consisting of letters, numbers or hyphens."),
+    "invalid",
+)
 
 
 class WorkspaceManager(models.Manager):
@@ -30,6 +48,7 @@ class WorkspaceManager(models.Manager):
             raise PermissionDenied
 
         create_kwargs = {"name": name, "description": description}
+        create_kwargs["slug"] = create_workspace_slug(name)
         if countries is not None:
             create_kwargs["countries"] = countries
         if description is None:
@@ -55,6 +74,13 @@ class WorkspaceQuerySet(BaseQuerySet):
 class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
+    slug = models.CharField(
+        max_length=30,
+        null=False,
+        editable=False,
+        validators=[validate_workspace_slug],
+        unique=True,
+    )
     description = models.TextField(blank=True)
     members = models.ManyToManyField(User, through="WorkspaceMembership")
     countries = CountryField(multiple=True, blank=True)
@@ -72,7 +98,7 @@ class Workspace(Base):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied
 
-        for key in ["name", "countries", "description"]:
+        for key in ["name", "slug", "countries", "description"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 

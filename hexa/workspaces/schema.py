@@ -83,7 +83,7 @@ def resolve_workspaces(_, info, page=1, perPage=15):
 def resolve_workspace(_, info, **kwargs):
     request = info.context["request"]
     try:
-        return Workspace.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        return Workspace.objects.filter_for_user(request.user).get(slug=kwargs["slug"])
     except Workspace.DoesNotExist:
         return None
 
@@ -116,7 +116,7 @@ def resolve_update_workspace(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            id=input["id"]
+            slug=input["slug"]
         )
         args = {}
         if input.get("name", None):
@@ -145,7 +145,7 @@ def resolve_delete_workspace(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            id=input["id"]
+            slug=input["slug"]
         )
         workspace.delete_if_has_perm(principal=request.user)
 
@@ -162,7 +162,7 @@ def resolve_create_workspace_member(_, info, **kwargs):
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            id=input["workspaceId"]
+            slug=input["workspaceSlug"]
         )
         user = User.objects.get(email=input["userEmail"])
 
