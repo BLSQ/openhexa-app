@@ -505,6 +505,49 @@ export type CollectionPermissions = {
   update: Scalars['Boolean'];
 };
 
+export type Connection = {
+  __typename?: 'Connection';
+  createdAt: Scalars['DateTime'];
+  description?: Maybe<Scalars['String']>;
+  fields: Array<ConnectionField>;
+  id: Scalars['String'];
+  name: Scalars['String'];
+  permissions: ConnectionPermissions;
+  slug: Scalars['String'];
+  type: ConnectionType;
+  updatedAt?: Maybe<Scalars['DateTime']>;
+  user: User;
+};
+
+export type ConnectionField = {
+  __typename?: 'ConnectionField';
+  code: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  secret: Scalars['Boolean'];
+  updatedAt?: Maybe<Scalars['DateTime']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+export type ConnectionFieldInput = {
+  code: Scalars['String'];
+  secret: Scalars['Boolean'];
+  value?: InputMaybe<Scalars['String']>;
+};
+
+export type ConnectionPermissions = {
+  __typename?: 'ConnectionPermissions';
+  delete: Scalars['Boolean'];
+  update: Scalars['Boolean'];
+};
+
+export enum ConnectionType {
+  Custom = 'CUSTOM',
+  Dhis2 = 'DHIS2',
+  Gcs = 'GCS',
+  Postgresql = 'POSTGRESQL',
+  S3 = 'S3'
+}
+
 export type Country = {
   __typename?: 'Country';
   alpha3: Scalars['String'];
@@ -669,6 +712,28 @@ export type CreateCollectionResult = {
   __typename?: 'CreateCollectionResult';
   collection?: Maybe<Collection>;
   errors: Array<CreateCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum CreateConnectionError {
+  InvalidSlug = 'INVALID_SLUG',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type CreateConnectionInput = {
+  description?: InputMaybe<Scalars['String']>;
+  fields?: InputMaybe<Array<ConnectionFieldInput>>;
+  name: Scalars['String'];
+  slug?: InputMaybe<Scalars['String']>;
+  type: ConnectionType;
+  workspaceSlug: Scalars['String'];
+};
+
+export type CreateConnectionResult = {
+  __typename?: 'CreateConnectionResult';
+  connection?: Maybe<Connection>;
+  errors: Array<CreateConnectionError>;
   success: Scalars['Boolean'];
 };
 
@@ -954,6 +1019,21 @@ export type DeleteCollectionInput = {
 export type DeleteCollectionResult = {
   __typename?: 'DeleteCollectionResult';
   errors: Array<DeleteCollectionError>;
+  success: Scalars['Boolean'];
+};
+
+export enum DeleteConnectionError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteConnectionInput = {
+  id: Scalars['String'];
+};
+
+export type DeleteConnectionResult = {
+  __typename?: 'DeleteConnectionResult';
+  errors: Array<DeleteConnectionError>;
   success: Scalars['Boolean'];
 };
 
@@ -1265,6 +1345,7 @@ export type Mutation = {
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
   createCollection: CreateCollectionResult;
   createCollectionElement: CreateCollectionElementResult;
+  createConnection: CreateConnectionResult;
   createMembership: CreateMembershipResult;
   createPipeline: CreatePipelineResult;
   createTeam: CreateTeamResult;
@@ -1275,6 +1356,7 @@ export type Mutation = {
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
   deleteCollection: DeleteCollectionResult;
   deleteCollectionElement: DeleteCollectionElementResult;
+  deleteConnection: DeleteConnectionResult;
   deleteMembership: DeleteMembershipResult;
   deletePipeline: DeletePipelineResult;
   deleteTeam: DeleteTeamResult;
@@ -1306,6 +1388,7 @@ export type Mutation = {
   updateAccessmodProjectMember: UpdateAccessmodProjectMemberResult;
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateCollection: UpdateCollectionResult;
+  updateConnection: UpdateConnectionResult;
   updateDAG: UpdateDagResult;
   updateExternalDashboard: UpdateExternalDashboardResult;
   updateMembership: UpdateMembershipResult;
@@ -1368,6 +1451,11 @@ export type MutationCreateCollectionElementArgs = {
 };
 
 
+export type MutationCreateConnectionArgs = {
+  input: CreateConnectionInput;
+};
+
+
 export type MutationCreateMembershipArgs = {
   input: CreateMembershipInput;
 };
@@ -1415,6 +1503,11 @@ export type MutationDeleteCollectionArgs = {
 
 export type MutationDeleteCollectionElementArgs = {
   input: DeleteCollectionElementInput;
+};
+
+
+export type MutationDeleteConnectionArgs = {
+  input: DeleteConnectionInput;
 };
 
 
@@ -1560,6 +1653,11 @@ export type MutationUpdateAccessmodZonalStatisticsArgs = {
 
 export type MutationUpdateCollectionArgs = {
   input: UpdateCollectionInput;
+};
+
+
+export type MutationUpdateConnectionArgs = {
+  input: UpdateConnectionInput;
 };
 
 
@@ -1798,6 +1896,7 @@ export type Query = {
   catalog: CatalogPage;
   collection?: Maybe<Collection>;
   collections: CollectionPage;
+  connection?: Maybe<Connection>;
   countries: Array<Country>;
   country?: Maybe<Country>;
   dag?: Maybe<Dag>;
@@ -1896,6 +1995,11 @@ export type QueryCollectionArgs = {
 export type QueryCollectionsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryConnectionArgs = {
+  id: Scalars['UUID'];
 };
 
 
@@ -2311,6 +2415,27 @@ export type UpdateCollectionResult = {
   success: Scalars['Boolean'];
 };
 
+export enum UpdateConnectionError {
+  InvalidSlug = 'INVALID_SLUG',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdateConnectionInput = {
+  description?: InputMaybe<Scalars['String']>;
+  fields?: InputMaybe<Array<ConnectionFieldInput>>;
+  id: Scalars['String'];
+  name?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
+};
+
+export type UpdateConnectionResult = {
+  __typename?: 'UpdateConnectionResult';
+  connection?: Maybe<Connection>;
+  errors: Array<UpdateConnectionError>;
+  success: Scalars['Boolean'];
+};
+
 export enum UpdateDagError {
   Invalid = 'INVALID',
   NotFound = 'NOT_FOUND'
@@ -2496,6 +2621,7 @@ export type WhoRegion = {
 
 export type Workspace = {
   __typename?: 'Workspace';
+  connections: Array<Connection>;
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
   createdBy: User;
@@ -2547,6 +2673,7 @@ export type WorkspacePage = {
 
 export type WorkspacePermissions = {
   __typename?: 'WorkspacePermissions';
+  createConnection: Scalars['Boolean'];
   delete: Scalars['Boolean'];
   manageMembers: Scalars['Boolean'];
   update: Scalars['Boolean'];

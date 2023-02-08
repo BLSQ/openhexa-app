@@ -18,7 +18,7 @@ const PropertyDisplay = (props: PropertyDisplayProps) => {
     section.form.errors[property.id];
 
   return (
-    <DescriptionList.Item label={property.label}>
+    <DescriptionList.Item label={property.label} help={property.help}>
       {children}
       {error && <div className="mt-1 text-xs text-red-500">{error}</div>}
     </DescriptionList.Item>

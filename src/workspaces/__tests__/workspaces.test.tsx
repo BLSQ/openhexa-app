@@ -47,13 +47,13 @@ describe("Workspaces", () => {
   });
 
   it("renders null as workspace doesn't exist", async () => {
-    const id = "a303ff37-644b-4080-83d9-a42bd2712f63";
+    const slug = "a303ff37-644b-4080-83d9-a42bd2712f63";
     const graphqlMocks = [
       {
         request: {
           query: WorkspacePageDocument,
           variables: {
-            id,
+            slug,
           },
         },
         result: {
@@ -66,7 +66,7 @@ describe("Workspaces", () => {
 
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
-        <WorkspacePage page={1} perPage={1} workspaceId={id} />
+        <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
       </TestApp>
     );
 
@@ -75,19 +75,19 @@ describe("Workspaces", () => {
   });
 
   it("hides the edit button when user have not update permission ", async () => {
-    const id = "a303ff37-644b-4080-83d9-a42bd2712f63";
+    const slug = "a303ff37-644b-4080-83d9-a42bd2712f63";
     const graphqlMocks = [
       {
         request: {
           query: WorkspacePageDocument,
           variables: {
-            id,
+            slug,
           },
         },
         result: {
           data: {
             workspace: {
-              id: id,
+              slug,
               name: "Rwanda Workspace",
               description: "This is a description",
               permissions: {
@@ -108,7 +108,7 @@ describe("Workspaces", () => {
 
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
-        <WorkspacePage page={1} perPage={1} workspaceId={id} />
+        <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
       </TestApp>
     );
     const editButton = screen.queryByText("Edit");

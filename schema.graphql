@@ -447,6 +447,46 @@ type CollectionPermissions {
   delete: Boolean!
 }
 
+type Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User!
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
+}
+
+type ConnectionField {
+  code: String!
+  value: String
+  secret: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+input ConnectionFieldInput {
+  code: String!
+  value: String
+  secret: Boolean!
+}
+
+type ConnectionPermissions {
+  update: Boolean!
+  delete: Boolean!
+}
+
+enum ConnectionType {
+  S3
+  GCS
+  POSTGRESQL
+  DHIS2
+  CUSTOM
+}
+
 type Country {
   code: String!
   alpha3: String!
@@ -603,6 +643,27 @@ type CreateCollectionResult {
   success: Boolean!
   errors: [CreateCollectionError!]!
   collection: Collection
+}
+
+enum CreateConnectionError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+input CreateConnectionInput {
+  workspaceSlug: String!
+  name: String!
+  slug: String
+  description: String
+  type: ConnectionType!
+  fields: [ConnectionFieldInput!]
+}
+
+type CreateConnectionResult {
+  success: Boolean!
+  connection: Connection
+  errors: [CreateConnectionError!]!
 }
 
 enum CreateMembershipError {
@@ -842,6 +903,20 @@ input DeleteCollectionInput {
 type DeleteCollectionResult {
   success: Boolean!
   errors: [DeleteCollectionError!]!
+}
+
+enum DeleteConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteConnectionInput {
+  id: String!
+}
+
+type DeleteConnectionResult {
+  success: Boolean!
+  errors: [DeleteConnectionError!]!
 }
 
 enum DeleteMembershipError {
@@ -1203,6 +1278,9 @@ type Mutation {
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
+  createConnection(input: CreateConnectionInput!): CreateConnectionResult!
+  updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
+  deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
 }
 
 type Organization {
@@ -1396,6 +1474,7 @@ type Query {
   pipelineRunCode(id: UUID): String
   workspace(slug: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
+  connection(id: UUID!): Connection
 }
 
 enum RequestAccessmodAccessError {
@@ -1701,6 +1780,26 @@ type UpdateCollectionResult {
   collection: Collection
 }
 
+enum UpdateConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+input UpdateConnectionInput {
+  id: String!
+  name: String
+  slug: String
+  description: String
+  fields: [ConnectionFieldInput!]
+}
+
+type UpdateConnectionResult {
+  success: Boolean!
+  connection: Connection
+  errors: [UpdateConnectionError!]!
+}
+
 enum UpdateDAGError {
   NOT_FOUND
   INVALID
@@ -1885,6 +1984,7 @@ type Workspace {
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+  connections: [Connection!]!
 }
 
 type WorkspaceMembership {
@@ -1920,5 +2020,6 @@ type WorkspacePermissions {
   update: Boolean!
   delete: Boolean!
   manageMembers: Boolean!
+  createConnection: Boolean!
 }
 

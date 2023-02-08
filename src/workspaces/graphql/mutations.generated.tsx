@@ -45,6 +45,20 @@ export type UpdateWorkspaceMemberMutationVariables = Types.Exact<{
 
 export type UpdateWorkspaceMemberMutation = { __typename?: 'Mutation', updateWorkspaceMember: { __typename?: 'UpdateWorkspaceMemberResult', success: boolean, errors: Array<Types.UpdateWorkspaceMemberError>, workspaceMembership?: { __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole } | null } };
 
+export type CreateConnectionMutationVariables = Types.Exact<{
+  input: Types.CreateConnectionInput;
+}>;
+
+
+export type CreateConnectionMutation = { __typename?: 'Mutation', createConnection: { __typename?: 'CreateConnectionResult', success: boolean, errors: Array<Types.CreateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string } | null } };
+
+export type UpdateConnectionMutationVariables = Types.Exact<{
+  input: Types.UpdateConnectionInput;
+}>;
+
+
+export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null } | null } };
+
 
 export const CreateWorkspaceDocument = gql`
     mutation createWorkspace($input: CreateWorkspaceInput!) {
@@ -277,3 +291,81 @@ export function useUpdateWorkspaceMemberMutation(baseOptions?: Apollo.MutationHo
 export type UpdateWorkspaceMemberMutationHookResult = ReturnType<typeof useUpdateWorkspaceMemberMutation>;
 export type UpdateWorkspaceMemberMutationResult = Apollo.MutationResult<UpdateWorkspaceMemberMutation>;
 export type UpdateWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>;
+export const CreateConnectionDocument = gql`
+    mutation createConnection($input: CreateConnectionInput!) {
+  createConnection(input: $input) {
+    success
+    connection {
+      id
+      name
+    }
+    errors
+  }
+}
+    `;
+export type CreateConnectionMutationFn = Apollo.MutationFunction<CreateConnectionMutation, CreateConnectionMutationVariables>;
+
+/**
+ * __useCreateConnectionMutation__
+ *
+ * To run a mutation, you first call `useCreateConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createConnectionMutation, { data, loading, error }] = useCreateConnectionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateConnectionMutation(baseOptions?: Apollo.MutationHookOptions<CreateConnectionMutation, CreateConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateConnectionMutation, CreateConnectionMutationVariables>(CreateConnectionDocument, options);
+      }
+export type CreateConnectionMutationHookResult = ReturnType<typeof useCreateConnectionMutation>;
+export type CreateConnectionMutationResult = Apollo.MutationResult<CreateConnectionMutation>;
+export type CreateConnectionMutationOptions = Apollo.BaseMutationOptions<CreateConnectionMutation, CreateConnectionMutationVariables>;
+export const UpdateConnectionDocument = gql`
+    mutation updateConnection($input: UpdateConnectionInput!) {
+  updateConnection(input: $input) {
+    success
+    errors
+    connection {
+      id
+      name
+      slug
+      description
+    }
+  }
+}
+    `;
+export type UpdateConnectionMutationFn = Apollo.MutationFunction<UpdateConnectionMutation, UpdateConnectionMutationVariables>;
+
+/**
+ * __useUpdateConnectionMutation__
+ *
+ * To run a mutation, you first call `useUpdateConnectionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateConnectionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateConnectionMutation, { data, loading, error }] = useUpdateConnectionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateConnectionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateConnectionMutation, UpdateConnectionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateConnectionMutation, UpdateConnectionMutationVariables>(UpdateConnectionDocument, options);
+      }
+export type UpdateConnectionMutationHookResult = ReturnType<typeof useUpdateConnectionMutation>;
+export type UpdateConnectionMutationResult = Apollo.MutationResult<UpdateConnectionMutation>;
+export type UpdateConnectionMutationOptions = Apollo.BaseMutationOptions<UpdateConnectionMutation, UpdateConnectionMutationVariables>;

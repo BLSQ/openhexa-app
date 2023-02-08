@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import Input from "../forms/Input";
 import Textarea from "../forms/Textarea";
@@ -8,11 +9,21 @@ import { PropertyDefinition } from "./types";
 type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
   defaultValue?: string;
+  className?: string;
 };
 
 const TextProperty = (props: TextPropertyProps) => {
-  const { markdown, defaultValue, id, accessor, required, readonly, label } =
-    props;
+  const {
+    markdown,
+    defaultValue,
+    id,
+    accessor,
+    required,
+    readonly,
+    label,
+    help,
+    className,
+  } = props;
 
   const { property, section } = useDataCardProperty({
     id,
@@ -20,6 +31,7 @@ const TextProperty = (props: TextPropertyProps) => {
     required,
     readonly,
     label,
+    help,
   });
 
   if (section.isEdited && !property.readonly) {
@@ -51,7 +63,7 @@ const TextProperty = (props: TextPropertyProps) => {
             {property.displayValue}
           </ReactMarkdown>
         ) : (
-          <div className="prose text-sm text-gray-900">
+          <div className={clsx("prose text-sm text-gray-900", className)}>
             {property.displayValue || defaultValue}
           </div>
         )}

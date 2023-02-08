@@ -48,23 +48,22 @@ DescriptionList.Item = function Item({
       className={clsx(
         displayMode === DescriptionListDisplayMode.LABEL_LEFT &&
           "grid grid-cols-5 gap-2 sm:gap-4",
-        displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1",
-        className
+        displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1"
       )}
     >
       <dt
         className={clsx(
-          "text-sm font-medium text-gray-500",
+          "flex text-sm font-medium text-gray-500",
           displayMode === DescriptionListDisplayMode.LABEL_LEFT && "col-span-1",
           displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "col-span-5"
         )}
       >
-        <span>{label}</span>
+        <span className="inline">{label}</span>
         {help && (
           <Tooltip
             placement="top"
             renderTrigger={(ref) => (
-              <span ref={ref}>
+              <span className="inline" ref={ref}>
                 <InformationCircleIcon className="ml-1 h-3 w-3 cursor-pointer" />
               </span>
             )}
@@ -72,7 +71,9 @@ DescriptionList.Item = function Item({
           />
         )}
       </dt>
-      <dd className="col-span-4 text-sm text-gray-900">{children}</dd>
+      <dd className={clsx("col-span-4 text-sm text-gray-900", className)}>
+        {children}
+      </dd>
     </div>
   );
 };

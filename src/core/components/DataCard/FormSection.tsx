@@ -63,6 +63,7 @@ function getProperty<F>(
       form.setFieldValue(definition.id as keyof F, value),
     id: definition.id,
     label: definition.label,
+    help: definition.help,
     readonly: getPropertyFlag(displayValue, definition.readonly) ?? false,
     required: getPropertyFlag(displayValue, definition.required) ?? false,
     visible: getPropertyFlag(displayValue, definition.visible) ?? true,

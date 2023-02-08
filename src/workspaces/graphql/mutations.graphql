@@ -66,3 +66,26 @@ mutation updateWorkspaceMember($input: UpdateWorkspaceMemberInput!) {
     }
   }
 }
+mutation createConnection($input: CreateConnectionInput!) {
+  createConnection(input: $input) {
+    success
+    connection {
+      id
+      name
+    }
+    errors
+  }
+}
+
+mutation updateConnection($input: UpdateConnectionInput!) {
+  updateConnection(input: $input) {
+    success
+    errors
+    connection {
+      id
+      name
+      slug
+      description
+    }
+  }
+}

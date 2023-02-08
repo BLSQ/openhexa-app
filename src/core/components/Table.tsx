@@ -11,9 +11,7 @@ export const TableClasses = {
 };
 
 export const Table = (props: HTMLAttributes<HTMLTableElement>) => (
-  <div className="overflow-x-auto overflow-y-hidden">
-    <table {...props} className={clsx(props.className, TableClasses.table)} />
-  </div>
+  <table {...props} className={clsx(props.className, TableClasses.table)} />
 );
 
 export const TableHead = (props: HTMLAttributes<HTMLTableSectionElement>) => (
@@ -33,6 +31,7 @@ export const TableCell = (
     width?: string;
     heading?: boolean;
     wrap?: boolean;
+
     overrideStyle?: boolean;
   }
 ) => {

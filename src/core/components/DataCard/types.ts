@@ -7,6 +7,7 @@ export type PropertyDefinition = {
   id: string;
   label: string;
   accessor?: ValueAccessor;
+  help?: string;
   readonly?: PropertyFlag;
   visible?: PropertyFlag;
   required?: PropertyFlag;
@@ -15,6 +16,7 @@ export type PropertyDefinition = {
 export interface Property<V = any, FV = V> {
   id: string;
   label: string;
+  help?: string;
   displayValue: V;
   formValue: FV;
   readonly: boolean;

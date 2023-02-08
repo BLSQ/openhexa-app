@@ -4,6 +4,9 @@ import { gql } from '@apollo/client';
 import { DeleteWorkspace_WorkspaceFragmentDoc } from '../features/DeleteWorkspaceDialog/DeleteWorkspaceDialog.generated';
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
 import { UpdateWorkspaceDescription_WorkspaceFragmentDoc } from '../features/UpdateDescriptionDialog/UpdateDescriptionDialog.generated';
+import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
+import { ConnectionUsageSnippets_ConnectionFragmentDoc } from '../features/ConnectionUsageSnippets/ConnectionUsageSnippets.generated';
+import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorkspacesPageQueryVariables = Types.Exact<{
@@ -70,19 +73,20 @@ export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
 
 export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
 
-export type WorkspaceConnectionsPageQueryVariables = Types.Exact<{
+export type ConnectionsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
 }>;
 
 
-export type WorkspaceConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type ConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean }, connections: Array<{ __typename?: 'Connection', id: string, description?: string | null, name: string, type: Types.ConnectionType, slug: string, updatedAt?: any | null, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean } }> } | null };
 
-export type WorkspaceConnectionPageQueryVariables = Types.Exact<{
+export type ConnectionPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
+  connectionId: Types.Scalars['UUID'];
 }>;
 
 
-export type WorkspaceConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
 
 
 export const WorkspacesPageDocument = gql`
@@ -433,75 +437,107 @@ export function useWorkspaceDatabaseTablePageLazyQuery(baseOptions?: Apollo.Lazy
 export type WorkspaceDatabaseTablePageQueryHookResult = ReturnType<typeof useWorkspaceDatabaseTablePageQuery>;
 export type WorkspaceDatabaseTablePageLazyQueryHookResult = ReturnType<typeof useWorkspaceDatabaseTablePageLazyQuery>;
 export type WorkspaceDatabaseTablePageQueryResult = Apollo.QueryResult<WorkspaceDatabaseTablePageQuery, WorkspaceDatabaseTablePageQueryVariables>;
-export const WorkspaceConnectionsPageDocument = gql`
-    query WorkspaceConnectionsPage($workspaceSlug: String!) {
+export const ConnectionsPageDocument = gql`
+    query ConnectionsPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      update
+    }
+    ...CreateConnectionDialog_workspace
+    connections {
+      id
+      description
+      name
+      type
+      slug
+      updatedAt
+      permissions {
+        update
+        delete
+      }
+    }
   }
 }
-    `;
+    ${CreateConnectionDialog_WorkspaceFragmentDoc}`;
 
 /**
- * __useWorkspaceConnectionsPageQuery__
+ * __useConnectionsPageQuery__
  *
- * To run a query within a React component, call `useWorkspaceConnectionsPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspaceConnectionsPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useConnectionsPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConnectionsPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useWorkspaceConnectionsPageQuery({
+ * const { data, loading, error } = useConnectionsPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
  *   },
  * });
  */
-export function useWorkspaceConnectionsPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>) {
+export function useConnectionsPageQuery(baseOptions: Apollo.QueryHookOptions<ConnectionsPageQuery, ConnectionsPageQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>(WorkspaceConnectionsPageDocument, options);
+        return Apollo.useQuery<ConnectionsPageQuery, ConnectionsPageQueryVariables>(ConnectionsPageDocument, options);
       }
-export function useWorkspaceConnectionsPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>) {
+export function useConnectionsPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConnectionsPageQuery, ConnectionsPageQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>(WorkspaceConnectionsPageDocument, options);
+          return Apollo.useLazyQuery<ConnectionsPageQuery, ConnectionsPageQueryVariables>(ConnectionsPageDocument, options);
         }
-export type WorkspaceConnectionsPageQueryHookResult = ReturnType<typeof useWorkspaceConnectionsPageQuery>;
-export type WorkspaceConnectionsPageLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionsPageLazyQuery>;
-export type WorkspaceConnectionsPageQueryResult = Apollo.QueryResult<WorkspaceConnectionsPageQuery, WorkspaceConnectionsPageQueryVariables>;
-export const WorkspaceConnectionPageDocument = gql`
-    query WorkspaceConnectionPage($workspaceSlug: String!) {
+export type ConnectionsPageQueryHookResult = ReturnType<typeof useConnectionsPageQuery>;
+export type ConnectionsPageLazyQueryHookResult = ReturnType<typeof useConnectionsPageLazyQuery>;
+export type ConnectionsPageQueryResult = Apollo.QueryResult<ConnectionsPageQuery, ConnectionsPageQueryVariables>;
+export const ConnectionPageDocument = gql`
+    query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
   }
+  connection(id: $connectionId) {
+    id
+    name
+    slug
+    description
+    type
+    createdAt
+    permissions {
+      update
+      delete
+    }
+    ...ConnectionUsageSnippets_connection
+    ...ConnectionFieldsSection_connection
+  }
 }
-    `;
+    ${ConnectionUsageSnippets_ConnectionFragmentDoc}
+${ConnectionFieldsSection_ConnectionFragmentDoc}`;
 
 /**
- * __useWorkspaceConnectionPageQuery__
+ * __useConnectionPageQuery__
  *
- * To run a query within a React component, call `useWorkspaceConnectionPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspaceConnectionPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useConnectionPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConnectionPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useWorkspaceConnectionPageQuery({
+ * const { data, loading, error } = useConnectionPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      connectionId: // value for 'connectionId'
  *   },
  * });
  */
-export function useWorkspaceConnectionPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceConnectionPageQuery, WorkspaceConnectionPageQueryVariables>) {
+export function useConnectionPageQuery(baseOptions: Apollo.QueryHookOptions<ConnectionPageQuery, ConnectionPageQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspaceConnectionPageQuery, WorkspaceConnectionPageQueryVariables>(WorkspaceConnectionPageDocument, options);
+        return Apollo.useQuery<ConnectionPageQuery, ConnectionPageQueryVariables>(ConnectionPageDocument, options);
       }
-export function useWorkspaceConnectionPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceConnectionPageQuery, WorkspaceConnectionPageQueryVariables>) {
+export function useConnectionPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConnectionPageQuery, ConnectionPageQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspaceConnectionPageQuery, WorkspaceConnectionPageQueryVariables>(WorkspaceConnectionPageDocument, options);
+          return Apollo.useLazyQuery<ConnectionPageQuery, ConnectionPageQueryVariables>(ConnectionPageDocument, options);
         }
-export type WorkspaceConnectionPageQueryHookResult = ReturnType<typeof useWorkspaceConnectionPageQuery>;
-export type WorkspaceConnectionPageLazyQueryHookResult = ReturnType<typeof useWorkspaceConnectionPageLazyQuery>;
-export type WorkspaceConnectionPageQueryResult = Apollo.QueryResult<WorkspaceConnectionPageQuery, WorkspaceConnectionPageQueryVariables>;
+export type ConnectionPageQueryHookResult = ReturnType<typeof useConnectionPageQuery>;
+export type ConnectionPageLazyQueryHookResult = ReturnType<typeof useConnectionPageLazyQuery>;
+export type ConnectionPageQueryResult = Apollo.QueryResult<ConnectionPageQuery, ConnectionPageQueryVariables>;

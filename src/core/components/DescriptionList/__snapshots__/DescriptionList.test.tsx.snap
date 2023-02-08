@@ -9,9 +9,11 @@ exports[`DescriptionList renders a list with one item 1`] = `
       class="grid grid-cols-5 gap-2 sm:gap-4"
     >
       <dt
-        class="text-sm font-medium text-gray-500 col-span-1"
+        class="flex text-sm font-medium text-gray-500 col-span-1"
       >
-        <span>
+        <span
+          class="inline"
+        >
           label
         </span>
       </dt>
@@ -34,9 +36,11 @@ exports[`DescriptionList renders the list on multiple columns 1`] = `
       class="grid grid-cols-5 gap-2 sm:gap-4"
     >
       <dt
-        class="text-sm font-medium text-gray-500 col-span-1"
+        class="flex text-sm font-medium text-gray-500 col-span-1"
       >
-        <span>
+        <span
+          class="inline"
+        >
           label 1
         </span>
       </dt>
@@ -50,9 +54,11 @@ exports[`DescriptionList renders the list on multiple columns 1`] = `
       class="grid grid-cols-5 gap-2 sm:gap-4"
     >
       <dt
-        class="text-sm font-medium text-gray-500 col-span-1"
+        class="flex text-sm font-medium text-gray-500 col-span-1"
       >
-        <span>
+        <span
+          class="inline"
+        >
           label 2
         </span>
       </dt>
@@ -75,9 +81,11 @@ exports[`DescriptionList renders the list with the label above the value 1`] = `
       class="space-y-1"
     >
       <dt
-        class="text-sm font-medium text-gray-500 col-span-5"
+        class="flex text-sm font-medium text-gray-500 col-span-5"
       >
-        <span>
+        <span
+          class="inline"
+        >
           label 1
         </span>
       </dt>
@@ -91,9 +99,11 @@ exports[`DescriptionList renders the list with the label above the value 1`] = `
       class="space-y-1"
     >
       <dt
-        class="text-sm font-medium text-gray-500 col-span-5"
+        class="flex text-sm font-medium text-gray-500 col-span-5"
       >
-        <span>
+        <span
+          class="inline"
+        >
           label 2
         </span>
       </dt>

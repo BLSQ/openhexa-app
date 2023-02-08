@@ -25,7 +25,7 @@ import { useEmitter, useListener } from "./useEmitter";
  *
  */
 
-const useCacheKey = (keys: string | string[], listener?: () => void) => {
+const useCacheKey = (keys: any | any[], listener?: () => void) => {
   const [cachedKeys, setCachedKeys] = useState(keys);
   const emit = useEmitter("CacheKey");
 
