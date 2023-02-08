@@ -8,12 +8,14 @@ type Workspace {
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+  connections: [Connection!]!
 }
 
 type WorkspacePermissions {
   update: Boolean!
   delete: Boolean!
   manageMembers: Boolean!
+  createConnection: Boolean!
 }
 
 type WorkspacePage {
@@ -44,6 +46,7 @@ type WorkspaceMembershipPage {
   totalItems: Int!
   items: [WorkspaceMembership!]!
 }
+
 
 extend type Query {
   workspace(slug: String!): Workspace @loginRequired
@@ -156,6 +159,115 @@ extend type Mutation {
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
+}
+
+### Connections
+
+enum ConnectionType {
+  S3
+  GCS
+  POSTGRESQL
+  DHIS2
+  CUSTOM
+}
+
+type ConnectionField {
+  code: String!
+  value: String
+  secret: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type ConnectionPermissions {
+  update: Boolean!
+  delete: Boolean!
+}
+
+type Connection {
+  id: String!
+  name: String!
+  slug: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  type: ConnectionType!
+  user: User!
+  fields: [ConnectionField!]!
+  permissions: ConnectionPermissions!
+}
+
+input ConnectionFieldInput {
+  code: String!
+  value: String
+  secret: Boolean!
+}
+
+input CreateConnectionInput {
+  workspaceSlug: String!
+  name: String!
+  slug: String
+  description: String
+  type: ConnectionType!
+  fields: [ConnectionFieldInput!]
+}
+
+type CreateConnectionResult {
+  success: Boolean!
+  connection: Connection
+  errors: [CreateConnectionError!]!
+}
+
+enum CreateConnectionError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+input UpdateConnectionInput {
+  id: String!
+  name: String
+  slug: String
+  description: String
+  fields: [ConnectionFieldInput!]
+}
+
+type UpdateConnectionResult {
+  success: Boolean!
+  connection: Connection
+  errors: [UpdateConnectionError!]!
+}
+
+enum UpdateConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_SLUG
+}
+
+
+input DeleteConnectionInput {
+  id: String!
+}
+
+type DeleteConnectionResult {
+  success: Boolean!
+  errors: [DeleteConnectionError!]!
+}
+
+enum DeleteConnectionError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+extend type Query {
+  connection(id: UUID!): Connection @loginRequired
+}
+
+
+extend type Mutation {
+  createConnection(input: CreateConnectionInput!): CreateConnectionResult! @loginRequired
+  updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult! @loginRequired
+  deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult! @loginRequired
 }
 
 
