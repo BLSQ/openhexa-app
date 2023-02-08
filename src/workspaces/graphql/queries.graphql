@@ -2,7 +2,7 @@ query WorkspacesPage($page: Int, $perPage: Int) {
   workspaces(page: $page, perPage: $perPage) {
     totalItems
     items {
-      id
+      slug
       name
       countries {
         code
@@ -12,9 +12,9 @@ query WorkspacesPage($page: Int, $perPage: Int) {
   }
 }
 
-query WorkspacePage($id: UUID!) {
-  workspace(id: $id) {
-    id
+query WorkspacePage($slug: String!) {
+  workspace(slug: $slug) {
+    slug
     name
     description
     countries {
@@ -33,63 +33,63 @@ query WorkspacePage($id: UUID!) {
   }
 }
 
-query WorkspacePipelinesPage($id: UUID!) {
-  workspace(id: $id) {
-    id
+query WorkspacePipelinesPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
 
-query WorkspacePipelinePage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspacePipelinePage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
 
-query WorkspacePipelineStartPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspacePipelineStartPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
-query WorkspacePipelineRunPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
-    name
-  }
-}
-
-query WorkspaceFilesPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspacePipelineRunPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
 
-query WorkspaceDatabasesPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspaceFilesPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
 
-query WorkspaceDatabaseTablePage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspaceDatabasesPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
 
-query WorkspaceConnectionsPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+query WorkspaceDatabaseTablePage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }
-query WorkspaceConnectionPage($workspaceId: UUID!) {
-  workspace(id: $workspaceId) {
-    id
+
+query WorkspaceConnectionsPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+  }
+}
+query WorkspaceConnectionPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
     name
   }
 }

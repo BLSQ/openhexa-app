@@ -2,7 +2,7 @@ mutation createWorkspace($input: CreateWorkspaceInput!) {
   createWorkspace(input: $input) {
     success
     workspace {
-      id
+      slug
       name
       description
       countries {
@@ -19,7 +19,7 @@ mutation updateWorkspace($input: UpdateWorkspaceInput!) {
   updateWorkspace(input: $input) {
     success
     workspace {
-      id
+      slug
       name
       description
       countries {
@@ -48,7 +48,6 @@ mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
     }
   }
 }
-
 
 mutation deleteWorkspaceMember($input: DeleteWorkspaceMemberInput!) {
   deleteWorkspaceMember(input: $input) {

@@ -60,7 +60,7 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       redirect: {
         permanent: false,
-        destination: `/workspaces/${latestWorkspace.id}`,
+        destination: `/workspaces/${latestWorkspace.slug}`,
       },
     };
   },

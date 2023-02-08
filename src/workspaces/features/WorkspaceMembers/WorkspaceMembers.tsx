@@ -21,9 +21,9 @@ type WorkspaceMember = Pick<WorkspaceMembership, "id" | "role"> & {
 };
 
 export default function WorkspaceMembers({
-  workspaceId,
+  workspaceSlug,
 }: {
-  workspaceId: string;
+  workspaceSlug: string;
 }) {
   const { t } = useTranslation();
   const [selectedMember, setSelectedMember] = useState<WorkspaceMember>();
@@ -32,8 +32,8 @@ export default function WorkspaceMembers({
 
   const { data, refetch } = useQuery<WorskspaceMembersQuery>(
     gql`
-      query WorskspaceMembers($id: UUID!, $page: Int, $perPage: Int) {
-        workspace(id: $id) {
+      query WorskspaceMembers($slug: String!, $page: Int, $perPage: Int) {
+        workspace(slug: $slug) {
           members(page: $page, perPage: $perPage) {
             totalItems
             items {
@@ -50,7 +50,7 @@ export default function WorkspaceMembers({
         }
       }
     `,
-    { variables: { id: workspaceId, page: 1, perPage: DEFAULT_PAGE_SIZE } }
+    { variables: { slug: workspaceSlug, page: 1, perPage: DEFAULT_PAGE_SIZE } }
   );
 
   useCacheKey("workspace", () => refetch());
@@ -58,7 +58,7 @@ export default function WorkspaceMembers({
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
       page,
-      id: workspaceId,
+      slug: workspaceSlug,
     });
   };
 

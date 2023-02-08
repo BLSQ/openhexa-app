@@ -25,7 +25,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useWorkspaceDatabasesPageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -39,13 +39,13 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             isLast
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/databases`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/databases`}
           >
             {t("Database")}
           </Breadcrumbs.Part>
@@ -69,8 +69,8 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             {(value) => (
               <Link
                 href={{
-                  pathname: "/workspaces/[workspaceId]/databases/[tableId]",
-                  query: { workspaceId: workspace.id, tableId: value.id },
+                  pathname: "/workspaces/[workspaceSlug]/databases/[tableId]",
+                  query: { workspaceSlug: workspace.slug, tableId: value.id },
                 }}
               >
                 <div className="flex items-center gap-3">
@@ -103,7 +103,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             accessor="id"
             url={(value: any) => ({
               pathname: `/workspaces/${encodeURIComponent(
-                workspace.id
+                workspace.slug
               )}/databases/[tableId]`,
               query: { tableId: value },
             })}
@@ -123,7 +123,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspaceDatabasesPageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

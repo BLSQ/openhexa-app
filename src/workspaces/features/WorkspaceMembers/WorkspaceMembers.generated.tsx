@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorskspaceMembersQueryVariables = Types.Exact<{
-  id: Types.Scalars['UUID'];
+  slug: Types.Scalars['String'];
   page?: Types.InputMaybe<Types.Scalars['Int']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
@@ -14,8 +14,8 @@ export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typ
 
 
 export const WorskspaceMembersDocument = gql`
-    query WorskspaceMembers($id: UUID!, $page: Int, $perPage: Int) {
-  workspace(id: $id) {
+    query WorskspaceMembers($slug: String!, $page: Int, $perPage: Int) {
+  workspace(slug: $slug) {
     members(page: $page, perPage: $perPage) {
       totalItems
       items {
@@ -45,7 +45,7 @@ export const WorskspaceMembersDocument = gql`
  * @example
  * const { data, loading, error } = useWorskspaceMembersQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      slug: // value for 'slug'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },

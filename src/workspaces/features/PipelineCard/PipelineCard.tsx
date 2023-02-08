@@ -3,7 +3,7 @@ import { Dag, DagRun } from "graphql-types";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 
 interface PipelineCardProps {
-  workspaceId: string;
+  workspaceSlug: string;
   dag: Pick<Dag, "id" | "label" | "description"> & {
     shortDescription: String;
     triggerInfo: String;
@@ -13,12 +13,12 @@ interface PipelineCardProps {
   };
 }
 
-const PipelineCard = ({ dag, workspaceId }: PipelineCardProps) => {
+const PipelineCard = ({ dag, workspaceSlug }: PipelineCardProps) => {
   return (
     <Card
       href={{
-        pathname: `/workspaces/[workspaceId]/pipelines/[pipelineId]`,
-        query: { workspaceId: workspaceId, pipelineId: dag.id },
+        pathname: `/workspaces/[workspaceSlug]/pipelines/[pipelineId]`,
+        query: { workspaceSlug: workspaceSlug, pipelineId: dag.id },
       }}
       title={
         <div className="flex justify-between">

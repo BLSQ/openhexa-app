@@ -28,13 +28,13 @@ import { ensureArray } from "core/helpers/array";
 type Props = {
   page: number;
   perPage: number;
-  workspaceId: string;
+  workspaceSlug: string;
 };
 
 const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const { data, refetch } = useWorkspacePageQuery({
-    variables: { id: props.workspaceId },
+    variables: { slug: props.workspaceSlug },
   });
 
   const [mutate] = useUpdateWorkspaceMutation();
@@ -45,7 +45,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
     await mutate({
       variables: {
         input: {
-          id: workspace.id,
+          slug: workspace.slug,
           name: values.name,
           countries: ensureArray(values.countries || workspace.countries).map(
             ({ code }) => ({
@@ -70,7 +70,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
@@ -124,7 +124,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                 </Button>
               </div>
               <Block>
-                <WorkspaceMembers workspaceId={workspace.id} />
+                <WorkspaceMembers workspaceSlug={workspace.slug} />
               </Block>
             </Tabs.Tab>
             <Tabs.Tab
@@ -176,7 +176,7 @@ export const getServerSideProps = createGetServerSideProps({
     const { data } = await client.query<WorkspacePageQuery>({
       query: WorkspacePageDocument,
       variables: {
-        id: ctx.params?.workspaceId,
+        slug: ctx.params?.workspaceSlug,
       },
     });
 
@@ -188,7 +188,7 @@ export const getServerSideProps = createGetServerSideProps({
 
     return {
       props: {
-        workspaceId: ctx.params?.workspaceId,
+        workspaceSlug: ctx.params?.workspaceSlug,
       },
     };
   },

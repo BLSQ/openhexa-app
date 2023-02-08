@@ -30,7 +30,7 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
       const { data } = await mutate({
         variables: {
           input: {
-            id: workspace.id,
+            slug: workspace.slug,
             description: values.description,
           },
         },
@@ -100,7 +100,7 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
 UpdateDescriptionDialog.fragments = {
   workspace: gql`
     fragment UpdateWorkspaceDescription_workspace on Workspace {
-      id
+      slug
       description
     }
   `,

@@ -82,7 +82,7 @@ describe("CreateWorkspaceDialog", () => {
 
     const user = userEvent.setup();
     const workspace = {
-      id: faker.datatype.uuid(),
+      slug: faker.datatype.uuid(),
       name: "Workspace's name",
       description: faker.lorem.lines(),
       countries: [],
@@ -123,8 +123,8 @@ describe("CreateWorkspaceDialog", () => {
 
     waitFor(() => {
       expect(pushSpy).toHaveBeenCalledWith({
-        pathname: "/workspaces/[id]",
-        query: { id: workspace.id },
+        pathname: "/workspaces/[slug]",
+        query: { slug: workspace.slug },
       });
     });
   });

@@ -36,7 +36,7 @@ const WorkspacePipelineRunDetailsPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useWorkspacePipelineRunPageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -66,18 +66,20 @@ const WorkspacePipelineRunDetailsPage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/pipelines}`}
+            href={`/workspaces/${encodeURIComponent(
+              workspace.slug
+            )}/pipelines}`}
           >
             {t("Pipelines")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             href={`/workspaces/${encodeURIComponent(
-              workspace.id
+              workspace.slug
             )}/pipelines/${encodeURIComponent(dag.id)}`}
           >
             {dag.label}

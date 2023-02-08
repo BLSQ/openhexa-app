@@ -54,7 +54,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
   const [openModal, setOpenModal] = useState(false);
   const router = useRouter();
   const { data } = useWorkspaceDatabaseTablePageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -79,20 +79,20 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/databases`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/databases`}
           >
             {t("Database")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             isLast
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/databases/${
-              router.query.tableId
-            }`}
+            href={`/workspaces/${encodeURIComponent(
+              workspace.slug
+            )}/databases/${router.query.tableId}`}
           >
             {capitalize(table.name)}
           </Breadcrumbs.Part>
@@ -182,7 +182,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspaceDatabaseTablePageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

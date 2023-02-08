@@ -15,7 +15,7 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 }));
 
 const WORKSPACE = {
-  id: faker.datatype.uuid(),
+  slug: faker.datatype.uuid(),
   name: faker.commerce.productName(),
 };
 
@@ -73,7 +73,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
           query: UpdateWorkspaceDocument,
           variables: {
             input: {
-              id: WORKSPACE.id,
+              slug: WORKSPACE.slug,
             },
           },
         },

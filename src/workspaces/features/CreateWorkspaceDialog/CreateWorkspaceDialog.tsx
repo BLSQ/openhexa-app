@@ -52,9 +52,10 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
       ) {
         throw new Error("You are not authorized to perform this action");
       } else {
+        onClose();
         router.push({
-          pathname: "/workspaces/[id]",
-          query: { id: data?.createWorkspace.workspace?.id },
+          pathname: "/workspaces/[workspaceSlug]",
+          query: { workspaceSlug: data?.createWorkspace.workspace?.slug },
         });
       }
     },

@@ -17,7 +17,7 @@ import {
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
-  workspaceId: string;
+  workspaceSlug: string;
   page: number;
   perPage: number;
 };
@@ -29,7 +29,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data, refetch } = useWorkspacePageQuery({
-    variables: { id: props.workspaceId },
+    variables: { slug: props.workspaceSlug },
   });
 
   if (!data?.workspace) {
@@ -44,7 +44,7 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
@@ -81,7 +81,7 @@ export const getServerSideProps = createGetServerSideProps({
     const { data } = await client.query<WorkspacePageQuery>({
       query: WorkspacePageDocument,
       variables: {
-        id: ctx.params?.workspaceId,
+        slug: ctx.params?.workspaceSlug,
       },
     });
 
@@ -93,7 +93,7 @@ export const getServerSideProps = createGetServerSideProps({
 
     return {
       props: {
-        workspaceId: ctx.params?.workspaceId,
+        workspaceSlug: ctx.params?.workspaceSlug,
       },
     };
   },

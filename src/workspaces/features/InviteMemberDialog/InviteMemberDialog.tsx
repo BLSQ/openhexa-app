@@ -31,7 +31,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   const { open, onClose, workspace } = props;
 
   const [createWorkspaceMember] = useInviteWorkspaceMemberMutation();
-  const clearCache = useCacheKey(["workspaces", workspace.id]);
+  const clearCache = useCacheKey(["workspaces", workspace.slug]);
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
@@ -39,7 +39,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
         variables: {
           input: {
             role: values.role,
-            workspaceId: workspace.id,
+            workspaceSlug: workspace.slug,
             userEmail: values.email,
           },
         },
@@ -157,7 +157,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 InviteMemberDialog.fragments = {
   workspace: gql`
     fragment InviteMemberWorkspace_workspace on Workspace {
-      id
+      slug
       name
     }
   `,

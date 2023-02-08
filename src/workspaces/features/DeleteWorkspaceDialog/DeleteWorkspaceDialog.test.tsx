@@ -17,6 +17,7 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 
 const WORKSPACE = {
   id: faker.datatype.uuid(),
+  slug: "SLUG",
   name: faker.commerce.productName(),
 };
 const useDeleteWorkspaceMutationMock = useDeleteWorkspaceMutation as jest.Mock;
@@ -74,7 +75,7 @@ describe("DeleteWorkspaceDialog", () => {
           query: DeleteWorkspaceDocument,
           variables: {
             input: {
-              id: WORKSPACE.id,
+              slug: WORKSPACE.slug,
             },
           },
         },

@@ -16,7 +16,7 @@ import SidebarMenu from "workspaces/features/SidebarMenu";
 import { useWorkspacePageQuery } from "workspaces/graphql/queries.generated";
 
 type SidebarProps = {
-  workspaceId: string;
+  workspaceSlug: string;
 };
 
 const NavItem = (props: {
@@ -68,11 +68,11 @@ const NavItem = (props: {
 };
 
 const Sidebar = (props: SidebarProps) => {
-  const { workspaceId } = props;
+  const { workspaceSlug } = props;
   const { t } = useTranslation();
 
   const { data } = useWorkspacePageQuery({
-    variables: { id: workspaceId },
+    variables: { slug: workspaceSlug },
   });
 
   if (!data?.workspace) {
@@ -90,46 +90,54 @@ const Sidebar = (props: SidebarProps) => {
           <nav className="flex-1 space-y-1 px-0 pb-4">
             <NavItem
               exact
-              href={`/workspaces/${encodeURIComponent(workspaceId)}`}
+              href={`/workspaces/${encodeURIComponent(workspaceSlug)}`}
             >
               <HomeIcon className="h-5 w-5" />
               {t("Home")}
             </NavItem>
             <NavItem
-              href={`/workspaces/${encodeURIComponent(workspaceId)}/files`}
+              href={`/workspaces/${encodeURIComponent(workspaceSlug)}/files`}
             >
               <FolderOpenIcon className="h-5 w-5" />
               {t("Files")}
             </NavItem>
             <NavItem
-              href={`/workspaces/${encodeURIComponent(workspaceId)}/databases`}
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug
+              )}/databases`}
             >
               <CircleStackIcon className="h-5 w-5" />
               {t("Database")}
             </NavItem>
             <NavItem
               href={`/workspaces/${encodeURIComponent(
-                workspaceId
+                workspaceSlug
               )}/connections`}
             >
               <SwatchIcon className="h-5 w-5" />
               {t("Connections")}
             </NavItem>
             <NavItem
-              href={`/workspaces/${encodeURIComponent(workspaceId)}/pipelines`}
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug
+              )}/pipelines`}
             >
               <ArrowPathIcon className="h-5 w-5" />
               {t("Pipelines")}
             </NavItem>
             <NavItem
-              href={`/workspaces/${encodeURIComponent(workspaceId)}/notebooks`}
+              href={`/workspaces/${encodeURIComponent(
+                workspaceSlug
+              )}/notebooks`}
             >
               <BookOpenIcon className="h-5 w-5" />
               {t("JupyterHub")}
             </NavItem>
             {workspace.permissions.manageMembers && (
               <NavItem
-                href={`/workspaces/${encodeURIComponent(workspaceId)}/settings`}
+                href={`/workspaces/${encodeURIComponent(
+                  workspaceSlug
+                )}/settings`}
               >
                 <Cog6ToothIcon className="h-5 w-5" />
                 {t("Settings")}

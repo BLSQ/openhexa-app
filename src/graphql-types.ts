@@ -477,7 +477,7 @@ export type CollectionElement = {
   id: Scalars['UUID'];
   model: Scalars['String'];
   name: Scalars['String'];
-  objectId: Scalars['UUID'];
+  objectId: Scalars['String'];
   type: Scalars['String'];
   updatedAt: Scalars['DateTime'];
   url?: Maybe<Scalars['URL']>;
@@ -642,7 +642,7 @@ export type CreateCollectionElementInput = {
   app: Scalars['String'];
   collectionId: Scalars['UUID'];
   model: Scalars['String'];
-  objectId: Scalars['UUID'];
+  objectId: Scalars['String'];
 };
 
 export type CreateCollectionElementResult = {
@@ -657,7 +657,7 @@ export enum CreateCollectionError {
 }
 
 export type CreateCollectionInput = {
-  authorId?: InputMaybe<Scalars['UUID']>;
+  authorId?: InputMaybe<Scalars['String']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];
@@ -721,6 +721,7 @@ export type CreateTeamResult = {
 };
 
 export enum CreateWorkspaceError {
+  InvalidSlug = 'INVALID_SLUG',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -728,6 +729,7 @@ export type CreateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
   name: Scalars['String'];
+  slug?: InputMaybe<Scalars['String']>;
 };
 
 export type CreateWorkspaceResult = {
@@ -1001,7 +1003,7 @@ export enum DeleteWorkspaceError {
 }
 
 export type DeleteWorkspaceInput = {
-  id: Scalars['String'];
+  slug: Scalars['String'];
 };
 
 export enum DeleteWorkspaceMemberError {
@@ -1111,7 +1113,7 @@ export type GenerateChallengeResult = {
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String'];
-  workspaceId: Scalars['UUID'];
+  workspaceSlug: Scalars['String'];
 };
 
 export type InviteWorkspaceMemberResult = {
@@ -1974,7 +1976,7 @@ export type QueryTeamsArgs = {
 
 
 export type QueryWorkspaceArgs = {
-  id: Scalars['UUID'];
+  slug: Scalars['String'];
 };
 
 
@@ -2293,7 +2295,7 @@ export enum UpdateCollectionError {
 }
 
 export type UpdateCollectionInput = {
-  authorId?: InputMaybe<Scalars['UUID']>;
+  authorId?: InputMaybe<Scalars['String']>;
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
   id: Scalars['UUID'];
@@ -2395,7 +2397,6 @@ export type UpdateTeamResult = {
 };
 
 export enum UpdateWorkspaceError {
-  Invalid = 'INVALID',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -2403,8 +2404,8 @@ export enum UpdateWorkspaceError {
 export type UpdateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']>;
-  id: Scalars['UUID'];
   name?: InputMaybe<Scalars['String']>;
+  slug: Scalars['String'];
 };
 
 export enum UpdateWorkspaceMemberError {
@@ -2499,10 +2500,10 @@ export type Workspace = {
   createdAt: Scalars['DateTime'];
   createdBy: User;
   description?: Maybe<Scalars['String']>;
-  id: Scalars['UUID'];
   members: WorkspaceMembershipPage;
   name: Scalars['String'];
   permissions: WorkspacePermissions;
+  slug: Scalars['String'];
   updatedAt?: Maybe<Scalars['DateTime']>;
 };
 

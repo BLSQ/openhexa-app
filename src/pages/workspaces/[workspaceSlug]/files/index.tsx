@@ -41,7 +41,7 @@ const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
 
   const { data } = useWorkspaceFilesPageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
   const item = useMemo(() => {
     return router.query.id ? getWorkspaceFile(router.query.id) : null;
@@ -59,19 +59,19 @@ const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/files`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/files`}
             isLast={item ? false : true}
           >
             {t("Files")}
           </Breadcrumbs.Part>
           {item && (
             <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(workspace.id)}/files`}
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}/files`}
               isLast
             >
               {item.name}
@@ -105,9 +105,9 @@ const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
                     <Link
                       noStyle
                       href={{
-                        pathname: "/workspaces/[workspaceId]/files",
+                        pathname: "/workspaces/[workspaceSlug]/files",
                         query: {
-                          workspaceId: workspace.id,
+                          workspaceSlug: workspace.slug,
                           id: value.id,
                         },
                       }}
@@ -179,7 +179,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspaceFilesPageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

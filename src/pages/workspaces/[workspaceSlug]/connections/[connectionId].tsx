@@ -33,7 +33,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useWorkspaceConnectionPageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -55,19 +55,21 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/connections`}
+            href={`/workspaces/${encodeURIComponent(
+              workspace.slug
+            )}/connections`}
           >
             {t("Connections")}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             isLast
             href={`/workspaces/${encodeURIComponent(
-              workspace.id
+              workspace.slug
             )}/pipelines/${encodeURIComponent(connection.id)}`}
           >
             {connection.name}
@@ -135,7 +137,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspaceConnectionsPageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

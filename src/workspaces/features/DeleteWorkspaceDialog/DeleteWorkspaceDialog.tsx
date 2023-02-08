@@ -23,14 +23,14 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [deleteWorkspace] = useDeleteWorkspaceMutation();
-  const clearCache = useCacheKey(["workspaces", workspace.id]);
+  const clearCache = useCacheKey(["workspaces", workspace.slug]);
 
   const onSubmit = async () => {
     setIsSubmitting(true);
     const { data } = await deleteWorkspace({
       variables: {
         input: {
-          id: workspace.id,
+          slug: workspace.slug,
         },
       },
     });
@@ -77,7 +77,7 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
 DeleteWorkspaceDialog.fragments = {
   workspace: gql`
     fragment DeleteWorkspace_workspace on Workspace {
-      id
+      slug
       name
     }
   `,

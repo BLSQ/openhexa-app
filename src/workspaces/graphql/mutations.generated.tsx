@@ -8,14 +8,14 @@ export type CreateWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateWorkspaceMutation = { __typename?: 'Mutation', createWorkspace: { __typename?: 'CreateWorkspaceResult', success: boolean, errors: Array<Types.CreateWorkspaceError>, workspace?: { __typename?: 'Workspace', id: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
+export type CreateWorkspaceMutation = { __typename?: 'Mutation', createWorkspace: { __typename?: 'CreateWorkspaceResult', success: boolean, errors: Array<Types.CreateWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
 
 export type UpdateWorkspaceMutationVariables = Types.Exact<{
   input: Types.UpdateWorkspaceInput;
 }>;
 
 
-export type UpdateWorkspaceMutation = { __typename?: 'Mutation', updateWorkspace: { __typename?: 'UpdateWorkspaceResult', success: boolean, errors: Array<Types.UpdateWorkspaceError>, workspace?: { __typename?: 'Workspace', id: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
+export type UpdateWorkspaceMutation = { __typename?: 'Mutation', updateWorkspace: { __typename?: 'UpdateWorkspaceResult', success: boolean, errors: Array<Types.UpdateWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, countries: Array<{ __typename?: 'Country', code: string, alpha3: string, name: string }> } | null } };
 
 export type DeleteWorkspaceMutationVariables = Types.Exact<{
   input: Types.DeleteWorkspaceInput;
@@ -51,7 +51,7 @@ export const CreateWorkspaceDocument = gql`
   createWorkspace(input: $input) {
     success
     workspace {
-      id
+      slug
       name
       description
       countries {
@@ -95,7 +95,7 @@ export const UpdateWorkspaceDocument = gql`
   updateWorkspace(input: $input) {
     success
     workspace {
-      id
+      slug
       name
       description
       countries {

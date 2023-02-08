@@ -164,8 +164,8 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 <Link
                   noStyle
                   href={{
-                    pathname: "/workspaces/[workspaceId]",
-                    query: { workspaceId: workspace.id },
+                    pathname: "/workspaces/[workspaceSlug]",
+                    query: { workspaceSlug: workspace.slug },
                   }}
                   className="flex items-center py-2.5 px-4 hover:bg-gray-100"
                   key={index}

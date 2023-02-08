@@ -67,7 +67,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - run: npm run lint
         name: Lint Typescript files

@@ -104,7 +104,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
   const { data } = useWorkspacePipelinePageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -128,19 +128,21 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
               isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
               {workspace.name}
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(workspace.id)}/pipelines`}
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines`}
             >
               {t("Pipelines")}
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
-                workspace.id
+                workspace.slug
               )}/pipelines/${encodeURIComponent(dag.id)}`}
             >
               {dag.label}
@@ -203,16 +205,16 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               totalItems={dag.runs.length}
               fixedLayout={false}
             >
-              <BaseColumn id="name" label={t("Name")} minWidth={240}>
+              <BaseColumn id="name" label={t("Name")}>
                 {(item) => (
                   <Link
                     customStyle="text-gray-700 font-medium"
                     href={{
                       pathname:
-                        "/workspaces/[workspaceId]/pipelines/[pipelinesId]",
+                        "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]",
                       query: {
                         pipelinesId: item.id,
-                        workspaceId: workspace.id,
+                        workspaceSlug: workspace.slug,
                       },
                     }}
                   >
@@ -229,17 +231,20 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 {(item) => <PipelineRunStatusBadge dagRun={item} />}
               </BaseColumn>
               <BaseColumn label={t("Duration")} accessor="duration">
-                {(value) => <span>{value ? formatDuration(value) : "-"}</span>}
+                {(value) => (
+                  <span suppressHydrationWarning>
+                    {value ? formatDuration(value) : "-"}
+                  </span>
+                )}
               </BaseColumn>
               <UserColumn label={t("User")} accessor="user" />
               <ChevronLinkColumn
-                maxWidth="100"
                 accessor="id"
                 url={(value: any) => ({
                   pathname:
-                    "/workspaces/[workspaceId]/pipelines/[pipelinesId]/runs/[runId]",
+                    "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]/runs/[runId]",
                   query: {
-                    workspaceId: workspace.id,
+                    workspaceSlug: workspace.slug,
                     pipelinesId: dag.id,
                     runId: value,
                   },
@@ -267,7 +272,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspacePipelinePageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

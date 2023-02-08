@@ -246,13 +246,10 @@ const PipelinePage = (props: Props) => {
                   {(item) => <PipelineRunStatusBadge dagRun={item} />}
                 </BaseColumn>
                 <BaseColumn label={t("Duration")} accessor="duration">
-                  {(value) => (
-                    <span>{value ? formatDuration(value) : "-"}</span>
-                  )}
+                  {(value) => <span suppressHydrationWarning></span>}
                 </BaseColumn>
                 <UserColumn label={t("User")} accessor="user" />
                 <ChevronLinkColumn
-                  maxWidth="100"
                   accessor="id"
                   url={(value: any) => ({
                     pathname: "/pipelines/[pipelinesId]/runs/[runId]",

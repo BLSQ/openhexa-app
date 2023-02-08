@@ -30,7 +30,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               >
                 <a
                   class=""
-                  href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                  href="/workspaces/test"
                 >
                   Rwanda Workspace
                 </a>

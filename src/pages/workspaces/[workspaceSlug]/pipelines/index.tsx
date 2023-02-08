@@ -18,7 +18,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useWorkspacePipelinesPageQuery({
-    variables: { id: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -33,13 +33,13 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
         <Breadcrumbs withHome={false} className="flex-1">
           <Breadcrumbs.Part
             isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
           >
             {workspace.name}
           </Breadcrumbs.Part>
           <Breadcrumbs.Part
             isLast
-            href={`/workspaces/${encodeURIComponent(workspace.id)}/pipelines`}
+            href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
           >
             {t("Pipelines")}
           </Breadcrumbs.Part>
@@ -51,7 +51,11 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
       <WorkspaceLayout.PageContent>
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
           {FAKE_WORKSPACE.dags.map((dag, index) => (
-            <PipelineCard workspaceId={workspace.id} key={index} dag={dag} />
+            <PipelineCard
+              workspaceSlug={workspace.slug}
+              key={index}
+              dag={dag}
+            />
           ))}
         </div>
       </WorkspaceLayout.PageContent>
@@ -68,7 +72,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspacePipelinesPageDocument,
-      variables: { id: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {

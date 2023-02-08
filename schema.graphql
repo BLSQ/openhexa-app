@@ -422,7 +422,7 @@ type CollectionElement {
   model: String!
   type: String!
   name: String!
-  objectId: UUID!
+  objectId: String!
   url: URL
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -577,7 +577,7 @@ input CreateCollectionElementInput {
   collectionId: UUID!
   app: String!
   model: String!
-  objectId: UUID!
+  objectId: String!
 }
 
 type CreateCollectionElementResult {
@@ -592,7 +592,7 @@ enum CreateCollectionError {
 
 input CreateCollectionInput {
   name: String!
-  authorId: UUID
+  authorId: String
   countries: [CountryInput!]
   tagIds: [String!]
   summary: String
@@ -652,10 +652,12 @@ type CreateTeamResult {
 
 enum CreateWorkspaceError {
   PERMISSION_DENIED
+  INVALID_SLUG
 }
 
 input CreateWorkspaceInput {
   name: String!
+  slug: String
   description: String
   countries: [CountryInput!]
 }
@@ -885,7 +887,7 @@ enum DeleteWorkspaceError {
 }
 
 input DeleteWorkspaceInput {
-  id: String!
+  slug: String!
 }
 
 enum DeleteWorkspaceMemberError {
@@ -1006,7 +1008,7 @@ type GenerateChallengeResult {
 }
 
 input InviteWorkspaceMemberInput {
-  workspaceId: UUID!
+  workspaceSlug: String!
   userEmail: String!
   role: WorkspaceMembershipRole!
 }
@@ -1392,7 +1394,7 @@ type Query {
   pipeline(id: UUID, name: String): Pipeline
   pipelineRun(id: UUID!): PipelineRun
   pipelineRunCode(id: UUID): String
-  workspace(id: UUID!): Workspace
+  workspace(slug: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
 }
 
@@ -1687,7 +1689,7 @@ input UpdateCollectionInput {
   id: UUID!
   name: String
   summary: String
-  authorId: UUID
+  authorId: String
   countries: [CountryInput!]
   tagIds: [String!]
   description: String
@@ -1782,11 +1784,10 @@ type UpdateTeamResult {
 enum UpdateWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
-  INVALID
 }
 
 input UpdateWorkspaceInput {
-  id: UUID!
+  slug: String!
   name: String
   description: String
   countries: [CountryInput!]
@@ -1875,7 +1876,7 @@ type WHORegion {
 }
 
 type Workspace {
-  id: UUID!
+  slug: String!
   name: String!
   description: String
   members(page: Int, perPage: Int): WorkspaceMembershipPage!

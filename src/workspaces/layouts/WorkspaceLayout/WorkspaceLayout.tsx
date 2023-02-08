@@ -15,15 +15,15 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const { children, mainClassName } = props;
   const router = useRouter();
 
-  const workspaceId = router.query.workspaceId as string;
+  const workspaceSlug = router.query.workspaceSlug as string;
 
-  if (!workspaceId) {
+  if (!workspaceSlug) {
     return null;
   }
 
   return (
     <>
-      <Sidebar workspaceId={workspaceId} />
+      <Sidebar workspaceSlug={workspaceSlug} />
       <main className={clsx("flex flex-col pl-64", mainClassName)}>
         {children}
       </main>

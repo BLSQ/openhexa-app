@@ -28,7 +28,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
   const { data } = useWorkspaceConnectionsPageQuery({
-    variables: { workspaceId: router.query.workspaceId as string },
+    variables: { workspaceSlug: router.query.workspaceSlug as string },
   });
 
   if (!data?.workspace) {
@@ -44,14 +44,14 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
             <Breadcrumbs withHome={false}>
               <Breadcrumbs.Part
                 isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.id)}`}
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
               >
                 {workspace.name}
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 isLast
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.id
+                  workspace.slug
                 )}/connections`}
               >
                 {t("Connections")}
@@ -99,9 +99,9 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                 }
                 href={{
                   pathname:
-                    "/workspaces/[workspaceId]/connections/[connectionId]",
+                    "/workspaces/[workspaceSlug]/connections/[connectionId]",
                   query: {
-                    workspaceId: workspace.id,
+                    workspaceSlug: workspace.slug,
                     connectionId: connection.id,
                   },
                 }}
@@ -132,7 +132,7 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const { data } = await client.query({
       query: WorkspaceConnectionsPageDocument,
-      variables: { workspaceId: ctx.params?.workspaceId },
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
     if (!data.workspace) {
