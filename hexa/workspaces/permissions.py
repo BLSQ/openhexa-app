@@ -1,6 +1,6 @@
 from hexa.user_management.models import User
 
-from .models import Workspace, WorkspaceMembershipRole
+from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
 def create_workspace(principal: User):
@@ -18,6 +18,27 @@ def update_workspace(principal: User, workspace: Workspace):
         ).exists()
         else False
     )
+
+
+def create_connection(principal: User, workspace: Workspace):
+    """Only admin users of a workspace can create connections"""
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
+
+
+def update_connection(principal: User, connection: Connection):
+    """Only admin users of a workspace can update a connection"""
+    return connection.workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
+
+
+def delete_connection(principal: User, connection: Connection):
+    """Only admin users of a workspace can delete a connection"""
+    return connection.workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
 
 
 def delete_workspace(principal: User, workspace: Workspace):
