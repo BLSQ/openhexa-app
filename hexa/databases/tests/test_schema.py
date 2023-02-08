@@ -55,9 +55,8 @@ class DatabaseTest(GraphQLTestCase):
             }
             r = self.run_query(
                 """
-                query workspaceById($id: UUID!) {
-                    workspace(id: $id) {
-                        id
+                query workspaceById($slug: String!) {
+                    workspace(slug: $slug) {
                         database {
                            tables {
                              items {
@@ -68,8 +67,9 @@ class DatabaseTest(GraphQLTestCase):
                     }
                 }
                 """,
-                {"id": str(self.WORKSPACE.id)},
+                {"slug": str(self.WORKSPACE.slug)},
             )
+
             self.assertEqual(
                 {"tables": {"items": []}}, r["data"]["workspace"]["database"]
             )
@@ -90,9 +90,8 @@ class DatabaseTest(GraphQLTestCase):
 
             r = self.run_query(
                 """
-                query workspaceById($id: UUID!) {
-                    workspace(id: $id) {
-                        id
+                query workspaceById($slug: String!) {
+                    workspace(slug: $slug) {
                         database {
                            tables {
                              items {
@@ -104,7 +103,7 @@ class DatabaseTest(GraphQLTestCase):
                     }
                 }
                 """,
-                {"id": str(self.WORKSPACE.id)},
+                {"slug": str(self.WORKSPACE.slug)},
             )
             self.assertEqual(
                 {"tables": {"items": [{"name": table_name, "count": count}]}},
@@ -121,9 +120,8 @@ class DatabaseTest(GraphQLTestCase):
             mocked_get_database_definition.return_value = {}
             r = self.run_query(
                 """
-                query workspaceById($id: UUID!,$tableName:String!) {
-                    workspace(id: $id) {
-                        id
+                query workspaceById($slug: String!,$tableName:String!) {
+                    workspace(slug: $slug) {
                         database {
                            table(name:$tableName) {
                               name
@@ -133,8 +131,9 @@ class DatabaseTest(GraphQLTestCase):
                     }
                 }
                 """,
-                {"id": str(self.WORKSPACE.id), "tableName": table_name},
+                {"slug": str(self.WORKSPACE.slug), "tableName": table_name},
             )
+
             self.assertEqual(
                 {"table": None},
                 r["data"]["workspace"]["database"],
@@ -161,29 +160,36 @@ class DatabaseTest(GraphQLTestCase):
                 mocked_get_table_data.return_value = sample
                 r = self.run_query(
                     """
-                query workspaceById($id: UUID!,$tableName:String!) {
-                    workspace(id: $id) {
-                        id
-                        database {
-                        table(name:$tableName) {
-                            name
-                            count
-                            columns {
-                              name
-                              type
+                    query workspaceById($slug:String!, $tableName:String!) {
+                        workspace(slug: $slug) {
+                            database {
+                            table(name:$tableName) {
+                                name
+                                count
+                                columns {
+                                name
+                                type
+                                }
+                                sample {
+                                column
+                                value
+                                }
                             }
-                            sample {
-                              column
-                              value
                             }
-                          }
                         }
                     }
-                }
-                """,
-                    {"id": str(self.WORKSPACE.id), "tableName": table_name},
+                   """,
+                    {"slug": str(self.WORKSPACE.slug), "tableName": table_name},
                 )
+
             self.assertEqual(
-                {"table": {**table, "sample": sample}},
+                {
+                    "table": {
+                        "name": table_name,
+                        "count": count,
+                        "columns": [schema],
+                        "sample": sample,
+                    }
+                },
                 r["data"]["workspace"]["database"],
             )
