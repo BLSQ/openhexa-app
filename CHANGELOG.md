@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/BLSQ/openhexa-frontend/compare/0.16.3...0.17.0) (2023-02-09)
+
+
+### Features
+
+* **connections:** Workspace connections ([#193](https://github.com/BLSQ/openhexa-frontend/issues/193)) ([4bf0ac0](https://github.com/BLSQ/openhexa-frontend/commit/4bf0ac061ebf6b8d08a67322234e80b173cfe753))
+
+
+### Bug Fixes
+
+* **Pipelines:** Move fields from Airflow data & collapse it by default ([#199](https://github.com/BLSQ/openhexa-frontend/issues/199)) ([2e5909a](https://github.com/BLSQ/openhexa-frontend/commit/2e5909a6acb28895e8e63ca01c1b6de9cb40c18a))
+
 ## [0.16.3](https://github.com/BLSQ/openhexa-frontend/compare/0.16.2...0.16.3) (2023-01-25)
 
 
