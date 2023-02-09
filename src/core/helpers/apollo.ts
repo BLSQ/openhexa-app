@@ -58,6 +58,7 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     },
     Workspace: {
       merge: true,
+      keyFields: ["slug"],
     },
   },
 };

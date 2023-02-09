@@ -41,7 +41,8 @@ export function getUsageSnippets(
     fields: { code: string }[];
   }
 ) {
-  const slugify = (...keys: string[]) => keys.join("_").toUpperCase();
+  const slugify = (...keys: string[]) =>
+    keys.join("_").replace("-", "_").toUpperCase();
 
   switch (connection.type) {
     case ConnectionType.Dhis2:
@@ -136,13 +137,15 @@ with io.StringIO() as csv_buffer:
 import os
 
 # Get connection fields from environment variables
-${connection.fields.map(
-  (f) => `${slugify(connection.slug, f.code)} = os.getenv("${slugify(
-    connection.slug,
-    f.code
-  )}")
+${connection.fields
+  .map(
+    (f) => `${slugify(connection.slug, f.code)} = os.getenv("${slugify(
+      connection.slug,
+      f.code
+    )}")
 `
-)}
+  )
+  .join("")}
 `,
         },
       ];
