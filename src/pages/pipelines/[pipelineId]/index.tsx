@@ -150,19 +150,6 @@ const PipelinePage = (props: Props) => {
                 defaultValue="-"
               />
               <TextProperty
-                id="description"
-                accessor={"description"}
-                label={t("Description")}
-                defaultValue="-"
-                markdown
-              />
-            </DataCard.FormSection>
-            <DataCard.FormSection
-              title={t("Airflow Data")}
-              onSave={onSave}
-              defaultOpen={false}
-            >
-              <TextProperty
                 readonly
                 id="externalId"
                 accessor="externalId"
@@ -175,6 +162,19 @@ const PipelinePage = (props: Props) => {
                 label={t("Schedule")}
                 defaultValue="-"
               />
+              <TextProperty
+                id="description"
+                accessor={"description"}
+                label={t("Description")}
+                defaultValue="-"
+                markdown
+              />
+            </DataCard.FormSection>
+            <DataCard.FormSection
+              title={t("Airflow Data")}
+              onSave={onSave}
+              defaultOpen={false}
+            >
               <UserProperty id="user" accessor="user" label={t("Report to")} />
               <TextProperty
                 readonly

@@ -1,10 +1,10 @@
-import { Disclosure } from "@headlessui/react";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
 
+import { BlockSection } from "core/components/Block";
 import useForm, { FormInstance } from "core/hooks/useForm";
 import {
   getValue,
@@ -23,10 +23,9 @@ import {
 } from "react";
 import Button from "../Button/Button";
 import DescriptionList, { DescriptionListProps } from "../DescriptionList";
-import Spinner from "../Spinner";
 import DisableClickPropagation from "../DisableClickPropagation";
+import Spinner from "../Spinner";
 import { DataCardSectionContext } from "./context";
-import { BlockSection } from "core/components/Block";
 import { Property, PropertyDefinition, PropertyFlag } from "./types";
 
 export type OnSaveFn = (
@@ -82,6 +81,8 @@ function FormSection<F extends { [key: string]: any }>(
     className,
     displayMode,
     columns,
+    collapsible,
+    defaultOpen,
     children,
     onSave,
   } = props;
@@ -157,6 +158,8 @@ function FormSection<F extends { [key: string]: any }>(
   return (
     <DataCardSectionContext.Provider value={section}>
       <BlockSection
+        collapsible={collapsible}
+        defaultOpen={defaultOpen}
         className={className}
         title={({ open }) => (
           <>
