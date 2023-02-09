@@ -28,13 +28,21 @@ def resolve_connection_permissions_delete(connection: Connection, info, **kwargs
 @workspace_permissions.field("createConnection")
 def resolve_workspace_permissions_create_connection(obj: Workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.create_connection", obj)
+    return (
+        request.user.has_perm("workspaces.create_connection", obj)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @me_permissions_object.field("createWorkspace")
 def resolve_me_permissions_create_workspace(me, info):
     request: HttpRequest = info.context["request"]
-    return request.user.has_perm("workspaces.create_workspace")
+    return (
+        request.user.has_perm("workspaces.create_workspace")
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_permissions.field("update")
