@@ -9,27 +9,28 @@ from google.protobuf import duration_pb2
 import hexa.plugins.connector_gcs.models as models
 
 
-def _build_app_gcs_credentials(*, credentials: models.Credentials):
-    json_cred = {
-        "type": "service_account",
-        "project_id": credentials.project_id,
-        "private_key_id": credentials.private_key_id,
-        "private_key": credentials.private_key,
-        "client_email": credentials.client_email,
-        "client_id": credentials.client_id,
-        "auth_uri": credentials.auth_uri,
-        "token_uri": credentials.token_uri,
-        "auth_provider_x509_cert_url": credentials.auth_provider_x509_cert_url,
-        "client_x509_cert_url": credentials.client_x509_cert_url,
-    }
-    return service_account.Credentials.from_service_account_info(json_cred)
+def _build_app_gcs_credentials():
+    return service_account.Credentials.from_service_account_info(
+        {
+            "type": "service_account",
+            "project_id": settings.GCS_SERVICE_ACCOUNT_PROJECT,
+            "private_key_id": settings.GCS_SERVICE_ACCOUNT_KEY_ID,
+            "private_key": settings.GCS_SERVICE_ACCOUNT_KEY,
+            "client_email": settings.GCS_SERVICE_ACCOUNT_EMAIL,
+            "client_id": settings.GCS_SERVICE_ACCOUNT_CLIENT_ID,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": settings.GCS_SERVICE_ACCOUNT_CERT_URL,
+        }
+    )
 
 
-def _build_app_short_lived_credentials(*, credentials: models.Credentials):
+def build_app_short_lived_credentials():
     token_lifetime = 3600
     if settings.GCS_TOKEN_LIFETIME is not None:
         token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
-    gcs_credentials = _build_app_gcs_credentials(credentials=credentials)
+    gcs_credentials = _build_app_gcs_credentials()
     iam_credentials = IAMCredentialsClient(credentials=gcs_credentials)
     token = iam_credentials.generate_access_token(
         name=f"projects/-/serviceAccounts/{gcs_credentials._service_account_email}",
@@ -40,9 +41,7 @@ def _build_app_short_lived_credentials(*, credentials: models.Credentials):
 
 
 def generate_download_url(*, bucket: models.Bucket, target_key: str):
-    google_credentials = _build_app_gcs_credentials(
-        credentials=bucket.principal_credentials
-    )
+    google_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=google_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     blob = gcs_bucket.get_blob(target_key)
@@ -50,9 +49,7 @@ def generate_download_url(*, bucket: models.Bucket, target_key: str):
 
 
 def generate_upload_url(*, bucket: models.Bucket, target_key: str):
-    google_credentials = _build_app_gcs_credentials(
-        credentials=bucket.principal_credentials
-    )
+    google_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=google_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     blob = gcs_bucket.blob(target_key)
@@ -60,9 +57,7 @@ def generate_upload_url(*, bucket: models.Bucket, target_key: str):
 
 
 def download_file(*, bucket: models.Bucket, object_key: str, target: str):
-    google_credentials = _build_app_gcs_credentials(
-        credentials=bucket.principal_credentials
-    )
+    google_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=google_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     blob = gcs_bucket.get_blob(object_key)
@@ -70,9 +65,7 @@ def download_file(*, bucket: models.Bucket, object_key: str, target: str):
 
 
 def upload_file(*, bucket: models.Bucket, object_key: str, src_path: str):
-    google_credentials = _build_app_gcs_credentials(
-        credentials=bucket.principal_credentials
-    )
+    google_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=google_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     blob = gcs_bucket.blob(object_key)
@@ -84,9 +77,7 @@ def _is_dir(blob):
 
 
 def get_object_metadata(*, bucket: models.Bucket, object_key: str):
-    google_credentials = _build_app_gcs_credentials(
-        credentials=bucket.principal_credentials
-    )
+    google_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=google_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     blob = gcs_bucket.get_blob(object_key)
@@ -100,9 +91,8 @@ def get_object_metadata(*, bucket: models.Bucket, object_key: str):
     }
 
 
-def list_objects_metadata(*, credentials: models.Credentials, bucket: models.Bucket):
-
-    gcs_credentials = _build_app_gcs_credentials(credentials=credentials)
+def list_objects_metadata(*, bucket: models.Bucket):
+    gcs_credentials = _build_app_gcs_credentials()
     client = storage.Client(credentials=gcs_credentials)
     gcs_bucket = client.get_bucket(bucket.name)
     objects = []

@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_iaso",
     "hexa.workspaces",
     "hexa.databases",
+    "hexa.files",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -393,7 +394,6 @@ TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 
 # number of second of airflow dag reloading setting
 AIRFLOW_SYNC_WAIT = 61
-
 GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
@@ -412,3 +412,13 @@ WORKSPACES_DATABASE_ROLE = os.environ.get("WORKSPACES_DATABASE_ROLE")
 WORKSPACES_DATABASE_PASSWORD = os.environ.get("WORKSPACES_DATABASE_PASSWORD")
 WORKSPACES_DATABASE_HOST = os.environ.get("WORKSPACES_DATABASE_HOST")
 WORKSPACES_DATABASE_PORT = os.environ.get("WORKSPACES_DATABASE_PORT")
+
+# Filesystem configuration
+WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
+WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
+GCS_SERVICE_ACCOUNT_PROJECT = os.environ.get("GCS_SERVICE_ACCOUNT_PROJECT", "")
+GCS_SERVICE_ACCOUNT_KEY_ID = os.environ.get("GCS_SERVICE_ACCOUNT_KEY_ID", "")
+GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
+GCS_SERVICE_ACCOUNT_EMAIL = os.environ.get("GCS_SERVICE_ACCOUNT_EMAIL", "")
+GCS_SERVICE_ACCOUNT_CLIENT_ID = os.environ.get("GCS_SERVICE_ACCOUNT_CLIENT_ID", "")
+GCS_SERVICE_ACCOUNT_CERT_URL = os.environ.get("GCS_SERVICE_ACCOUNT_CERT_URL", "")

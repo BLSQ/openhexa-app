@@ -22,7 +22,7 @@ def resolve_create_workspace(_, info, **kwargs):
     try:
         workspace = Workspace.objects.create_if_has_perm(
             principal,
-            name=create_input["name"],
+            create_input["name"],
             description=create_input.get("description"),
             countries=[
                 Country.objects.get(code=c["code"]) for c in create_input["countries"]
@@ -30,6 +30,7 @@ def resolve_create_workspace(_, info, **kwargs):
             if "countries" in create_input
             else None,
         )
+
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}

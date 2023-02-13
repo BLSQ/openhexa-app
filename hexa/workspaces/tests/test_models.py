@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
+from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Connection,
@@ -19,7 +20,9 @@ class WorkspaceTest(TestCase):
     USER_JULIA = None
 
     @classmethod
+    @backend.mock_storage
     def setUpTestData(cls):
+        backend.reset()
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
             "serena's password",
@@ -32,6 +35,7 @@ class WorkspaceTest(TestCase):
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
         )
 
+    @backend.mock_storage
     def test_create_workspace_regular_user(self):
         with self.assertRaises(PermissionDenied):
             workspace = Workspace.objects.create_if_has_perm(
@@ -40,7 +44,9 @@ class WorkspaceTest(TestCase):
                 description="This is test for creating workspace",
             )
             workspace.save()
+            self.assertTrue("hexa-test-senegal-workspace" in backend.buckets)
 
+    @backend.mock_storage
     def test_create_workspace_no_slug(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
@@ -54,6 +60,7 @@ class WorkspaceTest(TestCase):
         self.assertEqual(workspace.slug, "this-is-a-very-long-wor-mock")
         self.assertTrue(len(workspace.slug) <= 30)
 
+    @backend.mock_storage
     def test_create_workspace_with_underscore(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
@@ -65,7 +72,9 @@ class WorkspaceTest(TestCase):
                 description="Description",
             )
         self.assertEqual(workspace.slug, "worksp-ace-with-und-er-mock")
+        self.assertTrue("hexa-test-worksp-ace-with-und-er-mock" in backend.buckets)
 
+    @backend.mock_storage
     def test_create_workspace_with_random_characters(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
@@ -79,6 +88,7 @@ class WorkspaceTest(TestCase):
         self.assertEqual(workspace.slug, "1workspace-with-random-mock")
         self.assertEqual(workspace.db_name, "_1workspace_with_random_mock")
 
+    @backend.mock_storage
     def test_create_workspace_admin_user(self):
         with patch("hexa.workspaces.models.create_database"):
             workspace = Workspace.objects.create_if_has_perm(
@@ -89,6 +99,7 @@ class WorkspaceTest(TestCase):
         workspace.save()
         self.assertEqual(1, Workspace.objects.all().count())
 
+    @backend.mock_storage
     def test_get_workspace_by_id(self):
         with patch("hexa.workspaces.models.create_database"):
             workspace = Workspace.objects.create_if_has_perm(
@@ -103,6 +114,7 @@ class WorkspaceTest(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             Workspace.objects.get(pk="7bf4c750-f74b-4ed6-b7f7-b23e4cac4e2c")
 
+    @backend.mock_storage
     def test_add_member(self):
         with patch("hexa.workspaces.models.create_database"):
             workspace = Workspace.objects.create_if_has_perm(
@@ -133,6 +145,7 @@ class ConnectionTest(TestCase):
     USER_ADMIN = None
 
     @classmethod
+    @backend.mock_storage
     def setUpTestData(cls):
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com",
