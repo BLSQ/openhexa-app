@@ -31,6 +31,12 @@ x-app: &common
       - EMAIL_HOST_USER
       - EMAIL_USE_TLS
       - EMAIL_HOST_PASSWORD
+      - GCS_SERVICE_ACCOUNT_PROJECT
+      - GCS_SERVICE_ACCOUNT_KEY_ID
+      - GCS_SERVICE_ACCOUNT_KEY
+      - GCS_SERVICE_ACCOUNT_EMAIL
+      - GCS_SERVICE_ACCOUNT_CLIENT_ID
+      - GCS_SERVICE_ACCOUNT_CERT_URL
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
 

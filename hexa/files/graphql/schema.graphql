@@ -1,0 +1,51 @@
+extend type Workspace {
+  bucket: Bucket!
+}
+
+
+enum BucketObjectType {
+  FILE
+  DIRECTORY
+}
+
+type BucketObject {
+  name: String!
+  size: Int
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type BucketObjectPage {
+  nextPageToken: String
+  items: [BucketObject!]!
+}
+
+type Bucket {
+  name: String!
+  objects(prefix: String, pageToken: String): BucketObjectPage!
+  object(name: String!): BucketObject
+}
+
+input DeleteWorkspaceObjectInput {
+  workspaceSlug: String!
+  objectName: String!
+}
+
+enum DeleteWorkspaceObjectError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type DeleteWorkspaceObjectResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceObjectError!]!
+}
+
+extend type Mutation {
+  deleteWorkspaceObject(input: DeleteWorkspaceObjectInput!): DeleteWorkspaceObjectResult
+}
+
+extend type WorkspacePermissions {
+  createObject: Boolean!
+  deleteObject: Boolean!
+}

@@ -7,6 +7,7 @@ from config import settings
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import User
+from hexa.workspaces.api import create_workspace
 
 from ..models import AlreadyExists, Connection, Workspace, WorkspaceMembership
 
@@ -20,9 +21,9 @@ def resolve_create_workspace(_, info, **kwargs):
     create_input = kwargs["input"]
 
     try:
-        workspace = Workspace.objects.create_if_has_perm(
+        workspace = create_workspace(
             principal,
-            name=create_input["name"],
+            create_input["name"],
             description=create_input.get("description"),
             countries=[
                 Country.objects.get(code=c["code"]) for c in create_input["countries"]
@@ -30,6 +31,7 @@ def resolve_create_workspace(_, info, **kwargs):
             if "countries" in create_input
             else None,
         )
+
         return {"success": True, "workspace": workspace, "errors": []}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}

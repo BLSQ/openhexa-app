@@ -40,7 +40,6 @@ class WorkspaceManager(models.Manager):
     def create_if_has_perm(
         self,
         principal: User,
-        *,
         name: str,
         description: str = None,
         countries: typing.Sequence[Country] = None,
@@ -76,7 +75,7 @@ class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     slug = models.CharField(
-        max_length=30,
+        max_length=63,
         null=False,
         editable=False,
         validators=[validate_workspace_slug],
@@ -93,6 +92,11 @@ class Workspace(Base):
         on_delete=models.SET_NULL,
         related_name="workspace_created_by",
     )
+
+    bucket_name = models.TextField(
+        null=True,
+    )
+
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
     def update_if_has_perm(self, *, principal: User, **kwargs):

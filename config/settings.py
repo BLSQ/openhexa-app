@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_accessmod",
     "hexa.plugins.connector_iaso",
     "hexa.workspaces",
+    "hexa.files",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -402,3 +403,20 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
 OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
 OTP_EMAIL_SUBJECT = "OpenHexa Verification Token"
+
+
+# Filesystem configuration
+WORKSPACE_BUCKET_PREFIX = "hexa-"
+GCS_SERVICE_ACCOUNT_PROJECT = os.environ.get("GCS_SERVICE_ACCOUNT_PROJECT")
+GCS_SERVICE_ACCOUNT_KEY_ID = os.environ.get("GCS_SERVICE_ACCOUNT_KEY_ID")
+GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY")
+GCS_SERVICE_ACCOUNT_EMAIL = os.environ.get("GCS_SERVICE_ACCOUNT_EMAIL")
+GCS_SERVICE_ACCOUNT_CLIENT_ID = os.environ.get("GCS_SERVICE_ACCOUNT_CLIENT_ID")
+GCS_SERVICE_ACCOUNT_CERT_URL = os.environ.get("GCS_SERVICE_ACCOUNT_CERT_URL")
+
+GCS_SERVICE_ACCOUNT_PROJECT = "blsq-dip-test"
+GCS_SERVICE_ACCOUNT_KEY_ID = "4439c43fbb43f35df7f0e6db5aa4c45606ccf095"
+GCS_SERVICE_ACCOUNT_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCZtChuHrhyV2tl\nhg+4KdOAUaw0zT96gFYZo3j60hOHOyy+yedK4ze3jHPll3IJOrd6sQo8BhWD5P6/\nJIs9MeMQDBEwgeu/sJbmjVFCpubnF4+BSIJR6vPlWSsMyui7/zROH5vHghCEsvkB\n2q3UKRqwD1nzQplUB2VoERrNXVa6H06mBsRIp76hDWotILRkbh1gCXFt+wm6tFER\n5/oU9rxQ22N3h7eXSQbmN/cRHsj9uVG/+Hg0WLG//TqhQKZvkaAT0BfdjgHgS3bD\nLBUiBzdiZrgMAOINoBDY3uJyccnF2MNcb/gjTXVWrFg3zWFkWb5BgHvacGMeVjkC\nIfN/+xJRAgMBAAECggEAP6LY2FrMt75c3yAlkvRyNh7aYtQVc4T94MiPNp1Sa3tC\n98zE/3raXxp+A3DzzEFspJX27EoCj2R4Wi/pnBDy9vpgBYrMzcTxfQvGOIe8crIM\n/pRELGFP0EVeLwI1YFx1TeEFUJEXgLFOqgddT8ki3QDGF5Kbw6/6Op9WTu9VkGHv\n/Xer4aKxB+6icFosnsY5dnZSAPUSzSwHDQpqG3Uepogg3w8rFyGAN5m5+7Sk43zK\nm6+tCsgMqrre0kE3hn726R+qT4H3/+K0SP/gSHLaavsli/BiHYMC7zBgT78deAwG\nUsYbXoaYJBWFSD6yIXF3WUb+Z+AOLeKgK02dDgG0ZwKBgQDYjDZEIxc7ldSi1mxX\naXzq4Ar69aIRfWu50CLXTkggDE6awVYot/PpK5WIVbQHDpc+sxJTri05kiatqLCR\nyX1YovBZuQkCa/yOBQKfdepi6mtk+R+C/WeC3dZCZxYyjHNjGsFXmz4oWTKY9SUH\nBM9myIz+8ZMPb26VOkRcwdZ6rwKBgQC1tOcWx8WrvpmXN2mxBYBP3myvfdoe4wlK\nW5CyFnJbyx3GU99yAifUkzr/aUHe7kqtIrNA9gmpBA0FrdMOTnjg+4cOUqwNpBbK\nBpsUpp/+hqgxpmnZssNTzH+ISBX0dSpsdmGMQTkwmCYPuQvNUjeuLR/3eo/zicMC\nLn2D6haC/wKBgQDJWS4IEvzCOaG6O1gHux0co29yQ70LOCxXXLFYswAbVHYuLQC4\n4bpYn17tooq/WRDGiujKiBSjCEMQi96J3+i95ttHAebfqprtTrlOnexvRvrOq1li\nic6afzx/B607GR8dEj6d/8o+6BlE4gQoz48tSeLYFrUf0APpm4D/InkUHwKBgE04\n0GzyAaP3oLaPKi+9Msa+tFnwll5CBpS/TUMiHv+71q+OvYtqNxs0ZwJc7U2c38es\n05lr9rcJra8YLHYMC3sx6jfAErbJYZYCMK4aEizNdXWET7/hJPncEucMG6iEkr79\noH9GyNNKFgLglY9wvZEcRFWclMjfZyzqLRV+yoppAoGASz4612EpirWXbMZKtPq1\niuSGNVo2TU0Cxae4E3HV2Us3yVz66P6h0A/fvFpeY8J/1UI9MsS3g48FHoCYRde+\nDkI7k84KGf+hDvd1WDzlT+9BhaN2nWwPePNv2Pn/0Sw5V5gkJSKa8hb7soTuL6OB\nEvWYpsWJc3ZhprbH1UcBTa8=\n-----END PRIVATE KEY-----\n"
+GCS_SERVICE_ACCOUNT_EMAIL = "hexa-app-demo@blsq-dip-test.iam.gserviceaccount.com"
+GCS_SERVICE_ACCOUNT_CLIENT_ID = 110687597965149996237
+GCS_SERVICE_ACCOUNT_CERT_URL = "https://www.googleapis.com/robot/v1/metadata/x509/hexa-app-demo%40blsq-dip-test.iam.gserviceaccount.com"
