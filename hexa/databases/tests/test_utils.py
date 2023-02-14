@@ -99,9 +99,9 @@ class DatabaseUtilsTest(TestCase):
         with mock.patch("hexa.databases.utils.Database") as mock_db:
             mock_db.get.return_value = self.DB1
             with mock.patch(
-                "hexa.databases.utils.get_table_data"
-            ) as mocked_get_table_data:
-                mocked_get_table_data.return_value = sample
+                "hexa.databases.utils.get_table_sample_data"
+            ) as mocked_get_table_sample_data:
+                mocked_get_table_sample_data.return_value = sample
                 result = get_database_definition(self.WORKSPACE)
 
         self.assertEqual(1, result["total_items"])

@@ -1,103 +1,90 @@
-from typing import Dict, List, Tuple
-
 import psycopg2
 from psycopg2 import sql
 
-from hexa.core.graphql import result_page
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.workspaces.models import Workspace
 
 
-def format_sample_data(columns, samples):
-    res = []
-    for sample in samples:
-        res.append(
-            [{"column": columns[j], "value": sample[j]} for j in range(len(sample))]
-        )
-    return res
+def get_workspace_database(workspace: Workspace):
+    return Database.objects.get(database="hexa-explore-demo")
 
 
-def get_database_definition(
-    workspace: Workspace, limit_per_table=4, page=1, per_page=10
-):
-    tables_summary = []
-    IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+def get_database_definition(workspace: Workspace):
+    database = get_workspace_database(workspace)
 
-    database = Database.objects.get(database="hexa-explore-demo")
-    url = database.url
-    # url = workspace.database.url
-    with psycopg2.connect(url) as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+    with psycopg2.connect(database.url) as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
-                    SELECT table_name, pg_class.reltuples as row_count
+                    SELECT table_name as name, pg_class.reltuples as count
                     FROM information_schema.tables
                     JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
-                    WHERE table_schema = 'public'
+                    WHERE
+                        table_schema = 'public' AND
+                        table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
                     ORDER BY table_name;
                 """
             )
-            response: List[Tuple[str, str, int]] = cursor.fetchall()
-            tables: Dict[str, Dict] = {
-                x[0]: x for x in response if x[0] not in IGNORE_TABLES
-            }
-
-            for name, data in tables.items():
-                tables_summary.append({"name": name, "count": data["row_count"]})
-
-    return result_page(queryset=tables_summary, page=page, per_page=per_page)
+            tables = []
+            for row in cursor:
+                tables.append({"workspace": workspace, **row})
+            return tables
 
 
-def get_table_definition(workspace: Workspace, table):
-    database = Database.objects.get(database="hexa-explore-demo")
-    # url = workspace.database.url
-    url = database.url
+def get_table_definition(workspace: Workspace, table_name):
+    database = get_workspace_database(workspace)
+
     columns = []
-    with psycopg2.connect(url) as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+    with psycopg2.connect(database.url) as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
-                    SELECT column_name, data_type FROM information_schema.columns WHERE table_name = (%s);
+                    SELECT column_name AS name, data_type AS type FROM information_schema.columns WHERE table_name = (%s);
                 """,
-                (table,),
+                (table_name,),
             )
 
-            response: List[Tuple[str, str]] = cursor.fetchall()
-            if not response:
-                return None
-
-            columns: List[Dict[str, str]] = [
-                {"name": x[0], "type": x[1]} for x in response
-            ]
+            columns = cursor.fetchall()
 
             cursor.execute(
                 """
-                    SELECT pg_class.reltuples as row_count
+                    SELECT pg_class.reltuples AS row_count
                     FROM information_schema.tables
                     JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
                     WHERE table_schema = 'public'
                     AND table_name=(%s);
                 """,
-                (table,),
+                (table_name,),
             )
             res = cursor.fetchone()
             row_count = res["row_count"]
 
-    return {"name": table, "columns": columns, "count": row_count}
+    return {
+        "name": table_name,
+        "columns": columns,
+        "count": row_count,
+        "workspace": workspace,
+    }
 
 
-def get_table_data(workspace: Workspace, table_name: str, rows: int = 4):
-    database = Database.objects.get(database="hexa-explore-demo")
-    url = database.url
-    with psycopg2.connect(url) as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
+    database = get_workspace_database(workspace)
+
+    with psycopg2.connect(database.url) as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
                     table=sql.Identifier(table_name),
                 ),
-                (rows,),
+                (n_rows,),
             )
 
-            samples: List[Tuple[str, str, int]] = cursor.fetchall()
-            colnames = [desc[0] for desc in cursor.description]
-    return format_sample_data(colnames, samples)
+            samples = cursor.fetchall()
+
+    data = []
+    for sample in samples:
+        data.append(
+            [{"column": col, "value": value} for (col, value) in sample.items()]
+        )
+
+    return data

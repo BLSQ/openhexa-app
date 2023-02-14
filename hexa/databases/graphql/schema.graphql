@@ -24,7 +24,6 @@ type DatabaseTable {
   sample: [[TableValue!]!]!
 }
 
-
 type DatabaseTablePage {
   pageNumber: Int!
   totalPages: Int!

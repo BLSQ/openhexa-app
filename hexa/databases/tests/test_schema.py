@@ -47,12 +47,7 @@ class DatabaseTest(GraphQLTestCase):
         with mock.patch(
             "hexa.databases.schema.get_database_definition"
         ) as mocked_get_database_definition:
-            mocked_get_database_definition.return_value = {
-                "totalItems": 0,
-                "totalPages": 0,
-                "pageNumber": 0,
-                "items": [],
-            }
+            mocked_get_database_definition.return_value = []
             r = self.run_query(
                 """
                 query workspaceById($slug: String!) {
@@ -81,12 +76,9 @@ class DatabaseTest(GraphQLTestCase):
         with mock.patch(
             "hexa.databases.schema.get_database_definition"
         ) as mocked_get_database_definition:
-            mocked_get_database_definition.return_value = {
-                "totalItems": 1,
-                "totalPages": 1,
-                "pageNumber": 1,
-                "items": [{"name": table_name, "count": count}],
-            }
+            mocked_get_database_definition.return_value = [
+                {"workspace": self.WORKSPACE, "name": table_name, "count": count}
+            ]
 
             r = self.run_query(
                 """
@@ -146,6 +138,7 @@ class DatabaseTest(GraphQLTestCase):
         schema = {"name": "id", "type": "int"}
         sample = [[{"column": "id", "value": str(uuid.uuid4())}]]
         table = {
+            "workspace": self.WORKSPACE,
             "name": table_name,
             "count": count,
             "columns": [schema],
@@ -154,10 +147,12 @@ class DatabaseTest(GraphQLTestCase):
             "hexa.databases.schema.get_table_definition"
         ) as mocked_get_table_definition:
             mocked_get_table_definition.return_value = table
+
             with mock.patch(
-                "hexa.databases.schema.get_table_data"
-            ) as mocked_get_table_data:
-                mocked_get_table_data.return_value = sample
+                "hexa.databases.schema.get_table_sample_data"
+            ) as mocked_get_table_sample_data:
+                mocked_get_table_sample_data.return_value = sample
+
                 r = self.run_query(
                     """
                     query workspaceById($slug:String!, $tableName:String!) {
