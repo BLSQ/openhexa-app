@@ -9,6 +9,10 @@ from hexa.workspaces.models import (
     WorkspaceMembershipRole,
 )
 
+from .mocks.mockgcp import create_storage_mock
+
+storage = create_storage_mock()
+
 
 class WorkspaceTest(GraphQLTestCase):
     USER_EDITOR = None
