@@ -167,12 +167,12 @@ extend type Query {
     accessmodProjects(term: String, countries: [String!], teams: [String!], page: Int, perPage: Int, orderBy: AccessmodProjectOrder): AccessmodProjectPage!
 }
 extend type Mutation {
-    createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
-    updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult!
-    deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult!
-    createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult!
-    updateAccessmodProjectMember(input: UpdateAccessmodProjectMemberInput!): UpdateAccessmodProjectMemberResult!
-    deleteAccessmodProjectMember(input: DeleteAccessmodProjectMemberInput!): DeleteAccessmodProjectMemberResult!
+    createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult! @loginRequired
+    updateAccessmodProject(input: UpdateAccessmodProjectInput!): UpdateAccessmodProjectResult! @loginRequired
+    deleteAccessmodProject(input: DeleteAccessmodProjectInput!): DeleteAccessmodProjectResult! @loginRequired
+    createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult! @loginRequired
+    updateAccessmodProjectMember(input: UpdateAccessmodProjectMemberInput!): UpdateAccessmodProjectMemberResult! @loginRequired
+    deleteAccessmodProjectMember(input: DeleteAccessmodProjectMemberInput!): DeleteAccessmodProjectMemberResult! @loginRequired
 }
 
 # Filesets
@@ -347,13 +347,13 @@ extend type Query {
     accessmodFilesetRoles: [AccessmodFilesetRole!]!
 }
 extend type Mutation {
-    createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult!
-    updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult!
-    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult!
-    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult!
-    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult!
-    prepareAccessmodFilesetVisualizationDownload(input: PrepareAccessmodFilesetVisualizationDownloadInput!): PrepareAccessmodFilesetVisualizationDownloadResult!
-    createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
+    createAccessmodFileset(input: CreateAccessmodFilesetInput!): CreateAccessmodFilesetResult! @loginRequired
+    updateAccessmodFileset(input: UpdateAccessmodFilesetInput!): UpdateAccessmodFilesetResult! @loginRequired
+    deleteAccessmodFileset(input: DeleteAccessmodFilesetInput!): DeleteAccessmodFilesetResult! @loginRequired
+    prepareAccessmodFileUpload(input: PrepareAccessmodFileUploadInput!): PrepareAccessmodFileUploadResult! @loginRequired
+    prepareAccessmodFileDownload(input: PrepareAccessmodFileDownloadInput!): PrepareAccessmodFileDownloadResult! @loginRequired
+    prepareAccessmodFilesetVisualizationDownload(input: PrepareAccessmodFilesetVisualizationDownloadInput!): PrepareAccessmodFilesetVisualizationDownloadResult! @loginRequired
+    createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult! @loginRequired
 }
 
 # Analysis
@@ -571,12 +571,12 @@ extend type Query {
     accessmodAnalyses(projectId: String!, page: Int, perPage: Int): AccessmodAnalysisPage!
 }
 extend type Mutation {
-    createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
-    createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
-    updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult!
-    updateAccessmodZonalStatistics(input: UpdateAccessmodZonalStatisticsInput): UpdateAccessmodZonalStatisticsResult!
-    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult!
-    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult!
+    createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult! @loginRequired
+    createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult! @loginRequired
+    updateAccessmodAccessibilityAnalysis(input: UpdateAccessmodAccessibilityAnalysisInput): UpdateAccessmodAccessibilityAnalysisResult! @loginRequired
+    updateAccessmodZonalStatistics(input: UpdateAccessmodZonalStatisticsInput): UpdateAccessmodZonalStatisticsResult! @loginRequired
+    launchAccessmodAnalysis(input: LaunchAccessmodAnalysisInput): LaunchAccessmodAnalysisResult! @loginRequired
+    deleteAccessmodAnalysis(input: DeleteAccessmodAnalysisInput): DeleteAccessmodAnalysisResult! @loginRequired
 }
 
 # Access request
@@ -641,8 +641,8 @@ extend type Query {
 }
 extend type Mutation {
     requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
-    approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
-    denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
+    approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult! @loginRequired
+    denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult! @loginRequired
 }
 
 extend type MePermissions {

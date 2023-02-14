@@ -253,9 +253,9 @@ enum DeleteMembershipError {
     NOT_FOUND
 }
 extend type Mutation {
-    createMembership(input: CreateMembershipInput!): CreateMembershipResult!
-    updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
-    deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
+    createMembership(input: CreateMembershipInput!): CreateMembershipResult! @loginRequired
+    updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult! @loginRequired
+    deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult! @loginRequired
 }
 
 # Organizations

@@ -151,8 +151,8 @@ type SetDAGRunFavoriteResult {
 }
 
 extend type Mutation {
-  runDAG(input: RunDAGInput!): RunDAGResult!
-  updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
-  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
-  setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
+  runDAG(input: RunDAGInput!): RunDAGResult! @loginRequired
+  updateDAG(input: UpdateDAGInput!): UpdateDAGResult! @loginRequired
+  prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult @loginRequired
+  setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult @loginRequired
 }
