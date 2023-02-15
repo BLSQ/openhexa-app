@@ -104,14 +104,6 @@ def resolve_collection_element_url(element: CollectionElement, info):
         return None
 
 
-@collection_object.field("authorizedActions")
-def resolve_collection_authorized_actions(collection: Collection, info):
-    return collection
-
-
-# FIXME: To remove once authorizedActions are completely deprecated
-collection_authorized_actions = ObjectType("CollectionAuthorizedActions")
-
 collection_permissions = ObjectType("CollectionPermissions")
 
 
@@ -281,6 +273,5 @@ collections_bindables = [
     collection_object,
     collection_element_object,
     collections_mutations,
-    collection_authorized_actions,
     collection_permissions,
 ]

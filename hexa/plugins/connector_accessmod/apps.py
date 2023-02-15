@@ -9,11 +9,6 @@ class AccessmodConnectorConfig(ConnectorAppConfig):
 
     ANONYMOUS_URLS = ["connector_accessmod:webhook"]
 
-    # FIXME: To remove once authorizedActions are completely deprecated
-    EXTRA_GRAPHQL_ME_AUTHORIZED_ACTIONS_RESOLVER = (
-        "hexa.plugins.connector_accessmod.schema.extra_resolve_me_authorized_actions"
-    )
-
     @property
     def route_prefix(self):
         return "accessmod"

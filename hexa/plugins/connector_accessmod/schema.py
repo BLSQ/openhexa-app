@@ -102,37 +102,6 @@ def resolve_ownership_type(obj, *_):
         return "AccessmodFileset"
 
 
-# FIXME: To remove once authorizedActions are completely deprecated
-@project_object.field("authorizedActions")
-def resolve_accessmod_project_authorized_actions(project: Project, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE"
-            if principal.has_perm("connector_accessmod.update_project", project)
-            else None,
-            "DELETE"
-            if principal.has_perm("connector_accessmod.delete_project", project)
-            else None,
-            "CREATE_FILESET"
-            if principal.has_perm("connector_accessmod.create_fileset", project)
-            else None,
-            "CREATE_ANALYSIS"
-            if principal.has_perm("connector_accessmod.create_analysis", project)
-            else None,
-            "CREATE_PERMISSION"
-            if principal.has_perm(
-                "connector_accessmod.create_project_permission",
-                [project, principal, None],
-            )
-            else None,
-        ],
-    )
-
-
 @project_object.field("members")
 def resolve_accessmod_project_members(project: Project, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -306,32 +275,6 @@ def resolve_delete_accessmod_project(_, info, **kwargs):
 
 project_member_object = ObjectType("AccessmodProjectMember")
 
-
-# FIXME: To remove once authorizedActions are completely deprecated
-@project_member_object.field("permissions")
-def resolve_accessmod_project_permission_authorized_actions(
-    permission: ProjectPermission, info, **kwargs
-):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE"
-            if principal.has_perm(
-                "connector_accessmod.update_project_permission", permission
-            )
-            else None,
-            "DELETE"
-            if principal.has_perm(
-                "connector_accessmod.delete_project_permission", permission
-            )
-            else None,
-        ],
-    )
-
-
 fileset_permissions_object = ObjectType("AccessmodFilesetPermissions")
 
 
@@ -445,28 +388,6 @@ def resolve_accessmod_fileset_files(fileset: Fileset, info, **kwargs):
 @fileset_object.field("permissions")
 def resolve_accessmod_fileset_permissions(fileset: Fileset, info, **kwargs):
     return fileset
-
-
-# FIXME To remove once authorizedActions are completely deprecated
-@fileset_object.field("authorizedActions")
-def resolve_accessmod_fileset_authorized_actions(fileset: Fileset, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE"
-            if principal.has_perm("connector_accessmod.update_fileset", fileset)
-            else None,
-            "DELETE"
-            if principal.has_perm("connector_accessmod.delete_fileset", fileset)
-            else None,
-            "CREATE_FILE"
-            if principal.has_perm("connector_accessmod.create_file", fileset)
-            else None,
-        ],
-    )
 
 
 @accessmod_query.field("accessmodFileset")
@@ -817,28 +738,6 @@ def resolve_analysis_permissions(analysis: Analysis, info, **kwargs):
     return analysis
 
 
-# FIXME To remove once authorizedActions are completely deprecated
-@analysis_interface.field("authorizedActions")
-def resolve_accessmod_analysis_authorized_actions(analysis: Analysis, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    principal = request.user
-
-    return filter(
-        bool,
-        [
-            "UPDATE"
-            if principal.has_perm("connector_accessmod.update_analysis", analysis)
-            else None,
-            "DELETE"
-            if principal.has_perm("connector_accessmod.delete_analysis", analysis)
-            else None,
-            "RUN"
-            if principal.has_perm("connector_accessmod.run_analysis", analysis)
-            else None,
-        ],
-    )
-
-
 analysis_permissions = ObjectType("AccessmodAnalysisPermissions")
 
 
@@ -1123,24 +1022,6 @@ def resolve_deny_accessmod_access_request(_, info, **kwargs):
         return {"success": False, "errors": ["INVALID"]}
 
     return {"success": True, "errors": []}
-
-
-# FIXME: To remove once authorizedActions are completely deprecated
-def extra_resolve_me_authorized_actions(_, info):
-    """Extra resolver for the "authorizedActions" field on the "Me" type
-    (see base resolver in identity module)
-    """
-
-    request = info.context["request"]
-    principal = request.user
-
-    authorized_actions = []
-    if principal.has_perm("connector_accessmod.create_project"):
-        authorized_actions.append("CREATE_ACCESSMOD_PROJECT")
-    if principal.has_perm("connector_accessmod.manage_access_requests"):
-        authorized_actions.append("MANAGE_ACCESSMOD_ACCESS_REQUESTS")
-
-    return authorized_actions
 
 
 accessmod_bindables = [
