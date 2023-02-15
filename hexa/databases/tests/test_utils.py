@@ -38,6 +38,15 @@ def dictrow_from_dict(my_dict):
 class DatabaseUtilsTest(TestCase):
     USER_SABRINA = None
 
+    def setUp(self):
+        self.patch_get_workspace_database = mock.patch(
+            "hexa.databases.utils.get_workspace_database", return_value=self.DB1
+        )
+        self.mock_get_workspace_database = self.patch_get_workspace_database.start()
+
+    def tearDown(self):
+        self.patch_get_workspace_database.stop()
+
     @classmethod
     def setUpTestData(cls):
         cls.DB1 = Database.objects.create(
@@ -72,57 +81,51 @@ class DatabaseUtilsTest(TestCase):
         )
 
     @mock.patch("psycopg2.connect")
-    @mock.patch("hexa.databases.utils.Database")
-    def test_get_database_tables_empty(self, mock_connect, mock_db):
-        mock_db.get.return_value = self.DB1
+    def test_get_database_tables_empty(self, mock_connect):
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = []
 
         result = get_database_definition(self.WORKSPACE)
-        self.assertEqual(0, result["total_items"])
+        self.assertEqual(0, len(result))
 
     @mock.patch("psycopg2.connect")
     def test_get_database_tables(self, mock_connect):
         table_name = "database_tutorial"
         row_count = 2
-        table = {"table_name": table_name, "columns": [], "row_count": row_count}
-        sample = [{"name": "test", "value": "test"}]
+        table = {"name": table_name, "columns": [], "count": row_count}
 
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
-        cursor.fetchall.return_value = [dictrow_from_dict(table)]
+        cursor.fetchall.return_value = [table]
         cursor.fetchone.return_value = {"row_count": 2}
 
-        with mock.patch("hexa.databases.utils.Database") as mock_db:
-            mock_db.get.return_value = self.DB1
-            with mock.patch(
-                "hexa.databases.utils.get_table_sample_data"
-            ) as mocked_get_table_sample_data:
-                mocked_get_table_sample_data.return_value = sample
-                result = get_database_definition(self.WORKSPACE)
+        result = get_database_definition(self.WORKSPACE)
 
-        self.assertEqual(1, result["total_items"])
-        self.assertEqual(table_name, result["items"][0]["name"])
+        self.assertEqual(1, len(result))
+        self.assertEqual(table_name, result[0]["name"])
 
     @mock.patch("psycopg2.connect")
     def test_get_table_definition(self, mock_connect):
         table_name = "database_tutorial"
         row_count = 2
         schema = {"name": "id", "type": "int"}
-        table = {"name": table_name, "columns": [schema], "count": row_count}
+        table = {
+            "name": table_name,
+            "columns": [schema],
+            "count": row_count,
+            "workspace": self.WORKSPACE,
+        }
 
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
-        cursor.fetchall.return_value = [dictrow_from_dict(schema)]
+        cursor.fetchall.return_value = [schema]
         cursor.fetchone.return_value = {"row_count": row_count}
 
-        with mock.patch("hexa.databases.utils.Database") as mock_db:
-            mock_db.get.return_value = self.DB1
-            result = get_table_definition(self.WORKSPACE, table_name)
+        result = get_table_definition(self.WORKSPACE, table_name)
 
         self.assertEqual(table, result)
 
@@ -132,10 +135,8 @@ class DatabaseUtilsTest(TestCase):
         mock_connection = mock_connect.return_value
         mock_context_object = mock_connection.__enter__.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
-        cursor.fetchall.return_value = None
+        cursor.fetchall.return_value = []
 
-        with mock.patch("hexa.databases.utils.Database") as mock_db:
-            mock_db.get.return_value = self.DB1
-            result = get_table_definition(self.WORKSPACE, table_name)
+        result = get_table_definition(self.WORKSPACE, table_name)
 
         self.assertIsNone(result)

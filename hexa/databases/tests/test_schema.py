@@ -136,7 +136,7 @@ class DatabaseTest(GraphQLTestCase):
         table_name = "test_table"
         count = 2
         schema = {"name": "id", "type": "int"}
-        sample = [[{"column": "id", "value": str(uuid.uuid4())}]]
+        sample = [{"id": str(uuid.uuid4())}]
         table = {
             "workspace": self.WORKSPACE,
             "name": table_name,
@@ -162,13 +162,10 @@ class DatabaseTest(GraphQLTestCase):
                                 name
                                 count
                                 columns {
-                                name
-                                type
+                                    name
+                                    type
                                 }
-                                sample {
-                                column
-                                value
-                                }
+                                sample
                             }
                             }
                         }

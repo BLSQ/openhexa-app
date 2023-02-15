@@ -12,16 +12,12 @@ type TableColumn {
   type: String!
 }
 
-type TableValue {
-  column: String!
-  value: String
-}
 
 type DatabaseTable {
   name: String!
   count: Int
   columns: [TableColumn!]!
-  sample: [[TableValue!]!]!
+  sample: JSON!
 }
 
 type DatabaseTablePage {

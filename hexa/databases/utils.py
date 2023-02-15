@@ -26,9 +26,9 @@ def get_database_definition(workspace: Workspace):
                 """
             )
             tables = []
-            for row in cursor:
+            for row in cursor.fetchall():
                 tables.append({"workspace": workspace, **row})
-            return tables
+    return tables
 
 
 def get_table_definition(workspace: Workspace, table_name):
@@ -45,6 +45,9 @@ def get_table_definition(workspace: Workspace, table_name):
             )
 
             columns = cursor.fetchall()
+
+            if not columns:
+                return None
 
             cursor.execute(
                 """
@@ -79,12 +82,6 @@ def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4
                 (n_rows,),
             )
 
-            samples = cursor.fetchall()
-
-    data = []
-    for sample in samples:
-        data.append(
-            [{"column": col, "value": value} for (col, value) in sample.items()]
-        )
+            data = cursor.fetchall()
 
     return data
