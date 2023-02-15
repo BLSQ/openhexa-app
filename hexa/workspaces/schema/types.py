@@ -72,11 +72,6 @@ def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
     return []
 
 
-@workspace_object.field("database")
-def resolve_workspace_database(workspace: Workspace, info, **kwargs):
-    return workspace
-
-
 @workspace_object.field("members")
 def resolve_workspace_members(workspace: Workspace, info, **kwargs):
     qs = workspace.workspacemembership_set.all().order_by("-updated_at")

@@ -3,6 +3,7 @@ import pathlib
 from ariadne import ObjectType, convert_kwargs_to_snake_case, load_schema_from_path
 
 from hexa.core.graphql import result_page
+from hexa.workspaces.models import Workspace
 
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
 
@@ -12,6 +13,7 @@ databases_types_def = load_schema_from_path(
 
 database_object = ObjectType("Database")
 database_table_object = ObjectType("DatabaseTable")
+workspace_object = ObjectType("Workspace")
 
 
 @database_object.field("tables")
@@ -43,4 +45,9 @@ def resolve_database_table_sample(table, info, **kwargs):
     return get_table_sample_data(table["workspace"], table["name"])
 
 
-databases_bindables = [database_object, database_table_object]
+@workspace_object.field("database")
+def resolve_workspace_database(workspace: Workspace, info, **kwargs):
+    return workspace
+
+
+databases_bindables = [database_object, database_table_object, workspace_object]
