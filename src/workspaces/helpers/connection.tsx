@@ -280,21 +280,17 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
 
   return (
     <>
-      <Field
-        onChange={(event) => updateField(event.target.name, event.target.value)}
-        value={url.value}
-        name="instance"
-        type="url"
-        label={t("Instance")}
-        required
-      />
-      <Field
-        onChange={(event) => updateField(event.target.name, event.target.value)}
-        value={api_url.value}
-        name="api_url"
-        type="url"
-        label={t("API Url")}
-      />
+      <div className="col-span-2">
+        <Field
+          onChange={(event) =>
+            updateField(event.target.name, event.target.value)
+          }
+          value={api_url.value}
+          name="api_url"
+          type="url"
+          label={t("API Url")}
+        />
+      </div>
 
       <Field
         onChange={(event) => updateField(event.target.name, event.target.value)}
