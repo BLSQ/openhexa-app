@@ -186,8 +186,8 @@ extend type Mutation {
   createPipeline(input: CreatePipelineInput): CreatePipelineResult! @loginRequired
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @loginRequired
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
-  pipelineToken(input: PipelineTokenInput): PipelineTokenResult! @loginRequired
-  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult! @loginRequired
+  pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
+  uploadPipeline(input: UploadPipelineInput): UploadPipelineResult!
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
   addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
