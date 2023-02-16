@@ -51,6 +51,7 @@ type WorkspaceMembershipPage {
 extend type Query {
   workspace(slug: String!): Workspace @loginRequired
   workspaces(page: Int, perPage: Int): WorkspacePage! @loginRequired
+  databaseTable(id:String!): DatabaseTable @loginRequired
 }
 
 enum CreateWorkspaceError {

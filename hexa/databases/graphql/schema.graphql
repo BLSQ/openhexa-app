@@ -1,0 +1,28 @@
+type Database {
+  tables(page:Int, perPage:Int): DatabaseTablePage!
+  table(name: String!): DatabaseTable
+}
+
+extend type Workspace {
+  database: Database!
+}
+
+type TableColumn {
+  name: String!
+  type: String!
+}
+
+
+type DatabaseTable {
+  name: String!
+  count: Int
+  columns: [TableColumn!]!
+  sample: JSON!
+}
+
+type DatabaseTablePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DatabaseTable!]!
+}

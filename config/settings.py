@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_accessmod",
     "hexa.plugins.connector_iaso",
     "hexa.workspaces",
+    "hexa.databases",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
