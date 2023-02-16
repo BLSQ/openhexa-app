@@ -5,5 +5,5 @@ from . import views
 app_name = "workspaces"
 
 urlpatterns = [
-    path("credentials/<str:workspace_slug>", views.credentials, name="credentials"),
+    path("<str:workspace_slug>/credentials/", views.credentials, name="credentials"),
 ]

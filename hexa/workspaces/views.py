@@ -10,7 +10,10 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     In addition to basic user information, every connector plugin can provide its own set of credentials (environment
     variables for S3 for example)."""
 
+    # TODO: make sure that the user has access to the workspace
+    # TODO: and provide the proper credentials
+
     return JsonResponse(
-        {"WORKSPACE_FOO": f"WORKSPACE_BAR_{workspace_slug}"},
+        {"env": {"WORKSPACE_FOO": f"WORKSPACE_BAR_{workspace_slug}"}},
         status=200,
     )
