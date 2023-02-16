@@ -1,3 +1,22 @@
+type NotebookServer {
+    name: String!
+    url: String!
+}
+input LaunchNotebookServerInput {
+    workspaceSlug: String!
+}
+enum LaunchNotebookServerError {
+    UNKNOWN_ERROR
+    PERMISSION_DENIED
+}
+type LaunchNotebookServerResult {
+    success: Boolean!
+    server: NotebookServer
+    errors: [LaunchNotebookServerError!]!
+}
 extend type Query {
-  notebooksUrl: URL! @loginRequired
+    notebooksUrl: URL! @loginRequired
+}
+extend type Mutation {
+    launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult! @loginRequired
 }

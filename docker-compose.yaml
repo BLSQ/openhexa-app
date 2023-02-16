@@ -35,6 +35,8 @@ x-app: &common
       - WORKSPACE_DATABASE_PASSWORD
       - WORKSPACE_DATABASE_HOST
       - WORKSPACE_DATABASE_PORT
+      - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
+      - NOTEBOOKS_APP_HUB_AUTH_TOKEN
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
 
