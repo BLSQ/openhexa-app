@@ -15,6 +15,7 @@ from slugify import slugify
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
+from hexa.databases.api import create_database
 from hexa.user_management.models import User
 
 
@@ -55,6 +56,7 @@ class WorkspaceManager(models.Manager):
         if description is None:
             create_kwargs["description"] = "This is a workspace for {}".format(name)
 
+        create_database(create_kwargs["slug"])
         workspace = self.create(**create_kwargs)
         WorkspaceMembership.objects.create(
             user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN

@@ -6,7 +6,7 @@ from hexa.workspaces.models import Workspace
 
 
 def get_workspace_database(workspace: Workspace):
-    return Database.objects.get(database="hexa-explore-demo")
+    return Database.objects.get(database=workspace.slug)
 
 
 def get_database_definition(workspace: Workspace):
