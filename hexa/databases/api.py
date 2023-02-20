@@ -13,7 +13,21 @@ def get_db_server_credentials():
     }
 
 
-def create_database(name, pwd):
+def check_db_name(name):
+    if not name:
+        raise ValueError("rmpty value for database name")
+
+    if len(name) > 31:
+        raise ValueError(
+            "bad format for database name (name length must be inferior to 31)"
+        )
+
+    for c in name.lower():
+        if c not in "abcdefghijklmnopqrstuvwxyz0123456789-_":
+            raise ValueError("bad format for database name")
+
+
+def create_database(db_name):
     """
     Create a database and role associated to it
     Args :
@@ -28,11 +42,7 @@ def create_database(name, pwd):
     port = credentials["port"]
 
     url = f"postgresql://{role}:{password}@{host}:{port}"
-
-    db_name = ""
-    for c in name.lower().replace(" ", "-")[:31]:
-        if c in "abcdefghijklmnopqrstuvwxyz0123456789-_":
-            db_name += c
+    check_db_name(name=db_name)
 
     try:
         conn = psycopg2.connect(url)
@@ -44,8 +54,8 @@ def create_database(name, pwd):
                 )
             )
             cursor.execute(
-                sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
-                    role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
+                sql.SQL("CREATE ROLE {role_name} LOGIN;").format(
+                    role_name=sql.Identifier(db_name)
                 )
             )
             cursor.execute(
@@ -55,16 +65,6 @@ def create_database(name, pwd):
                     db_name=sql.Identifier(db_name),
                     role=sql.Identifier(db_name),
                 )
-            )
-            cursor.execute(
-                sql.SQL("GRANT USAGE ON SCHEMA public TO {role_name};").format(
-                    role_name=sql.Identifier(db_name)
-                )
-            )
-            cursor.execute(
-                sql.SQL(
-                    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role_name};"
-                ).format(role_name=sql.Identifier(db_name))
             )
     finally:
         if conn:

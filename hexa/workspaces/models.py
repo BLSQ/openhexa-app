@@ -56,10 +56,7 @@ class WorkspaceManager(models.Manager):
         if description is None:
             create_kwargs["description"] = "This is a workspace for {}".format(name)
 
-        password = User.objects.make_random_password()
-        create_kwargs["db_password"] = password
-
-        create_database(create_kwargs["slug"], password)
+        create_database(create_kwargs["slug"])
         workspace = self.create(**create_kwargs)
         WorkspaceMembership.objects.create(
             user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
@@ -98,7 +95,6 @@ class Workspace(Base):
         on_delete=models.SET_NULL,
         related_name="workspace_created_by",
     )
-    db_password = EncryptedTextField(null=True)
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
     def update_if_has_perm(self, *, principal: User, **kwargs):

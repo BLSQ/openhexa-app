@@ -8,11 +8,12 @@ from .api import get_db_server_credentials
 
 def get_workspace_database_url(workspace: Workspace):
     credentials = get_db_server_credentials()
-    password = workspace.db_password
+    role = credentials["role"]
+    password = credentials["password"]
     host = credentials["host"]
     port = credentials["port"]
 
-    return f"postgresql://{workspace.slug}:{password}@{host}:{port}/{workspace.slug}"
+    return f"postgresql://{role}:{password}@{host}:{port}/{workspace.slug}"
 
 
 def get_database_definition(workspace: Workspace):
