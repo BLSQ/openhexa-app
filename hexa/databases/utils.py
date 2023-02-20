@@ -1,28 +1,33 @@
 import psycopg2
 from psycopg2 import sql
 
-from hexa.plugins.connector_postgresql.models import Database
 from hexa.workspaces.models import Workspace
 
+from .api import get_db_server_credentials
 
-def get_workspace_database(workspace: Workspace):
-    return Database.objects.get(database=workspace.slug)
+
+def get_workspace_database_url(workspace: Workspace):
+    credentials = get_db_server_credentials()
+    password = workspace.db_password
+    host = credentials["host"]
+    port = credentials["port"]
+
+    return f"postgresql://{workspace.slug}:{password}@{host}:{port}/{workspace.slug}"
 
 
 def get_database_definition(workspace: Workspace):
-    database = get_workspace_database(workspace)
-
-    with psycopg2.connect(database.url) as conn:
+    url = get_workspace_database_url(workspace)
+    with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
-                    SELECT table_name as name, pg_class.reltuples as count
-                    FROM information_schema.tables
-                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
-                    WHERE
-                        table_schema = 'public' AND
-                        table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
-                    ORDER BY table_name;
+                        SELECT table_name as name, pg_class.reltuples as count
+                        FROM information_schema.tables
+                        JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                        WHERE
+                            table_schema = 'public' AND
+                            table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
+                        ORDER BY table_name;
                 """
             )
             tables = []
@@ -32,10 +37,9 @@ def get_database_definition(workspace: Workspace):
 
 
 def get_table_definition(workspace: Workspace, table_name):
-    database = get_workspace_database(workspace)
-
+    url = get_workspace_database_url(workspace)
     columns = []
-    with psycopg2.connect(database.url) as conn:
+    with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -71,9 +75,8 @@ def get_table_definition(workspace: Workspace, table_name):
 
 
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
-    database = get_workspace_database(workspace)
-
-    with psycopg2.connect(database.url) as conn:
+    url = get_workspace_database_url(workspace)
+    with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
