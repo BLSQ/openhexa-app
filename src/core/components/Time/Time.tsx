@@ -1,8 +1,7 @@
 import clsx from "clsx";
-import useInterval from "core/hooks/useInterval";
 import useRelativeTime from "core/hooks/useRelativeTime";
 import { DateTime, DateTimeOptions } from "luxon";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 
 type Props = {
   datetime: string;
@@ -31,8 +30,7 @@ const Time = (props: Props) => {
 
   return (
     <time
-      /* Relative time can quickly change between the server rendering and the client rendering. Let's ignore this while hydrating the dom */
-      suppressHydrationWarning={props.relative}
+      suppressHydrationWarning={true}
       title={datetime.toISO()}
       dateTime={datetime.toISO()}
       className={clsx("whitespace-nowrap", props.className)}

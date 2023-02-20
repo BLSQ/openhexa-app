@@ -117,7 +117,10 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
             )}
             <div title={dagRun.executionDate} suppressHydrationWarning={true}>
               {getPipelineRunLabel(dagRun, dag)}
-              <div className="mt-1.5 text-sm font-normal text-gray-500">
+              <div
+                className="mt-1.5 text-sm font-normal text-gray-500"
+                suppressHydrationWarning={true}
+              >
                 {dagRun.status === DagRunStatus.Success &&
                   t("succeeded {{relativeTime}} in {{durationStr}}", {
                     durationStr,
