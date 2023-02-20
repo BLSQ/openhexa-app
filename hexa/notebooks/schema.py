@@ -20,6 +20,9 @@ def resolve_notebooks_url(_, info, **kwargs):
 
 @notebooks_mutations.field("launchNotebookServer")
 def resolve_launch_notebook_server(_, info, input, **kwargs):
+    """Note: this is only used for workspaces for now. Default servers (outside workspaces) are spawned by
+    Jupyterhub."""
+
     request: HttpRequest = info.context["request"]
 
     if not request.user.has_perm("notebooks.create_server"):  # TODO: check workspace

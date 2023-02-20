@@ -2,6 +2,7 @@ import secrets
 import typing
 import uuid
 
+import stringcase
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
@@ -295,6 +296,10 @@ class Connection(models.Model):
 
         return self.delete()
 
+    @property
+    def env_variables(self):
+        return {f.env_key: f.value for f in self.fields.all()}
+
 
 class ConnectionField(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -312,6 +317,10 @@ class ConnectionField(models.Model):
     )
     value = EncryptedTextField(blank=True)
     secret = models.BooleanField(default=False)
+
+    @property
+    def env_key(self):
+        return f"{stringcase.constcase(self.connection.slug)}_{self.code}"
 
     class Meta:
         unique_together = [["connection", "code"]]

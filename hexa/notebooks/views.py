@@ -1,5 +1,4 @@
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
@@ -7,7 +6,6 @@ from hexa.notebooks.credentials import NotebooksCredentials
 
 
 @require_POST
-@csrf_exempt  # TODO: we should remove this
 def credentials(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the notebooks component to get credentials for Jupyterhub.
     In addition to basic user information, every connector plugin can provide its own set of credentials (environment
