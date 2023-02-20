@@ -56,6 +56,16 @@ def create_database(name, pwd):
                     role=sql.Identifier(db_name),
                 )
             )
+            cursor.execute(
+                sql.SQL("GRANT USAGE ON SCHEMA public TO {role_name};").format(
+                    role_name=sql.Identifier(db_name)
+                )
+            )
+            cursor.execute(
+                sql.SQL(
+                    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role_name};"
+                ).format(role_name=sql.Identifier(db_name))
+            )
     finally:
         if conn:
             conn.close()
