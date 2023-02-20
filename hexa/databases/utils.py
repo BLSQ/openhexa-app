@@ -6,18 +6,18 @@ from hexa.workspaces.models import Workspace
 from .api import get_db_server_credentials
 
 
-def get_workspace_database_url(workspace: Workspace):
+def get_database_url(database: str):
     credentials = get_db_server_credentials()
     role = credentials["role"]
     password = credentials["password"]
     host = credentials["host"]
     port = credentials["port"]
 
-    return f"postgresql://{role}:{password}@{host}:{port}/{workspace.slug}"
+    return f"postgresql://{role}:{password}@{host}:{port}/{database}"
 
 
 def get_database_definition(workspace: Workspace):
-    url = get_workspace_database_url(workspace)
+    url = get_database_url(workspace.db_name)
     with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
@@ -37,8 +37,8 @@ def get_database_definition(workspace: Workspace):
     return tables
 
 
-def get_table_definition(workspace: Workspace, table_name):
-    url = get_workspace_database_url(workspace)
+def get_table_definition(workspace: Workspace, table_name: str):
+    url = get_database_url(workspace.db_name)
     columns = []
     with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
@@ -76,7 +76,7 @@ def get_table_definition(workspace: Workspace, table_name):
 
 
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
-    url = get_workspace_database_url(workspace)
+    url = get_database_url(workspace.db_name)
     with psycopg2.connect(url) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(

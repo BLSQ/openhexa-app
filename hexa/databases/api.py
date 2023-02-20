@@ -1,5 +1,8 @@
+import re
+
 import psycopg2
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -13,21 +16,25 @@ def get_db_server_credentials():
     }
 
 
-def check_db_name(name):
-    if not name:
-        raise ValueError("rmpty value for database name")
+def format_db_name(requestedName: str):
+    dbName = ""
+    for c in requestedName.lower().replace(" ", "_")[:31]:
+        if c in "abcdefghijklmnopqrstuvwxyz0123456789_":
+            dbName += c
+    return dbName
 
-    if len(name) > 31:
-        raise ValueError(
-            "bad format for database name (name length must be inferior to 31)"
+
+def validate_db_name(name: str):
+    if not name:
+        raise ValidationError("Empty value for name")
+
+    if (re.match(r"^[_a-z][a-z0-9_]{,30}$", name)) is None:
+        raise ValidationError(
+            "Name must contain only lowercase alphanumeric characters, start with a letter or a underscore and with a maximum length of 31 characters"
         )
 
-    for c in name.lower():
-        if c not in "abcdefghijklmnopqrstuvwxyz0123456789-_":
-            raise ValueError("bad format for database name")
 
-
-def create_database(db_name):
+def create_database(db_name: str):
     """
     Create a database and role associated to it
     Args :
@@ -42,7 +49,7 @@ def create_database(db_name):
     port = credentials["port"]
 
     url = f"postgresql://{role}:{password}@{host}:{port}"
-    check_db_name(name=db_name)
+    validate_db_name(db_name)
 
     try:
         conn = psycopg2.connect(url)
@@ -53,6 +60,8 @@ def create_database(db_name):
                     db_name=sql.Identifier(db_name),
                 )
             )
+            cursor.execute("CREATE EXTENSION postgis;")
+            cursor.execute("CREATE EXTENSION postgis_topology;")
             cursor.execute(
                 sql.SQL("CREATE ROLE {role_name} LOGIN;").format(
                     role_name=sql.Identifier(db_name)
