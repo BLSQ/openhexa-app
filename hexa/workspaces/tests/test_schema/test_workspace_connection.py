@@ -74,7 +74,7 @@ class ConnectionTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE_2.id),
+                    "workspaceSlug": str(self.WORKSPACE_2.slug),
                     "name": "Connection",
                     "type": ConnectionType.CUSTOM,
                 }
@@ -105,7 +105,7 @@ class ConnectionTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": str(self.WORKSPACE.slug),
                     "name": "Connection",
                     "type": ConnectionType.CUSTOM,
                 }
@@ -143,7 +143,7 @@ class ConnectionTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": str(self.WORKSPACE.slug),
                     "name": "Connection",
                     "slug": "con",
                     "type": ConnectionType.CUSTOM,
@@ -172,14 +172,14 @@ class ConnectionTest(GraphQLTestCase):
                     "type": "CUSTOM",
                     "fields": [
                         {
-                            "code": "password",
-                            "secret": True,
-                            "value": None,
-                        },
-                        {
                             "code": "url",
                             "secret": False,
                             "value": "http://localhost",
+                        },
+                        {
+                            "code": "password",
+                            "secret": True,
+                            "value": None,
                         },
                     ],
                 },
@@ -266,7 +266,7 @@ class ConnectionTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": str(self.WORKSPACE.slug),
                     "name": "Connection",
                     "slug": "con?'-",
                     "type": ConnectionType.CUSTOM,
@@ -295,7 +295,7 @@ class ConnectionTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "workspaceId": str(self.WORKSPACE.id),
+                    "workspaceSlug": str(self.WORKSPACE.slug),
                     "name": "Connection",
                     "type": ConnectionType.CUSTOM,
                 }
