@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/BLSQ/openhexa-frontend/compare/0.17.0...0.17.1) (2023-02-20)
+
+
+### Bug Fixes
+
+* **Hydration:** ignore hydration errors for datetimes ([acb21ba](https://github.com/BLSQ/openhexa-frontend/commit/acb21bac19220b8055b48f30521732567a582575))
+
 ## [0.17.0](https://github.com/BLSQ/openhexa-frontend/compare/0.16.3...0.17.0) (2023-02-09)
 
 
