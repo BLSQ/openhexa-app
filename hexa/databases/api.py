@@ -16,12 +16,12 @@ def get_db_server_credentials():
     }
 
 
-def format_db_name(requestedName: str):
-    dbName = ""
-    for c in requestedName.lower().replace(" ", "_")[:31]:
+def format_db_name(requested_name: str):
+    db_name = ""
+    for c in requested_name.lower().replace(" ", "_")[:31]:
         if c in "abcdefghijklmnopqrstuvwxyz0123456789_":
-            dbName += c
-    return dbName
+            db_name += c
+    return db_name
 
 
 def validate_db_name(name: str):
@@ -60,8 +60,6 @@ def create_database(db_name: str):
                     db_name=sql.Identifier(db_name),
                 )
             )
-            cursor.execute("CREATE EXTENSION postgis;")
-            cursor.execute("CREATE EXTENSION postgis_topology;")
             cursor.execute(
                 sql.SQL("CREATE ROLE {role_name} LOGIN;").format(
                     role_name=sql.Identifier(db_name)
@@ -75,6 +73,20 @@ def create_database(db_name: str):
                     role=sql.Identifier(db_name),
                 )
             )
+
+    finally:
+        if conn:
+            conn.close()
+
+    # load extensions into the new db
+    try:
+
+        conn = psycopg2.connect(f"{url}/{db_name}")
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor() as cursor:
+            cursor.execute("create extension postgis;")
+            cursor.execute("create extension postgis_topology;")
+
     finally:
         if conn:
             conn.close()
