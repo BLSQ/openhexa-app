@@ -18,7 +18,8 @@ def get_database_url(database: str):
 
 def get_database_definition(workspace: Workspace):
     url = get_database_url(workspace.db_name)
-    with psycopg2.connect(url) as conn:
+    try:
+        conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -34,13 +35,17 @@ def get_database_definition(workspace: Workspace):
             tables = []
             for row in cursor.fetchall():
                 tables.append({"workspace": workspace, **row})
-    return tables
+        return tables
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_table_definition(workspace: Workspace, table_name: str):
     url = get_database_url(workspace.db_name)
     columns = []
-    with psycopg2.connect(url) as conn:
+    try:
+        conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -66,18 +71,21 @@ def get_table_definition(workspace: Workspace, table_name: str):
             )
             res = cursor.fetchone()
             row_count = res["row_count"]
-
-    return {
-        "name": table_name,
-        "columns": columns,
-        "count": row_count,
-        "workspace": workspace,
-    }
+        return {
+            "name": table_name,
+            "columns": columns,
+            "count": row_count,
+            "workspace": workspace,
+        }
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
     url = get_database_url(workspace.db_name)
-    with psycopg2.connect(url) as conn:
+    try:
+        conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
@@ -87,5 +95,7 @@ def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4
             )
 
             data = cursor.fetchall()
-
-    return data
+        return data
+    finally:
+        if conn:
+            conn.close()

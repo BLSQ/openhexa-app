@@ -16,12 +16,17 @@ def get_db_server_credentials():
     }
 
 
-def format_db_name(requested_name: str):
+def format_db_name(name: str):
     db_name = ""
-    for c in requested_name.lower().replace(" ", "_")[:31]:
-        if c in "abcdefghijklmnopqrstuvwxyz0123456789_":
-            db_name += c
-    return db_name
+    for char in name.lower().replace(" ", "_"):
+        if char in "abcdefghijklmnopqrstuvwxyz0123456789_":
+            db_name += char
+
+    # Ensure db_name do not start with a number
+    if db_name[0] in "0123456789":
+        db_name.insert(0, "_")
+
+    return db_name[:31]
 
 
 def validate_db_name(name: str):
@@ -34,7 +39,7 @@ def validate_db_name(name: str):
         )
 
 
-def create_database(db_name: str):
+def create_database(db_name: str, pwd: str):
     """
     Create a database and role associated to it
     Args :
@@ -61,8 +66,8 @@ def create_database(db_name: str):
                 )
             )
             cursor.execute(
-                sql.SQL("CREATE ROLE {role_name} LOGIN;").format(
-                    role_name=sql.Identifier(db_name)
+                sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
+                    role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
                 )
             )
             cursor.execute(
@@ -80,7 +85,6 @@ def create_database(db_name: str):
 
     # load extensions into the new db
     try:
-
         conn = psycopg2.connect(f"{url}/{db_name}")
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
