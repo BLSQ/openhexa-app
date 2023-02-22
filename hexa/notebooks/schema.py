@@ -35,9 +35,7 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
     except Workspace.DoesNotExist:
         return {"success": False, "server": None, "errors": ["NOT_FOUND"]}
 
-    if not request.user.has_perm(
-        "workspaces.launch_notebooks", workspace
-    ):  # TODO: check workspace
+    if not request.user.has_perm("workspaces.launch_notebooks", workspace):
         return {"success": False, "server": None, "errors": ["PERMISSION_DENIED"]}
 
     headers = {
@@ -53,7 +51,7 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
             f"{settings.NOTEBOOKS_API_URL}/users/{request.user.email}", headers=headers
         )
         if user_response.status_code != 201:
-            return {"success": False, "server": None, "errors": ["UNKNOWN_ERROR"]}
+            return {"success": False, "errors": ["UNKNOWN_ERROR"]}
 
     if workspace_slug not in user_response.json()["servers"]:
         server_response = requests.post(
@@ -65,15 +63,15 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
             },
         )
         if server_response.status_code != 201:
-            return {"success": False, "server": None, "errors": ["UNKNOWN_ERROR"]}
+            return {"success": False, "errors": ["UNKNOWN_ERROR"]}
 
     return {
         "success": True,
         "server": {
             "name": workspace_slug,
             "url": f"{settings.NOTEBOOKS_URL}/user/{request.user.email}/{workspace_slug}/",
-            "errors": [],
         },
+        "errors": [],
     }
 
 

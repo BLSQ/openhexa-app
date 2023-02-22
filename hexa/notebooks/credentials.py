@@ -12,7 +12,7 @@ class NotebooksCredentials(HexaCredentials):
         self.files: dict[str, bytes] = {}
 
     @property
-    def authenticated(self):  # TODO: remove
+    def authenticated(self):  # TODO: remove once the "credentials" views is removed
         return self.user.is_authenticated
 
     @property

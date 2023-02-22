@@ -7,7 +7,7 @@ from hexa.notebooks.credentials import NotebooksCredentials
 
 @require_POST
 def authenticate(request: HttpRequest) -> HttpResponse:
-    """This API endpoint is called by the notebooks component to get authenticate the current user using Django
+    """This API endpoint is called by the notebooks component to authenticate the current user using Django
     session authentication."""
 
     if not request.user.is_authenticated:
