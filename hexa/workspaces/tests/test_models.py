@@ -65,6 +65,19 @@ class WorkspaceTest(TestCase):
             )
         self.assertEqual(workspace.slug, "worksp-ace-with-und-er-mock")
 
+    def test_create_workspace_with_random_characters(self):
+        with patch("secrets.token_hex", lambda _: "mock"), patch(
+            "hexa.workspaces.models.create_database"
+        ):
+
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="1workspace_with#_random$_char*",
+                description="Description",
+            )
+        self.assertEqual(workspace.slug, "1workspace-with-random-mock")
+        self.assertEqual(workspace.db_name, "_workspacewithrandommock")
+
     def test_create_workspace_admin_user(self):
         with patch("hexa.workspaces.models.create_database"):
             workspace = Workspace.objects.create_if_has_perm(

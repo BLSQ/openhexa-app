@@ -24,7 +24,7 @@ def format_db_name(name: str):
 
     # Ensure db_name do not start with a number
     if db_name[0] in "0123456789":
-        db_name.insert(0, "_")
+        db_name = db_name.replace(db_name[0], "_", 1)
 
     return db_name[:31]
 
