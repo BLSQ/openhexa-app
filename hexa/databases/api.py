@@ -24,7 +24,7 @@ def format_db_name(name: str):
 
     # Ensure db_name do not start with a number
     if db_name[0] in "0123456789":
-        db_name = db_name.replace(db_name[0], "_", 1)
+        db_name = "_" + db_name
 
     return db_name[:31]
 
@@ -56,6 +56,7 @@ def create_database(db_name: str, pwd: str):
     url = f"postgresql://{role}:{password}@{host}:{port}"
     validate_db_name(db_name)
 
+    conn = None
     try:
         conn = psycopg2.connect(url)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
