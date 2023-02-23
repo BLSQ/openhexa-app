@@ -18,6 +18,7 @@ def get_database_url(database: str):
 
 def get_database_definition(workspace: Workspace):
     url = get_database_url(workspace.db_name)
+    conn = None
     try:
         conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
@@ -44,6 +45,7 @@ def get_database_definition(workspace: Workspace):
 def get_table_definition(workspace: Workspace, table_name: str):
     url = get_database_url(workspace.db_name)
     columns = []
+    conn = None
     try:
         conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
@@ -84,6 +86,7 @@ def get_table_definition(workspace: Workspace, table_name: str):
 
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
     url = get_database_url(workspace.db_name)
+    conn = None
     try:
         conn = psycopg2.connect(url)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:

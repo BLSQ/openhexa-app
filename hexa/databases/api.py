@@ -18,7 +18,7 @@ def get_db_server_credentials():
 
 def format_db_name(name: str):
     db_name = ""
-    for char in name.lower().replace(" ", "_"):
+    for char in name.lower().replace("-", "_"):
         if char in "abcdefghijklmnopqrstuvwxyz0123456789_":
             db_name += char
 

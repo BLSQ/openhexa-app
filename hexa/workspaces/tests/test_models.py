@@ -76,7 +76,7 @@ class WorkspaceTest(TestCase):
                 description="Description",
             )
         self.assertEqual(workspace.slug, "1workspace-with-random-mock")
-        self.assertEqual(workspace.db_name, "_1workspacewithrandommock")
+        self.assertEqual(workspace.db_name, "_1workspace_with_random_mock")
 
     def test_create_workspace_admin_user(self):
         with patch("hexa.workspaces.models.create_database"):
