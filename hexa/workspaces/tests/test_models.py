@@ -41,7 +41,9 @@ class WorkspaceTest(TestCase):
             workspace.save()
 
     def test_create_workspace_no_slug(self):
-        with patch("secrets.token_hex", lambda _: "mock"):
+        with patch("secrets.token_hex", lambda _: "mock"), patch(
+            "hexa.workspaces.models.create_database"
+        ):
 
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -52,7 +54,9 @@ class WorkspaceTest(TestCase):
         self.assertTrue(len(workspace.slug) <= 30)
 
     def test_create_workspace_with_underscore(self):
-        with patch("secrets.token_hex", lambda _: "mock"):
+        with patch("secrets.token_hex", lambda _: "mock"), patch(
+            "hexa.workspaces.models.create_database"
+        ):
 
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -61,21 +65,36 @@ class WorkspaceTest(TestCase):
             )
         self.assertEqual(workspace.slug, "worksp-ace-with-und-er-mock")
 
+    def test_create_workspace_with_random_characters(self):
+        with patch("secrets.token_hex", lambda _: "mock"), patch(
+            "hexa.workspaces.models.create_database"
+        ):
+
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="1workspace_with#_random$_char*",
+                description="Description",
+            )
+        self.assertEqual(workspace.slug, "1workspace-with-random-mock")
+        self.assertEqual(workspace.db_name, "_1workspace_with_random_mock")
+
     def test_create_workspace_admin_user(self):
-        workspace = Workspace.objects.create_if_has_perm(
-            self.USER_JULIA,
-            name="Senegal Workspace",
-            description="This is test for creating workspace",
-        )
+        with patch("hexa.workspaces.models.create_database"):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Senegal Workspace",
+                description="This is test for creating workspace",
+            )
         workspace.save()
         self.assertEqual(1, Workspace.objects.all().count())
 
     def test_get_workspace_by_id(self):
-        workspace = Workspace.objects.create_if_has_perm(
-            self.USER_JULIA,
-            name="Senegal Workspace",
-            description="This is test for creating workspace",
-        )
+        with patch("hexa.workspaces.models.create_database"):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Senegal Workspace",
+                description="This is test for creating workspace",
+            )
         workspace.save()
         self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
 
@@ -84,11 +103,12 @@ class WorkspaceTest(TestCase):
             Workspace.objects.get(pk="7bf4c750-f74b-4ed6-b7f7-b23e4cac4e2c")
 
     def test_add_member(self):
-        workspace = Workspace.objects.create_if_has_perm(
-            self.USER_JULIA,
-            name="Senegal Workspace",
-            description="This is test for creating workspace",
-        )
+        with patch("hexa.workspaces.models.create_database"):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Senegal Workspace",
+                description="This is test for creating workspace",
+            )
         workspace.save()
         self.assertTrue(
             WorkspaceMembership.objects.filter(
@@ -114,10 +134,11 @@ class ConnectionTest(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+                cls.USER_ADMIN, name="Workspace's title"
+            )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN, name="Workspace's title"
-        )
         WorkspaceMembership.objects.create(
             user=cls.USER_SERENA,
             workspace=cls.WORKSPACE,
