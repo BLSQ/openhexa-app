@@ -10,12 +10,13 @@ export type WorskspaceMembersQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', members: { __typename?: 'WorkspaceMembershipPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, createdAt: any, user: { __typename?: 'User', id: string, displayName: string, email: string } }> } } | null };
+export type WorskspaceMembersQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceMembership', id: string, role: Types.WorkspaceMembershipRole, createdAt: any, user: { __typename?: 'User', id: string, displayName: string, email: string } }> } } | null };
 
 
 export const WorskspaceMembersDocument = gql`
     query WorskspaceMembers($slug: String!, $page: Int, $perPage: Int) {
   workspace(slug: $slug) {
+    slug
     members(page: $page, perPage: $perPage) {
       totalItems
       items {

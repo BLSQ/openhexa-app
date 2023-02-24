@@ -13,7 +13,6 @@ type AccessmodAccessibilityAnalysis implements AccessmodAnalysis & AccessmodOwne
   name: String!
   owner: AccessmodOwner
   author: User!
-  authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodAnalysisPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -70,16 +69,9 @@ interface AccessmodAnalysis {
   status: AccessmodAnalysisStatus!
   name: String!
   author: User!
-  authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodAnalysisPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum AccessmodAnalysisAuthorizedActions {
-  UPDATE
-  DELETE
-  RUN
 }
 
 type AccessmodAnalysisPage {
@@ -130,16 +122,9 @@ type AccessmodFileset implements AccessmodOwnership {
   owner: AccessmodOwner
   files: [AccessmodFile!]!
   metadata: AccessmodFilesetMetadata!
-  authorizedActions: [AccessmodFilesetAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodFilesetPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum AccessmodFilesetAuthorizedActions {
-  UPDATE
-  DELETE
-  CREATE_FILE
 }
 
 enum AccessmodFilesetFormat {
@@ -210,7 +195,6 @@ type AccessmodGeographicCoverageAnalysis implements AccessmodAnalysis & Accessmo
   name: String!
   owner: AccessmodOwner
   author: User!
-  authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodAnalysisPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -242,19 +226,10 @@ type AccessmodProject implements AccessmodOwnership {
   owner: AccessmodOwner
   extent: [[Float!]!]
   dem: AccessmodFileset
-  authorizedActions: [AccessmodProjectAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodProjectPermissions!
   members: [AccessmodProjectMember!]!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum AccessmodProjectAuthorizedActions {
-  UPDATE
-  DELETE
-  CREATE_FILESET
-  CREATE_ANALYSIS
-  CREATE_PERMISSION
 }
 
 type AccessmodProjectMember {
@@ -263,7 +238,6 @@ type AccessmodProjectMember {
   team: Team
   project: AccessmodProject!
   mode: PermissionMode!
-  authorizedActions: [AccessmodProjectPermissionAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodProjectMemberPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -288,11 +262,6 @@ type AccessmodProjectPage {
   items: [AccessmodProject!]!
 }
 
-enum AccessmodProjectPermissionAuthorizedActions {
-  UPDATE
-  DELETE
-}
-
 type AccessmodProjectPermissions {
   update: Boolean!
   delete: Boolean!
@@ -309,7 +278,6 @@ type AccessmodZonalStatistics implements AccessmodAnalysis & AccessmodOwnership 
   name: String!
   owner: AccessmodOwner
   author: User!
-  authorizedActions: [AccessmodAnalysisAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: AccessmodAnalysisPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -405,15 +373,9 @@ type Collection {
   description: String
   summary: String
   elements(page: Int, perPage: Int): CollectionElementPage!
-  authorizedActions: CollectionAuthorizedActions! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: CollectionPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-type CollectionAuthorizedActions {
-  canUpdate: Boolean!
-  canDelete: Boolean!
 }
 
 type CollectionElement {
@@ -811,6 +773,25 @@ type DAGTemplate {
   sampleConfig: JSON
 }
 
+type Database {
+  tables(page: Int, perPage: Int): DatabaseTablePage!
+  table(name: String!): DatabaseTable
+}
+
+type DatabaseTable {
+  name: String!
+  count: Int
+  columns: [TableColumn!]!
+  sample: JSON!
+}
+
+type DatabaseTablePage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [DatabaseTable!]!
+}
+
 type Datasource {
   id: UUID!
   name: String!
@@ -1151,33 +1132,18 @@ type LogPipelineMessageResult {
 type Me {
   user: User
   features: [FeatureFlag!]!
-  authorizedActions: [MeAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: MePermissions!
   hasTwoFactorEnabled: Boolean!
-}
-
-enum MeAuthorizedActions {
-  CREATE_TEAM
-  ADMIN_PANEL
-  SUPER_USER
-  CREATE_ACCESSMOD_PROJECT
-  MANAGE_ACCESSMOD_ACCESS_REQUESTS
 }
 
 type Membership {
   id: UUID!
   user: User!
   team: Team!
-  authorizedActions: [MembershipAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: MembershipPermissions!
   role: MembershipRole!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum MembershipAuthorizedActions {
-  UPDATE
-  DELETE
 }
 
 type MembershipPage {
@@ -1474,6 +1440,7 @@ type Query {
   pipelineRunCode(id: UUID): String
   workspace(slug: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
+  databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
 }
 
@@ -1620,6 +1587,11 @@ scalar SimplifiedExtentType
 
 scalar StackPriorities
 
+type TableColumn {
+  name: String!
+  type: String!
+}
+
 type Tag {
   id: String!
   name: String!
@@ -1629,16 +1601,9 @@ type Team {
   id: UUID!
   name: String!
   memberships(page: Int, perPage: Int): MembershipPage!
-  authorizedActions: [TeamAuthorizedActions!]! @deprecated(reason: "authorizedActions is deprecated. Use permissions instead.")
   permissions: TeamPermissions!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-enum TeamAuthorizedActions {
-  UPDATE
-  DELETE
-  CREATE_MEMBERSHIP
 }
 
 type TeamPage {
@@ -1985,6 +1950,7 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
+  database: Database!
 }
 
 type WorkspaceMembership {

@@ -60,6 +60,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
       keyFields: ["slug"],
     },
+    DatabaseTable: {
+      merge: true,
+    },
   },
 };
 

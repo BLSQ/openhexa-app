@@ -67,17 +67,37 @@ query WorkspaceFilesPage($workspaceSlug: String!) {
   }
 }
 
-query WorkspaceDatabasesPage($workspaceSlug: String!) {
+query WorkspaceDatabasesPage($workspaceSlug: String!,$page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    database {
+      tables(page: $page, perPage: $perPage) {
+        totalPages
+        totalItems
+        items {
+          name
+          count
+        }
+      }
+    }
   }
 }
 
-query WorkspaceDatabaseTablePage($workspaceSlug: String!) {
+query WorkspaceDatabaseTablePage($workspaceSlug: String!,$tableName: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    database {
+      table(name: $tableName) {
+        name
+        count
+        columns {
+          name
+          type
+        }
+      }
+    }
   }
 }
 

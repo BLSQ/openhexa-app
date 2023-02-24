@@ -61,17 +61,20 @@ export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __ty
 
 export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 
-export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, count?: number | null }> } } } | null };
 
 export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
+  tableName: Types.Scalars['String'];
 }>;
 
 
-export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', name: string, count?: number | null, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> } | null } } | null };
 
 export type ConnectionsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -366,10 +369,20 @@ export type WorkspaceFilesPageQueryHookResult = ReturnType<typeof useWorkspaceFi
 export type WorkspaceFilesPageLazyQueryHookResult = ReturnType<typeof useWorkspaceFilesPageLazyQuery>;
 export type WorkspaceFilesPageQueryResult = Apollo.QueryResult<WorkspaceFilesPageQuery, WorkspaceFilesPageQueryVariables>;
 export const WorkspaceDatabasesPageDocument = gql`
-    query WorkspaceDatabasesPage($workspaceSlug: String!) {
+    query WorkspaceDatabasesPage($workspaceSlug: String!, $page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    database {
+      tables(page: $page, perPage: $perPage) {
+        totalPages
+        totalItems
+        items {
+          name
+          count
+        }
+      }
+    }
   }
 }
     `;
@@ -387,6 +400,8 @@ export const WorkspaceDatabasesPageDocument = gql`
  * const { data, loading, error } = useWorkspaceDatabasesPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */
@@ -402,10 +417,20 @@ export type WorkspaceDatabasesPageQueryHookResult = ReturnType<typeof useWorkspa
 export type WorkspaceDatabasesPageLazyQueryHookResult = ReturnType<typeof useWorkspaceDatabasesPageLazyQuery>;
 export type WorkspaceDatabasesPageQueryResult = Apollo.QueryResult<WorkspaceDatabasesPageQuery, WorkspaceDatabasesPageQueryVariables>;
 export const WorkspaceDatabaseTablePageDocument = gql`
-    query WorkspaceDatabaseTablePage($workspaceSlug: String!) {
+    query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    database {
+      table(name: $tableName) {
+        name
+        count
+        columns {
+          name
+          type
+        }
+      }
+    }
   }
 }
     `;
@@ -423,6 +448,7 @@ export const WorkspaceDatabaseTablePageDocument = gql`
  * const { data, loading, error } = useWorkspaceDatabaseTablePageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      tableName: // value for 'tableName'
  *   },
  * });
  */

@@ -34,6 +34,7 @@ export default function WorkspaceMembers({
     gql`
       query WorskspaceMembers($slug: String!, $page: Int, $perPage: Int) {
         workspace(slug: $slug) {
+          slug
           members(page: $page, perPage: $perPage) {
             totalItems
             items {

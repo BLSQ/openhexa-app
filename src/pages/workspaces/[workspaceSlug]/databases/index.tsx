@@ -2,7 +2,6 @@ import { TableCellsIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import DateColumn from "core/components/DataGrid/DateColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -13,7 +12,6 @@ import {
   useWorkspaceDatabasesPageQuery,
   WorkspaceDatabasesPageDocument,
 } from "workspaces/graphql/queries.generated";
-import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -24,14 +22,24 @@ type Props = {
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data } = useWorkspaceDatabasesPageQuery({
-    variables: { workspaceSlug: router.query.workspaceSlug as string },
+
+  const workspaceSlug = router.query.workspaceSlug as string;
+  const { data, refetch } = useWorkspaceDatabasesPageQuery({
+    variables: { workspaceSlug: workspaceSlug },
   });
+
+  const onChangePage = ({ page }: { page: number }) => {
+    refetch({
+      workspaceSlug: workspaceSlug,
+      page,
+    });
+  };
 
   if (!data?.workspace) {
     return null;
   }
   const { workspace } = data;
+  const { tables } = workspace.database;
 
   return (
     <Page title={t("Workspace")}>
@@ -54,11 +62,12 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
       <WorkspaceLayout.PageContent className="space-y-8">
         <DataGrid
           className="overflow-hidden rounded-md bg-white shadow"
-          data={FAKE_WORKSPACE.database.workspaceTables}
-          defaultPageSize={5}
+          data={tables.items}
+          defaultPageSize={15}
           sortable
-          totalItems={FAKE_WORKSPACE.database.workspaceTables.length}
+          totalItems={tables.totalItems}
           fixedLayout={false}
+          fetchData={onChangePage}
         >
           <BaseColumn
             className="max-w-[50ch] py-3"
@@ -70,7 +79,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               <Link
                 href={{
                   pathname: "/workspaces/[workspaceSlug]/databases/[tableId]",
-                  query: { workspaceSlug: workspace.slug, tableId: value.id },
+                  query: { workspaceSlug: workspace.slug, tableId: value.name },
                 }}
               >
                 <div className="flex items-center gap-3">
@@ -84,23 +93,22 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
           </BaseColumn>
           <BaseColumn
             className="py-3"
-            accessor="content"
+            accessor="count"
             id="content"
-            label="Content"
+            label={t("# Rows")}
           >
-            {(value) => <span>{`${value} row(s)`}</span>}
+            {(value) => (
+              <span>
+                {t("Approx. {{count}} row", {
+                  count: value,
+                  plural: "Approx. {{count}} rows",
+                })}
+              </span>
+            )}
           </BaseColumn>
-
-          <DateColumn
-            className="py-3"
-            accessor="updatedAt"
-            relative
-            id="updatedAt"
-            label="Last modified"
-          />
           <ChevronLinkColumn
             maxWidth="100"
-            accessor="id"
+            accessor="name"
             url={(value: any) => ({
               pathname: `/workspaces/${encodeURIComponent(
                 workspace.slug

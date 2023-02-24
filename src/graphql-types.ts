@@ -52,8 +52,6 @@ export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & AccessmodOwners
   __typename?: 'AccessmodAccessibilityAnalysis';
   algorithm?: Maybe<AccessmodAccessibilityAnalysisAlgorithm>;
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   barrier?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
   dem?: Maybe<AccessmodFileset>;
@@ -86,8 +84,6 @@ export enum AccessmodAccessibilityAnalysisAlgorithm {
 
 export type AccessmodAnalysis = {
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
   name: Scalars['String'];
@@ -96,12 +92,6 @@ export type AccessmodAnalysis = {
   type: AccessmodAnalysisType;
   updatedAt: Scalars['DateTime'];
 };
-
-export enum AccessmodAnalysisAuthorizedActions {
-  Delete = 'DELETE',
-  Run = 'RUN',
-  Update = 'UPDATE'
-}
 
 export type AccessmodAnalysisPage = {
   __typename?: 'AccessmodAnalysisPage';
@@ -147,8 +137,6 @@ export type AccessmodFile = {
 export type AccessmodFileset = AccessmodOwnership & {
   __typename?: 'AccessmodFileset';
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodFilesetAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   files: Array<AccessmodFile>;
   id: Scalars['String'];
@@ -161,12 +149,6 @@ export type AccessmodFileset = AccessmodOwnership & {
   status: AccessmodFilesetStatus;
   updatedAt: Scalars['DateTime'];
 };
-
-export enum AccessmodFilesetAuthorizedActions {
-  CreateFile = 'CREATE_FILE',
-  Delete = 'DELETE',
-  Update = 'UPDATE'
-}
 
 export enum AccessmodFilesetFormat {
   Raster = 'RASTER',
@@ -234,8 +216,6 @@ export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & AccessmodO
   __typename?: 'AccessmodGeographicCoverageAnalysis';
   anisotropic?: Maybe<Scalars['Boolean']>;
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   catchmentAreas?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
   dem?: Maybe<AccessmodFileset>;
@@ -263,8 +243,6 @@ export type AccessmodOwnership = {
 export type AccessmodProject = AccessmodOwnership & {
   __typename?: 'AccessmodProject';
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodProjectAuthorizedActions>;
   country: Country;
   createdAt: Scalars['DateTime'];
   crs: Scalars['Int'];
@@ -280,18 +258,8 @@ export type AccessmodProject = AccessmodOwnership & {
   updatedAt: Scalars['DateTime'];
 };
 
-export enum AccessmodProjectAuthorizedActions {
-  CreateAnalysis = 'CREATE_ANALYSIS',
-  CreateFileset = 'CREATE_FILESET',
-  CreatePermission = 'CREATE_PERMISSION',
-  Delete = 'DELETE',
-  Update = 'UPDATE'
-}
-
 export type AccessmodProjectMember = {
   __typename?: 'AccessmodProjectMember';
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodProjectPermissionAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
   mode: PermissionMode;
@@ -323,11 +291,6 @@ export type AccessmodProjectPage = {
   totalPages: Scalars['Int'];
 };
 
-export enum AccessmodProjectPermissionAuthorizedActions {
-  Delete = 'DELETE',
-  Update = 'UPDATE'
-}
-
 export type AccessmodProjectPermissions = {
   __typename?: 'AccessmodProjectPermissions';
   createAnalysis: Scalars['Boolean'];
@@ -341,8 +304,6 @@ export type AccessmodProjectPermissions = {
 export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & {
   __typename?: 'AccessmodZonalStatistics';
   author: User;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<AccessmodAnalysisAuthorizedActions>;
   boundaries?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime'];
   id: Scalars['String'];
@@ -444,8 +405,6 @@ export type CatalogPage = {
 export type Collection = {
   __typename?: 'Collection';
   author?: Maybe<User>;
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: CollectionAuthorizedActions;
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
   description?: Maybe<Scalars['String']>;
@@ -462,12 +421,6 @@ export type Collection = {
 export type CollectionElementsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
-};
-
-export type CollectionAuthorizedActions = {
-  __typename?: 'CollectionAuthorizedActions';
-  canDelete: Scalars['Boolean'];
-  canUpdate: Scalars['Boolean'];
 };
 
 export type CollectionElement = {
@@ -925,6 +878,39 @@ export type Dhis2Instance = {
   url?: Maybe<Scalars['String']>;
 };
 
+export type Database = {
+  __typename?: 'Database';
+  table?: Maybe<DatabaseTable>;
+  tables: DatabaseTablePage;
+};
+
+
+export type DatabaseTableArgs = {
+  name: Scalars['String'];
+};
+
+
+export type DatabaseTablesArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+export type DatabaseTable = {
+  __typename?: 'DatabaseTable';
+  columns: Array<TableColumn>;
+  count?: Maybe<Scalars['Int']>;
+  name: Scalars['String'];
+  sample: Scalars['JSON'];
+};
+
+export type DatabaseTablePage = {
+  __typename?: 'DatabaseTablePage';
+  items: Array<DatabaseTable>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
+};
+
 export type Datasource = {
   __typename?: 'Datasource';
   id: Scalars['UUID'];
@@ -1261,21 +1247,11 @@ export type LogoutResult = {
 
 export type Me = {
   __typename?: 'Me';
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<MeAuthorizedActions>;
   features: Array<FeatureFlag>;
   hasTwoFactorEnabled: Scalars['Boolean'];
   permissions: MePermissions;
   user?: Maybe<User>;
 };
-
-export enum MeAuthorizedActions {
-  AdminPanel = 'ADMIN_PANEL',
-  CreateAccessmodProject = 'CREATE_ACCESSMOD_PROJECT',
-  CreateTeam = 'CREATE_TEAM',
-  ManageAccessmodAccessRequests = 'MANAGE_ACCESSMOD_ACCESS_REQUESTS',
-  SuperUser = 'SUPER_USER'
-}
 
 export type MePermissions = {
   __typename?: 'MePermissions';
@@ -1290,8 +1266,6 @@ export type MePermissions = {
 
 export type Membership = {
   __typename?: 'Membership';
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<MembershipAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['UUID'];
   permissions: MembershipPermissions;
@@ -1300,11 +1274,6 @@ export type Membership = {
   updatedAt: Scalars['DateTime'];
   user: User;
 };
-
-export enum MembershipAuthorizedActions {
-  Delete = 'DELETE',
-  Update = 'UPDATE'
-}
 
 export type MembershipPage = {
   __typename?: 'MembershipPage';
@@ -1902,6 +1871,7 @@ export type Query = {
   dag?: Maybe<Dag>;
   dagRun?: Maybe<DagRun>;
   dags: DagPage;
+  databaseTable?: Maybe<DatabaseTable>;
   externalDashboard?: Maybe<ExternalDashboard>;
   externalDashboards: ExternalDashboardPage;
   lastActivities: Array<Activity>;
@@ -2022,6 +1992,11 @@ export type QueryDagRunArgs = {
 export type QueryDagsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryDatabaseTableArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -2240,6 +2215,12 @@ export type SetPasswordResult = {
   success: Scalars['Boolean'];
 };
 
+export type TableColumn = {
+  __typename?: 'TableColumn';
+  name: Scalars['String'];
+  type: Scalars['String'];
+};
+
 export type Tag = {
   __typename?: 'Tag';
   id: Scalars['String'];
@@ -2248,8 +2229,6 @@ export type Tag = {
 
 export type Team = {
   __typename?: 'Team';
-  /** @deprecated authorizedActions is deprecated. Use permissions instead. */
-  authorizedActions: Array<TeamAuthorizedActions>;
   createdAt: Scalars['DateTime'];
   id: Scalars['UUID'];
   memberships: MembershipPage;
@@ -2263,12 +2242,6 @@ export type TeamMembershipsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
 };
-
-export enum TeamAuthorizedActions {
-  CreateMembership = 'CREATE_MEMBERSHIP',
-  Delete = 'DELETE',
-  Update = 'UPDATE'
-}
 
 export type TeamPage = {
   __typename?: 'TeamPage';
@@ -2625,6 +2598,7 @@ export type Workspace = {
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
   createdBy: User;
+  database: Database;
   description?: Maybe<Scalars['String']>;
   members: WorkspaceMembershipPage;
   name: Scalars['String'];
