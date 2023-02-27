@@ -36,3 +36,36 @@ class ViewsTest(TestCase):
         self.assertEqual(response.status_code, 401)
         response_data = response.json()
         self.assertEqual(0, len(response_data))
+
+    def test_authenticate_200(self):
+        self.client.force_login(self.USER_JANE)
+        response = self.client.post(
+            reverse(
+                "notebooks:authenticate",
+            ),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "username": "jane@bluesquarehub.com",
+            },
+        )
+
+    def test_default_credentials_200(self):
+        self.client.force_login(self.USER_JANE)
+        response = self.client.post(
+            reverse(
+                "notebooks:default-credentials",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(
+            response.content,
+            {
+                "username": "jane@bluesquarehub.com",
+                "env": {"GIT_EXTENSION_ENABLED": "false"},
+                "files": {},
+            },
+        )
