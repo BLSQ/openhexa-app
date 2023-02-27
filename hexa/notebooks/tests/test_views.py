@@ -52,6 +52,22 @@ class ViewsTest(TestCase):
             },
         )
 
+    def test_authenticate_302(self):
+        response = self.client.post(
+            reverse(
+                "notebooks:authenticate",
+            ),
+        )
+        self.assertRedirects(
+            response,
+            "/login?next={}".format(
+                reverse(
+                    "notebooks:authenticate",
+                )
+            ),
+            fetch_redirect_response=False,
+        )
+
     def test_default_credentials_200(self):
         self.client.force_login(self.USER_JANE)
         response = self.client.post(
@@ -68,4 +84,20 @@ class ViewsTest(TestCase):
                 "env": {"GIT_EXTENSION_ENABLED": "false"},
                 "files": {},
             },
+        )
+
+    def test_default_credentials_302(self):
+        response = self.client.post(
+            reverse(
+                "notebooks:default-credentials",
+            ),
+        )
+        self.assertRedirects(
+            response,
+            "/login?next={}".format(
+                reverse(
+                    "notebooks:default-credentials",
+                )
+            ),
+            fetch_redirect_response=False,
         )
