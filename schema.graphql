@@ -1098,6 +1098,22 @@ type LaunchAccessmodAnalysisResult {
   errors: [LaunchAccessmodAnalysisError!]!
 }
 
+enum LaunchNotebookServerError {
+  UNKNOWN_ERROR
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input LaunchNotebookServerInput {
+  workspaceSlug: String!
+}
+
+type LaunchNotebookServerResult {
+  success: Boolean!
+  server: NotebookServer
+  errors: [LaunchNotebookServerError!]!
+}
+
 enum LoginError {
   OTP_REQUIRED
   INVALID_CREDENTIALS
@@ -1230,6 +1246,7 @@ type Mutation {
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
   updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
+  launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
   createPipeline(input: CreatePipelineInput): CreatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
@@ -1247,6 +1264,11 @@ type Mutation {
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
+}
+
+type NotebookServer {
+  name: String!
+  url: String!
 }
 
 type Organization {

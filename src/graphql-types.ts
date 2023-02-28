@@ -1211,6 +1211,23 @@ export type LaunchAccessmodAnalysisResult = {
   success: Scalars['Boolean'];
 };
 
+export enum LaunchNotebookServerError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  UnknownError = 'UNKNOWN_ERROR'
+}
+
+export type LaunchNotebookServerInput = {
+  workspaceSlug: Scalars['String'];
+};
+
+export type LaunchNotebookServerResult = {
+  __typename?: 'LaunchNotebookServerResult';
+  errors: Array<LaunchNotebookServerError>;
+  server?: Maybe<NotebookServer>;
+  success: Scalars['Boolean'];
+};
+
 export type LogPipelineMessageInput = {
   message: Scalars['String'];
   priority: MessagePriority;
@@ -1337,6 +1354,7 @@ export type Mutation = {
   generateChallenge: GenerateChallengeResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
+  launchNotebookServer: LaunchNotebookServerResult;
   logPipelineMessage: LogPipelineMessageResult;
   login: LoginResult;
   logout: LogoutResult;
@@ -1530,6 +1548,11 @@ export type MutationLaunchAccessmodAnalysisArgs = {
 };
 
 
+export type MutationLaunchNotebookServerArgs = {
+  input: LaunchNotebookServerInput;
+};
+
+
 export type MutationLogPipelineMessageArgs = {
   input?: InputMaybe<LogPipelineMessageInput>;
 };
@@ -1672,6 +1695,12 @@ export type MutationUploadPipelineArgs = {
 
 export type MutationVerifyDeviceArgs = {
   input: VerifyDeviceInput;
+};
+
+export type NotebookServer = {
+  __typename?: 'NotebookServer';
+  name: Scalars['String'];
+  url: Scalars['String'];
 };
 
 export type Organization = {

@@ -89,3 +89,14 @@ mutation updateConnection($input: UpdateConnectionInput!) {
     }
   }
 }
+
+
+mutation launchNotebookServer($input: LaunchNotebookServerInput!) {
+  launchNotebookServer(input: $input) {
+    success
+    server {
+      name
+      url
+    }
+  }
+}
