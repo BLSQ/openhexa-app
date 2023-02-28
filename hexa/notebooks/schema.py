@@ -39,7 +39,7 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
         return {"success": False, "server": None, "errors": ["PERMISSION_DENIED"]}
 
     headers = {
-        "Authorization": f"token {settings.NOTEBOOKS_APP_HUB_AUTH_TOKEN}",
+        "Authorization": f"token {settings.HUB_APP_API_TOKEN}",
     }
 
     # Get user, create if needed
