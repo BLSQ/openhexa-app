@@ -237,6 +237,10 @@ TAILWIND_APP_NAME = "hexa.ui"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
+NOTEBOOKS_API_URL = os.environ.get("NOTEBOOKS_API_URL", "http://localhost:8001/hub/api")
+NOTEBOOKS_APP_HUB_AUTH_TOKEN = os.environ.get(
+    "NOTEBOOKS_APP_HUB_AUTH_TOKEN", "notatoken"
+)
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000

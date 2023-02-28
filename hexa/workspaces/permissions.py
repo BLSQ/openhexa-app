@@ -53,7 +53,7 @@ def delete_workspace(principal: User, workspace: Workspace):
 
 
 def manage_members(principal: User, workspace: Workspace):
-    """Only superusers can delte a workspace"""
+    """Only superusers can delete a workspace"""
     return (
         True
         if workspace.workspacemembership_set.filter(
@@ -61,3 +61,12 @@ def manage_members(principal: User, workspace: Workspace):
         ).exists()
         else False
     )
+
+
+def launch_notebooks(principal: User, workspace: Workspace):
+    """Workspace editors and admins can launch notebooks"""
+
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
+    ).exists()

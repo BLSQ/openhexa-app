@@ -43,6 +43,7 @@ urlpatterns = [
     ),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
+    path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
     path("metrics/", include("hexa.metrics.urls", namespace="metrics")),
     path("comments/", include("hexa.comments.urls")),
     # Order matters, we override the default logout view defined later

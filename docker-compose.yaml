@@ -31,10 +31,12 @@ x-app: &common
       - EMAIL_HOST_USER
       - EMAIL_USE_TLS
       - EMAIL_HOST_PASSWORD
-      - WORKSPACE_DATABASE_ROLE
-      - WORKSPACE_DATABASE_PASSWORD
-      - WORKSPACE_DATABASE_HOST
-      - WORKSPACE_DATABASE_PORT
+      - WORKSPACE_DATABASE_ROLE=hexa-app
+      - WORKSPACE_DATABASE_PASSWORD=hexa-app
+      - WORKSPACE_DATABASE_HOST=db
+      - WORKSPACE_DATABASE_PORT=5432
+      - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
+      - NOTEBOOKS_APP_HUB_AUTH_TOKEN
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
 
