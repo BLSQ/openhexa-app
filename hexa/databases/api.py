@@ -67,6 +67,11 @@ def create_database(db_name: str, pwd: str):
                 )
             )
             cursor.execute(
+                sql.SQL("REVOKE ALL ON DATABASE {db_name} FROM PUBLIC;").format(
+                    db_name=sql.Identifier(db_name),
+                )
+            )
+            cursor.execute(
                 sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                     role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
                 )
