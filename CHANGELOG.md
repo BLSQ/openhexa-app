@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.0](https://github.com/BLSQ/openhexa-frontend/compare/0.17.1...0.18.0) (2023-02-28)
+
+
+### Features
+
+* **Workspaces:** Create Workspace Notebooks ([#216](https://github.com/BLSQ/openhexa-frontend/issues/216)) ([f4bf585](https://github.com/BLSQ/openhexa-frontend/commit/f4bf58589334025e59c3a8471bb0ecaf44c4c204))
+* **Workspaces:** workspace database exploration ([#200](https://github.com/BLSQ/openhexa-frontend/issues/200)) ([c1036cd](https://github.com/BLSQ/openhexa-frontend/commit/c1036cd24cfb131ab09ca9196f7292d72562f315))
+
 ## [0.17.1](https://github.com/BLSQ/openhexa-frontend/compare/0.17.0...0.17.1) (2023-02-20)
 
 
