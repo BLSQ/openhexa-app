@@ -179,6 +179,7 @@ if RAW_CSRF_TRUSTED_ORIGINS is not None:
     CSRF_TRUSTED_ORIGINS = RAW_CSRF_TRUSTED_ORIGINS.split(",")
 
 SESSION_COOKIE_DOMAIN = os.environ.get("SESSION_COOKIE_DOMAIN", None)
+CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
 SECURE_HSTS_SECONDS = os.environ.get(
     "SECURE_HSTS_SECONDS", 60 * 60
 )  # TODO: increase to one year if ok
