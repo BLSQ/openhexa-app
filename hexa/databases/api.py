@@ -9,10 +9,10 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 def get_db_server_credentials():
     return {
-        "role": settings.WORKSPACE_DATABASE_ROLE,
-        "password": settings.WORKSPACE_DATABASE_PASSWORD,
-        "host": settings.WORKSPACE_DATABASE_HOST,
-        "port": settings.WORKSPACE_DATABASE_PORT,
+        "role": settings.WORKSPACES_DATABASE_ROLE,
+        "password": settings.WORKSPACES_DATABASE_PASSWORD,
+        "host": settings.WORKSPACES_DATABASE_HOST,
+        "port": settings.WORKSPACES_DATABASE_PORT,
     }
 
 
