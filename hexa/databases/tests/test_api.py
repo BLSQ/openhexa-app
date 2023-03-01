@@ -9,6 +9,7 @@ from hexa.databases.api import (
     format_db_name,
     get_database_connection,
     get_db_server_credentials,
+    update_database_password,
 )
 from hexa.user_management.models import User
 
@@ -23,7 +24,10 @@ class DatabaseAPITest(TestCase):
     def setUp(self):
         self.DB1_NAME = "rdcproject"
         self.PWD_1 = "p%ygy+_'#wd@"
+        self.DB2_NAME = "rwandaproject"
+        self.PWD_2 = "password_2"
         create_database(self.DB1_NAME, self.PWD_1)
+        create_database(self.DB2_NAME, self.PWD_2)
 
     def tearDown(self):
         credentials = get_db_server_credentials()
@@ -78,19 +82,28 @@ class DatabaseAPITest(TestCase):
         with self.assertRaises(ValidationError):
             create_database(bad_input, password)
 
-    def test_create_database_not_access(self):
-        password_1 = "password_1"
-        password_2 = "password_2"
-        create_database(self.DB1_NAME, password_1)
-        create_database(self.DB2_NAME, password_2)
-
+    def test_role_access_denied(self):
         credentials = get_db_server_credentials()
 
         host = credentials["host"]
         port = credentials["port"]
 
         # check that role db2 doesn't have access to db1
-        url = f"postgresql://{self.DB2_NAME}:{password_2}@{host}:{port}/{self.DB1_NAME}"
+        url = f"postgresql://{self.DB2_NAME}:{self.PWD_2}@{host}:{port}/{self.DB1_NAME}"
+
+        with self.assertRaises(OperationalError):
+            conn = psycopg2.connect(url)
+
+    def test_update_database_password(self):
+        new_password = "new_password"
+
+        update_database_password(self.DB1_NAME, new_password)
+
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+
+        url = f"postgresql://{self.DB1_NAME}:{self.PWD_1}@{host}:{port}/{self.DB1_NAME}"
 
         with self.assertRaises(OperationalError):
             conn = psycopg2.connect(url)

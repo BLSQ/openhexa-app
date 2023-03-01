@@ -1,8 +1,16 @@
 import pathlib
 
-from ariadne import ObjectType, convert_kwargs_to_snake_case, load_schema_from_path
+from ariadne import (
+    MutationType,
+    ObjectType,
+    convert_kwargs_to_snake_case,
+    load_schema_from_path,
+)
+from django.core.exceptions import PermissionDenied
+from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
@@ -14,6 +22,7 @@ databases_types_def = load_schema_from_path(
 database_object = ObjectType("Database")
 database_table_object = ObjectType("DatabaseTable")
 workspace_object = ObjectType("Workspace")
+workspace_mutations = MutationType()
 
 
 @database_object.field("tables")
@@ -50,4 +59,28 @@ def resolve_workspace_database(workspace: Workspace, info, **kwargs):
     return workspace
 
 
-databases_bindables = [database_object, database_table_object, workspace_object]
+@workspace_mutations.field("generateNewDatabasePassword")
+def resolve_generate_workspace_database_password(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input["workspaceSlug"]
+        )
+        args = {"db_password": User.objects.make_random_password(length=16)}
+
+        workspace.update_if_has_perm(principal=request.user, **args)
+
+        return {"success": True, "workspace": workspace, "errors": []}
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+databases_bindables = [
+    database_object,
+    database_table_object,
+    workspace_object,
+    workspace_mutations,
+]
