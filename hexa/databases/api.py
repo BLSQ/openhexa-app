@@ -16,6 +16,18 @@ def get_db_server_credentials():
     }
 
 
+def get_database_connection(database: str = ""):
+    credentials = get_db_server_credentials()
+    role = credentials["role"]
+    password = credentials["password"]
+    host = credentials["host"]
+    port = credentials["port"]
+
+    return psycopg2.connect(
+        host=host, port=port, dbname=database, user=role, password=password
+    )
+
+
 def format_db_name(name: str):
     db_name = ""
     for char in name.lower().replace("-", "_"):
@@ -46,19 +58,11 @@ def create_database(db_name: str, pwd: str):
     name - database name (it will be used also for the role name)
     pwd  - password used by the created role to connect to the db
     """
-    credentials = get_db_server_credentials()
 
-    role = credentials["role"]
-    password = credentials["password"]
-    host = credentials["host"]
-    port = credentials["port"]
-
-    url = f"postgresql://{role}:{password}@{host}:{port}"
     validate_db_name(db_name)
-
     conn = None
     try:
-        conn = psycopg2.connect(url)
+        conn = get_database_connection()
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
             cursor.execute(
@@ -91,7 +95,7 @@ def create_database(db_name: str, pwd: str):
 
     # load extensions into the new db
     try:
-        conn = psycopg2.connect(f"{url}/{db_name}")
+        conn = get_database_connection(db_name)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
             cursor.execute("create extension postgis;")
