@@ -10,7 +10,6 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
@@ -67,9 +66,8 @@ def resolve_generate_workspace_database_password(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspaceSlug"]
         )
-        args = {"db_password": User.objects.make_random_password(length=16)}
 
-        workspace.update_if_has_perm(principal=request.user, **args)
+        workspace.generate_new_database_password(principal=request.user)
 
         return {"success": True, "workspace": workspace, "errors": []}
     except Workspace.DoesNotExist:

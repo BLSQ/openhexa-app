@@ -117,10 +117,6 @@ class Workspace(Base):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
-        if "db_password" in kwargs:
-            update_database_password(self.db_name, kwargs["db_password"])
-            setattr(self, "db_password", kwargs["db_password"])
-
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
@@ -128,6 +124,16 @@ class Workspace(Base):
             raise PermissionDenied
 
         self.delete()
+
+    def generate_new_database_password(self, *, principal: User):
+        if not principal.has_perm("workspaces.update_workspace", self):
+            raise PermissionDenied
+
+        new_password = User.objects.make_random_password(length=16)
+        update_database_password(self.db_name, new_password)
+
+        setattr(self, "db_password", new_password)
+        self.save()
 
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
