@@ -31,10 +31,12 @@ class DatabaseAPITest(TestCase):
 
     def tearDown(self):
         credentials = get_db_server_credentials()
+
         role = credentials["role"]
         password = credentials["password"]
         host = credentials["host"]
         port = credentials["port"]
+
         url = f"postgresql://{role}:{password}@{host}:{port}"
         conn = None
         try:
@@ -47,10 +49,21 @@ class DatabaseAPITest(TestCase):
                     )
                 )
                 cursor.execute(
+                    sql.SQL("DROP DATABASE {db_name};").format(
+                        db_name=sql.Identifier(self.DB2_NAME),
+                    )
+                )
+                cursor.execute(
                     sql.SQL("DROP ROLE {role_name};").format(
                         role_name=sql.Identifier(self.DB1_NAME)
                     )
                 )
+                cursor.execute(
+                    sql.SQL("DROP ROLE {role_name};").format(
+                        role_name=sql.Identifier(self.DB2_NAME)
+                    )
+                )
+
         finally:
             if conn:
                 conn.close()
@@ -97,13 +110,13 @@ class DatabaseAPITest(TestCase):
     def test_update_database_password(self):
         new_password = "new_password"
 
-        update_database_password(self.DB1_NAME, new_password)
+        update_database_password(self.DB2_NAME, new_password)
 
         credentials = get_db_server_credentials()
         host = credentials["host"]
         port = credentials["port"]
 
-        url = f"postgresql://{self.DB1_NAME}:{self.PWD_1}@{host}:{port}/{self.DB1_NAME}"
+        url = f"postgresql://{self.DB2_NAME}:{self.PWD_2}@{host}:{port}/{self.DB2_NAME}"
 
         with self.assertRaises(OperationalError):
             conn = psycopg2.connect(url)
