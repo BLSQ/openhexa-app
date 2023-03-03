@@ -198,8 +198,8 @@ class DatabaseTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-                mutation generateNewDatabasePassword($input: GenerateNewDatabasePasswordInput!) {
-                    generateNewDatabasePassword(input: $input) {
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
                         success
                         errors
                     }
@@ -212,15 +212,15 @@ class DatabaseTest(GraphQLTestCase):
                 "success": False,
                 "errors": ["NOT_FOUND"],
             },
-            r["data"]["generateNewDatabasePassword"],
+            r["data"]["generateDatabaseNewPassword"],
         )
 
     def test_generate_workspace_database_new_password_denied(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
             """
-                mutation generateNewDatabasePassword($input: GenerateNewDatabasePasswordInput!) {
-                    generateNewDatabasePassword(input: $input) {
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
                         success
                         errors
                     }
@@ -233,15 +233,15 @@ class DatabaseTest(GraphQLTestCase):
                 "success": False,
                 "errors": ["PERMISSION_DENIED"],
             },
-            r["data"]["generateNewDatabasePassword"],
+            r["data"]["generateDatabaseNewPassword"],
         )
 
     def test_generate_workspace_database_new_password(self):
         self.client.force_login(self.USER_JULIA)
         r = self.run_query(
             """
-                mutation generateNewDatabasePassword($input: GenerateNewDatabasePasswordInput!) {
-                    generateNewDatabasePassword(input: $input) {
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
                         success
                         errors
                     }
@@ -254,5 +254,5 @@ class DatabaseTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
             },
-            r["data"]["generateNewDatabasePassword"],
+            r["data"]["generateDatabaseNewPassword"],
         )
