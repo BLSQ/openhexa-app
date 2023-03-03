@@ -1,6 +1,6 @@
 import psycopg2
 from django.core.exceptions import ValidationError
-from psycopg2 import sql
+from psycopg2 import OperationalError, sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, STATUS_READY
 
 from hexa.core.test import TestCase
@@ -77,3 +77,20 @@ class DatabaseAPITest(TestCase):
         password = "password"
         with self.assertRaises(ValidationError):
             create_database(bad_input, password)
+
+    def test_create_database_not_access(self):
+        password_1 = "password_1"
+        password_2 = "password_2"
+        create_database(self.DB1_NAME, password_1)
+        create_database(self.DB2_NAME, password_2)
+
+        credentials = get_db_server_credentials()
+
+        host = credentials["host"]
+        port = credentials["port"]
+
+        # check that role db2 doesn't have access to db1
+        url = f"postgresql://{self.DB2_NAME}:{password_2}@{host}:{port}/{self.DB1_NAME}"
+
+        with self.assertRaises(OperationalError):
+            conn = psycopg2.connect(url)
