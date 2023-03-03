@@ -16,7 +16,7 @@ from slugify import slugify
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.databases.api import create_database, format_db_name
+from hexa.databases.api import create_database, format_db_name, update_database_password
 from hexa.user_management.models import User
 
 
@@ -57,13 +57,13 @@ class WorkspaceManager(models.Manager):
         if description is None:
             create_kwargs["description"] = "This is a workspace for {}".format(name)
 
-        password = User.objects.make_random_password()
+        db_password = User.objects.make_random_password(length=16)
         db_name = format_db_name(create_kwargs["slug"])
 
-        create_kwargs["db_password"] = password
+        create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
 
-        create_database(db_name, password)
+        create_database(db_name, db_password)
 
         workspace = self.create(**create_kwargs)
         WorkspaceMembership.objects.create(
@@ -124,6 +124,16 @@ class Workspace(Base):
             raise PermissionDenied
 
         self.delete()
+
+    def generate_new_database_password(self, *, principal: User):
+        if not principal.has_perm("workspaces.update_workspace", self):
+            raise PermissionDenied
+
+        new_password = User.objects.make_random_password(length=16)
+        update_database_password(self.db_name, new_password)
+
+        setattr(self, "db_password", new_password)
+        self.save()
 
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):

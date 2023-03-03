@@ -104,3 +104,19 @@ def create_database(db_name: str, pwd: str):
     finally:
         if conn:
             conn.close()
+
+
+def update_database_password(db_role: str, new_password: str):
+    conn = None
+    try:
+        conn = get_database_connection()
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("ALTER ROLE {role} WITH PASSWORD {password};").format(
+                    role=sql.Identifier(db_role), password=sql.Literal(new_password)
+                )
+            )
+    finally:
+        if conn:
+            conn.close()

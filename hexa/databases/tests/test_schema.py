@@ -20,6 +20,9 @@ class DatabaseTest(GraphQLTestCase):
             "sabrina@bluesquarehub.com",
             "standardpassword",
         )
+        cls.USER_JULIA = User.objects.create_user(
+            "julia@bluesquarehub.com", "juliaspassword"
+        )
         cls.DB1 = Database.objects.create(
             hostname="host",
             username="user",
@@ -27,10 +30,10 @@ class DatabaseTest(GraphQLTestCase):
             database="hexa-explore-demo",
         )
         FeatureFlag.objects.create(
-            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
+            feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA
         )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SABRINA,
+            cls.USER_JULIA,
             name="Test Workspace",
             description="Test workspace",
             countries=[],
@@ -40,6 +43,12 @@ class DatabaseTest(GraphQLTestCase):
             user=cls.USER_SABRINA,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        WorkspaceMembership.objects.create(
+            user=cls.USER_JULIA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
         )
 
     def test_get_database_tables_empty(self):
@@ -105,7 +114,6 @@ class DatabaseTest(GraphQLTestCase):
     def test_get_database_table_not_found(self):
         self.client.force_login(self.USER_SABRINA)
         table_name = "test_table"
-        count = 2
         with mock.patch(
             "hexa.databases.schema.get_table_definition"
         ) as mocked_get_database_definition:
@@ -185,3 +193,66 @@ class DatabaseTest(GraphQLTestCase):
                 },
                 r["data"]["workspace"]["database"],
             )
+
+    def test_generate_workspace_database_new_password_not_found(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"workspaceSlug": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NOT_FOUND"],
+            },
+            r["data"]["generateDatabaseNewPassword"],
+        )
+
+    def test_generate_workspace_database_new_password_denied(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"workspaceSlug": str(self.WORKSPACE.slug)}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["generateDatabaseNewPassword"],
+        )
+
+    def test_generate_workspace_database_new_password(self):
+        self.client.force_login(self.USER_JULIA)
+        r = self.run_query(
+            """
+                mutation generateDatabaseNewPassword($input: GenerateDatabaseNewPasswordInput!) {
+                    generateDatabaseNewPassword(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"workspaceSlug": str(self.WORKSPACE.slug)}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["generateDatabaseNewPassword"],
+        )

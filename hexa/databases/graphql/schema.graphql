@@ -26,3 +26,22 @@ type DatabaseTablePage {
   totalItems: Int!
   items: [DatabaseTable!]!
 }
+
+enum GenerateDatabaseNewPasswordError {
+  PERMISSION_DENIED
+  NOT_FOUND
+}
+
+input GenerateDatabaseNewPasswordInput {
+  workspaceSlug: String!
+}
+
+type GenerateDatabaseNewPasswordResult {
+  success: Boolean!
+  errors:[GenerateDatabaseNewPasswordError!]!
+  workspace: Workspace
+}
+
+extend type Mutation {
+  generateDatabaseNewPassword(input: GenerateDatabaseNewPasswordInput!): GenerateDatabaseNewPasswordResult! @loginRequired
+}
