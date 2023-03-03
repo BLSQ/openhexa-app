@@ -3,24 +3,13 @@ from psycopg2 import sql
 
 from hexa.workspaces.models import Workspace
 
-from .api import get_db_server_credentials
-
-
-def get_database_url(database: str):
-    credentials = get_db_server_credentials()
-    role = credentials["role"]
-    password = credentials["password"]
-    host = credentials["host"]
-    port = credentials["port"]
-
-    return f"postgresql://{role}:{password}@{host}:{port}/{database}"
+from .api import get_database_connection
 
 
 def get_database_definition(workspace: Workspace):
-    url = get_database_url(workspace.db_name)
     conn = None
     try:
-        conn = psycopg2.connect(url)
+        conn = get_database_connection(workspace.db_name)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -43,11 +32,10 @@ def get_database_definition(workspace: Workspace):
 
 
 def get_table_definition(workspace: Workspace, table_name: str):
-    url = get_database_url(workspace.db_name)
     columns = []
     conn = None
     try:
-        conn = psycopg2.connect(url)
+        conn = get_database_connection(workspace.db_name)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -85,10 +73,9 @@ def get_table_definition(workspace: Workspace, table_name: str):
 
 
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
-    url = get_database_url(workspace.db_name)
     conn = None
     try:
-        conn = psycopg2.connect(url)
+        conn = get_database_connection(workspace.db_name)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
