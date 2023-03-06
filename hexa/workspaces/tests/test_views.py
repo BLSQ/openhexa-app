@@ -1,6 +1,7 @@
 from django.urls import reverse
 
 from hexa.core.test import TestCase
+from hexa.databases.api import get_db_server_credentials
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Connection,
@@ -84,9 +85,22 @@ class ViewsTest(TestCase):
             )
         )
 
+        db_credentials = get_db_server_credentials()
+        workspace_db_url = f"postgresql://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{db_credentials['host']}:{db_credentials['port']}/{self.WORKSPACE.db_name}"
+
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response_data["env"], {"DB_field_1": "value_1"})
+        self.assertEqual(
+            response_data["env"],
+            {
+                "DB_field_1": "value_1",
+                "WORKSPACE_DATABASE_HOST": db_credentials["host"],
+                "WORKSPACE_DATABASE_PORT": db_credentials["port"],
+                "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
+                "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
+                "WORKSPACE_DATABASE_URL": workspace_db_url,
+            },
+        )
         self.assertEqual(
             response_data["notebooks_server_hash"],
             self.WORKSPACE.workspacemembership_set.get(
