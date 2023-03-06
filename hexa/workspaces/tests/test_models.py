@@ -1,3 +1,4 @@
+import hashlib
 from unittest.mock import patch
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -116,6 +117,14 @@ class WorkspaceTest(TestCase):
                 workspace=workspace,
                 role=WorkspaceMembershipRole.ADMIN,
             ).exists()
+        )
+        self.assertEqual(
+            hashlib.blake2s(
+                f"{workspace.id}_{self.USER_JULIA.id}".encode("utf-8"), digest_size=16
+            ).hexdigest(),
+            WorkspaceMembership.objects.get(
+                user=self.USER_JULIA, workspace=workspace
+            ).notebooks_server_hash,
         )
 
 

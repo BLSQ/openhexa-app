@@ -45,12 +45,6 @@ class ViewsTest(TestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        cls.WORKSPACE_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
-            user=cls.USER_JULIA,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
         cls.WORKSPACE_CONNECTION = Connection.objects.create_if_has_perm(
             cls.USER_JULIA,
             cls.WORKSPACE,
@@ -93,3 +87,9 @@ class ViewsTest(TestCase):
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response_data["env"], {"DB_field_1": "value_1"})
+        self.assertEqual(
+            response_data["notebooks_server_hash"],
+            self.WORKSPACE.workspacemembership_set.get(
+                user=self.USER_JULIA
+            ).notebooks_server_hash,
+        )

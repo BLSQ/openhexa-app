@@ -6,11 +6,7 @@ from hexa.core.test import TestCase
 from hexa.databases.utils import get_database_definition, get_table_definition
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Feature, FeatureFlag, User
-from hexa.workspaces.models import (
-    Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
-)
+from hexa.workspaces.models import Workspace
 
 
 class DictRowMock:
@@ -56,19 +52,6 @@ class DatabaseUtilsTest(TestCase):
             name="Test Workspace",
             description="Test workspace",
             countries=[],
-        )
-
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SABRINA,
-            name="Test Workspace",
-            description="Test workspace",
-            countries=[],
-        )
-        setattr(cls.WORKSPACE, "database", cls.DB1)
-        WorkspaceMembership.objects.create(
-            user=cls.USER_SABRINA,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.VIEWER,
         )
 
     @mock.patch("hexa.databases.utils.get_database_connection")

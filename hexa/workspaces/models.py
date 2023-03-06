@@ -1,3 +1,4 @@
+import hashlib
 import secrets
 import typing
 import uuid
@@ -166,7 +167,11 @@ class WorkspaceMembershipManager(models.Manager):
                 f"Already got a membership for user {user.id} and workspace {workspace.name}"
             )
 
-        workspace_membership = self.create(user=user, workspace=workspace, role=role)
+        workspace_membership = self.create(
+            user=user,
+            workspace=workspace,
+            role=role,
+        )
         return workspace_membership
 
 
@@ -181,9 +186,16 @@ class WorkspaceMembership(models.Model):
         on_delete=models.CASCADE,
     )
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
+    notebooks_server_hash = models.TextField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()
+
+    def save(self, *args, **kwargs):
+        self.notebooks_server_hash = hashlib.blake2s(
+            f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
+        ).hexdigest()
+        super().save(*args, **kwargs)
 
     def update_if_has_perm(self, *, principal: User, role: WorkspaceMembershipRole):
         if not principal.has_perm("workspaces.manage_members", self.workspace):
