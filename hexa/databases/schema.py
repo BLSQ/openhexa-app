@@ -58,8 +58,8 @@ def resolve_workspace_database(workspace: Workspace, info, **kwargs):
     return workspace
 
 
-@workspace_mutations.field("generateDatabaseNewPassword")
-def resolve_generate_workspace_database_password(_, info, **kwargs):
+@workspace_mutations.field("generateNewDatabasePassword")
+def resolve_generate_new_database_password(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:

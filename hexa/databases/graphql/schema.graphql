@@ -27,21 +27,21 @@ type DatabaseTablePage {
   items: [DatabaseTable!]!
 }
 
-enum GenerateDatabaseNewPasswordError {
+enum GenerateNewDatabasePasswordError {
   PERMISSION_DENIED
   NOT_FOUND
 }
 
-input GenerateDatabaseNewPasswordInput {
+input GenerateNewDatabasePasswordInput {
   workspaceSlug: String!
 }
 
-type GenerateDatabaseNewPasswordResult {
+type GenerateNewDatabasePasswordResult {
   success: Boolean!
-  errors:[GenerateDatabaseNewPasswordError!]!
+  errors:[GenerateNewDatabasePasswordError!]!
   workspace: Workspace
 }
 
 extend type Mutation {
-  generateDatabaseNewPassword(input: GenerateDatabaseNewPasswordInput!): GenerateDatabaseNewPasswordResult! @loginRequired
+  generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult! @loginRequired
 }
