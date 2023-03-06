@@ -192,9 +192,11 @@ class WorkspaceMembership(models.Model):
     objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()
 
     def save(self, *args, **kwargs):
-        self.notebooks_server_hash = hashlib.blake2s(
-            f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
-        ).hexdigest()
+        if self.notebooks_server_hash == "":
+            self.notebooks_server_hash = hashlib.blake2s(
+                f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
+            ).hexdigest()
+
         super().save(*args, **kwargs)
 
     def update_if_has_perm(self, *, principal: User, role: WorkspaceMembershipRole):
