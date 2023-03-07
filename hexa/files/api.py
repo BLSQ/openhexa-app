@@ -73,7 +73,7 @@ def create_bucket(bucket_name):
 
 def _blob_to_dict(blob: Blob):
     return {
-        "name": blob.name.split("/")[-1],
+        "name": blob.name.split("/")[-2] if _is_dir(blob) else blob.name.split("/")[-1],
         "key": blob.name,
         "path": "/".join([blob.bucket.name, blob.name]),
         "content_type": blob.content_type,
@@ -160,8 +160,8 @@ def delete_object(bucket_name, name):
     if _is_dir(blob):
         blobs = list(bucket.list_blobs(prefix=name))
         bucket.delete_blobs(blobs)
-
-    bucket.delete_blob(name)
+    else:
+        bucket.delete_blob(name)
     return
 
 
