@@ -4,6 +4,7 @@ import typing
 import uuid
 
 import stringcase
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
@@ -18,6 +19,7 @@ from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import create_database, format_db_name, update_database_password
+from hexa.files.api import create_bucket
 from hexa.user_management.models import User
 
 
@@ -43,7 +45,6 @@ class WorkspaceManager(models.Manager):
     def create_if_has_perm(
         self,
         principal: User,
-        *,
         name: str,
         description: str = None,
         countries: typing.Sequence[Country] = None,
@@ -51,8 +52,9 @@ class WorkspaceManager(models.Manager):
         if not principal.has_perm("workspaces.create_workspace"):
             raise PermissionDenied
 
+        slug = create_workspace_slug(name)
         create_kwargs = {"name": name, "description": description}
-        create_kwargs["slug"] = create_workspace_slug(name)
+        create_kwargs["slug"] = slug
         if countries is not None:
             create_kwargs["countries"] = countries
         if description is None:
@@ -66,7 +68,11 @@ class WorkspaceManager(models.Manager):
 
         create_database(db_name, db_password)
 
+        bucket = create_bucket(settings.WORKSPACE_BUCKET_PREFIX + slug)
+        create_kwargs["bucket_name"] = bucket.name
+
         workspace = self.create(**create_kwargs)
+
         WorkspaceMembership.objects.create(
             user=principal, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
         )
@@ -87,7 +93,7 @@ class Workspace(Base):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.TextField()
     slug = models.CharField(
-        max_length=30,
+        max_length=63,
         null=False,
         editable=False,
         validators=[validate_workspace_slug],
@@ -107,6 +113,9 @@ class Workspace(Base):
 
     db_name = models.TextField(null=True)
     db_password = EncryptedTextField(null=True)
+    bucket_name = models.TextField(
+        null=True,
+    )
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 

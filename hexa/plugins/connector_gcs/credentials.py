@@ -2,12 +2,10 @@ import base64
 import json
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured
 
-import hexa.plugins.connector_gcs.models as models
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.pipelines.credentials import PipelinesCredentials
-from hexa.plugins.connector_gcs.api import _build_app_short_lived_credentials
+from hexa.plugins.connector_gcs.api import build_app_short_lived_credentials
 from hexa.plugins.connector_gcs.models import Bucket
 from hexa.user_management.models import PermissionMode
 
@@ -24,18 +22,7 @@ def notebooks_credentials(credentials: NotebooksCredentials):
 
     # We only need to generate GCS credentials if the user has access to one or more buckets
     if read_only_buckets or read_write_buckets:
-
-        try:
-            gcs_credentials = models.Credentials.objects.get()
-        except (
-            models.Credentials.DoesNotExist,
-            models.Credentials.MultipleObjectsReturned,
-        ):
-            raise ImproperlyConfigured(
-                "The GCS connector plugin should have a single credentials entry"
-            )
-
-        token = _build_app_short_lived_credentials(credentials=gcs_credentials)
+        token = build_app_short_lived_credentials()
 
         json_buckets = {
             "buckets": [{"name": b.name, "mode": "RO"} for b in read_only_buckets]
@@ -68,17 +55,7 @@ def pipelines_credentials(credentials: PipelinesCredentials):
         buckets = Bucket.objects.filter_for_user(credentials.pipeline.user)
 
     if buckets:
-        try:
-            gcs_credentials = models.Credentials.objects.get()
-        except (
-            models.Credentials.DoesNotExist,
-            models.Credentials.MultipleObjectsReturned,
-        ):
-            raise ImproperlyConfigured(
-                "The GCS connector plugin should have a single credentials entry"
-            )
-
-        token = _build_app_short_lived_credentials(credentials=gcs_credentials)
+        token = build_app_short_lived_credentials()
         json_buckets = {
             "buckets": [{"name": b.name, "mode": "RW"} for b in buckets],
         }

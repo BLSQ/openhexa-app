@@ -1,4 +1,5 @@
 from hexa.core.test import GraphQLTestCase
+from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
@@ -14,7 +15,9 @@ class ConnectionTest(GraphQLTestCase):
     USER_ADMIN = None
 
     @classmethod
+    @backend.mock_storage
     def setUpTestData(cls):
+        backend.reset()
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
             "standardpassword",

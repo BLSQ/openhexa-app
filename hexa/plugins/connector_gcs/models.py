@@ -25,6 +25,7 @@ from hexa.user_management.models import Permission, PermissionMode
 logger = getLogger(__name__)
 
 
+# FIXME: Deprecated
 class Credentials(Base):
     """We actually only want one set of credentials.
     In the futur (= soon), these "principal" credentials will be then used
@@ -143,7 +144,6 @@ class Bucket(Datasource):
         """Sync the bucket by querying the GoogleCloudStorage API"""
 
         gcs_objects = list_objects_metadata(
-            credentials=self.principal_credentials,
             bucket=self,
         )
 

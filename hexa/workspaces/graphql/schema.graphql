@@ -11,6 +11,7 @@ type Workspace {
   connections: [Connection!]!
 }
 
+
 type WorkspacePermissions {
   update: Boolean!
   delete: Boolean!

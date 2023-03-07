@@ -1,6 +1,7 @@
 import uuid
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -17,6 +18,7 @@ class WorkspaceTest(GraphQLTestCase):
     WORKSPACE = None
 
     @classmethod
+    @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
@@ -65,6 +67,7 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.ADMIN,
         )
 
+    @mock_gcp_storage
     def test_create_workspace_denied(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
@@ -92,6 +95,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
+    @mock_gcp_storage
     def test_create_workspace(self):
         self.client.force_login(self.USER_JULIA)
         r = self.run_query(
@@ -126,6 +130,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
+    @mock_gcp_storage
     def test_create_workspace_with_country(self):
         self.client.force_login(self.USER_JULIA)
         r = self.run_query(
@@ -166,6 +171,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["createWorkspace"],
         )
 
+    @mock_gcp_storage
     def test_get_workspace_not_member(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(

@@ -1,0 +1,108 @@
+extend type Workspace {
+  bucket: Bucket!
+}
+
+
+enum BucketObjectType {
+  FILE
+  DIRECTORY
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: Int
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type BucketObjectPage {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int!
+  items: [BucketObject!]!
+}
+
+type Bucket {
+  name: String!
+  objects(prefix: String, page: Int = 1, perPage: Int = 15): BucketObjectPage!
+  object(key: String!): BucketObject
+}
+
+input DeleteBucketObjectInput {
+  workspaceSlug: String!
+  objectKey: String!
+}
+
+enum DeleteBucketObjectError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type DeleteBucketObjectResult {
+  success: Boolean!
+  errors: [DeleteBucketObjectError!]!
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+}
+
+enum PrepareObjectDownloadError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+
+input PrepareObjectUploadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  contentType: String
+}
+
+enum PrepareObjectUploadError {
+  PERMISSION_DENIED
+}
+
+type PrepareObjectUploadResult {
+  uploadUrl: URL
+  success: Boolean!
+  errors: [PrepareObjectUploadError!]!
+}
+
+
+input CreateBucketFolderInput {
+  workspaceSlug: String!
+  folderKey: String!
+}
+
+enum CreateBucketFolderError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+}
+
+type CreateBucketFolderResult {
+  success: Boolean!
+  errors: [CreateBucketFolderError!]!
+  folder: BucketObject
+}
+
+extend type Mutation {
+  deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+  prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+  createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+}
+
+extend type WorkspacePermissions {
+  createObject: Boolean!
+  deleteObject: Boolean!
+  downloadObject: Boolean!
+}
