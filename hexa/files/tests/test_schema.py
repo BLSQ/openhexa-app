@@ -1,10 +1,6 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import Feature, User
-from hexa.workspaces.models import (
-    Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
-)
+from hexa.workspaces.models import Workspace
 
 from .mocks.mockgcp import backend, mock_gcp_storage
 
@@ -42,18 +38,6 @@ class WorkspaceTest(GraphQLTestCase):
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
-        )
-
-        cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
-            user=cls.USER_EDITOR,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.EDITOR,
-        )
-
-        cls.WORKSPACE_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
-            user=cls.USER_WORKSPACE_ADMIN,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
         )
 
     @mock_gcp_storage
