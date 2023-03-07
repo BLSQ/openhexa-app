@@ -46,12 +46,6 @@ class ViewsTest(TestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        cls.WORKSPACE_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
-            user=cls.USER_JULIA,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
         cls.WORKSPACE_CONNECTION = Connection.objects.create_if_has_perm(
             cls.USER_JULIA,
             cls.WORKSPACE,
@@ -106,4 +100,10 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": workspace_db_url,
             },
+        )
+        self.assertEqual(
+            response_data["notebooks_server_hash"],
+            self.WORKSPACE.workspacemembership_set.get(
+                user=self.USER_JULIA
+            ).notebooks_server_hash,
         )

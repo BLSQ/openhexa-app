@@ -3,7 +3,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
 @require_POST
@@ -17,7 +17,8 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
         workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=workspace_slug
         )
-    except Workspace.DoesNotExist:
+        membership = workspace.workspacemembership_set.get(user=request.user)
+    except (Workspace.DoesNotExist, WorkspaceMembership.DoesNotExist):
         return JsonResponse(
             {},
             status=404,
@@ -49,6 +50,6 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     )
 
     return JsonResponse(
-        {"env": env},
+        {"env": env, "notebooks_server_hash": membership.notebooks_server_hash},
         status=200,
     )

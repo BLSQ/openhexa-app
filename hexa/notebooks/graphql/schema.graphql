@@ -1,12 +1,12 @@
 type NotebookServer {
     name: String!
     url: String!
+    ready: Boolean!
 }
 input LaunchNotebookServerInput {
     workspaceSlug: String!
 }
 enum LaunchNotebookServerError {
-    UNKNOWN_ERROR
     NOT_FOUND
     PERMISSION_DENIED
 }

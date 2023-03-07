@@ -45,12 +45,6 @@ class DatabaseTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        WorkspaceMembership.objects.create(
-            user=cls.USER_JULIA,
-            workspace=cls.WORKSPACE,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
     def test_get_database_tables_empty(self):
         self.client.force_login(self.USER_SABRINA)
         with mock.patch(

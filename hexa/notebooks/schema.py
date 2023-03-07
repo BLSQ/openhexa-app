@@ -1,11 +1,12 @@
 import pathlib
 
-import requests
 from ariadne import MutationType, QueryType, load_schema_from_path
 from django.conf import settings
 from django.http import HttpRequest
 
 from hexa.workspaces.models import Workspace
+
+from .api import create_server, create_user, get_user, server_ready
 
 notebooks_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -38,38 +39,30 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
     if not request.user.has_perm("workspaces.launch_notebooks", workspace):
         return {"success": False, "server": None, "errors": ["PERMISSION_DENIED"]}
 
-    headers = {
-        "Authorization": f"token {settings.HUB_API_TOKEN}",
-    }
-
+    username = request.user.email
+    server_name = workspace_slug
     # Get user, create if needed
-    user_response = requests.get(
-        f"{settings.NOTEBOOKS_API_URL}/users/{request.user.email}", headers=headers
-    )
-    if user_response.status_code == 404:
-        user_response = requests.post(
-            f"{settings.NOTEBOOKS_API_URL}/users/{request.user.email}", headers=headers
-        )
-        if user_response.status_code != 201:
-            return {"success": False, "errors": ["UNKNOWN_ERROR"]}
+    user_data = get_user(username)
+    if user_data is None:
+        create_user(username)
+        user_data = get_user(username)
 
-    if workspace_slug not in user_response.json()["servers"]:
-        server_response = requests.post(
-            f"{settings.NOTEBOOKS_API_URL}/users/{request.user.email}/servers/{workspace_slug}",
-            headers=headers,
-            cookies={
+    if workspace_slug not in user_data["servers"]:
+        create_server(
+            username,
+            server_name,
+            {
                 "sessionid": request.COOKIES.get("sessionid"),
                 "csrftoken": request.COOKIES.get("csrftoken"),
             },
         )
-        if server_response.status_code != 201:
-            return {"success": False, "errors": ["UNKNOWN_ERROR"]}
 
     return {
         "success": True,
         "server": {
             "name": workspace_slug,
             "url": f"{settings.NOTEBOOKS_URL}/user/{request.user.email}/{workspace_slug}/",
+            "ready": server_ready(username, server_name),
         },
         "errors": [],
     }

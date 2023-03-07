@@ -133,10 +133,7 @@ class NotebooksTest(GraphQLTestCase):
             """,
                 {"input": {"workspaceSlug": self.WORKSPACE.slug}},
             )
-            self.assertEqual(
-                {"success": False, "errors": ["UNKNOWN_ERROR"]},
-                r["data"]["launchNotebookServer"],
-            )
+            self.assertEqual(1, len(r["errors"]))
 
     @responses.activate
     def test_launch_workspace_notebook_create_server_failed(self):
@@ -152,7 +149,7 @@ class NotebooksTest(GraphQLTestCase):
             responses.add(
                 responses.POST,
                 f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
-                json={"servers": []},
+                json={"servers": {}},
                 status=201,
                 headers="",
             )
@@ -178,10 +175,7 @@ class NotebooksTest(GraphQLTestCase):
             """,
                 {"input": {"workspaceSlug": self.WORKSPACE.slug}},
             )
-            self.assertEqual(
-                {"success": False, "server": None, "errors": ["UNKNOWN_ERROR"]},
-                r["data"]["launchNotebookServer"],
-            )
+            self.assertEqual(1, len(r["errors"]))
 
     @responses.activate
     def test_launch_workspace_notebook(self):
@@ -190,6 +184,7 @@ class NotebooksTest(GraphQLTestCase):
             NOTEBOOKS_URL="http://localhost:8000",
         ):
             self.client.force_login(self.USER_JULIA)
+            # First GET user -> 404
             responses.add(
                 responses.GET,
                 f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
@@ -197,14 +192,54 @@ class NotebooksTest(GraphQLTestCase):
                 status=404,
                 headers="",
             )
+            # Create user
             responses.add(
                 responses.POST,
                 f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
-                json={"servers": [self.WORKSPACE.slug]},
                 status=201,
                 headers="",
             )
+            # Create server
+            responses.add(
+                responses.POST,
+                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}/servers/{self.WORKSPACE.slug}",
+                status=202,
+                headers="",
+            )
+            # Second GET user (after creation) -> ok but no server
+            responses.add(
+                responses.GET,
+                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                json={"servers": {}},
+                status=200,
+                headers="",
+            )
+            # Third GET user (for server_ready) -> ok, server not ready
+            responses.add(
+                responses.GET,
+                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                json={"servers": {self.WORKSPACE.slug: {"ready": False}}},
+                status=200,
+                headers="",
+            )
+            # Fourth GET user (second mutation call) -> ok, ready
+            responses.add(
+                responses.GET,
+                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                json={"servers": {self.WORKSPACE.slug: {"ready": True}}},
+                status=200,
+                headers="",
+            )
+            # Fifth GET user (second mutation call, for server_ready) -> ok, ready
+            responses.add(
+                responses.GET,
+                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                json={"servers": {self.WORKSPACE.slug: {"ready": True}}},
+                status=200,
+                headers="",
+            )
 
+            # First call, server not ready
             r = self.run_query(
                 """
                 mutation launchNotebookServer($input: LaunchNotebookServerInput!) {
@@ -213,6 +248,7 @@ class NotebooksTest(GraphQLTestCase):
                         server {
                             name
                             url
+                            ready
                         }
                         errors
                     }
@@ -226,6 +262,37 @@ class NotebooksTest(GraphQLTestCase):
                     "server": {
                         "name": self.WORKSPACE.slug,
                         "url": f"{settings.NOTEBOOKS_URL}/user/{self.USER_JULIA.email}/{self.WORKSPACE.slug}/",
+                        "ready": False,
+                    },
+                    "errors": [],
+                },
+                r["data"]["launchNotebookServer"],
+            )
+
+            # Second call, server ready
+            r = self.run_query(
+                """
+                mutation launchNotebookServer($input: LaunchNotebookServerInput!) {
+                    launchNotebookServer(input: $input) {
+                        success
+                        server {
+                            name
+                            url
+                            ready
+                        }
+                        errors
+                    }
+                }
+            """,
+                {"input": {"workspaceSlug": self.WORKSPACE.slug}},
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "server": {
+                        "name": self.WORKSPACE.slug,
+                        "url": f"{settings.NOTEBOOKS_URL}/user/{self.USER_JULIA.email}/{self.WORKSPACE.slug}/",
+                        "ready": True,
                     },
                     "errors": [],
                 },
