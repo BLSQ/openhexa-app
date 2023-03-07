@@ -119,15 +119,6 @@ const LoginPage: NextPageWithLayout = () => {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             {t("Sign in")}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t("No account yet?")}&nbsp;
-            <a
-              href="mailto:pvanliefland@bluesquarehub.com?subject=Hexa: access request"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              {t("Contact us!")}
-            </a>
-          </p>
         </div>
         {showOTPForm ? (
           <>
