@@ -194,7 +194,7 @@ type Connection {
   createdAt: DateTime!
   updatedAt: DateTime
   type: ConnectionType!
-  user: User!
+  user: User
   fields: [ConnectionField!]!
   permissions: ConnectionPermissions!
 }
