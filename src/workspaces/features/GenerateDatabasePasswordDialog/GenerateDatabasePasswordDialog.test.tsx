@@ -1,35 +1,35 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
-  UpdateWorkspaceDocument,
-  useUpdateWorkspaceMutation,
+  GenerateNewDatabasePasswordDocument,
+  useGenerateNewDatabasePasswordMutation,
 } from "workspaces/graphql/mutations.generated";
 import { TestApp } from "core/helpers/testutils";
-import WorkspaceDescriptionDialog from "./UpdateDescriptionDialog";
+import GenerateWorkspaceDatabasePasswordDialog from ".";
 import { faker } from "@faker-js/faker";
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
   __esModule: true,
-  useUpdateWorkspaceMutation: jest.fn().mockReturnValue([]),
+  useGenerateNewDatabasePasswordMutation: jest.fn().mockReturnValue([]),
 }));
 
 const WORKSPACE = {
   slug: faker.datatype.uuid(),
-  name: faker.commerce.productName(),
 };
 
-const useUpdateWorkspaceMutationMock = useUpdateWorkspaceMutation as jest.Mock;
+const useGenerateDatabasePasswordMutationMock =
+  useGenerateNewDatabasePasswordMutation as jest.Mock;
 
-describe("EditWorkspaceDescriptionDialog", () => {
+describe("GenerateDatabasePasswordDialog", () => {
   const onClose = jest.fn();
   beforeEach(() => {
-    useUpdateWorkspaceMutationMock.mockClear();
+    useGenerateDatabasePasswordMutationMock.mockClear();
   });
 
   it("is not displayed ", async () => {
     const { container } = render(
-      <WorkspaceDescriptionDialog
+      <GenerateWorkspaceDatabasePasswordDialog
         workspace={WORKSPACE}
         open={false}
         onClose={() => {}}
@@ -44,7 +44,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
   it("is displayed when open is true", async () => {
     const { container } = render(
       <TestApp mocks={[]}>
-        <WorkspaceDescriptionDialog
+        <GenerateWorkspaceDatabasePasswordDialog
           workspace={WORKSPACE}
           open={true}
           onClose={() => {}}
@@ -58,28 +58,28 @@ describe("EditWorkspaceDescriptionDialog", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("Edit workspace description", async () => {
-    const { useUpdateWorkspaceMutation } = jest.requireActual(
+  it("Generate new database password", async () => {
+    const { useGenerateNewDatabasePasswordMutation } = jest.requireActual(
       "workspaces/graphql/mutations.generated"
     );
-    useUpdateWorkspaceMutationMock.mockImplementation(
-      useUpdateWorkspaceMutation
+    useGenerateDatabasePasswordMutationMock.mockImplementation(
+      useGenerateNewDatabasePasswordMutation
     );
 
     const user = userEvent.setup();
     const mocks = [
       {
         request: {
-          query: UpdateWorkspaceDocument,
+          query: GenerateNewDatabasePasswordDocument,
           variables: {
             input: {
-              slug: WORKSPACE.slug,
+              workspaceSlug: WORKSPACE.slug,
             },
           },
         },
         result: {
           data: {
-            update: {
+            generateNewDatabasePassword: {
               success: true,
               errors: [],
             },
@@ -90,7 +90,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
 
     const { container } = render(
       <TestApp mocks={mocks}>
-        <WorkspaceDescriptionDialog
+        <GenerateWorkspaceDatabasePasswordDialog
           workspace={WORKSPACE}
           open={true}
           onClose={() => {}}
@@ -98,16 +98,9 @@ describe("EditWorkspaceDescriptionDialog", () => {
       </TestApp>
     );
 
-    const descriptionInput = await screen.getByTestId("description");
-    await user.clear(descriptionInput);
-
-    const saveButton = screen.getByRole("button", { name: "Save" });
-    expect(saveButton).toBeDisabled();
-    await user.type(descriptionInput, "Description");
-    expect(saveButton).not.toBeDisabled();
-
+    const saveButton = screen.getByRole("button", { name: "Generate" });
     await user.click(saveButton);
 
-    expect(useUpdateWorkspaceMutationMock).toHaveBeenCalled();
+    expect(useGenerateDatabasePasswordMutationMock).toHaveBeenCalled();
   });
 });

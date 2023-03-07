@@ -1,5 +1,6 @@
 import { TableCellsIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import Link from "core/components/Link";
@@ -8,6 +9,8 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import GenerateWorkspaceDatabasePasswordDialog from "workspaces/features/GenerateDatabasePasswordDialog";
 import {
   useWorkspaceDatabasesPageQuery,
   WorkspaceDatabasesPageDocument,
@@ -20,10 +23,12 @@ type Props = {
 };
 
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
-  const { t } = useTranslation();
   const router = useRouter();
-
   const workspaceSlug = router.query.workspaceSlug as string;
+
+  const { t } = useTranslation();
+  const [isDialog, setIsDialogOpen] = useState(false);
+
   const { data, refetch } = useWorkspaceDatabasesPageQuery({
     variables: { workspaceSlug: workspaceSlug },
   });
@@ -43,7 +48,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
+      <WorkspaceLayout.Header className="flex items-center justify-between">
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part
             isFirst
@@ -58,6 +63,11 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             {t("Database")}
           </Breadcrumbs.Part>
         </Breadcrumbs>
+        {workspace.permissions.update && (
+          <Button onClick={() => setIsDialogOpen(true)}>
+            {t("Regenerate password")}
+          </Button>
+        )}
       </WorkspaceLayout.Header>
       <WorkspaceLayout.PageContent className="space-y-8">
         <DataGrid
@@ -117,6 +127,11 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             })}
           />
         </DataGrid>
+        <GenerateWorkspaceDatabasePasswordDialog
+          open={isDialog}
+          onClose={() => setIsDialogOpen(false)}
+          workspace={workspace}
+        />
       </WorkspaceLayout.PageContent>
     </Page>
   );

@@ -71,6 +71,9 @@ query WorkspaceDatabasesPage($workspaceSlug: String!,$page: Int, $perPage: Int) 
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      update
+    }
     database {
       tables(page: $page, perPage: $perPage) {
         totalPages

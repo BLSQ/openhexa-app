@@ -66,7 +66,7 @@ export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, count?: number | null }> } } } | null };
+export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean }, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, count?: number | null }> } } } | null };
 
 export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -373,6 +373,9 @@ export const WorkspaceDatabasesPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      update
+    }
     database {
       tables(page: $page, perPage: $perPage) {
         totalPages

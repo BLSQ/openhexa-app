@@ -1176,6 +1176,22 @@ export type GenerateChallengeResult = {
   success: Scalars['Boolean'];
 };
 
+export enum GenerateNewDatabasePasswordError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type GenerateNewDatabasePasswordInput = {
+  workspaceSlug: Scalars['String'];
+};
+
+export type GenerateNewDatabasePasswordResult = {
+  __typename?: 'GenerateNewDatabasePasswordResult';
+  errors: Array<GenerateNewDatabasePasswordError>;
+  success: Scalars['Boolean'];
+  workspace?: Maybe<Workspace>;
+};
+
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String'];
@@ -1352,6 +1368,7 @@ export type Mutation = {
   disableTwoFactor: DisableTwoFactorResult;
   enableTwoFactor: EnableTwoFactorResult;
   generateChallenge: GenerateChallengeResult;
+  generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
@@ -1535,6 +1552,11 @@ export type MutationDisableTwoFactorArgs = {
 
 export type MutationEnableTwoFactorArgs = {
   input?: InputMaybe<EnableTwoFactorInput>;
+};
+
+
+export type MutationGenerateNewDatabasePasswordArgs = {
+  input: GenerateNewDatabasePasswordInput;
 };
 
 

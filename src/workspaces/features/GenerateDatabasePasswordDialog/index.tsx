@@ -1,0 +1,3 @@
+import GenerateWorkspaceDatabasePasswordDialog from "./GenerateDatabasePasswordDialog";
+
+export default GenerateWorkspaceDatabasePasswordDialog;
