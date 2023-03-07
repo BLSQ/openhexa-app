@@ -29,43 +29,45 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header className="flex items-center gap-2">
-        <Breadcrumbs withHome={false} className="flex-1">
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
-          >
-            {t("Pipelines")}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        <Button leadingIcon={<PlusIcon className="h-4 w-4" />}>
-          {t("Create")}
-        </Button>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent>
-        <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-          {FAKE_WORKSPACE.dags.map((dag, index) => (
-            <PipelineCard
-              workspaceSlug={workspace.slug}
-              key={index}
-              dag={dag}
-            />
-          ))}
-        </div>
-      </WorkspaceLayout.PageContent>
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header className="flex items-center gap-2">
+          <Breadcrumbs withHome={false} className="flex-1">
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines`}
+            >
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+          <Button leadingIcon={<PlusIcon className="h-4 w-4" />}>
+            {t("Create")}
+          </Button>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent>
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+            {FAKE_WORKSPACE.dags.map((dag, index) => (
+              <PipelineCard
+                workspaceSlug={workspace.slug}
+                key={index}
+                dag={dag}
+              />
+            ))}
+          </div>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspacePipelinesPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspacePipelinesPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -74,6 +76,7 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspacePipelinesPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
+    await WorkspaceLayout.prefetch(client);
 
     if (!data.workspace) {
       return {

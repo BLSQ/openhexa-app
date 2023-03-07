@@ -6,8 +6,8 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { LaunchNotebookServerDocument } from "workspaces/graphql/mutations.generated";
 import {
-  WorkspacePageDocument,
-  WorkspacePageQuery,
+  useWorkspaceNotebooksPageQuery,
+  WorkspaceNotebooksPageDocument,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -19,6 +19,14 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const workspaceSlug = router.query.workspaceSlug as string;
+  const { data } = useWorkspaceNotebooksPageQuery({
+    variables: { workspaceSlug },
+  });
+
+  if (!data?.workspace) {
+    return null;
+  }
+
   if (!props.notebooksUrl) {
     return (
       <Alert
@@ -37,31 +45,26 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <iframe
-        className="h-full w-full flex-1"
-        src={props.notebooksUrl}
-      ></iframe>
+      <WorkspaceLayout workspace={data.workspace} className="min-h-screen">
+        <iframe
+          className="h-full w-full flex-1"
+          src={props.notebooksUrl}
+        ></iframe>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspaceNotebooksPage.getLayout = (page, pageProps) => {
-  return (
-    <WorkspaceLayout mainClassName="min-h-screen" pageProps={pageProps}>
-      {page}
-    </WorkspaceLayout>
-  );
-};
+WorkspaceNotebooksPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
-    const { data } = await client.query<WorkspacePageQuery>({
-      query: WorkspacePageDocument,
-      variables: {
-        slug: ctx.params?.workspaceSlug,
-      },
+    const { data } = await client.query({
+      query: WorkspaceNotebooksPageDocument,
+      variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
+    await WorkspaceLayout.prefetch(client);
 
     if (!data.workspace) {
       return {

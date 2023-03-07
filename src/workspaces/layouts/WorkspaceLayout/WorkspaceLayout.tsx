@@ -1,34 +1,41 @@
+import { gql } from "@apollo/client";
 import clsx from "clsx";
-import { useRouter } from "next/router";
+import { CustomApolloClient } from "core/helpers/apollo";
 import type { ReactElement } from "react";
 import Header from "./Header";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
+import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
 
 type WorkspaceLayoutProps = {
-  children: ReactElement;
-  mainClassName?: string;
-  pageProps: any;
+  children: ReactElement | ReactElement[];
+  className?: string;
+  workspace: WorkspaceLayout_WorkspaceFragment;
 };
 
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
-  const { children, mainClassName } = props;
-  const router = useRouter();
-
-  const workspaceSlug = router.query.workspaceSlug as string;
-
-  if (!workspaceSlug) {
-    return null;
-  }
+  const { children, className, workspace } = props;
 
   return (
     <>
-      <Sidebar workspaceSlug={workspaceSlug} />
-      <main className={clsx("flex flex-col pl-64", mainClassName)}>
-        {children}
-      </main>
+      <Sidebar workspace={workspace} />
+      <main className={clsx("flex flex-col pl-64", className)}>{children}</main>
     </>
   );
+};
+
+WorkspaceLayout.fragments = {
+  workspace: gql`
+    fragment WorkspaceLayout_workspace on Workspace {
+      slug
+      ...Sidebar_workspace
+    }
+    ${Sidebar.fragments.workspace}
+  `,
+};
+
+WorkspaceLayout.prefetch = async (client: CustomApolloClient) => {
+  await Sidebar.prefetch(client);
 };
 
 WorkspaceLayout.PageContent = PageContent;

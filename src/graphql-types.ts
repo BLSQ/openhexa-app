@@ -367,6 +367,48 @@ export type Avatar = {
   initials: Scalars['String'];
 };
 
+export type Bucket = {
+  __typename?: 'Bucket';
+  name: Scalars['String'];
+  object?: Maybe<BucketObject>;
+  objects: BucketObjectPage;
+};
+
+
+export type BucketObjectArgs = {
+  key: Scalars['String'];
+};
+
+
+export type BucketObjectsArgs = {
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+  prefix?: InputMaybe<Scalars['String']>;
+};
+
+export type BucketObject = {
+  __typename?: 'BucketObject';
+  key: Scalars['String'];
+  name: Scalars['String'];
+  path: Scalars['String'];
+  size?: Maybe<Scalars['Int']>;
+  type: BucketObjectType;
+  updatedAt?: Maybe<Scalars['DateTime']>;
+};
+
+export type BucketObjectPage = {
+  __typename?: 'BucketObjectPage';
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+  items: Array<BucketObject>;
+  pageNumber: Scalars['Int'];
+};
+
+export enum BucketObjectType {
+  Directory = 'DIRECTORY',
+  File = 'FILE'
+}
+
 export type CatalogEntry = {
   __typename?: 'CatalogEntry';
   countries: Array<Country>;
@@ -469,7 +511,7 @@ export type Connection = {
   slug: Scalars['String'];
   type: ConnectionType;
   updatedAt?: Maybe<Scalars['DateTime']>;
-  user: User;
+  user?: Maybe<User>;
 };
 
 export type ConnectionField = {
@@ -625,6 +667,23 @@ export type CreateAccessmodZonalStatisticsResult = {
   __typename?: 'CreateAccessmodZonalStatisticsResult';
   analysis?: Maybe<AccessmodZonalStatistics>;
   errors: Array<CreateAccessmodZonalStatisticsError>;
+  success: Scalars['Boolean'];
+};
+
+export enum CreateBucketFolderError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type CreateBucketFolderInput = {
+  folderKey: Scalars['String'];
+  workspaceSlug: Scalars['String'];
+};
+
+export type CreateBucketFolderResult = {
+  __typename?: 'CreateBucketFolderResult';
+  errors: Array<CreateBucketFolderError>;
+  folder?: Maybe<BucketObject>;
   success: Scalars['Boolean'];
 };
 
@@ -978,6 +1037,22 @@ export type DeleteAccessmodProjectResult = {
   success: Scalars['Boolean'];
 };
 
+export enum DeleteBucketObjectError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteBucketObjectInput = {
+  objectKey: Scalars['String'];
+  workspaceSlug: Scalars['String'];
+};
+
+export type DeleteBucketObjectResult = {
+  __typename?: 'DeleteBucketObjectResult';
+  errors: Array<DeleteBucketObjectError>;
+  success: Scalars['Boolean'];
+};
+
 export enum DeleteCollectionElementError {
   Invalid = 'INVALID',
   NotFound = 'NOT_FOUND'
@@ -1229,8 +1304,7 @@ export type LaunchAccessmodAnalysisResult = {
 
 export enum LaunchNotebookServerError {
   NotFound = 'NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED',
-  UnknownError = 'UNKNOWN_ERROR'
+  PermissionDenied = 'PERMISSION_DENIED'
 }
 
 export type LaunchNotebookServerInput = {
@@ -1345,6 +1419,7 @@ export type Mutation = {
   createAccessmodProject: CreateAccessmodProjectResult;
   createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
+  createBucketFolder: CreateBucketFolderResult;
   createCollection: CreateCollectionResult;
   createCollectionElement: CreateCollectionElementResult;
   createConnection: CreateConnectionResult;
@@ -1356,6 +1431,7 @@ export type Mutation = {
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
+  deleteBucketObject: DeleteBucketObjectResult;
   deleteCollection: DeleteCollectionResult;
   deleteCollectionElement: DeleteCollectionElementResult;
   deleteConnection: DeleteConnectionResult;
@@ -1380,6 +1456,8 @@ export type Mutation = {
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
   prepareAccessmodFilesetVisualizationDownload: PrepareAccessmodFilesetVisualizationDownloadResult;
   prepareDownloadURL?: Maybe<PrepareDownloadUrlResult>;
+  prepareObjectDownload: PrepareObjectDownloadResult;
+  prepareObjectUpload: PrepareObjectUploadResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resetPassword: ResetPasswordResult;
   runDAG: RunDagResult;
@@ -1445,6 +1523,11 @@ export type MutationCreateAccessmodZonalStatisticsArgs = {
 };
 
 
+export type MutationCreateBucketFolderArgs = {
+  input: CreateBucketFolderInput;
+};
+
+
 export type MutationCreateCollectionArgs = {
   input: CreateCollectionInput;
 };
@@ -1497,6 +1580,11 @@ export type MutationDeleteAccessmodProjectArgs = {
 
 export type MutationDeleteAccessmodProjectMemberArgs = {
   input: DeleteAccessmodProjectMemberInput;
+};
+
+
+export type MutationDeleteBucketObjectArgs = {
+  input: DeleteBucketObjectInput;
 };
 
 
@@ -1607,6 +1695,16 @@ export type MutationPrepareAccessmodFilesetVisualizationDownloadArgs = {
 
 export type MutationPrepareDownloadUrlArgs = {
   input: PrepareDownloadUrlInput;
+};
+
+
+export type MutationPrepareObjectDownloadArgs = {
+  input: PrepareObjectDownloadInput;
+};
+
+
+export type MutationPrepareObjectUploadArgs = {
+  input: PrepareObjectUploadInput;
 };
 
 
@@ -1722,6 +1820,7 @@ export type MutationVerifyDeviceArgs = {
 export type NotebookServer = {
   __typename?: 'NotebookServer';
   name: Scalars['String'];
+  ready: Scalars['Boolean'];
   url: Scalars['String'];
 };
 
@@ -1899,6 +1998,40 @@ export type PrepareDownloadUrlResult = {
   __typename?: 'PrepareDownloadURLResult';
   success: Scalars['Boolean'];
   url?: Maybe<Scalars['URL']>;
+};
+
+export enum PrepareObjectDownloadError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type PrepareObjectDownloadInput = {
+  objectKey: Scalars['String'];
+  workspaceSlug: Scalars['String'];
+};
+
+export type PrepareObjectDownloadResult = {
+  __typename?: 'PrepareObjectDownloadResult';
+  downloadUrl?: Maybe<Scalars['URL']>;
+  errors: Array<PrepareObjectDownloadError>;
+  success: Scalars['Boolean'];
+};
+
+export enum PrepareObjectUploadError {
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type PrepareObjectUploadInput = {
+  contentType?: InputMaybe<Scalars['String']>;
+  objectKey: Scalars['String'];
+  workspaceSlug: Scalars['String'];
+};
+
+export type PrepareObjectUploadResult = {
+  __typename?: 'PrepareObjectUploadResult';
+  errors: Array<PrepareObjectUploadError>;
+  success: Scalars['Boolean'];
+  uploadUrl?: Maybe<Scalars['URL']>;
 };
 
 export type Query = {
@@ -2645,6 +2778,7 @@ export type WhoRegion = {
 
 export type Workspace = {
   __typename?: 'Workspace';
+  bucket: Bucket;
   connections: Array<Connection>;
   countries: Array<Country>;
   createdAt: Scalars['DateTime'];
@@ -2699,7 +2833,10 @@ export type WorkspacePage = {
 export type WorkspacePermissions = {
   __typename?: 'WorkspacePermissions';
   createConnection: Scalars['Boolean'];
+  createObject: Scalars['Boolean'];
   delete: Scalars['Boolean'];
+  deleteObject: Scalars['Boolean'];
+  downloadObject: Scalars['Boolean'];
   manageMembers: Scalars['Boolean'];
   update: Scalars['Boolean'];
 };

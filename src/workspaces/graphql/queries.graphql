@@ -30,6 +30,7 @@ query WorkspacePage($slug: String!) {
     ...DeleteWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...UpdateWorkspaceDescription_workspace
+    ...WorkspaceLayout_workspace
   }
 }
 
@@ -37,6 +38,14 @@ query WorkspacePipelinesPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
+  }
+}
+query WorkspaceNotebooksPage($workspaceSlug: String!) {
+  notebooksUrl
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...WorkspaceLayout_workspace
   }
 }
 
@@ -44,6 +53,7 @@ query WorkspacePipelinePage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
 
@@ -51,23 +61,49 @@ query WorkspacePipelineStartPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
 query WorkspacePipelineRunPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
 
-query WorkspaceFilesPage($workspaceSlug: String!) {
+query WorkspaceFilesPage(
+  $workspaceSlug: String!
+  $page: Int!
+  $perPage: Int!
+  $prefix: String!
+  $withDirectory: Boolean!
+) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...BucketExplorer_workspace
+    ...WorkspaceLayout_workspace
+    ...UploadObjectDialog_workspace
+    ...CreateBucketFolderDialog_workspace
+    ...BucketExplorer_workspace
+
+    bucket {
+      objects(page: $page, prefix: $prefix, perPage: $perPage) {
+        ...BucketExplorer_objects
+      }
+      directory: object(key: $prefix) @include(if: $withDirectory) {
+        ...BucketExplorer_directory
+      }
+    }
   }
 }
 
-query WorkspaceDatabasesPage($workspaceSlug: String!,$page: Int, $perPage: Int) {
+query WorkspaceDatabasesPage(
+  $workspaceSlug: String!
+  $page: Int
+  $perPage: Int
+) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -84,10 +120,11 @@ query WorkspaceDatabasesPage($workspaceSlug: String!,$page: Int, $perPage: Int) 
         }
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
 
-query WorkspaceDatabaseTablePage($workspaceSlug: String!,$tableName: String!) {
+query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -101,6 +138,7 @@ query WorkspaceDatabaseTablePage($workspaceSlug: String!,$tableName: String!) {
         }
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
 
@@ -124,6 +162,7 @@ query ConnectionsPage($workspaceSlug: String!) {
         delete
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
 
@@ -131,6 +170,7 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
   connection(id: $connectionId) {
     id

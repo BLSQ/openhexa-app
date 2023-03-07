@@ -40,44 +40,45 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header className="flex items-center justify-between">
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        {workspace.permissions.update && (
-          <Button onClick={() => setIsDialogOpen(true)}>{t("Edit")}</Button>
-        )}
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent>
-        <Block>
-          <Block.Content>
-            <MarkdownViewer>{workspace.description || ""}</MarkdownViewer>
-          </Block.Content>
-        </Block>
-      </WorkspaceLayout.PageContent>
-      <UpdateDescriptionDialog
-        open={isDialogOpen}
-        workspace={workspace}
-        onClose={() => {
-          setIsDialogOpen(false);
-        }}
-      />
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header className="flex items-center justify-between">
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+          {workspace.permissions.update && (
+            <Button onClick={() => setIsDialogOpen(true)}>{t("Edit")}</Button>
+          )}
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent>
+          <Block>
+            <Block.Content>
+              <MarkdownViewer>{workspace.description || ""}</MarkdownViewer>
+            </Block.Content>
+          </Block>
+        </WorkspaceLayout.PageContent>
+        <UpdateDescriptionDialog
+          open={isDialogOpen}
+          workspace={workspace}
+          onClose={() => {
+            setIsDialogOpen(false);
+          }}
+        />
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspaceHome.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspaceHome.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query<WorkspacePageQuery>({
       query: WorkspacePageDocument,
       variables: {

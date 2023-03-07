@@ -18,24 +18,23 @@ import {
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
-  page: number;
-  perPage: number;
+  workspaceSlug: string;
+  page?: number;
 };
 
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
-  const workspaceSlug = router.query.workspaceSlug as string;
 
   const { t } = useTranslation();
   const [isDialog, setIsDialogOpen] = useState(false);
 
   const { data, refetch } = useWorkspaceDatabasesPageQuery({
-    variables: { workspaceSlug: workspaceSlug },
+    variables: { workspaceSlug: props.workspaceSlug, page: props.page },
   });
 
   const onChangePage = ({ page }: { page: number }) => {
     refetch({
-      workspaceSlug: workspaceSlug,
+      workspaceSlug: props.workspaceSlug,
       page,
     });
   };
@@ -48,105 +47,114 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header className="flex items-center justify-between">
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/databases`}
-          >
-            {t("Database")}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        {workspace.permissions.update && (
-          <Button onClick={() => setIsDialogOpen(true)}>
-            {t("Regenerate password")}
-          </Button>
-        )}
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent className="space-y-8">
-        <DataGrid
-          className="overflow-hidden rounded-md bg-white shadow"
-          data={tables.items}
-          defaultPageSize={15}
-          sortable
-          totalItems={tables.totalItems}
-          fixedLayout={false}
-          fetchData={onChangePage}
-        >
-          <BaseColumn
-            className="max-w-[50ch] py-3"
-            textClassName="font-medium text-gray-600"
-            id="name"
-            label="Name"
-          >
-            {(value) => (
-              <Link
-                href={{
-                  pathname: "/workspaces/[workspaceSlug]/databases/[tableId]",
-                  query: { workspaceSlug: workspace.slug, tableId: value.name },
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <TableCellsIcon className="h-6 w-6 text-gray-500" />
-                  <span className="font-medium text-gray-700">
-                    {value.name}
-                  </span>
-                </div>
-              </Link>
-            )}
-          </BaseColumn>
-          <BaseColumn
-            className="py-3"
-            accessor="count"
-            id="content"
-            label={t("# Rows")}
-          >
-            {(value) => (
-              <span>
-                {t("Approx. {{count}} row", {
-                  count: value,
-                  plural: "Approx. {{count}} rows",
-                })}
-              </span>
-            )}
-          </BaseColumn>
-          <ChevronLinkColumn
-            maxWidth="100"
-            accessor="name"
-            url={(value: any) => ({
-              pathname: `/workspaces/${encodeURIComponent(
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header className="flex items-center justify-between">
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
                 workspace.slug
-              )}/databases/[tableId]`,
-              query: { tableId: value },
-            })}
+              )}/databases`}
+            >
+              {t("Database")}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+          {workspace.permissions.update && (
+            <Button onClick={() => setIsDialogOpen(true)}>
+              {t("Regenerate password")}
+            </Button>
+          )}
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent className="space-y-8">
+          <DataGrid
+            className="overflow-hidden rounded-md bg-white shadow"
+            data={tables.items}
+            defaultPageSize={15}
+            sortable
+            totalItems={tables.totalItems}
+            fixedLayout={false}
+            fetchData={onChangePage}
+          >
+            <BaseColumn
+              className="max-w-[50ch] py-3"
+              textClassName="font-medium text-gray-600"
+              id="name"
+              label="Name"
+            >
+              {(value) => (
+                <Link
+                  href={{
+                    pathname: "/workspaces/[workspaceSlug]/databases/[tableId]",
+                    query: {
+                      workspaceSlug: workspace.slug,
+                      tableId: value.name,
+                    },
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <TableCellsIcon className="h-6 w-6 text-gray-500" />
+                    <span className="font-medium text-gray-700">
+                      {value.name}
+                    </span>
+                  </div>
+                </Link>
+              )}
+            </BaseColumn>
+            <BaseColumn
+              className="py-3"
+              accessor="count"
+              id="content"
+              label={t("# Rows")}
+            >
+              {(value) => (
+                <span>
+                  {t("Approx. {{count}} row", {
+                    count: value,
+                    plural: "Approx. {{count}} rows",
+                  })}
+                </span>
+              )}
+            </BaseColumn>
+            <ChevronLinkColumn
+              maxWidth="100"
+              accessor="name"
+              url={(value: any) => ({
+                pathname: `/workspaces/${encodeURIComponent(
+                  workspace.slug
+                )}/databases/[tableId]`,
+                query: { tableId: value },
+              })}
+            />
+          </DataGrid>
+          <GenerateWorkspaceDatabasePasswordDialog
+            open={isDialog}
+            onClose={() => setIsDialogOpen(false)}
+            workspace={workspace}
           />
-        </DataGrid>
-        <GenerateWorkspaceDatabasePasswordDialog
-          open={isDialog}
-          onClose={() => setIsDialogOpen(false)}
-          workspace={workspace}
-        />
-      </WorkspaceLayout.PageContent>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspaceDatabasesPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspaceDatabasesPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: WorkspaceDatabasesPageDocument,
-      variables: { workspaceSlug: ctx.params?.workspaceSlug },
+      variables: {
+        workspaceSlug: ctx.params?.workspaceSlug,
+        page: ctx.query.page ?? 1,
+      },
     });
 
     if (!data.workspace) {
@@ -154,6 +162,9 @@ export const getServerSideProps = createGetServerSideProps({
         notFound: true,
       };
     }
+    return {
+      props: { workspaceSlug: data.workspace.slug, page: ctx.query.page ?? 1 },
+    };
   },
 });
 

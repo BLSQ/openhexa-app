@@ -40,59 +40,63 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/pipelines`}
-          >
-            {t("Pipelines")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/pipelines/${encodeURIComponent(dag.id)}`}
-          >
-            {dag.label}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent>
-        <Block className="p-4">
-          <div>
-            <Title level={2}>{capitalize(dag.label)}</Title>
-            <p className="truncate text-sm text-gray-700">{dag.description}</p>
-          </div>
-          <div className="mt-5 grid grid-cols-3 sm:grid-cols-3 ">
-            <div className="col-span-2 border-2 border-solid p-2 ">
-              <IHPForm />
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header>
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines`}
+            >
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines/${encodeURIComponent(dag.id)}`}
+            >
+              {dag.label}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent>
+          <Block className="p-4">
+            <div>
+              <Title level={2}>{capitalize(dag.label)}</Title>
+              <p className="truncate text-sm text-gray-700">
+                {dag.description}
+              </p>
             </div>
-            <div className="border-2 border-solid p-4">
-              <div>
-                <Title level={5}>{t("Usage")}</Title>
-                <p>{dag.description}</p>
+            <div className="mt-5 grid grid-cols-3 sm:grid-cols-3 ">
+              <div className="col-span-2 border-2 border-solid p-2 ">
+                <IHPForm />
               </div>
-              <div className="mt-5">
-                <Title level={5}>{t("Parameters")}</Title>
-                <p>Parameter 1 : Definition 1</p>
-                <p>Parameter 2 : Definition 2</p>
+              <div className="border-2 border-solid p-4">
+                <div>
+                  <Title level={5}>{t("Usage")}</Title>
+                  <p>{dag.description}</p>
+                </div>
+                <div className="mt-5">
+                  <Title level={5}>{t("Parameters")}</Title>
+                  <p>Parameter 1 : Definition 1</p>
+                  <p>Parameter 2 : Definition 2</p>
+                </div>
               </div>
             </div>
-          </div>
-        </Block>
-      </WorkspaceLayout.PageContent>
+          </Block>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspacePipelineRunPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspacePipelineRunPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -101,6 +105,7 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspacePipelineStartPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
+    await WorkspaceLayout.prefetch(client);
 
     if (!data.workspace) {
       return {

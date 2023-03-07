@@ -62,75 +62,73 @@ const WorkspacePipelineRunDetailsPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/pipelines}`}
-          >
-            {t("Pipelines")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/pipelines/${encodeURIComponent(dag.id)}`}
-          >
-            {dag.label}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast
-            href={{
-              pathname: "/pipelines/[pipelineId]/runs/[runId]",
-              query: { pipelineId: dag.id, runId: dagRun.id },
-            }}
-          >
-            {getPipelineRunLabel(dagRun, dag)}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent>
-        <Block className="divide-y-2 divide-gray-100">
-          <Block.Header>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center">
-                  <div className="w-full truncate">
-                    <div className="truncate text-sm font-medium text-gray-900">
-                      {getPipelineRunLabel(dagRun, dag)}
-                    </div>
-                    <div className="mt-1.5 text-sm font-normal text-gray-500">
-                      {dagRun.status === DagRunStatus.Success &&
-                        t("succeeded {{relativeTime}} on ", {
-                          relativeTime: DateTime.fromISO(
-                            dagRun.executionDate
-                          ).toLocaleString(DateTime.DATETIME_SHORT),
-                        })}
-                      {dagRun.status === DagRunStatus.Failed &&
-                        t("failed {{relativeTime}} on", {
-                          relativeTime: DateTime.fromISO(
-                            dagRun.executionDate
-                          ).toLocaleString(DateTime.DATETIME_SHORT),
-                        })}
-                      {dagRun.status === DagRunStatus.Queued &&
-                        t("queued {{relativeTime}}", {
-                          relativeTime: DateTime.fromISO(
-                            dagRun.executionDate
-                          ).toLocaleString(DateTime.DATETIME_SHORT),
-                        })}
-                      {dagRun.status === DagRunStatus.Running &&
-                        t("started {{relativeTime}}", {
-                          relativeTime: DateTime.fromISO(
-                            dagRun.executionDate
-                          ).toLocaleString(DateTime.DATETIME_SHORT),
-                        })}
-                    </div>
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header>
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+            >
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines}`}
+            >
+              {t("Pipelines")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines/${encodeURIComponent(dag.id)}`}
+            >
+              {dag.label}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={{
+                pathname: "/pipelines/[pipelineId]/runs/[runId]",
+                query: { pipelineId: dag.id, runId: dagRun.id },
+              }}
+            >
+              {getPipelineRunLabel(dagRun, dag)}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent>
+          <Block className="divide-y-2 divide-gray-100">
+            <Block.Header>
+              <div className="flex items-center gap-4">
+                <div className="truncate">
+                  <div className="truncate text-sm font-medium text-gray-900">
+                    {getPipelineRunLabel(dagRun, dag)}
+                  </div>
+                  <div className="mt-1.5 text-sm font-normal text-gray-500">
+                    {dagRun.status === DagRunStatus.Success &&
+                      t("succeeded {{relativeTime}} on ", {
+                        relativeTime: DateTime.fromISO(
+                          dagRun.executionDate
+                        ).toLocaleString(DateTime.DATETIME_SHORT),
+                      })}
+                    {dagRun.status === DagRunStatus.Failed &&
+                      t("failed {{relativeTime}} on", {
+                        relativeTime: DateTime.fromISO(
+                          dagRun.executionDate
+                        ).toLocaleString(DateTime.DATETIME_SHORT),
+                      })}
+                    {dagRun.status === DagRunStatus.Queued &&
+                      t("queued {{relativeTime}}", {
+                        relativeTime: DateTime.fromISO(
+                          dagRun.executionDate
+                        ).toLocaleString(DateTime.DATETIME_SHORT),
+                      })}
+                    {dagRun.status === DagRunStatus.Running &&
+                      t("started {{relativeTime}}", {
+                        relativeTime: DateTime.fromISO(
+                          dagRun.executionDate
+                        ).toLocaleString(DateTime.DATETIME_SHORT),
+                      })}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -142,94 +140,94 @@ const WorkspacePipelineRunDetailsPage: NextPageWithLayout = (props: Props) => {
                   </div>
                 </div>
               </div>
-            </div>
-          </Block.Header>
-          <Block.Section title={"Output"}>
-            {isFinished && (
-              <DescriptionList>
-                {dagRun.outputs.map((file, index) => (
-                  <DescriptionList.Item key={index} label={file.title}>
-                    <Link href={file.uri}>{file.uri}</Link>
-                  </DescriptionList.Item>
-                ))}
-              </DescriptionList>
-            )}
-          </Block.Section>
-          <Block.Section title={t("Messages")}>
-            <RunMessages dagRun={dagRun} />
-          </Block.Section>
-          <Block.Section title={t("Configuration")}>
-            <GenericForm fromConfig={dagRun.config} readOnly />
-          </Block.Section>
-          <Block.Section title={t("Logs")} collapsible>
-            <RunLogs dagRun={dagRun} />
-          </Block.Section>
+            </Block.Header>
+            <Block.Section title={"Output"}>
+              {isFinished && (
+                <DescriptionList>
+                  {dagRun.outputs.map((file, index) => (
+                    <DescriptionList.Item key={index} label={file.title}>
+                      <Link href={file.uri}>{file.uri}</Link>
+                    </DescriptionList.Item>
+                  ))}
+                </DescriptionList>
+              )}
+            </Block.Section>
+            <Block.Section title={t("Messages")}>
+              <RunMessages dagRun={dagRun} />
+            </Block.Section>
+            <Block.Section title={t("Configuration")}>
+              <GenericForm fromConfig={dagRun.config} readOnly />
+            </Block.Section>
+            <Block.Section title={t("Logs")} collapsible>
+              <RunLogs dagRun={dagRun} />
+            </Block.Section>
 
-          <DataCard item={dagRun}>
-            <DataCard.FormSection title={t("Metadata")} defaultOpen={false}>
-              <TextProperty
-                required
-                id="externalId"
-                accessor="externalId"
-                label={t("Identifier")}
-                defaultValue="-"
-              />
-              <RenderProperty id="dag" label={t("DAG")}>
-                {() => (
-                  <Link
-                    href={{
-                      pathname: "/pipelines/[pipelineId]",
-                      query: { pipelineId: dag.id },
-                    }}
-                  >
-                    {dag.label || dag.externalId}
-                  </Link>
-                )}
-              </RenderProperty>
-              <DateProperty
-                id="executionDate"
-                accessor="executionDate"
-                label={t("Execution Date")}
-              />
-              <UserProperty id="user" accessor="user" label={t("User")} />
-              <RenderProperty readonly id="triggerMode" label={t("Trigger")}>
-                {(property) =>
-                  property.displayValue.triggerMode === DagRunTrigger.Manual ? (
-                    <span>{t("Manual")}</span>
-                  ) : (
-                    <span>{t("Scheduled")}</span>
-                  )
-                }
-              </RenderProperty>
-              <RenderProperty
-                readonly
-                id="duration"
-                accessor="duration"
-                label={t("Duration")}
-              >
-                {(property) => (
-                  <span>
-                    {property.displayValue
-                      ? formatDuration(property.displayValue)
-                      : "-"}
-                  </span>
-                )}
-              </RenderProperty>
-            </DataCard.FormSection>
-          </DataCard>
-        </Block>
-      </WorkspaceLayout.PageContent>
+            <DataCard item={dagRun}>
+              <DataCard.FormSection title={t("Metadata")} defaultOpen={false}>
+                <TextProperty
+                  required
+                  id="externalId"
+                  accessor="externalId"
+                  label={t("Identifier")}
+                  defaultValue="-"
+                />
+                <RenderProperty id="dag" label={t("DAG")}>
+                  {() => (
+                    <Link
+                      href={{
+                        pathname: "/pipelines/[pipelineId]",
+                        query: { pipelineId: dag.id },
+                      }}
+                    >
+                      {dag.label || dag.externalId}
+                    </Link>
+                  )}
+                </RenderProperty>
+                <DateProperty
+                  id="executionDate"
+                  accessor="executionDate"
+                  label={t("Execution Date")}
+                />
+                <UserProperty id="user" accessor="user" label={t("User")} />
+                <RenderProperty readonly id="triggerMode" label={t("Trigger")}>
+                  {(property) =>
+                    property.displayValue.triggerMode ===
+                    DagRunTrigger.Manual ? (
+                      <span>{t("Manual")}</span>
+                    ) : (
+                      <span>{t("Scheduled")}</span>
+                    )
+                  }
+                </RenderProperty>
+                <RenderProperty
+                  readonly
+                  id="duration"
+                  accessor="duration"
+                  label={t("Duration")}
+                >
+                  {(property) => (
+                    <span>
+                      {property.displayValue
+                        ? formatDuration(property.displayValue)
+                        : "-"}
+                    </span>
+                  )}
+                </RenderProperty>
+              </DataCard.FormSection>
+            </DataCard>
+          </Block>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspacePipelineRunDetailsPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspacePipelineRunDetailsPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: WorkspacePipelineRunPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },

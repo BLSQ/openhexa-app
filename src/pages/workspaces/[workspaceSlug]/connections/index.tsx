@@ -42,92 +42,94 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   return (
     <>
       <Page title={t("Workspace")}>
-        <WorkspaceLayout.Header>
-          <div className="flex items-center justify-between">
-            <Breadcrumbs withHome={false}>
-              <Breadcrumbs.Part
-                isFirst
-                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-              >
-                {workspace.name}
-              </Breadcrumbs.Part>
-              <Breadcrumbs.Part
-                isLast
-                href={`/workspaces/${encodeURIComponent(
-                  workspace.slug
-                )}/connections`}
-              >
-                {t("Connections")}
-              </Breadcrumbs.Part>
-            </Breadcrumbs>
+        <WorkspaceLayout workspace={workspace}>
+          <WorkspaceLayout.Header>
+            <div className="flex items-center justify-between">
+              <Breadcrumbs withHome={false}>
+                <Breadcrumbs.Part
+                  isFirst
+                  href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+                >
+                  {workspace.name}
+                </Breadcrumbs.Part>
+                <Breadcrumbs.Part
+                  isLast
+                  href={`/workspaces/${encodeURIComponent(
+                    workspace.slug
+                  )}/connections`}
+                >
+                  {t("Connections")}
+                </Breadcrumbs.Part>
+              </Breadcrumbs>
 
-            {workspace.permissions.update && (
-              <Button
-                leadingIcon={<PlusIcon className="w-4" />}
-                onClick={() => setOpenModal(true)}
-              >
-                {t("Add connection")}
-              </Button>
-            )}
-          </div>
-        </WorkspaceLayout.Header>
-        <WorkspaceLayout.PageContent className="space-y-4">
-          {workspace.connections.length === 0 ? (
-            <div className="text-center text-gray-500">
-              <div>{t("This workspace does not have any connection.")}</div>
               {workspace.permissions.update && (
                 <Button
-                  variant="secondary"
+                  leadingIcon={<PlusIcon className="w-4" />}
                   onClick={() => setOpenModal(true)}
-                  className="mt-4"
                 >
-                  {t("Create a connection")}
+                  {t("Add connection")}
                 </Button>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-              {workspace.connections.map((connection) => (
-                <Card
-                  key={connection.id}
-                  title={
-                    <div className="flex justify-between gap-3">
-                      <>
-                        <div className="flex items-center gap-x-2">
-                          {CONNECTION_TYPES[connection.type].iconSrc && (
-                            <img
-                              src={CONNECTION_TYPES[connection.type].iconSrc!}
-                              className="h-6 w-6"
-                              alt=""
-                            />
-                          )}
-                          {connection.name}
-                        </div>
-                        <Badge
-                          className={CONNECTION_TYPES[connection.type].color}
-                        >
-                          {CONNECTION_TYPES[connection.type].label}
-                        </Badge>
-                      </>
-                    </div>
-                  }
-                  href={{
-                    pathname:
-                      "/workspaces/[workspaceSlug]/connections/[connectionId]",
-                    query: {
-                      workspaceSlug: workspace.slug,
-                      connectionId: connection.id,
-                    },
-                  }}
-                >
-                  <Card.Content className="mt-3 text-sm line-clamp-3">
-                    {connection.description}
-                  </Card.Content>
-                </Card>
-              ))}
-            </div>
-          )}
-        </WorkspaceLayout.PageContent>
+          </WorkspaceLayout.Header>
+          <WorkspaceLayout.PageContent className="space-y-4">
+            {workspace.connections.length === 0 ? (
+              <div className="text-center text-gray-500">
+                <div>{t("This workspace does not have any connection.")}</div>
+                {workspace.permissions.update && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setOpenModal(true)}
+                    className="mt-4"
+                  >
+                    {t("Create a connection")}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+                {workspace.connections.map((connection) => (
+                  <Card
+                    key={connection.id}
+                    title={
+                      <div className="flex justify-between gap-3">
+                        <>
+                          <div className="flex items-center gap-x-2">
+                            {CONNECTION_TYPES[connection.type].iconSrc && (
+                              <img
+                                src={CONNECTION_TYPES[connection.type].iconSrc!}
+                                className="h-6 w-6"
+                                alt=""
+                              />
+                            )}
+                            {connection.name}
+                          </div>
+                          <Badge
+                            className={CONNECTION_TYPES[connection.type].color}
+                          >
+                            {CONNECTION_TYPES[connection.type].label}
+                          </Badge>
+                        </>
+                      </div>
+                    }
+                    href={{
+                      pathname:
+                        "/workspaces/[workspaceSlug]/connections/[connectionId]",
+                      query: {
+                        workspaceSlug: workspace.slug,
+                        connectionId: connection.id,
+                      },
+                    }}
+                  >
+                    <Card.Content className="mt-3 text-sm line-clamp-3">
+                      {connection.description}
+                    </Card.Content>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </WorkspaceLayout.PageContent>
+        </WorkspaceLayout>
       </Page>
 
       <CreateConnectionDialog
@@ -139,13 +141,12 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   );
 };
 
-WorkspaceConnectionsPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspaceConnectionsPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: ConnectionsPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },

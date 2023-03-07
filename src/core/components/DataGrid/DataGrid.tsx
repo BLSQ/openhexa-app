@@ -9,7 +9,6 @@ import _, { uniqueId } from "lodash";
 import { useTranslation } from "next-i18next";
 import React, {
   isValidElement,
-  ReactElement,
   ReactNode,
   useCallback,
   useEffect,
@@ -310,6 +309,7 @@ function DataGrid(props: DataGridProps) {
           </div>
         )}
       </div>
+
       {totalItems !== undefined && (
         <Pagination
           onChange={onPaginationChange}

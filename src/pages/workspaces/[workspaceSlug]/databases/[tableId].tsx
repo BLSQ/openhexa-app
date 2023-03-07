@@ -51,98 +51,101 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header className="flex items-center justify-between">
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}/databases`}
-          >
-            {t("Database")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/databases/${router.query.tableId}`}
-          >
-            {table.name}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={handleOpenModal}
-            leadingIcon={<EyeIcon className="w-4" />}
-          >
-            {t("Preview data")}
-          </Button>
-        </div>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent className="space-y-4">
-        <Block className="divide-y-2 divide-gray-100">
-          <Block.Content title={t("Definition")}>
-            <DataGrid
-              data={table.columns}
-              fixedLayout={false}
-              totalItems={table.columns.length}
-              className="w-3/4 max-w-lg rounded-md border"
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header className="flex items-center justify-between">
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
-              <TextColumn
-                className="py-3 font-mono"
-                textClassName="bg-gray-50 py-1 px-2"
-                name="field"
-                label="Field"
-                accessor="name"
-              />
-              <TextColumn
-                className="py-3"
-                name="type"
-                label="Type"
-                accessor="type"
-              />
-            </DataGrid>
-          </Block.Content>
-          <Block.Section title={"Usage"}>
-            <Tabs defaultIndex={0}>
-              <Tabs.Tab label={t("Code")}>
-                <CodeEditor
-                  readonly
-                  lang="json"
-                  value={getUsageSnippet(table.name, "PYTHON")}
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/databases`}
+            >
+              {t("Database")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/databases/${router.query.tableId}`}
+            >
+              {table.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleOpenModal}
+              leadingIcon={<EyeIcon className="w-4" />}
+            >
+              {t("Preview data")}
+            </Button>
+          </div>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent className="space-y-4">
+          <Block className="divide-y-2 divide-gray-100">
+            <Block.Content title={t("Definition")}>
+              <DataGrid
+                data={table.columns}
+                fixedLayout={false}
+                totalItems={table.columns.length}
+                className="w-3/4 max-w-lg rounded-md border"
+              >
+                <TextColumn
+                  className="py-3 font-mono"
+                  textClassName="bg-gray-50 py-1 px-2"
+                  name="field"
+                  label="Field"
+                  accessor="name"
                 />
-              </Tabs.Tab>
-              <Tabs.Tab label={t("Use in BI tools")}>
-                <CodeEditor
-                  readonly
-                  lang="json"
-                  value={getUsageSnippet(table.name, "R")}
+                <TextColumn
+                  className="py-3"
+                  name="type"
+                  label="Type"
+                  accessor="type"
                 />
-              </Tabs.Tab>
-            </Tabs>
-          </Block.Section>
-          <DataPreviewDialog
-            open={openModal}
-            onClose={() => setOpenModal(!openModal)}
-            workspaceSlug={workspace.slug}
-            tableName={table.name}
-          />
-        </Block>
-      </WorkspaceLayout.PageContent>
+              </DataGrid>
+            </Block.Content>
+            <Block.Section title={"Usage"}>
+              <Tabs defaultIndex={0}>
+                <Tabs.Tab label={t("Code")}>
+                  <CodeEditor
+                    readonly
+                    lang="json"
+                    value={getUsageSnippet(table.name, "PYTHON")}
+                  />
+                </Tabs.Tab>
+                <Tabs.Tab label={t("Use in BI tools")}>
+                  <CodeEditor
+                    readonly
+                    lang="json"
+                    value={getUsageSnippet(table.name, "R")}
+                  />
+                </Tabs.Tab>
+              </Tabs>
+            </Block.Section>
+            <DataPreviewDialog
+              open={openModal}
+              onClose={() => setOpenModal(!openModal)}
+              workspaceSlug={workspace.slug}
+              tableName={table.name}
+            />
+          </Block>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspaceDatabaseTableViewPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspaceDatabaseTableViewPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: WorkspaceDatabaseTablePageDocument,
       variables: {

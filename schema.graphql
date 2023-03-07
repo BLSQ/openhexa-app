@@ -332,6 +332,33 @@ type Avatar {
   color: String!
 }
 
+type Bucket {
+  name: String!
+  objects(prefix: String, page: Int = 1, perPage: Int = 15): BucketObjectPage!
+  object(key: String!): BucketObject
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: Int
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type BucketObjectPage {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int!
+  items: [BucketObject!]!
+}
+
+enum BucketObjectType {
+  FILE
+  DIRECTORY
+}
+
 type CatalogEntry {
   id: UUID!
   name: String!
@@ -417,7 +444,7 @@ type Connection {
   createdAt: DateTime!
   updatedAt: DateTime
   type: ConnectionType!
-  user: User!
+  user: User
   fields: [ConnectionField!]!
   permissions: ConnectionPermissions!
 }
@@ -567,6 +594,22 @@ type CreateAccessmodZonalStatisticsResult {
   success: Boolean!
   analysis: AccessmodZonalStatistics
   errors: [CreateAccessmodZonalStatisticsError!]!
+}
+
+enum CreateBucketFolderError {
+  ALREADY_EXISTS
+  PERMISSION_DENIED
+}
+
+input CreateBucketFolderInput {
+  workspaceSlug: String!
+  folderKey: String!
+}
+
+type CreateBucketFolderResult {
+  success: Boolean!
+  errors: [CreateBucketFolderError!]!
+  folder: BucketObject
 }
 
 enum CreateCollectionElementError {
@@ -858,6 +901,21 @@ type DeleteAccessmodProjectResult {
   errors: [DeleteAccessmodProjectError!]!
 }
 
+enum DeleteBucketObjectError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteBucketObjectInput {
+  workspaceSlug: String!
+  objectKey: String!
+}
+
+type DeleteBucketObjectResult {
+  success: Boolean!
+  errors: [DeleteBucketObjectError!]!
+}
+
 enum DeleteCollectionElementError {
   NOT_FOUND
   INVALID
@@ -1114,7 +1172,6 @@ type LaunchAccessmodAnalysisResult {
 }
 
 enum LaunchNotebookServerError {
-  UNKNOWN_ERROR
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -1280,11 +1337,16 @@ type Mutation {
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
   generateNewDatabasePassword(input: GenerateNewDatabasePasswordInput!): GenerateNewDatabasePasswordResult!
+  deleteBucketObject(input: DeleteBucketObjectInput!): DeleteBucketObjectResult!
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+  prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+  createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
 }
 
 type NotebookServer {
   name: String!
   url: String!
+  ready: Boolean!
 }
 
 type Organization {
@@ -1441,6 +1503,38 @@ input PrepareDownloadURLInput {
 type PrepareDownloadURLResult {
   success: Boolean!
   url: URL
+}
+
+enum PrepareObjectDownloadError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+
+enum PrepareObjectUploadError {
+  PERMISSION_DENIED
+}
+
+input PrepareObjectUploadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  contentType: String
+}
+
+type PrepareObjectUploadResult {
+  uploadUrl: URL
+  success: Boolean!
+  errors: [PrepareObjectUploadError!]!
 }
 
 type Query {
@@ -1989,6 +2083,7 @@ type Workspace {
   createdBy: User!
   connections: [Connection!]!
   database: Database!
+  bucket: Bucket!
 }
 
 type WorkspaceMembership {
@@ -2025,5 +2120,8 @@ type WorkspacePermissions {
   delete: Boolean!
   manageMembers: Boolean!
   createConnection: Boolean!
+  createObject: Boolean!
+  deleteObject: Boolean!
+  downloadObject: Boolean!
 }
 

@@ -34,8 +34,10 @@ const DialogContent = (props: { children: ReactNode; className?: string }) => {
   return <div className={props.className}>{props.children}</div>;
 };
 
-const DialogActions = (props: { children: ReactNode }) => (
-  <div className="mt-5 flex justify-end sm:gap-3 md:mt-7">{props.children}</div>
+const DialogActions = (props: { children: ReactNode; className?: string }) => (
+  <div className={clsx("mt-5 flex justify-end sm:gap-3 md:mt-7")}>
+    {props.children}
+  </div>
 );
 
 const DialogDescription = (props: {

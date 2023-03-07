@@ -123,149 +123,151 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   };
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout.Header>
-        <div className="flex items-center justify-between">
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-            >
-              {workspace.name}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug
-              )}/pipelines`}
-            >
-              {t("Pipelines")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug
-              )}/pipelines/${encodeURIComponent(dag.id)}`}
-            >
-              {dag.label}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleOpenModal}
-              leadingIcon={<PlayIcon className="w-4" />}
-            >
-              {t("Run")}
-            </Button>
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header>
+          <div className="flex items-center justify-between">
+            <Breadcrumbs withHome={false}>
+              <Breadcrumbs.Part
+                isFirst
+                href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
+              >
+                {workspace.name}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug
+                )}/pipelines`}
+              >
+                {t("Pipelines")}
+              </Breadcrumbs.Part>
+              <Breadcrumbs.Part
+                isLast
+                href={`/workspaces/${encodeURIComponent(
+                  workspace.slug
+                )}/pipelines/${encodeURIComponent(dag.id)}`}
+              >
+                {dag.label}
+              </Breadcrumbs.Part>
+            </Breadcrumbs>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleOpenModal}
+                leadingIcon={<PlayIcon className="w-4" />}
+              >
+                {t("Run")}
+              </Button>
+            </div>
           </div>
-        </div>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent className="space-y-6">
-        <div>
-          <Block className="divide-y-2 divide-gray-100">
-            <Block.Content>
-              <ReactMarkdown className="prose">{dag.description}</ReactMarkdown>
-            </Block.Content>
-            <Block.Section>
-              <DescriptionList>
-                <DescriptionList.Item label={t("Schedule")}>
-                  Run every 12 hours
-                </DescriptionList.Item>
-              </DescriptionList>
-            </Block.Section>
-            <Block.Section collapsible title={t("External API")}>
-              <p className="mb-2">
-                This pipeline can be called externally to be executed.
-              </p>
-              <Tabs>
-                <Tabs.Tab label={t("curl")}>
-                  <pre className="bg-gray-50 px-4 py-4 text-sm">
-                    curl -X POST {router.pathname + "/execute"}
-                  </pre>
-                </Tabs.Tab>
-                <Tabs.Tab label={t("Python")}>
-                  <pre className="bg-gray-50 px-4 py-4 text-sm">
-                    import requests
-                    <br />
-                    response = requests.post(&quot;
-                    {router.pathname + "/execute"}&quot;)
-                  </pre>
-                </Tabs.Tab>
-              </Tabs>
-            </Block.Section>
-          </Block>
-        </div>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent className="space-y-6">
+          <div>
+            <Block className="divide-y-2 divide-gray-100">
+              <Block.Content>
+                <ReactMarkdown className="prose">
+                  {dag.description}
+                </ReactMarkdown>
+              </Block.Content>
+              <Block.Section>
+                <DescriptionList>
+                  <DescriptionList.Item label={t("Schedule")}>
+                    Run every 12 hours
+                  </DescriptionList.Item>
+                </DescriptionList>
+              </Block.Section>
+              <Block.Section collapsible title={t("External API")}>
+                <p className="mb-2">
+                  This pipeline can be called externally to be executed.
+                </p>
+                <Tabs>
+                  <Tabs.Tab label={t("curl")}>
+                    <pre className="bg-gray-50 px-4 py-4 text-sm">
+                      curl -X POST {router.pathname + "/execute"}
+                    </pre>
+                  </Tabs.Tab>
+                  <Tabs.Tab label={t("Python")}>
+                    <pre className="bg-gray-50 px-4 py-4 text-sm">
+                      import requests
+                      <br />
+                      response = requests.post(&quot;
+                      {router.pathname + "/execute"}&quot;)
+                    </pre>
+                  </Tabs.Tab>
+                </Tabs>
+              </Block.Section>
+            </Block>
+          </div>
 
-        <div>
-          <Title level={4} className="font-medium">
-            {t("Runs")}
-          </Title>
-          <Block>
-            <DataGrid
-              defaultPageSize={props.perPage}
-              data={dag.runs}
-              totalItems={dag.runs.length}
-              fixedLayout={false}
-            >
-              <BaseColumn id="name" label={t("Name")}>
-                {(item) => (
-                  <Link
-                    customStyle="text-gray-700 font-medium"
-                    href={{
-                      pathname:
-                        "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]",
-                      query: {
-                        pipelinesId: item.id,
-                        workspaceSlug: workspace.slug,
-                      },
-                    }}
-                  >
-                    {item.label || item.externalId}
-                  </Link>
-                )}
-              </BaseColumn>
-              <DateColumn
-                label={t("Executed on")}
-                format={DateTime.DATETIME_SHORT}
-                accessor="executionDate"
+          <div>
+            <Title level={4} className="font-medium">
+              {t("Runs")}
+            </Title>
+            <Block>
+              <DataGrid
+                defaultPageSize={props.perPage}
+                data={dag.runs}
+                totalItems={dag.runs.length}
+                fixedLayout={false}
+              >
+                <BaseColumn id="name" label={t("Name")}>
+                  {(item) => (
+                    <Link
+                      customStyle="text-gray-700 font-medium"
+                      href={{
+                        pathname:
+                          "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]",
+                        query: {
+                          pipelinesId: item.id,
+                          workspaceSlug: workspace.slug,
+                        },
+                      }}
+                    >
+                      {item.label || item.externalId}
+                    </Link>
+                  )}
+                </BaseColumn>
+                <DateColumn
+                  label={t("Executed on")}
+                  format={DateTime.DATETIME_SHORT}
+                  accessor="executionDate"
+                />
+                <BaseColumn label={t("Status")} id="status">
+                  {(item) => <PipelineRunStatusBadge dagRun={item} />}
+                </BaseColumn>
+                <BaseColumn label={t("Duration")} accessor="duration">
+                  {(value) => (
+                    <span suppressHydrationWarning>
+                      {value ? formatDuration(value) : "-"}
+                    </span>
+                  )}
+                </BaseColumn>
+                <UserColumn label={t("User")} accessor="user" />
+                <ChevronLinkColumn
+                  accessor="id"
+                  url={(value: any) => ({
+                    pathname:
+                      "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]/runs/[runId]",
+                    query: {
+                      workspaceSlug: workspace.slug,
+                      pipelinesId: dag.id,
+                      runId: value,
+                    },
+                  })}
+                />
+              </DataGrid>
+              <ConfigurePipelineModal
+                dag={dag}
+                open={openModal}
+                onClose={() => setOpenModal(!openModal)}
               />
-              <BaseColumn label={t("Status")} id="status">
-                {(item) => <PipelineRunStatusBadge dagRun={item} />}
-              </BaseColumn>
-              <BaseColumn label={t("Duration")} accessor="duration">
-                {(value) => (
-                  <span suppressHydrationWarning>
-                    {value ? formatDuration(value) : "-"}
-                  </span>
-                )}
-              </BaseColumn>
-              <UserColumn label={t("User")} accessor="user" />
-              <ChevronLinkColumn
-                accessor="id"
-                url={(value: any) => ({
-                  pathname:
-                    "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]/runs/[runId]",
-                  query: {
-                    workspaceSlug: workspace.slug,
-                    pipelinesId: dag.id,
-                    runId: value,
-                  },
-                })}
-              />
-            </DataGrid>
-            <ConfigurePipelineModal
-              dag={dag}
-              open={openModal}
-              onClose={() => setOpenModal(!openModal)}
-            />
-          </Block>
-        </div>
-      </WorkspaceLayout.PageContent>
+            </Block>
+          </div>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspacePipelinePage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspacePipelinePage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
@@ -274,6 +276,7 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspacePipelinePageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
+    await WorkspaceLayout.prefetch(client);
 
     if (!data.workspace) {
       return {

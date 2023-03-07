@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
 import {
   ArrowRightOnRectangleIcon,
@@ -10,6 +10,7 @@ import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import Link from "core/components/Link";
 import User from "core/features/User";
+import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
 import { Country, Workspace } from "graphql-types";
@@ -20,18 +21,17 @@ import { useRouter } from "next/router";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import useOnClickOutside from "use-onclickoutside";
-import {
-  WorkspacesPageDocument,
-  WorkspacesPageQuery,
-  WorkspacesPageQueryVariables,
-} from "workspaces/graphql/queries.generated";
 
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
+import {
+  SidebarMenuDocument,
+  SidebarMenuQuery,
+  SidebarMenuQueryVariables,
+  SidebarMenu_WorkspaceFragment,
+} from "./SidebarMenu.generated";
 
 interface SidebarMenuProps {
-  workspace: Pick<Workspace, "name"> & {
-    countries: Array<Pick<Country, "code" | "flag">>;
-  };
+  workspace: SidebarMenu_WorkspaceFragment;
 }
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
@@ -41,10 +41,17 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const isAdmin = useFeature("adminPanel");
+  const router = useRouter();
+  useEffect(() => {
+    if (isOpen) {
+      setFalse();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.asPath]);
 
   const [isOpen, { toggle, setFalse }] = useToggle();
-  const router = useRouter();
 
+  const innerMenuRef = useRef<HTMLDivElement>(null);
   const [referenceElement, setReferenceElement] =
     useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLElement | null>(null);
@@ -53,8 +60,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     placement: "bottom-start",
     modifiers: POPPER_MODIFIERS,
   });
-  const innerMenuRef = useRef<HTMLDivElement>(null);
-
   useOnClickOutside(innerMenuRef, () => {
     if (!isDialogOpen) {
       // Do not close the menu if the user click in the dialog
@@ -62,19 +67,29 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     }
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      setFalse();
+  const { data, refetch } = useQuery<
+    SidebarMenuQuery,
+    SidebarMenuQueryVariables
+  >(
+    gql`
+      query SidebarMenu($page: Int, $perPage: Int) {
+        workspaces(page: $page, perPage: $perPage) {
+          totalItems
+          items {
+            slug
+            name
+            countries {
+              code
+              flag
+            }
+          }
+        }
+      }
+    `,
+    {
+      variables: { page: 1, perPage: 5 },
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.asPath]);
-
-  const { data, loading, refetch } = useQuery<
-    WorkspacesPageQuery,
-    WorkspacesPageQueryVariables
-  >(WorkspacesPageDocument, {
-    variables: { page: 1, perPage: 5 },
-  });
+  );
 
   useCacheKey("workspaces", () => {
     refetch();
@@ -255,6 +270,26 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       </Transition>
     </div>
   );
+};
+
+SidebarMenu.fragments = {
+  workspace: gql`
+    fragment SidebarMenu_workspace on Workspace {
+      slug
+      name
+      countries {
+        flag
+        code
+      }
+    }
+  `,
+};
+
+SidebarMenu.prefetch = async (client: CustomApolloClient) => {
+  await client.query({
+    query: SidebarMenuDocument,
+    variables: { page: 1, perPage: 5 },
+  });
 };
 
 export default SidebarMenu;

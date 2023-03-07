@@ -51,7 +51,7 @@ describe("Header", () => {
     waitFor(() => {
       hotkeyCb();
     });
-    waitFor(async () => {
+    await waitFor(async () => {
       const dialog = await waitForDialog();
       expect(dialog).toBeInTheDocument();
     });

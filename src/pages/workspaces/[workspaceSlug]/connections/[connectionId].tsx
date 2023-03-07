@@ -70,94 +70,98 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
 
   return (
     <Page title={t("Connection")}>
-      <WorkspaceLayout.Header className="flex items-center justify-between">
-        <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part
-            isFirst
-            href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
-          >
-            {workspace.name}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/connections`}
-          >
-            {t("Connections")}
-          </Breadcrumbs.Part>
-          <Breadcrumbs.Part
-            isLast
-            href={`/workspaces/${encodeURIComponent(
-              workspace.slug
-            )}/pipelines/${encodeURIComponent(connection.id)}`}
-          >
-            {connection.name}
-          </Breadcrumbs.Part>
-        </Breadcrumbs>
-        <DeleteConnectionTrigger workspace={workspace} connection={connection}>
-          {({ onClick }) => (
-            <Button
-              size="sm"
-              className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-              onClick={onClick}
-              leadingIcon={<TrashIcon className="w-4" />}
+      <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout.Header className="flex items-center justify-between">
+          <Breadcrumbs withHome={false}>
+            <Breadcrumbs.Part
+              isFirst
+              href={`/workspaces/${encodeURIComponent(workspace.slug)}`}
             >
-              {t("Delete")}
-            </Button>
-          )}
-        </DeleteConnectionTrigger>
-      </WorkspaceLayout.Header>
-      <WorkspaceLayout.PageContent>
-        <DataCard item={connection} className="divide-y-2 divide-gray-100">
-          <div>
-            <DataCard.FormSection
-              onSave={onSave}
-              title={t("Information")}
-              className="space-y-4"
+              {workspace.name}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/connections`}
             >
-              <TextProperty id="name" label={t("Name")} accessor="name" />
-              <TextProperty
-                id="slug"
-                label={t("Slug")}
-                accessor="slug"
-                help={t(
-                  "The slug is used as the prefix for the environment variables in the notebooks"
-                )}
-                className="font-mono uppercase"
-              />
-              <DescriptionList.Item label={t("Type")}>
-                <Badge className={type.color}>{type.label ?? "custom"}</Badge>
-              </DescriptionList.Item>
-              <DateProperty
-                readonly
-                id="createdAt"
-                accessor="createdAt"
-                label={t("Created at")}
-              />
-              <TextProperty
-                id="description"
-                label={t("Description")}
-                accessor="description"
-              />
-            </DataCard.FormSection>
-            <ConnectionFieldsSection connection={connection} />
-          </div>
-          <DataCard.Section title={t("Usage example")}>
-            <ConnectionUsageSnippets connection={connection} />
-          </DataCard.Section>
-        </DataCard>
-      </WorkspaceLayout.PageContent>
+              {t("Connections")}
+            </Breadcrumbs.Part>
+            <Breadcrumbs.Part
+              isLast
+              href={`/workspaces/${encodeURIComponent(
+                workspace.slug
+              )}/pipelines/${encodeURIComponent(connection.id)}`}
+            >
+              {connection.name}
+            </Breadcrumbs.Part>
+          </Breadcrumbs>
+          <DeleteConnectionTrigger
+            workspace={workspace}
+            connection={connection}
+          >
+            {({ onClick }) => (
+              <Button
+                size="sm"
+                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                onClick={onClick}
+                leadingIcon={<TrashIcon className="w-4" />}
+              >
+                {t("Delete")}
+              </Button>
+            )}
+          </DeleteConnectionTrigger>
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.PageContent>
+          <DataCard item={connection} className="divide-y-2 divide-gray-100">
+            <div>
+              <DataCard.FormSection
+                onSave={onSave}
+                title={t("Information")}
+                className="space-y-4"
+              >
+                <TextProperty id="name" label={t("Name")} accessor="name" />
+                <TextProperty
+                  id="slug"
+                  label={t("Slug")}
+                  accessor="slug"
+                  help={t(
+                    "The slug is used as the prefix for the environment variables in the notebooks"
+                  )}
+                  className="font-mono uppercase"
+                />
+                <DescriptionList.Item label={t("Type")}>
+                  <Badge className={type.color}>{type.label ?? "custom"}</Badge>
+                </DescriptionList.Item>
+                <DateProperty
+                  readonly
+                  id="createdAt"
+                  accessor="createdAt"
+                  label={t("Created at")}
+                />
+                <TextProperty
+                  id="description"
+                  label={t("Description")}
+                  accessor="description"
+                />
+              </DataCard.FormSection>
+              <ConnectionFieldsSection connection={connection} />
+            </div>
+            <DataCard.Section title={t("Usage example")}>
+              <ConnectionUsageSnippets connection={connection} />
+            </DataCard.Section>
+          </DataCard>
+        </WorkspaceLayout.PageContent>
+      </WorkspaceLayout>
     </Page>
   );
 };
 
-WorkspaceConnectionPage.getLayout = (page, pageProps) => {
-  return <WorkspaceLayout pageProps={pageProps}>{page}</WorkspaceLayout>;
-};
+WorkspaceConnectionPage.getLayout = (page) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    WorkspaceLayout.prefetch(client);
     const workspaceSlug = ctx.params?.workspaceSlug as string;
     const connectionId = ctx.params?.connectionId as string;
     const { data } = await client.query<

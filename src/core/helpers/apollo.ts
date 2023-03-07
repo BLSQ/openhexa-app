@@ -63,6 +63,13 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     DatabaseTable: {
       merge: true,
     },
+    Bucket: {
+      merge: true,
+    },
+    BucketObject: {
+      merge: true,
+      keyFields: ["key"],
+    },
   },
 };
 

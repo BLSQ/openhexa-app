@@ -4,6 +4,10 @@ import { gql } from '@apollo/client';
 import { DeleteWorkspace_WorkspaceFragmentDoc } from '../features/DeleteWorkspaceDialog/DeleteWorkspaceDialog.generated';
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
 import { UpdateWorkspaceDescription_WorkspaceFragmentDoc } from '../features/UpdateDescriptionDialog/UpdateDescriptionDialog.generated';
+import { WorkspaceLayout_WorkspaceFragmentDoc } from '../layouts/WorkspaceLayout/WorkspaceLayout.generated';
+import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc, BucketExplorer_DirectoryFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
+import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
+import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
 import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
 import { ConnectionUsageSnippets_ConnectionFragmentDoc } from '../features/ConnectionUsageSnippets/ConnectionUsageSnippets.generated';
 import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
@@ -29,35 +33,46 @@ export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspacePipelinesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+
+export type WorkspaceNotebooksPageQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String'];
+}>;
+
+
+export type WorkspaceNotebooksPageQuery = { __typename?: 'Query', notebooksUrl: any, workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspacePipelinePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
 }>;
 
 
-export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspacePipelineStartPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
 }>;
 
 
-export type WorkspacePipelineStartPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspacePipelineStartPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspacePipelineRunPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
 }>;
 
 
-export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
+  page: Types.Scalars['Int'];
+  perPage: Types.Scalars['Int'];
+  prefix: Types.Scalars['String'];
+  withDirectory: Types.Scalars['Boolean'];
 }>;
 
 
-export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null };
+export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, bucket: { __typename?: 'Bucket', name: string, objects: { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: number | null, updatedAt?: any | null, type: Types.BucketObjectType }> }, directory?: { __typename?: 'BucketObject', key: string, name: string, path: string } | null }, permissions: { __typename?: 'WorkspacePermissions', createObject: boolean, deleteObject: boolean, manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -66,7 +81,7 @@ export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean }, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, count?: number | null }> } } } | null };
+export type WorkspaceDatabasesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, manageMembers: boolean }, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, count?: number | null }> } }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -74,14 +89,14 @@ export type WorkspaceDatabaseTablePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', name: string, count?: number | null, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> } | null } } | null };
+export type WorkspaceDatabaseTablePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', name: string, count?: number | null, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> } | null }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type ConnectionsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
 }>;
 
 
-export type ConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean }, connections: Array<{ __typename?: 'Connection', id: string, description?: string | null, name: string, type: Types.ConnectionType, slug: string, updatedAt?: any | null, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean } }> } | null };
+export type ConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, manageMembers: boolean }, connections: Array<{ __typename?: 'Connection', id: string, description?: string | null, name: string, type: Types.ConnectionType, slug: string, updatedAt?: any | null, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean } }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type ConnectionPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -89,7 +104,7 @@ export type ConnectionPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
+export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
 
 
 export const WorkspacesPageDocument = gql`
@@ -155,11 +170,13 @@ export const WorkspacePageDocument = gql`
     ...DeleteWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...UpdateWorkspaceDescription_workspace
+    ...WorkspaceLayout_workspace
   }
 }
     ${DeleteWorkspace_WorkspaceFragmentDoc}
 ${InviteMemberWorkspace_WorkspaceFragmentDoc}
-${UpdateWorkspaceDescription_WorkspaceFragmentDoc}`;
+${UpdateWorkspaceDescription_WorkspaceFragmentDoc}
+${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePageQuery__
@@ -193,9 +210,10 @@ export const WorkspacePipelinesPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePipelinesPageQuery__
@@ -224,14 +242,52 @@ export function useWorkspacePipelinesPageLazyQuery(baseOptions?: Apollo.LazyQuer
 export type WorkspacePipelinesPageQueryHookResult = ReturnType<typeof useWorkspacePipelinesPageQuery>;
 export type WorkspacePipelinesPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelinesPageLazyQuery>;
 export type WorkspacePipelinesPageQueryResult = Apollo.QueryResult<WorkspacePipelinesPageQuery, WorkspacePipelinesPageQueryVariables>;
+export const WorkspaceNotebooksPageDocument = gql`
+    query WorkspaceNotebooksPage($workspaceSlug: String!) {
+  notebooksUrl
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...WorkspaceLayout_workspace
+  }
+}
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
+
+/**
+ * __useWorkspaceNotebooksPageQuery__
+ *
+ * To run a query within a React component, call `useWorkspaceNotebooksPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspaceNotebooksPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspaceNotebooksPageQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *   },
+ * });
+ */
+export function useWorkspaceNotebooksPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceNotebooksPageQuery, WorkspaceNotebooksPageQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspaceNotebooksPageQuery, WorkspaceNotebooksPageQueryVariables>(WorkspaceNotebooksPageDocument, options);
+      }
+export function useWorkspaceNotebooksPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceNotebooksPageQuery, WorkspaceNotebooksPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspaceNotebooksPageQuery, WorkspaceNotebooksPageQueryVariables>(WorkspaceNotebooksPageDocument, options);
+        }
+export type WorkspaceNotebooksPageQueryHookResult = ReturnType<typeof useWorkspaceNotebooksPageQuery>;
+export type WorkspaceNotebooksPageLazyQueryHookResult = ReturnType<typeof useWorkspaceNotebooksPageLazyQuery>;
+export type WorkspaceNotebooksPageQueryResult = Apollo.QueryResult<WorkspaceNotebooksPageQuery, WorkspaceNotebooksPageQueryVariables>;
 export const WorkspacePipelinePageDocument = gql`
     query WorkspacePipelinePage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePipelinePageQuery__
@@ -265,9 +321,10 @@ export const WorkspacePipelineStartPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePipelineStartPageQuery__
@@ -301,9 +358,10 @@ export const WorkspacePipelineRunPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePipelineRunPageQuery__
@@ -333,13 +391,31 @@ export type WorkspacePipelineRunPageQueryHookResult = ReturnType<typeof useWorks
 export type WorkspacePipelineRunPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineRunPageLazyQuery>;
 export type WorkspacePipelineRunPageQueryResult = Apollo.QueryResult<WorkspacePipelineRunPageQuery, WorkspacePipelineRunPageQueryVariables>;
 export const WorkspaceFilesPageDocument = gql`
-    query WorkspaceFilesPage($workspaceSlug: String!) {
+    query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!, $withDirectory: Boolean!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...BucketExplorer_workspace
+    ...WorkspaceLayout_workspace
+    ...UploadObjectDialog_workspace
+    ...CreateBucketFolderDialog_workspace
+    ...BucketExplorer_workspace
+    bucket {
+      objects(page: $page, prefix: $prefix, perPage: $perPage) {
+        ...BucketExplorer_objects
+      }
+      directory: object(key: $prefix) @include(if: $withDirectory) {
+        ...BucketExplorer_directory
+      }
+    }
   }
 }
-    `;
+    ${BucketExplorer_WorkspaceFragmentDoc}
+${WorkspaceLayout_WorkspaceFragmentDoc}
+${UploadObjectDialog_WorkspaceFragmentDoc}
+${CreateBucketFolderDialog_WorkspaceFragmentDoc}
+${BucketExplorer_ObjectsFragmentDoc}
+${BucketExplorer_DirectoryFragmentDoc}`;
 
 /**
  * __useWorkspaceFilesPageQuery__
@@ -354,6 +430,10 @@ export const WorkspaceFilesPageDocument = gql`
  * const { data, loading, error } = useWorkspaceFilesPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *      prefix: // value for 'prefix'
+ *      withDirectory: // value for 'withDirectory'
  *   },
  * });
  */
@@ -386,9 +466,10 @@ export const WorkspaceDatabasesPageDocument = gql`
         }
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspaceDatabasesPageQuery__
@@ -434,9 +515,10 @@ export const WorkspaceDatabaseTablePageDocument = gql`
         }
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
-    `;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspaceDatabaseTablePageQuery__
@@ -487,9 +569,11 @@ export const ConnectionsPageDocument = gql`
         delete
       }
     }
+    ...WorkspaceLayout_workspace
   }
 }
-    ${CreateConnectionDialog_WorkspaceFragmentDoc}`;
+    ${CreateConnectionDialog_WorkspaceFragmentDoc}
+${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useConnectionsPageQuery__
@@ -523,6 +607,7 @@ export const ConnectionPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    ...WorkspaceLayout_workspace
   }
   connection(id: $connectionId) {
     id
@@ -539,7 +624,8 @@ export const ConnectionPageDocument = gql`
     ...ConnectionFieldsSection_connection
   }
 }
-    ${ConnectionUsageSnippets_ConnectionFragmentDoc}
+    ${WorkspaceLayout_WorkspaceFragmentDoc}
+${ConnectionUsageSnippets_ConnectionFragmentDoc}
 ${ConnectionFieldsSection_ConnectionFragmentDoc}`;
 
 /**
