@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.0](https://github.com/BLSQ/openhexa-frontend/compare/0.18.0...0.19.0) (2023-03-07)
+
+
+### Features
+
+* **Workspaces:** allow admin to regenerate db password ([#217](https://github.com/BLSQ/openhexa-frontend/issues/217)) ([e6ace32](https://github.com/BLSQ/openhexa-frontend/commit/e6ace32c38c8253ded11b26cae348f07d4b0d3ab))
+* **Workspaces:** Implement workspace's files system ([b3b5601](https://github.com/BLSQ/openhexa-frontend/commit/b3b560153aaa5fbcfbc6e6f3b59298c43f6f18f2))
+
 ## [0.18.0](https://github.com/BLSQ/openhexa-frontend/compare/0.17.1...0.18.0) (2023-02-28)
 
 
