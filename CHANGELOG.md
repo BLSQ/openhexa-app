@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.19.1](https://github.com/BLSQ/openhexa-frontend/compare/0.19.0...0.19.1) (2023-03-08)
+
+
+### Bug Fixes
+
+* **Workspaces:** GCS prefix might not exist (only if uploaded from console or google web interface ([a64b999](https://github.com/BLSQ/openhexa-frontend/commit/a64b99903fb60684d3daeb42e2d210b80940856a))
+* **workspaces:** Return a 404 if the mock pipeline or run does not exist ([#222](https://github.com/BLSQ/openhexa-frontend/issues/222)) ([d9a5147](https://github.com/BLSQ/openhexa-frontend/commit/d9a51471907538b89a8a5ae7cd2e9e5bff22f9af))
+
 ## [0.19.0](https://github.com/BLSQ/openhexa-frontend/compare/0.18.0...0.19.0) (2023-03-07)
 
 
