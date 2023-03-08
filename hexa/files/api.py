@@ -1,3 +1,5 @@
+import base64
+import json
 import typing
 from dataclasses import dataclass
 
@@ -19,20 +21,9 @@ class ObjectsPage:
 
 
 def get_credentials():
-    return service_account.Credentials.from_service_account_info(
-        {
-            "type": "service_account",
-            "project_id": settings.GCS_SERVICE_ACCOUNT_PROJECT,
-            "private_key_id": settings.GCS_SERVICE_ACCOUNT_KEY_ID,
-            "private_key": settings.GCS_SERVICE_ACCOUNT_KEY.replace("\\n", "\n"),
-            "client_email": settings.GCS_SERVICE_ACCOUNT_EMAIL,
-            "client_id": settings.GCS_SERVICE_ACCOUNT_CLIENT_ID,
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": settings.GCS_SERVICE_ACCOUNT_CERT_URL,
-        }
-    )
+    decoded_creds = base64.b64decode(settings.GCS_SERVICE_ACCOUNT_KEY)
+    json_creds = json.loads(decoded_creds, strict=False)
+    return service_account.Credentials.from_service_account_info(json_creds)
 
 
 def get_storage_client():
