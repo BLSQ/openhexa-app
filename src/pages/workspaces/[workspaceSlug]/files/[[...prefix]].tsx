@@ -40,7 +40,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
       page,
       prefix,
       perPage,
-      withDirectory: Boolean(prefix),
     },
   });
   useCacheKey(["workspace", "files", prefix], () => refetch());
@@ -114,7 +113,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
             <BucketExplorer
               workspace={workspace}
               objects={workspace.bucket.objects}
-              directory={workspace.bucket.directory}
               onChangePage={onChangePage}
               perPage={perPage}
             />
@@ -159,11 +157,10 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         prefix,
         perPage,
-        withDirectory: Boolean(prefix),
       },
     });
 
-    if (!data.workspace || (prefix && !data.workspace.bucket.directory)) {
+    if (!data.workspace) {
       return {
         notFound: true,
       };

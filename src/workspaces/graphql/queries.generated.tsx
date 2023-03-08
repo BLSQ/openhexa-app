@@ -5,7 +5,7 @@ import { DeleteWorkspace_WorkspaceFragmentDoc } from '../features/DeleteWorkspac
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
 import { UpdateWorkspaceDescription_WorkspaceFragmentDoc } from '../features/UpdateDescriptionDialog/UpdateDescriptionDialog.generated';
 import { WorkspaceLayout_WorkspaceFragmentDoc } from '../layouts/WorkspaceLayout/WorkspaceLayout.generated';
-import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc, BucketExplorer_DirectoryFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
+import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
 import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
 import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
 import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
@@ -68,11 +68,10 @@ export type WorkspaceFilesPageQueryVariables = Types.Exact<{
   page: Types.Scalars['Int'];
   perPage: Types.Scalars['Int'];
   prefix: Types.Scalars['String'];
-  withDirectory: Types.Scalars['Boolean'];
 }>;
 
 
-export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, bucket: { __typename?: 'Bucket', name: string, objects: { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: number | null, updatedAt?: any | null, type: Types.BucketObjectType }> }, directory?: { __typename?: 'BucketObject', key: string, name: string, path: string } | null }, permissions: { __typename?: 'WorkspacePermissions', createObject: boolean, deleteObject: boolean, manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, bucket: { __typename?: 'Bucket', name: string, objects: { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: number | null, updatedAt?: any | null, type: Types.BucketObjectType }> } }, permissions: { __typename?: 'WorkspacePermissions', createObject: boolean, deleteObject: boolean, manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -391,7 +390,7 @@ export type WorkspacePipelineRunPageQueryHookResult = ReturnType<typeof useWorks
 export type WorkspacePipelineRunPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineRunPageLazyQuery>;
 export type WorkspacePipelineRunPageQueryResult = Apollo.QueryResult<WorkspacePipelineRunPageQuery, WorkspacePipelineRunPageQueryVariables>;
 export const WorkspaceFilesPageDocument = gql`
-    query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!, $withDirectory: Boolean!) {
+    query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -404,9 +403,6 @@ export const WorkspaceFilesPageDocument = gql`
       objects(page: $page, prefix: $prefix, perPage: $perPage) {
         ...BucketExplorer_objects
       }
-      directory: object(key: $prefix) @include(if: $withDirectory) {
-        ...BucketExplorer_directory
-      }
     }
   }
 }
@@ -414,8 +410,7 @@ export const WorkspaceFilesPageDocument = gql`
 ${WorkspaceLayout_WorkspaceFragmentDoc}
 ${UploadObjectDialog_WorkspaceFragmentDoc}
 ${CreateBucketFolderDialog_WorkspaceFragmentDoc}
-${BucketExplorer_ObjectsFragmentDoc}
-${BucketExplorer_DirectoryFragmentDoc}`;
+${BucketExplorer_ObjectsFragmentDoc}`;
 
 /**
  * __useWorkspaceFilesPageQuery__
@@ -433,7 +428,6 @@ ${BucketExplorer_DirectoryFragmentDoc}`;
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      prefix: // value for 'prefix'
- *      withDirectory: // value for 'withDirectory'
  *   },
  * });
  */

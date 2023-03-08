@@ -127,13 +127,6 @@ UploadObjectDialog.fragments = {
       }
     }
   `,
-  directory: gql`
-    fragment UploadObjectDialog_directory on BucketObject {
-      key
-      name
-      type
-    }
-  `,
 };
 
 export default UploadObjectDialog;

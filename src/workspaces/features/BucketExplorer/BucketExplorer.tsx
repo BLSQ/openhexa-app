@@ -17,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import DeleteBucketObject from "../DeleteBucketObject";
 import DownloadBucketObject from "../DownloadBucketObject";
 import {
-  BucketExplorer_DirectoryFragment,
   BucketExplorer_ObjectsFragment,
   BucketExplorer_WorkspaceFragment,
 } from "./BucketExplorer.generated";
@@ -25,7 +24,6 @@ import {
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
   objects: BucketExplorer_ObjectsFragment;
-  directory?: BucketExplorer_DirectoryFragment | null;
   prefix?: string | null;
   perPage: number;
   onChangePage(page: number): void;
@@ -157,14 +155,6 @@ BucketExplorer.fragments = {
     }
     ${DownloadBucketObject.fragments.object}
     ${DeleteBucketObject.fragments.object}
-  `,
-
-  directory: gql`
-    fragment BucketExplorer_directory on BucketObject {
-      key
-      name
-      path
-    }
   `,
 };
 

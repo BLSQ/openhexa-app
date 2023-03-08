@@ -9,8 +9,6 @@ export type BucketExplorer_WorkspaceFragment = { __typename?: 'Workspace', slug:
 
 export type BucketExplorer_ObjectsFragment = { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: number | null, updatedAt?: any | null, type: Types.BucketObjectType }> };
 
-export type BucketExplorer_DirectoryFragment = { __typename?: 'BucketObject', key: string, name: string, path: string };
-
 export const BucketExplorer_WorkspaceFragmentDoc = gql`
     fragment BucketExplorer_workspace on Workspace {
   slug
@@ -37,10 +35,3 @@ export const BucketExplorer_ObjectsFragmentDoc = gql`
 }
     ${DownloadBucketObject_ObjectFragmentDoc}
 ${DeleteBucketObject_ObjectFragmentDoc}`;
-export const BucketExplorer_DirectoryFragmentDoc = gql`
-    fragment BucketExplorer_directory on BucketObject {
-  key
-  name
-  path
-}
-    `;

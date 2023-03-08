@@ -77,7 +77,6 @@ query WorkspaceFilesPage(
   $page: Int!
   $perPage: Int!
   $prefix: String!
-  $withDirectory: Boolean!
 ) {
   workspace(slug: $workspaceSlug) {
     slug
@@ -91,9 +90,6 @@ query WorkspaceFilesPage(
     bucket {
       objects(page: $page, prefix: $prefix, perPage: $perPage) {
         ...BucketExplorer_objects
-      }
-      directory: object(key: $prefix) @include(if: $withDirectory) {
-        ...BucketExplorer_directory
       }
     }
   }

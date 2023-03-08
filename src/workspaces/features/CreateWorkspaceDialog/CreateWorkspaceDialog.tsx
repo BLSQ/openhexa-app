@@ -90,6 +90,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
             label={t("Workspace name")}
             value={form.formData.name}
             onChange={form.handleInputChange}
+            autoComplete="off"
           />
 
           <Field

@@ -3,6 +3,7 @@ import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Checkbox from "core/components/forms/Checkbox";
 import Field from "core/components/forms/Field";
+import Textarea from "core/components/forms/Textarea";
 import Title from "core/components/Title";
 import { getApolloClient } from "core/helpers/apollo";
 import { FormInstance } from "core/hooks/useForm";
@@ -270,9 +271,8 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
 
-  const [{ url, api_url, username, password }, { updateField }] =
+  const [{ api_url, username, password }, { updateField }] =
     useConnectionFields(form, [
-      { code: "url", name: "Instance" },
       { code: "api_url", name: "API Url" },
       { code: "username", name: "Username" },
       { code: "password", secret: true, name: "Password" },
@@ -359,7 +359,44 @@ function GCSBucketForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
 
-  return null;
+  const [{ bucket_name, service_account_key }, { updateField }] =
+    useConnectionFields(form, [
+      { code: "bucket_name", name: "Bucket name" },
+      { code: "service_account_key", name: "Secret Account Key" },
+    ]);
+
+  return (
+    <>
+      <Field
+        onChange={(event) => updateField(event.target.name, event.target.value)}
+        value={bucket_name.value}
+        name="bucket_name"
+        label={t("Bucket name")}
+        required
+      />
+      <div className="col-span-2">
+        <Title level={6}>{t("Credentials")}</Title>
+        <p className="text-sm text-gray-500">
+          {t("The credentials are required and have to be in JSON format")}
+        </p>
+      </div>
+      <Field
+        required
+        className="col-span-2"
+        name="service_account_key"
+        label={t("Service Account Key")}
+      >
+        <Textarea
+          name="service_account_key"
+          onChange={(event) =>
+            updateField(event.target.name, event.target.value)
+          }
+        >
+          {service_account_key.value}
+        </Textarea>
+      </Field>
+    </>
+  );
 }
 
 function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
