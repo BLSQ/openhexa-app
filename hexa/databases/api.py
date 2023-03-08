@@ -16,7 +16,7 @@ def get_db_server_credentials():
     }
 
 
-def get_database_connection(database: str = ""):
+def get_database_connection(database: str):
     credentials = get_db_server_credentials()
     role = credentials["role"]
     password = credentials["password"]
@@ -62,7 +62,7 @@ def create_database(db_name: str, pwd: str):
     validate_db_name(db_name)
     conn = None
     try:
-        conn = get_database_connection()
+        conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
             cursor.execute(
@@ -109,7 +109,7 @@ def create_database(db_name: str, pwd: str):
 def update_database_password(db_role: str, new_password: str):
     conn = None
     try:
-        conn = get_database_connection()
+        conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
             cursor.execute(
