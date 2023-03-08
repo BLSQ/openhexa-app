@@ -97,6 +97,8 @@ const ConfigurePipelineModal = ({
 type Props = {
   page: number;
   perPage: number;
+  pipelineId: string;
+  workspaceSlug: string;
 };
 
 const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
@@ -104,7 +106,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
   const { data } = useWorkspacePipelinePageQuery({
-    variables: { workspaceSlug: router.query.workspaceSlug as string },
+    variables: {
+      workspaceSlug: props.workspaceSlug,
+    },
   });
 
   if (!data?.workspace) {
@@ -112,7 +116,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   }
   const { workspace } = data;
 
-  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === router.query.pipelineId);
+  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === props.pipelineId);
 
   if (!dag) {
     return null;
@@ -272,17 +276,28 @@ WorkspacePipelinePage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: WorkspacePipelinePageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
-    await WorkspaceLayout.prefetch(client);
 
-    if (!data.workspace) {
+    const dag = FAKE_WORKSPACE.dags.find(
+      (d) => d.id === ctx.params?.pipelineId
+    );
+
+    if (!data.workspace || !dag) {
       return {
         notFound: true,
       };
     }
+
+    return {
+      props: {
+        workspaceSlug: ctx.params?.workspaceSlug,
+        pipelineId: ctx.params?.pipelineId,
+      },
+    };
   },
 });
 

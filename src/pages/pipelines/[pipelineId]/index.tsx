@@ -15,16 +15,14 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
-import Page from "core/components/Page";
-import DefaultLayout from "core/layouts/default";
 import Link from "core/components/Link";
+import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
-import { formatDuration } from "core/helpers/time";
+import DefaultLayout from "core/layouts/default";
 import { Country, DagRunTrigger } from "graphql-types";
 import useMe from "identity/hooks/useMe";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import PipelineRunFavoriteTrigger from "pipelines/features/PipelineRunFavoriteTrigger";
 import { PipelineRunFavoriteTrigger_RunFragment } from "pipelines/features/PipelineRunFavoriteTrigger/PipelineRunFavoriteTrigger.generated";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
@@ -39,15 +37,15 @@ import {
 type Props = {
   page: number;
   perPage: number;
+  pipelineId: string;
 };
 
 const PipelinePage = (props: Props) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const me = useMe();
 
   const { data, refetch } = usePipelinePageQuery({
-    variables: { id: router.query.pipelineId as string },
+    variables: { id: props.pipelineId },
   });
 
   const [updatePipeline] = useUpdatePipelineMutation();
@@ -56,7 +54,7 @@ const PipelinePage = (props: Props) => {
     refetch({
       page,
       perPage: 10,
-      id: router.query.pipelineId as string,
+      id: props.pipelineId,
     });
   };
 
@@ -74,8 +72,7 @@ const PipelinePage = (props: Props) => {
     });
     await refetch();
   };
-
-  if (!data || !data.dag) {
+  if (!data?.dag) {
     return null;
   }
 
@@ -280,6 +277,12 @@ export const getServerSideProps = createGetServerSideProps({
         notFound: true,
       };
     }
+
+    return {
+      props: {
+        pipelineId: ctx.params?.pipelineId as string,
+      },
+    };
   },
 });
 

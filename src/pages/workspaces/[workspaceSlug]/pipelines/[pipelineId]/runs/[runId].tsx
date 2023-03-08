@@ -233,7 +233,13 @@ export const getServerSideProps = createGetServerSideProps({
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
-    if (!data.workspace) {
+    const dag = FAKE_WORKSPACE.dags.find(
+      (d) => d.id === ctx.params?.pipelineId
+    );
+
+    const dagRun = dag?.runs.find((r) => r.id === ctx.params?.runId);
+
+    if (!data.workspace || !dag || !dagRun) {
       return {
         notFound: true,
       };

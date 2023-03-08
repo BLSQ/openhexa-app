@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import PipelineRunDataCard from "pipelines/features/PipelineRunDataCard";
 import {
   PipelineRunPageDocument,
+  PipelineRunPageQuery,
   usePipelineRunPageQuery,
 } from "pipelines/graphql/queries.generated";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
@@ -68,14 +69,14 @@ const PipelineRunPage = (props: Props) => {
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
-    const { data } = await client.query({
+    const { data } = await client.query<PipelineRunPageQuery>({
       query: PipelineRunPageDocument,
       variables: {
         pipelineId: ctx.params?.pipelineId as string,
         runId: ctx.params?.runId as string,
       },
     });
-    if (!data.dagRun) {
+    if (!data.dagRun || !data.dag) {
       return {
         notFound: true,
       };

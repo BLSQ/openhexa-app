@@ -107,7 +107,11 @@ export const getServerSideProps = createGetServerSideProps({
     });
     await WorkspaceLayout.prefetch(client);
 
-    if (!data.workspace) {
+    const dag = FAKE_WORKSPACE.dags.find(
+      (d) => d.id === ctx.params?.pipelineId
+    );
+
+    if (!data.workspace || !dag) {
       return {
         notFound: true,
       };
