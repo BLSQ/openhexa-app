@@ -8,8 +8,10 @@ from django.core.exceptions import ValidationError
 from google.api_core.exceptions import NotFound
 from google.cloud import storage
 from google.cloud.exceptions import Conflict
+from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
+from google.protobuf import duration_pb2
 
 
 @dataclass
@@ -170,3 +172,17 @@ def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
     return blob.generate_signed_url(
         expiration=3600, version="v4", method="PUT", content_type=content_type
     )
+
+
+def build_bucket_short_lived_credentials(bucket_name):
+    token_lifetime = 3600
+    if settings.GCS_TOKEN_LIFETIME is not None:
+        token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
+    gcs_credentials = get_credentials()
+    iam_credentials = IAMCredentialsClient(credentials=gcs_credentials)
+    token = iam_credentials.generate_access_token(
+        name=f"projects/-/serviceAccounts/{gcs_credentials._service_account_email}",
+        scope=["https://www.googleapis.com/auth/devstorage.full_control"],
+        lifetime=duration_pb2.Duration(seconds=token_lifetime),
+    )
+    return token
