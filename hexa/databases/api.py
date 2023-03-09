@@ -75,6 +75,15 @@ def create_database(db_name: str, pwd: str):
                     db_name=sql.Identifier(db_name),
                 )
             )
+    finally:
+        if conn:
+            conn.close()
+
+    #  set role privileges and load extensions
+    try:
+        conn = get_database_connection(db_name)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor() as cursor:
             cursor.execute(
                 sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                     role_name=sql.Identifier(db_name), password=sql.Literal(pwd)
@@ -88,16 +97,6 @@ def create_database(db_name: str, pwd: str):
                     role=sql.Identifier(db_name),
                 )
             )
-
-    finally:
-        if conn:
-            conn.close()
-
-    # load extensions into the new db
-    try:
-        conn = get_database_connection(db_name)
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        with conn.cursor() as cursor:
             cursor.execute("create extension postgis;")
             cursor.execute("create extension postgis_topology;")
 

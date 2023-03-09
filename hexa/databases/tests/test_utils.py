@@ -56,22 +56,22 @@ class DatabaseUtilsTest(TestCase):
             countries=[],
         )
 
-    @mock.patch("hexa.databases.utils.get_database_connection")
-    def test_get_database_tables_empty(self, mock_get_database_connection):
-        mock_context_object = mock_get_database_connection.return_value
+    @mock.patch("psycopg2.connect")
+    def test_get_database_tables_empty(self, mock_connect):
+        mock_context_object = mock_connect.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = []
 
         result = get_database_definition(self.WORKSPACE)
         self.assertEqual(0, len(result))
 
-    @mock.patch("hexa.databases.utils.get_database_connection")
-    def test_get_database_tables(self, mock_get_database_connection):
+    @mock.patch("psycopg2.connect")
+    def test_get_database_tables(self, mock_connect):
         table_name = "database_tutorial"
         row_count = 2
         table = {"name": table_name, "columns": [], "count": row_count}
 
-        mock_context_object = mock_get_database_connection.return_value
+        mock_context_object = mock_connect.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = [table]
         cursor.fetchone.return_value = {"row_count": 2}
@@ -80,8 +80,8 @@ class DatabaseUtilsTest(TestCase):
         self.assertEqual(1, len(result))
         self.assertEqual(table_name, result[0]["name"])
 
-    @mock.patch("hexa.databases.utils.get_database_connection")
-    def test_get_table_definition(self, mock_get_database_connection):
+    @mock.patch("psycopg2.connect")
+    def test_get_table_definition(self, mock_connect):
         table_name = "database_tutorial"
         row_count = 2
         schema = {"name": "id", "type": "int"}
@@ -92,7 +92,7 @@ class DatabaseUtilsTest(TestCase):
             "workspace": self.WORKSPACE,
         }
 
-        mock_context_object = mock_get_database_connection.return_value
+        mock_context_object = mock_connect.return_value
         cursor = mock_context_object.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = [schema]
         cursor.fetchone.return_value = {"row_count": row_count}
@@ -101,7 +101,7 @@ class DatabaseUtilsTest(TestCase):
 
         self.assertEqual(table, result)
 
-    @mock.patch("hexa.databases.utils.get_database_connection")
+    @mock.patch("psycopg2.connect")
     def test_get_table_definition_not_found(self, mock_get_database_connection):
         table_name = "database_tutorial"
 
