@@ -3,13 +3,27 @@ from psycopg2 import sql
 
 from hexa.workspaces.models import Workspace
 
-from .api import get_database_connection
+from .api import get_db_server_credentials
+
+
+def get_workspace_database_connection(workspace: Workspace):
+    credentials = get_db_server_credentials()
+    host = credentials["host"]
+    port = credentials["port"]
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        dbname=workspace.db_name,
+        user=workspace.db_name,
+        password=workspace.db_password,
+    )
 
 
 def get_database_definition(workspace: Workspace):
     conn = None
     try:
-        conn = get_database_connection(workspace.db_name)
+        conn = get_workspace_database_connection(workspace)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -35,7 +49,7 @@ def get_table_definition(workspace: Workspace, table_name: str):
     columns = []
     conn = None
     try:
-        conn = get_database_connection(workspace.db_name)
+        conn = get_workspace_database_connection(workspace)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 """
@@ -75,7 +89,7 @@ def get_table_definition(workspace: Workspace, table_name: str):
 def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4):
     conn = None
     try:
-        conn = get_database_connection(workspace.db_name)
+        conn = get_workspace_database_connection(workspace)
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
