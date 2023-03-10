@@ -187,9 +187,24 @@ class WorkspaceMembershipManager(models.Manager):
 
 
 class WorkspaceMembership(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "workspace",
+                "user",
+                name="workspace_membership_unique_workspace_user",
+            )
+        ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.OneToOneField(Workspace, on_delete=models.CASCADE)
-    user = models.OneToOneField("user_management.User", on_delete=models.CASCADE)
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+    )
+    user = models.ForeignKey(
+        "user_management.User",
+        on_delete=models.CASCADE,
+    )
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
     notebooks_server_hash = models.TextField(unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
