@@ -3,6 +3,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
+from hexa.files.credentials import notebooks_credentials as files_notebooks_credentials
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
@@ -35,8 +36,6 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     for connection in connections:
         env.update(connection.env_variables)
 
-    # TODO: Database / Filesystem credentials
-
     # Database credentials
     db_credentials = get_db_server_credentials()
     env.update(
@@ -48,6 +47,9 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
             "WORKSPACE_DATABASE_URL": f"postgresql://{workspace.db_name}:{workspace.db_password}@{db_credentials['host']}:{db_credentials['port']}/{workspace.db_name}",
         }
     )
+
+    # Bucket credentials
+    env.update(files_notebooks_credentials(request.user, workspace))
 
     return JsonResponse(
         {"env": env, "notebooks_server_hash": membership.notebooks_server_hash},

@@ -1,3 +1,7 @@
+import base64
+import json
+from unittest.mock import patch
+
 from django.urls import reverse
 
 from hexa.core.test import TestCase
@@ -79,7 +83,13 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 401)
 
-    def test_workspace_credentials_200(self):
+    @patch(
+        "hexa.files.credentials.get_short_lived_downscoped_access_token",
+        return_value=("gcs-token", 3600),
+    )
+    def test_workspace_credentials_200(
+        self, mock_get_short_lived_downscoped_access_token
+    ):
         self.client.force_login(self.USER_JULIA)
         response = self.client.post(
             reverse(
@@ -101,6 +111,20 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": workspace_db_url,
+                "GCS_TOKEN": "gcs-token",
+                "GCS_BUCKETS": base64.b64encode(
+                    json.dumps(
+                        {
+                            "buckets": [
+                                {
+                                    "name": self.WORKSPACE.bucket_name,
+                                    "mode": "RW",
+                                    "mount": "/workspace",
+                                }
+                            ]
+                        }
+                    ).encode()
+                ).decode(),
             },
         )
         self.assertEqual(
