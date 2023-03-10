@@ -26,7 +26,7 @@ class PermissionInline(admin.TabularInline):
 class InstanceAdmin(admin.ModelAdmin):
     list_display = ("url", "display_name", "slug", "last_synced_at", "auto_sync")
     list_filter = ("url",)
-    search_fields = ("url", "display_name")
+    search_fields = ("url", "name")
     prepopulated_fields = {"slug": ("name",)}
 
     inlines = [
