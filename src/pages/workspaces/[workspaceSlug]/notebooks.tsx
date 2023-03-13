@@ -66,7 +66,7 @@ export const getServerSideProps = createGetServerSideProps({
     });
     await WorkspaceLayout.prefetch(client);
 
-    if (!data.workspace) {
+    if (!data.workspace || !data.workspace.permissions.update) {
       return {
         notFound: true,
       };

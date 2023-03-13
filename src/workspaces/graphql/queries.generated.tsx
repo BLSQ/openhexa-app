@@ -40,7 +40,7 @@ export type WorkspaceNotebooksPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceNotebooksPageQuery = { __typename?: 'Query', notebooksUrl: any, workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceNotebooksPageQuery = { __typename?: 'Query', notebooksUrl: any, workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspacePipelinePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -246,6 +246,9 @@ export const WorkspaceNotebooksPageDocument = gql`
   notebooksUrl
   workspace(slug: $workspaceSlug) {
     slug
+    permissions {
+      update
+    }
     ...WorkspaceLayout_workspace
   }
 }

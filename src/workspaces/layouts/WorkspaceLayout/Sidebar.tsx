@@ -103,10 +103,14 @@ const Sidebar = (props: SidebarProps) => {
               <ArrowPathIcon className="h-5 w-5" />
               {t("Pipelines")}
             </NavItem>
-            <NavItem href={`/workspaces/${encodeURIComponent(slug)}/notebooks`}>
-              <BookOpenIcon className="h-5 w-5" />
-              {t("JupyterHub")}
-            </NavItem>
+            {workspace.permissions.update && (
+              <NavItem
+                href={`/workspaces/${encodeURIComponent(slug)}/notebooks`}
+              >
+                <BookOpenIcon className="h-5 w-5" />
+                {t("JupyterHub")}
+              </NavItem>
+            )}
             {workspace.permissions.manageMembers && (
               <NavItem
                 href={`/workspaces/${encodeURIComponent(slug)}/settings`}

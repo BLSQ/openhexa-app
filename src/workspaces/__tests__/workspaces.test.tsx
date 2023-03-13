@@ -115,4 +115,46 @@ describe("Workspaces", () => {
     expect(editButton).toBeNull();
     expect(container).toMatchSnapshot();
   });
+
+  it("shows the jupyterhub entry when user have the update permission ", async () => {
+    const slug = "a303ff37-644b-4080-83d9-a42bd2712f63";
+    const graphqlMocks = [
+      {
+        request: {
+          query: WorkspacePageDocument,
+          variables: {
+            slug,
+          },
+        },
+        result: {
+          data: {
+            workspace: {
+              slug,
+              name: "Rwanda Workspace",
+              description: "This is a description",
+              permissions: {
+                update: true,
+                delete: false,
+                manageMembers: false,
+              },
+              countries: [],
+              members: {
+                totalItems: 0,
+                items: [],
+              },
+            },
+          },
+        },
+      },
+    ];
+
+    const { container } = render(
+      <TestApp mocks={graphqlMocks}>
+        <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
+      </TestApp>
+    );
+    const elm = await screen.findByText("JupyterHub", { selector: "a" });
+    expect(elm).toBeInTheDocument();
+    expect(container).toMatchSnapshot();
+  });
 });
