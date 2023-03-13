@@ -114,13 +114,15 @@ const BucketExplorer = (props: BucketExplorerProps) => {
           )}
         </BaseColumn>
       </DataGrid>
-      <SimplePagination
-        className="px-4"
-        hasNextPage={objects.hasNextPage}
-        hasPreviousPage={objects.hasPreviousPage}
-        page={objects.pageNumber}
-        onChange={onChangePage}
-      />
+      {objects.items.length ? (
+        <SimplePagination
+          className="px-4"
+          hasNextPage={objects.hasNextPage}
+          hasPreviousPage={objects.hasPreviousPage}
+          page={objects.pageNumber}
+          onChange={onChangePage}
+        />
+      ) : null}
     </>
   );
 };

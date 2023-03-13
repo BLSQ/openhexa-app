@@ -218,10 +218,11 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       customStyle="text-gray-700 font-medium"
                       href={{
                         pathname:
-                          "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]",
+                          "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
                         query: {
-                          pipelinesId: item.id,
+                          pipelineId: dag.id,
                           workspaceSlug: workspace.slug,
+                          runId: item.id,
                         },
                       }}
                     >
@@ -249,10 +250,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   accessor="id"
                   url={(value: any) => ({
                     pathname:
-                      "/workspaces/[workspaceSlug]/pipelines/[pipelinesId]/runs/[runId]",
+                      "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
                     query: {
                       workspaceSlug: workspace.slug,
-                      pipelinesId: dag.id,
+                      pipelineId: dag.id,
                       runId: value,
                     },
                   })}
