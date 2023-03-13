@@ -6,7 +6,8 @@ def create_object(principal: User, workspace: Workspace):
     return (
         principal.has_feature_flag("workspaces")
         and workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.EDITOR
+            user=principal,
+            role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
         ).exists()
     )
 
@@ -15,7 +16,8 @@ def delete_object(principal: User, workspace: Workspace):
     return (
         principal.has_feature_flag("workspaces")
         and workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.EDITOR
+            user=principal,
+            role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],
         ).exists()
     )
 
@@ -23,7 +25,5 @@ def delete_object(principal: User, workspace: Workspace):
 def download_object(principal: User, workspace: Workspace):
     return (
         principal.has_feature_flag("workspaces")
-        and workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.VIEWER
-        ).exists()
+        and workspace.workspacemembership_set.filter(user=principal).exists()
     )
