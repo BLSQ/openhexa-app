@@ -144,7 +144,7 @@ class Pipeline(models.Model):
 
     def run(
         self,
-        user: User,
+        user: typing.Optional[User],
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
