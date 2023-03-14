@@ -3,13 +3,16 @@ import json
 import typing
 from dataclasses import dataclass
 
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from google.api_core.exceptions import NotFound
 from google.cloud import storage
 from google.cloud.exceptions import Conflict
+from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
+from google.protobuf import duration_pb2
 
 
 @dataclass
@@ -24,6 +27,48 @@ def get_credentials():
     decoded_creds = base64.b64decode(settings.GCS_SERVICE_ACCOUNT_KEY)
     json_creds = json.loads(decoded_creds, strict=False)
     return service_account.Credentials.from_service_account_info(json_creds)
+
+
+def get_short_lived_downscoped_access_token(bucket_name):
+    token_lifetime = 3600
+    if settings.GCS_TOKEN_LIFETIME is not None:
+        token_lifetime = int(settings.GCS_TOKEN_LIFETIME)
+    source_credentials = get_credentials()
+
+    iam_credentials = IAMCredentialsClient(credentials=source_credentials)
+    iam_token = iam_credentials.generate_access_token(
+        name=f"projects/-/serviceAccounts/{source_credentials._service_account_email}",
+        scope=["https://www.googleapis.com/auth/devstorage.full_control"],
+        lifetime=duration_pb2.Duration(seconds=token_lifetime),
+    )
+    # We call directly the REST API because the Python client library does
+    # not support to createe a downscoped token with a extended lifetime
+    # (Or we didn't find how...)
+    response = requests.post(
+        "https://sts.googleapis.com/v1/token",
+        data={
+            "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+            "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+            "subject_token": iam_token.access_token,
+            "options": json.dumps(
+                {
+                    "accessBoundary": {
+                        "accessBoundaryRules": [
+                            {
+                                "availableResource": f"//storage.googleapis.com/projects/_/buckets/{bucket_name}",
+                                "availablePermissions": [
+                                    "inRole:roles/storage.objectAdmin"
+                                ],
+                            }
+                        ]
+                    }
+                }
+            ),
+        },
+    )
+    payload = response.json()
+    return payload["access_token"], payload["expires_in"]
 
 
 def get_storage_client():
@@ -86,6 +131,7 @@ def _prefix_to_dict(bucket_name, name: str):
 
 def list_bucket_objects(bucket_name, prefix=None, page: int = 1, per_page=30):
     client = get_storage_client()
+
     request = client.list_blobs(
         bucket_name,
         prefix=prefix,
