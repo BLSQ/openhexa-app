@@ -72,17 +72,7 @@ WorkspacePipelinesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    const { data } = await client.query({
-      query: WorkspacePipelinesPageDocument,
-      variables: { workspaceSlug: ctx.params?.workspaceSlug },
-    });
     await WorkspaceLayout.prefetch(client);
-
-    if (!data.workspace) {
-      return {
-        notFound: true,
-      };
-    }
   },
 });
 

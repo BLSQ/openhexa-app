@@ -101,21 +101,7 @@ WorkspacePipelineRunPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    const { data } = await client.query({
-      query: WorkspacePipelineStartPageDocument,
-      variables: { workspaceSlug: ctx.params?.workspaceSlug },
-    });
     await WorkspaceLayout.prefetch(client);
-
-    const dag = FAKE_WORKSPACE.dags.find(
-      (d) => d.id === ctx.params?.pipelineId
-    );
-
-    if (!data.workspace || !dag) {
-      return {
-        notFound: true,
-      };
-    }
   },
 });
 

@@ -2,7 +2,7 @@ import * as Types from '../../../graphql-types';
 
 import { gql } from '@apollo/client';
 import { SidebarMenu_WorkspaceFragmentDoc } from '../../features/SidebarMenu/SidebarMenu.generated';
-export type Sidebar_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> };
+export type Sidebar_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> };
 
 export const Sidebar_WorkspaceFragmentDoc = gql`
     fragment Sidebar_workspace on Workspace {
@@ -10,6 +10,7 @@ export const Sidebar_WorkspaceFragmentDoc = gql`
   ...SidebarMenu_workspace
   permissions {
     manageMembers
+    update
   }
 }
     ${SidebarMenu_WorkspaceFragmentDoc}`;

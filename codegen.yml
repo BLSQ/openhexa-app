@@ -3,7 +3,8 @@ schema: "./schema.graphql"
 documents: "src/**/!(*.generated).{ts,tsx,graphql}"
 generates:
   src/graphql-types.ts:
-    - typescript
+    plugins:
+      - typescript
   src/:
     preset: near-operation-file
     presetConfig:

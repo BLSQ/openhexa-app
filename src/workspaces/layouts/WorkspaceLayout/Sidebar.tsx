@@ -146,6 +146,7 @@ Sidebar.fragments = {
       ...SidebarMenu_workspace
       permissions {
         manageMembers
+        update
       }
     }
     ${SidebarMenu.fragments.workspace}

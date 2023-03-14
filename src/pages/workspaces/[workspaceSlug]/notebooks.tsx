@@ -60,11 +60,11 @@ WorkspaceNotebooksPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
+    await WorkspaceLayout.prefetch(client);
     const { data } = await client.query({
       query: WorkspaceNotebooksPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
-    await WorkspaceLayout.prefetch(client);
 
     if (!data.workspace || !data.workspace.permissions.update) {
       return {

@@ -29,7 +29,7 @@ Button.args = {
   leading: false,
 };
 Button.argTypes = {
-  variants: {
+  variant: {
     options: ButtonComponent.Variants,
     control: { type: "radio" },
     defaultValue: "primary",

@@ -14,7 +14,7 @@ UserStory.storyName = "default";
 UserStory.args = {
   textColor: "text-teal-500",
   subtext: true,
-  id: 1,
+  id: "1",
   email: "alfonsebrown@openhexa.org",
   displayName: "Alfonse Brown",
   avatar: {
