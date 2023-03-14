@@ -34,6 +34,8 @@ type PipelineVersion {
   user: User
   pipeline: Pipeline!
   number: Int!
+  entrypoint: String!
+  parameters: JSON!
   zipfile: String!
 }
 
@@ -70,8 +72,7 @@ type PipelineRunPage {
 type Pipeline {
   id: UUID!
   name: String!
-  entrypoint: String!
-  parameters: JSON!
+  workspace: String!
   config: String!
   schedule: String
   user: User
@@ -93,7 +94,7 @@ enum PipelineError {
 }
 
 extend type Query {
-  pipelines(page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspace: UUID, page: Int, perPage: Int): PipelinesPage! @loginRequired
   pipeline(id: UUID, name: String): Pipeline @loginRequired
   pipelineRun(id: UUID!): PipelineRun @loginRequired
   pipelineRunCode(id: UUID): String @loginRequired
@@ -101,8 +102,7 @@ extend type Query {
 
 input CreatePipelineInput {
   name: String!
-  entrypoint: String!
-  parameters: JSON!
+  workspaceSlug: String!
 }
 
 type CreatePipelineResult {
@@ -144,6 +144,8 @@ type PipelineTokenResult {
 
 input UploadPipelineInput {
   name: String!
+  entrypoint: String!
+  parameters: JSON!
   zipfile: String!
 }
 

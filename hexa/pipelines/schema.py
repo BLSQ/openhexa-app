@@ -5,6 +5,7 @@ from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_f
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.workspaces.models import Workspace
 
 from .authentication import PipelineRunUser
 from .models import (
@@ -82,7 +83,20 @@ pipelines_query = QueryType()
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
+    if kwargs.get("workspace", None):
+        try:
+            ws = Workspace.objects.filter_for_user(request.user).get(
+                id=kwargs.get("workspace")
+            )
+            qs = (
+                Pipeline.objects.filter_for_user(request.user)
+                .filter(workspace=ws)
+                .order_by("name", "id")
+            )
+        except Workspace.DoesNotExist:
+            qs = Pipeline.objects.none()
+    else:
+        qs = Pipeline.objects.filter_for_user(request.user).order_by("name", "id")
 
     return result_page(
         queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
@@ -148,11 +162,20 @@ def resolve_create_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["INVALID_CONFIG"],
         }
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input.get("workspaceSlug")
+        )
+    except Workspace.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
+        }
+
     pipeline = Pipeline.objects.create(
         name=input.get("name"),
-        entrypoint=input.get("entrypoint"),
-        parameters=input.get("parameters"),
-        user=request.user,
+        workspace=workspace,
     )
     return {"pipeline": pipeline, "success": True, "errors": []}
 
@@ -162,7 +185,9 @@ def resolve_delete_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-        pipeline = Pipeline.objects.filter(user=request.user).get(id=input.get("id"))
+        pipeline = Pipeline.objects.filter_for_user(user=request.user).get(
+            id=input.get("id")
+        )
     except Pipeline.DoesNotExist:
         return {
             "success": False,
@@ -243,9 +268,13 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    zipfile = base64.b64decode(input.get("zipfile").encode("ascii"))
     try:
-        newpipelineversion = pipeline.upload_new_version(request.user, zipfile)
+        newpipelineversion = pipeline.upload_new_version(
+            user=request.user,
+            zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
+            entrypoint=input.get("entrypoint"),
+            parameters=input.get("parameters"),
+        )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except Exception as e:
         return {"success": False, "errors": [str(e)]}

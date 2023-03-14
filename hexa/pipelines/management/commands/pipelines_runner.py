@@ -216,7 +216,7 @@ def run_pipeline(run: PipelineRun):
     env_var = {}
     env_var["HEXA_PIPELINERUN_URL"] = f"{settings.BASE_URL}/graphql/"
     env_var["HEXA_PIPELINERUN_TOKEN"] = Signer().sign_object(run.access_token)
-    env_var["HEXA_CREDENTIALS_URL"] = f"{settings.BASE_URL}/pipelines/credentials/"
+    env_var["HEXA_CREDENTIALS_URL"] = f"{settings.BASE_URL}/pipelines/credentials2/"
     env_var["HEXA_PIPELINE_TOKEN"] = run.pipeline.get_token()
 
     time_start = timezone.now()

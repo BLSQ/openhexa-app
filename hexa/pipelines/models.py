@@ -24,6 +24,7 @@ from hexa.core.models import (
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.user_management.models import User
+from hexa.workspaces.models import Workspace
 
 
 class Index(BaseIndex):
@@ -107,6 +108,9 @@ class PipelineVersion(models.Model):
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
 
+    entrypoint = models.CharField(max_length=200, default="")
+    parameters = models.JSONField(blank=True, default=dict)
+
     objects = PipelineVersionQuerySet.as_manager()
 
     @property
@@ -119,11 +123,7 @@ class PipelineVersion(models.Model):
 
 class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(user=user),
-            return_all_if_superuser=True,
-        )
+        return self._filter_for_user_and_query_object(user, Q(workspace__members=user))
 
 
 class Pipeline(models.Model):
@@ -136,14 +136,9 @@ class Pipeline(models.Model):
 
     name = models.CharField(unique=True, max_length=200, default="")
     description = models.TextField(blank=True)
-    entrypoint = models.CharField(max_length=200, default="")
-    parameters = models.JSONField(blank=True, default=dict)
     config = models.CharField(max_length=200, blank=True)
     schedule = models.CharField(max_length=200, null=True, blank=True)
-
-    user = models.ForeignKey(
-        "user_management.User", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     objects = PipelineQuerySet.as_manager()
 
@@ -173,7 +168,7 @@ class Pipeline(models.Model):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
-    def upload_new_version(self, user: User, zipfile):
+    def upload_new_version(self, user: User, zipfile, entrypoint, parameters):
         if self.last_version:
             newnumber = self.last_version.number + 1
         else:
@@ -184,6 +179,8 @@ class Pipeline(models.Model):
             pipeline=self,
             number=newnumber,
             zipfile=zipfile,
+            entrypoint=entrypoint,
+            parameters=parameters,
         )
         return version
 
