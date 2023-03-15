@@ -24,6 +24,7 @@ import InviteMemberDialog from "workspaces/features/InviteMemberDialog";
 import WorkspaceMembers from "workspaces/features/WorkspaceMembers";
 import CountryProperty from "core/components/DataCard/CountryProperty";
 import { ensureArray } from "core/helpers/array";
+import GenerateWorkspaceDatabasePasswordDialog from "workspaces/features/GenerateDatabasePasswordDialog";
 
 type Props = {
   page: number;
@@ -40,6 +41,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const [mutate] = useUpdateWorkspaceMutation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
+  const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
 
   const onSectionSave: OnSaveFn = async (values) => {
     await mutate({
@@ -110,6 +112,15 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   defaultValue="-"
                 />
               </DataCard.FormSection>
+              <DataCard.Section title={t("Database")}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setIsGeneratePwdDialogOpen(true)}
+                >
+                  {t("Regenerate password")}
+                </Button>
+              </DataCard.Section>
             </DataCard>
           </div>
 
@@ -160,6 +171,11 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
             onClose={() => {
               setIsNewMemberDialogOpen(false);
             }}
+            workspace={workspace}
+          />
+          <GenerateWorkspaceDatabasePasswordDialog
+            open={isGeneratePwdDialogOpen}
+            onClose={() => setIsGeneratePwdDialogOpen(false)}
             workspace={workspace}
           />
         </WorkspaceLayout.PageContent>

@@ -2,11 +2,9 @@ import { EyeIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
-import CodeEditor from "core/components/CodeEditor";
 import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Page from "core/components/Page";
-import Tabs from "core/components/Tabs";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -17,7 +15,6 @@ import {
   useWorkspaceDatabaseTablePageQuery,
   WorkspaceDatabaseTablePageDocument,
 } from "workspaces/graphql/queries.generated";
-import { getUsageSnippet } from "workspaces/helpers/database";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -109,31 +106,13 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
                 />
               </DataGrid>
             </Block.Content>
-            <Block.Section title={"Usage"}>
-              <Tabs defaultIndex={0}>
-                <Tabs.Tab label={t("Code")}>
-                  <CodeEditor
-                    readonly
-                    lang="json"
-                    value={getUsageSnippet(table.name, "PYTHON")}
-                  />
-                </Tabs.Tab>
-                <Tabs.Tab label={t("Use in BI tools")}>
-                  <CodeEditor
-                    readonly
-                    lang="json"
-                    value={getUsageSnippet(table.name, "R")}
-                  />
-                </Tabs.Tab>
-              </Tabs>
-            </Block.Section>
-            <DataPreviewDialog
-              open={openModal}
-              onClose={() => setOpenModal(!openModal)}
-              workspaceSlug={workspace.slug}
-              tableName={table.name}
-            />
           </Block>
+          <DataPreviewDialog
+            open={openModal}
+            onClose={() => setOpenModal(!openModal)}
+            workspaceSlug={workspace.slug}
+            tableName={table.name}
+          />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
