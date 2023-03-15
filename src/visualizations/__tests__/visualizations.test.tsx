@@ -153,7 +153,7 @@ describe("Visualization", () => {
 
     const { container } = render(
       <TestApp mocks={visualizationMock}>
-        <VisualizationPage visualizationId="351489ac-5bbe-4ed3-aab9-8155024092b4" />
+        <VisualizationPage visualizationId="151489ac-5bbe-4ed3-aab9-8155024092b4" />
       </TestApp>
     );
 

@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CountryBadge renders 1`] = `
+<div>
+  <span
+    class="inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium px-2 py-0.5 text-xs relative flex items-center gap-1 border border-gray-300 bg-gray-50 hover-bg-opacity-70"
+    title="United Arab Emirates"
+  >
+    <img
+      alt="Country flag"
+      class="absolute w-4 flex-shrink rounded-sm"
+      src="https://api.demo.openhexa.org/static/flags/ae.gif"
+    />
+    <span
+      class="ml-5 max-w-[20ch] truncate"
+    >
+      United Arab Emirates
+    </span>
+  </span>
+</div>
+`;
