@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.0](https://github.com/BLSQ/openhexa-frontend/compare/0.19.1...0.20.0) (2023-03-14)
+
+
+### Features
+
+* **Workspaces:** hide notebooks menu entry for user with role VIEWER ([#226](https://github.com/BLSQ/openhexa-frontend/issues/226)) ([e899659](https://github.com/BLSQ/openhexa-frontend/commit/e8996592a33e5841e5a121d0e29fbd688dc0dfe4))
+
+
+### Bug Fixes
+
+* **Pipelines:** Link on pipeline's runs first column is incorrect ([a8677e6](https://github.com/BLSQ/openhexa-frontend/commit/a8677e6fe58c2ce17916f29952fa076ee1e49b0f))
+
 ## [0.19.1](https://github.com/BLSQ/openhexa-frontend/compare/0.19.0...0.19.1) (2023-03-08)
 
 
