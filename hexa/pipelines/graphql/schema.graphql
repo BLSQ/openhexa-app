@@ -69,14 +69,36 @@ type PipelineRunPage {
   totalItems: Int!
 }
 
+type PipelinePermissions {
+  update: Boolean!
+  delete: Boolean!
+  run: Boolean!
+}
+
+extend type WorkspacePermissions {
+  createPipeline: Boolean!
+}
+
+type PipelineVersionPage {
+  items: [PipelineVersion!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
 type Pipeline {
   id: UUID!
   name: String!
-  workspace: String!
+  permissions: PipelinePermissions!
+  workspace: Workspace
   config: String!
   schedule: String
   user: User
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
+  versions(page: Int, perPage: Int): PipelineVersionPage!
 }
 
 type PipelinesPage {
@@ -94,7 +116,7 @@ enum PipelineError {
 }
 
 extend type Query {
-  pipelines(workspace: UUID, page: Int, perPage: Int): PipelinesPage! @loginRequired
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
   pipeline(id: UUID, name: String): Pipeline @loginRequired
   pipelineRun(id: UUID!): PipelineRun @loginRequired
   pipelineRunCode(id: UUID): String @loginRequired
@@ -184,8 +206,29 @@ type AddPipelineOutputResult {
   errors: [PipelineError!]!
 }
 
+input UpdatePipelineInput {
+  id: UUID!
+  name: String
+  config: String
+  schedule: String
+  description: String
+}
+enum UpdatePipelineError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_CONFIG
+}
+
+type UpdatePipelineResult {
+  success: Boolean!
+  errors: [UpdatePipelineError!]!
+  pipeline: Pipeline
+}
+
+
 extend type Mutation {
-  createPipeline(input: CreatePipelineInput): CreatePipelineResult! @loginRequired
+  createPipeline(input: CreatePipelineInput!): CreatePipelineResult! @loginRequired
+  updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult! @loginRequired
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult! @loginRequired
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!

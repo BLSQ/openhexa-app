@@ -6,6 +6,7 @@ from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
+from hexa.workspaces.schema.types import workspace_permissions
 
 from .authentication import PipelineRunUser
 from .models import (
@@ -20,9 +21,61 @@ pipelines_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
 
-pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
 
+@workspace_permissions.field("createPipeline")
+def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs):
+    request = info.context["request"]
+
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.create_pipeline", obj
+    )
+
+
+pipeline_permissions = ObjectType("PipelinePermissions")
+pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
+pipeline_run_order_by_enum = EnumType(
+    "PipelineRunOrderBy",
+    {
+        "EXECUTION_DATE_DESC": "-execution_date",
+        "EXECUTION_DATE_ASC": "execution_date",
+    },
+)
 pipeline_object = ObjectType("Pipeline")
+
+
+@pipeline_permissions.field("update")
+def resolve_pipeline_permissions_update(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.update_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("delete")
+def resolve_pipeline_permissions_delete(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.delete_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("run")
+def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.run_pipeline", pipeline
+    )
+
+
+@pipeline_object.field("permissions")
+def resolve_pipeline_permissions(pipeline: Pipeline, info, **kwargs):
+    return pipeline
+
+
+@pipeline_object.field("versions")
+def resolve_pipeline_versions(pipeline: Pipeline, info, **kwargs):
+    qs = pipeline.versions.all()
+    result_page(queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage"))
 
 
 @pipeline_object.field("runs")
@@ -83,10 +136,10 @@ pipelines_query = QueryType()
 @pipelines_query.field("pipelines")
 def resolve_pipelines(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    if kwargs.get("workspace", None):
+    if kwargs.get("workspaceSlug", None):
         try:
             ws = Workspace.objects.filter_for_user(request.user).get(
-                id=kwargs.get("workspace")
+                slug=kwargs.get("workspaceSlug")
             )
             qs = (
                 Pipeline.objects.filter_for_user(request.user)
@@ -178,6 +231,24 @@ def resolve_create_pipeline(_, info, **kwargs):
         workspace=workspace,
     )
     return {"pipeline": pipeline, "success": True, "errors": []}
+
+
+@pipelines_mutations.field("updatePipeline")
+def resolve_update_pipeline(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input.pop("id")
+        )
+        pipeline.update_if_has_perm(request.user, **input)
+        return {"pipeline": pipeline, "success": True, "errors": []}
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["NOT_FOUND"],
+        }
 
 
 @pipelines_mutations.field("deletePipeline")
@@ -376,5 +447,7 @@ pipelines_bindables = [
     pipeline_object,
     pipeline_run_object,
     pipeline_run_status_enum,
+    pipeline_run_order_by_enum,
     pipeline_version_object,
+    pipeline_permissions,
 ]

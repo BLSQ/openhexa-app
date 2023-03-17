@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import PermissionDenied
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.signing import Signer
 from django.db import models
@@ -104,7 +105,9 @@ class PipelineVersion(models.Model):
     user = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
-    pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
+    pipeline = models.ForeignKey(
+        "Pipeline", on_delete=models.CASCADE, related_name="versions"
+    )
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
 
@@ -149,7 +152,6 @@ class Pipeline(models.Model):
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
     ):
-
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -184,9 +186,19 @@ class Pipeline(models.Model):
         )
         return version
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        # if not principal.has_perm("workspaces.update_workspace", self):
+        #     raise PermissionDenied
+
+        for key in ["name", "description", "schedule", "config"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
     @property
     def last_version(self) -> "PipelineVersion":
-        return self.pipelineversion_set.first()
+        return self.versions.first()
 
     def get_token(self):
         return Signer().sign_object(
