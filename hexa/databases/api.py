@@ -1,3 +1,4 @@
+import os
 import re
 
 import psycopg2
@@ -99,6 +100,16 @@ def create_database(db_name: str, pwd: str):
             )
             cursor.execute("create extension postgis;")
             cursor.execute("create extension postgis_topology;")
+
+            with open(
+                os.path.join(os.path.dirname(__file__), "static/demo.sql")
+            ) as file:
+                cursor.execute(file.read())
+                cursor.execute(
+                    sql.SQL(
+                        "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {role_name};"
+                    ).format(role_name=sql.Identifier(db_name))
+                )
 
     finally:
         if conn:

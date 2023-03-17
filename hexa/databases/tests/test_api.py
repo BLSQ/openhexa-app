@@ -10,6 +10,7 @@ from hexa.databases.api import (
     format_db_name,
     get_database_connection,
     get_db_server_credentials,
+    load_database_sample_data,
     update_database_password,
 )
 from hexa.user_management.models import User
@@ -121,6 +122,33 @@ class DatabaseAPITest(TestCase):
 
         with self.assertRaises(OperationalError):
             conn = psycopg2.connect(url)
+
+    def test_load_database_sample_data(self):
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+        load_database_sample_data(self.DB1_NAME)
+
+        with psycopg2.connect(
+            host=host,
+            port=port,
+            dbname=self.DB1_NAME,
+            user=self.DB1_NAME,
+            password=self.PWD_1,
+        ) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                    SELECT table_name as name, pg_class.reltuples as count
+                    FROM information_schema.tables
+                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                    WHERE
+                        table_schema = 'public' AND
+                        table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
+                    ORDER BY table_name;
+                """
+            )
+            self.assertEqual(len(cursor.fetchall()), 2)
 
     def test_delete_database(self):
         db_name = "pnlp"

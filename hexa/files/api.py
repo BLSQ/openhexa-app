@@ -1,7 +1,9 @@
 import base64
 import json
+import os
 import typing
 from dataclasses import dataclass
+from os.path import dirname, isfile, join
 
 import requests
 from django.conf import settings
@@ -102,6 +104,7 @@ def create_bucket(bucket_name):
             }
         ]
         bucket.patch()
+        _init_bucket_data(bucket_name)
         return bucket
     except Conflict as e:
         raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
@@ -216,3 +219,22 @@ def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
     return blob.generate_signed_url(
         expiration=3600, version="v4", method="PUT", content_type=content_type
     )
+
+
+def _init_bucket_data(bucket_name: str):
+    """
+    Init bucket with default content
+    """
+    static_files_dir = join(dirname(__file__), "static")
+    files = [
+        f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
+    ]
+    for file in files:
+        upload_object(bucket_name, file, join(static_files_dir, file))
+
+
+def upload_object(bucket_name: str, file_name: str, source: str):
+    client = get_storage_client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    blob.upload_from_filename(source)
