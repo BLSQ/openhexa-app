@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
@@ -41,19 +42,19 @@ class WorkspaceTest(GraphQLTestCase):
             "workspace",
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_JULIA,
-            name="Senegal Workspace",
-            description="This is a workspace for Senegal",
-            countries=[{"code": "AL"}],
-        )
-
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-            cls.USER_JULIA,
-            name="Burundi Workspace",
-            description="This is a workspace for Burundi",
-            countries=[{"code": "AD"}],
-        )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+                cls.USER_JULIA,
+                name="Senegal Workspace",
+                description="This is a workspace for Senegal",
+                countries=[{"code": "AL"}],
+            )
+            cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+                cls.USER_JULIA,
+                name="Burundi Workspace",
+                description="This is a workspace for Burundi",
+                countries=[{"code": "AD"}],
+            )
 
         cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
             user=cls.USER_REBECCA,
@@ -97,9 +98,10 @@ class WorkspaceTest(GraphQLTestCase):
 
     @mock_gcp_storage
     def test_create_workspace(self):
-        self.client.force_login(self.USER_JULIA)
-        r = self.run_query(
-            """
+        with patch("hexa.workspaces.models.create_database"):
+            self.client.force_login(self.USER_JULIA)
+            r = self.run_query(
+                """
             mutation createWorkspace($input:CreateWorkspaceInput!) {
                 createWorkspace(input: $input) {
                     success
@@ -111,30 +113,31 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             }
             """,
-            {
-                "input": {
-                    "name": "Cameroon workspace",
-                    "description": "Description",
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "workspace": {
-                    "name": "Cameroon workspace",
-                    "description": "Description",
+                {
+                    "input": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                    }
                 },
-            },
-            r["data"]["createWorkspace"],
-        )
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "workspace": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                    },
+                },
+                r["data"]["createWorkspace"],
+            )
 
     @mock_gcp_storage
     def test_create_workspace_with_country(self):
-        self.client.force_login(self.USER_JULIA)
-        r = self.run_query(
-            """
+        with patch("hexa.workspaces.models.create_database"):
+            self.client.force_login(self.USER_JULIA)
+            r = self.run_query(
+                """
             mutation createWorkspace($input:CreateWorkspaceInput!) {
                 createWorkspace(input: $input) {
                     success
@@ -150,26 +153,26 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             }
             """,
-            {
-                "input": {
-                    "name": "Cameroon workspace",
-                    "description": "Description",
-                    "countries": [{"code": "AD"}],
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "workspace": {
-                    "name": "Cameroon workspace",
-                    "description": "Description",
-                    "countries": [{"code": "AD"}],
+                {
+                    "input": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                        "countries": [{"code": "AD"}],
+                    }
                 },
-            },
-            r["data"]["createWorkspace"],
-        )
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "workspace": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                        "countries": [{"code": "AD"}],
+                    },
+                },
+                r["data"]["createWorkspace"],
+            )
 
     @mock_gcp_storage
     def test_get_workspace_not_member(self):

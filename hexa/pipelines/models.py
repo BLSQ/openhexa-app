@@ -24,6 +24,7 @@ from hexa.core.models import (
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.user_management.models import User
+from hexa.workspaces.models import Workspace
 
 
 class Index(BaseIndex):
@@ -103,9 +104,14 @@ class PipelineVersion(models.Model):
     user = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
     )
-    pipeline = models.ForeignKey("Pipeline", on_delete=models.CASCADE)
+    pipeline = models.ForeignKey(
+        "Pipeline", on_delete=models.CASCADE, related_name="versions"
+    )
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
+
+    entrypoint = models.CharField(max_length=200, default="")
+    parameters = models.JSONField(blank=True, default=dict)
 
     objects = PipelineVersionQuerySet.as_manager()
 
@@ -120,9 +126,7 @@ class PipelineVersion(models.Model):
 class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
         return self._filter_for_user_and_query_object(
-            user,
-            Q(user=user),
-            return_all_if_superuser=True,
+            user, Q(workspace__members=user), return_all_if_superuser=False
         )
 
 
@@ -136,25 +140,19 @@ class Pipeline(models.Model):
 
     name = models.CharField(unique=True, max_length=200, default="")
     description = models.TextField(blank=True)
-    entrypoint = models.CharField(max_length=200, default="")
-    parameters = models.JSONField(blank=True, default=dict)
     config = models.CharField(max_length=200, blank=True)
     schedule = models.CharField(max_length=200, null=True, blank=True)
-
-    user = models.ForeignKey(
-        "user_management.User", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     objects = PipelineQuerySet.as_manager()
 
     def run(
         self,
-        user: User,
+        user: typing.Optional[User],
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
     ):
-
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -173,7 +171,7 @@ class Pipeline(models.Model):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
-    def upload_new_version(self, user: User, zipfile):
+    def upload_new_version(self, user: User, zipfile, entrypoint, parameters):
         if self.last_version:
             newnumber = self.last_version.number + 1
         else:
@@ -184,12 +182,24 @@ class Pipeline(models.Model):
             pipeline=self,
             number=newnumber,
             zipfile=zipfile,
+            entrypoint=entrypoint,
+            parameters=parameters,
         )
         return version
 
+    def update_if_has_perm(self, principal: User, **kwargs):
+        # if not principal.has_perm("workspaces.update_workspace", self):
+        #     raise PermissionDenied
+
+        for key in ["name", "description", "schedule", "config"]:
+            if key in kwargs:
+                setattr(self, key, kwargs[key])
+
+        return self.save()
+
     @property
     def last_version(self) -> "PipelineVersion":
-        return self.pipelineversion_set.first()
+        return self.versions.first()
 
     def get_token(self):
         return Signer().sign_object(

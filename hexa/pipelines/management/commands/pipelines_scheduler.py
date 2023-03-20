@@ -44,7 +44,7 @@ class Command(BaseCommand):
                     sleep(real_delay)
 
                 pipeline.run(
-                    user=pipeline.user,
+                    user=None,
                     pipeline_version=pipeline.last_version,
                     trigger_mode=PipelineRunTrigger.SCHEDULED,
                 )
