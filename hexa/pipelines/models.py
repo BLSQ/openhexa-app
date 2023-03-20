@@ -125,7 +125,9 @@ class PipelineVersion(models.Model):
 
 class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self._filter_for_user_and_query_object(user, Q(workspace__members=user))
+        return self._filter_for_user_and_query_object(
+            user, Q(workspace__members=user), return_all_if_superuser=False
+        )
 
 
 class Pipeline(models.Model):
