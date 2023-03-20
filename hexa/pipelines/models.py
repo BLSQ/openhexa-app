@@ -5,7 +5,6 @@ from datetime import datetime
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.exceptions import PermissionDenied
 from django.contrib.postgres.indexes import GinIndex, GistIndex
 from django.core.signing import Signer
 from django.db import models
