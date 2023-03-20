@@ -320,7 +320,8 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["deleteWorkspace"],
         )
 
-    def test_delete_workspace(self):
+    @patch("hexa.workspaces.models.delete_database")
+    def test_delete_workspace(self, mock_delete_database):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
@@ -337,6 +338,7 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             },
         )
+        self.assertTrue(mock_delete_database.called)
         self.assertEqual(
             {
                 "success": True,

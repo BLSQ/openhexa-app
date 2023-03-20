@@ -119,3 +119,28 @@ def update_database_password(db_role: str, new_password: str):
     finally:
         if conn:
             conn.close()
+
+
+def delete_database(db_name: str):
+    """
+    Delete database, role and all objects associated with the role.
+    """
+    conn = None
+    try:
+        conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("DROP DATABASE {db_name};").format(
+                    db_name=sql.Identifier(db_name),
+                )
+            )
+            cursor.execute(
+                sql.SQL("DROP OWNED BY {role};").format(role=sql.Identifier(db_name))
+            )
+            cursor.execute(
+                sql.SQL("DROP ROLE {role};").format(role=sql.Identifier(db_name))
+            )
+    finally:
+        if conn:
+            conn.close()
