@@ -108,7 +108,7 @@ class PipelinesV2Test(GraphQLTestCase):
                   pipelines {
                     items {
                       name
-                      workspace
+                      workspace { name slug }
                     }
                   }
               }
@@ -119,10 +119,10 @@ class PipelinesV2Test(GraphQLTestCase):
         r = self.run_query(
             f"""
               query {{
-                  pipelines(workspace: "{self.WS1.id}") {{
+                  pipelines(workspaceSlug: "{self.WS1.slug}") {{
                     items {{
                       name
-                      workspace
+                      workspace {{ name }}
                     }}
                   }}
               }}
@@ -130,7 +130,7 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
         self.assertEqual(
-            {"name": "MonBeauPipeline", "workspace": "WS1"},
+            {"name": "MonBeauPipeline", "workspace": {"name": "WS1"}},
             r["data"]["pipelines"]["items"][0],
         )
 
