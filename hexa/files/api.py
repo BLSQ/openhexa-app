@@ -104,7 +104,7 @@ def create_bucket(bucket_name):
             }
         ]
         bucket.patch()
-        _init_bucket_data(bucket_name)
+
         return bucket
     except Conflict as e:
         raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
@@ -221,7 +221,7 @@ def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
     )
 
 
-def _init_bucket_data(bucket_name: str):
+def load_sample_data(bucket_name: str):
     """
     Init bucket with default content
     """
