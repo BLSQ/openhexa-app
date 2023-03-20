@@ -47,7 +47,7 @@ class CredentialsTestCase(BaseCredentialsTestCase):
         "hexa.pipelines.views.get_hexa_app_configs",
         return_value=get_hexa_app_configs(),
     )
-    def test_credentials_200(self, _):
+    def test_p2_credentials_200(self, _):
         token = self.PIPELINE.get_token()
 
         class AppConfig:

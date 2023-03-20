@@ -110,6 +110,9 @@ def credentials2(request: HttpRequest) -> HttpResponse:
     pipeline = get_object_or_404(model, pk=data["id"])
     workspace = pipeline.workspace
 
+    # should follow the same logic as workspace.views.credentials
+    # FIXME: when workspace bucket credentials are working -> refactor/merge
+
     env = {}
     gcs_buckets = []
 
