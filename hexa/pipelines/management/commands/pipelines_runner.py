@@ -98,6 +98,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                             name="HEXA_PIPELINE_TOKEN",
                             value=env_var["HEXA_PIPELINE_TOKEN"],
                         ),
+                        k8s.V1EnvVar(
+                            name="HEXA_PIPELINE_NAME",
+                            value=env_var["HEXA_PIPELINE_NAME"],
+                        ),
                     ],
                     # We need to have /dev/fuse mounted inside the container
                     # This is done by requesting a resource: smarter-devices/fuse
@@ -184,7 +188,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --rm pipelines_v2 run {run.pipeline.entrypoint}'
+    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --rm pipelines_v2 run {run.pipeline.entrypoint}'
 
     print(docker_cmd)
 
@@ -218,6 +222,7 @@ def run_pipeline(run: PipelineRun):
     env_var["HEXA_PIPELINERUN_TOKEN"] = Signer().sign_object(run.access_token)
     env_var["HEXA_CREDENTIALS_URL"] = f"{settings.BASE_URL}/pipelines/credentials2/"
     env_var["HEXA_PIPELINE_TOKEN"] = run.pipeline.get_token()
+    env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
 
     time_start = timezone.now()
 
