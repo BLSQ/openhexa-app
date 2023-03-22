@@ -25,7 +25,6 @@ create table covid_data
     icu                  integer
 );
 
-
 INSERT INTO covid_data (id, usmer, medical_unit, sex, patient_type, date_died, intubed, pneumonia, age, pregnant, diabetes, copd, asthma, inmsupr, hipertension, other_disease, cardiovascular, obesity, renal_chronic, tobacco, clasiffication_final, icu) VALUES (0, 2, 1, 1, 1, '2020-05-03', 97, 1, 65, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 3, 97);
 INSERT INTO covid_data (id, usmer, medical_unit, sex, patient_type, date_died, intubed, pneumonia, age, pregnant, diabetes, copd, asthma, inmsupr, hipertension, other_disease, cardiovascular, obesity, renal_chronic, tobacco, clasiffication_final, icu) VALUES (1, 2, 1, 2, 1, '2020-06-03', 97, 1, 72, 97, 2, 2, 2, 2, 1, 2, 2, 1, 1, 2, 5, 97);
 INSERT INTO covid_data (id, usmer, medical_unit, sex, patient_type, date_died, intubed, pneumonia, age, pregnant, diabetes, copd, asthma, inmsupr, hipertension, other_disease, cardiovascular, obesity, renal_chronic, tobacco, clasiffication_final, icu) VALUES (2, 2, 1, 2, 2, '2020-06-09', 1, 2, 55, 97, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2);
