@@ -221,7 +221,7 @@ def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
     )
 
 
-def load_sample_data(bucket_name: str):
+def load_bucket_sample_data(bucket_name: str):
     """
     Init bucket with default content
     """
