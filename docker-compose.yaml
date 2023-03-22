@@ -2,7 +2,10 @@ version: "3.8"
 
 # Defines a service that can be reused multiple times later
 x-app: &common
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
     environment:
       - DEBUG=true
       - SESSION_COOKIE_SECURE=false
@@ -64,6 +67,8 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - db
 

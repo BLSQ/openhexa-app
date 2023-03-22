@@ -39,6 +39,7 @@ jobs:
         with:
           push: true
           context: .
+          target: production
           file: Dockerfile
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
@@ -49,6 +50,7 @@ jobs:
         with:
           push: true
           context: .
+          target: production
           file: Dockerfile
           tags: |
             blsq/openhexa-app:${{ github.event.inputs.tag }}
