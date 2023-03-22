@@ -13,8 +13,8 @@ type PipelineRunMessage {
 }
 
 enum PipelineRunTrigger {
-  SCHEDULED
-  MANUAL
+  scheduled
+  manual
 }
 
 type PipelineRunOutput {
@@ -45,7 +45,7 @@ type PipelineRun {
   user: User
   pipeline: Pipeline!
   version: PipelineVersion!
-  config: String!
+  config: JSON!
   status: PipelineRunStatus!
   executionDate: DateTime
   duration: Int
@@ -91,12 +91,12 @@ type Pipeline {
   name: String!
   permissions: PipelinePermissions!
   workspace: Workspace
-  config: String!
+  config: JSON!
   schedule: String
-  user: User
   description: String
   createdAt: DateTime!
   updatedAt: DateTime
+  currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
 }
@@ -145,7 +145,7 @@ type DeletePipelineResult {
 input RunPipelineInput {
   id: UUID!
   version: Int
-  config: String
+  config: JSON!
 }
 
 type RunPipelineResult {
@@ -209,7 +209,7 @@ type AddPipelineOutputResult {
 input UpdatePipelineInput {
   id: UUID!
   name: String
-  config: String
+  config: JSON
   schedule: String
   description: String
 }

@@ -2,7 +2,7 @@ import time
 import typing
 import uuid
 from datetime import datetime
-
+from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -140,7 +140,7 @@ class Pipeline(models.Model):
 
     name = models.CharField(unique=True, max_length=200, default="")
     description = models.TextField(blank=True)
-    config = models.CharField(max_length=200, blank=True)
+    config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
@@ -153,6 +153,8 @@ class Pipeline(models.Model):
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[str, typing.Any] = None,
     ):
+        if not user.has_perm("pipelines.run_pipeline", self):
+            raise PermissionDenied()
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -188,8 +190,8 @@ class Pipeline(models.Model):
         return version
 
     def update_if_has_perm(self, principal: User, **kwargs):
-        # if not principal.has_perm("workspaces.update_workspace", self):
-        #     raise PermissionDenied
+        if not principal.has_perm("pipelines.update_pipeline", self):
+            raise PermissionDenied
 
         for key in ["name", "description", "schedule", "config"]:
             if key in kwargs:
@@ -249,7 +251,7 @@ class PipelineRun(Base, WithStatus):
         max_length=200, blank=False, choices=PipelineRunState.choices
     )
     duration = models.DurationField(null=True)
-    config = models.CharField(max_length=200, blank=True)
+    config = models.JSONField(blank=True, default=dict)
     access_token = models.CharField(max_length=200, blank=True)
     messages = models.JSONField(null=True, blank=True, default=list)
     outputs = models.JSONField(null=True, blank=True, default=list)
