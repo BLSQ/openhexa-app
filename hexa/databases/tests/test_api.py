@@ -6,6 +6,7 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, STATUS_READY
 from hexa.core.test import TestCase
 from hexa.databases.api import (
     create_database,
+    delete_database,
     format_db_name,
     get_database_connection,
     get_db_server_credentials,
@@ -118,5 +119,38 @@ class DatabaseAPITest(TestCase):
 
         url = f"postgresql://{self.DB2_NAME}:{self.PWD_2}@{host}:{port}/{self.DB2_NAME}"
 
+        with self.assertRaises(OperationalError):
+            conn = psycopg2.connect(url)
+
+    def test_delete_database(self):
+        db_name = "pnlp"
+        db_password = "pnlp"
+        create_database(db_name, db_password)
+
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+
+        url = f"postgresql://{db_name}:{db_password}@{host}:{port}/{db_name}"
+        conn = None
+        try:
+            conn = psycopg2.connect(url)
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT table_name as name, pg_class.reltuples as count
+                FROM information_schema.tables
+                JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                WHERE
+                    table_schema = 'public'
+                ORDER BY table_name;
+             """
+            )
+            self.assertTrue(len(cursor.fetchall()) > 0)
+        finally:
+            if conn:
+                conn.close()
+
+        delete_database(db_name)
         with self.assertRaises(OperationalError):
             conn = psycopg2.connect(url)

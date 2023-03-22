@@ -18,7 +18,12 @@ from slugify import slugify
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
-from hexa.databases.api import create_database, format_db_name, update_database_password
+from hexa.databases.api import (
+    create_database,
+    delete_database,
+    format_db_name,
+    update_database_password,
+)
 from hexa.files.api import create_bucket
 from hexa.user_management.models import User
 
@@ -132,7 +137,7 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
-
+        delete_database(self.db_name)
         self.delete()
 
     def generate_new_database_password(self, *, principal: User):
