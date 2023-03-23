@@ -42,7 +42,9 @@ class WorkspaceTest(GraphQLTestCase):
             "workspace",
         )
 
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
                 cls.USER_JULIA,
                 name="Senegal Workspace",
@@ -98,7 +100,9 @@ class WorkspaceTest(GraphQLTestCase):
 
     @mock_gcp_storage
     def test_create_workspace(self):
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
                 """
@@ -134,7 +138,9 @@ class WorkspaceTest(GraphQLTestCase):
 
     @mock_gcp_storage
     def test_create_workspace_with_country(self):
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
                 """

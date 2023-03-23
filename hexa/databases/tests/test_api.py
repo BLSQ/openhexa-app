@@ -18,20 +18,22 @@ from hexa.user_management.models import User
 
 class DatabaseAPITest(TestCase):
     @classmethod
-    def setUpTestData(cls):
-        cls.USER_PETE = User.objects.create_user(
+    def setUpTestData(self):
+        super().setUpTestData()
+        self.USER_PETE = User.objects.create_user(
             "pete@bluesquarehub.com", "pete's password", is_superuser=True
         )
-
-    def setUp(self):
         self.DB1_NAME = "rdcproject"
         self.PWD_1 = "p%ygy+_'#wd@"
         self.DB2_NAME = "rwandaproject"
         self.PWD_2 = "password_2"
+
         create_database(self.DB1_NAME, self.PWD_1)
         create_database(self.DB2_NAME, self.PWD_2)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
+        super().tearDownClass()
         credentials = get_db_server_credentials()
 
         role = credentials["role"]
@@ -148,7 +150,7 @@ class DatabaseAPITest(TestCase):
                     ORDER BY table_name;
                 """
             )
-            self.assertEqual(len(cursor.fetchall()), 2)
+            self.assertEqual(len(cursor.fetchall()), 1)
 
     def test_delete_database(self):
         db_name = "pnlp"
