@@ -6,6 +6,8 @@ x-app: &common
       context: .
       dockerfile: Dockerfile
       target: dev
+    networks:
+      - openhexa
     environment:
       - DEBUG=true
       - SESSION_COOKIE_SECURE=false
@@ -40,6 +42,7 @@ x-app: &common
       - WORKSPACES_DATABASE_PORT=5432
       - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
       - PIPELINE_SCHEDULER_SPAWNER
+      - PIPELINE_API_URL
       - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
       - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
       - GCS_SERVICE_ACCOUNT_KEY
@@ -51,6 +54,8 @@ x-app: &common
 services:
   db:
     image: postgis/postgis:12-3.2
+    networks:
+      - openhexa
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -79,5 +84,9 @@ services:
     depends_on:
       - db
 
+networks:
+  openhexa:
+    name: openhexa
+    external: true
 volumes:
   pgdata:

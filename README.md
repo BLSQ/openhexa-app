@@ -92,6 +92,7 @@ The following steps will get you up and running:
 
 ```bash
 cp .env.dist .env
+docker network create openhexa
 docker-compose build
 docker-compose run app fixtures
 docker-compose run app manage tailwind install

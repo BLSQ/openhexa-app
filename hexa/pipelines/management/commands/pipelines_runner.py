@@ -188,7 +188,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --platform linux/amd64 --rm openhexa-pipelines-v2 run {run.pipeline_version.entrypoint}'
+    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --network openhexa --platform linux/amd64 --rm openhexa-pipelines-v2 cloudrun {run.pipeline_version.entrypoint}'
 
     print(docker_cmd)
 
@@ -218,9 +218,11 @@ def run_pipeline(run: PipelineRun):
     run.refresh_from_db()
 
     env_var = {}
-    env_var["HEXA_PIPELINERUN_URL"] = f"{settings.BASE_URL}/graphql/"
+    env_var["HEXA_PIPELINERUN_URL"] = f"{settings.PIPELINE_API_URL}/graphql/"
     env_var["HEXA_PIPELINERUN_TOKEN"] = Signer().sign_object(run.access_token)
-    env_var["HEXA_CREDENTIALS_URL"] = f"{settings.BASE_URL}/pipelines/credentials2/"
+    env_var[
+        "HEXA_CREDENTIALS_URL"
+    ] = f"{settings.PIPELINE_API_URL}/pipelines/credentials2/"
     env_var["HEXA_PIPELINE_TOKEN"] = run.pipeline.get_token()
     env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
 
