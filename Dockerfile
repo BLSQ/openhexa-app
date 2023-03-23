@@ -19,8 +19,6 @@ COPY requirements.txt /code/
 # Force setuptools version to build pygdal
 RUN pip install setuptools==57.5.0 && pip install -r requirements.txt
 
-
-FROM deps as build
 COPY . /code/
 
 ENV SECRET_KEY="collectstatic"
@@ -28,7 +26,7 @@ RUN python manage.py tailwind install
 RUN python manage.py tailwind build --no-input
 RUN python manage.py collectstatic --noinput
 
-FROM build as dev
+FROM deps as dev
 # We need to have the docker client in the container to run docker-compose commands and execute pipelines
 RUN mkdir -m 0755 -p /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -41,6 +39,6 @@ ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
 
 
-FROM build as production
+FROM deps as production
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start

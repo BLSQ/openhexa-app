@@ -419,7 +419,7 @@ def resolve_pipeline_progress(_, info, **kwargs):
 
 
 @pipelines_mutations.field("addPipelineOutput")
-def resolve_pipeline_output(_, info, **kwargs):
+def resolve_add_pipeline_output(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     if not request.user.is_authenticated or not isinstance(
         request.user, PipelineRunUser

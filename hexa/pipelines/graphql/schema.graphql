@@ -34,6 +34,7 @@ type PipelineVersion {
   user: User
   pipeline: Pipeline!
   number: Int!
+  createdAt: DateTime!
   entrypoint: String!
   parameters: JSON!
   zipfile: String!

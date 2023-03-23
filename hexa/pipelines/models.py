@@ -2,10 +2,11 @@ import time
 import typing
 import uuid
 from datetime import datetime
-from django.core.exceptions import PermissionDenied
+
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
+from django.core.exceptions import PermissionDenied
 from django.core.signing import Signer
 from django.db import models
 from django.db.models import Q
@@ -151,7 +152,7 @@ class Pipeline(models.Model):
         user: typing.Optional[User],
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
-        config: typing.Mapping[str, typing.Any] = None,
+        config: typing.Mapping[typing.Dict, typing.Any] = None,
     ):
         if not user.has_perm("pipelines.run_pipeline", self):
             raise PermissionDenied()
@@ -289,14 +290,14 @@ class PipelineRun(Base, WithStatus):
         )
         self.save()
 
-    def add_output(self, output_uri: str, output_type: str):
+    def add_output(self, uri: str, label: str):
         self.refresh_from_db()
         if self.outputs is None:
             self.outputs = []
         self.outputs.append(
             {
-                "output_uri": output_uri,
-                "output_type": output_type,
+                "uri": uri,
+                "label": label,
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )
