@@ -1,3 +1,4 @@
+import os
 import re
 
 import psycopg2
@@ -99,7 +100,6 @@ def create_database(db_name: str, pwd: str):
             )
             cursor.execute("create extension postgis;")
             cursor.execute("create extension postgis_topology;")
-
     finally:
         if conn:
             conn.close()
@@ -116,6 +116,27 @@ def update_database_password(db_role: str, new_password: str):
                     role=sql.Identifier(db_role), password=sql.Literal(new_password)
                 )
             )
+    finally:
+        if conn:
+            conn.close()
+
+
+def load_database_sample_data(db_name: str):
+    conn = None
+    try:
+        conn = get_database_connection(db_name)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with conn.cursor() as cursor:
+            with open(
+                os.path.join(os.path.dirname(__file__), "static/demo.sql")
+            ) as file:
+                cursor.execute(file.read())
+                cursor.execute(
+                    sql.SQL("ALTER TABLE covid_data OWNER TO {role_name};").format(
+                        role_name=sql.Identifier(db_name)
+                    )
+                )
+
     finally:
         if conn:
             conn.close()

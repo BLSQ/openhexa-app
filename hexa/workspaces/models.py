@@ -22,9 +22,10 @@ from hexa.databases.api import (
     create_database,
     delete_database,
     format_db_name,
+    load_database_sample_data,
     update_database_password,
 )
-from hexa.files.api import create_bucket
+from hexa.files.api import create_bucket, load_bucket_sample_data
 from hexa.user_management.models import User
 
 
@@ -72,8 +73,10 @@ class WorkspaceManager(models.Manager):
         create_kwargs["db_name"] = db_name
 
         create_database(db_name, db_password)
+        load_database_sample_data(db_name)
 
         bucket = create_bucket(settings.WORKSPACE_BUCKET_PREFIX + slug)
+        load_bucket_sample_data(bucket.name)
         create_kwargs["bucket_name"] = bucket.name
 
         workspace = self.create(**create_kwargs)

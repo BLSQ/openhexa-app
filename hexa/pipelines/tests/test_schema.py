@@ -32,7 +32,9 @@ class PipelinesV2Test(GraphQLTestCase):
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
         )
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             cls.WS1 = Workspace.objects.create_if_has_perm(
                 cls.USER_ROOT,
                 name="WS1",

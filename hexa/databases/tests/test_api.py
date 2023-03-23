@@ -10,6 +10,7 @@ from hexa.databases.api import (
     format_db_name,
     get_database_connection,
     get_db_server_credentials,
+    load_database_sample_data,
     update_database_password,
 )
 from hexa.user_management.models import User
@@ -17,20 +18,22 @@ from hexa.user_management.models import User
 
 class DatabaseAPITest(TestCase):
     @classmethod
-    def setUpTestData(cls):
-        cls.USER_PETE = User.objects.create_user(
+    def setUpTestData(self):
+        super().setUpTestData()
+        self.USER_PETE = User.objects.create_user(
             "pete@bluesquarehub.com", "pete's password", is_superuser=True
         )
-
-    def setUp(self):
         self.DB1_NAME = "rdcproject"
         self.PWD_1 = "p%ygy+_'#wd@"
         self.DB2_NAME = "rwandaproject"
         self.PWD_2 = "password_2"
+
         create_database(self.DB1_NAME, self.PWD_1)
         create_database(self.DB2_NAME, self.PWD_2)
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
+        super().tearDownClass()
         credentials = get_db_server_credentials()
 
         role = credentials["role"]
@@ -121,6 +124,33 @@ class DatabaseAPITest(TestCase):
 
         with self.assertRaises(OperationalError):
             conn = psycopg2.connect(url)
+
+    def test_load_database_sample_data(self):
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+        load_database_sample_data(self.DB1_NAME)
+
+        with psycopg2.connect(
+            host=host,
+            port=port,
+            dbname=self.DB1_NAME,
+            user=self.DB1_NAME,
+            password=self.PWD_1,
+        ) as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                    SELECT table_name as name, pg_class.reltuples as count
+                    FROM information_schema.tables
+                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+                    WHERE
+                        table_schema = 'public' AND
+                        table_name NOT IN ('geography_columns', 'geometry_columns', 'spatial_ref_sys')
+                    ORDER BY table_name;
+                """
+            )
+            self.assertEqual(len(cursor.fetchall()), 1)
 
     def test_delete_database(self):
         db_name = "pnlp"

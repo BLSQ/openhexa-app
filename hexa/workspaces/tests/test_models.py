@@ -50,7 +50,7 @@ class WorkspaceTest(TestCase):
     def test_create_workspace_no_slug(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
-        ):
+        ), patch("hexa.workspaces.models.load_database_sample_data"):
 
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -64,7 +64,7 @@ class WorkspaceTest(TestCase):
     def test_create_workspace_with_underscore(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
-        ):
+        ), patch("hexa.workspaces.models.load_database_sample_data"):
 
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -78,7 +78,7 @@ class WorkspaceTest(TestCase):
     def test_create_workspace_with_random_characters(self):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
-        ):
+        ), patch("hexa.workspaces.models.load_database_sample_data"):
 
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
@@ -90,7 +90,9 @@ class WorkspaceTest(TestCase):
 
     @backend.mock_storage
     def test_create_workspace_admin_user(self):
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Senegal Workspace",
@@ -101,7 +103,9 @@ class WorkspaceTest(TestCase):
 
     @backend.mock_storage
     def test_get_workspace_by_id(self):
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Senegal Workspace",
@@ -116,7 +120,9 @@ class WorkspaceTest(TestCase):
 
     @backend.mock_storage
     def test_add_member(self):
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Senegal Workspace",
@@ -156,7 +162,9 @@ class ConnectionTest(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        with patch("hexa.workspaces.models.create_database"):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
                 cls.USER_ADMIN, name="Workspace's title"
             )
