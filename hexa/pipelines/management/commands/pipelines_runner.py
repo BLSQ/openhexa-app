@@ -78,7 +78,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     image_pull_policy="Always",
                     args=[
                         "cloudrun",
-                        run.pipeline.entrypoint,
+                        run.pipeline_version.entrypoint,
                     ]
                     + run.config.split(),
                     env=[
