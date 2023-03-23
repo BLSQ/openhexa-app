@@ -30,6 +30,7 @@
               <th>Id</th>
               <th>Created</th>
               <th>Name</th>
+              <th>Workspace</th>
               <th>Entrypoint</th>
               <th>Parameters</th>
               <th>Config</th>
@@ -42,8 +43,9 @@
               <td>{{ pipeline.id }}</td>
               <td>{{ pipeline.created_at }}</td>
               <td>{{ pipeline.name }}</td>
-              <td>{{ pipeline.entrypoint }}</td>
-              <td>{{ pipeline.parameters }}</td>
+              <td>{{ pipeline.workspace.slug }}</td>
+              <td>{{ pipeline.last_version.entrypoint }}</td>
+              <td>{{ pipeline.last_version.parameters }}</td>
               <td>{{ pipeline.config }}</td>
               <td>{{ pipeline.schedule }}</td>
             {% endfor %}
