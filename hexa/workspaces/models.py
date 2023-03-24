@@ -94,7 +94,9 @@ class WorkspaceQuerySet(BaseQuerySet):
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
-            user, Q(workspacemembership__user=user), return_all_if_superuser=False
+            user,
+            Q(workspacemembership__user=user, archived=False),
+            return_all_if_superuser=False,
         )
 
 
@@ -125,6 +127,7 @@ class Workspace(Base):
     bucket_name = models.TextField(
         null=True,
     )
+    archived = models.BooleanField(default=False)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -141,8 +144,15 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
+
         delete_database(self.db_name)
-        self.delete()
+        self.save()
+
+    def archive_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("workspaces.archive_workspace", self):
+            raise PermissionDenied
+        self.archived = True
+        self.save()
 
     def generate_new_database_password(self, *, principal: User):
         if not principal.has_perm("workspaces.update_workspace", self):

@@ -42,7 +42,18 @@ def delete_connection(principal: User, connection: Connection):
 
 
 def delete_workspace(principal: User, workspace: Workspace):
-    """Only superusers can delte a workspace"""
+    """Only admin users of a workspace can delete a workspace"""
+    return (
+        True
+        if workspace.workspacemembership_set.filter(
+            user=principal, role=WorkspaceMembershipRole.ADMIN
+        ).exists()
+        else False
+    )
+
+
+def archive_workspace(principal: User, workspace: Workspace):
+    """Only admin users of a workspace can archive a workspacce"""
     return (
         True
         if workspace.workspacemembership_set.filter(

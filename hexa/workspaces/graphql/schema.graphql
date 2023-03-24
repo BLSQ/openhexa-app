@@ -70,6 +70,11 @@ enum DeleteWorkspaceError {
   NOT_FOUND
 }
 
+enum ArchiveWorkspaceError {
+  PERMISSION_DENIED
+  NOT_FOUND
+}
+
 enum InviteWorkspaceMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
@@ -102,6 +107,11 @@ type UpdateWorkspaceResult {
 type DeleteWorkspaceResult {
   success: Boolean!
   errors: [DeleteWorkspaceError!]!
+}
+
+type ArchiveWorkspaceResult {
+  success: Boolean!
+  errors: [ArchiveWorkspaceError!]!
 }
 
 type InviteWorkspaceMemberResult{
@@ -154,10 +164,15 @@ input UpdateWorkspaceMemberInput {
   role: WorkspaceMembershipRole!
 }
 
+input ArchiveWorkspaceInput {
+  slug: String!
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
+  archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult! @loginRequired
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
