@@ -59,12 +59,13 @@ class WorkspaceManager(models.Manager):
             raise PermissionDenied
 
         slug = create_workspace_slug(name)
-        create_kwargs = {"name": name, "description": description}
-        create_kwargs["slug"] = slug
+        create_kwargs = {"name": name, "description": description, "slug": slug}
         if countries is not None:
             create_kwargs["countries"] = countries
         if description is None:
-            create_kwargs["description"] = "This is a workspace for {}".format(name)
+            create_kwargs["description"] = DEFAULT_WORKSPACE_DESCRIPTION.format(
+                workspace_name=name, workspace_slug=slug
+            )
 
         db_password = User.objects.make_random_password(length=16)
         db_name = format_db_name(create_kwargs["slug"])
@@ -377,3 +378,32 @@ class ConnectionField(models.Model):
 
     class Meta:
         unique_together = [["connection", "code"]]
+
+
+DEFAULT_WORKSPACE_DESCRIPTION = """
+# {workspace_name}
+
+Welcome to your new "{workspace_name}" workspace!
+
+You are currently viewing the homepage of your workspace. This page can be edited by workspace administrators and
+editors simply by clicking the **Edit** button on the top-right corner of this screen.
+
+This page must be formatted using [Markdown syntax](https://www.markdownguide.org/cheat-sheet/).
+
+This page is meant to serve as the landing page of your projet. You can use it to document to document your project, by:
+
+- Adding a few words of introduction to **describe the purpose of your workspace**
+- Explaining **what data** resides in this workspace and **how this data is being used**
+- Documenting the main **data pipelines** of the workspace
+- Add **external links** to visualization dashboards related to this workspace
+
+## Where to go from here?
+
+Now that your workspace has been created, you can (depending on your privileges):
+
+- Manage the [workspace files](/workspaces/{workspace_slug}/files)
+- Browse the [workspace database](/workspaces/{workspace_slug}/databases)
+- Create and run code [notebooks](/workspaces/{workspace_slug}/notebooks)
+- Monitor and launch [data pipelines](/workspaces/{workspace_slug}/pipelines)
+- Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)
+"""
