@@ -383,7 +383,7 @@ class ConnectionField(models.Model):
 DEFAULT_WORKSPACE_DESCRIPTION = """
 # {workspace_name}
 
-Welcome to your new "{workspace_name}" workspace!
+Welcome to your new workspace "{workspace_name}"!
 
 You are currently viewing the homepage of your workspace. This page can be edited by workspace administrators and
 editors simply by clicking the **Edit** button on the top-right corner of this screen.
