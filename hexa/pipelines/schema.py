@@ -2,6 +2,7 @@ import base64
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
+from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -216,13 +217,6 @@ pipelines_mutations = MutationType()
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    qs = Pipeline.objects.filter(name=input.get("name"))
-    if len(list(qs)) != 0:
-        return {
-            "success": False,
-            "errors": ["INVALID_CONFIG"],
-        }
-
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input.get("workspaceSlug")
@@ -230,13 +224,16 @@ def resolve_create_pipeline(_, info, **kwargs):
     except Workspace.DoesNotExist:
         return {
             "success": False,
-            "errors": ["INVALID_CONFIG"],
+            "errors": ["WORKSPACE_NOT_FOUND"],
         }
 
-    pipeline = Pipeline.objects.create(
-        name=input.get("name"),
-        workspace=workspace,
-    )
+    try:
+        pipeline = Pipeline.objects.create(
+            name=input.get("name"),
+            workspace=workspace,
+        )
+    except IntegrityError:
+        return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 
