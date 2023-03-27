@@ -56,9 +56,13 @@ const GenerateWorkspaceDatabasePasswordDialog = (
       <Dialog.Content className="space-y-4">
         <p>
           {t(
-            "You're about to generate a new password for the database. This action cannot be undone."
+            "You're about to generate a new password for the workspace database. This action cannot be undone. Make sure to:"
           )}
         </p>
+        <ul className="list list-inside list-disc">
+          <li>{t("Restart all opened notebooks")}</li>
+          <li>{t("Update external tools credentials")}</li>
+        </ul>
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" type="button" onClick={onClose}>

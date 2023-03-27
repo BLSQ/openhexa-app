@@ -60,7 +60,7 @@ export function TextColumn(props: TextColumnProps) {
           title={text}
           className={clsx("truncate lg:whitespace-nowrap", textClassName)}
         >
-          {text || defaultValue}
+          {text ?? defaultValue}
         </div>
         {subtext && (
           <div className=" mt-1 truncate text-sm text-gray-400">{subtext}</div>

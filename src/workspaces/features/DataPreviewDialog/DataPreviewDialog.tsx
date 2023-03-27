@@ -3,7 +3,6 @@ import Button from "core/components/Button";
 import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Dialog from "core/components/Dialog";
-import { TableColumn } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { WorkspaceDatabaseTableDataQuery } from "./DataPreviewDialog.generated";
 
@@ -74,7 +73,6 @@ const DataPreviewDialog = ({
                 name={c.name}
                 label={c.name}
                 accessor={(row) => row[c.name]}
-                defaultValue="-"
               />
             ))}
           </DataGrid>
