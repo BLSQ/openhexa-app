@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0](https://github.com/BLSQ/openhexa-frontend/compare/0.20.0...0.21.0) (2023-03-27)
+
+
+### Features
+
+* **Database:** add warning messages when changing password ([83f8be5](https://github.com/BLSQ/openhexa-frontend/commit/83f8be51ae4980526bb442a80d0fb2f2915e6a70))
+* **Workspaces:** Pipelines V2 ([#243](https://github.com/BLSQ/openhexa-frontend/issues/243)) ([0b5802e](https://github.com/BLSQ/openhexa-frontend/commit/0b5802e7ed24418ad491f3c25548a680bdf4675e))
+
 ## [0.20.0](https://github.com/BLSQ/openhexa-frontend/compare/0.19.1...0.20.0) (2023-03-14)
 
 
