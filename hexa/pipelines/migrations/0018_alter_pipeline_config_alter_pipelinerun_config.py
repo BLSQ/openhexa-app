@@ -8,11 +8,11 @@ def forwards(apps, schema_editor):
     PipelineRun = apps.get_model("pipelines", "PipelineRun")
 
     for pipeline in Pipeline.objects.all():
-        pipeline.config = None
+        pipeline.config = {}
         pipeline.save()
 
     for run in PipelineRun.objects.all():
-        run.config = None
+        run.config = {}
         run.save()
 
 
