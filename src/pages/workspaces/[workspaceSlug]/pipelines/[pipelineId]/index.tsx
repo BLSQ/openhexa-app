@@ -1,98 +1,37 @@
 import { PlayIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
+import DataCard from "core/components/DataCard";
+import TextProperty from "core/components/DataCard/TextProperty";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
-import DescriptionList from "core/components/DescriptionList";
-import Dialog from "core/components/Dialog";
-import Checkbox from "core/components/forms/Checkbox";
-import Field from "core/components/forms/Field";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
-import Tabs from "core/components/Tabs";
+import Time from "core/components/Time";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { Dag } from "graphql-types";
-import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { useState } from "react";
-import ReactMarkdown from "react-markdown";
+import CronProperty from "workspaces/features/CronProperty";
+import RenderProperty from "core/components/DataCard/RenderProperty";
 import {
   useWorkspacePipelinePageQuery,
   WorkspacePipelinePageDocument,
+  WorkspacePipelinePageQuery,
+  WorkspacePipelinePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
+import { updatePipeline } from "workspaces/helpers/pipelines";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-
-const ConfigurePipelineModal = ({
-  open,
-  dag,
-  onClose,
-}: {
-  dag: Pick<Dag, "description">;
-  open: boolean;
-  onClose: () => void;
-}) => {
-  const { t } = useTranslation();
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl" centered={false}>
-      <Dialog.Title>{t("Run")}</Dialog.Title>
-      <Dialog.Content className="grid grid-cols-2 gap-x-5">
-        <div className="row-span-2">
-          <form className="grid grid-cols-2 gap-4">
-            <Field
-              name="start_date"
-              type="date"
-              required
-              id="start_date"
-              label={t("From date")}
-            />
-            <Field
-              name="end_date"
-              type="date"
-              required
-              id="end_date"
-              label={t("To date")}
-            />
-
-            <Checkbox name="generate_extract" label={t("Generate extract")} />
-            <Checkbox
-              name="reuse_existing_extract"
-              label={t("Re-use existing extract")}
-            />
-            <Checkbox name="update_dhis2" label={t("Update DHIS2")} />
-            <Checkbox name="update_dashboard" label={t("Update dashboard")} />
-          </form>
-        </div>
-        <div>
-          {dag.description && (
-            <>
-              <Title level={3} className="font-medium text-gray-900">
-                {t("Description")}
-              </Title>
-              <ReactMarkdown className="prose max-w-3xl text-sm">
-                {dag.description}
-              </ReactMarkdown>
-            </>
-          )}
-        </div>
-      </Dialog.Content>
-      <Dialog.Actions>
-        <Button variant="white" onClick={onClose}>
-          {t("Cancel")}
-        </Button>
-        <Button onClick={onClose}>{t("Run")}</Button>
-      </Dialog.Actions>
-    </Dialog>
-  );
-};
+import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
+import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
+import { PipelineRunTrigger } from "graphql-types";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
+import { useRouter } from "next/router";
 
 type Props = {
   page: number;
@@ -102,29 +41,33 @@ type Props = {
 };
 
 const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
+  const { pipelineId, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
+  const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
+  const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
   const router = useRouter();
-  const [openModal, setOpenModal] = useState(false);
   const { data } = useWorkspacePipelinePageQuery({
     variables: {
-      workspaceSlug: props.workspaceSlug,
+      workspaceSlug,
+      pipelineId,
+      page,
+      perPage,
     },
   });
 
-  if (!data?.workspace) {
+  if (!data?.workspace || !data?.pipeline) {
     return null;
   }
-  const { workspace } = data;
+  const { workspace, pipeline } = data;
 
-  const dag = FAKE_WORKSPACE.dags.find((d) => d.id === props.pipelineId);
-
-  if (!dag) {
-    return null;
-  }
-
-  const handleOpenModal = () => {
-    setOpenModal(!openModal);
+  const onSave = async (values: any) => {
+    await updatePipeline(pipeline.id, {
+      name: values.name,
+      schedule: values.schedule,
+      description: values.description,
+    });
   };
+
   return (
     <Page title={t("Workspace")}>
       <WorkspaceLayout workspace={workspace}>
@@ -148,58 +91,68 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 isLast
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug
-                )}/pipelines/${encodeURIComponent(dag.id)}`}
+                )}/pipelines/${encodeURIComponent(pipeline.id)}`}
               >
-                {dag.label}
+                {pipeline.name}
               </Breadcrumbs.Part>
             </Breadcrumbs>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={handleOpenModal}
-                leadingIcon={<PlayIcon className="w-4" />}
-              >
-                {t("Run")}
-              </Button>
+              {pipeline.permissions.run && (
+                <Button
+                  leadingIcon={<PlayIcon className="w-4" />}
+                  onClick={() => setRunPipelineDialogOpen(true)}
+                >
+                  {t("Run")}
+                </Button>
+              )}
             </div>
           </div>
         </WorkspaceLayout.Header>
+
         <WorkspaceLayout.PageContent className="space-y-6">
-          <div>
-            <Block className="divide-y-2 divide-gray-100">
-              <Block.Content>
-                <ReactMarkdown className="prose">
-                  {dag.description}
-                </ReactMarkdown>
-              </Block.Content>
-              <Block.Section>
-                <DescriptionList>
-                  <DescriptionList.Item label={t("Schedule")}>
-                    Run every 12 hours
-                  </DescriptionList.Item>
-                </DescriptionList>
-              </Block.Section>
-              <Block.Section collapsible title={t("External API")}>
-                <p className="mb-2">
-                  This pipeline can be called externally to be executed.
-                </p>
-                <Tabs>
-                  <Tabs.Tab label={t("curl")}>
-                    <pre className="bg-gray-50 px-4 py-4 text-sm">
-                      curl -X POST {router.pathname + "/execute"}
-                    </pre>
-                  </Tabs.Tab>
-                  <Tabs.Tab label={t("Python")}>
-                    <pre className="bg-gray-50 px-4 py-4 text-sm">
-                      import requests
-                      <br />
-                      response = requests.post(&quot;
-                      {router.pathname + "/execute"}&quot;)
-                    </pre>
-                  </Tabs.Tab>
-                </Tabs>
-              </Block.Section>
-            </Block>
-          </div>
+          <DataCard item={pipeline} className="divide-y-2 divide-gray-100">
+            <DataCard.FormSection
+              title={t("Information")}
+              onSave={pipeline.permissions.update ? onSave : undefined}
+              collapsible={false}
+            >
+              <TextProperty
+                id="description"
+                accessor={"description"}
+                label={t("Description")}
+                defaultValue="-"
+                hideLabel
+                markdown
+              />
+              <CronProperty
+                id="schedule"
+                accessor="schedule"
+                label={t("Schedule")}
+                defaultValue={t("Manual")}
+              />
+              <RenderProperty<any>
+                id="currentVersion"
+                label={t("Current Version")}
+              >
+                {(property) =>
+                  property.displayValue.currentVersion ? (
+                    <div className="flex items-center gap-1.5">
+                      {property.displayValue.currentVersion.number}
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        onClick={() => setVersionsDialogOpen(true)}
+                      >
+                        {t("See all")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <span>{t("No version")}</span>
+                  )
+                }
+              </RenderProperty>
+            </DataCard.FormSection>
+          </DataCard>
 
           <div>
             <Title level={4} className="font-medium">
@@ -207,12 +160,22 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </Title>
             <Block>
               <DataGrid
-                defaultPageSize={props.perPage}
-                data={dag.runs}
-                totalItems={dag.runs.length}
+                defaultPageSize={perPage}
+                data={pipeline.runs.items}
+                totalItems={pipeline.runs.totalItems}
                 fixedLayout={false}
+                fetchData={({ page, pageSize }) => {
+                  router.push({
+                    pathname: router.pathname,
+                    query: {
+                      ...router.query,
+                      page,
+                      perPage: pageSize,
+                    },
+                  });
+                }}
               >
-                <BaseColumn id="name" label={t("Name")}>
+                <BaseColumn id="name" label={t("Executed on")}>
                   {(item) => (
                     <Link
                       customStyle="text-gray-700 font-medium"
@@ -220,24 +183,32 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                         pathname:
                           "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
                         query: {
-                          pipelineId: dag.id,
+                          pipelineId: pipeline.id,
                           workspaceSlug: workspace.slug,
                           runId: item.id,
                         },
                       }}
                     >
-                      {item.label || item.externalId}
+                      <Time datetime={item.executionDate} />
                     </Link>
                   )}
                 </BaseColumn>
-                <DateColumn
-                  label={t("Executed on")}
-                  format={DateTime.DATETIME_SHORT}
-                  accessor="executionDate"
-                />
-                <BaseColumn label={t("Status")} id="status">
-                  {(item) => <PipelineRunStatusBadge dagRun={item} />}
+                <BaseColumn<PipelineRunTrigger>
+                  label={t("Trigger")}
+                  accessor="trigger"
+                >
+                  {(value) => (
+                    <span>
+                      {value === PipelineRunTrigger.Scheduled
+                        ? t("Scheduled")
+                        : t("Manual")}
+                    </span>
+                  )}
                 </BaseColumn>
+                <BaseColumn label={t("Status")} id="status">
+                  {(item) => <PipelineRunStatusBadge run={item} />}
+                </BaseColumn>
+                <TextColumn accessor="version.number" label={t("Version")} />
                 <BaseColumn label={t("Duration")} accessor="duration">
                   {(value) => (
                     <span suppressHydrationWarning>
@@ -253,21 +224,26 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
                     query: {
                       workspaceSlug: workspace.slug,
-                      pipelineId: dag.id,
+                      pipelineId: pipeline.id,
                       runId: value,
                     },
                   })}
                 />
               </DataGrid>
-              <ConfigurePipelineModal
-                dag={dag}
-                open={openModal}
-                onClose={() => setOpenModal(!openModal)}
-              />
             </Block>
           </div>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
+      <PipelineVersionsDialog
+        pipeline={pipeline}
+        open={isVersionsDialogOpen}
+        onClose={() => setVersionsDialogOpen(false)}
+      />
+      <RunPipelineDialog
+        open={isRunPipelineDialogOpen}
+        onClose={() => setRunPipelineDialogOpen(false)}
+        pipeline={pipeline}
+      />
     </Page>
   );
 };
@@ -278,11 +254,30 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await WorkspaceLayout.prefetch(client);
+    const page = parseInt(ctx.query.page as string, 10) || 1;
+    const perPage = parseInt(ctx.query.perPage as string, 10) || 5;
+    const { data } = await client.query<
+      WorkspacePipelinePageQuery,
+      WorkspacePipelinePageQueryVariables
+    >({
+      query: WorkspacePipelinePageDocument,
+      variables: {
+        workspaceSlug: ctx.params!.workspaceSlug as string,
+        pipelineId: ctx.params!.pipelineId,
+        page,
+        perPage,
+      },
+    });
 
+    if (!data.workspace || !data.pipeline) {
+      return { notFound: true };
+    }
     return {
       props: {
-        workspaceSlug: ctx.params?.workspaceSlug,
-        pipelineId: ctx.params?.pipelineId,
+        workspaceSlug: ctx.params!.workspaceSlug,
+        pipelineId: ctx.params!.pipelineId,
+        page,
+        perPage,
       },
     };
   },

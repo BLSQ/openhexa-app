@@ -5,16 +5,21 @@ import Spinner from "core/components/Spinner";
 import { DagRunStatus } from "graphql-types";
 import { formatDAGRunStatus } from "pipelines/helpers/format";
 import { useMemo } from "react";
-import { PipelineRunStatusBadge_DagRunFragment } from "./PipelineRunStatusBadge.generated";
+import {
+  PipelineRunStatusBadge_DagRunFragment,
+  PipelineRunStatusBadge_RunFragment,
+} from "./PipelineRunStatusBadge.generated";
 
 type PipelineRunStatusBadgeProps = {
-  dagRun: PipelineRunStatusBadge_DagRunFragment;
+  run:
+    | PipelineRunStatusBadge_DagRunFragment
+    | PipelineRunStatusBadge_RunFragment;
 };
 
 const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
-  const { dagRun } = props;
+  const { run } = props;
   let className = useMemo(() => {
-    switch (dagRun.status) {
+    switch (run.status) {
       case DagRunStatus.Failed:
         return "bg-red-100 text-red-500";
       case DagRunStatus.Queued:
@@ -24,13 +29,13 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
       case DagRunStatus.Success:
         return "bg-emerald-50 text-emerald-500";
     }
-  }, [dagRun.status]);
+  }, [run.status]);
   return (
     <Badge className={clsx(className, "flex items-center")}>
-      {dagRun.status === DagRunStatus.Running && (
+      {run.status === DagRunStatus.Running && (
         <Spinner className="mr-1" size="xs" />
       )}
-      {formatDAGRunStatus(dagRun.status)}
+      {formatDAGRunStatus(run.status)}
     </Badge>
   );
 };
@@ -38,6 +43,11 @@ const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
 PipelineRunStatusBadge.fragments = {
   dagRun: gql`
     fragment PipelineRunStatusBadge_dagRun on DAGRun {
+      status
+    }
+  `,
+  pipelineRun: gql`
+    fragment PipelineRunStatusBadge_run on PipelineRun {
       status
     }
   `,

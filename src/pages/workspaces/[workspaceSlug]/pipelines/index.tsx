@@ -1,31 +1,45 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
+import { constants } from "buffer";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
+import Pagination from "core/components/Pagination";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import PipelineCard from "workspaces/features/PipelineCard";
 import {
   useWorkspacePipelinesPageQuery,
   WorkspacePipelinesPageDocument,
+  WorkspacePipelinesPageQuery,
+  WorkspacePipelinesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import { FAKE_WORKSPACE } from "workspaces/helpers/fixtures";
+import { useRouter } from "next/router";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
-const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
+type Props = {
+  page: number;
+  perPage: number;
+  workspaceSlug: string;
+};
+
+const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
+  const { page, perPage, workspaceSlug } = props;
   const router = useRouter();
   const { data } = useWorkspacePipelinesPageQuery({
-    variables: { workspaceSlug: router.query.workspaceSlug as string },
+    variables: {
+      workspaceSlug,
+      page,
+      perPage,
+    },
   });
 
   if (!data?.workspace) {
     return null;
   }
 
-  const { workspace } = data;
+  const { workspace, pipelines } = data;
 
   return (
     <Page title={t("Workspace")}>
@@ -51,16 +65,32 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props) => {
             {t("Create")}
           </Button>
         </WorkspaceLayout.Header>
-        <WorkspaceLayout.PageContent>
-          <div className="grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-            {FAKE_WORKSPACE.dags.map((dag, index) => (
+        <WorkspaceLayout.PageContent className="divide divide-y-2">
+          <div className="mb-3 grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+            {pipelines.items.map((pipeline, index) => (
               <PipelineCard
-                workspaceSlug={workspace.slug}
+                workspace={workspace}
                 key={index}
-                dag={dag}
+                pipeline={pipeline}
               />
             ))}
           </div>
+          <Pagination
+            onChange={(page, perPage) =>
+              router.push({
+                pathname: "/workspaces/[workspaceSlug]/pipelines",
+                query: {
+                  page,
+                  perPage,
+                  workspaceSlug,
+                },
+              })
+            }
+            page={page}
+            perPage={perPage}
+            totalItems={pipelines.totalItems}
+            countItems={pipelines.items.length}
+          />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
@@ -72,7 +102,33 @@ WorkspacePipelinesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    const { workspaceSlug } = ctx.params!;
+    const page = parseInt((ctx.query.page as string) ?? "1", 10);
+    const perPage = parseInt((ctx.query.perPage as string) ?? "15", 10);
+
     await WorkspaceLayout.prefetch(client);
+
+    const { data } = await client.query<
+      WorkspacePipelinesPageQuery,
+      WorkspacePipelinesPageQueryVariables
+    >({
+      query: WorkspacePipelinesPageDocument,
+      variables: {
+        workspaceSlug: workspaceSlug as string,
+        page,
+        perPage,
+      },
+    });
+    if (!data.workspace) {
+      return { notFound: true };
+    }
+    return {
+      props: {
+        workspaceSlug,
+        page,
+        perPage,
+      },
+    };
   },
 });
 

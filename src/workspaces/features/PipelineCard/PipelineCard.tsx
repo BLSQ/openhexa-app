@@ -1,38 +1,81 @@
+import { gql } from "@apollo/client";
+import clsx from "clsx";
 import Card from "core/components/Card";
-import { Dag, DagRun } from "graphql-types";
+import Tooltip from "core/components/Tooltip";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import { useTranslation } from "react-i18next";
+import { getCronExpressionDescription } from "workspaces/helpers/pipelines";
+import {
+  PipelineCard_PipelineFragment,
+  PipelineCard_WorkspaceFragment,
+} from "./PipelineCard.generated";
 
 interface PipelineCardProps {
-  workspaceSlug: string;
-  dag: Pick<Dag, "id" | "label" | "description"> & {
-    shortDescription: String;
-    triggerInfo: String;
-    runs: Array<
-      Pick<DagRun, "id" | "triggerMode" | "status" | "executionDate">
-    >;
-  };
+  workspace: PipelineCard_WorkspaceFragment;
+  pipeline: PipelineCard_PipelineFragment;
 }
 
-const PipelineCard = ({ dag, workspaceSlug }: PipelineCardProps) => {
+const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
+  const { t } = useTranslation();
   return (
     <Card
       href={{
         pathname: `/workspaces/[workspaceSlug]/pipelines/[pipelineId]`,
-        query: { workspaceSlug: workspaceSlug, pipelineId: dag.id },
+        query: { workspaceSlug: workspace.slug, pipelineId: pipeline.id },
       }}
       title={
         <div className="flex justify-between">
-          {dag.label}
-          <PipelineRunStatusBadge dagRun={dag.runs[0]} />
+          {pipeline.name}
+          {pipeline.lastRuns.items[0] && (
+            <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
+          )}
         </div>
       }
-      subtitle={<div className="flex justify-between">{dag.triggerInfo}</div>}
+      subtitle={
+        <div className="flex justify-between">
+          {pipeline.schedule ? (
+            <Tooltip label={getCronExpressionDescription(pipeline.schedule)}>
+              <span>{t("Automatic")}</span>
+            </Tooltip>
+          ) : (
+            t("Manual")
+          )}
+        </div>
+      }
     >
-      <Card.Content className="line-clamp-3" title={dag.description ?? ""}>
-        {dag.shortDescription}
+      <Card.Content
+        className={clsx(
+          "line-clamp-3",
+          !pipeline.description && "italic text-gray-300"
+        )}
+        title={pipeline.description ?? ""}
+      >
+        {pipeline.description || t("No description")}
       </Card.Content>
     </Card>
   );
+};
+
+PipelineCard.fragments = {
+  pipeline: gql`
+    fragment PipelineCard_pipeline on Pipeline {
+      id
+      name
+      schedule
+      description
+      lastRuns: runs(orderBy: EXECUTION_DATE_DESC, page: 1, perPage: 1) {
+        items {
+          ...PipelineRunStatusBadge_run
+        }
+      }
+    }
+    ${PipelineRunStatusBadge.fragments.pipelineRun}
+  `,
+  workspace: gql`
+    fragment PipelineCard_workspace on Workspace {
+      slug
+    }
+  `,
 };
 
 export default PipelineCard;

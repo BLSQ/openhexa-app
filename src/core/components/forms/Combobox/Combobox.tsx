@@ -67,6 +67,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
     by,
     required,
     disabled,
+    className,
     ...delegated
   } = props;
 
@@ -125,7 +126,8 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               "form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300",
               "focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
               "sm:text-sm",
-              open ? "border-blue-500" : "hover:border-gray-400"
+              open ? "border-blue-500" : "hover:border-gray-400",
+              className
             )}
           >
             <div className="mr-1 flex flex-1 items-center truncate">

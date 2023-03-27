@@ -769,9 +769,8 @@ export type CreateMembershipResult = {
 };
 
 export type CreatePipelineInput = {
-  entrypoint: Scalars['String'];
   name: Scalars['String'];
-  parameters: Scalars['JSON'];
+  workspaceSlug: Scalars['String'];
 };
 
 export type CreatePipelineResult = {
@@ -1474,6 +1473,7 @@ export type Mutation = {
   updateDAG: UpdateDagResult;
   updateExternalDashboard: UpdateExternalDashboardResult;
   updateMembership: UpdateMembershipResult;
+  updatePipeline: UpdatePipelineResult;
   updatePipelineProgress: UpdatePipelineProgressResult;
   updateTeam: UpdateTeamResult;
   updateWorkspace: UpdateWorkspaceResult;
@@ -1549,7 +1549,7 @@ export type MutationCreateMembershipArgs = {
 
 
 export type MutationCreatePipelineArgs = {
-  input?: InputMaybe<CreatePipelineInput>;
+  input: CreatePipelineInput;
 };
 
 
@@ -1788,6 +1788,11 @@ export type MutationUpdateMembershipArgs = {
 };
 
 
+export type MutationUpdatePipelineArgs = {
+  input: UpdatePipelineInput;
+};
+
+
 export type MutationUpdatePipelineProgressArgs = {
   input?: InputMaybe<UpdatePipelineProgressInput>;
 };
@@ -1849,19 +1854,29 @@ export enum PermissionMode {
 
 export type Pipeline = {
   __typename?: 'Pipeline';
-  config: Scalars['String'];
-  entrypoint: Scalars['String'];
+  config: Scalars['JSON'];
+  createdAt: Scalars['DateTime'];
+  currentVersion?: Maybe<PipelineVersion>;
+  description?: Maybe<Scalars['String']>;
   id: Scalars['UUID'];
   name: Scalars['String'];
-  parameters: Scalars['JSON'];
+  permissions: PipelinePermissions;
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']>;
-  user?: Maybe<User>;
+  updatedAt?: Maybe<Scalars['DateTime']>;
+  versions: PipelineVersionPage;
+  workspace?: Maybe<Workspace>;
 };
 
 
 export type PipelineRunsArgs = {
   orderBy?: InputMaybe<PipelineRunOrderBy>;
+  page?: InputMaybe<Scalars['Int']>;
+  perPage?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type PipelineVersionsArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
 };
@@ -1873,10 +1888,17 @@ export enum PipelineError {
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND'
 }
 
+export type PipelinePermissions = {
+  __typename?: 'PipelinePermissions';
+  delete: Scalars['Boolean'];
+  run: Scalars['Boolean'];
+  update: Scalars['Boolean'];
+};
+
 export type PipelineRun = {
   __typename?: 'PipelineRun';
   code: Scalars['String'];
-  config: Scalars['String'];
+  config: Scalars['JSON'];
   duration?: Maybe<Scalars['Int']>;
   executionDate?: Maybe<Scalars['DateTime']>;
   id: Scalars['UUID'];
@@ -1926,8 +1948,8 @@ export enum PipelineRunStatus {
 }
 
 export enum PipelineRunTrigger {
-  Manual = 'MANUAL',
-  Scheduled = 'SCHEDULED'
+  Manual = 'manual',
+  Scheduled = 'scheduled'
 }
 
 export type PipelineTokenInput = {
@@ -1943,11 +1965,22 @@ export type PipelineTokenResult = {
 
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';
+  createdAt: Scalars['DateTime'];
+  entrypoint: Scalars['String'];
   id: Scalars['UUID'];
   number: Scalars['Int'];
+  parameters: Scalars['JSON'];
   pipeline: Pipeline;
   user?: Maybe<User>;
   zipfile: Scalars['String'];
+};
+
+export type PipelineVersionPage = {
+  __typename?: 'PipelineVersionPage';
+  items: Array<PipelineVersion>;
+  pageNumber: Scalars['Int'];
+  totalItems: Scalars['Int'];
+  totalPages: Scalars['Int'];
 };
 
 export type PipelinesPage = {
@@ -2202,7 +2235,7 @@ export type QueryPipelineArgs = {
 
 
 export type QueryPipelineRunArgs = {
-  id: Scalars['UUID'];
+  id: Scalars['String'];
 };
 
 
@@ -2214,6 +2247,7 @@ export type QueryPipelineRunCodeArgs = {
 export type QueryPipelinesArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
+  workspaceSlug?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -2295,7 +2329,7 @@ export type RunDagResult = {
 };
 
 export type RunPipelineInput = {
-  config?: InputMaybe<Scalars['String']>;
+  config: Scalars['JSON'];
   id: Scalars['UUID'];
   version?: InputMaybe<Scalars['Int']>;
 };
@@ -2650,6 +2684,20 @@ export type UpdateMembershipResult = {
   success: Scalars['Boolean'];
 };
 
+export enum UpdatePipelineError {
+  InvalidConfig = 'INVALID_CONFIG',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdatePipelineInput = {
+  config?: InputMaybe<Scalars['JSON']>;
+  description?: InputMaybe<Scalars['String']>;
+  id: Scalars['UUID'];
+  name?: InputMaybe<Scalars['String']>;
+  schedule?: InputMaybe<Scalars['String']>;
+};
+
 export type UpdatePipelineProgressInput = {
   percent: Scalars['Int'];
 };
@@ -2657,6 +2705,13 @@ export type UpdatePipelineProgressInput = {
 export type UpdatePipelineProgressResult = {
   __typename?: 'UpdatePipelineProgressResult';
   errors: Array<PipelineError>;
+  success: Scalars['Boolean'];
+};
+
+export type UpdatePipelineResult = {
+  __typename?: 'UpdatePipelineResult';
+  errors: Array<UpdatePipelineError>;
+  pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean'];
 };
 
@@ -2715,7 +2770,9 @@ export type UpdateWorkspaceResult = {
 };
 
 export type UploadPipelineInput = {
+  entrypoint: Scalars['String'];
   name: Scalars['String'];
+  parameters: Scalars['JSON'];
   zipfile: Scalars['String'];
 };
 
@@ -2834,6 +2891,7 @@ export type WorkspacePermissions = {
   __typename?: 'WorkspacePermissions';
   createConnection: Scalars['Boolean'];
   createObject: Scalars['Boolean'];
+  createPipeline: Scalars['Boolean'];
   delete: Scalars['Boolean'];
   deleteObject: Scalars['Boolean'];
   downloadObject: Scalars['Boolean'];

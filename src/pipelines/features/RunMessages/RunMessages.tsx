@@ -5,10 +5,13 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { RunMessages_DagRunFragment } from "./RunMessages.generated";
+import {
+  RunMessages_DagRunFragment,
+  RunMessages_RunFragment,
+} from "./RunMessages.generated";
 
 type RunMessagesProps = {
-  dagRun: RunMessages_DagRunFragment;
+  run: RunMessages_DagRunFragment | RunMessages_RunFragment;
 };
 
 function getBadgeClassName(priority: string) {
@@ -26,17 +29,17 @@ function getBadgeClassName(priority: string) {
 
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
-  const { dagRun } = props;
+  const { run } = props;
 
-  if (dagRun.messages.length === 0) {
-    return null;
+  if (run.messages.length === 0) {
+    return <p className="text-sm italic text-gray-600">{t("No messages")}</p>;
   }
 
   return (
     <DataGrid
-      data={dagRun.messages}
+      data={run.messages}
       sortable
-      totalItems={dagRun.messages.length}
+      totalItems={run.messages.length}
       className="overflow-hidden rounded-md border"
     >
       <DateColumn
@@ -56,6 +59,16 @@ const RunMessages = (props: RunMessagesProps) => {
 RunMessages.fragments = {
   dagRun: gql`
     fragment RunMessages_dagRun on DAGRun {
+      id
+      messages {
+        message
+        timestamp
+        priority
+      }
+    }
+  `,
+  run: gql`
+    fragment RunMessages_run on PipelineRun {
       id
       messages {
         message

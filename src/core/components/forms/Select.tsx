@@ -2,23 +2,30 @@ import { ChangeEventHandler, ReactNode, useMemo, useState } from "react";
 import MultiCombobox from "./Combobox/MultiCombobox";
 import Combobox, { ComboboxProps } from "./Combobox/Combobox";
 
-export type SelectOption = {
-  label: string;
-  id: string;
-};
+export type SelectOption = { [key: string]: any };
 
 export type SelectProps<O extends SelectOption> = {
   options: O[];
   value: O | O[] | null;
   onChange(value: O | O[] | null): void;
-  getOptionLabel?(option: O): ReactNode | string;
+  getOptionLabel(option: SelectOption): ReactNode | string;
+  filterOptions?: (options: O[], query: string) => O[];
+  displayValue?: (option: O) => string;
   multiple?: boolean;
 } & Pick<
   ComboboxProps<O>,
-  "placeholder" | "disabled" | "name" | "required" | "className"
+  "placeholder" | "disabled" | "name" | "required" | "className" | "by"
 >;
 
-function Select<O extends SelectOption>(props: SelectProps<O>) {
+const DEFAULT_FILTER_OPTIONS = (options: SelectOption[], query: string) => {
+  return options.filter((opt) =>
+    opt.label.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
+function Select<O extends SelectOption = { [key: string]: any }>(
+  props: SelectProps<O>
+) {
   const {
     options,
     value,
@@ -28,7 +35,10 @@ function Select<O extends SelectOption>(props: SelectProps<O>) {
     placeholder,
     className,
     name,
-    getOptionLabel = (o) => o.label,
+    by,
+    displayValue = (o) => o.label,
+    filterOptions = DEFAULT_FILTER_OPTIONS,
+    getOptionLabel,
     required,
   } = props;
   const [query, setQuery] = useState<string | null>(null);
@@ -38,13 +48,8 @@ function Select<O extends SelectOption>(props: SelectProps<O>) {
   };
 
   const filteredOptions = useMemo(
-    () =>
-      !query
-        ? options
-        : options.filter((opt) =>
-            opt.label.toLowerCase().includes(query.toLowerCase())
-          ),
-    [options, query]
+    () => (!query ? options : filterOptions(options, query)),
+    [options, query, filterOptions]
   );
 
   const Picker = multiple ? MultiCombobox : Combobox;
@@ -59,7 +64,8 @@ function Select<O extends SelectOption>(props: SelectProps<O>) {
       onInputChange={onInputChange}
       className={className}
       onChange={onChange}
-      displayValue={(v) => v.label}
+      displayValue={displayValue}
+      by={by}
       withPortal
     >
       {filteredOptions.map((option, i) => (

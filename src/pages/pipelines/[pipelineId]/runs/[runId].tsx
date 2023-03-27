@@ -11,6 +11,8 @@ import {
   usePipelineRunPageQuery,
 } from "pipelines/graphql/queries.generated";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
+import { useMemo } from "react";
+import { PipelineRunStatus } from "graphql-types";
 
 type Props = {
   page: number;

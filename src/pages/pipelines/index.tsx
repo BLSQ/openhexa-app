@@ -102,7 +102,7 @@ const PipelinesPage = (props: Props) => {
                 label={t("Last status")}
                 accessor={(value) =>
                   value.lastRun ? (
-                    <PipelineRunStatusBadge dagRun={value.lastRun} />
+                    <PipelineRunStatusBadge run={value.lastRun} />
                   ) : (
                     "-"
                   )

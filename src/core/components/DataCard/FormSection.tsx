@@ -57,12 +57,15 @@ function getProperty<F>(
   const displayValue = getValue(item, definition.accessor);
   const prop: Property = {
     displayValue,
+    defaultValue: definition.defaultValue,
     formValue: form.formData[definition.id as keyof F],
+    validate: definition.validate,
     setValue: (value: any) =>
       form.setFieldValue(definition.id as keyof F, value),
     id: definition.id,
     label: definition.label,
     help: definition.help,
+    hideLabel: definition.hideLabel ?? false,
     readonly: getPropertyFlag(displayValue, definition.readonly) ?? false,
     required: getPropertyFlag(displayValue, definition.required) ?? false,
     visible: getPropertyFlag(displayValue, definition.visible) ?? true,
@@ -114,6 +117,12 @@ function FormSection<F extends { [key: string]: any }>(
       for (const property of Object.values(properties.current)) {
         if (property.required && !values[property.id]) {
           errors[property.id] = t("This field is required");
+        }
+        if (property.validate) {
+          const error = property.validate(values[property.id]);
+          if (error) {
+            errors[property.id] = error;
+          }
         }
       }
 
@@ -176,13 +185,15 @@ function FormSection<F extends { [key: string]: any }>(
               </DisableClickPropagation>
             )}
             <div className="flex flex-1 flex-shrink items-center justify-end">
-              <button title={open ? t("Hide") : t("Show")}>
-                {open ? (
-                  <ChevronDownIcon className="h-5 w-5" />
-                ) : (
-                  <ChevronRightIcon className="h-5 w-5" />
-                )}
-              </button>
+              {collapsible && (
+                <button title={open ? t("Hide") : t("Show")}>
+                  {open ? (
+                    <ChevronDownIcon className="h-5 w-5" />
+                  ) : (
+                    <ChevronRightIcon className="h-5 w-5" />
+                  )}
+                </button>
+              )}
             </div>
           </>
         )}

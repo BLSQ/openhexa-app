@@ -34,29 +34,83 @@ query WorkspacePage($slug: String!) {
   }
 }
 
-query WorkspacePipelinesPage($workspaceSlug: String!) {
+query WorkspacePipelinesPage(
+  $workspaceSlug: String!
+  $page: Int
+  $perPage: Int
+) {
   workspace(slug: $workspaceSlug) {
     slug
     name
     ...WorkspaceLayout_workspace
+  }
+
+  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    items {
+      ...PipelineCard_pipeline
+    }
+    totalItems
+    totalPages
+    pageNumber
   }
 }
 query WorkspaceNotebooksPage($workspaceSlug: String!) {
   notebooksUrl
   workspace(slug: $workspaceSlug) {
     slug
-    permissions{
+    permissions {
       update
     }
     ...WorkspaceLayout_workspace
   }
 }
 
-query WorkspacePipelinePage($workspaceSlug: String!) {
+query WorkspacePipelinePage(
+  $workspaceSlug: String!
+  $pipelineId: UUID!
+  $page: Int = 1
+  $perPage: Int = 10
+) {
   workspace(slug: $workspaceSlug) {
     slug
     name
     ...WorkspaceLayout_workspace
+  }
+
+  pipeline(id: $pipelineId) {
+    ...PipelineVersionsDialog_pipeline
+    ...RunPipelineDialog_pipeline
+    permissions {
+      run
+      update
+    }
+    id
+    name
+    description
+    schedule
+    currentVersion {
+      id
+      number
+    }
+    runs(page: $page, perPage: $perPage) {
+      items {
+        id
+        version {
+          number
+        }
+        executionDate
+        duration
+        triggerMode
+
+        user {
+          ...UserColumn_user
+        }
+        ...PipelineRunStatusBadge_run
+      }
+      totalItems
+      totalPages
+      pageNumber
+    }
   }
 }
 
@@ -67,11 +121,40 @@ query WorkspacePipelineStartPage($workspaceSlug: String!) {
     ...WorkspaceLayout_workspace
   }
 }
-query WorkspacePipelineRunPage($workspaceSlug: String!) {
+query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
     ...WorkspaceLayout_workspace
+  }
+
+  pipelineRun(id: $runId) {
+    id
+    version {
+      number
+      entrypoint
+      parameters
+    }
+    config
+    executionDate
+    duration
+    triggerMode
+    pipeline {
+      id
+      name
+      ...RunPipelineDialog_pipeline
+    }
+    outputs {
+      title
+      uri
+    }
+    user {
+      ...User_user
+    }
+    ...RunPipelineDialog_run
+    ...RunMessages_run
+    ...RunLogs_run
+    ...PipelineRunStatusBadge_run
   }
 }
 

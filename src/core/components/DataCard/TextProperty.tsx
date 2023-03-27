@@ -13,26 +13,9 @@ type TextPropertyProps = PropertyDefinition & {
 };
 
 const TextProperty = (props: TextPropertyProps) => {
-  const {
-    markdown,
-    defaultValue,
-    id,
-    accessor,
-    required,
-    readonly,
-    label,
-    help,
-    className,
-  } = props;
+  const { className, markdown, ...delegated } = props;
 
-  const { property, section } = useDataCardProperty({
-    id,
-    accessor,
-    required,
-    readonly,
-    label,
-    help,
-  });
+  const { property, section } = useDataCardProperty(delegated);
 
   if (section.isEdited && !property.readonly) {
     return (
@@ -64,7 +47,7 @@ const TextProperty = (props: TextPropertyProps) => {
           </ReactMarkdown>
         ) : (
           <div className={clsx("prose text-sm text-gray-900", className)}>
-            {property.displayValue || defaultValue}
+            {property.displayValue ?? property.defaultValue}
           </div>
         )}
       </DataCard.Property>

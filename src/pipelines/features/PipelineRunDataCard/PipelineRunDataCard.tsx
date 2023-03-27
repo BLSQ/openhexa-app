@@ -142,7 +142,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
               </div>
             </div>
             <div className="flex items-center">
-              <PipelineRunStatusBadge dagRun={dagRun} />
+              <PipelineRunStatusBadge run={dagRun} />
             </div>
           </div>
         )}
@@ -175,7 +175,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
         title={t("Messages")}
         defaultOpen
       >
-        {dagRun.messages.length ? () => <RunMessages dagRun={dagRun} /> : null}
+        {dagRun.messages.length ? () => <RunMessages run={dagRun} /> : null}
       </DataCard.Section>
       <DataCard.Section title={t("Configuration")} defaultOpen>
         {(open) => <PipelineRunReadonlyForm dag={dag} dagRun={dagRun} />}
@@ -186,7 +186,7 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
           defaultOpen={false}
           loading={Boolean(intervalDuration)}
         >
-          {() => <RunLogs dagRun={dagRun} />}
+          {() => <RunLogs run={dagRun} />}
         </DataCard.Section>
       )}
       <DataCard.FormSection title={t("Metadata")} defaultOpen={false}>

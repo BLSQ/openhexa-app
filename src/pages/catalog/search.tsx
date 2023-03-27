@@ -95,6 +95,7 @@ const SearchPage = () => {
                     required
                   >
                     <Select
+                      getOptionLabel={(option) => option.label}
                       placeholder="Type"
                       multiple
                       value={form.formData.types ?? []}

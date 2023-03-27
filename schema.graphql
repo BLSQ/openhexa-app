@@ -691,8 +691,7 @@ type CreateMembershipResult {
 
 input CreatePipelineInput {
   name: String!
-  entrypoint: String!
-  parameters: JSON!
+  workspaceSlug: String!
 }
 
 type CreatePipelineResult {
@@ -1319,7 +1318,8 @@ type Mutation {
   denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
   updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
   launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
-  createPipeline(input: CreatePipelineInput): CreatePipelineResult!
+  createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
+  updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
   deletePipeline(input: DeletePipelineInput): DeletePipelineResult!
   runPipeline(input: RunPipelineInput): RunPipelineResult!
   pipelineToken(input: PipelineTokenInput): PipelineTokenResult!
@@ -1374,12 +1374,16 @@ enum PermissionMode {
 type Pipeline {
   id: UUID!
   name: String!
-  entrypoint: String!
-  parameters: JSON!
-  config: String!
+  permissions: PipelinePermissions!
+  workspace: Workspace
+  config: JSON!
   schedule: String
-  user: User
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime
+  currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
+  versions(page: Int, perPage: Int): PipelineVersionPage!
 }
 
 enum PipelineError {
@@ -1389,13 +1393,19 @@ enum PipelineError {
   PIPELINE_ALREADY_COMPLETED
 }
 
+type PipelinePermissions {
+  update: Boolean!
+  delete: Boolean!
+  run: Boolean!
+}
+
 type PipelineRun {
   id: UUID!
   run_id: UUID!
   user: User
   pipeline: Pipeline!
   version: PipelineVersion!
-  config: String!
+  config: JSON!
   status: PipelineRunStatus!
   executionDate: DateTime
   duration: Int
@@ -1438,8 +1448,8 @@ enum PipelineRunStatus {
 }
 
 enum PipelineRunTrigger {
-  SCHEDULED
-  MANUAL
+  scheduled
+  manual
 }
 
 type PipelinesPage {
@@ -1464,7 +1474,17 @@ type PipelineVersion {
   user: User
   pipeline: Pipeline!
   number: Int!
+  createdAt: DateTime!
+  entrypoint: String!
+  parameters: JSON!
   zipfile: String!
+}
+
+type PipelineVersionPage {
+  items: [PipelineVersion!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
 }
 
 input PrepareAccessmodFileDownloadInput {
@@ -1566,9 +1586,9 @@ type Query {
   notebooksUrl: URL!
   totalNotebooks: Int!
   lastActivities: [Activity!]!
-  pipelines(page: Int, perPage: Int): PipelinesPage!
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
   pipeline(id: UUID, name: String): Pipeline
-  pipelineRun(id: UUID!): PipelineRun
+  pipelineRun(id: String!): PipelineRun
   pipelineRunCode(id: UUID): String
   workspace(slug: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
@@ -1622,7 +1642,7 @@ type RunDAGResult {
 input RunPipelineInput {
   id: UUID!
   version: Int
-  config: String
+  config: JSON!
 }
 
 type RunPipelineResult {
@@ -1951,6 +1971,20 @@ type UpdateMembershipResult {
   errors: [UpdateMembershipError!]!
 }
 
+enum UpdatePipelineError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  INVALID_CONFIG
+}
+
+input UpdatePipelineInput {
+  id: UUID!
+  name: String
+  config: JSON
+  schedule: String
+  description: String
+}
+
 input UpdatePipelineProgressInput {
   percent: Int!
 }
@@ -1958,6 +1992,12 @@ input UpdatePipelineProgressInput {
 type UpdatePipelineProgressResult {
   success: Boolean!
   errors: [PipelineError!]!
+}
+
+type UpdatePipelineResult {
+  success: Boolean!
+  errors: [UpdatePipelineError!]!
+  pipeline: Pipeline
 }
 
 enum UpdateTeamError {
@@ -2013,6 +2053,8 @@ type UpdateWorkspaceResult {
 
 input UploadPipelineInput {
   name: String!
+  entrypoint: String!
+  parameters: JSON!
   zipfile: String!
 }
 
@@ -2120,6 +2162,7 @@ type WorkspacePermissions {
   delete: Boolean!
   manageMembers: Boolean!
   createConnection: Boolean!
+  createPipeline: Boolean!
   createObject: Boolean!
   deleteObject: Boolean!
   downloadObject: Boolean!

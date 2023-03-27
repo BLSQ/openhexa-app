@@ -11,19 +11,19 @@ export type PropertyDefinition = {
   readonly?: PropertyFlag;
   visible?: PropertyFlag;
   required?: PropertyFlag;
+  validate?(value: string): string | null | undefined;
   defaultValue?: string;
+  hideLabel?: boolean;
 };
-export interface Property<V = any, FV = V> {
-  id: string;
-  label: string;
-  help?: string;
+export type Property<V = any, FV = V> = PropertyDefinition & {
   displayValue: V;
   formValue: FV;
+  hideLabel: boolean;
   readonly: boolean;
   required: boolean;
   visible: boolean;
   setValue: (value: FV | null) => void;
-}
+};
 
 export type DataCardSectionInstance<F = any> = {
   isEdited: boolean;

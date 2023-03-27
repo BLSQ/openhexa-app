@@ -240,7 +240,7 @@ const PipelinePage = (props: Props) => {
                   label={t("Status")}
                   id="status"
                 >
-                  {(item) => <PipelineRunStatusBadge dagRun={item} />}
+                  {(item) => <PipelineRunStatusBadge run={item} />}
                 </BaseColumn>
                 <BaseColumn label={t("Duration")} accessor="duration">
                   {(value) => <span suppressHydrationWarning></span>}
