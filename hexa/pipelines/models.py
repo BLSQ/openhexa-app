@@ -134,12 +134,19 @@ class PipelineQuerySet(BaseQuerySet):
 class Pipeline(models.Model):
     class Meta:
         verbose_name = "Pipeline v2"
+        constraints = [
+            models.UniqueConstraint(
+                "workspace_id",
+                "name",
+                name="unique_pipeline_name_per_workspace",
+            )
+        ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    name = models.CharField(unique=True, max_length=200, default="")
+    name = models.CharField(max_length=200, default="")
     description = models.TextField(blank=True)
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
