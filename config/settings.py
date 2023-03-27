@@ -396,11 +396,12 @@ TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
 AIRFLOW_SYNC_WAIT = 61
 GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 
-PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
-
 # Needed so that external component know how to hit us back
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
+
+PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
+PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
@@ -417,4 +418,10 @@ WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB"
 # Filesystem configuration
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
+
+# Base64 encoded service account key
+# To generate a service account key, follow the instructions here:
+# import base64
+# import json
+# base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
 GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")

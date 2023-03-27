@@ -67,6 +67,11 @@ def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
     )
 
 
+@pipeline_object.field("currentVersion")
+def resolve_pipeline_current_version(pipeline: Pipeline, info, **kwargs):
+    return pipeline.last_version
+
+
 @pipeline_object.field("permissions")
 def resolve_pipeline_permissions(pipeline: Pipeline, info, **kwargs):
     return pipeline
@@ -75,7 +80,9 @@ def resolve_pipeline_permissions(pipeline: Pipeline, info, **kwargs):
 @pipeline_object.field("versions")
 def resolve_pipeline_versions(pipeline: Pipeline, info, **kwargs):
     qs = pipeline.versions.all()
-    result_page(queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage"))
+    return result_page(
+        queryset=qs, page=kwargs.get("page", 1), per_page=kwargs.get("perPage")
+    )
 
 
 @pipeline_object.field("runs")
@@ -109,7 +116,7 @@ def resolve_pipeline_run_duration(run: PipelineRun, info, **kwargs):
 
 @pipeline_run_object.field("config")
 def resolve_pipeline_run_config(run: PipelineRun, info, **kwargs):
-    return run.conf
+    return run.config
 
 
 @pipeline_run_object.field("code")
@@ -301,7 +308,7 @@ def resolve_run_pipeline(_, info, **kwargs):
         user=request.user,
         pipeline_version=version,
         trigger_mode=PipelineRunTrigger.MANUAL,
-        config=input.get("config", None),
+        config=input.get("config", {}),
     )
 
     return {
@@ -412,7 +419,7 @@ def resolve_pipeline_progress(_, info, **kwargs):
 
 
 @pipelines_mutations.field("addPipelineOutput")
-def resolve_pipeline_output(_, info, **kwargs):
+def resolve_add_pipeline_output(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     if not request.user.is_authenticated or not isinstance(
         request.user, PipelineRunUser

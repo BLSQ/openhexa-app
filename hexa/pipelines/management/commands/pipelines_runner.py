@@ -16,6 +16,17 @@ from hexa.pipelines.models import PipelineRun, PipelineRunState
 logger = getLogger(__name__)
 
 
+def dict_to_arglist(arg_dict):
+    arg_list = []
+    for key, value in arg_dict.items():
+        arg_list.append(f"--{key}")
+        if (
+            value is not True
+        ):  # For boolean flags, we only need the flag itself if the value is True
+            arg_list.append(str(value))
+    return arg_list
+
+
 def run_pipeline_kube(run: PipelineRun, env_var: dict):
     from kubernetes import config
     from kubernetes.client import CoreV1Api
@@ -25,7 +36,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
     container_name = slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str)
-
+    arglist = dict_to_arglist(run.config)
     config.load_incluster_config()
     v1 = CoreV1Api()
     pod = k8s.V1Pod(
@@ -80,7 +91,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                         "cloudrun",
                         run.pipeline_version.entrypoint,
                     ]
-                    + run.config.split(),
+                    + arglist,
                     env=[
                         k8s.V1EnvVar(
                             name="HEXA_PIPELINERUN_URL",
@@ -188,11 +199,13 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --rm pipelines_v2 run {run.pipeline.entrypoint}'
+    arglist = dict_to_arglist(run.config)
+    docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --network openhexa --platform linux/amd64 --rm openhexa-pipelines-v2 cloudrun {run.pipeline_version.entrypoint}'
+    cmd = docker_cmd.split(" ") + arglist
 
-    print(docker_cmd)
+    print(" ".join(cmd))
 
-    proc = Popen(docker_cmd.split(" "), stdout=PIPE, stderr=STDOUT, close_fds=True)
+    proc = Popen(cmd, stdout=PIPE, stderr=STDOUT, close_fds=True)
     while True:
         run.refresh_from_db()
         run.last_heartbeat = timezone.now()
@@ -218,9 +231,11 @@ def run_pipeline(run: PipelineRun):
     run.refresh_from_db()
 
     env_var = {}
-    env_var["HEXA_PIPELINERUN_URL"] = f"{settings.BASE_URL}/graphql/"
+    env_var["HEXA_PIPELINERUN_URL"] = f"{settings.PIPELINE_API_URL}/graphql/"
     env_var["HEXA_PIPELINERUN_TOKEN"] = Signer().sign_object(run.access_token)
-    env_var["HEXA_CREDENTIALS_URL"] = f"{settings.BASE_URL}/pipelines/credentials2/"
+    env_var[
+        "HEXA_CREDENTIALS_URL"
+    ] = f"{settings.PIPELINE_API_URL}/pipelines/credentials2/"
     env_var["HEXA_PIPELINE_TOKEN"] = run.pipeline.get_token()
     env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
 
