@@ -68,7 +68,9 @@ class WorkspaceManager(models.Manager):
             )
 
         db_password = User.objects.make_random_password(length=16)
-        db_name = format_db_name(create_kwargs["slug"])
+        db_name = format_db_name(
+            hashlib.blake2s(slug.encode("utf-8"), digest_size=16).hexdigest()
+        )
 
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
