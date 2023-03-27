@@ -304,7 +304,7 @@ class PipelineRun(Base, WithStatus):
         self.outputs.append(
             {
                 "uri": uri,
-                "label": label,
+                "title": label,
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )
