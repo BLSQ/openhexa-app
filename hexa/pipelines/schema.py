@@ -2,6 +2,7 @@ import base64
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
+from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
@@ -301,6 +302,9 @@ def resolve_run_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_VERSION_NOT_FOUND"],
         }
 
+    if not request.user.has_perm("pipelines.run_pipeline", pipeline):
+        raise PermissionDenied()
+
     run = pipeline.run(
         user=request.user,
         pipeline_version=version,
@@ -441,7 +445,8 @@ def resolve_add_pipeline_output(_, info, **kwargs):
         }
 
     input = kwargs["input"]
-    pipeline_run.add_output(input.get("output_uri"), input.get("output_type"))
+    pipeline_run.add_output(input["uri"], input.get("type"), input.get("name"))
+
     return {"success": True, "errors": []}
 
 
