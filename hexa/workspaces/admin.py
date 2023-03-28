@@ -5,12 +5,8 @@ from .models import Connection, ConnectionField, Workspace, WorkspaceMembership
 
 @admin.register(Workspace)
 class WorkspaceAdmin(admin.ModelAdmin):
-    list_display = (
-        "slug",
-        "name",
-        "created_at",
-        "updated_at",
-    )
+    list_display = ("slug", "name", "created_at", "updated_at", "archived")
+    list_filter = ("archived",)
 
 
 @admin.register(WorkspaceMembership)

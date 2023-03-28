@@ -353,6 +353,56 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["deleteWorkspace"],
         )
 
+    def test_archive_workspace_not_found(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+                archiveWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["NOT_FOUND"],
+            },
+            r["data"]["archiveWorkspace"],
+        )
+
+    def test_archive_workspace(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+                archiveWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["archiveWorkspace"],
+        )
+
     def test_create_workspace_member_workspace_not_found(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(

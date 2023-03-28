@@ -82,6 +82,23 @@ def resolve_delete_workspace(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+@workspace_mutations.field("archiveWorkspace")
+def resolve_archive_workspace(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=input["slug"]
+        )
+        workspace.archive_if_has_perm(principal=request.user)
+
+        return {"success": True, "errors": []}
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @workspace_mutations.field("inviteWorkspaceMember")
 def resolve_create_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
