@@ -305,8 +305,9 @@ enum ActivityStatus {
 }
 
 input AddPipelineOutputInput {
-  output_type: String!
-  output_uri: String!
+  uri: String!
+  type: String!
+  name: String
 }
 
 type AddPipelineOutputResult {
@@ -1389,6 +1390,8 @@ type Pipeline {
 enum PipelineError {
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
 }
@@ -1429,7 +1432,8 @@ enum PipelineRunOrderBy {
 }
 
 type PipelineRunOutput {
-  title: String!
+  name: String
+  type: String!
   uri: String!
 }
 

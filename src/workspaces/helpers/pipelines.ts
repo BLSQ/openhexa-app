@@ -13,6 +13,8 @@ import { PipelineRun } from "graphql-types";
 export type Parameter = {
   help: string;
   name: string;
+  choices?: null | string[];
+  required?: boolean;
   type: "str" | "bool" | "int" | "float";
 };
 

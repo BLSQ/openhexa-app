@@ -337,8 +337,9 @@ export enum ActivityStatus {
 }
 
 export type AddPipelineOutputInput = {
-  output_type: Scalars['String'];
-  output_uri: Scalars['String'];
+  name?: InputMaybe<Scalars['String']>;
+  type: Scalars['String'];
+  uri: Scalars['String'];
 };
 
 export type AddPipelineOutputResult = {
@@ -1884,8 +1885,10 @@ export type PipelineVersionsArgs = {
 export enum PipelineError {
   InvalidConfig = 'INVALID_CONFIG',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
+  PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
-  PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND'
+  PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 export type PipelinePermissions = {
@@ -1928,7 +1931,8 @@ export enum PipelineRunOrderBy {
 
 export type PipelineRunOutput = {
   __typename?: 'PipelineRunOutput';
-  title: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
+  type: Scalars['String'];
   uri: Scalars['String'];
 };
 

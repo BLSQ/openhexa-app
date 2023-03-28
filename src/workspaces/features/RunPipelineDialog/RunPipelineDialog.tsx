@@ -6,18 +6,19 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Input from "core/components/forms/Input";
+import SimpleSelect from "core/components/forms/SimpleSelect";
 import Switch from "core/components/Switch";
 import useForm from "core/hooks/useForm";
-import { Parameter, runPipeline } from "workspaces/helpers/pipelines";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Parameter, runPipeline } from "workspaces/helpers/pipelines";
+import PipelineVersionPicker from "../PipelineVersionPicker";
 import {
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
   RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
-import PipelineVersionPicker from "../PipelineVersionPicker";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -50,10 +51,10 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       return {
         version:
           (("version" in props && props.version) ||
-            ("run" in props && props.run?.version) ||
+            ("run" in props && props.run.version) ||
             pipeline.currentVersion) ??
           null,
-        ...("run" in props ? props.run?.config : {}),
+        ...("run" in props ? props.run.config : {}),
       };
     },
   });
@@ -117,22 +118,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
             )}
           >
             {parameters.map((param, i) => (
-              <Field required key={i} name={param.name} label={param.help}>
-                {param.type === "str" && (
-                  <Input
-                    name={param.name}
-                    onChange={form.handleInputChange}
-                    value={form.formData[param.name] || ""}
-                  />
-                )}
-                {["int", "float"].includes(param.type) && (
-                  <Input
-                    name={param.name}
-                    type="number"
-                    onChange={form.handleInputChange}
-                    value={form.formData[param.name] || ""}
-                  />
-                )}
+              <Field
+                required={param.required ?? true} // We also support parameters where required is not set
+                key={i}
+                name={param.name}
+                label={param.help}
+              >
                 {param.type === "bool" && (
                   <Switch
                     name={param.name}
@@ -140,6 +131,30 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     onChange={(checked) =>
                       form.setFieldValue(param.name, checked)
                     }
+                  />
+                )}
+                {param.choices?.length ? (
+                  <SimpleSelect
+                    name={param.name}
+                    value={form.formData[param.name]}
+                    required={param.required}
+                    onChange={form.handleInputChange}
+                  >
+                    {param.choices.map((opt, idx) => (
+                      <option key={idx} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </SimpleSelect>
+                ) : (
+                  <Input
+                    type={
+                      ["int", "float"].includes(param.type) ? "number" : "text"
+                    }
+                    name={param.name}
+                    required={param.required ?? true}
+                    onChange={form.handleInputChange}
+                    value={form.formData[param.name] || ""}
                   />
                 )}
               </Field>

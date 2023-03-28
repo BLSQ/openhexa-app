@@ -220,9 +220,12 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               <Block.Section title={"Outputs"}>
                 {run.outputs.length > 0 ? (
                   <DescriptionList>
-                    {run.outputs.map((file, index) => (
-                      <DescriptionList.Item key={index} label={file.title}>
-                        <Link href={file.uri}>{file.uri}</Link>
+                    {run.outputs.map((output, index) => (
+                      <DescriptionList.Item
+                        key={index}
+                        label={output.name ?? t("Unknown")}
+                      >
+                        {output.uri}
                       </DescriptionList.Item>
                     ))}
                   </DescriptionList>

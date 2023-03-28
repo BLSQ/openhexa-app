@@ -145,7 +145,8 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: String!) {
       ...RunPipelineDialog_pipeline
     }
     outputs {
-      title
+      name
+      type
       uri
     }
     user {
