@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.1](https://github.com/BLSQ/openhexa-frontend/compare/0.21.0...0.21.1) (2023-03-28)
+
+
+### Bug Fixes
+
+* **Workspaces:** Adapt output type; support string choices & required parameter to run a pipeline ([2105365](https://github.com/BLSQ/openhexa-frontend/commit/210536588cdb1c948185ba66fb9f4eb80a8e276b))
+* **Workspaces:** Adapt output type; support string choices & required… ([#244](https://github.com/BLSQ/openhexa-frontend/issues/244)) ([2105365](https://github.com/BLSQ/openhexa-frontend/commit/210536588cdb1c948185ba66fb9f4eb80a8e276b))
+
 ## [0.21.0](https://github.com/BLSQ/openhexa-frontend/compare/0.20.0...0.21.0) (2023-03-27)
 
 
