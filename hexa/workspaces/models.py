@@ -21,7 +21,6 @@ from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
     create_database,
     delete_database,
-    format_db_name,
     load_database_sample_data,
     update_database_password,
 )
@@ -37,6 +36,13 @@ def create_workspace_slug(name):
     suffix = secrets.token_hex(3)
     prefix = slugify(name[:23])
     return prefix[:23] + "-" + suffix
+
+
+def generate_database_name():
+    db_name = str(uuid.uuid4()).replace("-", "")
+    if db_name[0] in "0123456789":
+        db_name = "_" + db_name
+    return db_name
 
 
 validate_workspace_slug = RegexValidator(
@@ -68,8 +74,7 @@ class WorkspaceManager(models.Manager):
             )
 
         db_password = User.objects.make_random_password(length=16)
-        db_name = format_db_name(str(uuid.uuid4()))
-
+        db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
 
