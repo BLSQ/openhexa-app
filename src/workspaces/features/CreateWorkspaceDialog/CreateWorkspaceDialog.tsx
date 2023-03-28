@@ -19,7 +19,7 @@ type CreateWorkspaceDialogProps = {
 
 type Form = {
   name: string;
-  countries: Array<CountryPicker_CountryFragment>;
+  country: CountryPicker_CountryFragment;
 };
 
 const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
@@ -34,9 +34,9 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
         variables: {
           input: {
             name: values.name,
-            countries: ensureArray(values.countries).map(({ code }) => ({
-              code,
-            })),
+            countries: values.country
+              ? [{ code: values.country.code }]
+              : undefined,
           },
         },
       });
@@ -100,9 +100,8 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
           >
             <CountryPicker
               withPortal
-              multiple
-              value={form.formData.countries ?? []}
-              onChange={(value) => form.setFieldValue("countries", value)}
+              value={form.formData.country}
+              onChange={(value) => form.setFieldValue("country", value)}
             />
           </Field>
           {form.submitError && (

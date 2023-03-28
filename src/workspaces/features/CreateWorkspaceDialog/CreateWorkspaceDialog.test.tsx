@@ -67,7 +67,7 @@ describe("CreateWorkspaceDialog", () => {
 
     expect(createWorkspace).toHaveBeenCalled();
     expect(createWorkspace).toHaveBeenCalledWith({
-      variables: { input: { name: "Test Burundi", countries: [] } },
+      variables: { input: { name: "Test Burundi", countries: undefined } },
     });
   });
 
