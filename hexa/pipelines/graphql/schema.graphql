@@ -18,7 +18,8 @@ enum PipelineRunTrigger {
 }
 
 type PipelineRunOutput {
-  title: String!
+  name: String
+  type: String!
   uri: String!
 }
 
@@ -200,8 +201,9 @@ type UpdatePipelineProgressResult {
 }
 
 input AddPipelineOutputInput {
-  output_type: String!
-  output_uri: String!
+  uri: String!
+  type: String!
+  name: String
 }
 
 type AddPipelineOutputResult {

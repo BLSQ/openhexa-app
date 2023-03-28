@@ -161,8 +161,6 @@ class Pipeline(models.Model):
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] = None,
     ):
-        if not user.has_perm("pipelines.run_pipeline", self):
-            raise PermissionDenied()
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -297,14 +295,15 @@ class PipelineRun(Base, WithStatus):
         )
         self.save()
 
-    def add_output(self, uri: str, label: str):
+    def add_output(self, uri: str, output_type: str, name: typing.Optional[str]):
         self.refresh_from_db()
         if self.outputs is None:
             self.outputs = []
         self.outputs.append(
             {
                 "uri": uri,
-                "title": label,
+                "name": name,
+                "type": output_type,
                 "timestamp": datetime.utcnow().isoformat(),
             }
         )
