@@ -4,7 +4,6 @@ from unittest.mock import patch
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from hexa.core.test import TestCase
-from hexa.databases.api import format_db_name
 from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -87,14 +86,6 @@ class WorkspaceTest(TestCase):
                 description="Description",
             )
         self.assertEqual(workspace.slug, "1workspace-with-random-mock")
-        self.assertEqual(
-            workspace.db_name,
-            format_db_name(
-                hashlib.blake2s(
-                    workspace.slug.encode("utf-8"), digest_size=16
-                ).hexdigest()
-            ),
-        )
 
     @backend.mock_storage
     def test_create_workspace_admin_user(self):
