@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import string
 import typing
 import uuid
 
@@ -10,6 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import Q
+from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
@@ -39,9 +41,10 @@ def create_workspace_slug(name):
 
 
 def generate_database_name():
-    db_name = str(uuid.uuid4()).replace("-", "")
-    if db_name[0] in "0123456789":
-        db_name = "_" + db_name
+    db_name = get_random_string(1, string.ascii_lowercase) + get_random_string(
+        15, allowed_chars=string.ascii_lowercase + string.digits
+    )
+
     return db_name
 
 
@@ -127,7 +130,7 @@ class Workspace(Base):
         related_name="workspace_created_by",
     )
 
-    db_name = models.TextField(null=True)
+    db_name = models.CharField(null=True, max_length=63)
     db_password = EncryptedTextField(null=True)
     bucket_name = models.TextField(
         null=True,

@@ -86,6 +86,7 @@ class WorkspaceTest(TestCase):
                 description="Description",
             )
         self.assertEqual(workspace.slug, "1workspace-with-random-mock")
+        self.assertEqual(16, len(workspace.db_name))
 
     @backend.mock_storage
     def test_create_workspace_admin_user(self):
