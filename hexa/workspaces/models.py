@@ -20,7 +20,6 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
     create_database,
-    delete_database,
     format_db_name,
     load_database_sample_data,
     update_database_password,
@@ -144,7 +143,8 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
-        delete_database(self.db_name)
+        # TODO: clarify workspace deletion workflow - buckets are not deleted for now
+        # delete_database(self.db_name)
         self.delete()
 
     def archive_if_has_perm(self, *, principal: User):
