@@ -36,7 +36,7 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         id: version
         # GITHUB_REF looks like "refs/tags/0.3.1" - we need to extract the actual version without the v prefix
-        run: echo "number={value}" >> $GITHUB_OUTPUT
+        run: echo "number=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
 
       # Release push (with a tag)
       - name: Build and push (on release)
