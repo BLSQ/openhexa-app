@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.2](https://github.com/BLSQ/openhexa-frontend/compare/0.21.1...0.21.2) (2023-03-29)
+
+
+### Bug Fixes
+
+* **pipelines:** decrease polling interval while in queued + limit hei… ([#247](https://github.com/BLSQ/openhexa-frontend/issues/247)) ([0c7ea34](https://github.com/BLSQ/openhexa-frontend/commit/0c7ea34613f6bf74685880a3c583151adb32b69f))
+* **pipelines:** decrease polling interval while in queued + limit height of run dialog + scroll ([0c7ea34](https://github.com/BLSQ/openhexa-frontend/commit/0c7ea34613f6bf74685880a3c583151adb32b69f))
+
 ## [0.21.1](https://github.com/BLSQ/openhexa-frontend/compare/0.21.0...0.21.1) (2023-03-28)
 
 
