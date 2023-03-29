@@ -52,7 +52,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const refreshInterval = useMemo(() => {
     switch (data?.pipelineRun?.status) {
       case PipelineRunStatus.Queued:
-        return 10 * 1000;
+        return 1 * 1000;
       case PipelineRunStatus.Running:
         return 3 * 1000;
       default:
