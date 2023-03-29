@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import string
 import typing
 import uuid
 
@@ -10,6 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import Q
+from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import Country, CountryField
@@ -20,7 +22,6 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
     create_database,
-    format_db_name,
     load_database_sample_data,
     update_database_password,
 )
@@ -36,6 +37,14 @@ def create_workspace_slug(name):
     suffix = secrets.token_hex(3)
     prefix = slugify(name[:23])
     return prefix[:23] + "-" + suffix
+
+
+def generate_database_name():
+    db_name = get_random_string(1, string.ascii_lowercase) + get_random_string(
+        15, allowed_chars=string.ascii_lowercase + string.digits
+    )
+
+    return db_name
 
 
 validate_workspace_slug = RegexValidator(
@@ -67,8 +76,7 @@ class WorkspaceManager(models.Manager):
             )
 
         db_password = User.objects.make_random_password(length=16)
-        db_name = format_db_name(create_kwargs["slug"])
-
+        db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
 
@@ -121,7 +129,7 @@ class Workspace(Base):
         related_name="workspace_created_by",
     )
 
-    db_name = models.TextField(null=True)
+    db_name = models.CharField(null=True, max_length=63)
     db_password = EncryptedTextField(null=True)
     bucket_name = models.TextField(
         null=True,

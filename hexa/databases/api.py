@@ -29,24 +29,11 @@ def get_database_connection(database: str):
     )
 
 
-def format_db_name(name: str):
-    db_name = ""
-    for char in name.lower().replace("-", "_"):
-        if char in "abcdefghijklmnopqrstuvwxyz0123456789_":
-            db_name += char
-
-    # Ensure db_name do not start with a number
-    if db_name[0] in "0123456789":
-        db_name = "_" + db_name
-
-    return db_name[:31]
-
-
 def validate_db_name(name: str):
     if not name:
         raise ValidationError("Empty value for name")
 
-    if (re.match(r"^[_a-z][a-z0-9_]{,30}$", name)) is None:
+    if (re.match(r"^[_a-z][a-z0-9_]{,63}$", name)) is None:
         raise ValidationError(
             "Name must contain only lowercase alphanumeric characters, start with a letter or a underscore and with a maximum length of 31 characters"
         )
