@@ -17,41 +17,53 @@ jobs:
     steps:
       # Setup (see https://github.com/docker/build-push-action)
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@6520a2d2cb6db42c90c297c8025839c98e531268
+        uses: docker/setup-qemu-action@v2
+
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@044aaa9258972fc1ab44730789e42d66b720789c
+        uses: docker/setup-buildx-action@v2
+
       - name: Login to DockerHub
-        uses: docker/login-action@adb73476b6e06caddec5db0bc1deacbec8cdd947
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       # Publish to Docker hub
       - name: Store version number (on release)
         if: ${{ github.event_name == 'release' }}
         id: version
         # GITHUB_REF looks like "refs/tags/0.3.1" - we need to extract the actual version without the v prefix
-        run: echo ::set-output name=number::${GITHUB_REF##*/}
+        run: echo "number=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+
+      # Release push (with a tag)
       - name: Build and push (on release)
         if: ${{ github.event_name == 'release' }}
-        uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
+        uses: docker/build-push-action@v4
         with:
           push: true
           context: .
           target: production
           file: Dockerfile
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
             blsq/openhexa-app:latest
+
+      # Manual push
       - name: Build and push (manual)
         if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: docker/build-push-action@6efc2b01cbb63cfc68c370c6c806586fa6384a3a
+        uses: docker/build-push-action@v4
         with:
           push: true
           context: .
           target: production
           file: Dockerfile
+          cache-from: type=registry,ref=blsq/openhexa-app:buildcache
+          cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
           tags: |
             blsq/openhexa-app:${{ github.event.inputs.tag }}
             blsq/openhexa-app:latest

@@ -22,7 +22,6 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
     create_database,
-    delete_database,
     load_database_sample_data,
     update_database_password,
 )
@@ -152,7 +151,8 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
-        delete_database(self.db_name)
+        # TODO: clarify workspace deletion workflow - buckets are not deleted for now
+        # delete_database(self.db_name)
         self.delete()
 
     def archive_if_has_perm(self, *, principal: User):
@@ -329,7 +329,6 @@ class Connection(models.Model):
     def set_fields(self, user: User, fields: typing.List[dict]):
         fields_map = {str(f.code): f for f in self.fields.all()}
         for field in fields:
-
             if field["code"] not in fields_map:
                 # Unknown field -> Create it
                 current_field = ConnectionField(connection=self, user=user, **field)
@@ -391,7 +390,7 @@ class ConnectionField(models.Model):
 
     @property
     def env_key(self):
-        return f"{stringcase.constcase(self.connection.slug)}_{self.code}"
+        return stringcase.constcase(f"{self.connection.slug}_{self.code}".lower())
 
     class Meta:
         unique_together = [["connection", "code"]]
