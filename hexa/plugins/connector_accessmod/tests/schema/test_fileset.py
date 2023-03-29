@@ -1,6 +1,7 @@
 import uuid
 
 from django.conf import settings
+from django.test import override_settings
 from moto import mock_s3, mock_sts
 
 from hexa.core.test import GraphQLTestCase
@@ -16,9 +17,11 @@ from hexa.plugins.connector_accessmod.models import (
     ProjectPermission,
 )
 from hexa.plugins.connector_s3.models import Bucket, Credentials
+from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import PermissionMode, User
 
 
+@override_settings(**get_s3_mocked_env())
 class FilesetTest(GraphQLTestCase):
     USER_GREG = None
     PROJECT_BORING = None

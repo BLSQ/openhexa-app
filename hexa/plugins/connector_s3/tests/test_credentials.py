@@ -4,6 +4,7 @@ import json
 from unittest.mock import patch
 
 import boto3
+from django.test import override_settings
 from moto import mock_iam, mock_sts
 
 from hexa.core.test import TestCase
@@ -25,7 +26,10 @@ from hexa.user_management.models import (
     User,
 )
 
+from .mocks.s3_credentials_mock import get_s3_mocked_env
 
+
+@override_settings(**get_s3_mocked_env())
 class NotebooksCredentialsTest(TestCase):
     USER_JANE = None
     USER_JOHN = None
@@ -174,6 +178,7 @@ class NotebooksCredentialsTest(TestCase):
         self.assertEqual("s3-access", role_policies_data["PolicyNames"][0])
 
 
+@override_settings(**get_s3_mocked_env())
 class PipelinesCredentialsTest(BaseCredentialsTestCase):
     @classmethod
     def setUpTestData(cls):

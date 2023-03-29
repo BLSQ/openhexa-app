@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import boto3
+from django.test import override_settings
 from moto import mock_iam, mock_s3, mock_sts
 
 from hexa.core.test import TestCase
@@ -12,20 +13,16 @@ from hexa.plugins.connector_s3.api import (
     generate_sts_user_s3_credentials,
     generate_upload_url,
 )
-from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
+from hexa.plugins.connector_s3.models import Bucket, Object
+
+from .mocks.s3_credentials_mock import get_s3_mocked_env
 
 
+@override_settings(**get_s3_mocked_env())
 class ApiTest(TestCase):
     bucket_name = "test-bucket"
 
     def setUp(self):
-        self.credentials = Credentials.objects.create(
-            username="test-username",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
         self.bucket = Bucket.objects.create(name=self.bucket_name)
 
     @mock_s3
@@ -41,7 +38,6 @@ class ApiTest(TestCase):
 
         self.assertIsInstance(
             generate_download_url(
-                principal_credentials=self.credentials,
                 bucket=self.bucket,
                 target_key=target_object.key,
             ),
@@ -55,7 +51,6 @@ class ApiTest(TestCase):
         s3_client.create_bucket(Bucket="test-bucket")
         self.assertIsInstance(
             generate_upload_url(
-                principal_credentials=self.credentials,
                 bucket=self.bucket,
                 target_key="test.csv",
             ),
@@ -64,18 +59,7 @@ class ApiTest(TestCase):
 
     @mock_sts
     def test_generate_sts_app_s3_credentials(self):
-        principal_credentials = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
-        credentials = generate_sts_app_s3_credentials(
-            principal_credentials=principal_credentials
-        )
+        credentials = generate_sts_app_s3_credentials()
         self.assertIsInstance(credentials, dict)
         for key in ["AccessKeyId", "SecretAccessKey", "SessionToken"]:
             self.assertIsInstance(credentials[key], str)
@@ -83,19 +67,8 @@ class ApiTest(TestCase):
 
     @mock_sts
     def test_generate_sts_app_s3_credentials_with_bucket(self):
-        principal_credentials = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="bar",
-            secret_access_key="baz",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
         bucket = Bucket.objects.create(name="hexa-test-bucket")
-        credentials = generate_sts_app_s3_credentials(
-            principal_credentials=principal_credentials, bucket=bucket
-        )
+        credentials = generate_sts_app_s3_credentials(bucket=bucket)
         self.assertIsInstance(credentials, dict)
 
     @mock_iam
@@ -103,19 +76,9 @@ class ApiTest(TestCase):
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_generate_sts_app_team_credentials(self, _):
         bucket = Bucket.objects.create(name="hexa-test-bucket")
-        principal_credentials = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
-        )
         credentials, _ = generate_sts_user_s3_credentials(
             role_identifier="test",
             session_identifier="test",
-            principal_credentials=principal_credentials,
             read_write_buckets=[bucket],
             read_only_buckets=[],
         )
@@ -129,20 +92,10 @@ class ApiTest(TestCase):
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_generate_sts_app_team_credentials_long_ident(self, _):
         bucket = Bucket.objects.create(name="hexa-test-bucket")
-        principal_credentials = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
-        )
         # activate hash mode for session name with a very long session identifier
         credentials, _ = generate_sts_user_s3_credentials(
             role_identifier="test",
             session_identifier="test",
-            principal_credentials=principal_credentials,
             read_write_buckets=[bucket],
             read_only_buckets=[],
         )

@@ -1,4 +1,5 @@
 import boto3
+from django.test import override_settings
 from django.urls import reverse
 from moto import mock_s3, mock_sts
 
@@ -8,7 +9,10 @@ from hexa.plugins.connector_s3.datagrids import ObjectGrid
 from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
 from hexa.user_management.models import User
 
+from .mocks.s3_credentials_mock import get_s3_mocked_env
 
+
+@override_settings(**get_s3_mocked_env())
 class ViewsTest(TestCase):
     @classmethod
     def setUpTestData(cls):

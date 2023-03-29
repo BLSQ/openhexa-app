@@ -1,5 +1,6 @@
 import boto3
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
@@ -13,7 +14,10 @@ from hexa.plugins.connector_s3.models import (
 )
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
+from .mocks.s3_credentials_mock import get_s3_mocked_env
 
+
+@override_settings(**get_s3_mocked_env())
 class ModelTest(TestCase):
     USER_JIM = None
     USER_JANE = None

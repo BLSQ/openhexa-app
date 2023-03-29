@@ -1,10 +1,12 @@
 import boto3
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.test import override_settings
 from moto import mock_s3, mock_sts
 
 from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
+from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import Membership, Team, User
 
 from ..models import Index, IndexPermission
@@ -81,6 +83,7 @@ class PermissionTest(TestCase):
             Index.objects.filter_for_user(self.USER_REGULAR_2).get(id=index.id)
 
 
+@override_settings(**get_s3_mocked_env())
 class PermissionUpdateTest(TestCase):
     @classmethod
     def setUpTestData(cls):

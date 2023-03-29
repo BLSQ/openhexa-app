@@ -425,3 +425,15 @@ WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
 # import json
 # base64.b64encode(json.dumps(service_account_key_content).encode("utf-8"))
 GCS_SERVICE_ACCOUNT_KEY = os.environ.get("GCS_SERVICE_ACCOUNT_KEY", "")
+
+# S3 settings
+AWS_USERNAME = os.environ.get("AWS_USERNAME", "")
+AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")
+AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
+AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL", "")
+AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "")
+AWS_USER_ARN = os.environ.get("AWS_USER_ARN", "")
+AWS_APP_ROLE_ARN = os.environ.get("AWS_APP_ROLE_ARN", "")
+AWS_PERMISSIONS_BOUNDARY_POLICY_ARN = os.environ.get(
+    "AWS_PERMISSIONS_BOUNDARY_POLICY_ARN", ""
+)
