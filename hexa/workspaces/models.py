@@ -321,7 +321,6 @@ class Connection(models.Model):
     def set_fields(self, user: User, fields: typing.List[dict]):
         fields_map = {str(f.code): f for f in self.fields.all()}
         for field in fields:
-
             if field["code"] not in fields_map:
                 # Unknown field -> Create it
                 current_field = ConnectionField(connection=self, user=user, **field)
@@ -383,7 +382,7 @@ class ConnectionField(models.Model):
 
     @property
     def env_key(self):
-        return f"{stringcase.constcase(self.connection.slug)}_{self.code}"
+        return stringcase.constcase(f"{self.connection.slug}_{self.code}".lower())
 
     class Meta:
         unique_together = [["connection", "code"]]

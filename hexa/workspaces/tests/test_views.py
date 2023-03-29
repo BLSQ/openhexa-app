@@ -105,7 +105,7 @@ class ViewsTest(TestCase):
         self.assertEqual(
             response_data["env"],
             {
-                "DB_field_1": "value_1",
+                "DB_FIELD_1": "value_1",
                 "WORKSPACE_DATABASE_HOST": db_credentials["host"],
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
