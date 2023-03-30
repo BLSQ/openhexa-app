@@ -175,7 +175,7 @@ def resolve_pipeline(_, info, **kwargs):
             )
         else:
             pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                name=kwargs.get("name", "")
+                code=kwargs.get("code", "")
             )
     except Pipeline.DoesNotExist:
         pipeline = None
@@ -230,6 +230,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
     try:
         pipeline = Pipeline.objects.create(
+            code=input["code"],
             name=input.get("name"),
             workspace=workspace,
         )
