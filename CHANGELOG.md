@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.21.3](https://github.com/BLSQ/openhexa-frontend/compare/0.21.2...0.21.3) (2023-03-30)
+
+
+### Bug Fixes
+
+* **Pipelines:** Hide description if it's empty, fix save button on pi… ([#252](https://github.com/BLSQ/openhexa-frontend/issues/252)) ([baff563](https://github.com/BLSQ/openhexa-frontend/commit/baff5632ed63282f7e060d06579dbaf0dc3d081f))
+* **Pipelines:** Hide description if it's empty, fix save button on pipeline ([baff563](https://github.com/BLSQ/openhexa-frontend/commit/baff5632ed63282f7e060d06579dbaf0dc3d081f))
+* **Workspaces:** Update description in edit dialog when user switch f… ([#250](https://github.com/BLSQ/openhexa-frontend/issues/250)) ([e8e1f70](https://github.com/BLSQ/openhexa-frontend/commit/e8e1f70abfdeff497b919e6a8a122b3b3ba039f3))
+* **Workspaces:** Update description in edit dialog when user switch from workspace ([e8e1f70](https://github.com/BLSQ/openhexa-frontend/commit/e8e1f70abfdeff497b919e6a8a122b3b3ba039f3))
+
 ## [0.21.2](https://github.com/BLSQ/openhexa-frontend/compare/0.21.1...0.21.2) (2023-03-29)
 
 
