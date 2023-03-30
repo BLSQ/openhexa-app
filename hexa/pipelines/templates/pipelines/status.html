@@ -106,7 +106,7 @@
               <td>
                 <ul style="padding-left: 5px; margin: 0px">
                   {% for output in run.outputs %}
-                    <li>{{ output.timestamp }}, {{ output.output_type }}: {{ output.output_uri }}</li>
+                    <li>{{ output.timestamp }}, {{ output.name }} ({{ output.type }}): {{ output.uri }}</li>
                   {% endfor %}
                 </ul>
               </td>
