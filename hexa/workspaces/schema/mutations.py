@@ -119,7 +119,7 @@ def resolve_create_workspace_member(_, info, **kwargs):
                 "workspace": workspace.name,
                 "owner": request.user.display_name,
                 "workspace_url": request.build_absolute_uri(
-                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.id}"
+                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
                 ),
             },
             recipient_list=[user.email],
@@ -156,7 +156,6 @@ def resolver_update_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
-
         workspace_membership = WorkspaceMembership.objects.filter_for_user(
             request.user
         ).get(id=input["membershipId"])

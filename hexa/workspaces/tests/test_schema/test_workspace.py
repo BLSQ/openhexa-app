@@ -1,6 +1,9 @@
 import uuid
 from unittest.mock import patch
 
+from django.conf import settings
+from django.core import mail
+
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -404,7 +407,58 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["archiveWorkspace"],
         )
 
-    def test_create_workspace_member_workspace_not_found(self):
+    def test_invite_workspace_member(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                inviteWorkspaceMember(input: $input) {
+                    success
+                    errors
+                    workspaceMembership {
+                        role
+                        user {
+                          email
+                        }
+                    }
+                }
+            }
+
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "userEmail": self.USER_SABRINA.email,
+                    "role": WorkspaceMembershipRole.EDITOR,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspaceMembership": {
+                    "role": WorkspaceMembershipRole.EDITOR,
+                    "user": {"email": self.USER_SABRINA.email},
+                },
+            },
+            r["data"]["inviteWorkspaceMember"],
+        )
+
+        self.assertEqual(1, len(mail.outbox))
+        self.assertEqual(
+            f"You've been added to the workspace {self.WORKSPACE.name}",
+            mail.outbox[0].subject,
+        )
+        print(
+            mail.outbox[0].body, f"{settings.BASE_URL}/workspaces/{self.WORKSPACE.slug}"
+        )
+        self.assertTrue(
+            f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}"
+            in mail.outbox[0].body
+        )
+
+    def test_invite_workspace_member_workspace_not_found(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
@@ -439,7 +493,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["inviteWorkspaceMember"],
         )
 
-    def test_create_workspace_member_member_not_found(self):
+    def test_invite_workspace_member_member_not_found(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
@@ -474,7 +528,7 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["inviteWorkspaceMember"],
         )
 
-    def test_create_workspace_member_workspace_already_exist(self):
+    def test_invite_workspace_member_workspace_already_exist(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
