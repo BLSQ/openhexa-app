@@ -24,7 +24,6 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
   const [mutate] = useUpdateWorkspaceMutation();
-
   const form = useForm<Form>({
     onSubmit: async (values) => {
       const { data } = await mutate({
@@ -55,10 +54,14 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
       }
       return errors;
     },
-    initialState: {
-      description: workspace.description || "",
+    getInitialState() {
+      return { description: workspace.description || "" };
     },
   });
+
+  useEffect(() => {
+    form.resetForm();
+  }, [form, workspace]);
 
   useEffect(() => {
     if (!open) {
