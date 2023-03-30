@@ -285,7 +285,7 @@ class DAG(IndexableMixin, models.Model):
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
     user = models.ForeignKey(
-        "user_management.User", null=True, blank=True, on_delete=models.SET_NULL
+        "user_management.User", null=True, blank=False, on_delete=models.SET_NULL
     )
 
     objects = DAGQuerySet.as_manager()
@@ -358,7 +358,9 @@ class DAG(IndexableMixin, models.Model):
 
         client = self.template.cluster.get_api_client()
         # add report email to feedback user
-        conf["_report_email"] = user.email
+        # in case a DAG was created without a user assigned to it
+        if user:
+            conf["_report_email"] = user.email
 
         if webhook_path is None:
             webhook_path = reverse("connector_airflow:webhook")
