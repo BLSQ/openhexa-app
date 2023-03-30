@@ -4,30 +4,30 @@ import Spinner from "core/components/Spinner";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/router";
-import { useDeleteWorkspaceMutation } from "workspaces/graphql/mutations.generated";
+import { useArchiveWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import useCacheKey from "core/hooks/useCacheKey";
 import { gql } from "@apollo/client";
-import { DeleteWorkspace_WorkspaceFragment } from "./DeleteWorkspaceDialog.generated";
-import { DeleteWorkspaceError } from "graphql-types";
+import { ArchiveWorkspaceError } from "graphql-types";
+import { ArchiveWorkspace_WorkspaceFragment } from "./ArchiveWorkspaceDialog.generated";
 
-type DeleteWorkspaceDialogProps = {
+type ArchiveWorkspaceDialogProps = {
   onClose(): void;
   open: boolean;
-  workspace: DeleteWorkspace_WorkspaceFragment;
+  workspace: ArchiveWorkspace_WorkspaceFragment;
 };
 
-const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
+const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
   const router = useRouter();
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [deleteWorkspace] = useDeleteWorkspaceMutation();
+  const [archiveWorkspace] = useArchiveWorkspaceMutation();
   const clearCache = useCacheKey(["workspaces", workspace.slug]);
 
   const onSubmit = async () => {
     setIsSubmitting(true);
-    const { data } = await deleteWorkspace({
+    const { data } = await archiveWorkspace({
       variables: {
         input: {
           slug: workspace.slug,
@@ -35,18 +35,18 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
       },
     });
 
-    if (!data?.deleteWorkspace) {
+    if (!data?.archiveWorkspace) {
       throw new Error("Unknown error.");
     }
 
-    if (data.deleteWorkspace.success) {
+    if (data.archiveWorkspace.success) {
       clearCache();
       setIsSubmitting(false);
-      router.push("/");
+      router.push("/workspaces");
     }
     if (
-      data.deleteWorkspace.errors.includes(
-        DeleteWorkspaceError.PermissionDenied
+      data.archiveWorkspace.errors.includes(
+        ArchiveWorkspaceError.PermissionDenied
       )
     ) {
       throw new Error("You are not authorized to perform this action");
@@ -56,10 +56,12 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
   return (
     <Dialog open={open} onClose={onClose}>
       <Dialog.Title>
-        {t("Delete {{name}}", { name: workspace.name })}
+        {t("Archive {{name}}", { name: workspace.name })}
       </Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <p>{t("You're about to delete this workspace and all its content.")}</p>
+        <p>
+          {t("You're about to archive this workspace and all its content.")}
+        </p>
       </Dialog.Content>
       <Dialog.Actions>
         <Button variant="white" type="button" onClick={onClose}>
@@ -67,20 +69,20 @@ const DeleteWorkspaceDialog = (props: DeleteWorkspaceDialogProps) => {
         </Button>
         <Button onClick={onSubmit}>
           {isSubmitting && <Spinner size="xs" className="mr-1" />}
-          {t("Delete")}
+          {t("Archive")}
         </Button>
       </Dialog.Actions>
     </Dialog>
   );
 };
 
-DeleteWorkspaceDialog.fragments = {
+ArchiveWorkspaceDialog.fragments = {
   workspace: gql`
-    fragment DeleteWorkspace_workspace on Workspace {
+    fragment ArchiveWorkspace_workspace on Workspace {
       slug
       name
     }
   `,
 };
 
-export default DeleteWorkspaceDialog;
+export default ArchiveWorkspaceDialog;

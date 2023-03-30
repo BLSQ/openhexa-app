@@ -1,7 +1,7 @@
 import * as Types from '../../graphql-types';
 
 import { gql } from '@apollo/client';
-import { DeleteWorkspace_WorkspaceFragmentDoc } from '../features/DeleteWorkspaceDialog/DeleteWorkspaceDialog.generated';
+import { ArchiveWorkspace_WorkspaceFragmentDoc } from '../features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated';
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
 import { UpdateWorkspaceDescription_WorkspaceFragmentDoc } from '../features/UpdateDescriptionDialog/UpdateDescriptionDialog.generated';
 import { WorkspaceLayout_WorkspaceFragmentDoc } from '../layouts/WorkspaceLayout/WorkspaceLayout.generated';
@@ -180,13 +180,13 @@ export const WorkspacePageDocument = gql`
       update
       manageMembers
     }
-    ...DeleteWorkspace_workspace
+    ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...UpdateWorkspaceDescription_workspace
     ...WorkspaceLayout_workspace
   }
 }
-    ${DeleteWorkspace_WorkspaceFragmentDoc}
+    ${ArchiveWorkspace_WorkspaceFragmentDoc}
 ${InviteMemberWorkspace_WorkspaceFragmentDoc}
 ${UpdateWorkspaceDescription_WorkspaceFragmentDoc}
 ${WorkspaceLayout_WorkspaceFragmentDoc}`;

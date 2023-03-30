@@ -19,12 +19,12 @@ import TextProperty from "core/components/DataCard/TextProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useState } from "react";
-import DeleteWorkspaceDialog from "workspaces/features/DeleteWorkspaceDialog";
 import InviteMemberDialog from "workspaces/features/InviteMemberDialog";
 import WorkspaceMembers from "workspaces/features/WorkspaceMembers";
 import CountryProperty from "core/components/DataCard/CountryProperty";
 import { ensureArray } from "core/helpers/array";
 import GenerateWorkspaceDatabasePasswordDialog from "workspaces/features/GenerateDatabasePasswordDialog";
+import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 
 type Props = {
   page: number;
@@ -39,7 +39,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   });
 
   const [mutate] = useUpdateWorkspaceMutation();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
   const [isNewMemberDialogOpen, setIsNewMemberDialogOpen] = useState(false);
   const [isGeneratePwdDialogOpen, setIsGeneratePwdDialogOpen] = useState(false);
 
@@ -83,10 +83,10 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
             <Button
               size="sm"
               className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
-              onClick={() => setIsDeleteDialogOpen(true)}
+              onClick={() => setIsArchiveDialogOpen(true)}
               leadingIcon={<TrashIcon className="w-4" />}
             >
-              {t("Delete")}
+              {t("Archive")}
             </Button>
           )}
         </WorkspaceLayout.Header>
@@ -159,11 +159,11 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               </Tabs.Tab>
             </Tabs>
           </div>
-          <DeleteWorkspaceDialog
+          <ArchiveWorkspaceDialog
             workspace={workspace}
-            open={isDeleteDialogOpen}
+            open={isArchiveDialogOpen}
             onClose={() => {
-              setIsDeleteDialogOpen(false);
+              setIsArchiveDialogOpen(false);
             }}
           />
           <InviteMemberDialog

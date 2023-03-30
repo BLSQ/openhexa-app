@@ -4,15 +4,16 @@ import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import router from "next/router";
 import {
+  ArchiveWorkspaceDocument,
   DeleteWorkspaceDocument,
-  useDeleteWorkspaceMutation,
+  useArchiveWorkspaceMutation,
 } from "workspaces/graphql/mutations.generated";
-import DeleteWorkspaceDialog from "./DeleteWorkspaceDialog";
+import ArchiveWorkspaceDialog from "./ArchiveWorkspaceDialog";
 
 jest.mock("workspaces/graphql/mutations.generated", () => ({
   ...jest.requireActual("workspaces/graphql/mutations.generated"),
   __esModule: true,
-  useDeleteWorkspaceMutation: jest.fn().mockReturnValue([]),
+  useArchiveWorkspaceMutation: jest.fn().mockReturnValue([]),
 }));
 
 const WORKSPACE = {
@@ -20,17 +21,18 @@ const WORKSPACE = {
   slug: "SLUG",
   name: faker.commerce.productName(),
 };
-const useDeleteWorkspaceMutationMock = useDeleteWorkspaceMutation as jest.Mock;
+const useArchiveWorkspaceMutationMock =
+  useArchiveWorkspaceMutation as jest.Mock;
 
-describe("DeleteWorkspaceDialog", () => {
+describe("ArchiveWorkspaceDialog", () => {
   const onClose = jest.fn();
   beforeEach(() => {
-    useDeleteWorkspaceMutationMock.mockClear();
+    useArchiveWorkspaceMutationMock.mockClear();
   });
 
   it("is not displayed ", async () => {
     const { container } = render(
-      <DeleteWorkspaceDialog
+      <ArchiveWorkspaceDialog
         open={false}
         workspace={WORKSPACE}
         onClose={() => {}}
@@ -45,7 +47,7 @@ describe("DeleteWorkspaceDialog", () => {
   it("is displayed when open is true", async () => {
     const { container } = render(
       <TestApp mocks={[]}>
-        <DeleteWorkspaceDialog
+        <ArchiveWorkspaceDialog
           open={true}
           workspace={WORKSPACE}
           onClose={() => {}}
@@ -59,20 +61,20 @@ describe("DeleteWorkspaceDialog", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("Deletes a workspace ", async () => {
+  it("Archives a workspace ", async () => {
     const pushSpy = jest.spyOn(router, "push");
-    const { useDeleteWorkspaceMutation } = jest.requireActual(
+    const { useArchiveWorkspaceMutation } = jest.requireActual(
       "workspaces/graphql/mutations.generated"
     );
-    useDeleteWorkspaceMutationMock.mockImplementation(
-      useDeleteWorkspaceMutation
+    useArchiveWorkspaceMutationMock.mockImplementation(
+      useArchiveWorkspaceMutation
     );
 
     const user = userEvent.setup();
     const mocks = [
       {
         request: {
-          query: DeleteWorkspaceDocument,
+          query: ArchiveWorkspaceDocument,
           variables: {
             input: {
               slug: WORKSPACE.slug,
@@ -81,7 +83,7 @@ describe("DeleteWorkspaceDialog", () => {
         },
         result: {
           data: {
-            deleteWorkspace: {
+            archiveWorkspace: {
               success: true,
               errors: [],
             },
@@ -91,17 +93,17 @@ describe("DeleteWorkspaceDialog", () => {
     ];
     render(
       <TestApp mocks={mocks}>
-        <DeleteWorkspaceDialog
+        <ArchiveWorkspaceDialog
           open={true}
           workspace={WORKSPACE}
           onClose={() => {}}
         />
       </TestApp>
     );
-    expect(useDeleteWorkspaceMutationMock).toHaveBeenCalled();
+    expect(useArchiveWorkspaceMutationMock).toHaveBeenCalled();
 
-    const deleteButton = screen.getByRole("button", { name: "Delete" });
-    await user.click(deleteButton);
+    const archiveButton = screen.getByRole("button", { name: "Archive" });
+    await user.click(archiveButton);
     waitFor(() => {
       expect(pushSpy).toHaveBeenCalledWith("/");
     });

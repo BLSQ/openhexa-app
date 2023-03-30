@@ -362,6 +362,21 @@ export type ApproveAccessmodAccessRequestResult = {
   success: Scalars['Boolean'];
 };
 
+export enum ArchiveWorkspaceError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type ArchiveWorkspaceInput = {
+  slug: Scalars['String'];
+};
+
+export type ArchiveWorkspaceResult = {
+  __typename?: 'ArchiveWorkspaceResult';
+  errors: Array<ArchiveWorkspaceError>;
+  success: Scalars['Boolean'];
+};
+
 export type Avatar = {
   __typename?: 'Avatar';
   color: Scalars['String'];
@@ -1413,6 +1428,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addPipelineOutput: AddPipelineOutputResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
+  archiveWorkspace: ArchiveWorkspaceResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
   createAccessmodFileset: CreateAccessmodFilesetResult;
@@ -1491,6 +1507,11 @@ export type MutationAddPipelineOutputArgs = {
 
 export type MutationApproveAccessmodAccessRequestArgs = {
   input: ApproveAccessmodAccessRequestInput;
+};
+
+
+export type MutationArchiveWorkspaceArgs = {
+  input: ArchiveWorkspaceInput;
 };
 
 

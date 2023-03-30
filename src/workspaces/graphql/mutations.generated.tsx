@@ -24,6 +24,13 @@ export type DeleteWorkspaceMutationVariables = Types.Exact<{
 
 export type DeleteWorkspaceMutation = { __typename?: 'Mutation', deleteWorkspace: { __typename?: 'DeleteWorkspaceResult', success: boolean, errors: Array<Types.DeleteWorkspaceError> } };
 
+export type ArchiveWorkspaceMutationVariables = Types.Exact<{
+  input: Types.ArchiveWorkspaceInput;
+}>;
+
+
+export type ArchiveWorkspaceMutation = { __typename?: 'Mutation', archiveWorkspace: { __typename?: 'ArchiveWorkspaceResult', success: boolean, errors: Array<Types.ArchiveWorkspaceError> } };
+
 export type InviteWorkspaceMemberMutationVariables = Types.Exact<{
   input: Types.InviteWorkspaceMemberInput;
 }>;
@@ -196,6 +203,40 @@ export function useDeleteWorkspaceMutation(baseOptions?: Apollo.MutationHookOpti
 export type DeleteWorkspaceMutationHookResult = ReturnType<typeof useDeleteWorkspaceMutation>;
 export type DeleteWorkspaceMutationResult = Apollo.MutationResult<DeleteWorkspaceMutation>;
 export type DeleteWorkspaceMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>;
+export const ArchiveWorkspaceDocument = gql`
+    mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+  archiveWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+    `;
+export type ArchiveWorkspaceMutationFn = Apollo.MutationFunction<ArchiveWorkspaceMutation, ArchiveWorkspaceMutationVariables>;
+
+/**
+ * __useArchiveWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useArchiveWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useArchiveWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [archiveWorkspaceMutation, { data, loading, error }] = useArchiveWorkspaceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useArchiveWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<ArchiveWorkspaceMutation, ArchiveWorkspaceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ArchiveWorkspaceMutation, ArchiveWorkspaceMutationVariables>(ArchiveWorkspaceDocument, options);
+      }
+export type ArchiveWorkspaceMutationHookResult = ReturnType<typeof useArchiveWorkspaceMutation>;
+export type ArchiveWorkspaceMutationResult = Apollo.MutationResult<ArchiveWorkspaceMutation>;
+export type ArchiveWorkspaceMutationOptions = Apollo.BaseMutationOptions<ArchiveWorkspaceMutation, ArchiveWorkspaceMutationVariables>;
 export const InviteWorkspaceMemberDocument = gql`
     mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
   inviteWorkspaceMember(input: $input) {

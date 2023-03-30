@@ -27,7 +27,7 @@ query WorkspacePage($slug: String!) {
       update
       manageMembers
     }
-    ...DeleteWorkspace_workspace
+    ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...UpdateWorkspaceDescription_workspace
     ...WorkspaceLayout_workspace

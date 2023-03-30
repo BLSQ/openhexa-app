@@ -39,6 +39,13 @@ mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
   }
 }
 
+mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+  archiveWorkspace(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
   inviteWorkspaceMember(input: $input) {
     success

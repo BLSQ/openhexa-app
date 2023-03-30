@@ -328,6 +328,20 @@ type ApproveAccessmodAccessRequestResult {
   errors: [ApproveAccessmodAccessRequestError!]!
 }
 
+enum ArchiveWorkspaceError {
+  PERMISSION_DENIED
+  NOT_FOUND
+}
+
+input ArchiveWorkspaceInput {
+  slug: String!
+}
+
+type ArchiveWorkspaceResult {
+  success: Boolean!
+  errors: [ArchiveWorkspaceError!]!
+}
+
 type Avatar {
   initials: String!
   color: String!
@@ -1331,6 +1345,7 @@ type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult!
+  archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
