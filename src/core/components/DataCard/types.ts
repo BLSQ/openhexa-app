@@ -1,7 +1,9 @@
 import { FormInstance } from "core/hooks/useForm";
 import { ValueAccessor } from "core/hooks/useItemContext";
 
-export type PropertyFlag = boolean | ((value: any) => boolean);
+export type PropertyFlag =
+  | boolean
+  | ((value: any, isEditing: boolean) => boolean);
 
 export type PropertyDefinition = {
   id: string;

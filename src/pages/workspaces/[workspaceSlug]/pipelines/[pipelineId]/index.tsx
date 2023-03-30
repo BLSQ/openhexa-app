@@ -121,6 +121,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 accessor={"description"}
                 label={t("Description")}
                 defaultValue="-"
+                visible={(value, isEditing) => isEditing || value}
                 hideLabel
                 markdown
               />

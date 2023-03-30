@@ -42,9 +42,13 @@ type FormSectionProps = {
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
   Omit<React.ComponentProps<typeof BlockSection>, "title" | "children">;
 
-const getPropertyFlag = (displayValue: any, flag?: PropertyFlag) => {
+const getPropertyFlag = (
+  flag: PropertyFlag | undefined,
+  displayValue: any,
+  isEdited: boolean = false
+) => {
   if (typeof flag === "function") {
-    return flag(displayValue);
+    return flag(displayValue, isEdited);
   }
   return flag;
 };
@@ -52,7 +56,8 @@ const getPropertyFlag = (displayValue: any, flag?: PropertyFlag) => {
 function getProperty<F>(
   definition: PropertyDefinition,
   item: ItemInstance,
-  form: FormInstance<F>
+  form: FormInstance<F>,
+  isEdited: boolean
 ) {
   const displayValue = getValue(item, definition.accessor);
   const prop: Property = {
@@ -66,9 +71,12 @@ function getProperty<F>(
     label: definition.label,
     help: definition.help,
     hideLabel: definition.hideLabel ?? false,
-    readonly: getPropertyFlag(displayValue, definition.readonly) ?? false,
-    required: getPropertyFlag(displayValue, definition.required) ?? false,
-    visible: getPropertyFlag(displayValue, definition.visible) ?? true,
+    readonly:
+      getPropertyFlag(definition.readonly, displayValue, isEdited) ?? false,
+    required:
+      getPropertyFlag(definition.required, displayValue, isEdited) ?? false,
+    visible:
+      getPropertyFlag(definition.visible, displayValue, isEdited) ?? true,
   };
   return prop;
 }
@@ -140,10 +148,10 @@ function FormSection<F extends { [key: string]: any }>(
     properties.current = definitions.current.reduce<{
       [key: string]: Property;
     }>((acc, def) => {
-      acc[def.id] = getProperty<F>(def, item, form);
+      acc[def.id] = getProperty<F>(def, item, form, isEdited);
       return acc;
     }, {});
-  }, [definitions, item, form]);
+  }, [definitions, item, form, isEdited]);
 
   const section = {
     item,
@@ -160,7 +168,7 @@ function FormSection<F extends { [key: string]: any }>(
           .filter((d) => d.id !== definition.id)
           .concat(definition);
       }
-      return getProperty(definition, item, form);
+      return getProperty(definition, item, form, isEdited);
     },
   };
 

@@ -17,6 +17,10 @@ const TextProperty = (props: TextPropertyProps) => {
 
   const { property, section } = useDataCardProperty(delegated);
 
+  if (!property.visible) {
+    return null;
+  }
+
   if (section.isEdited && !property.readonly) {
     return (
       <DataCard.Property property={property}>
