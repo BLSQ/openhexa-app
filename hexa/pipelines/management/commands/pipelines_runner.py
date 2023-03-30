@@ -203,8 +203,6 @@ def run_pipeline_docker(run: PipelineRun, env_var: dict):
     docker_cmd = f'docker run --privileged -e HEXA_PIPELINE_NAME={env_var["HEXA_PIPELINE_NAME"]} -e HEXA_PIPELINE_TOKEN={env_var["HEXA_PIPELINE_TOKEN"]} -e HEXA_CREDENTIALS_URL={env_var["HEXA_CREDENTIALS_URL"]} -e HEXA_PIPELINERUN_URL={env_var["HEXA_PIPELINERUN_URL"]} -e HEXA_PIPELINERUN_TOKEN={env_var["HEXA_PIPELINERUN_TOKEN"]} --network openhexa --platform linux/amd64 --rm openhexa-pipelines-v2 cloudrun {run.pipeline_version.entrypoint}'
     cmd = docker_cmd.split(" ") + arglist
 
-    print(" ".join(cmd))
-
     proc = Popen(cmd, stdout=PIPE, stderr=STDOUT, close_fds=True)
     while True:
         run.refresh_from_db()

@@ -11,7 +11,8 @@ from hexa.pipelines.models import (
 
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "code", "workspace")
+    list_filter = ("workspace",)
 
 
 @admin.register(PipelineRun)
@@ -22,7 +23,10 @@ class PipelineRunAdmin(admin.ModelAdmin):
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
-    list_display = ("display_name",)
+    list_display = (
+        "display_name",
+        "pipeline",
+    )
 
 
 @admin.register(Index)

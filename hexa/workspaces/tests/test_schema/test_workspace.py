@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.core import mail
+from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
@@ -450,9 +451,6 @@ class WorkspaceTest(GraphQLTestCase):
             f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
         )
-        print(
-            mail.outbox[0].body, f"{settings.BASE_URL}/workspaces/{self.WORKSPACE.slug}"
-        )
         self.assertTrue(
             f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}"
             in mail.outbox[0].body
@@ -761,4 +759,59 @@ class WorkspaceTest(GraphQLTestCase):
                 },
             },
             r["data"]["updateWorkspaceMember"],
+        )
+
+    def test_generate_workspace_token_non_authorized(self):
+        # Test with a non authorized user
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+            generateWorkspaceToken(input: $input) {
+                success
+                errors
+                token
+            }
+        }
+        """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE_2.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+        self.client.force_login(self.USER_JULIA)
+        r = self.run_query(
+            """
+        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+            generateWorkspaceToken(input: $input) {
+                success
+                errors
+                token
+            }
+        }
+        """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE_2.slug,
+                }
+            },
+        )
+
+        token = WorkspaceMembership.objects.get(
+            user=self.USER_JULIA, workspace=self.WORKSPACE_2
+        ).access_token
+        access_token = Signer().sign_object(str(token))
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "token": access_token,
+            },
+            r["data"]["generateWorkspaceToken"],
         )

@@ -168,6 +168,21 @@ input ArchiveWorkspaceInput {
   slug: String!
 }
 
+input GenerateWorkspaceTokenInput {
+  slug: String!
+}
+
+type GenerateWorkspaceTokenResult {
+  success: Boolean!
+  token: String
+  errors: [GenerateWorkspaceTokenError!]!
+}
+
+enum GenerateWorkspaceTokenError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
@@ -176,6 +191,7 @@ extend type Mutation {
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
+  generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
 }
 
 ### Connections

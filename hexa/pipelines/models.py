@@ -137,8 +137,8 @@ class Pipeline(models.Model):
         constraints = [
             models.UniqueConstraint(
                 "workspace_id",
-                "name",
-                name="unique_pipeline_name_per_workspace",
+                "code",
+                name="unique_pipeline_code_per_workspace",
             )
         ]
 
@@ -146,7 +146,8 @@ class Pipeline(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    name = models.CharField(max_length=200, default="")
+    name = models.CharField(max_length=200, null=True, blank=True)
+    code = models.CharField(max_length=200, default="")
     description = models.TextField(blank=True)
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)

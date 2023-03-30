@@ -56,48 +56,31 @@ class PipelinesV2Test(GraphQLTestCase):
 
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
-            f"""
-              mutation {{
-                  createPipeline(input: {{
-                      name: "MonBeauPipeline",
-                      workspaceSlug: "{self.WS1.slug}"
-                  }})
-                  {{
-                      success
-                      errors
-                      pipeline {{
-                          id
-                      }}
-                  }}
-              }}
             """
+                mutation createPipeline($input: CreatePipelineInput!) {
+                    createPipeline(input: $input) {
+                        success errors pipeline {name code}
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "code": "new_pipeline",
+                    "name": "MonBeauPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                }
+            },
         )
-        self.assertEqual(True, r["data"]["createPipeline"]["success"])
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {"name": "MonBeauPipeline", "code": "new_pipeline"},
+            },
+            r["data"]["createPipeline"],
+        )
         self.assertEqual(1, len(Pipeline.objects.all()))
-
-        self.client.force_login(self.USER_NOOB)
-        r = self.run_query(
-            f"""
-              mutation {{
-                  createPipeline(input: {{
-                      name: "UnBienJoliTuyau"
-                      workspaceSlug: "{self.WS2.slug}"
-                  }})
-                  {{
-                      success
-                      errors
-                      pipeline {{
-                          id
-                      }}
-                  }}
-              }}
-            """
-        )
-        self.assertEqual(True, r["data"]["createPipeline"]["success"])
-        self.assertEqual(2, len(Pipeline.objects.all()))
-
-        self.assertEqual(2, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
-        self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_NOOB)))
+        self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
 
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
@@ -109,67 +92,83 @@ class PipelinesV2Test(GraphQLTestCase):
               query {
                   pipelines {
                     items {
-                      name
+                      code
                       workspace { name slug }
                     }
                   }
               }
             """
         )
-        self.assertEqual(2, len(r["data"]["pipelines"]["items"]))
+        self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
 
         r = self.run_query(
-            f"""
-              query {{
-                  pipelines(workspaceSlug: "{self.WS1.slug}") {{
-                    items {{
-                      name
-                      workspace {{ name }}
-                    }}
-                  }}
-              }}
             """
+            query ($workspaceSlug: String!) {
+                pipelines (workspaceSlug: $workspaceSlug) {
+                    items {
+                        code
+                        workspace {
+                            name
+                        }
+                    }
+                }
+            }""",
+            {"workspaceSlug": self.WS1.slug},
         )
         self.assertEqual(1, len(r["data"]["pipelines"]["items"]))
         self.assertEqual(
-            {"name": "MonBeauPipeline", "workspace": {"name": "WS1"}},
+            {"code": "new_pipeline", "workspace": {"name": "WS1"}},
             r["data"]["pipelines"]["items"][0],
         )
 
     def test_create_pipeline_version(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
-        self.assertEqual(2, len(Pipeline.objects.all()))
+        self.assertEqual(1, len(Pipeline.objects.all()))
 
-        name1 = Pipeline.objects.filter_for_user(user=self.USER_NOOB).first().name
-        self.client.force_login(self.USER_NOOB)
+        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        self.client.force_login(self.USER_ROOT)
 
         r = self.run_query(
-            f"""
-            mutation {{
-              uploadPipeline(
-                input: {{
-                    name: "{name1}",
-                    entrypoint: "pm",
-                    parameters: {{}},
-                    zipfile: ""
-                }}
-              )
-              {{ success errors version }}
-            }}
             """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    version
+                }
+            }""",
+            {
+                "input": {
+                    "code": code1,
+                    "workspaceSlug": self.WS1.slug,
+                    "entrypoint": "pm",
+                    "parameters": {},
+                    "zipfile": "",
+                }
+            },
         )
-        self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
+        self.assertEqual(
+            {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+        )
 
     def test_delete_pipeline(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
-        self.assertEqual(2, len(Pipeline.objects.all()))
+        self.assertEqual(1, len(Pipeline.objects.all()))
 
         id1 = Pipeline.objects.filter(workspace=self.WS1).first().id
         self.client.force_login(self.USER_NOOB)
         r = self.run_query(
-            f'mutation {{ deletePipeline(input: {{ id: "{id1}" }}) {{ success errors }} }}'
+            """
+                mutation deletePipeline($input: DeletePipelineInput!) {
+                    deletePipeline(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"id": str(id1)}},
         )
 
         self.assertEqual(False, r["data"]["deletePipeline"]["success"])
@@ -177,38 +176,38 @@ class PipelinesV2Test(GraphQLTestCase):
 
         self.client.force_login(self.USER_ROOT)
         r = self.run_query(
-            f'mutation {{ deletePipeline(input: {{ id: "{id1}" }}) {{ success errors }} }}'
+            """
+                mutation deletePipeline($input: DeletePipelineInput!) {
+                    deletePipeline(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"id": str(id1)}},
         )
         self.assertEqual(True, r["data"]["deletePipeline"]["success"])
-        self.assertEqual(1, len(Pipeline.objects.all()))
+        self.assertEqual(0, len(Pipeline.objects.all()))
 
     def test_pipeline_new_run(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline_version()
-        self.assertEqual(2, len(Pipeline.objects.all()))
+        self.assertEqual(1, len(Pipeline.objects.all()))
 
-        id1 = Pipeline.objects.filter_for_user(user=self.USER_NOOB).first().id
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
 
-        self.client.force_login(self.USER_NOOB)
+        self.client.force_login(self.USER_ROOT)
         r = self.run_query(
-            f"""
-              mutation {{
-                runPipeline(
-                  input: {{
-                    id: "{id1}" ,
-                    config: "--cool-option"
-                  }}
-                )
-                {{
-                  success
-                  errors
-                  run {{
-                    id
-                    status
-                  }}
-                }}
-              }}
             """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {id status}
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": {}}},
         )
         self.assertEqual(True, r["data"]["runPipeline"]["success"])
         self.assertEqual(
@@ -216,6 +215,49 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
 
-        id = r["data"]["runPipeline"]["run"]["id"]
-        run = PipelineRun.objects.get(id=id)
-        self.assertEqual("--cool-option", run.config)
+    def test_pipeline_by_code(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    name
+                }
+            }
+        """,
+            {
+                "code": "new_pipeline",
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(
+            {"id": str(pipeline.id), "code": "new_pipeline", "name": "MonBeauPipeline"},
+            r["data"]["pipelineByCode"],
+        )
+
+        self.client.force_login(self.USER_NOOB)
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    name
+                }
+            }
+        """,
+            {
+                "code": "new_pipeline",
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(
+            None,
+            r["data"]["pipelineByCode"],
+        )

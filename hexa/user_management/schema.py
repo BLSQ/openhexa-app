@@ -60,7 +60,9 @@ class LoginRequiredDirective(SchemaDirectiveVisitor):
                 raise AuthenticationError
 
             if not withoutTwoFactor and (
-                has_configured_two_factor(principal) and not principal.is_verified()
+                not getattr(request, "bypass_two_factor", False)
+                and has_configured_two_factor(principal)
+                and not principal.is_verified()
             ):
                 raise AuthenticationError
 

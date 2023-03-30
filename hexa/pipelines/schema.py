@@ -169,14 +169,18 @@ def resolve_pipelines(_, info, **kwargs):
 def resolve_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        if kwargs.get("id", None):
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                id=kwargs.get("id")
-            )
-        else:
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                name=kwargs.get("name", "")
-            )
+        return Pipeline.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Pipeline.DoesNotExist:
+        return None
+
+
+@pipelines_query.field("pipelineByCode")
+def resolve_pipeline_by_code(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            workspace__slug=kwargs["workspaceSlug"], code=kwargs["code"]
+        )
     except Pipeline.DoesNotExist:
         pipeline = None
 
@@ -230,6 +234,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
     try:
         pipeline = Pipeline.objects.create(
+            code=input["code"],
             name=input.get("name"),
             workspace=workspace,
         )
@@ -323,23 +328,26 @@ def resolve_run_pipeline(_, info, **kwargs):
 def resolve_pipelineToken(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    qs = Pipeline.objects.filter_for_user(request.user).filter(name=input.get("name"))
-    if len(list(qs)) != 1:
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            code=input.get("pipelineCode"), workspace__slug=input.get("workspaceSlug")
+        )
+        return {"success": True, "errors": [], "token": pipeline.get_token()}
+    except Pipeline.DoesNotExist:
         return {
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
-
-    return {"success": True, "errors": [], "token": qs.first().get_token()}
 
 
 @pipelines_mutations.field("uploadPipeline")
 def resolve_upload_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
+
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            name=input.get("name")
+            code=input["code"], workspace__slug=input["workspaceSlug"]
         )
     except Pipeline.DoesNotExist:
         return {

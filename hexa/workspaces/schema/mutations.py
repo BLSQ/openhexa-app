@@ -1,5 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.signing import Signer
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -8,7 +9,13 @@ from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import User
 
-from ..models import AlreadyExists, Connection, Workspace, WorkspaceMembership
+from ..models import (
+    AlreadyExists,
+    Connection,
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 workspace_mutations = MutationType()
 
@@ -265,3 +272,25 @@ def resolve_delete_workspace_connection(_, info, **kwargs):
 bindables = [
     workspace_mutations,
 ]
+
+
+@workspace_mutations.field("generateWorkspaceToken")
+def resolve_generate_workspace_token(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        membership = WorkspaceMembership.objects.get(
+            workspace__slug=mutation_input["slug"], user=request.user
+        )
+    except WorkspaceMembership.DoesNotExist:
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+
+    if membership.role == WorkspaceMembershipRole.VIEWER:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    if not membership.access_token:
+        membership.generate_access_token()
+
+    token = Signer().sign_object(str(membership.access_token))
+    return {"success": True, "errors": [], "token": token}
