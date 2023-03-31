@@ -325,6 +325,13 @@ class Connection(models.Model):
 
     class Meta:
         ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "workspace",
+                "slug",
+                name="connection_unique_workspace_connection_slug",
+            )
+        ]
 
     def set_fields(self, user: User, fields: typing.List[dict]):
         fields_map = {str(f.code): f for f in self.fields.all()}
