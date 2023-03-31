@@ -396,8 +396,7 @@ class ConnectionField(models.Model):
         unique_together = [["connection", "code"]]
 
 
-DEFAULT_WORKSPACE_DESCRIPTION = """
-# {workspace_name}
+DEFAULT_WORKSPACE_DESCRIPTION = """# {workspace_name}
 
 Welcome to your new workspace "{workspace_name}"!
 
@@ -421,5 +420,4 @@ Now that your workspace has been created, you can (depending on your privileges)
 - Browse the [workspace database](/workspaces/{workspace_slug}/databases)
 - Create and run code [notebooks](/workspaces/{workspace_slug}/notebooks)
 - Monitor and launch [data pipelines](/workspaces/{workspace_slug}/pipelines)
-- Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)
-"""
+- Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)"""
