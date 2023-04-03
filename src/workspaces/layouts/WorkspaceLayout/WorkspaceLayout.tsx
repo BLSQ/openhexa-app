@@ -1,7 +1,8 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
 import { CustomApolloClient } from "core/helpers/apollo";
-import type { ReactElement } from "react";
+import useLocalStorage from "core/hooks/useLocalStorage";
+import { ReactElement, useEffect } from "react";
 import Header from "./Header";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
@@ -15,6 +16,13 @@ type WorkspaceLayoutProps = {
 
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const { children, className, workspace } = props;
+
+  const [lastWorkspace, setLastWorkspace] = useLocalStorage(
+    "last-visited-workspace"
+  );
+  useEffect(() => {
+    setLastWorkspace(workspace.slug);
+  }, [workspace.slug, setLastWorkspace]);
 
   return (
     <>

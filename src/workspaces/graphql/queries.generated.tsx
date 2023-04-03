@@ -21,13 +21,10 @@ import { ConnectionUsageSnippets_ConnectionFragmentDoc } from '../features/Conne
 import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type WorkspacesPageQueryVariables = Types.Exact<{
-  page?: Types.InputMaybe<Types.Scalars['Int']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
-}>;
+export type WorkspacesPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type WorkspacesPageQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string, flag: string }> }> } };
+export type WorkspacesPageQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', items: Array<{ __typename?: 'Workspace', slug: string }> } };
 
 export type WorkspacePageQueryVariables = Types.Exact<{
   slug: Types.Scalars['String'];
@@ -119,18 +116,19 @@ export type ConnectionPageQueryVariables = Types.Exact<{
 
 export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
 
+export type CheckWorkspaceAvailabilityQueryVariables = Types.Exact<{
+  slug: Types.Scalars['String'];
+}>;
+
+
+export type CheckWorkspaceAvailabilityQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string } | null };
+
 
 export const WorkspacesPageDocument = gql`
-    query WorkspacesPage($page: Int, $perPage: Int) {
-  workspaces(page: $page, perPage: $perPage) {
-    totalItems
+    query WorkspacesPage {
+  workspaces(page: 1, perPage: 1) {
     items {
       slug
-      name
-      countries {
-        code
-        flag
-      }
     }
   }
 }
@@ -148,8 +146,6 @@ export const WorkspacesPageDocument = gql`
  * @example
  * const { data, loading, error } = useWorkspacesPageQuery({
  *   variables: {
- *      page: // value for 'page'
- *      perPage: // value for 'perPage'
  *   },
  * });
  */
@@ -755,3 +751,38 @@ export function useConnectionPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type ConnectionPageQueryHookResult = ReturnType<typeof useConnectionPageQuery>;
 export type ConnectionPageLazyQueryHookResult = ReturnType<typeof useConnectionPageLazyQuery>;
 export type ConnectionPageQueryResult = Apollo.QueryResult<ConnectionPageQuery, ConnectionPageQueryVariables>;
+export const CheckWorkspaceAvailabilityDocument = gql`
+    query CheckWorkspaceAvailability($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+  }
+}
+    `;
+
+/**
+ * __useCheckWorkspaceAvailabilityQuery__
+ *
+ * To run a query within a React component, call `useCheckWorkspaceAvailabilityQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCheckWorkspaceAvailabilityQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCheckWorkspaceAvailabilityQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *   },
+ * });
+ */
+export function useCheckWorkspaceAvailabilityQuery(baseOptions: Apollo.QueryHookOptions<CheckWorkspaceAvailabilityQuery, CheckWorkspaceAvailabilityQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CheckWorkspaceAvailabilityQuery, CheckWorkspaceAvailabilityQueryVariables>(CheckWorkspaceAvailabilityDocument, options);
+      }
+export function useCheckWorkspaceAvailabilityLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CheckWorkspaceAvailabilityQuery, CheckWorkspaceAvailabilityQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CheckWorkspaceAvailabilityQuery, CheckWorkspaceAvailabilityQueryVariables>(CheckWorkspaceAvailabilityDocument, options);
+        }
+export type CheckWorkspaceAvailabilityQueryHookResult = ReturnType<typeof useCheckWorkspaceAvailabilityQuery>;
+export type CheckWorkspaceAvailabilityLazyQueryHookResult = ReturnType<typeof useCheckWorkspaceAvailabilityLazyQuery>;
+export type CheckWorkspaceAvailabilityQueryResult = Apollo.QueryResult<CheckWorkspaceAvailabilityQuery, CheckWorkspaceAvailabilityQueryVariables>;

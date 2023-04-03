@@ -1,13 +1,7 @@
-query WorkspacesPage($page: Int, $perPage: Int) {
-  workspaces(page: $page, perPage: $perPage) {
-    totalItems
+query WorkspacesPage {
+  workspaces(page: 1, perPage: 1) {
     items {
       slug
-      name
-      countries {
-        code
-        flag
-      }
     }
   }
 }
@@ -268,5 +262,11 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
     }
     ...ConnectionUsageSnippets_connection
     ...ConnectionFieldsSection_connection
+  }
+}
+
+query CheckWorkspaceAvailability($slug: String!) {
+  workspace(slug: $slug) {
+    slug
   }
 }

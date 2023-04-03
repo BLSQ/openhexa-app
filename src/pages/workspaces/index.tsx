@@ -1,23 +1,57 @@
+import { useQuery } from "@apollo/client";
 import Alert from "core/components/Alert";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
+import useLocalStorage from "core/hooks/useLocalStorage";
 import useMe from "identity/hooks/useMe";
+import { noop } from "lodash";
 import { useRouter } from "next/router";
-import { ReactElement } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import {
+  useCheckWorkspaceAvailabilityLazyQuery,
   WorkspacesPageDocument,
   WorkspacesPageQuery,
+  WorkspacesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 
-const WorkspacesHome = () => {
+type WorkspacesHomeProps = {
+  workspaceSlug: string | null;
+};
+
+const WorkspacesHome = (props: WorkspacesHomeProps) => {
   const { t } = useTranslation();
   const me = useMe();
   const router = useRouter();
-  const handleClose = () => {};
+  const [check] = useCheckWorkspaceAvailabilityLazyQuery();
 
-  if (!me.permissions.createWorkspace) {
+  const [lastWorkspace, setLastWorkspace] = useLocalStorage(
+    "last-visited-workspace"
+  );
+  const [isChecking, setChecking] = useState(true);
+
+  useEffect(() => {
+    if (!isChecking) return;
+
+    check({ variables: { slug: lastWorkspace } }).then((res) => {
+      if (res.data?.workspace) {
+        // We have a workspace matching the last visited one, redirect to it
+        router.replace(`/workspaces/${res.data.workspace.slug}`);
+      } else if (props.workspaceSlug) {
+        // We don't have a workspace matching the last visited one, but we have
+        // a workspace to redirect to, so we do it
+        setLastWorkspace(null);
+        router.push(`/workspaces/${props.workspaceSlug}`);
+      } else {
+        // Let's propose the user to create a new workspace
+        setChecking(false);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!isChecking && !me.permissions.createWorkspace) {
     return (
       <Alert onClose={() => router.push("/")} icon="warning">
         {t("No workspace available at the moment")}
@@ -26,8 +60,8 @@ const WorkspacesHome = () => {
   }
 
   return (
-    <Page title={t("New workspace")}>
-      <CreateWorkspaceDialog open onClose={handleClose} />
+    <Page title={isChecking ? "" : t("New workspace")}>
+      {!isChecking ? <CreateWorkspaceDialog open onClose={noop} /> : null}
     </Page>
   );
 };
@@ -37,17 +71,7 @@ WorkspacesHome.getLayout = (page: ReactElement) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    const { data } = await client.query<WorkspacesPageQuery>({
-      query: WorkspacesPageDocument,
-      variables: {},
-    });
-
-    if (!data.workspaces || !data.workspaces.items.length) {
-      if (ctx.me?.features.filter((f) => f.code === "workspaces")[0]) {
-        return {
-          props: {},
-        };
-      }
+    if (!ctx.me?.features.some((f) => f.code === "workspaces")) {
       return {
         redirect: {
           permanent: false,
@@ -56,11 +80,19 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
 
-    const latestWorkspace = data.workspaces.items[0];
+    const { data } = await client.query<
+      WorkspacesPageQuery,
+      WorkspacesPageQueryVariables
+    >({
+      query: WorkspacesPageDocument,
+    });
+
     return {
-      redirect: {
-        permanent: false,
-        destination: `/workspaces/${latestWorkspace.slug}`,
+      props: {
+        workspaceSlug:
+          data.workspaces?.items.length > 0
+            ? data.workspaces.items[0]?.slug
+            : null,
       },
     };
   },
