@@ -17,9 +17,7 @@ type WorkspaceLayoutProps = {
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const { children, className, workspace } = props;
 
-  const [lastWorkspace, setLastWorkspace] = useLocalStorage(
-    "last-visited-workspace"
-  );
+  const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
   useEffect(() => {
     setLastWorkspace(workspace.slug);
   }, [workspace.slug, setLastWorkspace]);

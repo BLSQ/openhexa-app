@@ -39,5 +39,5 @@ export default function useLocalStorage<T = any>(
       console.error(error);
     }
   };
-  return [storedValue, setValue];
+  return [storedValue, setValue] as const;
 }
