@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.22.0](https://github.com/BLSQ/openhexa-frontend/compare/0.21.3...0.22.0) (2023-04-04)
+
+
+### Features
+
+* **Workspaces:** archive workspace ([#240](https://github.com/BLSQ/openhexa-frontend/issues/240)) ([440433d](https://github.com/BLSQ/openhexa-frontend/commit/440433d0ceabd1bb3667e6f07ec8012e09f92214))
+* **Workspaces:** Improve the layout of the outputs on the pipeline run page ([31881f2](https://github.com/BLSQ/openhexa-frontend/commit/31881f26ecc6b78cdda665d909e9b2a8f905489d))
+* **Workspaces:** Redirect user to latest workspace seen on this browser on /workspaces ([7bcfeb6](https://github.com/BLSQ/openhexa-frontend/commit/7bcfeb6fb5ca6e03a581e854612bdefc3c3803f9))
+
 ## [0.21.3](https://github.com/BLSQ/openhexa-frontend/compare/0.21.2...0.21.3) (2023-03-30)
 
 
