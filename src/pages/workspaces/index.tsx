@@ -32,7 +32,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
   const [isChecking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!isChecking) return;
+    if (!isChecking || typeof window === "undefined") return;
 
     check({ variables: { slug: lastWorkspace } }).then((res) => {
       if (res.data?.workspace) {
@@ -57,6 +57,9 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
         {t("No workspace available at the moment")}
       </Alert>
     );
+  }
+  if (typeof window !== "undefined") {
+    return null;
   }
 
   return (

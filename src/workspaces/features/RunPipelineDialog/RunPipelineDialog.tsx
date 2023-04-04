@@ -99,7 +99,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-        <Dialog.Content className="max-h-[450px] overflow-auto">
+        <Dialog.Content className="-mx-0.5 -mb-0.5 max-h-[450px] overflow-y-auto px-0.5 pb-0.5">
           <Field name="version" label={t("Version")} required className="mb-6">
             <PipelineVersionPicker
               required

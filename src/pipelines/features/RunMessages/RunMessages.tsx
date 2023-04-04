@@ -40,6 +40,7 @@ const RunMessages = (props: RunMessagesProps) => {
       data={run.messages}
       sortable
       totalItems={run.messages.length}
+      defaultPageSize={15}
       className="overflow-hidden rounded-md border"
     >
       <DateColumn

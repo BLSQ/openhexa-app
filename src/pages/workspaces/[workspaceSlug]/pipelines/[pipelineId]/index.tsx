@@ -117,6 +117,21 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               collapsible={false}
             >
               <TextProperty
+                id="name"
+                accessor={"name"}
+                label={t("Name")}
+                visible={(value, isEditing) => isEditing}
+              />
+              <TextProperty
+                id="code"
+                accessor={"code"}
+                label={t("Code")}
+                help={t(
+                  "This is the code used to identify this pipeline using the cli."
+                )}
+                readonly
+              />
+              <TextProperty
                 id="description"
                 accessor={"description"}
                 label={t("Description")}

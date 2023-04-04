@@ -11,6 +11,7 @@ import { PipelineVersionsDialog_PipelineFragmentDoc } from '../features/Pipeline
 import { RunPipelineDialog_PipelineFragmentDoc, RunPipelineDialog_RunFragmentDoc } from '../features/RunPipelineDialog/RunPipelineDialog.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
+import { RunOutputsTable_WorkspaceFragmentDoc, RunOutputsTable_RunFragmentDoc } from '../features/RunOutputsTable/RunOutputsTable.generated';
 import { RunMessages_RunFragmentDoc } from '../../pipelines/features/RunMessages/RunMessages.generated';
 import { RunLogs_RunFragmentDoc } from '../../pipelines/features/RunLogs/RunLogs.generated';
 import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc } from '../features/BucketExplorer/BucketExplorer.generated';
@@ -72,7 +73,7 @@ export type WorkspacePipelineRunPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipelineRun?: { __typename?: 'PipelineRun', id: string, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: Types.PipelineRunTrigger | null, logs?: string | null, status: Types.PipelineRunStatus, version: { __typename?: 'PipelineVersion', number: number, entrypoint: string, parameters: any, id: string, createdAt: any, user?: { __typename?: 'User', displayName: string } | null }, pipeline: { __typename?: 'Pipeline', id: string, name: string, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: any, user?: { __typename?: 'User', displayName: string } | null } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: any, user?: { __typename?: 'User', displayName: string } | null }> } }, outputs: Array<{ __typename?: 'PipelineRunOutput', name?: string | null, type: string, uri: string }>, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: Types.MessagePriority }> } | null };
+export type WorkspacePipelineRunPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, bucket: { __typename?: 'Bucket', name: string }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipelineRun?: { __typename?: 'PipelineRun', id: string, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: Types.PipelineRunTrigger | null, logs?: string | null, status: Types.PipelineRunStatus, version: { __typename?: 'PipelineVersion', number: number, entrypoint: string, parameters: any, id: string, createdAt: any, user?: { __typename?: 'User', displayName: string } | null }, pipeline: { __typename?: 'Pipeline', id: string, name: string, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: any, user?: { __typename?: 'User', displayName: string } | null } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: any, user?: { __typename?: 'User', displayName: string } | null }> } }, outputs: Array<{ __typename?: 'PipelineRunOutput', name?: string | null, type: string, uri: string }>, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: Types.MessagePriority }> } | null };
 
 export type WorkspaceFilesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String'];
@@ -423,6 +424,7 @@ export const WorkspacePipelineRunPageDocument = gql`
     slug
     name
     ...WorkspaceLayout_workspace
+    ...RunOutputsTable_workspace
   }
   pipelineRun(id: $runId) {
     id
@@ -448,6 +450,7 @@ export const WorkspacePipelineRunPageDocument = gql`
     user {
       ...User_user
     }
+    ...RunOutputsTable_run
     ...RunPipelineDialog_run
     ...RunMessages_run
     ...RunLogs_run
@@ -455,8 +458,10 @@ export const WorkspacePipelineRunPageDocument = gql`
   }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}
+${RunOutputsTable_WorkspaceFragmentDoc}
 ${RunPipelineDialog_PipelineFragmentDoc}
 ${User_UserFragmentDoc}
+${RunOutputsTable_RunFragmentDoc}
 ${RunPipelineDialog_RunFragmentDoc}
 ${RunMessages_RunFragmentDoc}
 ${RunLogs_RunFragmentDoc}

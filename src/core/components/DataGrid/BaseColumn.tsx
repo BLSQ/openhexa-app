@@ -14,7 +14,7 @@ export type BaseColumnProps = { [key: string]: any } & {
 };
 
 type ColumnProps<V = any> = BaseColumnProps & {
-  children: (value: V) => ReactElement;
+  children: (value: V) => ReactElement | null;
 };
 
 export function BaseColumn<V = any>({ children }: ColumnProps<V>) {

@@ -31,6 +31,7 @@ import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Button from "core/components/Button";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
+import RunOutputsTable from "workspaces/features/RunOutputsTable";
 
 type Props = {
   workspaceSlug: string;
@@ -219,16 +220,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             {isFinished && (
               <Block.Section title={"Outputs"}>
                 {run.outputs.length > 0 ? (
-                  <DescriptionList>
-                    {run.outputs.map((output, index) => (
-                      <DescriptionList.Item
-                        key={index}
-                        label={output.name ?? t("Unknown")}
-                      >
-                        {output.uri}
-                      </DescriptionList.Item>
-                    ))}
-                  </DescriptionList>
+                  <RunOutputsTable workspace={workspace} run={run} />
                 ) : (
                   <p className="text-sm italic text-gray-600">
                     {t("No outputs")}

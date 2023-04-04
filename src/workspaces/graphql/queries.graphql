@@ -120,6 +120,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: String!) {
     slug
     name
     ...WorkspaceLayout_workspace
+    ...RunOutputsTable_workspace
   }
 
   pipelineRun(id: $runId) {
@@ -146,6 +147,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: String!) {
     user {
       ...User_user
     }
+    ...RunOutputsTable_run
     ...RunPipelineDialog_run
     ...RunMessages_run
     ...RunLogs_run

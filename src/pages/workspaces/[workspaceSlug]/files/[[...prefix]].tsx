@@ -43,7 +43,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
     },
   });
   useCacheKey(["workspace", "files", prefix], () => refetch());
-
   const crumbs = useMemo(() => {
     return prefix ? prefix.split("/") : [];
   }, [prefix]);
