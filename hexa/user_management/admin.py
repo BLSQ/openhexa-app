@@ -113,6 +113,8 @@ class CustomUserAdmin(UserAdmin):
         else:
             reset_password = False
 
+        is_creating = obj.pk is None
+
         super(UserAdmin, self).save_model(request, obj, form, change)
         if reset_password:
             reset_form = PasswordResetForm({"email": obj.email})
@@ -123,6 +125,10 @@ class CustomUserAdmin(UserAdmin):
                 subject_template_name="user_management/account_creation_subject.txt",
                 email_template_name="user_management/account_creation_email.html",
             )
+        if is_creating:
+            # all new users will have the workspaces feature flag enabled by default
+            feature = Feature.objects.get(code="workspaces")
+            FeatureFlag.objects.create(feature=feature, user=obj)
 
     search_fields = ("email", "first_name", "last_name")
     ordering = None
