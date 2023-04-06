@@ -33,11 +33,16 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
 
   useEffect(() => {
     if (!isChecking || typeof window === "undefined") return;
+    const promise = lastWorkspace
+      ? check({ variables: { slug: lastWorkspace } }).then(
+          (res) => res.data?.workspace
+        )
+      : Promise.resolve(null);
 
-    check({ variables: { slug: lastWorkspace } }).then((res) => {
-      if (res.data?.workspace) {
+    promise.then((workspace) => {
+      if (workspace) {
         // We have a workspace matching the last visited one, redirect to it
-        router.replace(`/workspaces/${res.data.workspace.slug}`);
+        router.replace(`/workspaces/${workspace.slug}`);
       } else if (props.workspaceSlug) {
         // We don't have a workspace matching the last visited one, but we have
         // a workspace to redirect to, so we do it
