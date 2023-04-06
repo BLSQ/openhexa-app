@@ -5,7 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 
 from hexa.core.test import TestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Feature, User
 
 
 class ViewsTest(TestCase):
@@ -89,6 +89,7 @@ class InviteUserAdminTest(TestCase):
             is_superuser=True,
             is_staff=True,
         )
+        cls.LEGACY_FEATURE = Feature.objects.create(code="openhexa_legacy")
 
     def test_invite_user(self):
         # an admin can invite a new user via django admin pages
@@ -104,8 +105,9 @@ class InviteUserAdminTest(TestCase):
                 "password2": "",
                 "membership_set-TOTAL_FORMS": 0,
                 "membership_set-INITIAL_FORMS": 0,
-                "featureflag_set-TOTAL_FORMS": 0,
+                "featureflag_set-TOTAL_FORMS": 1,
                 "featureflag_set-INITIAL_FORMS": 0,
+                "featureflag_set-0-feature": self.LEGACY_FEATURE.id,
                 "_save": "Save",
             },
         )
