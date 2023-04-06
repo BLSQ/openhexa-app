@@ -40,8 +40,25 @@ class MembershipInline(admin.TabularInline):
     model = Membership
 
 
+class FeatureFlagFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        if not any(
+            "feature" in flag
+            and flag["feature"].code in ("workspaces", "openhexa_legacy")
+            for flag in self.cleaned_data
+        ):
+            raise forms.ValidationError(
+                "For now, Openhexa users must have at least one of the following feature flags: "
+                "openhexa_legacy (allows users to access OpenHexa v1) or workspaces (allows "
+                "users to use the workspaces version."
+            )
+
+        super().clean()
+
+
 class FeatureFlagInline(admin.TabularInline):
     model = FeatureFlag
+    formset = FeatureFlagFormSet
 
 
 @admin.register(User)
@@ -113,8 +130,6 @@ class CustomUserAdmin(UserAdmin):
         else:
             reset_password = False
 
-        is_creating = obj.pk is None
-
         super(UserAdmin, self).save_model(request, obj, form, change)
         if reset_password:
             reset_form = PasswordResetForm({"email": obj.email})
@@ -125,10 +140,6 @@ class CustomUserAdmin(UserAdmin):
                 subject_template_name="user_management/account_creation_subject.txt",
                 email_template_name="user_management/account_creation_email.html",
             )
-        if is_creating:
-            # all new users will have the workspaces feature flag enabled by default
-            feature = Feature.objects.get(code="workspaces")
-            FeatureFlag.objects.create(feature=feature, user=obj)
 
     search_fields = ("email", "first_name", "last_name")
     ordering = None
