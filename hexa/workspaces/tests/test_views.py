@@ -62,7 +62,13 @@ class ViewsTest(TestCase):
 
         cls.WORKSPACE_CONNECTION.set_fields(
             cls.USER_JULIA,
-            [{"code": "field_1", "value": "value_1", "secret": False}],
+            [
+                {"code": "host", "secret": False, "value": "127.0.0.1"},
+                {"code": "port", "secret": False, "value": "5432"},
+                {"code": "username", "secret": False, "value": "hexa-app"},
+                {"code": "password", "secret": True, "value": "hexa-app"},
+                {"code": "database", "secret": False, "value": "hexa-app"},
+            ],
         )
 
     def test_workspace_credentials_404(self):
@@ -105,7 +111,12 @@ class ViewsTest(TestCase):
         self.assertEqual(
             response_data["env"],
             {
-                "DB_FIELD_1": "value_1",
+                "DB_HOST": "127.0.0.1",
+                "DB_PORT": "5432",
+                "DB_USERNAME": "hexa-app",
+                "DB_PASSWORD": "hexa-app",
+                "DB_DATABASE": "hexa-app",
+                "DB_URL": "postgresql+psycopg2://hexa-app:hexa-app@127.0.0.1:5432/hexa-app",
                 "WORKSPACE_DATABASE_HOST": db_credentials["host"],
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
