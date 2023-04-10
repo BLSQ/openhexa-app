@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
 from hexa.files.credentials import notebooks_credentials as files_notebooks_credentials
-from hexa.workspaces.models import ConnectionType, Workspace, WorkspaceMembership
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
 @require_POST
@@ -35,13 +35,6 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     env = {}
     for connection in connections:
         env.update(connection.env_variables)
-        if connection.connection_type == ConnectionType.POSTGRESQL:
-            fields = {f.code: f.value for f in connection.fields.all()}
-            env.update(
-                {
-                    f"{connection.slug.upper()}_URL": f"postgresql+psycopg2://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['database']}"
-                }
-            )
 
     # Database credentials
     db_credentials = get_db_server_credentials()

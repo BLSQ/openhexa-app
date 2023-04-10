@@ -376,7 +376,17 @@ class Connection(models.Model):
 
     @property
     def env_variables(self):
-        return {f.env_key: f.value for f in self.fields.all()}
+        env = {f.env_key: f.value for f in self.fields.all()}
+        if self.connection_type == ConnectionType.POSTGRESQL:
+            fields = {f.code: f.value for f in self.fields.all()}
+            env.update(
+                {
+                    stringcase.constcase(
+                        f"{self.slug}_url".lower()
+                    ): f"postgresql+psycopg2://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['database']}"
+                }
+            )
+        return env
 
 
 class ConnectionField(models.Model):
