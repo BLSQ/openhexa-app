@@ -51,6 +51,31 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
         },
       };
     }
+    if (ctx.me?.user) {
+      const { features } = ctx.me;
+
+      if (
+        !features.some(
+          (f) => f.code === "openhexa_legacy" || f.code === "workspaces"
+        )
+      ) {
+        throw new Error(
+          "There is a configuration error with this account. Please contact your administrator."
+        );
+      }
+
+      if (
+        !features.some((f) => f.code === "openhexa_legacy") &&
+        !ctx.resolvedUrl.startsWith("/workspaces")
+      ) {
+        return {
+          redirect: {
+            permanent: false,
+            destination: "/workspaces",
+          },
+        };
+      }
+    }
     result.props = {
       ...result.props,
       me: ctx.me,
