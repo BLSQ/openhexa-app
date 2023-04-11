@@ -2,7 +2,6 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
-import CodeEditor from "core/components/CodeEditor";
 import DataCard from "core/components/DataCard";
 import DateProperty from "core/components/DataCard/DateProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";

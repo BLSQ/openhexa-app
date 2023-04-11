@@ -37,14 +37,14 @@ const updateFormField = (
   form.setFieldValue("fields", newFields);
 };
 
+export const slugify = (...keys: string[]) =>
+  keys.join("_").replace("-", "_").toUpperCase();
+
 export function getUsageSnippets(
   connection: Pick<Connection, "slug" | "type"> & {
     fields: { code: string }[];
   }
 ) {
-  const slugify = (...keys: string[]) =>
-    keys.join("_").replace("-", "_").toUpperCase();
-
   switch (connection.type) {
     case ConnectionType.Dhis2:
       return [

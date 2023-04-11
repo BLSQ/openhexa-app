@@ -5,20 +5,16 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import Block, { BlockSection } from "core/components/Block";
+import { BlockSection } from "core/components/Block";
 import Button from "core/components/Button";
-import DescriptionList from "core/components/DescriptionList";
-import DisableClickPropagation from "core/components/DisableClickPropagation";
-import { Table, TableBody, TableCell, TableRow } from "core/components/Table";
+import DataGrid, { BaseColumn } from "core/components/DataGrid";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
-import { useItemContext } from "core/hooks/useItemContext";
-import useToggle from "core/hooks/useToggle";
 import { ConnectionField, ConnectionType } from "graphql-types";
-import { DateTime } from "luxon";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
-import { convertFieldsToInput } from "workspaces/helpers/connection";
+import { convertFieldsToInput, slugify } from "workspaces/helpers/connection";
 import ConnectionFieldDialog from "../ConnectionFieldDialog";
 import { ConnectionFieldsSection_ConnectionFragment } from "./ConnectionFieldsSection.generated";
 
@@ -106,14 +102,26 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
           {t("There are no fields for this connection yet.")}
         </span>
       )}
-      {connection.fields.length > 0 && (
-        <DescriptionList>
-          {connection.fields.map((field) => (
-            <DescriptionList.Item
-              key={field.code}
-              label={field.code}
-              className="flex items-center gap-1"
-            >
+      <DataGrid
+        className="max-2w-lg w-3/4 rounded-md border"
+        data={connection.fields}
+        fixedLayout={true}
+        defaultPageSize={5}
+      >
+        <TextColumn className="py-3" label={t("Name")} accessor={"code"} />
+        <BaseColumn label={t("Environment variable")} accessor={"code"}>
+          {(value) => (
+            <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium text-gray-600">
+              {slugify(connection.slug, value)}
+            </code>
+          )}
+        </BaseColumn>
+        <BaseColumn
+          className="flex justify-start gap-x-2 text-gray-900"
+          label={t("Value")}
+        >
+          {(field) => (
+            <>
               {field.secret && <LockClosedIcon className="h-3 w-3" />}
               {field.secret && "*********"}
               {!field.secret &&
@@ -138,10 +146,10 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
                   <TrashIcon className="h-3.5 w-3.5" />
                 </button>
               )}
-            </DescriptionList.Item>
-          ))}
-        </DescriptionList>
-      )}
+            </>
+          )}
+        </BaseColumn>
+      </DataGrid>
       <ConnectionFieldDialog
         onSave={onFieldSave}
         onClose={() => setEditedState({ isOpen: false })}
@@ -157,6 +165,7 @@ ConnectionFieldsSection.fragments = {
     fragment ConnectionFieldsSection_connection on Connection {
       id
       type
+      slug
       fields {
         code
         value
