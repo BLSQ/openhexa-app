@@ -1,4 +1,3 @@
-import { useQuery } from "@apollo/client";
 import Alert from "core/components/Alert";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -10,10 +9,10 @@ import { ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import {
-  useCheckWorkspaceAvailabilityLazyQuery,
   WorkspacesPageDocument,
   WorkspacesPageQuery,
   WorkspacesPageQueryVariables,
+  useCheckWorkspaceAvailabilityLazyQuery,
 } from "workspaces/graphql/queries.generated";
 
 type WorkspacesHomeProps = {
@@ -69,7 +68,9 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
 
   return (
     <Page title={isChecking ? "" : t("New workspace")}>
-      {!isChecking ? <CreateWorkspaceDialog open onClose={noop} /> : null}
+      {!isChecking ? (
+        <CreateWorkspaceDialog showCancel={false} open onClose={noop} />
+      ) : null}
     </Page>
   );
 };

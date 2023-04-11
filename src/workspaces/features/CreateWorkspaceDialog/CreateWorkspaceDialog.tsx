@@ -14,6 +14,7 @@ import { CreateWorkspaceError } from "graphql-types";
 
 type CreateWorkspaceDialogProps = {
   onClose(): void;
+  showCancel?: boolean;
   open: boolean;
 };
 
@@ -27,7 +28,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   const [mutate] = useCreateWorkspaceMutation();
 
   const { t } = useTranslation();
-  const { open, onClose } = props;
+  const { open, onClose, showCancel = true } = props;
   const form = useForm<Form>({
     onSubmit: async (values) => {
       const { data } = await mutate({
@@ -109,9 +110,11 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
           )}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button variant="white" type="button" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
+          {showCancel && (
+            <Button variant="white" type="button" onClick={onClose}>
+              {t("Cancel")}
+            </Button>
+          )}
           <Button disabled={form.isSubmitting || !form.isValid} type="submit">
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {t("Create")}
