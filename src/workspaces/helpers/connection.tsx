@@ -63,7 +63,24 @@ DHIS2_PASSWORD = os.getenv("${slugify(connection.slug, "password")}")
       return [
         {
           lang: "python",
-          code: `# Importing os module 
+          code: `# using sqlalchemy
+import pandas as pd
+from sqlalchemy import create_engine
+
+engine = create_engine(os.environ["TEST_URL"])
+
+# Create sample dataframe
+df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
+
+# Write data
+df.to_sql("database_tutorial", con=engine, if_exists="replace")
+
+# Read data
+pd.read_sql("SELECT * FROM database_tutorial", con=engine)
+
+#using psycopg2
+
+#Importing os module 
 import os
 
 # import postgresql library
@@ -71,9 +88,9 @@ import psycopg2
 
 # Create the connection to the database
 conn = psycopg2.connect(
-  database=os.getenv("${slugify(connection.slug, "db_name")}"),
+  database=os.getenv("${slugify(connection.slug, "database")}"),
   host=os.getenv("${slugify(connection.slug, "host")}"),
-  user=os.getenv("${slugify(connection.slug, "user")}"),
+  user=os.getenv("${slugify(connection.slug, "username")}"),
   password=os.getenv("${slugify(connection.slug, "password")}"),
   port=os.getenv("${slugify(connection.slug, "port")}")
 )
@@ -81,6 +98,21 @@ conn = psycopg2.connect(
 # Create a DB session
 cursor = conn.cursor()
 `,
+        },
+        {
+          lang: "r",
+          code: `library(DBI)
+
+con <- dbConnect(
+    RPostgres::Postgres(),
+    dbname = Sys.getenv("${slugify(connection.slug, "database")}"),
+    host = Sys.getenv("${slugify(connection.slug, "host")}"),
+    port = Sys.getenv("${slugify(connection.slug, "port")}"),
+    user = Sys.getenv("${slugify(connection.slug, "username")}"),
+    password = Sys.getenv("${slugify(connection.slug, "password")}")
+)
+
+dbWriteTable(con, "some_table_name", Data_fin, overwrite=TRUE)`,
         },
       ];
     case ConnectionType.S3:
@@ -214,12 +246,12 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
 
-  const [{ db_name, host, port, user, password }, { updateField }] =
+  const [{ database, host, port, username, password }, { updateField }] =
     useConnectionFields(form, [
-      { code: "db_name", name: "DB Name" },
+      { code: "database", name: "DB Name" },
       { code: "host", name: "Host" },
       { code: "port", name: "Port" },
-      { code: "user", name: "User" },
+      { code: "username", name: "User" },
       { code: "password", secret: true, name: "Password" },
     ]);
 
@@ -227,8 +259,8 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
     <>
       <Field
         onChange={(event) => updateField(event.target.name, event.target.value)}
-        value={db_name.value}
-        name="db_name"
+        value={database.value}
+        name="database"
         label={t("Database name")}
         required
       />
@@ -250,8 +282,8 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
 
       <Field
         onChange={(event) => updateField(event.target.name, event.target.value)}
-        value={user.value}
-        name="user"
+        value={username.value}
+        name="username"
         label={t("User")}
         required
       />
