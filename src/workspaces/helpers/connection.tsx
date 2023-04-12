@@ -38,7 +38,7 @@ const updateFormField = (
 };
 
 export const slugify = (...keys: string[]) =>
-  keys.join("_").replace("-", "_").toUpperCase();
+  keys.join("_").replaceAll("-", "_").toUpperCase();
 
 export function getUsageSnippets(
   connection: Pick<Connection, "slug" | "type"> & {
@@ -67,7 +67,7 @@ DHIS2_PASSWORD = os.getenv("${slugify(connection.slug, "password")}")
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine(os.environ["TEST_URL"])
+engine = create_engine(os.environ["${slugify(connection.slug, "url")}"])
 
 # Create sample dataframe
 df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
@@ -284,7 +284,7 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
         onChange={(event) => updateField(event.target.name, event.target.value)}
         value={username.value}
         name="username"
-        label={t("User")}
+        label={t("Username")}
         required
       />
 
