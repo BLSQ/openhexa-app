@@ -45,9 +45,9 @@ x-app: &common
       - PIPELINE_API_URL
       - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
       - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
+      - GCS_SERVICE_ACCOUNT_KEY
       - WORKSPACE_BUCKET_PREFIX=hexa-test-
       - WORKSPACE_BUCKET_REGION=europe-west1
-      - GCS_SERVICE_ACCOUNT_KEY
       - AWS_USERNAME
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
