@@ -2,6 +2,7 @@ import os
 
 import boto3
 import rasterio
+from django.test import override_settings
 from moto import mock_s3, mock_sts
 from rasterio import DatasetReader
 
@@ -18,6 +19,7 @@ from hexa.plugins.connector_accessmod.models import (
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_job
 from hexa.plugins.connector_s3.models import Bucket, Credentials
+from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import User
 
 
@@ -26,6 +28,7 @@ class MockJob(object):
         self.args = args
 
 
+@override_settings(**get_s3_mocked_env())
 class AccessmodDataWorkerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -440,6 +443,7 @@ class AccessmodDataWorkerTest(TestCase):
         self.assertEqual(self.population_fs.status, FilesetStatus.VALID)
 
 
+@override_settings(**get_s3_mocked_env())
 class AccessmodAnalysisUpdateTest(TestCase):
     @classmethod
     def setUpTestData(cls):

@@ -8,6 +8,7 @@ from time import monotonic, sleep
 import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 import hexa.plugins.connector_s3.models as models
@@ -19,9 +20,21 @@ class S3ApiError(Exception):
     pass
 
 
+def _get_app_s3_credentials():
+    return {
+        "username": settings.AWS_USERNAME,
+        "access_key_id": settings.AWS_ACCESS_KEY_ID,
+        "secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
+        "endpoint_url": settings.AWS_ENDPOINT_URL,
+        "default_region": settings.AWS_DEFAULT_REGION,
+        "user_arn": settings.AWS_APP_ROLE_ARN,
+        "app_role_arn": settings.AWS_APP_ROLE_ARN,
+        "permissions_boundary_policy_arn": settings.AWS_PERMISSIONS_BOUNDARY_POLICY_ARN,
+    }
+
+
 def generate_sts_app_s3_credentials(
     *,
-    principal_credentials: models.Credentials,
     bucket: typing.Optional[models.Bucket] = None,
     duration: int = 60 * 60,
 ) -> typing.Dict[str, str]:
@@ -30,22 +43,22 @@ def generate_sts_app_s3_credentials(
     This app role should be provisioned beforehand and should have a policy that allows the app to access all the
     environment buckets.
     """
-
-    if principal_credentials.app_role_arn == "":
+    s3_credentials = _get_app_s3_credentials()
+    if s3_credentials["app_role_arn"] == "":
         raise S3ApiError(
-            f'Credentials "{principal_credentials.display_name}" have no app role ARN'
+            f'Credentials "{s3_credentials["username"]}" have no app role ARN'
         )
 
     sts_client = boto3.client(
         "sts",
-        region_name=principal_credentials.default_region,
+        region_name=s3_credentials["default_region"],
         endpoint_url=(
             None
-            if not principal_credentials.endpoint_url
-            else principal_credentials.endpoint_url
+            if not s3_credentials["endpoint_url"]
+            else s3_credentials["endpoint_url"]
         ),
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
+        aws_access_key_id=s3_credentials["access_key_id"],
+        aws_secret_access_key=s3_credentials["secret_access_key"],
     )
 
     assume_role_extra_kwargs = (
@@ -53,8 +66,8 @@ def generate_sts_app_s3_credentials(
     )
 
     response = sts_client.assume_role(
-        RoleArn=principal_credentials.app_role_arn,
-        RoleSessionName=f"sts-{principal_credentials.username}-system",
+        RoleArn=s3_credentials["app_role_arn"],
+        RoleSessionName=f"sts-{s3_credentials['username']}-system",
         DurationSeconds=duration,
         **assume_role_extra_kwargs,
     )
@@ -62,7 +75,7 @@ def generate_sts_app_s3_credentials(
     response_status_code = response["ResponseMetadata"]["HTTPStatusCode"]
     if response_status_code != 200:
         raise S3ApiError(
-            f'Error when generating STS credentials using principal "{principal_credentials.username}" '
+            f'Error when generating STS credentials using principal "{s3_credentials["username"]}" '
             f"(Status: {response_status_code})"
         )
 
@@ -107,7 +120,7 @@ def _retry_with_deadline(calling, deadline):
 
 def generate_sts_user_s3_credentials(
     *,
-    principal_credentials: models.Credentials,
+    principal_credentials: models.Credentials = None,
     role_identifier: str,
     session_identifier: str,
     read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
@@ -125,23 +138,22 @@ def generate_sts_user_s3_credentials(
         5. Assume the team/pipeline/.. role
     """
 
-    if principal_credentials.endpoint_url:
+    s3_credentials = _get_app_s3_credentials()
+    if s3_credentials["endpoint_url"]:
         # We are pointing to a MinIO instance, that doesn't support all this.
         # All we can do is generating temporary credentials using the app role.
         return (
-            generate_sts_app_s3_credentials(
-                principal_credentials=principal_credentials,
-            ),
+            generate_sts_app_s3_credentials(),
             False,
         )
 
-    if not principal_credentials.user_arn or not principal_credentials.app_role_arn:
+    if not s3_credentials["user_arn"] or not s3_credentials["app_role_arn"]:
         raise S3ApiError(
-            f'Credentials "{principal_credentials.display_name}" incomplete: missing user_arn or role_arn'
+            f'Credentials "{s3_credentials["username"]}" incomplete: missing user_arn or role_arn'
         )
 
     # role_name max length 64 chars.
-    role_name = f"{principal_credentials.username}-s3-{role_identifier}"
+    role_name = f"{s3_credentials['username']}-s3-{role_identifier}"
 
     if len(role_name) > 63:
         raise S3ApiError(f"Role_name too long ({len(role_name)} chars, max 63)")
@@ -156,8 +168,8 @@ def generate_sts_user_s3_credentials(
 
     iam_client = boto3.client(
         "iam",
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
+        aws_access_key_id=s3_credentials["access_key_id"],
+        aws_secret_access_key=s3_credentials["secret_access_key"],
         config=config,
     )
 
@@ -176,7 +188,7 @@ def generate_sts_user_s3_credentials(
                     {
                         "Action": "sts:AssumeRole",
                         "Effect": "Allow",
-                        "Principal": {"AWS": principal_credentials.user_arn},
+                        "Principal": {"AWS": s3_credentials["user_arn"]},
                     },
                 ],
             }
@@ -187,7 +199,7 @@ def generate_sts_user_s3_credentials(
             AssumeRolePolicyDocument=assume_role_policy_doc,
             Description="OpenHexa auto role for notebooks/pipelines",
             Path="/",
-            PermissionsBoundary=principal_credentials.permissions_boundary_policy_arn,
+            PermissionsBoundary=s3_credentials["permissions_boundary_policy_arn"],
         )
 
     policy_doc = json.dumps(
@@ -215,8 +227,8 @@ def generate_sts_user_s3_credentials(
 
     sts_client = boto3.client(
         "sts",
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
+        aws_access_key_id=s3_credentials["access_key_id"],
+        aws_secret_access_key=s3_credentials["secret_access_key"],
         config=config,
     )
 
@@ -234,7 +246,7 @@ def generate_sts_user_s3_credentials(
     response_status_code = response["ResponseMetadata"]["HTTPStatusCode"]
     if response_status_code != 200:
         raise S3ApiError(
-            f'Error when generating STS credentials using principal "{principal_credentials.username}" '
+            f'Error when generating STS credentials using principal "{s3_credentials["username"]}" '
             f"(Status: {response_status_code})"
         )
 
@@ -289,18 +301,18 @@ def generate_s3_policy(
     }
 
 
-def _build_app_s3_client(*, principal_credentials: models.Credentials):
+def _build_app_s3_client():
     sts_credentials = generate_sts_app_s3_credentials(
-        principal_credentials=principal_credentials,
         duration=900,
     )
+    s3_credentials = _get_app_s3_credentials()
     return boto3.client(
         "s3",
-        region_name=principal_credentials.default_region,
+        region_name=s3_credentials["default_region"],
         endpoint_url=(
             None
-            if not principal_credentials.endpoint_url
-            else principal_credentials.endpoint_url
+            if not s3_credentials["endpoint_url"]
+            else s3_credentials["endpoint_url"]
         ),
         aws_access_key_id=sts_credentials["AccessKeyId"],
         aws_secret_access_key=sts_credentials["SecretAccessKey"],
@@ -334,7 +346,7 @@ def head_bucket(
     principal_credentials: models.Credentials,
     bucket: models.Bucket,
 ):
-    s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
+    s3_client = _build_app_s3_client()
 
     try:
         return s3_client.head_bucket(Bucket=bucket.name)
@@ -343,9 +355,12 @@ def head_bucket(
 
 
 def generate_download_url(
-    *, principal_credentials: models.Credentials, bucket: models.Bucket, target_key: str
+    *,
+    principal_credentials: models.Credentials = None,
+    bucket: models.Bucket,
+    target_key: str,
 ):
-    s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
+    s3_client = _build_app_s3_client()
 
     return s3_client.generate_presigned_url(
         "get_object",
@@ -355,9 +370,12 @@ def generate_download_url(
 
 
 def generate_upload_url(
-    *, principal_credentials: models.Credentials, bucket: models.Bucket, target_key: str
+    *,
+    principal_credentials: models.Credentials = None,
+    bucket: models.Bucket,
+    target_key: str,
 ):
-    s3_client = _build_app_s3_client(principal_credentials=principal_credentials)
+    s3_client = _build_app_s3_client()
 
     return s3_client.generate_presigned_url(
         "put_object",
@@ -370,9 +388,12 @@ def generate_upload_url(
 
 
 def get_object_metadata(
-    *, principal_credentials: models.Credentials, bucket: models.Bucket, object_key: str
+    *,
+    principal_credentials: models.Credentials = None,
+    bucket: models.Bucket,
+    object_key: str,
 ):
-    client = _build_app_s3_client(principal_credentials=principal_credentials)
+    client = _build_app_s3_client()
     metadata = client.head_object(Bucket=bucket.name, Key=object_key)
 
     return {
@@ -386,19 +407,19 @@ def get_object_metadata(
 
 
 def download_file(*, bucket: models.Bucket, object_key: str, target: str):
-    client = _build_app_s3_client(principal_credentials=bucket.principal_credentials)
+    client = _build_app_s3_client()
     return client.download_file(Bucket=bucket.name, Key=object_key, Filename=target)
 
 
 def upload_file(*, bucket: models.Bucket, object_key: str, src_path: str):
-    client = _build_app_s3_client(principal_credentials=bucket.principal_credentials)
+    client = _build_app_s3_client()
     return client.upload_file(Bucket=bucket.name, Key=object_key, Filename=src_path)
 
 
 def list_objects_metadata(
-    *, principal_credentials: models.Credentials, bucket: models.Bucket
+    *, principal_credentials: models.Credentials = None, bucket: models.Bucket
 ):
-    client = _build_app_s3_client(principal_credentials=principal_credentials)
+    client = _build_app_s3_client()
     kwargs, objects = {"Bucket": bucket.name}, []
 
     while True:
