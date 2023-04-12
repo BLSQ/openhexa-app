@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.23.0](https://github.com/BLSQ/openhexa-frontend/compare/0.22.0...0.23.0) (2023-04-12)
+
+
+### Features
+
+* **Connections:** display connection env variables ([#264](https://github.com/BLSQ/openhexa-frontend/issues/264)) ([e2d371d](https://github.com/BLSQ/openhexa-frontend/commit/e2d371d15168731d0e810df6d4e5850d779d3980))
+* **Workspaces:** redirect to workspaces users without openhexa_legac… ([#257](https://github.com/BLSQ/openhexa-frontend/issues/257)) ([23666af](https://github.com/BLSQ/openhexa-frontend/commit/23666afd18e2f9c34e76b1828ee7079b723c8847))
+
+
+### Bug Fixes
+
+* **Connections:** add sqlAlchemy and R snippets ([#261](https://github.com/BLSQ/openhexa-frontend/issues/261)) ([2fabe81](https://github.com/BLSQ/openhexa-frontend/commit/2fabe81c1eea5bfad25d1d9a82452c2a4014d201))
+* **Workspaces:** Do not display cancel button on /workpaces page ([#265](https://github.com/BLSQ/openhexa-frontend/issues/265)) ([0b602d1](https://github.com/BLSQ/openhexa-frontend/commit/0b602d138e847b83f4b7ae2f97d40a4805a37a97))
+* **Workspaces:** last visited workspace may be empty OPENHEXA-Q1 ([#259](https://github.com/BLSQ/openhexa-frontend/issues/259)) ([bea3dc1](https://github.com/BLSQ/openhexa-frontend/commit/bea3dc10e417820e3c0dd0b4afb104ca75403db6))
+
 ## [0.22.0](https://github.com/BLSQ/openhexa-frontend/compare/0.21.3...0.22.0) (2023-04-04)
 
 
