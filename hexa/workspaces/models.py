@@ -129,8 +129,8 @@ class Workspace(Base):
         related_name="workspace_created_by",
     )
 
-    db_name = models.CharField(null=True, max_length=63)
-    db_password = EncryptedTextField(null=True)
+    db_name = models.CharField(null=False, unique=True, max_length=63)
+    db_password = EncryptedTextField(null=False)
     bucket_name = models.TextField(
         null=True,
     )
