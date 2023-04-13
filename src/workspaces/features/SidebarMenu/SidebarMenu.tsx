@@ -233,7 +233,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
               <UserIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
               {t("Account settings")}
             </Link>
-            {isAdmin && (
+            {me.permissions.adminPanel && (
               <Link
                 href="/admin"
                 noStyle
