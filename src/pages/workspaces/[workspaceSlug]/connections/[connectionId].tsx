@@ -100,8 +100,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
           >
             {({ onClick }) => (
               <Button
-                size="sm"
-                className="bg-red-700 hover:bg-red-700 focus:ring-red-500"
+                className="bg-red-500 hover:bg-red-700 focus:ring-red-500"
                 onClick={onClick}
                 leadingIcon={<TrashIcon className="w-4" />}
               >
