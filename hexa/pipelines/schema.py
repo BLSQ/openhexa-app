@@ -34,6 +34,7 @@ def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs
 
 
 pipeline_permissions = ObjectType("PipelinePermissions")
+pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
 pipeline_run_order_by_enum = EnumType(
     "PipelineRunOrderBy",
@@ -43,6 +44,24 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
+
+
+@pipeline_parameter.field("code")
+def resolve_pipeline_parameter_code(parameter, info, **kwargs):
+    code = parameter.get("code")
+    if code is None:
+        code = parameter["name"]
+    return code
+
+
+@pipeline_parameter.field("required")
+def resolve_pipeline_parameter_required(parameter, info, **kwargs):
+    return parameter.get("required", False)
+
+
+@pipeline_parameter.field("multiple")
+def resolve_pipeline_parameter_multiple(parameter, info, **kwargs):
+    return parameter.get("multiple", False)
 
 
 @pipeline_permissions.field("update")
@@ -354,13 +373,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
-
     try:
         newpipelineversion = pipeline.upload_new_version(
             user=request.user,
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             entrypoint=input.get("entrypoint"),
-            parameters=input.get("parameters"),
+            parameters=input["parameters"],
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except Exception as e:
@@ -462,6 +480,7 @@ pipelines_bindables = [
     pipelines_query,
     pipelines_mutations,
     pipeline_object,
+    pipeline_parameter,
     pipeline_run_object,
     pipeline_run_status_enum,
     pipeline_run_order_by_enum,

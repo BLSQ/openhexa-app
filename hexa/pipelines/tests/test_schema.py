@@ -143,13 +143,94 @@ class PipelinesV2Test(GraphQLTestCase):
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
                     "entrypoint": "pm",
-                    "parameters": {},
+                    "parameters": [],
                     "zipfile": "",
                 }
             },
         )
         self.assertEqual(
             {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+        )
+
+    def test_create_pipeline_w_parameters(self):
+        self.test_create_pipeline()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    version
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "entrypoint": "pm",
+                    "parameters": [
+                        {
+                            "code": "param1",
+                            "name": "Param 1",
+                            "type": "string",
+                            "help": "Param 1's Help",
+                            "default": "default value",
+                            "multiple": True,
+                            "required": True,
+                            "choices": ["Choice 1", "Choice 2"],
+                        }
+                    ],
+                    "zipfile": "",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+        )
+
+        r = self.run_query(
+            """
+            query ($id: UUID!) {
+                pipeline(id: $id) {
+                    currentVersion {
+                        parameters {
+                            code
+                            name
+                            type
+                            help
+                            default
+                            multiple
+                            required
+                            choices
+                        }
+                    }
+                }
+            }
+            """,
+            {"id": str(pipeline.id)},
+        )
+
+        self.assertEqual(
+            r["data"]["pipeline"]["currentVersion"],
+            {
+                "parameters": [
+                    {
+                        "code": "param1",
+                        "name": "Param 1",
+                        "type": "string",
+                        "help": "Param 1's Help",
+                        "default": "default value",
+                        "multiple": True,
+                        "required": True,
+                        "choices": ["Choice 1", "Choice 2"],
+                    }
+                ],
+            },
         )
 
     def test_delete_pipeline(self):

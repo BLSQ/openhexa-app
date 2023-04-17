@@ -30,6 +30,28 @@ enum PipelineRunStatus {
   queued
 }
 
+type PipelineParameter {
+  code: String!
+  name: String!
+  type: String!
+  multiple: Boolean!
+  required: Boolean!
+  default: String
+  help: String
+  choices: [String!]
+}
+
+input ParameterInput {
+  code: String!
+  name: String!
+  type: String!
+  multiple: Boolean
+  required: Boolean
+  default: String
+  help: String
+  choices: [String!]
+}
+
 type PipelineVersion {
   id: UUID!
   user: User
@@ -37,7 +59,7 @@ type PipelineVersion {
   number: Int!
   createdAt: DateTime!
   entrypoint: String!
-  parameters: JSON!
+  parameters: [PipelineParameter!]!
   zipfile: String!
 }
 
@@ -122,7 +144,7 @@ enum PipelineError {
 
 extend type Query {
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
-  pipeline(id: UUID): Pipeline @loginRequired
+  pipeline(id: UUID!): Pipeline @loginRequired
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
   pipelineRun(id: String!): PipelineRun @loginRequired
 }
@@ -175,7 +197,7 @@ input UploadPipelineInput {
   workspaceSlug: String!
   code: String!
   entrypoint: String!
-  parameters: JSON!
+  parameters: [ParameterInput!]!
   zipfile: String!
 }
 
@@ -246,3 +268,4 @@ extend type Mutation {
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
   addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
 }
+ 
