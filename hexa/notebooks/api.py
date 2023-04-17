@@ -1,7 +1,14 @@
+import string
 import typing
 
 import requests
 from django.conf import settings
+from escapism import escape
+
+
+def escape_jupyterhub_string(text) -> str:
+    safe_chars = set(string.ascii_lowercase + string.digits)
+    return escape(text, safe_chars, escape_char="-").lower()
 
 
 def get_user(username: str) -> typing.Optional[typing.Mapping[str, typing.Any]]:
