@@ -36,20 +36,20 @@ type PipelineParameter {
   type: String!
   multiple: Boolean!
   required: Boolean!
-  default: String
+  default: Generic
   help: String
-  choices: [String!]
+  choices: [Generic!]
 }
 
 input ParameterInput {
   code: String!
-  name: String!
   type: String!
+  name: String
   multiple: Boolean
   required: Boolean
-  default: String
+  default: Generic
   help: String
-  choices: [String!]
+  choices: [Generic!]
 }
 
 type PipelineVersion {
@@ -58,7 +58,6 @@ type PipelineVersion {
   pipeline: Pipeline!
   number: Int!
   createdAt: DateTime!
-  entrypoint: String!
   parameters: [PipelineParameter!]!
   zipfile: String!
 }
@@ -146,7 +145,7 @@ extend type Query {
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
   pipeline(id: UUID!): Pipeline @loginRequired
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
-  pipelineRun(id: String!): PipelineRun @loginRequired
+  pipelineRun(id: UUID!): PipelineRun @loginRequired
 }
 
 input CreatePipelineInput {
@@ -196,7 +195,6 @@ type PipelineTokenResult {
 input UploadPipelineInput {
   workspaceSlug: String!
   code: String!
-  entrypoint: String!
   parameters: [ParameterInput!]!
   zipfile: String!
 }

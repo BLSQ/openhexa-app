@@ -110,8 +110,6 @@ class PipelineVersion(models.Model):
     )
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
-
-    entrypoint = models.CharField(max_length=200, default="")
     parameters = models.JSONField(blank=True, default=dict)
 
     objects = PipelineVersionQuerySet.as_manager()
@@ -180,7 +178,7 @@ class Pipeline(models.Model):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
-    def upload_new_version(self, user: User, zipfile, entrypoint, parameters):
+    def upload_new_version(self, user: User, zipfile, parameters):
         if self.last_version:
             newnumber = self.last_version.number + 1
         else:
@@ -191,7 +189,6 @@ class Pipeline(models.Model):
             pipeline=self,
             number=newnumber,
             zipfile=zipfile,
-            entrypoint=entrypoint,
             parameters=parameters,
         )
         return version

@@ -142,7 +142,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "code": code1,
                     "workspaceSlug": self.WS1.slug,
-                    "entrypoint": "pm",
                     "parameters": [],
                     "zipfile": "",
                 }
@@ -172,7 +171,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 "input": {
                     "code": pipeline.code,
                     "workspaceSlug": self.WS1.slug,
-                    "entrypoint": "pm",
                     "parameters": [
                         {
                             "code": "param1",

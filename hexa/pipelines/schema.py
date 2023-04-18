@@ -46,12 +46,12 @@ pipeline_run_order_by_enum = EnumType(
 pipeline_object = ObjectType("Pipeline")
 
 
-@pipeline_parameter.field("code")
+@pipeline_parameter.field("name")
 def resolve_pipeline_parameter_code(parameter, info, **kwargs):
-    code = parameter.get("code")
-    if code is None:
-        code = parameter["name"]
-    return code
+    name = parameter.get("name")
+    if name is None:
+        name = parameter["code"]
+    return name
 
 
 @pipeline_parameter.field("required")
@@ -207,31 +207,25 @@ def resolve_pipeline_by_code(_, info, **kwargs):
 
 
 @pipelines_query.field("pipelineRun")
-def resolve_pipeline_get_run(_, info, **kwargs):
+def resolve_pipeline_run(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    pipelinerun_id = kwargs.get("id")
 
-    if pipelinerun_id != "":
-        return (
-            PipelineRun.objects.filter_for_user(request.user)
-            .filter(id=pipelinerun_id)
-            .first()
-        )
-    else:
-        if not request.user.is_authenticated or not isinstance(
-            request.user, PipelineRunUser
-        ):
-            return None
+    if not request.user.is_authenticated:
+        return None
 
-        try:
-            pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
-        except PipelineRun.DoesNotExist:
-            return None
+    run_id = kwargs["id"]
+    try:
+        if isinstance(request.user, PipelineRunUser):
+            qs = PipelineRun.objects.filter(id=request.user.pipeline_run.id)
+        else:
+            qs = PipelineRun.objects.filter_for_user(request.user)
 
-        if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
-            return None
+        return qs.exclude(
+            state__in=[PipelineRunState.SUCCESS, PipelineRunState.FAILED]
+        ).get(id=run_id)
 
-        return pipeline_run
+    except PipelineRun.DoesNotExist:
+        return None
 
 
 pipelines_mutations = MutationType()
@@ -377,7 +371,6 @@ def resolve_upload_pipeline(_, info, **kwargs):
         newpipelineversion = pipeline.upload_new_version(
             user=request.user,
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
-            entrypoint=input.get("entrypoint"),
             parameters=input["parameters"],
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
