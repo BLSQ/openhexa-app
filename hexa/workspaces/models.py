@@ -323,6 +323,9 @@ class Connection(models.Model):
 
     objects = ConnectionManager.from_queryset(ConnectionQuerySet)()
 
+    def __str__(self) -> str:
+        return self.slug
+
     class Meta:
         ordering = ["-updated_at"]
         constraints = [
