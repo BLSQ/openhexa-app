@@ -5,7 +5,7 @@ export const getReadTableSnippet = (tableName: string) => {
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine(os.environ["WORKSPACE_DB_URL"])
+engine = create_engine(os.environ["WORKSPACE_DATABASE_URL"])
 
 pd.read_sql("SELECT * FROM ${tableName}", con=engine)`;
 };
@@ -18,7 +18,7 @@ export const getUsageSnippet = (tableName: string, lang: lang) => {
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine(os.environ["WORKSPACE_DB_URL"])
+engine = create_engine(os.environ["WORKSPACE_DATABASE_URL"])
 
 # Create sample dataframe
 df = pd.DataFrame({"name": ["Jane", "John", "Tyler"], "age": [19, 17, 22]})
