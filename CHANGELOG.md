@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.24.0](https://github.com/BLSQ/openhexa-frontend/compare/0.23.0...0.24.0) (2023-04-19)
+
+
+### Features
+
+* **Connections:** use default size for delete button ([#269](https://github.com/BLSQ/openhexa-frontend/issues/269)) ([8a794f5](https://github.com/BLSQ/openhexa-frontend/commit/8a794f56109047df373723aa6258258c31a03453))
+
+
+### Bug Fixes
+
+* **Connection:** change user field label ([#266](https://github.com/BLSQ/openhexa-frontend/issues/266)) ([be33a4f](https://github.com/BLSQ/openhexa-frontend/commit/be33a4fc618476283a146873f471064528557a19))
+* **Database:** fix bad url in database usage snippets ([#271](https://github.com/BLSQ/openhexa-frontend/issues/271)) ([bc0ccf9](https://github.com/BLSQ/openhexa-frontend/commit/bc0ccf901156ab44aab1218fe2f8f769b14ef3cf))
+* **Workspaces:** hide administration link for non admin/staff user ([#267](https://github.com/BLSQ/openhexa-frontend/issues/267)) ([6c7614c](https://github.com/BLSQ/openhexa-frontend/commit/6c7614cbad810f41514eb94db5eed143a82a3791))
+
 ## [0.23.0](https://github.com/BLSQ/openhexa-frontend/compare/0.22.0...0.23.0) (2023-04-12)
 
 
