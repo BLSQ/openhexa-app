@@ -1,4 +1,5 @@
 import pathlib
+from urllib import parse
 
 from ariadne import MutationType, QueryType, load_schema_from_path
 from django.conf import settings
@@ -56,13 +57,17 @@ def resolve_launch_notebook_server(_, info, input, **kwargs):
                 "csrftoken": request.COOKIES.get("csrftoken"),
             },
         )
-
+    # When user's email contains special characters, JupyterHub encode the email prefix (part before @)
+    # and add it to the generated server url. If we don't apply the same encoding we will face
+    # a not found error because the return URL and the generated one doesn't match
+    email_prefix = parse.quote(request.user.email.split("@")[0])
+    encoded_username = "@".join([email_prefix, request.user.email.split("@")[1]])
     return {
         "success": True,
         "server": {
             "name": workspace_slug,
-            "url": f"{settings.NOTEBOOKS_URL}/user/{request.user.email}/{workspace_slug}/",
-            "ready": server_ready(username, server_name),
+            "url": f"{settings.NOTEBOOKS_URL}/user/{encoded_username}/{workspace_slug}/",
+            "ready": server_ready(encoded_username, server_name),
         },
         "errors": [],
     }
