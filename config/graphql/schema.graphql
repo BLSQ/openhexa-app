@@ -3,6 +3,7 @@ scalar DateTime
 scalar URL
 scalar JSON
 scalar UUID
+scalar Generic
 
 type Query
 type Mutation

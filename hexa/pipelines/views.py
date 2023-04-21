@@ -102,13 +102,12 @@ def credentials2(request: HttpRequest) -> HttpResponse:
             {"error": "Authorization header should start with 'bearer'"}, status=401
         )
     try:
-        data = Signer().unsign_object(token)
+        access_token = Signer().unsign_object(token)
     except BadSignature:
         return JsonResponse({"error": "Token signature is invalid"}, status=401)
 
-    model = apps.get_model(data["app_label"], data["model"])
-    pipeline = get_object_or_404(model, pk=data["id"])
-    workspace = pipeline.workspace
+    run = PipelineRun.objects.get(access_token=access_token)
+    workspace = run.pipeline.workspace
 
     # should follow the same logic as workspace.views.credentials
     # FIXME: when workspace bucket credentials are working -> refactor/merge
@@ -135,9 +134,13 @@ def credentials2(request: HttpRequest) -> HttpResponse:
     )
 
     gcs_buckets.append(
-        {"name": pipeline.workspace.bucket_name, "mode": "RW", "mount": "/workspace"}
+        {
+            "name": run.pipeline.workspace.bucket_name,
+            "mode": "RW",
+            "mount": "/workspace",
+        }
     )
-    env["WORKSPACE_BUCKET"] = pipeline.workspace.bucket_name
+    env["WORKSPACE_BUCKET"] = run.pipeline.workspace.bucket_name
     env["GCS_TOKEN"] = build_app_short_lived_credentials().access_token
     env["GCS_BUCKETS"] = base64.b64encode(
         json.dumps({"buckets": gcs_buckets}).encode()

@@ -34,6 +34,7 @@ def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs
 
 
 pipeline_permissions = ObjectType("PipelinePermissions")
+pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPPINGS)
 pipeline_run_order_by_enum = EnumType(
     "PipelineRunOrderBy",
@@ -43,6 +44,24 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
+
+
+@pipeline_parameter.field("name")
+def resolve_pipeline_parameter_code(parameter, info, **kwargs):
+    name = parameter.get("name")
+    if name is None:
+        name = parameter["code"]
+    return name
+
+
+@pipeline_parameter.field("required")
+def resolve_pipeline_parameter_required(parameter, info, **kwargs):
+    return parameter.get("required", False)
+
+
+@pipeline_parameter.field("multiple")
+def resolve_pipeline_parameter_multiple(parameter, info, **kwargs):
+    return parameter.get("multiple", False)
 
 
 @pipeline_permissions.field("update")
@@ -169,14 +188,18 @@ def resolve_pipelines(_, info, **kwargs):
 def resolve_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        if kwargs.get("id", None):
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                id=kwargs.get("id")
-            )
-        else:
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                name=kwargs.get("name", "")
-            )
+        return Pipeline.objects.filter_for_user(request.user).get(id=kwargs["id"])
+    except Pipeline.DoesNotExist:
+        return None
+
+
+@pipelines_query.field("pipelineByCode")
+def resolve_pipeline_by_code(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            workspace__slug=kwargs["workspaceSlug"], code=kwargs["code"]
+        )
     except Pipeline.DoesNotExist:
         pipeline = None
 
@@ -184,31 +207,25 @@ def resolve_pipeline(_, info, **kwargs):
 
 
 @pipelines_query.field("pipelineRun")
-def resolve_pipeline_get_run(_, info, **kwargs):
+def resolve_pipeline_run(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    pipelinerun_id = kwargs.get("id")
 
-    if pipelinerun_id != "":
-        return (
-            PipelineRun.objects.filter_for_user(request.user)
-            .filter(id=pipelinerun_id)
-            .first()
-        )
-    else:
-        if not request.user.is_authenticated or not isinstance(
-            request.user, PipelineRunUser
-        ):
-            return None
+    if not request.user.is_authenticated:
+        return None
 
-        try:
-            pipeline_run = PipelineRun.objects.get(pk=request.user.pipeline_run.id)
-        except PipelineRun.DoesNotExist:
-            return None
+    run_id = kwargs["id"]
+    try:
+        if isinstance(request.user, PipelineRunUser):
+            qs = PipelineRun.objects.filter(id=request.user.pipeline_run.id)
+        else:
+            qs = PipelineRun.objects.filter_for_user(request.user)
 
-        if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
-            return None
+        return qs.exclude(
+            state__in=[PipelineRunState.SUCCESS, PipelineRunState.FAILED]
+        ).get(id=run_id)
 
-        return pipeline_run
+    except PipelineRun.DoesNotExist:
+        return None
 
 
 pipelines_mutations = MutationType()
@@ -230,6 +247,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
     try:
         pipeline = Pipeline.objects.create(
+            code=input["code"],
             name=input.get("name"),
             workspace=workspace,
         )
@@ -323,36 +341,37 @@ def resolve_run_pipeline(_, info, **kwargs):
 def resolve_pipelineToken(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
-    qs = Pipeline.objects.filter_for_user(request.user).filter(name=input.get("name"))
-    if len(list(qs)) != 1:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_NOT_FOUND"],
-        }
-
-    return {"success": True, "errors": [], "token": qs.first().get_token()}
-
-
-@pipelines_mutations.field("uploadPipeline")
-def resolve_upload_pipeline(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    input = kwargs["input"]
     try:
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
-            name=input.get("name")
+            code=input.get("pipelineCode"), workspace__slug=input.get("workspaceSlug")
         )
+        return {"success": True, "errors": [], "token": pipeline.get_token()}
     except Pipeline.DoesNotExist:
         return {
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
+
+@pipelines_mutations.field("uploadPipeline")
+def resolve_upload_pipeline(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            code=input["code"], workspace__slug=input["workspaceSlug"]
+        )
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
     try:
         newpipelineversion = pipeline.upload_new_version(
             user=request.user,
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
-            entrypoint=input.get("entrypoint"),
-            parameters=input.get("parameters"),
+            parameters=input["parameters"],
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except Exception as e:
@@ -454,6 +473,7 @@ pipelines_bindables = [
     pipelines_query,
     pipelines_mutations,
     pipeline_object,
+    pipeline_parameter,
     pipeline_run_object,
     pipeline_run_status_enum,
     pipeline_run_order_by_enum,

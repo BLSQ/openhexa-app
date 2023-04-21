@@ -30,14 +30,35 @@ enum PipelineRunStatus {
   queued
 }
 
+type PipelineParameter {
+  code: String!
+  name: String!
+  type: String!
+  multiple: Boolean!
+  required: Boolean!
+  default: Generic
+  help: String
+  choices: [Generic!]
+}
+
+input ParameterInput {
+  code: String!
+  type: String!
+  name: String
+  multiple: Boolean
+  required: Boolean
+  default: Generic
+  help: String
+  choices: [Generic!]
+}
+
 type PipelineVersion {
   id: UUID!
   user: User
   pipeline: Pipeline!
   number: Int!
   createdAt: DateTime!
-  entrypoint: String!
-  parameters: JSON!
+  parameters: [PipelineParameter!]!
   zipfile: String!
 }
 
@@ -90,7 +111,8 @@ type PipelineVersionPage {
 
 type Pipeline {
   id: UUID!
-  name: String!
+  name: String
+  code: String!
   permissions: PipelinePermissions!
   workspace: Workspace
   config: JSON!
@@ -121,13 +143,14 @@ enum PipelineError {
 
 extend type Query {
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
-  pipeline(id: UUID, name: String): Pipeline @loginRequired
-  pipelineRun(id: String!): PipelineRun @loginRequired
-  pipelineRunCode(id: UUID): String @loginRequired
+  pipeline(id: UUID!): Pipeline @loginRequired
+  pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
+  pipelineRun(id: UUID!): PipelineRun @loginRequired
 }
 
 input CreatePipelineInput {
-  name: String!
+  code: String!
+  name: String
   workspaceSlug: String!
 }
 
@@ -159,7 +182,8 @@ type RunPipelineResult {
 }
 
 input PipelineTokenInput {
-  name: String!
+  workspaceSlug: String!
+  pipelineCode: String!
 }
 
 type PipelineTokenResult {
@@ -169,9 +193,9 @@ type PipelineTokenResult {
 }
 
 input UploadPipelineInput {
-  name: String!
-  entrypoint: String!
-  parameters: JSON!
+  workspaceSlug: String!
+  code: String!
+  parameters: [ParameterInput!]!
   zipfile: String!
 }
 
@@ -242,3 +266,4 @@ extend type Mutation {
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
   addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
 }
+ 
