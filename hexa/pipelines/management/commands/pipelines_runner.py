@@ -73,7 +73,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             ),
             containers=[
                 k8s.V1Container(
-                    image="blsq/openhexa-pipelines-v2",
+                    image="blsq/openhexa-pipelines",
                     name=container_name,
                     image_pull_policy="Always",
                     args=["-c", f"{json.dumps(run.config)}"],
