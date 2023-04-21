@@ -705,7 +705,8 @@ type CreateMembershipResult {
 }
 
 input CreatePipelineInput {
-  name: String!
+  code: String!
+  name: String
   workspaceSlug: String!
 }
 
@@ -1150,6 +1151,23 @@ type GenerateNewDatabasePasswordResult {
   workspace: Workspace
 }
 
+enum GenerateWorkspaceTokenError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input GenerateWorkspaceTokenInput {
+  slug: String!
+}
+
+type GenerateWorkspaceTokenResult {
+  success: Boolean!
+  token: String
+  errors: [GenerateWorkspaceTokenError!]!
+}
+
+scalar Generic
+
 input InviteWorkspaceMemberInput {
   workspaceSlug: String!
   userEmail: String!
@@ -1349,6 +1367,7 @@ type Mutation {
   inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
+  generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
@@ -1381,6 +1400,17 @@ input OrganizationInput {
   contactInfo: String
 }
 
+input ParameterInput {
+  code: String!
+  type: String!
+  name: String
+  multiple: Boolean
+  required: Boolean
+  default: Generic
+  help: String
+  choices: [Generic!]
+}
+
 enum PermissionMode {
   OWNER
   EDITOR
@@ -1389,7 +1419,8 @@ enum PermissionMode {
 
 type Pipeline {
   id: UUID!
-  name: String!
+  name: String
+  code: String!
   permissions: PipelinePermissions!
   workspace: Workspace
   config: JSON!
@@ -1409,6 +1440,17 @@ enum PipelineError {
   PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
+}
+
+type PipelineParameter {
+  code: String!
+  name: String!
+  type: String!
+  multiple: Boolean!
+  required: Boolean!
+  default: Generic
+  help: String
+  choices: [Generic!]
 }
 
 type PipelinePermissions {
@@ -1479,7 +1521,8 @@ type PipelinesPage {
 }
 
 input PipelineTokenInput {
-  name: String!
+  workspaceSlug: String!
+  pipelineCode: String!
 }
 
 type PipelineTokenResult {
@@ -1494,8 +1537,7 @@ type PipelineVersion {
   pipeline: Pipeline!
   number: Int!
   createdAt: DateTime!
-  entrypoint: String!
-  parameters: JSON!
+  parameters: [PipelineParameter!]!
   zipfile: String!
 }
 
@@ -1606,9 +1648,9 @@ type Query {
   totalNotebooks: Int!
   lastActivities: [Activity!]!
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
-  pipeline(id: UUID, name: String): Pipeline
-  pipelineRun(id: String!): PipelineRun
-  pipelineRunCode(id: UUID): String
+  pipeline(id: UUID!): Pipeline
+  pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
   workspace(slug: String!): Workspace
   workspaces(page: Int, perPage: Int): WorkspacePage!
   databaseTable(id: String!): DatabaseTable
@@ -2071,9 +2113,9 @@ type UpdateWorkspaceResult {
 }
 
 input UploadPipelineInput {
-  name: String!
-  entrypoint: String!
-  parameters: JSON!
+  workspaceSlug: String!
+  code: String!
+  parameters: [ParameterInput!]!
   zipfile: String!
 }
 

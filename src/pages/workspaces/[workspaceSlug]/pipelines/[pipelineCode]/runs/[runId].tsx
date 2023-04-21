@@ -72,7 +72,6 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace, pipelineRun: run } = data;
-
   const isFinished = [
     PipelineRunStatus.Failed,
     PipelineRunStatus.Success,
@@ -99,15 +98,15 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
                 workspace.slug
-              )}/pipelines/${encodeURIComponent(run.pipeline.id)}`}
+              )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
             >
               {run.pipeline.name}
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               isLast
               href={{
-                pathname: "/pipelines/[pipelineId]/runs/[runId]",
-                query: { pipelineId: run.pipeline.id, runId: run.id },
+                pathname: "/pipelines/[pipelineCode]/runs/[runId]",
+                query: { pipelineCode: run.pipeline.code, runId: run.id },
               }}
             >
               <Time datetime={run.executionDate} />
@@ -173,7 +172,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   <Link
                     href={`/workspaces/${encodeURIComponent(
                       workspace.slug
-                    )}/pipelines/${encodeURIComponent(run.pipeline.id)}`}
+                    )}/pipelines/${encodeURIComponent(run.pipeline.code)}`}
                   >
                     {run.pipeline.name}
                   </Link>
@@ -205,7 +204,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
               >
                 {config.map((entry) => (
-                  <DescriptionList.Item key={entry.name} label={entry.help}>
+                  <DescriptionList.Item key={entry.name} label={entry.name}>
                     {(entry.type === "str" && entry.value) ?? "-"}
                     {entry.type === "bool" && (
                       <Switch checked={entry.value} disabled />

@@ -20,8 +20,8 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
   return (
     <Card
       href={{
-        pathname: `/workspaces/[workspaceSlug]/pipelines/[pipelineId]`,
-        query: { workspaceSlug: workspace.slug, pipelineId: pipeline.id },
+        pathname: `/workspaces/[workspaceSlug]/pipelines/[pipelineCode]`,
+        query: { workspaceSlug: workspace.slug, pipelineCode: pipeline.code },
       }}
       title={
         <div className="flex justify-between">
@@ -60,6 +60,7 @@ PipelineCard.fragments = {
   pipeline: gql`
     fragment PipelineCard_pipeline on Pipeline {
       id
+      code
       name
       schedule
       description

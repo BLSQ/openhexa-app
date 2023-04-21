@@ -117,7 +117,7 @@ export function getPipelineRunConfig(run: {
   const parameters = run.version?.parameters || [];
 
   return parameters.map((param: any) => ({
-    value: config[param.name],
+    value: config[param.code],
     ...param,
   })) as (Parameter & { value: any })[];
 }

@@ -5,6 +5,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string | null | false | true;
   trailingIcon?: ReactNode;
   leading?: ReactNode;
+  fullWidth?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
@@ -17,6 +18,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     trailingIcon,
     leading = null,
     value,
+    fullWidth = false,
     ...delegated
   } = props;
 
@@ -33,7 +35,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   );
 
   return (
-    <div className="group relative">
+    <div className={clsx("group relative", fullWidth && "w-full")}>
       <input
         id={name}
         name={name}

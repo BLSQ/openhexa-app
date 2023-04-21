@@ -13,6 +13,7 @@ export type Scalars = {
   AccessmodFilesetMetadata: any;
   Date: any;
   DateTime: any;
+  Generic: any;
   JSON: any;
   MovingSpeeds: any;
   SimplifiedExtentType: any;
@@ -785,7 +786,8 @@ export type CreateMembershipResult = {
 };
 
 export type CreatePipelineInput = {
-  name: Scalars['String'];
+  code: Scalars['String'];
+  name?: InputMaybe<Scalars['String']>;
   workspaceSlug: Scalars['String'];
 };
 
@@ -1282,6 +1284,22 @@ export type GenerateNewDatabasePasswordResult = {
   workspace?: Maybe<Workspace>;
 };
 
+export enum GenerateWorkspaceTokenError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type GenerateWorkspaceTokenInput = {
+  slug: Scalars['String'];
+};
+
+export type GenerateWorkspaceTokenResult = {
+  __typename?: 'GenerateWorkspaceTokenResult';
+  errors: Array<GenerateWorkspaceTokenError>;
+  success: Scalars['Boolean'];
+  token?: Maybe<Scalars['String']>;
+};
+
 export type InviteWorkspaceMemberInput = {
   role: WorkspaceMembershipRole;
   userEmail: Scalars['String'];
@@ -1461,6 +1479,7 @@ export type Mutation = {
   enableTwoFactor: EnableTwoFactorResult;
   generateChallenge: GenerateChallengeResult;
   generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
+  generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
@@ -1670,6 +1689,11 @@ export type MutationGenerateNewDatabasePasswordArgs = {
 };
 
 
+export type MutationGenerateWorkspaceTokenArgs = {
+  input: GenerateWorkspaceTokenInput;
+};
+
+
 export type MutationInviteWorkspaceMemberArgs = {
   input: InviteWorkspaceMemberInput;
 };
@@ -1868,6 +1892,17 @@ export type OrganizationInput = {
   url?: InputMaybe<Scalars['String']>;
 };
 
+export type ParameterInput = {
+  choices?: InputMaybe<Array<Scalars['Generic']>>;
+  code: Scalars['String'];
+  default?: InputMaybe<Scalars['Generic']>;
+  help?: InputMaybe<Scalars['String']>;
+  multiple?: InputMaybe<Scalars['Boolean']>;
+  name?: InputMaybe<Scalars['String']>;
+  required?: InputMaybe<Scalars['Boolean']>;
+  type: Scalars['String'];
+};
+
 export enum PermissionMode {
   Editor = 'EDITOR',
   Owner = 'OWNER',
@@ -1876,12 +1911,13 @@ export enum PermissionMode {
 
 export type Pipeline = {
   __typename?: 'Pipeline';
+  code: Scalars['String'];
   config: Scalars['JSON'];
   createdAt: Scalars['DateTime'];
   currentVersion?: Maybe<PipelineVersion>;
   description?: Maybe<Scalars['String']>;
   id: Scalars['UUID'];
-  name: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
   permissions: PipelinePermissions;
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']>;
@@ -1911,6 +1947,18 @@ export enum PipelineError {
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
+
+export type PipelineParameter = {
+  __typename?: 'PipelineParameter';
+  choices?: Maybe<Array<Scalars['Generic']>>;
+  code: Scalars['String'];
+  default?: Maybe<Scalars['Generic']>;
+  help?: Maybe<Scalars['String']>;
+  multiple: Scalars['Boolean'];
+  name: Scalars['String'];
+  required: Scalars['Boolean'];
+  type: Scalars['String'];
+};
 
 export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
@@ -1978,7 +2026,8 @@ export enum PipelineRunTrigger {
 }
 
 export type PipelineTokenInput = {
-  name: Scalars['String'];
+  pipelineCode: Scalars['String'];
+  workspaceSlug: Scalars['String'];
 };
 
 export type PipelineTokenResult = {
@@ -1991,10 +2040,9 @@ export type PipelineTokenResult = {
 export type PipelineVersion = {
   __typename?: 'PipelineVersion';
   createdAt: Scalars['DateTime'];
-  entrypoint: Scalars['String'];
   id: Scalars['UUID'];
   number: Scalars['Int'];
-  parameters: Scalars['JSON'];
+  parameters: Array<PipelineParameter>;
   pipeline: Pipeline;
   user?: Maybe<User>;
   zipfile: Scalars['String'];
@@ -2121,8 +2169,8 @@ export type Query = {
   notebooksUrl: Scalars['URL'];
   organizations: Array<Organization>;
   pipeline?: Maybe<Pipeline>;
+  pipelineByCode?: Maybe<Pipeline>;
   pipelineRun?: Maybe<PipelineRun>;
-  pipelineRunCode?: Maybe<Scalars['String']>;
   pipelines: PipelinesPage;
   search: SearchQueryResult;
   team?: Maybe<Team>;
@@ -2254,18 +2302,18 @@ export type QueryExternalDashboardsArgs = {
 
 
 export type QueryPipelineArgs = {
-  id?: InputMaybe<Scalars['UUID']>;
-  name?: InputMaybe<Scalars['String']>;
+  id: Scalars['UUID'];
+};
+
+
+export type QueryPipelineByCodeArgs = {
+  code: Scalars['String'];
+  workspaceSlug: Scalars['String'];
 };
 
 
 export type QueryPipelineRunArgs = {
-  id: Scalars['String'];
-};
-
-
-export type QueryPipelineRunCodeArgs = {
-  id?: InputMaybe<Scalars['UUID']>;
+  id: Scalars['UUID'];
 };
 
 
@@ -2795,9 +2843,9 @@ export type UpdateWorkspaceResult = {
 };
 
 export type UploadPipelineInput = {
-  entrypoint: Scalars['String'];
-  name: Scalars['String'];
-  parameters: Scalars['JSON'];
+  code: Scalars['String'];
+  parameters: Array<ParameterInput>;
+  workspaceSlug: Scalars['String'];
   zipfile: Scalars['String'];
 };
 

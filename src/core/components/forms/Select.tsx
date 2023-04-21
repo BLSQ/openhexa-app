@@ -1,50 +1,64 @@
-import { ChangeEventHandler, ReactNode, useMemo, useState } from "react";
+import {
+  ChangeEventHandler,
+  MouseEventHandler,
+  ReactNode,
+  useMemo,
+  useState,
+} from "react";
 import MultiCombobox from "./Combobox/MultiCombobox";
 import Combobox, { ComboboxProps } from "./Combobox/Combobox";
 
-export type SelectOption = { [key: string]: any };
+export type SelectOption = any;
 
-export type SelectProps<O extends SelectOption> = {
+export type SelectProps<O> = {
   options: O[];
   value: O | O[] | null;
   onChange(value: O | O[] | null): void;
-  getOptionLabel(option: SelectOption): ReactNode | string;
+  getOptionLabel(option: O): ReactNode | string;
   filterOptions?: (options: O[], query: string) => O[];
   displayValue?: (option: O) => string;
   multiple?: boolean;
+  onCreate?: (query: string) => void;
 } & Pick<
   ComboboxProps<O>,
-  "placeholder" | "disabled" | "name" | "required" | "className" | "by"
+  | "placeholder"
+  | "disabled"
+  | "name"
+  | "required"
+  | "className"
+  | "by"
+  | "loading"
 >;
 
 const DEFAULT_FILTER_OPTIONS = (options: SelectOption[], query: string) => {
   return options.filter((opt) =>
-    opt.label.toLowerCase().includes(query.toLowerCase())
+    opt.toLowerCase().includes(query.toLowerCase())
   );
 };
 
-function Select<O extends SelectOption = { [key: string]: any }>(
-  props: SelectProps<O>
-) {
+function Select<O>(props: SelectProps<O>) {
   const {
     options,
     value,
     onChange,
+    onCreate,
     multiple,
     disabled,
     placeholder,
     className,
     name,
     by,
-    displayValue = (o) => o.label,
+    displayValue = (o) => o,
     filterOptions = DEFAULT_FILTER_OPTIONS,
     getOptionLabel,
     required,
+    loading,
   } = props;
-  const [query, setQuery] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>("");
+  const [__resetKey__, setResetKey] = useState("");
 
   const onInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setQuery(event.target.value);
+    setQuery(event.target.value ?? "");
   };
 
   const filteredOptions = useMemo(
@@ -52,10 +66,18 @@ function Select<O extends SelectOption = { [key: string]: any }>(
     [options, query, filterOptions]
   );
 
+  const handleCreate: MouseEventHandler<HTMLDivElement> = (event) => {
+    if (!onCreate) return;
+    setQuery("");
+    setResetKey(Math.random().toString(36).substring(7));
+    onCreate(query);
+  };
+
   const Picker = multiple ? MultiCombobox : Combobox;
 
   return (
     <Picker
+      key={__resetKey__}
       value={value as any}
       name={name}
       required={required}
@@ -64,10 +86,19 @@ function Select<O extends SelectOption = { [key: string]: any }>(
       onInputChange={onInputChange}
       className={className}
       onChange={onChange}
-      displayValue={displayValue}
+      displayValue={displayValue as any}
       by={by}
+      loading={loading}
       withPortal
     >
+      {onCreate && query.length > 0 && (
+        <div
+          className="cursor-pointer p-2 text-gray-900 hover:bg-blue-500 hover:text-white"
+          onClick={handleCreate}
+        >
+          Create &quot;{query}&quot;
+        </div>
+      )}
       {filteredOptions.map((option, i) => (
         <Combobox.CheckOption key={i} value={option}>
           {getOptionLabel(option)}

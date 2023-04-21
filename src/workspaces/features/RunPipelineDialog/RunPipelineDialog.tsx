@@ -19,6 +19,8 @@ import {
   RunPipelineDialog_RunFragment,
   RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
+import { PipelineVersion } from "graphql-types";
+import ParameterField from "./ParameterField";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -34,7 +36,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
   const { open, onClose, pipeline } = props;
 
-  const form = useForm<{ version: any; [key: string]: any }>({
+  const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
     async onSubmit(values) {
       const { version, ...params } = values;
       const run = await runPipeline(pipeline.id, params, version?.number);
@@ -48,14 +50,21 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       onClose();
     },
     getInitialState() {
-      return {
-        version:
-          (("version" in props && props.version) ||
-            ("run" in props && props.run.version) ||
-            pipeline.currentVersion) ??
-          null,
-        ...("run" in props ? props.run.config : {}),
+      const version =
+        ("version" in props && props.version) ||
+        ("run" in props && props.run.version) ||
+        pipeline.currentVersion ||
+        null;
+
+      let state: any = {
+        version,
       };
+
+      if ("run" in props && props.run) {
+        state = { ...state, ...props.run.config };
+      }
+
+      return state;
     },
   });
   const { t } = useTranslation();
@@ -69,8 +78,15 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   useEffect(() => {
     const version = form.formData.version;
     if (version) {
+      console.log("version changed", version);
       form.resetForm();
+
       form.setFieldValue("version", version);
+      if (version) {
+        version.parameters.map((param) => {
+          form.setFieldValue(param.code, param.default);
+        });
+      }
     }
   }, [form, form.formData.version]);
 
@@ -90,7 +106,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     );
   }
 
-  const parameters = (form.formData.version?.parameters ?? []) as Parameter[];
+  const parameters = form.formData.version?.parameters ?? [];
   return (
     <Dialog
       open={open}
@@ -108,12 +124,12 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               onChange={(value) => form.setFieldValue("version", value)}
             />
           </Field>
-          {parameters.length === 0 && (
+          {form.formData.version && parameters.length === 0 && (
             <p>{t("This pipeline has no parameter")}</p>
           )}
           <div
             className={clsx(
-              "grid gap-3",
+              "grid gap-x-3 gap-y-4",
               parameters.length > 4 && "grid-cols-2 gap-x-5"
             )}
           >
@@ -121,42 +137,17 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               <Field
                 required={param.required ?? true} // We also support parameters where required is not set
                 key={i}
-                name={param.name}
-                label={param.help}
+                name={param.code}
+                label={param.name}
+                help={param.help}
               >
-                {param.type === "bool" && (
-                  <Switch
-                    name={param.name}
-                    checked={form.formData[param.name] ?? false}
-                    onChange={(checked) =>
-                      form.setFieldValue(param.name, checked)
-                    }
-                  />
-                )}
-                {param.choices?.length ? (
-                  <SimpleSelect
-                    name={param.name}
-                    value={form.formData[param.name]}
-                    required={param.required}
-                    onChange={form.handleInputChange}
-                  >
-                    {param.choices.map((opt, idx) => (
-                      <option key={idx} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </SimpleSelect>
-                ) : (
-                  <Input
-                    type={
-                      ["int", "float"].includes(param.type) ? "number" : "text"
-                    }
-                    name={param.name}
-                    required={param.required ?? true}
-                    onChange={form.handleInputChange}
-                    value={form.formData[param.name] || ""}
-                  />
-                )}
+                <ParameterField
+                  parameter={param}
+                  value={form.formData[param.code]}
+                  onChange={(value: any) =>
+                    form.setFieldValue(param.code, value)
+                  }
+                />
               </Field>
             ))}
           </div>
@@ -193,7 +184,12 @@ RunPipelineDialog.fragments = {
         id
         number
         createdAt
-        parameters
+        parameters {
+          name
+          code
+          required
+          ...ParameterField_parameter
+        }
         user {
           displayName
         }
@@ -201,6 +197,7 @@ RunPipelineDialog.fragments = {
 
       ...PipelineVersionPicker_pipeline
     }
+    ${ParameterField.fragments.parameter}
     ${PipelineVersionPicker.fragments.pipeline}
   `,
   version: gql`
@@ -211,8 +208,11 @@ RunPipelineDialog.fragments = {
       user {
         displayName
       }
-      parameters
+      parameters {
+        ...ParameterField_parameter
+      }
     }
+    ${ParameterField.fragments.parameter}
   `,
   run: gql`
     fragment RunPipelineDialog_run on PipelineRun {
@@ -222,12 +222,15 @@ RunPipelineDialog.fragments = {
         id
         number
         createdAt
-        parameters
+        parameters {
+          ...ParameterField_parameter
+        }
         user {
           displayName
         }
       }
     }
+    ${ParameterField.fragments.parameter}
   `,
 };
 

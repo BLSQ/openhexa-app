@@ -36,12 +36,12 @@ import { useRouter } from "next/router";
 type Props = {
   page: number;
   perPage: number;
-  pipelineId: string;
+  pipelineCode: string;
   workspaceSlug: string;
 };
 
 const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
-  const { pipelineId, workspaceSlug, page, perPage } = props;
+  const { pipelineCode, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
@@ -49,7 +49,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { data } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
-      pipelineId,
+      pipelineCode,
       page,
       perPage,
     },
@@ -91,7 +91,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 isLast
                 href={`/workspaces/${encodeURIComponent(
                   workspace.slug
-                )}/pipelines/${encodeURIComponent(pipeline.id)}`}
+                )}/pipelines/${encodeURIComponent(pipeline.code)}`}
               >
                 {pipeline.name}
               </Breadcrumbs.Part>
@@ -197,9 +197,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                       customStyle="text-gray-700 font-medium"
                       href={{
                         pathname:
-                          "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
+                          "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
                         query: {
-                          pipelineId: pipeline.id,
+                          pipelineCode: pipeline.code,
                           workspaceSlug: workspace.slug,
                           runId: item.id,
                         },
@@ -237,10 +237,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   accessor="id"
                   url={(value: any) => ({
                     pathname:
-                      "/workspaces/[workspaceSlug]/pipelines/[pipelineId]/runs/[runId]",
+                      "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]/runs/[runId]",
                     query: {
                       workspaceSlug: workspace.slug,
-                      pipelineId: pipeline.id,
+                      pipelineCode: pipeline.code,
                       runId: value,
                     },
                   })}
@@ -279,7 +279,7 @@ export const getServerSideProps = createGetServerSideProps({
       query: WorkspacePipelinePageDocument,
       variables: {
         workspaceSlug: ctx.params!.workspaceSlug as string,
-        pipelineId: ctx.params!.pipelineId,
+        pipelineCode: ctx.params!.pipelineCode as string,
         page,
         perPage,
       },
@@ -291,7 +291,7 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       props: {
         workspaceSlug: ctx.params!.workspaceSlug,
-        pipelineId: ctx.params!.pipelineId,
+        pipelineCode: ctx.params!.pipelineCode,
         page,
         perPage,
       },

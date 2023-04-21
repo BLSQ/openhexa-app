@@ -16,6 +16,8 @@ import {
 } from "workspaces/graphql/queries.generated";
 import { useRouter } from "next/router";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import { useState } from "react";
+import CreatePipelineDialog from "workspaces/features/CreatePipelineDialog/CreatePipelineDialog";
 
 type Props = {
   page: number;
@@ -26,6 +28,7 @@ type Props = {
 const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const { page, perPage, workspaceSlug } = props;
+  const [isDialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
   const { data } = useWorkspacePipelinesPageQuery({
     variables: {
@@ -61,7 +64,10 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
               {t("Pipelines")}
             </Breadcrumbs.Part>
           </Breadcrumbs>
-          <Button leadingIcon={<PlusIcon className="h-4 w-4" />}>
+          <Button
+            leadingIcon={<PlusIcon className="h-4 w-4" />}
+            onClick={() => setDialogOpen(true)}
+          >
             {t("Create")}
           </Button>
         </WorkspaceLayout.Header>
@@ -93,6 +99,11 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
           />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
+      <CreatePipelineDialog
+        workspace={workspace}
+        open={isDialogOpen}
+        onClose={() => setDialogOpen(false)}
+      />
     </Page>
   );
 };
