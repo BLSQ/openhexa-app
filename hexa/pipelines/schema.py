@@ -216,13 +216,13 @@ def resolve_pipeline_run(_, info, **kwargs):
     run_id = kwargs["id"]
     try:
         if isinstance(request.user, PipelineRunUser):
-            qs = PipelineRun.objects.filter(id=request.user.pipeline_run.id)
+            qs = PipelineRun.objects.filter(id=request.user.pipeline_run.id).exclude(
+                state__in=[PipelineRunState.SUCCESS, PipelineRunState.FAILED]
+            )
         else:
             qs = PipelineRun.objects.filter_for_user(request.user)
 
-        return qs.exclude(
-            state__in=[PipelineRunState.SUCCESS, PipelineRunState.FAILED]
-        ).get(id=run_id)
+        return qs.get(id=run_id)
 
     except PipelineRun.DoesNotExist:
         return None
