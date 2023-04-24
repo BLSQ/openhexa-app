@@ -45,7 +45,7 @@ jobs:
         with:
           push: true
           context: .
-          target: production
+          target: app
           file: Dockerfile
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max
@@ -60,7 +60,7 @@ jobs:
         with:
           push: true
           context: .
-          target: production
+          target: app
           file: Dockerfile
           cache-from: type=registry,ref=blsq/openhexa-app:buildcache
           cache-to: type=registry,ref=blsq/openhexa-app:buildcache,mode=max

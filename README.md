@@ -100,8 +100,13 @@ docker-compose run app manage tailwind build
 docker-compose up
 ```
 
-This will start all the required services and processes, correctly configure all the environment variables
-and fill the database with some initial data.
+This will correctly configure all the environment variables, fill the database with some initial data and start the base `db` and `app` services.
+
+If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can running the following command **instead of** `docker-compose up`:
+
+```bash
+docker-compose --profile pipelines --profile dataworker up 
+```
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
