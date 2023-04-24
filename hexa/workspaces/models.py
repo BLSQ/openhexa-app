@@ -389,9 +389,22 @@ class Connection(models.Model):
             fields = {f.code: f.value for f in self.fields.all()}
             env.update(
                 {
+                    # Add compound database URL for SQLALchemy and the like
                     stringcase.constcase(
                         f"{self.slug}_url".lower()
-                    ): f"postgresql+psycopg2://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['database']}"
+                    ): f"postgresql+psycopg2://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['db_name']}",
+                    # Add "_DATABASE" for backward-compatibility (we now use "_DB_NAME" but it used to be _DATABASE")
+                    stringcase.constcase(f"{self.slug}_database".lower()): fields[
+                        "db_name"
+                    ],
+                }
+            )
+        elif self.connection_type == ConnectionType.DHIS2:
+            fields = {f.code: f.value for f in self.fields.all()}
+            env.update(
+                {
+                    # Add "_API_URL" for backward-compatibility (we now use "_URL" but it used to be _API_URL")
+                    stringcase.constcase(f"{self.slug}_api_url".lower()): fields["url"]
                 }
             )
         return env
