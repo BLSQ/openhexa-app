@@ -118,6 +118,7 @@ class ViewsTest(TestCase):
                 "DB_DATABASE": "hexa-app",  # Kept for backward-compat
                 "DB_DB_NAME": "hexa-app",
                 "DB_URL": "postgresql+psycopg2://hexa-app:hexa-app@127.0.0.1:5432/hexa-app",
+                "WORKSPACE_BUCKET_NAME": self.WORKSPACE.bucket_name,
                 "WORKSPACE_DATABASE_DB_NAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_HOST": db_credentials["host"],
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],

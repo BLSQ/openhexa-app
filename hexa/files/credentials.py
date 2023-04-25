@@ -20,6 +20,7 @@ def notebooks_credentials(user: User, workspace: Workspace):
     )
     token, expires_in = get_short_lived_downscoped_access_token(workspace.bucket_name)
     return {
+        "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
         "GCS_TOKEN": token,
         "GCS_BUCKETS": base64.b64encode(
             json.dumps(
