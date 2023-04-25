@@ -53,7 +53,7 @@ export function getUsageSnippets(
           code: `# Importing os module 
 import os
 
-DHIS2_URL = os.getenv("${slugify(connection.slug, "api_url")}")
+DHIS2_URL = os.getenv("${slugify(connection.slug, "url")}")
 DHIS2_USERNAME = os.getenv("${slugify(connection.slug, "username")}")
 DHIS2_PASSWORD = os.getenv("${slugify(connection.slug, "password")}")
 `,
@@ -88,7 +88,7 @@ import psycopg2
 
 # Create the connection to the database
 conn = psycopg2.connect(
-  database=os.getenv("${slugify(connection.slug, "database")}"),
+  database=os.getenv("${slugify(connection.slug, "db_name")}"),
   host=os.getenv("${slugify(connection.slug, "host")}"),
   user=os.getenv("${slugify(connection.slug, "username")}"),
   password=os.getenv("${slugify(connection.slug, "password")}"),
@@ -105,7 +105,7 @@ cursor = conn.cursor()
 
 con <- dbConnect(
     RPostgres::Postgres(),
-    dbname = Sys.getenv("${slugify(connection.slug, "database")}"),
+    dbname = Sys.getenv("${slugify(connection.slug, "db_name")}"),
     host = Sys.getenv("${slugify(connection.slug, "host")}"),
     port = Sys.getenv("${slugify(connection.slug, "port")}"),
     user = Sys.getenv("${slugify(connection.slug, "username")}"),
@@ -246,9 +246,9 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
 
-  const [{ database, host, port, username, password }, { updateField }] =
+  const [{ db_name, host, port, username, password }, { updateField }] =
     useConnectionFields(form, [
-      { code: "database", name: "DB Name" },
+      { code: "db_name", name: "Database name" },
       { code: "host", name: "Host" },
       { code: "port", name: "Port" },
       { code: "username", name: "User" },
@@ -259,8 +259,8 @@ function PostgreSQLForm(props: { form: FormInstance<ConnectionForm> }) {
     <>
       <Field
         onChange={(event) => updateField(event.target.name, event.target.value)}
-        value={database.value}
-        name="database"
+        value={db_name.value}
+        name="db_name"
         label={t("Database name")}
         required
       />
@@ -303,12 +303,14 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
 
-  const [{ api_url, username, password }, { updateField }] =
-    useConnectionFields(form, [
-      { code: "api_url", name: "API Url" },
+  const [{ url, username, password }, { updateField }] = useConnectionFields(
+    form,
+    [
+      { code: "url", name: "URL" },
       { code: "username", name: "Username" },
       { code: "password", secret: true, name: "Password" },
-    ]);
+    ]
+  );
 
   return (
     <>
@@ -317,10 +319,10 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
           onChange={(event) =>
             updateField(event.target.name, event.target.value)
           }
-          value={api_url.value}
-          name="api_url"
+          value={url.value}
+          name="url"
           type="url"
-          label={t("API Url")}
+          label={t("URL")}
         />
       </div>
 

@@ -31,7 +31,7 @@ df.to_sql("${tableName}", con=engine, if_exists="replace")`;
   
 con <- dbConnect(
     RPostgres::Postgres(),
-    dbname = Sys.getenv("WORKSPACE_DATABASE_NAME"),
+    dbname = Sys.getenv("WORKSPACE_DATABASE_DB_NAME"),
     host = Sys.getenv("WORKSPACE_DATABASE_HOST"),
     port = Sys.getenv("WORKSPACE_DATABASE_PORT"),
     user = Sys.getenv("WORKSPACE_DATABASE_USERNAME"),
