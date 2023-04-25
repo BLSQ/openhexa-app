@@ -1,11 +1,11 @@
-version: "3.8"
+version: "3.9"
 
 # Defines a service that can be reused multiple times later
 x-app: &common
     build:
       context: .
       dockerfile: Dockerfile
-      target: dev
+      target: app
     networks:
       - openhexa
     environment:
@@ -28,6 +28,9 @@ x-app: &common
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       - NEW_FRONTEND_DOMAIN=localhost:3000
+      - PIPELINE_SCHEDULER_SPAWNER=docker
+      - PIPELINE_API_URL=http://app:8000
+
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR
@@ -41,8 +44,6 @@ x-app: &common
       - WORKSPACES_DATABASE_HOST=db
       - WORKSPACES_DATABASE_PORT=5432
       - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
-      - PIPELINE_SCHEDULER_SPAWNER
-      - PIPELINE_API_URL
       - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
       - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
       - GCS_SERVICE_ACCOUNT_KEY
@@ -58,7 +59,6 @@ x-app: &common
       - AWS_PERMISSIONS_BOUNDARY_POLICY_ARN
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
-      - /var/run/docker.sock:/var/run/docker.sock
     
 
 services:
@@ -89,6 +89,38 @@ services:
     <<: *common
     command: "manage validate_fileset_worker"
     restart: unless-stopped
+    profiles:
+      - "dataworker"
+    depends_on:
+      - db
+
+  pipelines_runner:
+    <<: *common
+    
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: pipelines
+    command: "manage pipelines_runner"
+    restart: unless-stopped
+    profiles:
+      - "pipelines"
+    depends_on:
+      - db
+    volumes:  # only used for Github Codespaces
+      - "${LOCAL_WORKSPACE_FOLDER:-.}:/code"
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  pipelines_scheduler:
+    <<: *common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: pipelines
+    command: "manage pipelines_scheduler"
+    restart: unless-stopped
+    profiles:
+      - "pipelines"
     depends_on:
       - db
 

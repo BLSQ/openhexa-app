@@ -5,10 +5,6 @@ RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin
 
 RUN pip install --upgrade pip
 
-# Needed for TailwindCSS
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs
-
 RUN mkdir /code
 WORKDIR /code
 
@@ -22,12 +18,24 @@ RUN pip install setuptools==57.5.0 && pip install -r requirements.txt
 COPY . /code/
 
 ENV SECRET_KEY="collectstatic"
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
+CMD start
+
+
+FROM deps as app
+# We need to have the docker client in the container to run docker-compose commands and execute pipelines
+# Needed for TailwindCSS
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN apt-get install -y nodejs
+
 RUN python manage.py tailwind install
 RUN python manage.py tailwind build --no-input
 RUN python manage.py collectstatic --noinput
 
-FROM deps as dev
-# We need to have the docker client in the container to run docker-compose commands and execute pipelines
+
+
+# Staged used to run the pipelines scheduler and runner
+FROM app as pipelines
 RUN mkdir -m 0755 -p /etc/apt/keyrings
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 RUN echo \
@@ -35,10 +43,3 @@ RUN echo \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 RUN apt-get update
 RUN apt-get install -y docker-ce-cli
-ENTRYPOINT ["/code/docker-entrypoint.sh"]
-CMD start
-
-
-FROM deps as production
-ENTRYPOINT ["/code/docker-entrypoint.sh"]
-CMD start
