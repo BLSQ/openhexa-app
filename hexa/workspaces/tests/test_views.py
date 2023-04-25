@@ -67,7 +67,7 @@ class ViewsTest(TestCase):
                 {"code": "port", "secret": False, "value": "5432"},
                 {"code": "username", "secret": False, "value": "hexa-app"},
                 {"code": "password", "secret": True, "value": "hexa-app"},
-                {"code": "database", "secret": False, "value": "hexa-app"},
+                {"code": "db_name", "secret": False, "value": "hexa-app"},
             ],
         )
 
@@ -115,8 +115,10 @@ class ViewsTest(TestCase):
                 "DB_PORT": "5432",
                 "DB_USERNAME": "hexa-app",
                 "DB_PASSWORD": "hexa-app",
-                "DB_DATABASE": "hexa-app",
+                "DB_DATABASE": "hexa-app",  # Kept for backward-compat
+                "DB_DB_NAME": "hexa-app",
                 "DB_URL": "postgresql+psycopg2://hexa-app:hexa-app@127.0.0.1:5432/hexa-app",
+                "WORKSPACE_DATABASE_DB_NAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_HOST": db_credentials["host"],
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,

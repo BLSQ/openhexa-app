@@ -40,6 +40,7 @@ def credentials(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     db_credentials = get_db_server_credentials()
     env.update(
         {
+            "WORKSPACE_DATABASE_DB_NAME": workspace.db_name,
             "WORKSPACE_DATABASE_HOST": db_credentials["host"],
             "WORKSPACE_DATABASE_PORT": db_credentials["port"],
             "WORKSPACE_DATABASE_USERNAME": workspace.db_name,
