@@ -21,6 +21,7 @@ import {
 } from "./RunPipelineDialog.generated";
 import { PipelineVersion } from "graphql-types";
 import ParameterField from "./ParameterField";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -35,6 +36,7 @@ type RunPipelineDialogProps = {
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
   const { open, onClose, pipeline } = props;
+  const clearCache = useCacheKey(["pipelines", pipeline.code]);
 
   const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
     async onSubmit(values) {
@@ -47,6 +49,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           pipeline.id
         )}/runs/${encodeURIComponent(run.id)}`
       );
+      clearCache();
       onClose();
     },
     getInitialState() {
@@ -180,6 +183,7 @@ RunPipelineDialog.fragments = {
       permissions {
         run
       }
+      code
       currentVersion {
         id
         number

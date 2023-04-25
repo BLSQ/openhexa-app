@@ -32,6 +32,7 @@ import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import { PipelineRunTrigger } from "graphql-types";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { useRouter } from "next/router";
+import useCacheKey from "core/hooks/useCacheKey";
 
 type Props = {
   page: number;
@@ -46,7 +47,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
   const router = useRouter();
-  const { data } = useWorkspacePipelinePageQuery({
+  const { data, refetch } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
       pipelineCode,
@@ -54,6 +55,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
       perPage,
     },
   });
+
+  useCacheKey(["pipelines", pipelineCode], () => refetch());
 
   if (!data?.workspace || !data?.pipeline) {
     return null;

@@ -3,7 +3,7 @@ import * as Types from '../../../graphql-types';
 import { gql } from '@apollo/client';
 import { ParameterField_ParameterFragmentDoc } from './ParameterField.generated';
 import { PipelineVersionPicker_PipelineFragmentDoc } from '../PipelineVersionPicker/PipelineVersionPicker.generated';
-export type RunPipelineDialog_PipelineFragment = { __typename?: 'Pipeline', id: string, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: Array<{ __typename?: 'PipelineParameter', name: string, code: string, required: boolean, help?: string | null, type: string, default?: any | null, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null };
+export type RunPipelineDialog_PipelineFragment = { __typename?: 'Pipeline', id: string, code: string, permissions: { __typename?: 'PipelinePermissions', run: boolean }, currentVersion?: { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: Array<{ __typename?: 'PipelineParameter', name: string, code: string, required: boolean, help?: string | null, type: string, default?: any | null, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } | null };
 
 export type RunPipelineDialog_VersionFragment = { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: string, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }> };
 
@@ -15,6 +15,7 @@ export const RunPipelineDialog_PipelineFragmentDoc = gql`
   permissions {
     run
   }
+  code
   currentVersion {
     id
     number
