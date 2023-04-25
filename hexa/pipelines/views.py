@@ -141,7 +141,7 @@ def credentials2(request: HttpRequest) -> HttpResponse:
             "mount": "/workspace",
         }
     )
-    env["WORKSPACE_BUCKET"] = run.pipeline.workspace.bucket_name
+    env["WORKSPACE_BUCKET_NAME"] = run.pipeline.workspace.bucket_name
     env["GCS_TOKEN"] = build_app_short_lived_credentials().access_token
     env["GCS_BUCKETS"] = base64.b64encode(
         json.dumps({"buckets": gcs_buckets}).encode()
