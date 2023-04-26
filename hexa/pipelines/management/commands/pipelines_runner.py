@@ -90,6 +90,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                             name="HEXA_PIPELINE_NAME",
                             value=env_var["HEXA_PIPELINE_NAME"],
                         ),
+                        k8s.V1EnvVar(
+                            name="HEXA_RUN_ID",
+                            value=env_var["HEXA_RUN_ID"],
+                        ),
                     ],
                     # We need to have /dev/fuse mounted inside the container
                     # This is done by requesting a resource: smarter-devices/fuse
