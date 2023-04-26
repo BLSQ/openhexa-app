@@ -53,6 +53,9 @@ class UserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_superuser=True."))
         return self.create_user(email, password, **extra_fields)
 
+    def get_by_natural_key(self, email: str):
+        return self.get(email=email)
+
 
 class UserInterface:
     is_staff = False

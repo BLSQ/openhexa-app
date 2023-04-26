@@ -52,5 +52,47 @@
       "updated_at": "2021-04-07T13:48:09.842Z",
       "name": "Bluesquare Users"
     }
-  }
+  },
+    {
+        "model": "user_management.feature",
+        "pk": "9bc1ce72-1bc6-46a7-84f3-e9061cd04d37",
+        "fields": {
+            "created_at": "2023-04-26T10:48:06.183Z",
+            "updated_at": "2023-04-26T10:55:32.486Z",
+            "code": "openhexa_legacy",
+            "force_activate": false
+        }
+    },
+    {
+        "model": "user_management.feature",
+        "pk": "da2feac3-9c69-4b8c-b6c1-b53a8000e57a",
+        "fields": {
+            "created_at": "2023-04-26T10:55:43.679Z",
+            "updated_at": "2023-04-26T10:55:43.679Z",
+            "code": "workspaces",
+            "force_activate": false
+        }
+    },
+    {
+        "model": "user_management.featureflag",
+        "pk": "8bcf45b6-d2c3-4eef-8b31-ec19c6c8613b",
+        "fields": {
+            "created_at": "2023-04-26T10:55:32.487Z",
+            "updated_at": "2023-04-26T10:55:32.487Z",
+            "feature": "9bc1ce72-1bc6-46a7-84f3-e9061cd04d37",
+            "user": ["root@openhexa.org"],
+            "config": {}
+        }
+    },
+    {
+        "model": "user_management.featureflag",
+        "pk": "17c137f0-8840-4358-b1d8-9b2c600a8186",
+        "fields": {
+            "created_at": "2023-04-26T10:55:43.680Z",
+            "updated_at": "2023-04-26T10:55:43.680Z",
+            "feature": "da2feac3-9c69-4b8c-b6c1-b53a8000e57a",
+            "user": ["root@openhexa.org"],
+            "config": {}
+        }
+    }
 ]
