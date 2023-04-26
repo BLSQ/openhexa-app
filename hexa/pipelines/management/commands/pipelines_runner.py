@@ -76,7 +76,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     image="blsq/openhexa-pipelines",
                     name=container_name,
                     image_pull_policy="Always",
-                    args=["-c", f"{json.dumps(run.config)}"],
+                    args=[json.dumps(run.config)],
                     env=[
                         k8s.V1EnvVar(
                             name="HEXA_SERVER_URL",
