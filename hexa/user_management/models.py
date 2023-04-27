@@ -53,9 +53,6 @@ class UserManager(BaseUserManager):
             raise ValueError(_("Superuser must have is_superuser=True."))
         return self.create_user(email, password, **extra_fields)
 
-    def get_by_natural_key(self, email: str):
-        return self.get(email=email)
-
 
 class UserInterface:
     is_staff = False
@@ -283,19 +280,12 @@ class Membership(Base):
         return super().delete()
 
 
-class FeatureManager(models.Manager):
-    def get_by_natural_key(self, code: str):
-        return self.get(code=code)
-
-
 class Feature(Base):
     class Meta:
         db_table = "identity_feature"
 
     code = models.CharField(max_length=200)
     force_activate = models.BooleanField(default=False)
-
-    objects = FeatureManager()
 
     def __str__(self):
         return self.code

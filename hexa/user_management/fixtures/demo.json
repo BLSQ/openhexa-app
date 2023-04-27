@@ -79,7 +79,7 @@
         "fields": {
             "created_at": "2023-04-26T10:55:32.487Z",
             "updated_at": "2023-04-26T10:55:32.487Z",
-            "feature": ["workspaces"],
+            "feature": "9bc1ce72-1bc6-46a7-84f3-e9061cd04d37",
             "user": ["root@openhexa.org"],
             "config": {}
         }
@@ -90,7 +90,7 @@
         "fields": {
             "created_at": "2023-04-26T10:55:43.680Z",
             "updated_at": "2023-04-26T10:55:43.680Z",
-            "feature": ["openhexa_legacy"],
+            "feature": "da2feac3-9c69-4b8c-b6c1-b53a8000e57a",
             "user": ["root@openhexa.org"],
             "config": {}
         }
