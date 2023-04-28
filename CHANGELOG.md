@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.25.0](https://github.com/BLSQ/openhexa-frontend/compare/0.24.1...0.25.0) (2023-04-28)
+
+
+### Features
+
+* **Workspaces:** remove non-functional tabs in settings ([#279](https://github.com/BLSQ/openhexa-frontend/issues/279)) ([f0d7cb7](https://github.com/BLSQ/openhexa-frontend/commit/f0d7cb79022be4068c17f86b5d4c85a559eb2310))
+* **Workspaces:** User can close/open the sidebar to have more room By default it shinks the sidebar on the notebooks page ([82884dd](https://github.com/BLSQ/openhexa-frontend/commit/82884dd3ae4a982fdc0596ad84528e8294e9128d))
+
+
+### Bug Fixes
+
+* **Pipelines:** order pipeline runs by last execution date ([#276](https://github.com/BLSQ/openhexa-frontend/issues/276)) ([d8114b1](https://github.com/BLSQ/openhexa-frontend/commit/d8114b1bce3dfd42ee79ce93c05c27803b0892bc))
+* **Pipelines:** Take the values from run to execute again; fix display of 'multiple' type parameter ([82884dd](https://github.com/BLSQ/openhexa-frontend/commit/82884dd3ae4a982fdc0596ad84528e8294e9128d))
+
 ## [0.24.1](https://github.com/BLSQ/openhexa-frontend/compare/0.24.0...0.24.1) (2023-04-25)
 
 
