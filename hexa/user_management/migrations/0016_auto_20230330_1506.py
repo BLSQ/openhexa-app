@@ -11,10 +11,11 @@ def add_openhexa_legacy_flag(apps, schema_editor):
     feature = None
     try:
         feature = Feature.objects.get(code="openhexa_legacy")
-        for user in User.objects.all():
-            FeatureFlag.objects.create(feature=feature, user=user)
     except Feature.DoesNotExist:
-        pass
+        feature = Feature.objects.create(code="openhexa_legacy")
+
+    for user in User.objects.all():
+        FeatureFlag.objects.create(feature=feature, user=user)
 
 
 class Migration(migrations.Migration):
