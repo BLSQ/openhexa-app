@@ -52,5 +52,43 @@
       "updated_at": "2021-04-07T13:48:09.842Z",
       "name": "Bluesquare Users"
     }
-  }
+  },
+    {
+        "model": "user_management.feature",
+        "fields": {
+            "created_at": "2023-04-26T10:48:06.183Z",
+            "updated_at": "2023-04-26T10:55:32.486Z",
+            "code": "openhexa_legacy",
+            "force_activate": false
+        }
+    },
+    {
+        "model": "user_management.feature",
+        "fields": {
+            "created_at": "2023-04-26T10:55:43.679Z",
+            "updated_at": "2023-04-26T10:55:43.679Z",
+            "code": "workspaces",
+            "force_activate": false
+        }
+    },
+    {
+        "model": "user_management.featureflag",
+        "fields": {
+            "created_at": "2023-04-26T10:55:32.487Z",
+            "updated_at": "2023-04-26T10:55:32.487Z",
+            "feature": ["openhexa_legacy"],
+            "user": ["root@openhexa.org"],
+            "config": {}
+        }
+    },
+    {
+        "model": "user_management.featureflag",
+        "fields": {
+            "created_at": "2023-04-26T10:55:43.680Z",
+            "updated_at": "2023-04-26T10:55:43.680Z",
+            "feature": ["workspaces"],
+            "user": ["root@openhexa.org"],
+            "config": {}
+        }
+    }
 ]
