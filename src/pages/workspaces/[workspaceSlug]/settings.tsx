@@ -139,24 +139,6 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   <WorkspaceMembers workspaceSlug={workspace.slug} />
                 </Block>
               </Tabs.Tab>
-              <Tabs.Tab
-                className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3"
-                label={t("Environments")}
-              >
-                <div></div>
-              </Tabs.Tab>
-              <Tabs.Tab
-                className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3"
-                label={t("Version Control")}
-              >
-                <div></div>
-              </Tabs.Tab>
-              <Tabs.Tab
-                className="mt-4 grid grid-cols-2 gap-5 sm:grid-cols-3"
-                label={t("Policies")}
-              >
-                <div></div>
-              </Tabs.Tab>
             </Tabs>
           </div>
           <ArchiveWorkspaceDialog
