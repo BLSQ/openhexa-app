@@ -205,7 +205,10 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               >
                 {config.map((entry) => (
                   <DescriptionList.Item key={entry.name} label={entry.name}>
-                    {(entry.type === "str" && entry.value) ?? "-"}
+                    {entry.type === "str" && !entry.value && "-"}
+                    {entry.type === "str" && entry.value && entry.multiple
+                      ? entry.value.join(", ")
+                      : entry.value}
                     {entry.type === "bool" && (
                       <Switch checked={entry.value} disabled />
                     )}
@@ -251,8 +254,7 @@ WorkspacePipelineRunPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    await WorkspaceLayout.prefetch(client);
-
+    await WorkspaceLayout.prefetch(ctx, client);
     const { data } = await client.query<
       WorkspacePipelineRunPageQuery,
       WorkspacePipelineRunPageQueryVariables

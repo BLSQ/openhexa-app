@@ -1,6 +1,7 @@
 import * as Types from '../../graphql-types';
 
 import { gql } from '@apollo/client';
+import { UserAvatar_UserFragmentDoc } from '../features/UserAvatar.generated';
 import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
@@ -29,6 +30,7 @@ export const GetUserDocument = gql`
       config
     }
     user {
+      ...UserAvatar_user
       email
       id
       firstName
@@ -41,7 +43,7 @@ export const GetUserDocument = gql`
     }
   }
 }
-    `;
+    ${UserAvatar_UserFragmentDoc}`;
 
 /**
  * __useGetUserQuery__

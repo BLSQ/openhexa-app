@@ -29,14 +29,16 @@ import {
   SidebarMenuQueryVariables,
   SidebarMenu_WorkspaceFragment,
 } from "./SidebarMenu.generated";
+import UserAvatar from "identity/features/UserAvatar";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
+  compact?: boolean;
 }
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 
 const SidebarMenu = (props: SidebarMenuProps) => {
-  const { workspace } = props;
+  const { workspace, compact = false } = props;
   const { t } = useTranslation();
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -109,35 +111,43 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   return (
     <div className="w-full" ref={innerMenuRef}>
       <button
-        className="group flex h-16 w-full items-center bg-gray-800 px-2 text-left hover:bg-gray-600"
+        className="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
         ref={setReferenceElement}
         onClick={toggle}
       >
-        {workspace.countries.length === 1 && (
-          <div className="mr-2.5 flex h-full items-center">
-            <img
-              alt="Country flag"
-              loading="lazy"
-              className="w-5 rounded-sm"
-              src={workspace.countries[0].flag}
-            />
-          </div>
-        )}
-        <div
-          className={clsx(
-            "flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
-          )}
-          title={workspace.name}
-        >
-          {workspace.name}
-          {me.user && (
-            <div className="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400">
-              {me.user.email}
+        {!compact ? (
+          <>
+            {workspace.countries.length === 1 && (
+              <div className="mr-2.5 flex h-full items-center">
+                <img
+                  alt="Country flag"
+                  loading="lazy"
+                  className="w-5 rounded-sm"
+                  src={workspace.countries[0].flag}
+                />
+              </div>
+            )}
+            <div
+              className={clsx(
+                "flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
+              )}
+              title={workspace.name}
+            >
+              {workspace.name}
+              {me.user && (
+                <div className="text-xs tracking-tighter text-gray-500 group-hover:text-gray-400">
+                  {me.user.email}
+                </div>
+              )}
+              {/* This will be pushed outside of the block if there is not enough space to display it */}
             </div>
-          )}
-          {/* This will be pushed outside of the block if there is not enough space to display it */}
-        </div>
-        <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100" />
+            <ChevronDownIcon className="ml-1 h-4 w-4 text-gray-500 group-hover:text-gray-100" />
+          </>
+        ) : me.user ? (
+          <UserAvatar size="sm" user={me.user} />
+        ) : (
+          <UserIcon className="h-6 w-6 text-gray-500" />
+        )}
       </button>
 
       <Transition
@@ -154,7 +164,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
           style={styles.popper}
           ref={setPopperElement}
           {...attributes.popper}
-          className="divide flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded bg-white pt-2 text-base shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none"
+          className="divide z-50 flex w-72 flex-col divide-y divide-gray-200 overflow-hidden rounded bg-white pt-2 text-base shadow-md ring-1 ring-black ring-opacity-5 focus:outline-none"
         >
           <section>
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">

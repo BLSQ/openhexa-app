@@ -177,8 +177,7 @@ export const getServerSideProps = createGetServerSideProps({
         slug: ctx.params?.workspaceSlug,
       },
     });
-    await WorkspaceLayout.prefetch(client);
-
+    await WorkspaceLayout.prefetch(ctx, client);
     if (!data.workspace || !data.workspace.permissions.manageMembers) {
       return {
         notFound: true,

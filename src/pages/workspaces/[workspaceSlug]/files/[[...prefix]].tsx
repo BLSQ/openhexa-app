@@ -139,8 +139,7 @@ WorkspaceFilesPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    WorkspaceLayout.prefetch(client);
-
+    await WorkspaceLayout.prefetch(ctx, client);
     const prefixArr = (ctx.params?.prefix as string[]) ?? [];
     const prefix = prefixArr.length > 0 ? prefixArr.join("/") + "/" : "";
     const page = ctx.query?.page ? parseInt(ctx.query.page as string, 10) : 1;

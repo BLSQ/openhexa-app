@@ -2,6 +2,8 @@ import { gql } from "@apollo/client";
 import {
   ArrowPathIcon,
   BookOpenIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CircleStackIcon,
   Cog6ToothIcon,
   FolderOpenIcon,
@@ -13,20 +15,24 @@ import Link from "core/components/Link";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { ReactNode, useMemo } from "react";
+import { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
+import { LayoutContext } from "./WorkspaceLayout";
+import Badge from "core/components/Badge";
 
 type SidebarProps = {
   workspace: any;
+  className?: string;
 };
 
 const NavItem = (props: {
-  icon?: ReactNode;
-  children: ReactNode;
+  Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  label?: string;
   href: string;
   exact?: boolean;
+  compact?: boolean;
 }) => {
-  const { icon, children, href, exact } = props;
+  const { Icon, compact, label, href, exact } = props;
   const router = useRouter();
 
   const isCurrent = useMemo(() => {
@@ -46,95 +52,125 @@ const NavItem = (props: {
       href={href}
       noStyle
       className={clsx(
-        "text-md group flex items-center gap-3 border-l-4 px-2 py-2 font-medium",
+        "text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
         isCurrent
-          ? " border-pink-500 text-white"
-          : "border-transparent text-gray-300 hover:bg-gray-700 hover:text-white"
+          ? "text-white"
+          : " text-gray-300 hover:bg-gray-700 hover:text-white",
+        compact && "justify-center "
       )}
     >
-      {icon && (
-        <div
-          className={clsx(
-            isCurrent
-              ? "text-gray-300"
-              : "text-gray-400 group-hover:text-gray-300"
-          )}
-        >
-          {icon}
+      <div
+        className={clsx(
+          "absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity",
+          isCurrent ? "opacity-100" : "opacity-0"
+        )}
+      ></div>
+      <Icon className={clsx(compact ? "h-7 w-7" : "ml-1 h-5 w-5")} />
+      {compact ? (
+        <div className="absolute inset-y-0 left-full ml-1.5 flex h-full items-center text-xs opacity-0 transition-opacity group-hover:opacity-100">
+          <Badge className="bg-gray-800 ">{label}</Badge>
         </div>
+      ) : (
+        label
       )}
-      {children}
     </Link>
   );
 };
 
 const Sidebar = (props: SidebarProps) => {
-  const { workspace } = props;
+  const { workspace, className } = props;
   const { t } = useTranslation();
+  const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
 
   const { slug } = workspace;
 
   return (
-    <div className="fixed inset-y-0 flex w-64 flex-col">
-      <div className="flex flex-grow flex-col overflow-y-auto border-r border-gray-200 bg-gray-800">
-        <SidebarMenu workspace={workspace} />
+    <div className={clsx("relative z-20 h-full", className)}>
+      <div className="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800">
+        <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex flex-grow flex-col">
           <nav className="flex-1 space-y-1 px-0 pb-4">
-            <NavItem exact href={`/workspaces/${encodeURIComponent(slug)}`}>
-              <HomeIcon className="h-5 w-5" />
-              {t("Home")}
-            </NavItem>
-            <NavItem href={`/workspaces/${encodeURIComponent(slug)}/files`}>
-              <FolderOpenIcon className="h-5 w-5" />
-              {t("Files")}
-            </NavItem>
-            <NavItem href={`/workspaces/${encodeURIComponent(slug)}/databases`}>
-              <CircleStackIcon className="h-5 w-5" />
-              {t("Database")}
-            </NavItem>
+            <NavItem
+              exact
+              href={`/workspaces/${encodeURIComponent(slug)}`}
+              Icon={HomeIcon}
+              label={t("Home")}
+              compact={!isSidebarOpen}
+            />
+            <NavItem
+              href={`/workspaces/${encodeURIComponent(slug)}/files`}
+              Icon={FolderOpenIcon}
+              label={t("Files")}
+              compact={!isSidebarOpen}
+            />
+            <NavItem
+              href={`/workspaces/${encodeURIComponent(slug)}/databases`}
+              Icon={CircleStackIcon}
+              label={t("Database")}
+              compact={!isSidebarOpen}
+            />
             <NavItem
               href={`/workspaces/${encodeURIComponent(slug)}/connections`}
-            >
-              <SwatchIcon className="h-5 w-5" />
-              {t("Connections")}
-            </NavItem>
-            <NavItem href={`/workspaces/${encodeURIComponent(slug)}/pipelines`}>
-              <ArrowPathIcon className="h-5 w-5" />
-              {t("Pipelines")}
-            </NavItem>
+              Icon={SwatchIcon}
+              label={t("Connections")}
+              compact={!isSidebarOpen}
+            />
+            <NavItem
+              href={`/workspaces/${encodeURIComponent(slug)}/pipelines`}
+              Icon={ArrowPathIcon}
+              label={t("Pipelines")}
+              compact={!isSidebarOpen}
+            />
             {workspace.permissions.update && (
               <NavItem
                 href={`/workspaces/${encodeURIComponent(slug)}/notebooks`}
-              >
-                <BookOpenIcon className="h-5 w-5" />
-                {t("JupyterHub")}
-              </NavItem>
+                Icon={BookOpenIcon}
+                label={t("JupyterHub")}
+                compact={!isSidebarOpen}
+              />
             )}
             {workspace.permissions.manageMembers && (
               <NavItem
                 href={`/workspaces/${encodeURIComponent(slug)}/settings`}
-              >
-                <Cog6ToothIcon className="h-5 w-5" />
-                {t("Settings")}
-              </NavItem>
+                Icon={Cog6ToothIcon}
+                label={t("Settings")}
+                compact={!isSidebarOpen}
+              />
             )}
           </nav>
         </div>
+
         <div className="mb-5 flex flex-shrink-0 flex-col items-center px-4">
-          <Link
-            noStyle
-            href="/"
-            className="relative flex h-8 flex-shrink-0 items-center"
-          >
+          <Link noStyle href="/" className="flex h-8 items-center">
             <img
               className="h-full"
-              src="/images/logo_with_text_white.svg"
+              src={
+                isSidebarOpen
+                  ? "/images/logo_with_text_white.svg"
+                  : "/images/logo.svg"
+              }
               alt="OpenHexa logo"
             />
           </Link>
         </div>
       </div>
+      <button
+        onClick={() => setSidebarOpen(!isSidebarOpen)}
+        className="group absolute inset-y-0 right-0 border-r-4 border-transparent after:absolute after:inset-y-0 after:-left-1.5 after:block after:w-5 after:content-[''] hover:border-r-gray-500"
+      >
+        <div className="relative h-full">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+            <div className="pointer-events-auto invisible rounded-l-md bg-gray-500 p-1 pr-0.5 align-middle text-white group-hover:visible">
+              {isSidebarOpen ? (
+                <ChevronLeftIcon className="h-5 w-5" />
+              ) : (
+                <ChevronRightIcon className="h-5 w-5" />
+              )}
+            </div>
+          </div>
+        </div>
+      </button>
     </div>
   );
 };

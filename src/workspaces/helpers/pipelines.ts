@@ -1,22 +1,14 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import CronParser from "cron-parser";
+import cronstrue from "cronstrue/i18n";
+import "cronstrue/locales/fr";
 import {
   RunWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
-import cronstrue from "cronstrue/i18n";
-import "cronstrue/locales/fr";
-import CronParser from "cron-parser";
-import { PipelineRun } from "graphql-types";
-
-export type Parameter = {
-  help: string;
-  name: string;
-  choices?: null | string[];
-  required?: boolean;
-  type: "str" | "bool" | "int" | "float";
-};
+import { PipelineParameter } from "graphql-types";
 
 export async function updatePipeline(pipelineId: string, values: any) {
   const client = getApolloClient();
@@ -111,7 +103,7 @@ export async function runPipeline(
 
 export function getPipelineRunConfig(run: {
   config: any;
-  version: { parameters: any };
+  version: { parameters: Omit<PipelineParameter, "__typename">[] };
 }) {
   const config = run.config || {};
   const parameters = run.version?.parameters || [];
@@ -119,5 +111,5 @@ export function getPipelineRunConfig(run: {
   return parameters.map((param: any) => ({
     value: config[param.code],
     ...param,
-  })) as (Parameter & { value: any })[];
+  })) as (PipelineParameter & { value: any })[];
 }

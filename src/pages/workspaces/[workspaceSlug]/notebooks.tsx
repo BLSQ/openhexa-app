@@ -45,7 +45,11 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={t("Workspace")}>
-      <WorkspaceLayout workspace={data.workspace} className="min-h-screen">
+      <WorkspaceLayout
+        workspace={data.workspace}
+        className="min-h-screen"
+        forceCompactSidebar
+      >
         <iframe
           className="h-full w-full flex-1"
           src={props.notebooksUrl}
@@ -60,7 +64,7 @@ WorkspaceNotebooksPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
-    await WorkspaceLayout.prefetch(client);
+    await WorkspaceLayout.prefetch(ctx, client);
     const { data } = await client.query({
       query: WorkspaceNotebooksPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },

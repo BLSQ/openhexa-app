@@ -159,7 +159,7 @@ WorkspaceConnectionPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    WorkspaceLayout.prefetch(client);
+    await WorkspaceLayout.prefetch(ctx, client);
     const workspaceSlug = ctx.params?.workspaceSlug as string;
     const connectionId = ctx.params?.connectionId as string;
     const { data } = await client.query<

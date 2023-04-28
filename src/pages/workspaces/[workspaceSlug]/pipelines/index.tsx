@@ -117,8 +117,7 @@ export const getServerSideProps = createGetServerSideProps({
     const page = parseInt((ctx.query.page as string) ?? "1", 10);
     const perPage = parseInt((ctx.query.perPage as string) ?? "15", 10);
 
-    await WorkspaceLayout.prefetch(client);
-
+    await WorkspaceLayout.prefetch(ctx, client);
     const { data } = await client.query<
       WorkspacePipelinesPageQuery,
       WorkspacePipelinesPageQueryVariables
