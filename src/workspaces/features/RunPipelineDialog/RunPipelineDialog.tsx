@@ -5,23 +5,20 @@ import Alert from "core/components/Alert";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
-import Input from "core/components/forms/Input";
-import SimpleSelect from "core/components/forms/SimpleSelect";
-import Switch from "core/components/Switch";
+import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
+import { PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Parameter, runPipeline } from "workspaces/helpers/pipelines";
+import { runPipeline } from "workspaces/helpers/pipelines";
 import PipelineVersionPicker from "../PipelineVersionPicker";
+import ParameterField from "./ParameterField";
 import {
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
   RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
-import { PipelineVersion } from "graphql-types";
-import ParameterField from "./ParameterField";
-import useCacheKey from "core/hooks/useCacheKey";
 
 type RunPipelineDialogProps = {
   open: boolean;
