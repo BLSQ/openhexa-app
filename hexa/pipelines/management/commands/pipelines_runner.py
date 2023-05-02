@@ -141,14 +141,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             break
         sleep(5)
 
-    # download termination message and logs
-    try:
-        containers = {c.name: c.state for c in remote_pod.status.container_statuses}
-        termination_message = containers[container_name].terminated.message
-    except (KeyError, AttributeError, TypeError):
-        logger.exception("get termination_message")
-        termination_message = ""
-
+    # download logs
     try:
         stdout = v1.read_namespaced_pod_log(
             name=pod.metadata.name,
@@ -171,10 +164,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         if e.status != 404:
             logger.exception("pod delete")
 
-    return remote_pod.status.phase == "Succeeded", "STDOUT\n%s\n\nMESSAGES\n%s" % (
-        stdout,
-        termination_message,
-    )
+    return remote_pod.status.phase == "Succeeded", "STDOUT\n%s" % (stdout,)
 
 
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
