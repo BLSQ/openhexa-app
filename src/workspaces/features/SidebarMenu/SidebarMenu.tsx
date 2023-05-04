@@ -1,10 +1,10 @@
 import { gql, useQuery } from "@apollo/client";
 import { Transition } from "@headlessui/react";
 import {
+  ArrowLeftCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   UserIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
@@ -13,7 +13,6 @@ import User from "core/features/User";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
 import useToggle from "core/hooks/useToggle";
-import { Country, Workspace } from "graphql-types";
 import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
@@ -43,6 +42,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const isAdmin = useFeature("adminPanel");
+  const [hasLegacyAccess] = useFeature("openhexa_legacy");
   const router = useRouter();
   useEffect(() => {
     if (isOpen) {
@@ -253,14 +253,16 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 {t("Administration")}
               </Link>
             )}
-            <Link
-              href="/"
-              noStyle
-              className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
-            >
-              <XCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-              {t("Exit preview")}
-            </Link>
+            {hasLegacyAccess && (
+              <Link
+                href="/"
+                noStyle
+                className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
+              >
+                <ArrowLeftCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
+                {t("Back to OpenHexa classic")}
+              </Link>
+            )}
             <Link
               href="/auth/logout"
               noStyle
