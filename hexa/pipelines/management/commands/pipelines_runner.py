@@ -79,6 +79,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     args=[json.dumps(run.config)],
                     env=[
                         k8s.V1EnvVar(
+                            name="HEXA_ENVIRONMENT",
+                            value="PIPELINE",
+                        ),
+                        k8s.V1EnvVar(
                             name="HEXA_SERVER_URL",
                             value=env_var["HEXA_SERVER_URL"],
                         ),
@@ -170,7 +174,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} --network openhexa --platform linux/amd64 --rm blsq/openhexa-pipelines'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} --network openhexa --platform linux/amd64 --rm blsq/openhexa-pipelines'
     cmd = docker_cmd.split(" ") + [f"{json.dumps(run.config)}"]
 
     proc = Popen(
