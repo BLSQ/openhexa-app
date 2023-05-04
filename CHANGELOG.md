@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.26.0](https://github.com/BLSQ/openhexa-frontend/compare/0.25.0...0.26.0) (2023-05-04)
+
+
+### Features
+
+* **Workspaces:** rename and add check on exit preview button  ([#281](https://github.com/BLSQ/openhexa-frontend/issues/281)) ([160b595](https://github.com/BLSQ/openhexa-frontend/commit/160b59539523c862d834628b39cb74aa909f97dd))
+
+
+### Bug Fixes
+
+* **Pipelines:** Break long workspace slug in CreatePipelineDialog ([#284](https://github.com/BLSQ/openhexa-frontend/issues/284)) ([422aa92](https://github.com/BLSQ/openhexa-frontend/commit/422aa922f2cf0f9a75495895dc4352189ff19c54))
+
 ## [0.25.0](https://github.com/BLSQ/openhexa-frontend/compare/0.24.1...0.25.0) (2023-04-28)
 
 
