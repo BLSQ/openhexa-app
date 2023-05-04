@@ -48,7 +48,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-2xl">
       <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <p className="mb-6">
@@ -75,8 +75,10 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             </span>
           </div>
           <div>
-            <span className="select-none text-gray-400">$ </span>openhexa
-            workspaces add <b>{workspace.slug}</b>
+            <span className="select-none text-gray-400">$ </span>
+            <span className="whitespace-normal">
+              openhexa workspaces add <b>{workspace.slug}</b>
+            </span>
           </div>
         </pre>
         <Field name="token" label={t("Access Token")} required>
