@@ -18,6 +18,7 @@ export type SelectProps<O> = {
   filterOptions?: (options: O[], query: string) => O[];
   displayValue?: (option: O) => string;
   multiple?: boolean;
+  addLabel?: string;
   onCreate?: (query: string) => void;
 } & Pick<
   ComboboxProps<O>,
@@ -42,6 +43,7 @@ function Select<O>(props: SelectProps<O>) {
     value,
     onChange,
     onCreate,
+    addLabel = "Add",
     multiple,
     disabled,
     placeholder,
@@ -96,7 +98,7 @@ function Select<O>(props: SelectProps<O>) {
           className="cursor-pointer p-2 text-gray-900 hover:bg-blue-500 hover:text-white"
           onClick={handleCreate}
         >
-          Create &quot;{query}&quot;
+          {addLabel} &quot;{query}&quot;
         </div>
       )}
       {filteredOptions.map((option, i) => (
