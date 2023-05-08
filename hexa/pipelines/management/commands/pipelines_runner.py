@@ -73,7 +73,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             ),
             containers=[
                 k8s.V1Container(
-                    image="blsq/openhexa-pipelines",
+                    image=env_var["HEXA_PIPELINE_IMAGE"],
                     name=container_name,
                     image_pull_policy="Always",
                     args=[json.dumps(run.config)],
@@ -174,7 +174,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} --network openhexa --platform linux/amd64 --rm blsq/openhexa-pipelines'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]}'
     cmd = docker_cmd.split(" ") + [f"{json.dumps(run.config)}"]
 
     proc = Popen(
@@ -213,6 +213,9 @@ def run_pipeline(run: PipelineRun):
     env_var["HEXA_TOKEN"] = Signer().sign_object(run.access_token)
     env_var["HEXA_RUN_ID"] = str(run.id)
     env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
+    env_var["HEXA_PIPELINE_IMAGE"] = settings.get(
+        "PIPELINE_IMAGE", "blsq/openhexa-pipelines:latest"
+    )
 
     time_start = timezone.now()
 
