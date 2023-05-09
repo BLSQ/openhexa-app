@@ -10,7 +10,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="flex min-h-screen"
   >
     <div
-      class="h-screen bg-gray-800"
+      class="bg-gray-800"
     >
       <div
         class="relative z-20 h-full sticky top-0 flex flex-col transition-all duration-75 w-64 2xl:w-72"
@@ -298,7 +298,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the update permiss
     class="flex min-h-screen"
   >
     <div
-      class="h-screen bg-gray-800"
+      class="bg-gray-800"
     >
       <div
         class="relative z-20 h-full sticky top-0 flex flex-col transition-all duration-75 w-64 2xl:w-72"

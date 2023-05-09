@@ -59,7 +59,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       }}
     >
       <div className="flex min-h-screen">
-        <div className="h-screen bg-gray-800">
+        <div className="bg-gray-800">
           <Sidebar
             workspace={workspace}
             className={clsx(

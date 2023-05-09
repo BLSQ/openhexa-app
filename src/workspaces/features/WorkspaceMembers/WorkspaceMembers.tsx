@@ -35,6 +35,9 @@ export default function WorkspaceMembers({
       query WorskspaceMembers($slug: String!, $page: Int, $perPage: Int) {
         workspace(slug: $slug) {
           slug
+          permissions {
+            manageMembers
+          }
           members(page: $page, perPage: $perPage) {
             totalItems
             items {
@@ -117,26 +120,28 @@ export default function WorkspaceMembers({
           label={t("Joined")}
           format={DateTime.DATE_FULL}
         />
-        <BaseColumn className="flex justify-end gap-x-2">
-          {(member) => (
-            <>
-              <Button
-                onClick={() => handleUpdateClicked(member.id)}
-                size="sm"
-                variant="secondary"
-              >
-                <PencilIcon className="h-4" />
-              </Button>
-              <Button
-                onClick={() => handleDeleteClicked(member.id)}
-                size="sm"
-                variant="secondary"
-              >
-                <TrashIcon className="h-4" />
-              </Button>
-            </>
-          )}
-        </BaseColumn>
+        {workspace.permissions.manageMembers && (
+          <BaseColumn className="flex justify-end gap-x-2">
+            {(member) => (
+              <>
+                <Button
+                  onClick={() => handleUpdateClicked(member.id)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <PencilIcon className="h-4" />
+                </Button>
+                <Button
+                  onClick={() => handleDeleteClicked(member.id)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  <TrashIcon className="h-4" />
+                </Button>
+              </>
+            )}
+          </BaseColumn>
+        )}
       </DataGrid>
       {selectedMember && (
         <DeleteWorkspaceMemberDialog

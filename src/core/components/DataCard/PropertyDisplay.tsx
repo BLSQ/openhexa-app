@@ -19,13 +19,15 @@ const PropertyDisplay = (props: PropertyDisplayProps) => {
 
   if (property.hideLabel && !section.isEdited) {
     return <>{children}</>;
-  } else {
+  } else if (property.visible) {
     return (
       <DescriptionList.Item label={property.label} help={property.help}>
         {children}
         {error && <div className="mt-1 text-xs text-red-500">{error}</div>}
       </DescriptionList.Item>
     );
+  } else {
+    return null;
   }
 };
 

@@ -108,6 +108,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   id="countries"
                   accessor="countries"
                   multiple
+                  visible={(value, isEditing) => isEditing || value?.length > 0}
                   label={t("Countries")}
                   defaultValue="-"
                 />

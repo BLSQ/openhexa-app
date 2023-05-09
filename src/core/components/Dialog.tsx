@@ -78,7 +78,7 @@ function Dialog(props: DialogProps) {
     <Transition.Root show={open} as={Fragment}>
       <BaseDialog
         ref={dialogRef}
-        className="fixed inset-0 z-10"
+        className="fixed inset-0 z-20"
         onClose={onClose}
       >
         <Transition.Child
