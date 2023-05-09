@@ -12,6 +12,7 @@ from django.http import HttpRequest
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
+from .api import get_db_server_credentials
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
 
 databases_types_def = load_schema_from_path(
@@ -36,6 +37,20 @@ def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
 @database_object.field("table")
 def resolve_database_table(workspace, info, **kwargs):
     return get_table_definition(workspace, kwargs.get("name"))
+
+
+@database_object.field("port")
+def resolve_database_port(_, info, **kwargs):
+    return get_db_server_credentials()["port"]
+
+
+@database_object.field("host")
+def resolve_database_host(_, info, **kwargs):
+    return get_db_server_credentials()["host"]
+
+
+database_object.set_alias("name", "db_name")
+database_object.set_alias("username", "db_name")
 
 
 @database_table_object.field("columns")

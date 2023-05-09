@@ -47,6 +47,44 @@ class DatabaseTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
+    def test_get_database_credentials(self):
+        self.client.force_login(self.USER_SABRINA)
+        with mock.patch(
+            "hexa.databases.schema.get_db_server_credentials"
+        ) as mocked_get_db_server_credentials:
+            host = "127.0.0.1"
+            port = 5432
+            mocked_get_db_server_credentials.return_value = {
+                "host": host,
+                "port": port,
+                "username": self.WORKSPACE.db_name,
+                "name": self.WORKSPACE.db_name,
+            }
+            r = self.run_query(
+                """
+                query workspaceById($slug: String!) {
+                    workspace(slug: $slug) {
+                        database {
+                           name
+                           username
+                           port
+                           host
+                        }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug)},
+            )
+            self.assertEqual(
+                {
+                    "name": self.WORKSPACE.db_name,
+                    "username": self.WORKSPACE.db_name,
+                    "port": port,
+                    "host": host,
+                },
+                r["data"]["workspace"]["database"],
+            )
+
     def test_get_database_tables_empty(self):
         self.client.force_login(self.USER_SABRINA)
         with mock.patch(

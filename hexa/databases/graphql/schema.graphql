@@ -1,6 +1,10 @@
 type Database {
   tables(page:Int, perPage:Int): DatabaseTablePage!
   table(name: String!): DatabaseTable
+  name: String!
+  username: String!
+  host: String!
+  port: Int!
 }
 
 extend type Workspace {
