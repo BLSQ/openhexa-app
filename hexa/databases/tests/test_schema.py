@@ -69,6 +69,7 @@ class DatabaseTest(GraphQLTestCase):
                            username
                            port
                            host
+                           externalUrl
                         }
                     }
                 }
@@ -81,6 +82,7 @@ class DatabaseTest(GraphQLTestCase):
                     "username": self.WORKSPACE.db_name,
                     "port": port,
                     "host": host,
+                    "externalUrl": f"{self.WORKSPACE.slug}.explore.openhexa.org",
                 },
                 r["data"]["workspace"]["database"],
             )

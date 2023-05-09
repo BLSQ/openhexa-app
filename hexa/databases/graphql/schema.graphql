@@ -5,6 +5,7 @@ type Database {
   username: String!
   host: String!
   port: Int!
+  externalUrl: String!
 }
 
 extend type Workspace {

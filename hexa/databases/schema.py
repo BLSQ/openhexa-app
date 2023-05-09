@@ -6,6 +6,7 @@ from ariadne import (
     convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
@@ -47,6 +48,11 @@ def resolve_database_port(_, info, **kwargs):
 @database_object.field("host")
 def resolve_database_host(_, info, **kwargs):
     return get_db_server_credentials()["host"]
+
+
+@database_object.field("externalUrl")
+def resolve_database_external_url(workspace, info, **kwargs):
+    return f"{workspace.slug}.{settings.WORKSPACES_DATABASE_PROXY_URL}"
 
 
 database_object.set_alias("name", "db_name")
