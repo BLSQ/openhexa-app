@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.26.2](https://github.com/BLSQ/openhexa-frontend/compare/0.26.1...0.26.2) (2023-05-09)
+
+
+### Bug Fixes
+
+* **Dialog:** Increase the z-index of the dialog container ([591bddb](https://github.com/BLSQ/openhexa-frontend/commit/591bddba361c886e95526cc7bf47f8b506148b13))
+* **Layout:** Sidebar background continues on scroll ([591bddb](https://github.com/BLSQ/openhexa-frontend/commit/591bddba361c886e95526cc7bf47f8b506148b13))
+* **Members:** Do not display edit buttons if user has not the permission ([591bddb](https://github.com/BLSQ/openhexa-frontend/commit/591bddba361c886e95526cc7bf47f8b506148b13))
+* **Workspace:** Hide countries property if empty ([591bddb](https://github.com/BLSQ/openhexa-frontend/commit/591bddba361c886e95526cc7bf47f8b506148b13))
+* **Workspaces:** Various fixes based on MJL feedback ([591bddb](https://github.com/BLSQ/openhexa-frontend/commit/591bddba361c886e95526cc7bf47f8b506148b13))
+
 ## [0.26.1](https://github.com/BLSQ/openhexa-frontend/compare/0.26.0...0.26.1) (2023-05-09)
 
 
