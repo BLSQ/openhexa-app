@@ -10,14 +10,10 @@ def create_workspace(principal: User):
 
 def update_workspace(principal: User, workspace: Workspace):
     """Only workspace admin can update a workspace"""
-    return (
-        True
-        if workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
-        else False
-    )
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists()
 
 
 def create_connection(principal: User, workspace: Workspace):
@@ -43,35 +39,23 @@ def delete_connection(principal: User, connection: Connection):
 
 def delete_workspace(principal: User, workspace: Workspace):
     """Only admin users of a workspace can delete a workspace"""
-    return (
-        True
-        if workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.ADMIN
-        ).exists()
-        else False
-    )
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
 
 
 def archive_workspace(principal: User, workspace: Workspace):
     """Only admin users of a workspace can archive a workspacce"""
-    return (
-        True
-        if workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.ADMIN
-        ).exists()
-        else False
-    )
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
 
 
 def manage_members(principal: User, workspace: Workspace):
     """Only superusers can delete a workspace"""
-    return (
-        True
-        if workspace.workspacemembership_set.filter(
-            user=principal, role=WorkspaceMembershipRole.ADMIN
-        ).exists()
-        else False
-    )
+    return workspace.workspacemembership_set.filter(
+        user=principal, role=WorkspaceMembershipRole.ADMIN
+    ).exists()
 
 
 def launch_notebooks(principal: User, workspace: Workspace):
