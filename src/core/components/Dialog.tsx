@@ -126,7 +126,7 @@ function Dialog(props: DialogProps) {
             >
               <div
                 className={clsx(
-                  "overflow-hidden rounded-lg bg-white text-left text-gray-600 shadow-2xl",
+                  "overflow-y-hidden rounded-lg bg-white text-left text-gray-600 shadow-2xl",
                   padding ?? "px-4 py-5 sm:p-6",
                   className
                 )}
