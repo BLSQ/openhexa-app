@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.1](https://github.com/BLSQ/openhexa-frontend/compare/0.26.0...0.26.1) (2023-05-09)
+
+
+### Bug Fixes
+
+* **Catalog:** add displayValue function ([#285](https://github.com/BLSQ/openhexa-frontend/issues/285)) ([f4748ee](https://github.com/BLSQ/openhexa-frontend/commit/f4748ee90f06a0591764f58ebdb4224b941d96c6))
+* **Pipelines:** change create by add when typing a string on run dialog ([#283](https://github.com/BLSQ/openhexa-frontend/issues/283)) ([26d6691](https://github.com/BLSQ/openhexa-frontend/commit/26d669138915694856e0a9b26e15ed8f8316ecec))
+
 ## [0.26.0](https://github.com/BLSQ/openhexa-frontend/compare/0.25.0...0.26.0) (2023-05-04)
 
 
