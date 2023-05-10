@@ -401,8 +401,12 @@ GCS_TOKEN_LIFETIME = os.environ.get("GCS_TOKEN_LIFETIME")
 # Do not add a trailing slash
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 
+
+# Pipeline settings
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
 PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
+PIPELINE_IMAGE = os.environ.get("PIPELINE_IMAGE", "blsq/openhexa-pipelines:latest")
+
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
