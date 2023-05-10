@@ -213,9 +213,7 @@ def run_pipeline(run: PipelineRun):
     env_var["HEXA_TOKEN"] = Signer().sign_object(run.access_token)
     env_var["HEXA_RUN_ID"] = str(run.id)
     env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
-    env_var["HEXA_PIPELINE_IMAGE"] = settings.get(
-        "PIPELINE_IMAGE", "blsq/openhexa-pipelines:latest"
-    )
+    env_var["HEXA_PIPELINE_IMAGE"] = settings.PIPELINE_IMAGE
 
     time_start = timezone.now()
 
