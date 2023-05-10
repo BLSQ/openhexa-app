@@ -3,6 +3,7 @@ type Database {
   table(name: String!): DatabaseTable
   name: String!
   username: String!
+  password: String
   host: String!
   port: Int!
   externalUrl: String!

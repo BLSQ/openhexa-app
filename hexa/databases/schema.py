@@ -50,6 +50,16 @@ def resolve_database_host(_, info, **kwargs):
     return get_db_server_credentials()["host"]
 
 
+@database_object.field("password")
+def resolve_database_password(workspace, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        workspace.db_password
+        if request.user.has_perm("workspaces.manage_members", workspace)
+        else None
+    )
+
+
 @database_object.field("externalUrl")
 def resolve_database_external_url(workspace, info, **kwargs):
     return f"{workspace.slug}.{settings.WORKSPACES_DATABASE_PROXY_URL}"
