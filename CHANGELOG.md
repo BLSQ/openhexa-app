@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.4](https://github.com/BLSQ/openhexa-frontend/compare/0.26.3...0.26.4) (2023-05-11)
+
+
+### Bug Fixes
+
+* **Pipelines:** Increase size of the run dialog ([e5ddded](https://github.com/BLSQ/openhexa-frontend/commit/e5ddded8c5fd327bbdda6e5e569b4ab7218d03b3))
+* **Sidebar:** in compact mode it should not be possible to focus the tooltip ([58ad451](https://github.com/BLSQ/openhexa-frontend/commit/58ad45140bc69df18391b28fe4321b2895ca04bf))
+
 ## [0.26.3](https://github.com/BLSQ/openhexa-frontend/compare/0.26.2...0.26.3) (2023-05-11)
 
 
