@@ -115,11 +115,11 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-xl"}
+      maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-2xl"}
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-        <Dialog.Content className="-m-1 max-h-[450px] overflow-y-auto p-1">
+        <Dialog.Content className="-m-1 max-h-[600px] overflow-y-auto p-1">
           <Field name="version" label={t("Version")} required className="mb-6">
             <PipelineVersionPicker
               required
