@@ -25,7 +25,13 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
-    container_name = slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str)
+    container_name = slugify(
+        f"pipeline-{run.pipeline.code}"[
+            : 62 - len("-" + exec_time_str)
+        ]  # Max length of a pod name is 63 characters
+        + "-"
+        + exec_time_str
+    )
     config.load_incluster_config()
     v1 = CoreV1Api()
     pod = k8s.V1Pod(
@@ -33,7 +39,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         kind="Pod",
         metadata=k8s.V1ObjectMeta(
             namespace=os.environ.get("PIPELINE_NAMESPACE", "default"),
-            name=slugify("pipeline-" + run.pipeline.name + "-" + exec_time_str),
+            name=container_name,
             annotations={
                 # Unfortunately, it also seems that GKE (at least) uses app armor to restrict
                 # the syscalls a container is allowed to execute, so we need to ask to run
