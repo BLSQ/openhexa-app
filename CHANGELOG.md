@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.3](https://github.com/BLSQ/openhexa-frontend/compare/0.26.2...0.26.3) (2023-05-11)
+
+
+### Bug Fixes
+
+* **Pipelines:** replace Select widget by textarea ([fd8016d](https://github.com/BLSQ/openhexa-frontend/commit/fd8016d487f93265239e3fe6972431cca72f6340))
+* **Pipelines:** Set a bigger negative margin & padding to not crop the ring around inputs ([f2bfe4d](https://github.com/BLSQ/openhexa-frontend/commit/f2bfe4d0244c9a1628285318bd85309f5a260643))
+
 ## [0.26.2](https://github.com/BLSQ/openhexa-frontend/compare/0.26.1...0.26.2) (2023-05-09)
 
 
