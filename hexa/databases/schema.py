@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 from .api import get_db_server_credentials
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
@@ -55,14 +55,16 @@ def resolve_database_password(workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
         workspace.db_password
-        if request.user.has_perm("workspaces.manage_members", workspace)
+        if workspace.workspacemembership_set.filter(
+            user=request.user, role=WorkspaceMembershipRole.ADMIN
+        ).exists()
         else None
     )
 
 
 @database_object.field("externalUrl")
 def resolve_database_external_url(workspace, info, **kwargs):
-    return f"{workspace.slug}.{settings.WORKSPACES_DATABASE_PROXY_URL}"
+    return f"{workspace.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}"
 
 
 database_object.set_alias("name", "db_name")
