@@ -254,6 +254,21 @@ type UpdatePipelineResult {
   pipeline: Pipeline
 }
 
+input DeletePipelineVersionInput {
+  pipelineId: UUID!
+  versionId: UUID!
+}
+
+enum DeletePipelineVersionError {
+  PIPELINE_VERSION_NOT_FOUND
+  PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
+}
+
+type DeletePipelineVersionResult {
+  success: Boolean!
+  errors: [DeletePipelineVersionError!]!
+}
 
 extend type Mutation {
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult! @loginRequired
@@ -265,5 +280,6 @@ extend type Mutation {
   logPipelineMessage(input: LogPipelineMessageInput): LogPipelineMessageResult!
   updatePipelineProgress(input: UpdatePipelineProgressInput): UpdatePipelineProgressResult!
   addPipelineOutput(input: AddPipelineOutputInput): AddPipelineOutputResult!
+  deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
 }
  

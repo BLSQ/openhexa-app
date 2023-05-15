@@ -1,3 +1,5 @@
+import base64
+import uuid
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
@@ -29,6 +31,10 @@ class PipelinesV2Test(GraphQLTestCase):
             "noob@bluesquarehub.com",
             "standardpassword",
         )
+        cls.USER_LAMBDA = User.objects.create_user(
+            "viewer@bluesquarehub.com",
+            "standardpassword",
+        )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
         )
@@ -48,6 +54,11 @@ class PipelinesV2Test(GraphQLTestCase):
         cls.WORKSPACE2_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
             workspace=cls.WS2,
             user=cls.USER_NOOB,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        cls.WORKSPACE1_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
+            workspace=cls.WS1,
+            user=cls.USER_LAMBDA,
             role=WorkspaceMembershipRole.EDITOR,
         )
 
@@ -339,4 +350,169 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(
             None,
             r["data"]["pipelineByCode"],
+        )
+
+    def test_delete_pipeline_version_pipeline_not_found(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+
+        pipeline_versions = pipeline.versions.all()
+
+        r = self.run_query(
+            """
+            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+                deletePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """,
+            {
+                "input": {
+                    "pipelineId": str(uuid.uuid4()),
+                    "versionId": str(pipeline_versions.first().id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PIPELINE_NOT_FOUND"]},
+            r["data"]["deletePipelineVersion"],
+        )
+
+    def test_delete_pipeline_version_not_found(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+
+        r = self.run_query(
+            """
+            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+                deletePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """,
+            {"input": {"pipelineId": str(pipeline.id), "versionId": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]},
+            r["data"]["deletePipelineVersion"],
+        )
+
+    def test_delete_pipeline_version_permission_denied_no_admin(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_LAMBDA)
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+        pipeline_versions = pipeline.versions.all()
+
+        r = self.run_query(
+            """
+            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+                deletePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """,
+            {
+                "input": {
+                    "pipelineId": str(pipeline.id),
+                    "versionId": str(pipeline_versions.first().id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deletePipelineVersion"],
+        )
+
+    def test_delete_pipeline_version_permission_denied_one_version(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+
+        pipeline_versions = pipeline.versions.all()
+
+        r = self.run_query(
+            """
+            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+                deletePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """,
+            {
+                "input": {
+                    "pipelineId": str(pipeline.id),
+                    "versionId": str(pipeline_versions.first().id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deletePipelineVersion"],
+        )
+
+    def test_delete_pipeline_version(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters={},
+        )
+        pipeline_versions = pipeline.versions.all()
+        r = self.run_query(
+            """
+            mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
+                deletePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+        """,
+            {
+                "input": {
+                    "pipelineId": str(pipeline.id),
+                    "versionId": str(pipeline_versions.first().id),
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deletePipelineVersion"],
         )
