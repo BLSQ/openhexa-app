@@ -27,7 +27,7 @@ def _get_app_s3_credentials():
         "secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
         "endpoint_url": settings.AWS_ENDPOINT_URL,
         "default_region": settings.AWS_DEFAULT_REGION,
-        "user_arn": settings.AWS_APP_ROLE_ARN,
+        "user_arn": settings.AWS_USER_ARN,
         "app_role_arn": settings.AWS_APP_ROLE_ARN,
         "permissions_boundary_policy_arn": settings.AWS_PERMISSIONS_BOUNDARY_POLICY_ARN,
     }
