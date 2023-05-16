@@ -96,6 +96,7 @@ type PipelinePermissions {
   update: Boolean!
   delete: Boolean!
   run: Boolean!
+  deleteVersion: Boolean!
 }
 
 extend type WorkspacePermissions {

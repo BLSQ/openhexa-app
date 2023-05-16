@@ -76,7 +76,7 @@ def resolve_pipeline_permissions_update(pipeline: Pipeline, info, **kwargs):
 def resolve_pipeline_permissions_delete(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
-        "pipelines.delete_pipeline", pipeline
+        "pipelines.delete_pipeline_version", pipeline
     )
 
 
@@ -85,6 +85,14 @@ def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.run_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("deleteVersion")
+def resolve_pipeline_permissions_delete_version(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.delete_pipeline_version", pipeline
     )
 
 
