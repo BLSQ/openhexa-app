@@ -1,12 +1,16 @@
 type Database {
   tables(page:Int, perPage:Int): DatabaseTablePage!
   table(name: String!): DatabaseTable
-  name: String!
+  credentials: DatabaseCredentials
+}
+
+type DatabaseCredentials {
+  dbName: String!
   username: String!
-  password: String
+  password: String!
   host: String!
   port: Int!
-  externalUrl: String!
+  url: String!
 }
 
 extend type Workspace {

@@ -11,7 +11,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
 from .utils import get_database_definition, get_table_definition, get_table_sample_data
@@ -22,6 +22,7 @@ databases_types_def = load_schema_from_path(
 
 database_object = ObjectType("Database")
 database_table_object = ObjectType("DatabaseTable")
+database_credentials_object = ObjectType("DatabaseCredentials")
 workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
 
@@ -40,35 +41,40 @@ def resolve_database_table(workspace, info, **kwargs):
     return get_table_definition(workspace, kwargs.get("name"))
 
 
-@database_object.field("port")
-def resolve_database_port(_, info, **kwargs):
-    return get_db_server_credentials()["port"]
-
-
-@database_object.field("host")
-def resolve_database_host(_, info, **kwargs):
-    return get_db_server_credentials()["host"]
-
-
-@database_object.field("password")
-def resolve_database_password(workspace, info, **kwargs):
+@database_object.field("credentials")
+def resolve_database_credentials(workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
-        workspace.db_password
-        if workspace.workspacemembership_set.filter(
-            user=request.user, role=WorkspaceMembershipRole.ADMIN
-        ).exists()
+        workspace
+        if request.user.has_perm("databases.view_database_credentials", workspace)
         else None
     )
 
 
-@database_object.field("externalUrl")
-def resolve_database_external_url(workspace, info, **kwargs):
+@database_credentials_object.field("port")
+def resolve_database_credentials_port(_, info, **kwargs):
+    return get_db_server_credentials()["port"]
+
+
+@database_credentials_object.field("host")
+def resolve_database_credentials_host(workspace, info, **kwargs):
     return f"{workspace.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}"
 
 
-database_object.set_alias("name", "db_name")
-database_object.set_alias("username", "db_name")
+@database_credentials_object.field("password")
+def resolve_database_credentials_(workspace, info, **kwargs):
+    return workspace.db_password
+
+
+@database_credentials_object.field("url")
+def resolve_database_credentials_url(workspace, info, **kwargs):
+    host = get_db_server_credentials()["host"]
+    port = get_db_server_credentials()["port"]
+    return f"postgresql+psycopg2://{workspace.db_name}:{workspace.db_password}@{host}:{port}/{workspace.db_name}"
+
+
+database_credentials_object.set_alias("dbName", "db_name")
+database_credentials_object.set_alias("username", "db_name")
 
 
 @database_table_object.field("columns")
@@ -112,6 +118,7 @@ def resolve_generate_new_database_password(_, info, **kwargs):
 databases_bindables = [
     database_object,
     database_table_object,
+    database_credentials_object,
     workspace_object,
     workspace_mutations,
 ]
