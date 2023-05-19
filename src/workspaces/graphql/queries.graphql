@@ -211,6 +211,7 @@ query WorkspaceDatabasesPage(
         }
       }
     }
+      ...DatabaseVariablesSection_workspace
     ...WorkspaceLayout_workspace
   }
 }
