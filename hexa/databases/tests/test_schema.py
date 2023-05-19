@@ -19,11 +19,10 @@ class DatabaseTest(GraphQLTestCase):
     @mock_gcp_storage
     def setUpTestData(cls):
         cls.USER_SABRINA = User.objects.create_user(
-            "sabrina@bluesquarehub.com",
-            "standardpassword",
+            "sabrina@bluesquarehub.com", "standardpassword"
         )
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword"
+            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
         )
         cls.DB1 = Database.objects.create(
             hostname="host",

@@ -42,8 +42,7 @@ class DatabaseUtilsTest(TestCase):
             hostname="host", username="user", password="pwd", database="db1"
         )
         cls.USER_SABRINA = User.objects.create_user(
-            "sabrina@bluesquarehub.com",
-            "standardpassword",
+            "sabrina@bluesquarehub.com", "standardpassword", is_superuser=True
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA

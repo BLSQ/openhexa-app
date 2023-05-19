@@ -5,8 +5,7 @@ from hexa.workspaces.models import Workspace
 from .mocks.mockgcp import backend, mock_gcp_storage
 
 
-class WorkspaceTest(GraphQLTestCase):
-    USER_EDITOR = None
+class FilesTest(GraphQLTestCase):
     USER_WORKSPACE_ADMIN = None
     WORKSPACE = None
 
@@ -16,25 +15,19 @@ class WorkspaceTest(GraphQLTestCase):
         backend.reset()
         Feature.objects.create(code="workspaces", force_activate=True)
 
-        cls.USER_EDITOR = User.objects.create_user(
-            "editor@bluesquarehub.com",
-            "standardpassword",
-        )
-
         cls.USER_WORKSPACE_ADMIN = User.objects.create_user(
-            "workspaceroot@bluesquarehub.com",
-            "workspace",
+            "workspaceroot@bluesquarehub.com", "workspace", is_superuser=True
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_EDITOR,
+            cls.USER_WORKSPACE_ADMIN,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
         )
 
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-            cls.USER_EDITOR,
+            cls.USER_WORKSPACE_ADMIN,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
@@ -42,7 +35,7 @@ class WorkspaceTest(GraphQLTestCase):
 
     @mock_gcp_storage
     def test_workspace_objects_authorized(self):
-        self.client.force_login(self.USER_EDITOR)
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
 
         r = self.run_query(
             """
