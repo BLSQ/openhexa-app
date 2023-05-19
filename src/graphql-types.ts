@@ -1151,6 +1151,23 @@ export type DeletePipelineResult = {
   success: Scalars['Boolean'];
 };
 
+export enum DeletePipelineVersionError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND',
+  PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND'
+}
+
+export type DeletePipelineVersionInput = {
+  pipelineId: Scalars['UUID'];
+  versionId: Scalars['UUID'];
+};
+
+export type DeletePipelineVersionResult = {
+  __typename?: 'DeletePipelineVersionResult';
+  errors: Array<DeletePipelineVersionError>;
+  success: Scalars['Boolean'];
+};
+
 export enum DeleteTeamError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
@@ -1482,6 +1499,7 @@ export type Mutation = {
   deleteConnection: DeleteConnectionResult;
   deleteMembership: DeleteMembershipResult;
   deletePipeline: DeletePipelineResult;
+  deletePipelineVersion: DeletePipelineVersionResult;
   deleteTeam: DeleteTeamResult;
   deleteWorkspace: DeleteWorkspaceResult;
   deleteWorkspaceMember: DeleteWorkspaceMemberResult;
@@ -1662,6 +1680,11 @@ export type MutationDeleteMembershipArgs = {
 
 export type MutationDeletePipelineArgs = {
   input?: InputMaybe<DeletePipelineInput>;
+};
+
+
+export type MutationDeletePipelineVersionArgs = {
+  input: DeletePipelineVersionInput;
 };
 
 
@@ -1974,6 +1997,7 @@ export type PipelineParameter = {
 export type PipelinePermissions = {
   __typename?: 'PipelinePermissions';
   delete: Scalars['Boolean'];
+  deleteVersion: Scalars['Boolean'];
   run: Scalars['Boolean'];
   update: Scalars['Boolean'];
 };
