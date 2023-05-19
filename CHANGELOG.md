@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.27.0](https://github.com/BLSQ/openhexa-frontend/compare/0.26.4...0.27.0) (2023-05-19)
+
+
+### Features
+
+* **Pipelines:** delete pipeline version ([#297](https://github.com/BLSQ/openhexa-frontend/issues/297)) ([b124741](https://github.com/BLSQ/openhexa-frontend/commit/b1247414737e3babb0a8ec7dcff848725113be06))
+* **Workspaces:** usage sections simplification ([#295](https://github.com/BLSQ/openhexa-frontend/issues/295)) ([1372b25](https://github.com/BLSQ/openhexa-frontend/commit/1372b25d8ad5cf19a4bece6d294308bb3ed63bc2))
+
 ## [0.26.4](https://github.com/BLSQ/openhexa-frontend/compare/0.26.3...0.26.4) (2023-05-11)
 
 
