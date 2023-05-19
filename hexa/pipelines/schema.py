@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
 from .authentication import PipelineRunUser
@@ -85,6 +85,14 @@ def resolve_pipeline_permissions_run(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.run_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("deleteVersion")
+def resolve_pipeline_permissions_delete_version(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.delete_pipeline_version", pipeline
     )
 
 
@@ -376,6 +384,48 @@ def resolve_upload_pipeline(_, info, **kwargs):
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except Exception as e:
         return {"success": False, "errors": [str(e)]}
+
+
+@pipelines_mutations.field("deletePipelineVersion")
+def resolve_delete_pipeline_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.filter_for_user(request.user).get(
+            id=input["pipelineId"]
+        )
+        pipeline_version = PipelineVersion.objects.get(id=input["versionId"])
+
+        if pipeline.versions.all().count() == 1:
+            return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+        if not request.user.has_perm("pipelines.delete_pipeline_version", pipeline):
+            return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+        # Only workspace admins can delete pipeline(s) version(s) created by others
+        if (
+            request.user.id != pipeline_version.user.id
+            and not pipeline.workspace.workspacemembership_set.filter(
+                user=request.user, role=WorkspaceMembershipRole.ADMIN
+            ).exists()
+        ):
+            return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+        pipeline_version.delete()
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except Pipeline.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_NOT_FOUND"],
+        }
+    except PipelineVersion.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_VERSION_NOT_FOUND"],
+        }
 
 
 @pipelines_mutations.field("logPipelineMessage")
