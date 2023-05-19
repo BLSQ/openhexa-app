@@ -73,7 +73,7 @@ class DatabaseTest(GraphQLTestCase):
     def test_get_database_credentials(self):
         self.client.force_login(self.USER_JULIA)
         with mock.patch(
-            "hexa.databases.schema.get_db_server_credentials"
+            "hexa.workspaces.models.get_db_server_credentials"
         ) as mocked_get_db_server_credentials:
             host = "127.0.0.1"
             port = 5432

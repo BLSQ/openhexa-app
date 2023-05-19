@@ -22,6 +22,7 @@ from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.databases.api import (
     create_database,
+    get_db_server_credentials,
     load_database_sample_data,
     update_database_password,
 )
@@ -137,6 +138,19 @@ class Workspace(Base):
     archived = models.BooleanField(default=False)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
+
+    @property
+    def db_host(self):
+        return f"{self.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}"
+
+    @property
+    def db_port(self):
+        return get_db_server_credentials()["port"]
+
+    @property
+    def db_url(self):
+        host = get_db_server_credentials()["host"]
+        return f"postgresql+psycopg2://{self.db_name}:{self.db_password}@{host}:{self.db_port}/{self.db_name}"
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
