@@ -35,7 +35,7 @@ class WorkspaceTest(GraphQLTestCase):
             "standardpassword",
         )
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword"
+            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
         )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_JULIA

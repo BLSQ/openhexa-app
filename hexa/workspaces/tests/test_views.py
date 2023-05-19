@@ -27,7 +27,7 @@ class ViewsTest(TestCase):
         )
 
         cls.USER_JULIA = User.objects.create_user(
-            "julia@bluesquarehub.com", "juliaspassword"
+            "julia@bluesquarehub.com", "juliaspassword", is_superuser=True
         )
 
         cls.USER_REBECCA = User.objects.create_user(
