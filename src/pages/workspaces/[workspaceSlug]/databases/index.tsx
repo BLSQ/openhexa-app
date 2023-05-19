@@ -1,19 +1,25 @@
 import { TableCellsIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import CodeEditor from "core/components/CodeEditor";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
+import Tabs from "core/components/Tabs";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
-import DatabaseVariablesSection from "workspaces/features/DatabaseVariablesSection";
+import { useRouter } from "next/router";
 import {
   useWorkspaceDatabasesPageQuery,
   WorkspaceDatabasesPageDocument,
 } from "workspaces/graphql/queries.generated";
+import {
+  getReadTableSnippet,
+  getUsageSnippet,
+} from "workspaces/helpers/database";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -22,6 +28,8 @@ type Props = {
 };
 
 const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
+  const router = useRouter();
+
   const { t } = useTranslation();
   const { data, refetch } = useWorkspaceDatabasesPageQuery({
     variables: { workspaceSlug: props.workspaceSlug, page: props.page },
@@ -123,22 +131,31 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               })}
             />
           </DataGrid>
-          <Block className="divide-y-2">
-            <Block.Section collapsible title={t("Connection parameters")}>
-              <DatabaseVariablesSection workspace={workspace} />
-            </Block.Section>
+          <Block>
             <Block.Section collapsible={false} title={t("Usage")}>
-              <p className="text-sm text-gray-900">
-                {t("Documentation for database usage is available at ")}
-                <a
-                  href={
-                    "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-the-workspace-database"
-                  }
-                  className="text-blue-600 hover:text-blue-500 focus:outline-none"
-                >
-                  https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-the-workspace-database
-                </a>
-              </p>
+              <Tabs defaultIndex={0}>
+                <Tabs.Tab label={t("Create table")}>
+                  <CodeEditor
+                    readonly
+                    lang="python"
+                    value={getUsageSnippet("table", "PYTHON")}
+                  />
+                </Tabs.Tab>
+                <Tabs.Tab label={t("Read table")}>
+                  <CodeEditor
+                    readonly
+                    lang="python"
+                    value={getReadTableSnippet("table")}
+                  />
+                </Tabs.Tab>
+                <Tabs.Tab label={t("Use in BI tools")}>
+                  <CodeEditor
+                    readonly
+                    lang="r"
+                    value={getUsageSnippet("table", "R")}
+                  />
+                </Tabs.Tab>
+              </Tabs>
             </Block.Section>
           </Block>
         </WorkspaceLayout.PageContent>

@@ -956,7 +956,6 @@ export type Dhis2Instance = {
 
 export type Database = {
   __typename?: 'Database';
-  credentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
   tables: DatabaseTablePage;
 };
@@ -970,16 +969,6 @@ export type DatabaseTableArgs = {
 export type DatabaseTablesArgs = {
   page?: InputMaybe<Scalars['Int']>;
   perPage?: InputMaybe<Scalars['Int']>;
-};
-
-export type DatabaseCredentials = {
-  __typename?: 'DatabaseCredentials';
-  dbName: Scalars['String'];
-  host: Scalars['String'];
-  password: Scalars['String'];
-  port: Scalars['Int'];
-  url: Scalars['String'];
-  username: Scalars['String'];
 };
 
 export type DatabaseTable = {
