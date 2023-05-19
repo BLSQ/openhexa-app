@@ -52,7 +52,7 @@ def archive_workspace(principal: User, workspace: Workspace):
 
 
 def manage_members(principal: User, workspace: Workspace):
-    """Only superusers can delete a workspace"""
+    """Only admin users of a workspace can manage members"""
     return workspace.workspacemembership_set.filter(
         user=principal, role=WorkspaceMembershipRole.ADMIN
     ).exists()

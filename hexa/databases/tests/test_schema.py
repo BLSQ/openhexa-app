@@ -1,6 +1,8 @@
 import uuid
 from unittest import mock
 
+from django.conf import settings
+
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.plugins.connector_postgresql.models import Database
@@ -46,6 +48,71 @@ class DatabaseTest(GraphQLTestCase):
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
         )
+
+    def test_get_database_credentials_empty(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                query workspaceById($slug: String!) {
+                    workspace(slug: $slug) {
+                        database {
+                           credentials {
+                            username
+                           }
+                        }
+                    }
+                }
+                """,
+            {"slug": str(self.WORKSPACE.slug)},
+        )
+        self.assertEqual(
+            {"credentials": None},
+            r["data"]["workspace"]["database"],
+        )
+
+    def test_get_database_credentials(self):
+        self.client.force_login(self.USER_JULIA)
+        with mock.patch(
+            "hexa.workspaces.models.get_db_server_credentials"
+        ) as mocked_get_db_server_credentials:
+            host = "127.0.0.1"
+            port = 5432
+            mocked_get_db_server_credentials.return_value = {
+                "host": host,
+                "port": port,
+                "username": self.WORKSPACE.db_name,
+                "name": self.WORKSPACE.db_name,
+            }
+            r = self.run_query(
+                """
+                query workspaceById($slug: String!) {
+                    workspace(slug: $slug) {
+                        database {
+                            credentials {
+                                dbName
+                                username
+                                port
+                                host
+                                url
+                                password
+                           }
+                        }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug)},
+            )
+            self.assertEqual(
+                {
+                    "dbName": self.WORKSPACE.db_name,
+                    "username": self.WORKSPACE.db_name,
+                    "port": port,
+                    "host": f"{self.WORKSPACE.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}",
+                    "url": f"postgresql+psycopg2://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{host}:{port}/{self.WORKSPACE.db_name}",
+                    "password": self.WORKSPACE.db_password,
+                },
+                r["data"]["workspace"]["database"]["credentials"],
+            )
 
     def test_get_database_tables_empty(self):
         self.client.force_login(self.USER_SABRINA)

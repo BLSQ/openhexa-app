@@ -38,6 +38,21 @@ def resolve_database_table(workspace, info, **kwargs):
     return get_table_definition(workspace, kwargs.get("name"))
 
 
+@database_object.field("credentials")
+def resolve_database_credentials(workspace: Workspace, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    if request.user.has_perm("databases.view_database_credentials", workspace):
+        return {
+            "db_name": workspace.db_name,
+            "username": workspace.db_name,
+            "host": workspace.db_host,
+            "port": workspace.db_port,
+            "password": workspace.db_password,
+            "url": workspace.db_url,
+        }
+    return None
+
+
 @database_table_object.field("columns")
 def resolve_database_table_columns(table, info, **kwargs):
     columns = table.get("columns")
