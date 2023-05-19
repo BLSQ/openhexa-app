@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
 from .authentication import PipelineRunUser
@@ -76,7 +76,7 @@ def resolve_pipeline_permissions_update(pipeline: Pipeline, info, **kwargs):
 def resolve_pipeline_permissions_delete(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
-        "pipelines.delete_pipeline_version", pipeline
+        "pipelines.delete_pipeline", pipeline
     )
 
 
@@ -400,6 +400,15 @@ def resolve_delete_pipeline_version(_, info, **kwargs):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
         if not request.user.has_perm("pipelines.delete_pipeline_version", pipeline):
+            return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+        # Only workspace admins can delete pipeline(s) version(s) created by others
+        if (
+            request.user.id != pipeline_version.user.id
+            and not pipeline.workspace.workspacemembership_set.filter(
+                user=request.user, role=WorkspaceMembershipRole.ADMIN
+            ).exists()
+        ):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
         pipeline_version.delete()

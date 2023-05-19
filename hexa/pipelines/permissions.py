@@ -40,10 +40,7 @@ def run_pipeline(principal: User, pipeline: Pipeline):
 
 
 def delete_pipeline_version(principal: User, pipeline: Pipeline):
-    return (
-        pipeline.workspace
-        and pipeline.workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN],
-        ).exists()
-    )
+    return pipeline.workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists()
