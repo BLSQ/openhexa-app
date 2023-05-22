@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.28.0](https://github.com/BLSQ/openhexa-frontend/compare/0.27.0...0.28.0) (2023-05-22)
+
+
+### Features
+
+* **Database:** add copy to clipboard on connection parameters ([#300](https://github.com/BLSQ/openhexa-frontend/issues/300)) ([f3c6734](https://github.com/BLSQ/openhexa-frontend/commit/f3c673467ea65e302ff0679c853dc611a0ddf10a))
+* **Workspaces:** add copy to clipboard button to fields ([f3c6734](https://github.com/BLSQ/openhexa-frontend/commit/f3c673467ea65e302ff0679c853dc611a0ddf10a))
+
+
+### Bug Fixes
+
+* **Workspaces:** allow access to only users with workspaces feature ([#298](https://github.com/BLSQ/openhexa-frontend/issues/298)) ([2a7f19b](https://github.com/BLSQ/openhexa-frontend/commit/2a7f19bd7a7a7c5d32cd27b0affe6950f985c64b))
+* **Workspaces:** prevent admin from updating/deleting his membership ([#301](https://github.com/BLSQ/openhexa-frontend/issues/301)) ([55abfe2](https://github.com/BLSQ/openhexa-frontend/commit/55abfe2324ea42de9c8f69263911ed087842aa48))
+
 ## [0.27.0](https://github.com/BLSQ/openhexa-frontend/compare/0.26.4...0.27.0) (2023-05-19)
 
 
