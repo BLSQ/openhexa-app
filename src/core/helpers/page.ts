@@ -75,6 +75,18 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
           },
         };
       }
+
+      if (
+        !features.some((f) => f.code === "workspaces") &&
+        ctx.resolvedUrl.startsWith("/workspaces")
+      ) {
+        return {
+          redirect: {
+            permanent: false,
+            destination: "/",
+          },
+        };
+      }
     }
     result.props = {
       ...result.props,
