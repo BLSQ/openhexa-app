@@ -744,7 +744,7 @@ class WorkspaceTest(GraphQLTestCase):
             """,
             {
                 "input": {
-                    "membershipId": str(self.WORKSPACE_MEMBERSHIP_2.id),
+                    "membershipId": str(self.WORKSPACE_MEMBERSHIP.id),
                     "role": WorkspaceMembershipRole.EDITOR,
                 }
             },
@@ -754,7 +754,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "success": True,
                 "errors": [],
                 "workspaceMembership": {
-                    "id": str(self.WORKSPACE_MEMBERSHIP_2.id),
+                    "id": str(self.WORKSPACE_MEMBERSHIP.id),
                     "role": WorkspaceMembershipRole.EDITOR,
                 },
             },

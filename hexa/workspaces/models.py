@@ -191,7 +191,7 @@ class WorkspaceMembershipQuerySet(BaseQuerySet):
         self, user: typing.Union[AnonymousUser, User]
     ) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
-            user, Q(user=user), return_all_if_superuser=False
+            user, Q(workspace__members=user), return_all_if_superuser=False
         )
 
 
@@ -267,12 +267,18 @@ class WorkspaceMembership(models.Model):
     def update_if_has_perm(self, *, principal: User, role: WorkspaceMembershipRole):
         if not principal.has_perm("workspaces.manage_members", self.workspace):
             raise PermissionDenied
+        # user cannot update his role
+        if principal.id == self.user.id:
+            raise PermissionDenied
 
         self.role = role
         return self.save()
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.manage_members", self.workspace):
+            raise PermissionDenied
+        # user cannot delete his membership
+        if principal.id == self.user.id:
             raise PermissionDenied
 
         return self.delete()
