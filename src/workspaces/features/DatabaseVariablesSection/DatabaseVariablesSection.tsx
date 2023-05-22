@@ -1,54 +1,15 @@
 import { gql } from "@apollo/client";
 import { DatabaseVariablesSection_WorkspaceFragment } from "./DatabaseVariablesSection.generated";
 import { useTranslation } from "react-i18next";
-import { useCallback, useMemo, useState } from "react";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
+import { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { slugify } from "workspaces/helpers/connection";
+import SecretField from "./SecretField";
+import ClipboardButton from "core/components/ClipboardButton";
 
 type DatabaseVariablesSectionProps = {
   workspace: DatabaseVariablesSection_WorkspaceFragment;
-};
-const SecretField = (field: { value: string | number }) => {
-  const { value } = field;
-  const [showSecret, setShowSecret] = useState<boolean>(false);
-  const toggleSecret = useCallback(
-    () => setShowSecret((showSecet) => !showSecet),
-    []
-  );
-
-  if (showSecret) {
-    return (
-      <p className="flex justify-start gap-x-2">
-        <span className="text-sm text-gray-900">{value}</span>
-        <button
-          onClick={toggleSecret}
-          type="button"
-          className="cursor-pointer gap-1 hover:text-blue-500 focus:outline-none"
-        >
-          <EyeSlashIcon className="h-3.5 w-3.5" />
-        </button>
-      </p>
-    );
-  }
-
-  return (
-    <p className="flex items-center justify-start gap-x-2">
-      <span>*********</span>
-      <button
-        onClick={toggleSecret}
-        type="button"
-        className="flex cursor-pointer gap-1 hover:text-blue-500 focus:outline-none"
-      >
-        <EyeIcon className="h-3.5 w-3.5" />
-      </button>
-    </p>
-  );
 };
 
 const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
@@ -105,16 +66,17 @@ const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
           </code>
         )}
       </BaseColumn>
-      <BaseColumn
-        className="flex items-center gap-x-2 text-gray-900"
-        label={t("Value")}
-      >
+      <BaseColumn className="flex gap-x-2 text-gray-900" label={t("Value")}>
         {(field) => (
-          <>
-            {field.secret && <LockClosedIcon className="h-3 w-3" />}
+          <div className="flex  gap-x-1 truncate">
             {field.secret && field.value && <SecretField value={field.value} />}
-            {!field.secret && field.value}
-          </>
+            {!field.secret && (
+              <>
+                {field.value}
+                <ClipboardButton value={field.value} />
+              </>
+            )}
+          </div>
         )}
       </BaseColumn>
     </DataGrid>

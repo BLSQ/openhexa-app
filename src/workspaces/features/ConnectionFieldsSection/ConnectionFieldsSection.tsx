@@ -17,6 +17,7 @@ import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.genera
 import { convertFieldsToInput, slugify } from "workspaces/helpers/connection";
 import ConnectionFieldDialog from "../ConnectionFieldDialog";
 import { ConnectionFieldsSection_ConnectionFragment } from "./ConnectionFieldsSection.generated";
+import ClipboardButton from "core/components/ClipboardButton";
 
 type ConnectionFieldsSectionProps = {
   connection: ConnectionFieldsSection_ConnectionFragment;
@@ -130,6 +131,7 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
                     {t("No value")}
                   </span>
                 ))}
+              <ClipboardButton value={field.value} />
               <button
                 onClick={() => setEditedState({ isOpen: true, field })}
                 className="ml-2 rounded-sm text-blue-500  hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
