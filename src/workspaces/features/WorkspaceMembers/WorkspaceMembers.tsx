@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import DeleteWorkspaceMemberDialog from "./DeleteWorkspaceMemberDialog";
 import UpdateWorkspaceMemberDialog from "./UpdateWorkspaceMemberDialog";
 import { WorskspaceMembersQuery } from "./WorkspaceMembers.generated";
+import useMe from "identity/hooks/useMe";
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -25,6 +26,7 @@ export default function WorkspaceMembers({
 }: {
   workspaceSlug: string;
 }) {
+  const me = useMe();
   const { t } = useTranslation();
   const [selectedMember, setSelectedMember] = useState<WorkspaceMember>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -122,24 +124,28 @@ export default function WorkspaceMembers({
         />
         {workspace.permissions.manageMembers && (
           <BaseColumn className="flex justify-end gap-x-2">
-            {(member) => (
-              <>
-                <Button
-                  onClick={() => handleUpdateClicked(member.id)}
-                  size="sm"
-                  variant="secondary"
-                >
-                  <PencilIcon className="h-4" />
-                </Button>
-                <Button
-                  onClick={() => handleDeleteClicked(member.id)}
-                  size="sm"
-                  variant="secondary"
-                >
-                  <TrashIcon className="h-4" />
-                </Button>
-              </>
-            )}
+            {(member) =>
+              me.user?.id !== member.user.id ? (
+                <>
+                  <Button
+                    onClick={() => handleUpdateClicked(member.id)}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <PencilIcon className="h-4" />
+                  </Button>
+                  <Button
+                    onClick={() => handleDeleteClicked(member.id)}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    <TrashIcon className="h-4" />
+                  </Button>
+                </>
+              ) : (
+                <></>
+              )
+            }
           </BaseColumn>
         )}
       </DataGrid>
