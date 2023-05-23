@@ -131,7 +131,6 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
                     {t("No value")}
                   </span>
                 ))}
-              <ClipboardButton value={field.value} />
               <button
                 onClick={() => setEditedState({ isOpen: true, field })}
                 className="ml-2 rounded-sm text-blue-500  hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
