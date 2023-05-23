@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/BLSQ/openhexa-frontend/compare/0.29.0...0.29.1) (2023-05-23)
+
+
+### Bug Fixes
+
+* **Connections:** remove copy to clipboard button ([#306](https://github.com/BLSQ/openhexa-frontend/issues/306)) ([828b337](https://github.com/BLSQ/openhexa-frontend/commit/828b337c5778a4125b4e7ddfccd6c30a97e0ce23))
+
 ## [0.29.0](https://github.com/BLSQ/openhexa-frontend/compare/0.28.0...0.29.0) (2023-05-23)
 
 
