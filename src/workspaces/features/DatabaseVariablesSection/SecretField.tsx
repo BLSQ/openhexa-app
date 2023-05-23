@@ -1,5 +1,9 @@
 import ClipboardButton from "core/components/ClipboardButton";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  LockClosedIcon,
+} from "@heroicons/react/24/outline";
 import { useCallback, useState } from "react";
 
 const SecretField = (field: { value: string | number }) => {
@@ -27,6 +31,7 @@ const SecretField = (field: { value: string | number }) => {
   }
   return (
     <div className="flex items-start gap-x-2">
+      <LockClosedIcon className="h-3 w-3" />
       <span>*********</span>
       <button
         onClick={toggleSecret}

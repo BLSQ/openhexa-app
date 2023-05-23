@@ -124,9 +124,11 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             />
           </DataGrid>
           <Block className="divide-y-2">
-            <Block.Section collapsible title={t("Connection parameters")}>
-              <DatabaseVariablesSection workspace={workspace} />
-            </Block.Section>
+            {workspace.permissions.update && (
+              <Block.Section collapsible title={t("Connection parameters")}>
+                <DatabaseVariablesSection workspace={workspace} />
+              </Block.Section>
+            )}
             <Block.Section collapsible={false} title={t("Usage")}>
               <p className="text-sm text-gray-900">
                 {t("Documentation for database usage is available at ")}

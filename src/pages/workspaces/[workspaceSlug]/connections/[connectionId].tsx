@@ -142,7 +142,9 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                   accessor="description"
                 />
               </DataCard.FormSection>
-              <ConnectionFieldsSection connection={connection} />
+              {workspace.permissions.update && (
+                <ConnectionFieldsSection connection={connection} />
+              )}
             </div>
             <DataCard.Section title={t("Usage")}>
               <p className="text-sm text-gray-900">

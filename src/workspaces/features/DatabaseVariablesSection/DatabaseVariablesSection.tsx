@@ -68,7 +68,7 @@ const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
       </BaseColumn>
       <BaseColumn className="flex gap-x-2 text-gray-900" label={t("Value")}>
         {(field) => (
-          <div className="flex  gap-x-1 truncate">
+          <div className="flex gap-x-1 truncate">
             {field.secret && field.value && <SecretField value={field.value} />}
             {!field.secret && (
               <>

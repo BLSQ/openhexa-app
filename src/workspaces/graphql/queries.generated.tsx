@@ -118,7 +118,7 @@ export type ConnectionPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
+export type ConnectionPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, manageMembers: boolean }, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, type: Types.ConnectionType, createdAt: any, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean }, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null };
 
 export type CheckWorkspaceAvailabilityQueryVariables = Types.Exact<{
   slug: Types.Scalars['String'];
@@ -728,6 +728,9 @@ export const ConnectionPageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions {
+      update
+    }
     ...WorkspaceLayout_workspace
   }
   connection(id: $connectionId) {

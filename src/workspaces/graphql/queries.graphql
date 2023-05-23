@@ -264,6 +264,9 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
+    permissions{
+      update
+    }
     ...WorkspaceLayout_workspace
   }
   connection(id: $connectionId) {
