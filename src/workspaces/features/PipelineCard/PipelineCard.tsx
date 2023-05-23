@@ -25,10 +25,12 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       }}
       title={
         <div className="flex justify-between">
-          {pipeline.name}
-          {pipeline.lastRuns.items[0] && (
-            <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
-          )}
+          <span className="max-w-[80%]">{pipeline.name}</span>
+          <div>
+            {pipeline.lastRuns.items[0] && (
+              <PipelineRunStatusBadge run={pipeline.lastRuns.items[0]} />
+            )}
+          </div>
         </div>
       }
       subtitle={
