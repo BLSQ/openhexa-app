@@ -6,6 +6,8 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineVersionsDialogQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['UUID'];
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 
@@ -26,10 +28,10 @@ export const PipelineVersionsDialog_PipelineFragmentDoc = gql`
 }
     `;
 export const PipelineVersionsDialogDocument = gql`
-    query PipelineVersionsDialog($pipelineId: UUID!) {
+    query PipelineVersionsDialog($pipelineId: UUID!, $page: Int, $perPage: Int) {
   pipeline(id: $pipelineId) {
     id
-    versions {
+    versions(page: $page, perPage: $perPage) {
       totalItems
       items {
         id
@@ -56,6 +58,8 @@ export const PipelineVersionsDialogDocument = gql`
  * const { data, loading, error } = usePipelineVersionsDialogQuery({
  *   variables: {
  *      pipelineId: // value for 'pipelineId'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */

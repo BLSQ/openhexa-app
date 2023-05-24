@@ -1,4 +1,4 @@
-import { gql, useLazyQuery } from "@apollo/client";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { CheckIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
@@ -25,6 +25,8 @@ type PipelineVersionsDialogProps = {
   pipeline: PipelineVersionsDialog_PipelineFragment;
 };
 
+const DEFAULT_PAGE_SIZE = 5;
+
 const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
   const { open, onClose, pipeline } = props;
   const me = useMe();
@@ -35,15 +37,19 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
     number: number;
   } | null>();
 
-  const [refetch, { data, loading }] = useLazyQuery<
+  const { data, refetch, loading } = useQuery<
     PipelineVersionsDialogQuery,
     PipelineVersionsDialogQueryVariables
   >(
     gql`
-      query PipelineVersionsDialog($pipelineId: UUID!) {
+      query PipelineVersionsDialog(
+        $pipelineId: UUID!
+        $page: Int
+        $perPage: Int
+      ) {
         pipeline(id: $pipelineId) {
           id
-          versions {
+          versions(page: $page, perPage: $perPage) {
             totalItems
             items {
               id
@@ -60,16 +66,12 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
     {
       variables: {
         pipelineId: pipeline.id,
+        perPage: DEFAULT_PAGE_SIZE,
       },
     }
   );
 
   useCacheKey(["pipelines", pipeline.code], () => router.reload());
-  useEffect(() => {
-    if (open) {
-      refetch({ variables: { pipelineId: pipeline.id } });
-    }
-  }, [open, pipeline.id, refetch]);
 
   const canDeletePipeline = useMemo(() => {
     return (
@@ -78,6 +80,13 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
       data.pipeline?.versions.items.length > 1
     );
   }, [data, pipeline]);
+
+  const onChangePage = ({ page }: { page: number }) => {
+    refetch({
+      pipelineId: pipeline.id,
+      page,
+    });
+  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-3xl">
@@ -89,10 +98,11 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
       ) : (
         <Dialog.Content>
           <DataGrid
-            defaultPageSize={10}
+            defaultPageSize={DEFAULT_PAGE_SIZE}
             totalItems={data.pipeline?.versions.totalItems ?? 0}
             data={data.pipeline?.versions.items ?? []}
             fixedLayout={false}
+            fetchData={onChangePage}
           >
             <TextColumn
               className="font-bold"
