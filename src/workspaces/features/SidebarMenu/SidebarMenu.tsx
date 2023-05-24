@@ -170,18 +170,22 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             <div className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium tracking-wide text-gray-500 opacity-90">
               {t("Your workspaces")}
 
-              <button
-                type="button"
-                onClick={() => setDialogOpen(true)}
-                title={t("Create a new workspace")}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <PlusCircleIcon className="h-5 w-5 " />
-              </button>
-              <CreateWorkspaceDialog
-                open={isDialogOpen}
-                onClose={() => setDialogOpen(false)}
-              />
+              {me.permissions.createWorkspace && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setDialogOpen(true)}
+                    title={t("Create a new workspace")}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <PlusCircleIcon className="h-5 w-5 " />
+                  </button>
+                  <CreateWorkspaceDialog
+                    open={isDialogOpen}
+                    onClose={() => setDialogOpen(false)}
+                  />
+                </>
+              )}
             </div>
 
             <div className="max-h-96 overflow-y-auto">
