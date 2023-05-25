@@ -13,20 +13,19 @@ from hexa.pipelines.models import (
 class PipelineAdmin(admin.ModelAdmin):
     list_display = ("name", "code", "workspace")
     list_filter = ("workspace",)
+    search_fields = ("code", "name")
 
 
 @admin.register(PipelineRun)
 class PipelineRunAdmin(admin.ModelAdmin):
-    list_display = ("run_id", "state", "execution_date", "pipeline")
-    list_filter = ("state", "execution_date", "pipeline")
+    list_display = ("pipeline", "trigger_mode", "state", "execution_date")
+    list_filter = ("trigger_mode", "state", "execution_date")
 
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
-    list_display = (
-        "display_name",
-        "pipeline",
-    )
+    list_display = ("pipeline", "number", "created_at")
+    list_filter = ("created_at",)
 
 
 @admin.register(Index)
