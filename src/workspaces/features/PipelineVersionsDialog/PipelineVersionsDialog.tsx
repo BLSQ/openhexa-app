@@ -1,4 +1,4 @@
-import { gql, useLazyQuery, useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { CheckIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
@@ -13,10 +13,8 @@ import {
   PipelineVersionsDialogQueryVariables,
   PipelineVersionsDialog_PipelineFragment,
 } from "./PipelineVersionsDialog.generated";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import DeletePipelineVersionDialog from "../DeletePipelineVersionDialog";
-import useCacheKey from "core/hooks/useCacheKey";
-import { useRouter } from "next/router";
 import useMe from "identity/hooks/useMe";
 
 type PipelineVersionsDialogProps = {
@@ -31,7 +29,6 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
   const { open, onClose, pipeline } = props;
   const me = useMe();
   const { t } = useTranslation();
-  const router = useRouter();
   const [selectedPipelineVersion, setSelectedPipelineVersion] = useState<{
     id: string;
     number: number;
@@ -70,8 +67,6 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
       },
     }
   );
-
-  useCacheKey(["pipelines", pipeline.code], () => router.reload());
 
   const canDeletePipeline = useMemo(() => {
     return (

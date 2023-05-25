@@ -11,6 +11,7 @@ import {
 } from "./DeletePipelineVersionDialog.generated";
 import { DeletePipelineVersionError } from "graphql-types";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useRouter } from "next/router";
 
 type DeletePipelineVersionDialogProps = {
   onClose(): void;
@@ -23,6 +24,7 @@ const DeletePipelineVersionDialog = (
   props: DeletePipelineVersionDialogProps
 ) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const { open, onClose, pipeline, version } = props;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
@@ -45,8 +47,9 @@ const DeletePipelineVersionDialog = (
     }
 
     if (data.deletePipelineVersion.success) {
-      clearCache();
       setIsSubmitting(false);
+      router.reload();
+      clearCache();
       onClose();
     }
     if (
