@@ -128,7 +128,6 @@ def object_download(
         download_url = f"https://{bucket.name}.s3.{bucket.region}.amazonaws.com/{target_object.key}"
     else:
         download_url = generate_download_url(
-            principal_credentials=bucket.principal_credentials,
             bucket=bucket,
             target_key=target_object.key,
         )
@@ -147,7 +146,6 @@ def object_upload(request, bucket_id):
         )
 
     upload_url = generate_upload_url(
-        principal_credentials=bucket.principal_credentials,
         bucket=bucket,
         target_key=request.GET["object_key"],
     )

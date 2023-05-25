@@ -17,9 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.queue import datasource_work_queue
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_s3.api import (
     S3ApiError,
     get_object_metadata,
@@ -31,36 +29,6 @@ from hexa.user_management import models as user_management_models
 from hexa.user_management.models import Permission, PermissionMode
 
 logger = getLogger(__name__)
-
-
-class Credentials(Base):
-    """We actually only need one set of credentials. These "principal" credentials will be then used to generate
-    short-lived credentials with a tailored policy giving access only to the buckets that the user team can
-    access"""
-
-    class Meta:
-        verbose_name = "S3 Credentials"
-        verbose_name_plural = "S3 Credentials"
-        ordering = ("username",)
-
-    username = models.CharField(max_length=200)
-    access_key_id = EncryptedTextField()
-    secret_access_key = EncryptedTextField()
-    default_region = models.CharField(
-        max_length=50, default=AWSRegion.EU_CENTRAL_1, choices=AWSRegion.choices
-    )
-    user_arn = models.CharField(max_length=200)
-    permissions_boundary_policy_arn = models.CharField(max_length=200)
-    app_role_arn = models.CharField(max_length=200)
-    endpoint_url = models.CharField(
-        blank=True,
-        max_length=200,
-        help_text="The URL of your MinIO server. Let it blank when using real Amazon S3",
-    )
-
-    @property
-    def display_name(self):
-        return self.username
 
 
 class BucketQuerySet(BaseQuerySet):
@@ -119,18 +87,8 @@ class Bucket(Datasource):
     objects = BucketQuerySet.as_manager()
     searchable = True  # TODO: remove (see comment in datasource_index command)
 
-    @property
-    def principal_credentials(self):
-        try:
-            return Credentials.objects.get()
-        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
-            raise ValidationError(
-                "The S3 connector plugin should be configured with a single Credentials entry"
-            )
-
     def refresh(self, path):
         metadata = get_object_metadata(
-            principal_credentials=self.principal_credentials,
             bucket=self,
             object_key=path,
         )
@@ -149,7 +107,7 @@ class Bucket(Datasource):
 
     def clean(self):
         try:
-            head_bucket(principal_credentials=self.principal_credentials, bucket=self)
+            head_bucket(bucket=self)
         except S3ApiError as e:
             raise ValidationError(e)
 
@@ -157,7 +115,6 @@ class Bucket(Datasource):
         """Sync the bucket by querying the S3 API"""
 
         s3_objects = list_objects_metadata(
-            principal_credentials=self.principal_credentials,
             bucket=self,
         )
 

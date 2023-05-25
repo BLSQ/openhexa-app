@@ -1,17 +1,11 @@
 from django.contrib import admin
 
-from .models import Bucket, BucketPermission, Credentials, Object
+from .models import Bucket, BucketPermission, Object
 
 
 class PermissionInline(admin.TabularInline):
     extra = 1
     model = BucketPermission
-
-
-@admin.register(Credentials)
-class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("username", "app_role_arn")
-    search_fields = ("username",)
 
 
 @admin.register(Bucket)

@@ -9,7 +9,7 @@ from hexa.core.credentials import HexaCredentials
 from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.pipelines.credentials import PipelinesCredentials
 from hexa.plugins.connector_s3.api import (
-    _get_credentials,
+    _get_app_s3_credentials,
     generate_sts_user_s3_credentials,
 )
 from hexa.plugins.connector_s3.models import Bucket
@@ -26,12 +26,11 @@ def _generate_credentials(
     if not (read_only_buckets or read_write_buckets):
         return
 
-    principal_s3_credentials = _get_credentials()
+    principal_s3_credentials = _get_app_s3_credentials()
 
     session_identifier = str(credentials.reference_id)
 
     sts_credentials, fresh_role = generate_sts_user_s3_credentials(
-        principal_credentials=principal_s3_credentials,
         read_only_buckets=read_only_buckets,
         read_write_buckets=read_write_buckets,
         role_identifier=role_identifier,
@@ -39,11 +38,11 @@ def _generate_credentials(
     )
 
     json_config = {
-        "AWS_ENDPOINT": principal_s3_credentials.endpoint_url,
+        "AWS_ENDPOINT": principal_s3_credentials["endpoint_url"],
         "AWS_ACCESS_KEY_ID": sts_credentials["AccessKeyId"],
         "AWS_SECRET_ACCESS_KEY": sts_credentials["SecretAccessKey"],
         "AWS_SESSION_TOKEN": sts_credentials["SessionToken"],
-        "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+        "AWS_DEFAULT_REGION": principal_s3_credentials["default_region"],
         "buckets": [
             {"name": b.name, "region": str(b.region), "mode": "RO"}
             for b in read_only_buckets
@@ -69,10 +68,10 @@ def _generate_credentials(
             "AWS_FRESH_ROLE": "TRUE" if fresh_role else "FALSE",
         }
     )
-    if principal_s3_credentials.default_region != "":
+    if principal_s3_credentials["default_region"] != "":
         credentials.update_env(
             {
-                "AWS_DEFAULT_REGION": principal_s3_credentials.default_region,
+                "AWS_DEFAULT_REGION": principal_s3_credentials["default_region"],
             }
         )
 

@@ -4,7 +4,7 @@ from moto import mock_s3, mock_sts
 
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.test import TestCase
-from hexa.plugins.connector_s3.models import Bucket, Credentials
+from hexa.plugins.connector_s3.models import Bucket
 
 from .mocks.s3_credentials_mock import get_s3_mocked_env
 
@@ -13,13 +13,6 @@ from .mocks.s3_credentials_mock import get_s3_mocked_env
 class SyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.credentials = Credentials.objects.create(
-            username="test-username",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
         cls.bucket = Bucket.objects.create(name="test-bucket")
 
     @mock_s3
@@ -205,7 +198,8 @@ class SyncTest(TestCase):
     def test_slash_directory(self):
         """Objects with a key that start with / are valid - but S3 will consider this first slash as a directory
         named "/". It's not a big deal but our sync system has trouble processing them, due to an issue with s3fs
-        that strip slashes at the beginning of keys, resulting in an endless recursion issue."""
+        that strip slashes at the beginning of keys, resulting in an endless recursion issue.
+        """
 
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")

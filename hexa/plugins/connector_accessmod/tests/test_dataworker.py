@@ -18,7 +18,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_job
-from hexa.plugins.connector_s3.models import Bucket, Credentials
+from hexa.plugins.connector_s3.models import Bucket
 from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import User
 
@@ -175,13 +175,6 @@ class AccessmodDataWorkerTest(TestCase):
         )
 
         # S3 setup
-        cls.CREDENTIALS = Credentials.objects.create(
-            username="test-username",
-            default_region="us-east-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
     @mock_s3
@@ -508,13 +501,6 @@ class AccessmodAnalysisUpdateTest(TestCase):
         )
 
         # S3 setup
-        cls.CREDENTIALS = Credentials.objects.create(
-            username="test-username",
-            default_region="us-east-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
-        )
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
         # an analysis
