@@ -150,7 +150,7 @@ class Workspace(Base):
     @property
     def db_url(self):
         host = get_db_server_credentials()["host"]
-        return f"postgresql+psycopg2://{self.db_name}:{self.db_password}@{host}:{self.db_port}/{self.db_name}"
+        return f"postgresql://{self.db_name}:{self.db_password}@{host}:{self.db_port}/{self.db_name}"
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
@@ -412,7 +412,7 @@ class Connection(models.Model):
                     # Add compound database URL for SQLALchemy and the like
                     stringcase.constcase(
                         f"{self.slug}_url".lower()
-                    ): f"postgresql+psycopg2://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['db_name']}",
+                    ): f"postgresql://{fields['username']}:{fields['password']}@{fields['host']}:{fields['port']}/{fields['db_name']}",
                     # Add "_DATABASE" for backward-compatibility (we now use "_DB_NAME" but it used to be _DATABASE")
                     stringcase.constcase(f"{self.slug}_database".lower()): fields[
                         "db_name"
