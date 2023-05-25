@@ -131,7 +131,7 @@ class PipelineQuerySet(BaseQuerySet):
 
 class Pipeline(models.Model):
     class Meta:
-        verbose_name = "Pipeline v2"
+        verbose_name = "Pipeline"
         constraints = [
             models.UniqueConstraint(
                 "workspace_id",
@@ -215,6 +215,12 @@ class Pipeline(models.Model):
                 "app_label": self._meta.app_label,
             }
         )
+
+    def __str__(self):
+        if self.name is not None and self.name != "":
+            return self.name
+
+        return self.code
 
 
 class PipelineRunQuerySet(BaseQuerySet):
