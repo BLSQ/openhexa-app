@@ -1,12 +1,6 @@
 from django.contrib import admin
 
-from .models import Bucket, Credentials, GCSBucketPermission, Object
-
-
-@admin.register(Credentials)
-class CredentialsAdmin(admin.ModelAdmin):
-    list_display = ("service_account", "project_id")
-    search_fields = ("service_account",)
+from .models import Bucket, GCSBucketPermission, Object
 
 
 @admin.register(Bucket)
