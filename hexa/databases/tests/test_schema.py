@@ -107,7 +107,7 @@ class DatabaseTest(GraphQLTestCase):
                     "username": self.WORKSPACE.db_name,
                     "port": port,
                     "host": f"{self.WORKSPACE.slug}.{settings.WORKSPACES_DATABASE_PROXY_HOST}",
-                    "url": f"postgresql+psycopg2://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{host}:{port}/{self.WORKSPACE.db_name}",
+                    "url": f"postgresql://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{host}:{port}/{self.WORKSPACE.db_name}",
                     "password": self.WORKSPACE.db_password,
                 },
                 r["data"]["workspace"]["database"]["credentials"],
