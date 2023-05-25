@@ -56,7 +56,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <code>openhexa</code> CLI using the{" "}
           <Link
             target="_blank"
-            href="https://github.com/BLSQ/openhexa-pipelines-v2/blob/main/HOWTO.md"
+            href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
           >
             guide
           </Link>{" "}
