@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.30.0](https://github.com/BLSQ/openhexa-frontend/compare/0.29.1...0.30.0) (2023-05-25)
+
+
+### Features
+
+* **Workspaces:** restrict workspace creation to superuser ([#308](https://github.com/BLSQ/openhexa-frontend/issues/308)) ([5ad2ff4](https://github.com/BLSQ/openhexa-frontend/commit/5ad2ff43e4a26306a7b5b8066b57fd9f42b4bca6))
+
+
+### Bug Fixes
+
+* **Pipelines:** enable pagination on versions list ([#311](https://github.com/BLSQ/openhexa-frontend/issues/311)) ([72f61f5](https://github.com/BLSQ/openhexa-frontend/commit/72f61f512373c6232fdc3b25ca52ddaee212d39c))
+* **Pipelines:** fix guide URL ([#312](https://github.com/BLSQ/openhexa-frontend/issues/312)) ([7768e2c](https://github.com/BLSQ/openhexa-frontend/commit/7768e2c3d38b7cf6f4cf7321358cea239adf6809))
+* **Pipelines:** fix issue with redirection on pipeline run ([#313](https://github.com/BLSQ/openhexa-frontend/issues/313)) ([a5388f0](https://github.com/BLSQ/openhexa-frontend/commit/a5388f02d431072d23f791b78d6486cc493a1540))
+
 ## [0.29.1](https://github.com/BLSQ/openhexa-frontend/compare/0.29.0...0.29.1) (2023-05-23)
 
 
