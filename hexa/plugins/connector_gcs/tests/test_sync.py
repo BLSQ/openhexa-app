@@ -3,21 +3,12 @@ from datetime import datetime, timezone
 
 from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.test import TestCase
-from hexa.plugins.connector_gcs.models import Bucket, Credentials
+from hexa.plugins.connector_gcs.models import Bucket
 
 
 class SyncTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.credentials = Credentials.objects.create(
-            service_account="",
-            project_id="",
-            client_id="",
-            client_email="",
-            client_x509_cert_url="",
-            private_key_id="",
-            private_key="",
-        )
         cls.bucket = Bucket.objects.create(name="test-bucket")
 
     def test_empty_sync(self):

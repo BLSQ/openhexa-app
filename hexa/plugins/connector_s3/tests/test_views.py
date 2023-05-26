@@ -6,7 +6,7 @@ from moto import mock_s3, mock_sts
 from hexa.core.test import TestCase
 from hexa.plugins.connector_s3.datacards import BucketCard, ObjectCard
 from hexa.plugins.connector_s3.datagrids import ObjectGrid
-from hexa.plugins.connector_s3.models import Bucket, Credentials, Object
+from hexa.plugins.connector_s3.models import Bucket, Object
 from hexa.user_management.models import User
 
 from .mocks.s3_credentials_mock import get_s3_mocked_env
@@ -77,12 +77,6 @@ class ViewsTest(TestCase):
     @mock_s3
     @mock_sts
     def test_bucket_refresh(self):
-        Credentials.objects.create(
-            username="test-username",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-        )
         s3_client = boto3.client("s3", region_name="us-east-1")
         s3_client.create_bucket(Bucket="test-bucket")
         s3_client.put_object(Bucket="test-bucket", Key="test-object", Body="XXX")

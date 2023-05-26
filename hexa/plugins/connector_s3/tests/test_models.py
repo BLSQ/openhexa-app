@@ -6,12 +6,7 @@ from moto import mock_s3, mock_sts
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
 from hexa.data_collections.models import Collection, CollectionElement
-from hexa.plugins.connector_s3.models import (
-    Bucket,
-    BucketPermission,
-    Credentials,
-    Object,
-)
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
 from .mocks.s3_credentials_mock import get_s3_mocked_env
@@ -43,14 +38,6 @@ class ModelTest(TestCase):
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
         cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria collection")
-        cls.api_credentials = Credentials.objects.create(
-            username="app-iam-username",
-            access_key_id="FOO",
-            secret_access_key="BAR",
-            default_region="us-west-2",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-        )
         cls.BUCKET_1 = Bucket.objects.create(name="test-bucket-1")
         BucketPermission.objects.create(
             team=cls.TEAM, bucket=cls.BUCKET_1, mode=PermissionMode.EDITOR

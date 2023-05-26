@@ -9,7 +9,6 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 import hexa.plugins.connector_s3.models as models
 
@@ -120,7 +119,6 @@ def _retry_with_deadline(calling, deadline):
 
 def generate_sts_user_s3_credentials(
     *,
-    principal_credentials: models.Credentials = None,
     role_identifier: str,
     session_identifier: str,
     read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
@@ -321,29 +319,8 @@ def _build_app_s3_client():
     )
 
 
-def _get_credentials():
-    try:
-        return models.Credentials.objects.get()
-    except (
-        models.Credentials.DoesNotExist,
-        models.Credentials.MultipleObjectsReturned,
-    ):
-        raise ImproperlyConfigured(
-            "The S3 connector plugin should have a single credentials entry"
-        )
-
-
-def _build_iam_client(*, principal_credentials: models.Credentials):
-    return boto3.client(
-        "iam",
-        aws_access_key_id=principal_credentials.access_key_id,
-        aws_secret_access_key=principal_credentials.secret_access_key,
-    )
-
-
 def head_bucket(
     *,
-    principal_credentials: models.Credentials,
     bucket: models.Bucket,
 ):
     s3_client = _build_app_s3_client()
@@ -356,7 +333,6 @@ def head_bucket(
 
 def generate_download_url(
     *,
-    principal_credentials: models.Credentials = None,
     bucket: models.Bucket,
     target_key: str,
 ):
@@ -371,7 +347,6 @@ def generate_download_url(
 
 def generate_upload_url(
     *,
-    principal_credentials: models.Credentials = None,
     bucket: models.Bucket,
     target_key: str,
 ):
@@ -389,7 +364,6 @@ def generate_upload_url(
 
 def get_object_metadata(
     *,
-    principal_credentials: models.Credentials = None,
     bucket: models.Bucket,
     object_key: str,
 ):
@@ -416,9 +390,7 @@ def upload_file(*, bucket: models.Bucket, object_key: str, src_path: str):
     return client.upload_file(Bucket=bucket.name, Key=object_key, Filename=src_path)
 
 
-def list_objects_metadata(
-    *, principal_credentials: models.Credentials = None, bucket: models.Bucket
-):
+def list_objects_metadata(*, bucket: models.Bucket):
     client = _build_app_s3_client()
     kwargs, objects = {"Bucket": bucket.name}, []
 

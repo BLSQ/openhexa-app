@@ -16,7 +16,7 @@ from hexa.plugins.connector_accessmod.models import (
     Project,
     ProjectPermission,
 )
-from hexa.plugins.connector_s3.models import Bucket, Credentials
+from hexa.plugins.connector_s3.models import Bucket
 from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import PermissionMode, User
 
@@ -89,13 +89,6 @@ class FilesetTest(GraphQLTestCase):
         )
         cls.SAMPLE_FILE_2 = File.objects.create(
             fileset=cls.FILESET_COOL, uri="anotherfile.csv", mime_type="text/csv"
-        )
-        cls.CREDENTIALS = Credentials.objects.create(
-            username="test-username",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="test-permissions-arn-arn-arn",
         )
         bucket_name = settings.ACCESSMOD_BUCKET_NAME.split("://")[1].rstrip("/")
         cls.BUCKET = Bucket.objects.create(name=bucket_name)

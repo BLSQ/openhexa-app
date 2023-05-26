@@ -12,12 +12,12 @@ from hexa.notebooks.credentials import NotebooksCredentials
 from hexa.pipelines.credentials import PipelinesCredentials
 from hexa.pipelines.tests.test_credentials import BaseCredentialsTestCase
 from hexa.plugins.connector_airflow.models import DAGAuthorizedDatasource
-from hexa.plugins.connector_s3.api import parse_arn
+from hexa.plugins.connector_s3.api import _get_app_s3_credentials, parse_arn
 from hexa.plugins.connector_s3.credentials import (
     notebooks_credentials,
     pipelines_credentials,
 )
-from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission
 from hexa.user_management.models import (
     Membership,
     MembershipRole,
@@ -68,15 +68,7 @@ class NotebooksCredentialsTest(TestCase):
         Membership.objects.create(
             user=cls.USER_WADE, team=cls.TEAM_ANNOYING, role=MembershipRole.REGULAR
         )
-        cls.CREDENTIALS = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
-        )
+        cls.CREDENTIALS = _get_app_s3_credentials()
         b1 = Bucket.objects.create(name="hexa-test-bucket-1")
         b2 = Bucket.objects.create(name="hexa-test-bucket-2")
         Bucket.objects.create(name="hexa-test-bucket-3")
@@ -134,8 +126,8 @@ class NotebooksCredentialsTest(TestCase):
 
         iam_client = boto3.client(
             "iam",
-            aws_access_key_id=self.CREDENTIALS.access_key_id,
-            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+            aws_access_key_id=self.CREDENTIALS["access_key_id"],
+            aws_secret_access_key=self.CREDENTIALS["secret_access_key"],
         )
         roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
@@ -166,8 +158,8 @@ class NotebooksCredentialsTest(TestCase):
 
         iam_client = boto3.client(
             "iam",
-            aws_access_key_id=self.CREDENTIALS.access_key_id,
-            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+            aws_access_key_id=self.CREDENTIALS["access_key_id"],
+            aws_secret_access_key=self.CREDENTIALS["secret_access_key"],
         )
         roles_data = iam_client.list_roles()
         self.assertEqual(1, len(roles_data["Roles"]))
@@ -184,15 +176,7 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
     def setUpTestData(cls):
         super().setUpTestData()
 
-        cls.CREDENTIALS = Credentials.objects.create(
-            username="hexa-app-test",
-            access_key_id="foo",
-            secret_access_key="bar",
-            default_region="eu-central-1",
-            user_arn="arn:aws:iam::111:user/hexa-app-unittest",
-            app_role_arn="arn:aws:iam::222:role/hexa-app-unittest",
-            permissions_boundary_policy_arn="arn:aws:iam::333:policy/hexa-app-unittest",
-        )
+        cls.CREDENTIALS = _get_app_s3_credentials()
         cls.BUCKET = Bucket.objects.create(name="hexa-test-bucket-1")
 
     @mock_iam
@@ -201,8 +185,8 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
     def test_new_role(self, _):
         iam_client = boto3.client(
             "iam",
-            aws_access_key_id=self.CREDENTIALS.access_key_id,
-            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+            aws_access_key_id=self.CREDENTIALS["access_key_id"],
+            aws_secret_access_key=self.CREDENTIALS["secret_access_key"],
         )
         # Setup
         DAGAuthorizedDatasource.objects.create(
@@ -298,8 +282,8 @@ class PipelinesCredentialsTest(BaseCredentialsTestCase):
         """
         iam_client = boto3.client(
             "iam",
-            aws_access_key_id=self.CREDENTIALS.access_key_id,
-            aws_secret_access_key=self.CREDENTIALS.secret_access_key,
+            aws_access_key_id=self.CREDENTIALS["access_key_id"],
+            aws_secret_access_key=self.CREDENTIALS["secret_access_key"],
         )
         # Setup
         iam_client.create_role(

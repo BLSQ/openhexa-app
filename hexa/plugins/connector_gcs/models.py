@@ -4,7 +4,6 @@ from logging import getLogger
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import filesizeformat, pluralize
@@ -15,49 +14,12 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.queue import datasource_work_queue
 from hexa.catalog.sync import DatasourceSyncResult
-from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
-from hexa.core.models.cryptography import EncryptedTextField
 from hexa.plugins.connector_gcs.api import get_object_metadata, list_objects_metadata
 from hexa.user_management import models as user_management_models
 from hexa.user_management.models import Permission, PermissionMode
 
 logger = getLogger(__name__)
-
-
-# FIXME: Deprecated
-class Credentials(Base):
-    """We actually only want one set of credentials.
-    In the futur (= soon), these "principal" credentials will be then used
-    to generate short-lived credentials with a tailored policy giving access
-    only to the buckets that the user team can access"""
-
-    class Meta:
-        verbose_name = "GCS Credentials"
-        verbose_name_plural = "GCS Credentials"
-        ordering = ("service_account",)
-
-    service_account = models.CharField(max_length=30)
-    project_id = models.CharField(max_length=30)
-    client_id = models.CharField(max_length=30)
-    client_email = models.CharField(max_length=100)
-    client_x509_cert_url = models.CharField(max_length=150)
-    auth_uri = models.CharField(
-        max_length=100, default="https://accounts.google.com/o/oauth2/auth"
-    )
-    token_uri = models.CharField(
-        max_length=100, default="https://oauth2.googleapis.com/token"
-    )
-    auth_provider_x509_cert_url = models.CharField(
-        max_length=100, default="https://www.googleapis.com/oauth2/v1/certs"
-    )
-
-    private_key_id = EncryptedTextField(max_length=50)
-    private_key = EncryptedTextField()
-
-    @property
-    def display_name(self):
-        return self.service_account
 
 
 class BucketQuerySet(BaseQuerySet):
@@ -112,15 +74,6 @@ class Bucket(Datasource):
 
     objects = BucketQuerySet.as_manager()
     searchable = True
-
-    @property
-    def principal_credentials(self):
-        try:
-            return Credentials.objects.get()
-        except (Credentials.DoesNotExist, Credentials.MultipleObjectsReturned):
-            raise ValidationError(
-                "The GCS connector plugin should be configured with a single Credentials entry"
-            )
 
     def refresh(self, path):
         metadata = get_object_metadata(

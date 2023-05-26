@@ -259,7 +259,6 @@ def resolve_prepare_download_url(_, info, **kwargs):
 
         if uri_protocol == "s3":
             download_url = s3_api.generate_download_url(
-                principal_credentials=bucket.principal_credentials,
                 bucket=bucket,
                 target_key=uri_path,
             )

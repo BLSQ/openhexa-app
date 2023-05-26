@@ -5,7 +5,7 @@ from django.test import override_settings
 from moto import mock_s3, mock_sts
 
 from hexa.core.test import TestCase
-from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Credentials
+from hexa.plugins.connector_s3.models import Bucket, BucketPermission
 from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_mocked_env
 from hexa.user_management.models import Membership, Team, User
 
@@ -99,13 +99,6 @@ class PermissionUpdateTest(TestCase):
         cls.TEAM2 = Team.objects.create(name="Test Team2")
         Membership.objects.create(team=cls.TEAM1, user=cls.USER_REGULAR_1)
         Membership.objects.create(team=cls.TEAM2, user=cls.USER_REGULAR_2)
-
-        cls.CREDS = Credentials.objects.create(
-            username="test-username",
-            default_region="eu-central-1",
-            user_arn="test-user-arn-arn-arn",
-            app_role_arn="test-app-arn-arn-arn",
-        )
         cls.BUCKET = Bucket.objects.create(name="test-bucket")
 
     @mock_s3

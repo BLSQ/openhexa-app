@@ -544,7 +544,6 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
 
     if uri_protocol == "s3":
         upload_url = s3_api.generate_upload_url(
-            principal_credentials=bucket.principal_credentials,
             bucket=bucket,
             target_key=target_key,
         )
@@ -591,7 +590,6 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
 
     if uri_protocol == "s3":
         download_url = s3_api.generate_download_url(
-            principal_credentials=bucket.principal_credentials,
             bucket=bucket,
             # Ugly workaround, TBD when we know more about storage
             target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
@@ -647,7 +645,6 @@ def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
     try:
         if uri_protocol == "s3":
             download_url = s3_api.generate_download_url(
-                principal_credentials=bucket.principal_credentials,
                 bucket=bucket,
                 # Ugly workaround, TBD when we know more about storage
                 target_key=uri.replace(f"s3://{bucket.name}/", ""),
