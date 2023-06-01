@@ -151,6 +151,11 @@ class Pipeline(models.Model):
     schedule = models.CharField(max_length=200, null=True, blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
+    cpu_request = models.CharField(blank=True, max_length=32)
+    cpu_limit = models.CharField(blank=True, max_length=32)
+    memory_request = models.CharField(blank=True, max_length=32)
+    memory_limit = models.CharField(blank=True, max_length=32)
+
     objects = PipelineQuerySet.as_manager()
 
     def run(

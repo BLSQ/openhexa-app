@@ -114,10 +114,22 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     # - Inspiration for the yaml: https://github.com/samos123/gke-gcs-fuse-unprivileged
                     resources={
                         "limits": {
-                            "smarter-devices/fuse": 1,
+                            "smarter-devices/fuse": "1",
+                            "cpu": run.pipeline.cpu_limit
+                            if run.pipeline.cpu_limit != ""
+                            else settings.PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT,
+                            "memory": run.pipeline.memory_limit
+                            if run.pipeline.memory_limit != ""
+                            else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_LIMIT,
                         },
                         "requests": {
-                            "smarter-devices/fuse": 1,
+                            "smarter-devices/fuse": "1",
+                            "cpu": run.pipeline.cpu_request
+                            if run.pipeline.cpu_request != ""
+                            else settings.PIPELINE_DEFAULT_CONTAINER_CPU_REQUEST,
+                            "memory": run.pipeline.memory_request
+                            if run.pipeline.memory_request != ""
+                            else settings.PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST,
                         },
                     },
                     # Having /dev/fuse is not enough. We also need to be able to execute the mount()
