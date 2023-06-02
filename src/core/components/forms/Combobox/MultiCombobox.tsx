@@ -116,7 +116,7 @@ function MultiCombobox<T extends { [key: string]: any }>(
   );
 
   return (
-    <UICombobox
+    <UICombobox<T[]>
       onChange={onChange}
       value={value}
       disabled={disabled}

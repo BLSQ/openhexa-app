@@ -33,7 +33,7 @@ const Tabs = (props: TabsProps) => {
                 {({ selected }) => (
                   <a
                     className={clsx(
-                      "cursor-pointer whitespace-nowrap border-b-2 py-2.5 px-1.5 tracking-wide",
+                      "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 tracking-wide",
                       selected
                         ? "border-blue-500 text-blue-600"
                         : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"

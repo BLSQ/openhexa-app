@@ -26,7 +26,7 @@ type SidebarProps = {
 };
 
 const NavItem = (props: {
-  Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  Icon: any;
   label?: string;
   href: string;
   exact?: boolean;

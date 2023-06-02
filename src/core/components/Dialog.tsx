@@ -97,7 +97,7 @@ function Dialog(props: DialogProps) {
             )}
           />
         </Transition.Child>
-        <div className="h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div className="h-screen px-4 pb-20 pt-4 text-center sm:block sm:p-0">
           {/* This element is to trick the browser into centering the modal contents. */}
           <span
             className={clsx(

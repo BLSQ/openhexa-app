@@ -166,7 +166,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
                 {data.collections.items.map((collection) => (
                   <div
                     key={collection.id}
-                    className="flex items-center gap-4 py-4 px-2"
+                    className="flex items-center gap-4 px-2 py-4"
                   >
                     <div className="flex-1 truncate">
                       <div className="truncate font-medium">

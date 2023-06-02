@@ -75,11 +75,13 @@ const VisualizationPage = ({ visualizationId }: Props) => {
         </Breadcrumbs>
         <div className="space-y-10">
           <DataCard item={externalDashboard}>
-            <DataCard.Heading<typeof externalDashboard>>
+            <DataCard.Heading>
               {(item) => (
                 <div>
                   <div className="flex items-center">
-                    <VisualizationPicture visualization={item} />
+                    <VisualizationPicture
+                      visualization={item as typeof externalDashboard}
+                    />
                     <div className="ml-4 w-full truncate">
                       <div
                         className="truncate text-sm font-medium text-gray-900"

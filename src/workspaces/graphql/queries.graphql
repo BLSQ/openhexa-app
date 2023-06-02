@@ -213,7 +213,7 @@ query WorkspaceDatabasesPage(
         }
       }
     }
-      ...DatabaseVariablesSection_workspace
+    ...DatabaseVariablesSection_workspace
     ...WorkspaceLayout_workspace
   }
 }
@@ -264,7 +264,7 @@ query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
-    permissions{
+    permissions {
       update
     }
     ...WorkspaceLayout_workspace

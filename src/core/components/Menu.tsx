@@ -45,7 +45,7 @@ const Menu = ({ label, trigger, className, children }: MenuProps) => {
         <HeadlessMenu.Button className={MenuClasses.TriggerButton}>
           {label}
           <ChevronDownIcon
-            className="ml-2 -mr-1 h-4 w-4 text-gray-500 group-hover:text-gray-700"
+            className="-mr-1 ml-2 h-4 w-4 text-gray-500 group-hover:text-gray-700"
             aria-hidden="true"
           />
         </HeadlessMenu.Button>

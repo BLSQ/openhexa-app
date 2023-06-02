@@ -129,7 +129,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             )}
             <div
               className={clsx(
-                "flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
+                "line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
               )}
               title={workspace.name}
             >
@@ -196,7 +196,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                     pathname: "/workspaces/[workspaceSlug]",
                     query: { workspaceSlug: workspace.slug },
                   }}
-                  className="flex items-center py-2.5 px-4 hover:bg-gray-100"
+                  className="flex items-center px-4 py-2.5 hover:bg-gray-100"
                   key={index}
                 >
                   {workspace.countries && workspace.countries.length === 1 && (

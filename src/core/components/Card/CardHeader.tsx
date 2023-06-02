@@ -13,7 +13,7 @@ const CardHeader = (props: CardHeaderProps) => {
   const { title, subtitle, className, href } = props;
   const element = (
     <div className={className}>
-      <Title level={4} className="mb-0 leading-5 line-clamp-3">
+      <Title level={4} className="mb-0 line-clamp-3 leading-5">
         {title}
       </Title>
       {subtitle && <div className=" text-sm text-gray-500">{subtitle}</div>}

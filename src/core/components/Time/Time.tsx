@@ -28,11 +28,13 @@ const Time = (props: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datetime, props.format, props.relative, relativeDate]);
 
+  if (!datetime?.isValid) return null;
+
   return (
     <time
       suppressHydrationWarning={true}
-      title={datetime.toISO()}
-      dateTime={datetime.toISO()}
+      title={datetime.toISO() ?? undefined}
+      dateTime={datetime.toISO() ?? undefined}
       className={clsx("whitespace-nowrap", props.className)}
     >
       {value}

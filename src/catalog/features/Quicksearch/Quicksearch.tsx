@@ -75,7 +75,7 @@ const Quicksearch = (props: QuicksearchProps) => {
           </div>
         )}
 
-        <div className="flex justify-between px-4 pt-3 pb-1 text-xs text-gray-500 transition-all">
+        <div className="flex justify-between px-4 pb-1 pt-3 text-xs text-gray-500 transition-all">
           {results && (
             <span>{results.length > 0 && t("Showing top 10 results")}</span>
           )}

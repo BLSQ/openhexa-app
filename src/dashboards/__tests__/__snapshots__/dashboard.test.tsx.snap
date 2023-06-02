@@ -124,7 +124,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             </dl>
           </div>
           <div
-            class="border-t border-gray-100 bg-gray-50 py-2 px-4 pb-3"
+            class="border-t border-gray-100 bg-gray-50 px-4 py-2 pb-3"
           >
             <a
               class="text-sm text-blue-600 hover:text-blue-500"
@@ -178,7 +178,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             </dl>
           </div>
           <div
-            class="border-t border-gray-100 bg-gray-50 py-2 px-4 pb-3"
+            class="border-t border-gray-100 bg-gray-50 px-4 py-2 pb-3"
           >
             <a
               class="text-sm text-blue-600 hover:text-blue-500"
@@ -232,7 +232,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             </dl>
           </div>
           <div
-            class="border-t border-gray-100 bg-gray-50 py-2 px-4 pb-3"
+            class="border-t border-gray-100 bg-gray-50 px-4 py-2 pb-3"
           >
             <a
               class="text-sm text-blue-600 hover:text-blue-500"

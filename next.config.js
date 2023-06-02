@@ -40,11 +40,15 @@ const sentryWebpackPluginOptions = {
   // recommended:
   //   release, url, org, project, authToken, configFile, stripPrefix,
   //   urlPrefix, include, ignore
-
+  org: "bluesquareorg",
+  project: "openhexa",
   silent: true, // Suppresses all logs
   dryRun: process.env.NODE_ENV !== "production" || Boolean(process.env.CI),
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
+
+  widenClientFileUpload: true,
+  automaticVercelMonitors: false, // Disable automatic Vercel monitors
 };
 
 // Make sure adding Sentry options is the last code to run before exporting, to

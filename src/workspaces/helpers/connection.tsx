@@ -440,7 +440,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
   return (
     <div className="col-span-2 space-y-3">
       <Title level={5}>{t("Fields")}</Title>
-      <div className="max-h-80 space-y-2 overflow-y-auto py-px px-px">
+      <div className="max-h-80 space-y-2 overflow-y-auto px-px py-px">
         {form.formData.fields!.map((field, index) => (
           <div
             key={index}

@@ -25,7 +25,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
             >
               <div
-                class="flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
+                class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
                 title="Rwanda Workspace"
               >
                 Rwanda Workspace
@@ -313,7 +313,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the update permiss
               class="group flex h-16 w-full items-center justify-center bg-gray-800 px-2 text-left hover:bg-gray-600"
             >
               <div
-                class="flex-1 text-sm tracking-tight text-gray-50 line-clamp-2"
+                class="line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
                 title="Rwanda Workspace"
               >
                 Rwanda Workspace

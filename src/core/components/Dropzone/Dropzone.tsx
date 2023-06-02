@@ -80,7 +80,7 @@ const Dropzone = (props: DropzoneProps) => {
       <input key={inputKey} {...getInputProps()} />
       {fileRejections.length + acceptedFiles.length === 0 && children}
       {acceptedFiles.length > 0 && (
-        <span className="text-xs line-clamp-3">
+        <span className="line-clamp-3 text-xs">
           {acceptedFiles?.map((f) => f.name).join(", ")}
         </span>
       )}

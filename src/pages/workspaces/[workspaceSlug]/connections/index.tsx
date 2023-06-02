@@ -121,7 +121,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                       },
                     }}
                   >
-                    <Card.Content className="mt-3 text-sm line-clamp-3">
+                    <Card.Content className="mt-3 line-clamp-3 text-sm">
                       {connection.description}
                     </Card.Content>
                   </Card>
