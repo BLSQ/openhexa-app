@@ -63,6 +63,12 @@ def resolve_workspace_permission_manage(workspace: Workspace, info):
     return request.user.has_perm("workspaces.manage_members", workspace)
 
 
+@workspace_permissions.field("launchNotebookServer")
+def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return request.user.has_perm("workspaces.launch_notebooks", workspace)
+
+
 @workspace_object.field("permissions")
 def resolve_workspace_permissions(workspace: Workspace, info):
     return workspace
