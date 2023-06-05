@@ -68,7 +68,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
   }
 
   return (
-    <Page title={t("Connection")}>
+    <Page title={connection.name}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex items-center justify-between">
           <Breadcrumbs withHome={false}>

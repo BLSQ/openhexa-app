@@ -72,7 +72,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   };
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={pipeline.name ?? t("Pipeline run")}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header>
           <div className="flex items-center justify-between">

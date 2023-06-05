@@ -67,7 +67,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
   const { workspace } = data;
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={workspace.name}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex justify-between">
           <Breadcrumbs withHome={false}>

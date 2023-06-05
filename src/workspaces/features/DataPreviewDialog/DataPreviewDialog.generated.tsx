@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorkspaceDatabaseTableDataQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String'];
-  tableName: Types.Scalars['String'];
+  workspaceSlug: Types.Scalars['String']['input'];
+  tableName: Types.Scalars['String']['input'];
 }>;
 
 

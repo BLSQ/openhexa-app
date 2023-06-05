@@ -41,7 +41,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   const { workspace } = data;
   return (
     <>
-      <Page title={t("Workspace")}>
+      <Page title={workspace.name}>
         <WorkspaceLayout workspace={workspace}>
           <WorkspaceLayout.Header>
             <div className="flex items-center justify-between">

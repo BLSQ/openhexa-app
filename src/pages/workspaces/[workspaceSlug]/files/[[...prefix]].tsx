@@ -62,7 +62,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   };
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={workspace.name}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex items-center justify-between">
           <Breadcrumbs withHome={false}>

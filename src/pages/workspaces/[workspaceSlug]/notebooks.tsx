@@ -44,7 +44,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   }
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={data.workspace.name}>
       <WorkspaceLayout
         workspace={data.workspace}
         className="min-h-screen"

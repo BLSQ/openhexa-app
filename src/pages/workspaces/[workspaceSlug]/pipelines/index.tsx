@@ -45,7 +45,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
   const { workspace, pipelines } = data;
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={workspace.name}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex items-center gap-2">
           <Breadcrumbs withHome={false} className="flex-1">

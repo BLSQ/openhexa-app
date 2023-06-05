@@ -47,7 +47,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
   };
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={table.name}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex items-center justify-between">
           <Breadcrumbs withHome={false}>

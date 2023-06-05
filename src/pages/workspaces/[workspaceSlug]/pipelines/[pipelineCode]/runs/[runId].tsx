@@ -78,7 +78,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   ].includes(run.status);
 
   return (
-    <Page title={t("Workspace")}>
+    <Page title={run.pipeline.name ?? t("Pipeline run")}>
       <WorkspaceLayout workspace={workspace}>
         <WorkspaceLayout.Header className="flex items-center justify-between gap-2">
           <Breadcrumbs withHome={false}>
