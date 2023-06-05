@@ -123,6 +123,11 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     ssrForceFetchDelay: 100, // in milliseconds
     link,
     cache,
+    defaultOptions: {
+      watchQuery: {
+        nextFetchPolicy: "cache-and-network",
+      },
+    },
   });
 };
 
