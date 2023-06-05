@@ -116,7 +116,7 @@ describe("Workspaces", () => {
     expect(container).toMatchSnapshot();
   });
 
-  it("shows the jupyterhub entry when user have the update permission ", async () => {
+  it("shows the jupyterhub entry when user have the launchNotebookServer permission ", async () => {
     const slug = "a303ff37-644b-4080-83d9-a42bd2712f63";
     const graphqlMocks = [
       {
@@ -133,7 +133,7 @@ describe("Workspaces", () => {
               name: "Rwanda Workspace",
               description: "This is a description",
               permissions: {
-                update: true,
+                launchNotebookServer: true,
                 delete: false,
                 manageMembers: false,
               },

@@ -2251,6 +2251,7 @@ type WorkspacePermissions {
   delete: Boolean!
   manageMembers: Boolean!
   createConnection: Boolean!
+  launchNotebookServer: Boolean!
   createPipeline: Boolean!
   createObject: Boolean!
   deleteObject: Boolean!

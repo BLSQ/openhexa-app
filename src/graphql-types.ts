@@ -3005,6 +3005,7 @@ export type WorkspacePermissions = {
   delete: Scalars['Boolean']['output'];
   deleteObject: Scalars['Boolean']['output'];
   downloadObject: Scalars['Boolean']['output'];
+  launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };

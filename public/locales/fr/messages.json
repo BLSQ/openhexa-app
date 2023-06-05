@@ -278,6 +278,7 @@
   "Slug": "",
   "started {{relativeTime}}": "",
   "Started on {{relativeTime}}": "",
+  "Starting your Jupyter server...": "",
   "Status": "",
   "Succeeded": "",
   "succeeded {{relativeTime}} in {{durationStr}}": "",

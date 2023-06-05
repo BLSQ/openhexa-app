@@ -276,6 +276,7 @@
   "Slug": "Slug",
   "started {{relativeTime}}": "started {{relativeTime}}",
   "Started on {{relativeTime}}": "",
+  "Starting your Jupyter server...": "",
   "Status": "Status",
   "Succeeded": "Succeeded",
   "succeeded {{relativeTime}} in {{durationStr}}": "succeeded {{relativeTime}} in {{durationStr}}",

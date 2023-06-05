@@ -2,9 +2,9 @@ import {
   ApolloClient,
   ApolloLink,
   InMemoryCache,
+  InMemoryCacheConfig,
   NormalizedCacheObject,
   createHttpLink,
-  InMemoryCacheConfig,
 } from "@apollo/client";
 import { onError } from "@apollo/link-error";
 import merge from "deepmerge";
@@ -12,10 +12,8 @@ import { IncomingHttpHeaders } from "http";
 import fetch from "isomorphic-unfetch";
 import isEqual from "lodash/isEqual";
 import type { AppProps } from "next/app";
-import { useMemo } from "react";
 import getConfig from "next/config";
-import router from "next/router";
-import { GraphQLError } from "graphql";
+import { useMemo } from "react";
 
 const APOLLO_STATE_PROP_NAME = "__APOLLO_STATE__";
 

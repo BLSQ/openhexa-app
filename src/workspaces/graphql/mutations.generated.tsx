@@ -66,13 +66,6 @@ export type UpdateConnectionMutationVariables = Types.Exact<{
 
 export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null } | null } };
 
-export type LaunchNotebookServerMutationVariables = Types.Exact<{
-  input: Types.LaunchNotebookServerInput;
-}>;
-
-
-export type LaunchNotebookServerMutation = { __typename?: 'Mutation', launchNotebookServer: { __typename?: 'LaunchNotebookServerResult', success: boolean, server?: { __typename?: 'NotebookServer', name: string, url: string } | null } };
-
 export type GenerateNewDatabasePasswordMutationVariables = Types.Exact<{
   input: Types.GenerateNewDatabasePasswordInput;
 }>;
@@ -431,43 +424,6 @@ export function useUpdateConnectionMutation(baseOptions?: Apollo.MutationHookOpt
 export type UpdateConnectionMutationHookResult = ReturnType<typeof useUpdateConnectionMutation>;
 export type UpdateConnectionMutationResult = Apollo.MutationResult<UpdateConnectionMutation>;
 export type UpdateConnectionMutationOptions = Apollo.BaseMutationOptions<UpdateConnectionMutation, UpdateConnectionMutationVariables>;
-export const LaunchNotebookServerDocument = gql`
-    mutation launchNotebookServer($input: LaunchNotebookServerInput!) {
-  launchNotebookServer(input: $input) {
-    success
-    server {
-      name
-      url
-    }
-  }
-}
-    `;
-export type LaunchNotebookServerMutationFn = Apollo.MutationFunction<LaunchNotebookServerMutation, LaunchNotebookServerMutationVariables>;
-
-/**
- * __useLaunchNotebookServerMutation__
- *
- * To run a mutation, you first call `useLaunchNotebookServerMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLaunchNotebookServerMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [launchNotebookServerMutation, { data, loading, error }] = useLaunchNotebookServerMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLaunchNotebookServerMutation(baseOptions?: Apollo.MutationHookOptions<LaunchNotebookServerMutation, LaunchNotebookServerMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LaunchNotebookServerMutation, LaunchNotebookServerMutationVariables>(LaunchNotebookServerDocument, options);
-      }
-export type LaunchNotebookServerMutationHookResult = ReturnType<typeof useLaunchNotebookServerMutation>;
-export type LaunchNotebookServerMutationResult = Apollo.MutationResult<LaunchNotebookServerMutation>;
-export type LaunchNotebookServerMutationOptions = Apollo.BaseMutationOptions<LaunchNotebookServerMutation, LaunchNotebookServerMutationVariables>;
 export const GenerateNewDatabasePasswordDocument = gql`
     mutation generateNewDatabasePassword($input: GenerateNewDatabasePasswordInput!) {
   generateNewDatabasePassword(input: $input) {

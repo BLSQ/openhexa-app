@@ -19,9 +19,10 @@ import { useContext, useMemo } from "react";
 import SidebarMenu from "workspaces/features/SidebarMenu";
 import { LayoutContext } from "./WorkspaceLayout";
 import Badge from "core/components/Badge";
+import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
 
 type SidebarProps = {
-  workspace: any;
+  workspace: Sidebar_WorkspaceFragment;
   className?: string;
 };
 
@@ -122,7 +123,7 @@ const Sidebar = (props: SidebarProps) => {
               label={t("Pipelines")}
               compact={!isSidebarOpen}
             />
-            {workspace.permissions.update && (
+            {workspace.permissions.launchNotebookServer && (
               <NavItem
                 href={`/workspaces/${encodeURIComponent(slug)}/notebooks`}
                 Icon={BookOpenIcon}
@@ -183,6 +184,7 @@ Sidebar.fragments = {
       permissions {
         manageMembers
         update
+        launchNotebookServer
       }
     }
     ${SidebarMenu.fragments.workspace}

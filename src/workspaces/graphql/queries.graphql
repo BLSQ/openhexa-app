@@ -54,7 +54,7 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
-      update
+      launchNotebookServer
     }
     ...WorkspaceLayout_workspace
   }

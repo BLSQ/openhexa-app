@@ -1,33 +1,53 @@
+import { useApolloClient } from "@apollo/client";
 import Alert from "core/components/Alert";
 import Page from "core/components/Page";
+import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import { NotebookServer } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { LaunchNotebookServerDocument } from "workspaces/graphql/mutations.generated";
+import { useEffect, useState } from "react";
 import {
   useWorkspaceNotebooksPageQuery,
   WorkspaceNotebooksPageDocument,
+  WorkspaceNotebooksPageQuery,
 } from "workspaces/graphql/queries.generated";
+import { launchNotebookServer } from "workspaces/helpers/notebooks";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
-  notebooksUrl: string;
+  server: NotebookServer;
 };
 
 const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const client = useApolloClient();
+  const [server, setServer] = useState(props.server);
   const workspaceSlug = router.query.workspaceSlug as string;
   const { data } = useWorkspaceNotebooksPageQuery({
     variables: { workspaceSlug },
   });
 
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (!server?.ready) {
+      console.log("fetch server");
+      timeout = setTimeout(() => {
+        launchNotebookServer(client, workspaceSlug).then(setServer);
+      }, 1000);
+    }
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [server]);
+  console.log(server);
+
   if (!data?.workspace) {
     return null;
   }
 
-  if (!props.notebooksUrl) {
+  if (!server) {
     return (
       <Alert
         onClose={() => {
@@ -50,10 +70,16 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
         className="min-h-screen"
         forceCompactSidebar
       >
-        <iframe
-          className="h-full w-full flex-1"
-          src={props.notebooksUrl}
-        ></iframe>
+        {server?.ready ? (
+          <iframe className="h-full w-full flex-1" src={server.url}></iframe>
+        ) : (
+          <div className="flex h-60 flex-1 flex-col items-center justify-center gap-4">
+            <Spinner size="lg" />
+            <div className="text-gray-500">
+              {t("Starting your Jupyter server...")}
+            </div>
+          </div>
+        )}
       </WorkspaceLayout>
     </Page>
   );
@@ -65,30 +91,24 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   getServerSideProps: async (ctx, client) => {
     await WorkspaceLayout.prefetch(ctx, client);
-    const { data } = await client.query({
+    const { data } = await client.query<WorkspaceNotebooksPageQuery>({
       query: WorkspaceNotebooksPageDocument,
       variables: { workspaceSlug: ctx.params?.workspaceSlug },
     });
 
-    if (!data.workspace || !data.workspace.permissions.update) {
+    if (!data.workspace || !data.workspace.permissions.launchNotebookServer) {
       return {
         notFound: true,
       };
     }
-    const response = await client.mutate({
-      mutation: LaunchNotebookServerDocument,
-      variables: { input: { workspaceSlug: ctx.params?.workspaceSlug } },
-    });
+    const server = await launchNotebookServer(
+      client,
+      ctx.params?.workspaceSlug as string
+    );
 
-    if (!response.data?.launchNotebookServer.success) {
-      return {
-        props: {},
-      };
-    }
-    const { launchNotebookServer } = response.data;
     return {
       props: {
-        notebooksUrl: launchNotebookServer.server.url,
+        server,
       },
     };
   },
