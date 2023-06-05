@@ -17,6 +17,7 @@ type WorkspacePermissions {
   delete: Boolean!
   manageMembers: Boolean!
   createConnection: Boolean!
+  launchNotebookServer: Boolean!
 }
 
 type WorkspacePage {
