@@ -6,6 +6,6 @@ export function ensureArray<T>(maybeArray: T[] | T): T[] {
   } else if (Array.isArray(maybeArray)) {
     return maybeArray;
   } else {
-    return new Array(maybeArray);
+    return [maybeArray];
   }
 }
