@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.30.1](https://github.com/BLSQ/openhexa-frontend/compare/0.30.0...0.30.1) (2023-06-05)
+
+
+### Bug Fixes
+
+* **Apollo:** Set next fetch policy to "cache-and-network" ([#321](https://github.com/BLSQ/openhexa-frontend/issues/321)) ([7039a2d](https://github.com/BLSQ/openhexa-frontend/commit/7039a2d631abf4ab3dfaf219b5d78006d002b782))
+* **notebooks:** Wait for the notebook server to be ready before displaying it ([77ddddd](https://github.com/BLSQ/openhexa-frontend/commit/77ddddd823eef0215019554463931fa5b5652caa))
+* **notebooks:** Wait for the notebook server to be ready before displaying the iframe ([#320](https://github.com/BLSQ/openhexa-frontend/issues/320)) ([77ddddd](https://github.com/BLSQ/openhexa-frontend/commit/77ddddd823eef0215019554463931fa5b5652caa))
+* **Pipelines:** fix issues with parameters ([#314](https://github.com/BLSQ/openhexa-frontend/issues/314)) ([17cffcd](https://github.com/BLSQ/openhexa-frontend/commit/17cffcd6c85529fed296200bba1a4172ae0b6514))
+* **Workspace:** Add window titles to workspace pages ([#317](https://github.com/BLSQ/openhexa-frontend/issues/317)) ([7221817](https://github.com/BLSQ/openhexa-frontend/commit/7221817e92765dedea0492e4d7b62b7511a26fa8))
+
+
+### Miscellaneous
+
+* **deps:** Update Sentry and a few other deps ([d5bb19d](https://github.com/BLSQ/openhexa-frontend/commit/d5bb19d2d1ae255563db9db4190a900edaee3f42))
+* **Release:** Add chore commits to changelog ([8f7d610](https://github.com/BLSQ/openhexa-frontend/commit/8f7d610908939f556baf50915ada6aa79b5e4f8f))
+
 ## [0.30.0](https://github.com/BLSQ/openhexa-frontend/compare/0.29.1...0.30.0) (2023-05-25)
 
 
