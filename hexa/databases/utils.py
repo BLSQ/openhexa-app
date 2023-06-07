@@ -1,9 +1,17 @@
+import enum
+from dataclasses import dataclass
+
 import psycopg2
 from psycopg2 import sql
 
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+
+
+class OrderByDirectionEnum(enum.Enum):
+    ASC = "ASC"
+    DESC = "DESC"
 
 
 def get_workspace_database_connection(workspace: Workspace):
@@ -100,6 +108,55 @@ def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4
 
             data = cursor.fetchall()
         return data
+    finally:
+        if conn:
+            conn.close()
+
+
+@dataclass
+class TableRowsPage:
+    has_previous: bool
+    has_next: bool
+    page: int
+    items: list
+
+
+def get_table_rows(
+    workspace: Workspace,
+    table_name: str,
+    order_by: str,
+    direction: OrderByDirectionEnum,
+    page: int,
+    per_page: int,
+):
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            if direction == OrderByDirectionEnum.ASC:
+                sql_select = (
+                    "SELECT * FROM {table} ORDER BY {order_by} ASC LIMIT %s OFFSET %s;"
+                )
+            else:
+                sql_select = (
+                    "SELECT * FROM {table} ORDER BY {order_by} DESC LIMIT %s OFFSET %s;"
+                )
+            cursor.execute(
+                sql.SQL(sql_select).format(
+                    table=sql.Identifier(table_name),
+                    order_by=sql.Identifier(order_by),
+                ),
+                (per_page + 1, (page - 1) * per_page),
+            )
+
+            data = cursor.fetchall()
+
+        return TableRowsPage(
+            page=page,
+            has_previous=page > 1,
+            has_next=len(data) > per_page,
+            items=data[:-1],
+        )
     finally:
         if conn:
             conn.close()
