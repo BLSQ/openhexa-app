@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql, useLazyQuery } from "@apollo/client";
 import { PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Alert from "core/components/Alert";
@@ -9,31 +9,53 @@ import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
 import { PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { runPipeline } from "workspaces/helpers/pipelines";
 import PipelineVersionPicker from "../PipelineVersionPicker";
 import ParameterField from "./ParameterField";
 import {
+  PipelineCurrentVersionQuery,
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
-  RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
+import Spinner from "core/components/Spinner";
 
 type RunPipelineDialogProps = {
   open: boolean;
   onClose: () => void;
   pipeline: RunPipelineDialog_PipelineFragment;
-} & (
-  | {}
-  | { run: RunPipelineDialog_RunFragment }
-  | { version: RunPipelineDialog_VersionFragment }
-);
+} & ({} | { run: RunPipelineDialog_RunFragment });
 
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
   const { open, onClose, pipeline } = props;
+  const [showVersionPicker, setShowVersionPicker] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
+
+  const [fetch, { data }] = useLazyQuery<PipelineCurrentVersionQuery>(
+    gql`
+      ${ParameterField.fragments.parameter}
+      query PipelineCurrentVersion(
+        $workspaceSlug: String!
+        $pipelineCode: String!
+      ) {
+        pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+          currentVersion {
+            number
+            createdAt
+            user {
+              displayName
+            }
+            parameters {
+              ...ParameterField_parameter
+            }
+          }
+        }
+      }
+    `,
+    { fetchPolicy: "no-cache" }
+  );
 
   const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
     async onSubmit(values) {
@@ -50,12 +72,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       onClose();
     },
     getInitialState() {
-      const version =
-        ("version" in props && props.version) ||
-        ("run" in props && props.run.version) ||
-        pipeline.currentVersion ||
-        null;
-
+      const version = ("run" in props && props.run.version) || null;
       let state: any = {
         version,
       };
@@ -72,8 +89,20 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   useEffect(() => {
     if (!open) {
       form.resetForm();
+      setShowVersionPicker(false);
+    } else if (!("run" in props)) {
+      fetch({
+        variables: {
+          workspaceSlug: pipeline.workspace?.slug,
+          pipelineCode: pipeline.code,
+        },
+      });
     }
-  }, [open, form]);
+  }, [open, form, fetch, props, pipeline]);
+
+  useEffect(() => {
+    form.setFieldValue("version", data?.pipelineByCode?.currentVersion);
+  }, [form, data]);
 
   useEffect(() => {
     const version = form.formData.version;
@@ -119,59 +148,95 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-        <Dialog.Content className="-m-1 max-h-[600px] overflow-y-auto p-1">
-          <Field name="version" label={t("Version")} required className="mb-6">
-            <PipelineVersionPicker
-              required
-              pipeline={pipeline}
-              value={form.formData.version ?? null}
-              onChange={(value) => form.setFieldValue("version", value)}
-            />
-          </Field>
-          {form.formData.version && parameters.length === 0 && (
-            <p>{t("This pipeline has no parameter")}</p>
-          )}
-          <div
-            className={clsx(
-              "grid gap-x-3 gap-y-4",
-              parameters.length > 4 && "grid-cols-2 gap-x-5"
-            )}
-          >
-            {parameters.map((param, i) => (
-              <Field
-                required={param.required ?? true} // We also support parameters where required is not set
-                key={i}
-                name={param.code}
-                label={param.name}
-                help={param.help}
+        {open && !form.formData.version ? (
+          <Dialog.Content>
+            <Spinner />
+          </Dialog.Content>
+        ) : (
+          <>
+            <Dialog.Content className="-m-1 max-h-[600px] overflow-y-auto p-1">
+              {!showVersionPicker ? (
+                <div className="mb-6 flex justify-start gap-x-1">
+                  <p>
+                    {!("run" in props) &&
+                      t("This pipeline will run using the latest version")}
+                    {"run" in props &&
+                      t("This pipeline will run using the same version")}
+                  </p>
+                  <button
+                    className="text-sm text-blue-600 hover:text-blue-500"
+                    role="link"
+                    onClick={() => {
+                      setShowVersionPicker(true);
+                    }}
+                  >
+                    {t("(select specific version)")}
+                  </button>
+                </div>
+              ) : (
+                <Field
+                  name="version"
+                  label={t("Version")}
+                  required
+                  className="mb-6"
+                >
+                  <PipelineVersionPicker
+                    required
+                    pipeline={pipeline}
+                    value={form.formData.version ?? null}
+                    onChange={(value) => form.setFieldValue("version", value)}
+                  />
+                </Field>
+              )}
+
+              {form.formData.version && parameters.length === 0 && (
+                <p>{t("This pipeline has no parameter")}</p>
+              )}
+              <div
+                className={clsx(
+                  "grid gap-x-3 gap-y-4",
+                  parameters.length > 4 && "grid-cols-2 gap-x-5"
+                )}
               >
-                <ParameterField
-                  parameter={param}
-                  value={form.formData[param.code]}
-                  onChange={(value: any) =>
-                    form.setFieldValue(param.code, value)
-                  }
-                />
-              </Field>
-            ))}
-          </div>
-          {form.submitError && (
-            <div className="mt-3 text-sm text-red-600">{form.submitError}</div>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button type="button" variant="white" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={form.isSubmitting || !form.isValid}
-            leadingIcon={<PlayIcon className="h-4 w-4" />}
-          >
-            {t("Run")}
-          </Button>
-        </Dialog.Actions>
+                {parameters.map((param, i) => (
+                  <Field
+                    required={param.required ?? true} // We also support parameters where required is not set
+                    key={i}
+                    name={param.code}
+                    label={param.name}
+                    help={param.help}
+                  >
+                    <ParameterField
+                      parameter={param}
+                      value={form.formData[param.code]}
+                      onChange={(value: any) =>
+                        form.setFieldValue(param.code, value)
+                      }
+                    />
+                  </Field>
+                ))}
+              </div>
+              {form.submitError && (
+                <div className="mt-3 text-sm text-red-600">
+                  {form.submitError}
+                </div>
+              )}
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button type="button" variant="white" onClick={onClose}>
+                {t("Cancel")}
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={form.isSubmitting || !form.isValid}
+                leadingIcon={<PlayIcon className="h-4 w-4" />}
+              >
+                {t("Run")}
+              </Button>
+            </Dialog.Actions>
+          </>
+        )}
       </form>
     </Dialog>
   );
@@ -181,6 +246,9 @@ RunPipelineDialog.fragments = {
   pipeline: gql`
     fragment RunPipelineDialog_pipeline on Pipeline {
       id
+      workspace {
+        slug
+      }
       permissions {
         run
       }
@@ -204,20 +272,6 @@ RunPipelineDialog.fragments = {
     }
     ${ParameterField.fragments.parameter}
     ${PipelineVersionPicker.fragments.pipeline}
-  `,
-  version: gql`
-    fragment RunPipelineDialog_version on PipelineVersion {
-      id
-      number
-      createdAt
-      user {
-        displayName
-      }
-      parameters {
-        ...ParameterField_parameter
-      }
-    }
-    ${ParameterField.fragments.parameter}
   `,
   run: gql`
     fragment RunPipelineDialog_run on PipelineRun {
