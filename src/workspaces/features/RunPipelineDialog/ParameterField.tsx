@@ -44,13 +44,17 @@ const ParameterField = (props: ParameterFieldProps) => {
     );
   }
   if (parameter.choices?.length) {
+    const choices =
+      parameter.type !== "str"
+        ? parameter.choices.map((choice: number) => String(choice))
+        : parameter.choices;
     return (
       <Select
         onChange={handleChange}
         value={value}
         required={Boolean(parameter.required)}
         multiple={parameter.multiple}
-        options={parameter.choices ?? []}
+        options={choices ?? []}
         getOptionLabel={(option) => option}
         onCreate={
           !parameter.choices
