@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { Settings } from "luxon";
 import { MeProvider } from "identity/hooks/useMe";
+import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
 
 // Set the default locale & timezone to be used on server and client.
 // This should be changed to use the correct lang and tz of the user when it's available.
@@ -29,17 +30,22 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
     Sentry.setUser(me?.user ? { email: me.user.email, id: me.user.id } : null);
   }, [me]);
   return (
-    <MeProvider me={me}>
-      <NavigationProgress color="#002C5F" height={3} />
-      <ApolloProvider client={apolloClient}>
-        <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta name="description" content="" />
-        </Head>
-        {getLayout(<Component {...pageProps} />, pageProps)}
-        <AlertManager />
-      </ApolloProvider>
-    </MeProvider>
+    <ErrorBoundary>
+      <MeProvider me={me}>
+        <NavigationProgress color="#002C5F" height={3} />
+        <ApolloProvider client={apolloClient}>
+          <Head>
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1"
+            />
+            <meta name="description" content="" />
+          </Head>
+          {getLayout(<Component {...pageProps} />, pageProps)}
+          <AlertManager />
+        </ApolloProvider>
+      </MeProvider>
+    </ErrorBoundary>
   );
 }
 

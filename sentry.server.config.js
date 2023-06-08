@@ -13,6 +13,7 @@ if (config) {
   Sentry.init({
     dsn: publicRuntimeConfig.SENTRY_DSN,
     environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+    tracePropagationTargets: ["localhost"],
     // Adjust this value in production, or use tracesSampler for greater control
     tracesSampler({ transactionContext }) {
       if (transactionContext.metadata?.requestPath?.startsWith("/ready")) {

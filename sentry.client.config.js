@@ -49,6 +49,13 @@ Sentry.init({
   ],
   dsn: publicRuntimeConfig.SENTRY_DSN,
   environment: publicRuntimeConfig.SENTRY_ENVIRONMENT,
+  integrations: [
+    new Sentry.BrowserTracing({
+      // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
+      tracePropagationTargets: ["localhost", /^\//],
+      // Add additional custom options here
+    }),
+  ],
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampler({ transactionContext }) {
     if (transactionContext.metadata?.requestPath?.startsWith("/ready")) {
