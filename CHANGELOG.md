@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.30.2](https://github.com/BLSQ/openhexa-frontend/compare/0.30.1...0.30.2) (2023-06-08)
+
+
+### Bug Fixes
+
+* **Pipelines:** parse float/int parameter to string for select ([#324](https://github.com/BLSQ/openhexa-frontend/issues/324)) ([c420381](https://github.com/BLSQ/openhexa-frontend/commit/c420381c604d380830d1086e084cb3b91a82d33e))
+* **Pipelines:** validate all pipeline parameters ([#322](https://github.com/BLSQ/openhexa-frontend/issues/322)) ([53451c2](https://github.com/BLSQ/openhexa-frontend/commit/53451c25df3de2b76651415e9f784e593c063264))
+* **Sentry:** Add an ErrorBoundary wrapping nextjs app ([#325](https://github.com/BLSQ/openhexa-frontend/issues/325)) ([2558f4d](https://github.com/BLSQ/openhexa-frontend/commit/2558f4dc76a74097dc44ae21134cc1fb34892a95))
+
+
+### Miscellaneous
+
+* **Pipelines:** Fetch latest version on dialog opening, do not display the version picker by default ([#310](https://github.com/BLSQ/openhexa-frontend/issues/310)) ([3da5078](https://github.com/BLSQ/openhexa-frontend/commit/3da507889ed8573d47dd7a8f6aeac8ec19f11ce6))
+
 ## [0.30.1](https://github.com/BLSQ/openhexa-frontend/compare/0.30.0...0.30.1) (2023-06-05)
 
 
