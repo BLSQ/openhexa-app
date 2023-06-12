@@ -203,6 +203,7 @@ enum ConnectionType {
   POSTGRESQL
   DHIS2
   CUSTOM
+  IASO
 }
 
 type ConnectionField {
