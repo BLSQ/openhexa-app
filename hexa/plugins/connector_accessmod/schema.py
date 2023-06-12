@@ -17,7 +17,6 @@ from django.urls import reverse
 from slugify import slugify
 from stringcase import snakecase
 
-import hexa.plugins.connector_gcs.api as gcs_api
 import hexa.plugins.connector_s3.api as s3_api
 from config import settings
 from hexa.core import mimetypes
@@ -37,7 +36,6 @@ from hexa.plugins.connector_accessmod.models import (
 )
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_accessmod.utils import send_mail_to_accessmod_superusers
-from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
 from hexa.user_management.schema import me_permissions_object
@@ -530,8 +528,6 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
     bucket_name = bucket_name.rstrip("/")
     if uri_protocol == "s3":
         Bucket = S3Bucket
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
     else:
         raise ValueError(f"Protocol {uri_protocol} not supported.")
 
@@ -544,11 +540,6 @@ def resolve_prepare_accessmod_file_upload(_, info, **kwargs):
 
     if uri_protocol == "s3":
         upload_url = s3_api.generate_upload_url(
-            bucket=bucket,
-            target_key=target_key,
-        )
-    elif uri_protocol == "gcs":
-        upload_url = gcs_api.generate_upload_url(
             bucket=bucket,
             target_key=target_key,
         )
@@ -578,8 +569,6 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
     bucket_name = bucket_name.rstrip("/")
     if uri_protocol == "s3":
         Bucket = S3Bucket
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
     else:
         raise ValueError(f"Protocol {uri_protocol} not supported.")
 
@@ -593,12 +582,6 @@ def resolve_prepare_accessmod_file_download(_, info, **kwargs):
             bucket=bucket,
             # Ugly workaround, TBD when we know more about storage
             target_key=file.uri.replace(f"s3://{bucket.name}/", ""),
-        )
-    elif uri_protocol == "gcs":
-        download_url = gcs_api.generate_download_url(
-            bucket=bucket,
-            # Ugly workaround, TBD when we know more about storage
-            target_key=file.uri.replace(f"gcs://{bucket.name}/", ""),
         )
     else:
         raise ValueError(f"Protocol {uri_protocol} not supported.")
@@ -634,9 +617,6 @@ def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
     bucket_name = bucket_name.rstrip("/")
     if uri_protocol == "s3":
         Bucket = S3Bucket
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
-
     try:
         bucket = Bucket.objects.get(name=bucket_name)
     except Bucket.DoesNotExist:
@@ -648,12 +628,6 @@ def resolve_prepare_accessmod_fileset_visualization_download(_, info, **kwargs):
                 bucket=bucket,
                 # Ugly workaround, TBD when we know more about storage
                 target_key=uri.replace(f"s3://{bucket.name}/", ""),
-            )
-        elif uri_protocol == "gcs":
-            download_url = gcs_api.generate_download_url(
-                bucket=bucket,
-                # Ugly workaround, TBD when we know more about storage
-                target_key=uri.replace(f"gcs://{bucket.name}/", ""),
             )
         else:
             raise ValueError(f"Protocol {uri_protocol} not supported.")

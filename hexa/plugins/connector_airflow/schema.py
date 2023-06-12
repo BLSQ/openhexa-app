@@ -4,12 +4,10 @@ from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_f
 from django.db.models import OuterRef, Prefetch, Subquery
 from django.http import HttpRequest
 
-import hexa.plugins.connector_gcs.api as gcs_api
 import hexa.plugins.connector_s3.api as s3_api
 from hexa.core.graphql import result_page
 from hexa.countries.models import Country
 from hexa.pipelines.models import Index
-from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
 from .models import DAG, DAGRun, DAGRunFavorite
@@ -244,29 +242,18 @@ def resolve_prepare_download_url(_, info, **kwargs):
         uri_protocol, uri_full_path = uri.split("://")
         bucket_name, *paths = uri_full_path.split("/")
         uri_path = "/".join(paths)
-
-        if uri_protocol == "s3":
-            Bucket = S3Bucket
-        elif uri_protocol == "gcs":
-            Bucket = GCSBucket
-        else:
-            raise ValueError(f"Protocol {uri_protocol} not supported.")
+        Bucket = S3Bucket
 
         try:
             bucket = Bucket.objects.filter_for_user(request.user).get(name=bucket_name)
         except Bucket.DoesNotExist:
             raise ValueError(f"The bucket {bucket_name} does not exist")
 
-        if uri_protocol == "s3":
-            download_url = s3_api.generate_download_url(
-                bucket=bucket,
-                target_key=uri_path,
-            )
-        elif uri_protocol == "gcs":
-            download_url = gcs_api.generate_download_url(
-                bucket=bucket,
-                target_key=uri_path,
-            )
+        download_url = s3_api.generate_download_url(
+            bucket=bucket,
+            target_key=uri_path,
+        )
+
         return {"success": True, "url": download_url}
     except ValueError as err:
         return {"success": False}
