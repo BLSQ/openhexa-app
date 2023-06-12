@@ -326,6 +326,7 @@ class ConnectionType(models.TextChoices):
     POSTGRESQL = "POSTGRESQL", _("PostgreSQL DB")
     CUSTOM = "CUSTOM", _("Custom")
     DHIS2 = "DHIS2", _("DHIS2 Instance")
+    IASO = "IASO", _("IASO Instance")
 
 
 class Connection(models.Model):
