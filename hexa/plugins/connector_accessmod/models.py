@@ -25,7 +25,6 @@ from hexa.core import mimetypes
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.plugins.connector_airflow import models as airflow_models
-from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import (
     Permission,
@@ -652,8 +651,6 @@ class Analysis(models.Model):
 
         if uri_protocol == "s3":
             Bucket = S3Bucket
-        elif uri_protocol == "gcs":
-            Bucket = GCSBucket
         else:
             raise ValueError(f"Protocol {uri_protocol} not supported.")
 
@@ -1217,7 +1214,6 @@ class ZonalStatisticsAnalysis(Analysis):
         mime_type: str,
         metadata: typing.Optional[typing.Dict[str, typing.Any]],
     ):
-
         if input not in ("population", "travel_times", "boundaries"):
             raise Exception("invalid input")
 
@@ -1270,7 +1266,6 @@ class ZonalStatisticsAnalysis(Analysis):
         return "am_zonal_statistics"
 
     def build_dag_conf(self, output_dir: str):
-
         # force output_dir to end with a "/"
         if not output_dir.endswith("/"):
             output_dir += "/"

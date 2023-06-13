@@ -17,7 +17,6 @@ from django.views.decorators.http import require_POST
 from hexa.app import get_hexa_app_configs
 from hexa.databases.api import get_db_server_credentials
 from hexa.pipelines.models import Environment
-from hexa.plugins.connector_gcs.api import build_app_short_lived_credentials
 from hexa.workspaces.models import Connection, ConnectionType
 
 from .credentials import PipelinesCredentials
@@ -142,7 +141,6 @@ def credentials2(request: HttpRequest) -> HttpResponse:
         }
     )
     env["WORKSPACE_BUCKET_NAME"] = run.pipeline.workspace.bucket_name
-    env["GCS_TOKEN"] = build_app_short_lived_credentials().access_token
     env["GCS_BUCKETS"] = base64.b64encode(
         json.dumps({"buckets": gcs_buckets}).encode()
     ).decode()

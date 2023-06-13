@@ -23,9 +23,7 @@ except ImportError:
 from django.db import models
 from dpq.queue import AtMostOnceQueue
 
-import hexa.plugins.connector_gcs.api as gcs_api
 import hexa.plugins.connector_s3.api as s3_api
-from hexa.plugins.connector_gcs.models import Bucket as GCSBucket
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 
 from .models import (
@@ -310,9 +308,6 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
     if uri_protocol == "s3":
         Bucket = S3Bucket
         upload_file = s3_api.upload_file
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
-        upload_file = gcs_api.upload_file
 
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     upload_file(bucket=bucket, object_key=dst_path, src_path=json_filename)
@@ -386,9 +381,6 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
     if uri_protocol == "s3":
         Bucket = S3Bucket
         upload_file = s3_api.upload_file
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
-        upload_file = gcs_api.upload_file
 
     bucket = Bucket.objects.get(name=get_bucket_name(src_filename))
     upload_file(bucket=bucket, object_key=dst_path, src_path=cog_filename)
@@ -410,9 +402,6 @@ def validate_data_and_download(fileset: Fileset) -> str:
     if uri_protocol == "s3":
         Bucket = S3Bucket
         download_file = s3_api.download_file
-    elif uri_protocol == "gcs":
-        Bucket = GCSBucket
-        download_file = gcs_api.download_file
     else:
         fileset.set_invalid("wrong uri")
         return None
