@@ -242,11 +242,12 @@ def resolve_prepare_download_url(_, info, **kwargs):
         uri_protocol, uri_full_path = uri.split("://")
         bucket_name, *paths = uri_full_path.split("/")
         uri_path = "/".join(paths)
-        Bucket = S3Bucket
 
         try:
-            bucket = Bucket.objects.filter_for_user(request.user).get(name=bucket_name)
-        except Bucket.DoesNotExist:
+            bucket = S3Bucket.objects.filter_for_user(request.user).get(
+                name=bucket_name
+            )
+        except S3Bucket.DoesNotExist:
             raise ValueError(f"The bucket {bucket_name} does not exist")
 
         download_url = s3_api.generate_download_url(
