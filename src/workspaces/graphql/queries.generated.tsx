@@ -20,6 +20,7 @@ import { BucketExplorer_WorkspaceFragmentDoc, BucketExplorer_ObjectsFragmentDoc 
 import { UploadObjectDialog_WorkspaceFragmentDoc } from '../features/UploadObjectDialog/UploadObjectDialog.generated';
 import { CreateBucketFolderDialog_WorkspaceFragmentDoc } from '../features/CreateBucketFolderDialog/CreateBucketFolderDialog.generated';
 import { DatabaseVariablesSection_WorkspaceFragmentDoc } from '../features/DatabaseVariablesSection/DatabaseVariablesSection.generated';
+import { DatabaseTableDataGrid_TableFragmentDoc, DatabaseTableDataGrid_WorkspaceFragmentDoc } from '../features/DatabaseTableDataGrid/DatabaseTableDataGrid.generated';
 import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
 import { ConnectionUsageSnippets_ConnectionFragmentDoc } from '../features/ConnectionUsageSnippets/ConnectionUsageSnippets.generated';
 import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
@@ -634,12 +635,16 @@ export const WorkspaceDatabaseTablePageDocument = gql`
           name
           type
         }
+        ...DatabaseTableDataGrid_table
       }
     }
+    ...DatabaseTableDataGrid_workspace
     ...WorkspaceLayout_workspace
   }
 }
-    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
+    ${DatabaseTableDataGrid_TableFragmentDoc}
+${DatabaseTableDataGrid_WorkspaceFragmentDoc}
+${WorkspaceLayout_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspaceDatabaseTablePageQuery__

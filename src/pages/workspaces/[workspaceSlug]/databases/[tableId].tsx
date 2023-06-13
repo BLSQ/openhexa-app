@@ -4,13 +4,13 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
+import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import DataPreviewDialog from "workspaces/features/DataPreviewDialog";
+import DatabaseTableDataGrid from "workspaces/features/DatabaseTableDataGrid/DatabaseTableDataGrid";
 import {
   useWorkspaceDatabaseTablePageQuery,
   WorkspaceDatabaseTablePageDocument,
@@ -24,7 +24,6 @@ type Props = {
 
 const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const [openModal, setOpenModal] = useState(false);
   const router = useRouter();
   const { data } = useWorkspaceDatabaseTablePageQuery({
     variables: {
@@ -41,10 +40,6 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
   if (!table) {
     return null;
   }
-
-  const handleOpenModal = () => {
-    setOpenModal(!openModal);
-  };
 
   return (
     <Page title={table.name}>
@@ -73,46 +68,57 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
               {table.name}
             </Breadcrumbs.Part>
           </Breadcrumbs>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleOpenModal}
-              leadingIcon={<EyeIcon className="w-4" />}
-            >
-              {t("Preview data")}
-            </Button>
-          </div>
+          <div className="flex items-center gap-2"></div>
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-4">
           <Block className="divide-y-2 divide-gray-100">
-            <Block.Content title={t("Definition")}>
-              <DataGrid
-                data={table.columns}
-                fixedLayout={false}
-                totalItems={table.columns.length}
-                className="w-3/4 max-w-lg rounded-md border"
-              >
-                <TextColumn
-                  className="py-3 font-mono"
-                  textClassName="bg-gray-50 py-1 px-2"
-                  name="field"
-                  label="Field"
-                  accessor="name"
-                />
-                <TextColumn
-                  className="py-3"
-                  name="type"
-                  label="Type"
-                  accessor="type"
-                />
-              </DataGrid>
+            <Block.Content title={t("Data")}>
+              <DatabaseTableDataGrid workspace={workspace} table={table} />
+            </Block.Content>
+            <Block.Content title={t("Usage")} className="space-y-2">
+              <p>
+                For more information on how to use the workspace database or how
+                the database is integrated with others part of the system you
+                can read the following guides:
+              </p>
+
+              <ul className="list list-inside list-disc">
+                <li>
+                  <a
+                    href={
+                      "https://github.com/BLSQ/openhexa/wiki/User-manual#using-the-workspaces-database"
+                    }
+                    className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                    target="_blank"
+                  >
+                    {t("Database general documentation")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={
+                      "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-the-workspace-database"
+                    }
+                    className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                    target="_blank"
+                  >
+                    {t("Using the workspace database in notebooks")}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={
+                      "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-the-workspace-database"
+                    }
+                    className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                    target="_blank"
+                  >
+                    {t("Using the workspace database in pipelines")}
+                  </a>
+                </li>
+              </ul>
             </Block.Content>
           </Block>
-          <DataPreviewDialog
-            open={openModal}
-            onClose={() => setOpenModal(!openModal)}
-            workspaceSlug={workspace.slug}
-            tableName={table.name}
-          />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>

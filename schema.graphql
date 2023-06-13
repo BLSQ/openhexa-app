@@ -852,6 +852,7 @@ type DatabaseTable {
   count: Int
   columns: [TableColumn!]!
   sample: JSON!
+  rows(orderBy: String!, direction: OrderByDirection!, page: Int!, perPage: Int = 15): TableRowsPage!
 }
 
 type DatabaseTablePage {
@@ -1412,6 +1413,11 @@ type NotebookServer {
   ready: Boolean!
 }
 
+enum OrderByDirection {
+  ASC
+  DESC
+}
+
 type Organization {
   id: UUID!
   name: String!
@@ -1832,6 +1838,13 @@ scalar StackPriorities
 type TableColumn {
   name: String!
   type: String!
+}
+
+type TableRowsPage {
+  pageNumber: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  items: [JSON!]!
 }
 
 type Tag {

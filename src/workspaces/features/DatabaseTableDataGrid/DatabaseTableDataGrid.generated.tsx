@@ -1,0 +1,85 @@
+import * as Types from '../../../graphql-types';
+
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
+const defaultOptions = {} as const;
+export type DatabaseTableDataGridQueryVariables = Types.Exact<{
+  slug: Types.Scalars['String']['input'];
+  tableName: Types.Scalars['String']['input'];
+  orderBy: Types.Scalars['String']['input'];
+  direction: Types.OrderByDirection;
+  page: Types.Scalars['Int']['input'];
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+}>;
+
+
+export type DatabaseTableDataGridQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, database: { __typename?: 'Database', table?: { __typename?: 'DatabaseTable', rows: { __typename?: 'TableRowsPage', pageNumber: number, hasNextPage: boolean, hasPreviousPage: boolean, items: Array<any> } } | null } } | null };
+
+export type DatabaseTableDataGrid_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
+
+export type DatabaseTableDataGrid_TableFragment = { __typename?: 'DatabaseTable', name: string, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> };
+
+export const DatabaseTableDataGrid_WorkspaceFragmentDoc = gql`
+    fragment DatabaseTableDataGrid_workspace on Workspace {
+  slug
+}
+    `;
+export const DatabaseTableDataGrid_TableFragmentDoc = gql`
+    fragment DatabaseTableDataGrid_table on DatabaseTable {
+  name
+  columns {
+    name
+    type
+  }
+}
+    `;
+export const DatabaseTableDataGridDocument = gql`
+    query DatabaseTableDataGrid($slug: String!, $tableName: String!, $orderBy: String!, $direction: OrderByDirection!, $page: Int!, $perPage: Int) {
+  workspace(slug: $slug) {
+    slug
+    database {
+      table(name: $tableName) {
+        rows(orderBy: $orderBy, direction: $direction, page: $page, perPage: $perPage) {
+          pageNumber
+          hasNextPage
+          hasPreviousPage
+          items
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDatabaseTableDataGridQuery__
+ *
+ * To run a query within a React component, call `useDatabaseTableDataGridQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDatabaseTableDataGridQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDatabaseTableDataGridQuery({
+ *   variables: {
+ *      slug: // value for 'slug'
+ *      tableName: // value for 'tableName'
+ *      orderBy: // value for 'orderBy'
+ *      direction: // value for 'direction'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useDatabaseTableDataGridQuery(baseOptions: Apollo.QueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>(DatabaseTableDataGridDocument, options);
+      }
+export function useDatabaseTableDataGridLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>(DatabaseTableDataGridDocument, options);
+        }
+export type DatabaseTableDataGridQueryHookResult = ReturnType<typeof useDatabaseTableDataGridQuery>;
+export type DatabaseTableDataGridLazyQueryHookResult = ReturnType<typeof useDatabaseTableDataGridLazyQuery>;
+export type DatabaseTableDataGridQueryResult = Apollo.QueryResult<DatabaseTableDataGridQuery, DatabaseTableDataGridQueryVariables>;

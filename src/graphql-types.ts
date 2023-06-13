@@ -990,7 +990,16 @@ export type DatabaseTable = {
   columns: Array<TableColumn>;
   count?: Maybe<Scalars['Int']['output']>;
   name: Scalars['String']['output'];
+  rows: TableRowsPage;
   sample: Scalars['JSON']['output'];
+};
+
+
+export type DatabaseTableRowsArgs = {
+  direction: OrderByDirection;
+  orderBy: Scalars['String']['input'];
+  page: Scalars['Int']['input'];
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type DatabaseTablePage = {
@@ -1912,6 +1921,11 @@ export type NotebookServer = {
   url: Scalars['String']['output'];
 };
 
+export enum OrderByDirection {
+  Asc = 'ASC',
+  Desc = 'DESC'
+}
+
 export type Organization = {
   __typename?: 'Organization';
   contactInfo: Scalars['String']['output'];
@@ -2548,6 +2562,14 @@ export type TableColumn = {
   __typename?: 'TableColumn';
   name: Scalars['String']['output'];
   type: Scalars['String']['output'];
+};
+
+export type TableRowsPage = {
+  __typename?: 'TableRowsPage';
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  items: Array<Scalars['JSON']['output']>;
+  pageNumber: Scalars['Int']['output'];
 };
 
 export type Tag = {

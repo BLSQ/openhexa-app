@@ -3,10 +3,10 @@ import { HTMLAttributes } from "react";
 
 export const TableClasses = {
   table: "w-full divide-y divide-gray-200 ",
-  thead: "bg-gray-50",
+  thead: "",
   tbody: "divide-y divide-gray-200",
   tr: "",
-  th: "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+  th: "px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
   td: "px-4 py-5 text-sm text-gray-500 h-full",
 };
 

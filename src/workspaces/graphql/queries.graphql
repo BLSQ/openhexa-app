@@ -230,8 +230,10 @@ query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
           name
           type
         }
+        ...DatabaseTableDataGrid_table
       }
     }
+    ...DatabaseTableDataGrid_workspace
     ...WorkspaceLayout_workspace
   }
 }
