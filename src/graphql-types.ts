@@ -558,6 +558,7 @@ export enum ConnectionType {
   Custom = 'CUSTOM',
   Dhis2 = 'DHIS2',
   Gcs = 'GCS',
+  Iaso = 'IASO',
   Postgresql = 'POSTGRESQL',
   S3 = 'S3'
 }

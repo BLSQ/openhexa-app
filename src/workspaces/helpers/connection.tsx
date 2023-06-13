@@ -433,6 +433,51 @@ function GCSBucketForm(props: { form: FormInstance<ConnectionForm> }) {
   );
 }
 
+function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
+  const { form } = props;
+  const { t } = useTranslation();
+
+  const [{ api_url, username, password }, { updateField }] =
+    useConnectionFields(form, [
+      { code: "api_url", name: "Url" },
+      { code: "username", name: "User" },
+      { code: "password", secret: true, name: "Password" },
+    ]);
+
+  return (
+    <>
+      <div className="col-span-2">
+        <Field
+          onChange={(event) =>
+            updateField(event.target.name, event.target.value)
+          }
+          value={api_url.value}
+          name="api_url"
+          type="url"
+          label={t("URL")}
+        />
+      </div>
+
+      <Field
+        onChange={(event) => updateField(event.target.name, event.target.value)}
+        value={username.value}
+        name="username"
+        label={t("Username")}
+        required
+      />
+
+      <Field
+        onChange={(event) => updateField(event.target.name, event.target.value)}
+        value={password.value}
+        name="password"
+        type="password"
+        label={t("Password")}
+        required
+      />
+    </>
+  );
+}
+
 function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
   const { t } = useTranslation();
@@ -544,6 +589,12 @@ export const CONNECTION_TYPES = {
     color: "bg-blue-200",
     iconSrc: "/static/connector_gcs/img/symbol.svg",
     Form: GCSBucketForm,
+  },
+  [ConnectionType.Iaso]: {
+    label: "IASO Account",
+    color: "bg-green-300",
+    iconSrc: "/static/connector_iaso/img/symbol.svg",
+    Form: IASOForm,
   },
   [ConnectionType.Custom]: {
     label: "Custom",
