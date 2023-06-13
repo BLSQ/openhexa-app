@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.31.0](https://github.com/BLSQ/openhexa-frontend/compare/0.30.2...0.31.0) (2023-06-13)
+
+
+### Features
+
+* **Connections:** add IASO connection type ([#329](https://github.com/BLSQ/openhexa-frontend/issues/329)) ([88d059e](https://github.com/BLSQ/openhexa-frontend/commit/88d059e8460d74f9d50c8bdb04e9a71034cdbfc5))
+* **Database:** User can view all data inside a table and order on the columns ([#330](https://github.com/BLSQ/openhexa-frontend/issues/330)) ([6de4214](https://github.com/BLSQ/openhexa-frontend/commit/6de4214a4512a712442800371ea28bae1432f057))
+
+
+### Miscellaneous
+
+* **Workspaces:** update database and connections usage sections links ([#328](https://github.com/BLSQ/openhexa-frontend/issues/328)) ([124b7db](https://github.com/BLSQ/openhexa-frontend/commit/124b7dbdfb6156ceed1638d4e77ff0e5e98fdc89))
+
 ## [0.30.2](https://github.com/BLSQ/openhexa-frontend/compare/0.30.1...0.30.2) (2023-06-08)
 
 
