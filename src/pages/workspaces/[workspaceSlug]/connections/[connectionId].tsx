@@ -147,15 +147,48 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
               )}
             </div>
             <DataCard.Section title={t("Usage")}>
-              <p className="text-sm text-gray-900">
-                {t("Documentation for connections usage is available at ")}
-                <a
-                  href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections"
-                  className="text-blue-600 hover:text-blue-500 focus:outline-none"
-                >
-                  https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections
-                </a>
-              </p>
+              <div className="space-y-2">
+                <p>
+                  The following guides gives you a general introduction to
+                  connections and how you can use them in notebooks or data
+                  pipelines:
+                </p>
+                <ul className="list list-inside list-disc">
+                  <li>
+                    <a
+                      href={
+                        "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections"
+                      }
+                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                      target="_blank"
+                    >
+                      {t("Connections general documentation")}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={
+                        "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections"
+                      }
+                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                      target="_blank"
+                    >
+                      {t("Using connections in notebooks")}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={
+                        "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections"
+                      }
+                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
+                      target="_blank"
+                    >
+                      {t("Using connections in pipelines")}
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </DataCard.Section>
           </DataCard>
         </WorkspaceLayout.PageContent>
