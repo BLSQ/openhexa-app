@@ -22,12 +22,24 @@ type TableColumn {
   type: String!
 }
 
+enum OrderByDirection {
+  ASC
+  DESC
+}
 
 type DatabaseTable {
   name: String!
   count: Int
   columns: [TableColumn!]!
   sample: JSON!
+  rows(orderBy: String!, direction: OrderByDirection!, page: Int!, perPage: Int = 15): TableRowsPage!
+}
+
+type TableRowsPage {
+  pageNumber: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  items: [JSON!]!
 }
 
 type DatabaseTablePage {

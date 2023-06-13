@@ -1,6 +1,7 @@
 import pathlib
 
 from ariadne import (
+    EnumType,
     MutationType,
     ObjectType,
     convert_kwargs_to_snake_case,
@@ -12,7 +13,13 @@ from django.http import HttpRequest
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
-from .utils import get_database_definition, get_table_definition, get_table_sample_data
+from .utils import (
+    OrderByDirectionEnum,
+    get_database_definition,
+    get_table_definition,
+    get_table_rows,
+    get_table_sample_data,
+)
 
 databases_types_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -22,6 +29,8 @@ database_object = ObjectType("Database")
 database_table_object = ObjectType("DatabaseTable")
 workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
+
+order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
 
 
 @database_object.field("tables")
@@ -68,6 +77,28 @@ def resolve_database_table_sample(table, info, **kwargs):
     return get_table_sample_data(table["workspace"], table["name"])
 
 
+@database_table_object.field("rows")
+@convert_kwargs_to_snake_case
+def resolve_workspace_table_rows(
+    table,
+    info,
+    order_by,
+    direction,
+    page,
+    per_page=15,
+):
+    results = get_table_rows(
+        table["workspace"], table["name"], order_by, direction, page, per_page
+    )
+
+    return {
+        "page_number": results.page,
+        "items": results.items,
+        "has_next_page": results.has_next,
+        "has_previous_page": results.has_previous,
+    }
+
+
 @workspace_object.field("database")
 def resolve_workspace_database(workspace: Workspace, info, **kwargs):
     return workspace
@@ -96,4 +127,5 @@ databases_bindables = [
     database_table_object,
     workspace_object,
     workspace_mutations,
+    order_by_direction_enum,
 ]

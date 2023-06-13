@@ -4,6 +4,7 @@ from unittest import mock
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
+from hexa.databases.utils import TableRowsPage
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -251,6 +252,71 @@ class DatabaseTest(GraphQLTestCase):
                         "count": count,
                         "columns": [schema],
                         "sample": sample,
+                    }
+                },
+                r["data"]["workspace"]["database"],
+            )
+
+    def test_get_database_table_rows(self):
+        self.client.force_login(self.USER_SABRINA)
+        table_name = "test_table"
+        count = 2
+        schema = {"name": "id", "type": "int"}
+        table = {
+            "workspace": self.WORKSPACE,
+            "name": table_name,
+            "count": count,
+            "columns": [schema],
+        }
+        with mock.patch(
+            "hexa.databases.schema.get_table_definition"
+        ) as mocked_get_table_definition:
+            mocked_get_table_definition.return_value = table
+
+            with mock.patch(
+                "hexa.databases.schema.get_table_rows"
+            ) as mocked_get_table_rows:
+                mocked_get_table_rows.return_value = TableRowsPage(
+                    page=1,
+                    has_previous=False,
+                    has_next=False,
+                    items=[],
+                )
+
+                r = self.run_query(
+                    """
+                    query workspaceById($slug:String!, $tableName:String!) {
+                        workspace(slug: $slug) {
+                            database {
+                                table(name: $tableName) {
+                                    name
+                                    rows(orderBy: "unknown", direction: ASC page: 1, perPage: 2) {
+                                         hasNextPage
+                                         hasPreviousPage
+                                         pageNumber
+                                         items
+                                    }
+                                }
+                            }
+                        }
+                    }
+                   """,
+                    {
+                        "slug": str(self.WORKSPACE.slug),
+                        "tableName": table_name,
+                    },
+                )
+
+            self.assertEqual(
+                {
+                    "table": {
+                        "name": table_name,
+                        "rows": {
+                            "hasNextPage": False,
+                            "hasPreviousPage": False,
+                            "pageNumber": 1,
+                            "items": [],
+                        },
                     }
                 },
                 r["data"]["workspace"]["database"],
