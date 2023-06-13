@@ -37,7 +37,7 @@
     "@codemirror/lang-python": "^6.1.2",
     "@headlessui/react": "1.7.10",
     "@heroicons/react": "^2.0.18",
-    "@ladle/react": "^2.13.0",
+    "@ladle/react": "^2.14.0",
     "@popperjs/core": "^2.11.8",
     "@sentry/nextjs": "^7.54.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
