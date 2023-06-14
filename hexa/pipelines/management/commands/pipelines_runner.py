@@ -104,6 +104,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                             name="HEXA_RUN_ID",
                             value=env_var["HEXA_RUN_ID"],
                         ),
+                        k8s.V1EnvVar(
+                            name="HEXA_WORKSPACE",
+                            value=env_var["HEXA_WORKSPACE"],
+                        ),
                     ],
                     # We need to have /dev/fuse mounted inside the container
                     # This is done by requesting a resource: smarter-devices/fuse
@@ -192,7 +196,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]}'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]}'
     cmd = docker_cmd.split(" ") + [f"{json.dumps(run.config)}"]
 
     proc = Popen(
@@ -229,6 +233,7 @@ def run_pipeline(run: PipelineRun):
     env_var = {}
     env_var["HEXA_SERVER_URL"] = f"{settings.PIPELINE_API_URL}"
     env_var["HEXA_TOKEN"] = Signer().sign_object(run.access_token)
+    env_var["HEXA_WORKSPACE"] = run.pipeline.workspace.slug
     env_var["HEXA_RUN_ID"] = str(run.id)
     env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
     env_var["HEXA_PIPELINE_IMAGE"] = settings.PIPELINE_IMAGE

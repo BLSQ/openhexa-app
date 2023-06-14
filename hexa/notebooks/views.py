@@ -25,7 +25,8 @@ def authenticate(request: HttpRequest) -> HttpResponse:
 @require_POST
 def default_credentials(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the notebooks component to get credentials as env variables.
-    Every connector plugin can provide its own set of credentials (environment variables for S3 for example)."""
+    Every connector plugin can provide its own set of credentials (environment variables for S3 for example).
+    """
 
     if not request.user.is_authenticated:
         return JsonResponse(
@@ -57,12 +58,10 @@ def default_credentials(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 def credentials(request: HttpRequest) -> HttpResponse:
-    """This view is deprecated. Once the notebooks component uses authenticate() and default_credentials(), it
-    can be deleted.
+    """This view is deprecated but is still used by Airflow when running Notebooks using Papermill.
+    See https://github.com/BLSQ/openhexa-dags/blob/6fc0f54f95c4f3a6b89b3fff37c91cbeb7c6be1c/dags/papermill.py#L83
 
-    This API endpoint is called by the notebooks component to get credentials for Jupyterhub.
-    In addition to basic user information, every connector plugin can provide its own set of credentials (environment
-    variables for S3 for example)."""
+    """
 
     notebooks_credentials = NotebooksCredentials(request.user)
 

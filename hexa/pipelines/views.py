@@ -91,6 +91,7 @@ def credentials(request: HttpRequest) -> HttpResponse:
     )
 
 
+# FIXME: Deprecated, remove when the new backend is deployed
 @require_POST
 @csrf_exempt
 def credentials2(request: HttpRequest) -> HttpResponse:

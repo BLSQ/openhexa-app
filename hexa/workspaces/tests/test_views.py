@@ -1,12 +1,12 @@
-import base64
-import json
 from unittest.mock import patch
 
+from django.core.signing import Signer
 from django.urls import reverse
 
 from hexa.core.test import TestCase
 from hexa.databases.api import get_db_server_credentials
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
+from hexa.pipelines.models import Pipeline, PipelineRunTrigger
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Connection,
@@ -71,26 +71,47 @@ class ViewsTest(TestCase):
             ],
         )
 
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Test pipeline",
+            code="my-pipeline",
+            description="This is a test pipeline",
+        )
+        cls.PIPELINE.upload_new_version(cls.USER_JULIA, b"", [])
+
     def test_workspace_credentials_404(self):
         self.client.force_login(self.USER_JANE)
         response = self.client.post(
-            reverse(
-                "workspaces:credentials", kwargs={"workspace_slug": self.WORKSPACE.slug}
-            )
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_workspace_credentials_anonymous(self):
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_credentials_no_workspace(self):
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+        )
+        self.assertEqual(response.status_code, 400)
 
     def test_workspace_credentials_401(self):
         self.client.force_login(self.USER_REBECCA)
         response = self.client.post(
             reverse(
-                "workspaces:credentials", kwargs={"workspace_slug": self.WORKSPACE.slug}
-            )
+                "workspaces:credentials",
+            ),
+            data={"workspace": self.WORKSPACE.slug},
         )
         self.assertEqual(response.status_code, 401)
 
     @patch(
-        "hexa.files.credentials.get_short_lived_downscoped_access_token",
+        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
         return_value=("gcs-token", 3600),
     )
     def test_workspace_credentials_200(
@@ -98,9 +119,8 @@ class ViewsTest(TestCase):
     ):
         self.client.force_login(self.USER_JULIA)
         response = self.client.post(
-            reverse(
-                "workspaces:credentials", kwargs={"workspace_slug": self.WORKSPACE.slug}
-            )
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
         )
 
         db_credentials = get_db_server_credentials()
@@ -126,19 +146,6 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": workspace_db_url,
                 "GCS_TOKEN": "gcs-token",
-                "GCS_BUCKETS": base64.b64encode(
-                    json.dumps(
-                        {
-                            "buckets": [
-                                {
-                                    "name": self.WORKSPACE.bucket_name,
-                                    "mode": "RW",
-                                    "mount": "/workspace",
-                                }
-                            ]
-                        }
-                    ).encode()
-                ).decode(),
             },
         )
         self.assertEqual(
@@ -146,4 +153,72 @@ class ViewsTest(TestCase):
             self.WORKSPACE.workspacemembership_set.get(
                 user=self.USER_JULIA
             ).notebooks_server_hash,
+        )
+
+    @patch(
+        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
+        return_value=("gcs-token", 3600),
+    )
+    def test_pipeline_invalid_credentials_404(
+        self, mock_get_short_lived_downscoped_access_token
+    ):
+        run = self.PIPELINE.run(
+            self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
+        )
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+            **{
+                "HTTP_Authorization": f"Bearer {Signer().sign_object(run.access_token + 'invalid')}"
+            },
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    @patch(
+        "hexa.workspaces.views.get_short_lived_downscoped_access_token",
+        return_value=("gcs-token", 3600),
+    )
+    def test_pipeline_credentials_200(
+        self, mock_get_short_lived_downscoped_access_token
+    ):
+        run = self.PIPELINE.run(
+            self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
+        )
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+            **{
+                "HTTP_Authorization": f"Bearer {Signer().sign_object(run.access_token)}"
+            },
+        )
+
+        db_credentials = get_db_server_credentials()
+        workspace_db_url = f"postgresql://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{db_credentials['host']}:{db_credentials['port']}/{self.WORKSPACE.db_name}"
+
+        response_data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response_data["env"],
+            {
+                "DB_HOST": "127.0.0.1",
+                "DB_PORT": "5432",
+                "DB_USERNAME": "hexa-app",
+                "DB_PASSWORD": "hexa-app",
+                "DB_DATABASE": "hexa-app",  # Kept for backward-compat
+                "DB_DB_NAME": "hexa-app",
+                "DB_URL": "postgresql://hexa-app:hexa-app@127.0.0.1:5432/hexa-app",
+                "WORKSPACE_BUCKET_NAME": self.WORKSPACE.bucket_name,
+                "WORKSPACE_DATABASE_DB_NAME": self.WORKSPACE.db_name,
+                "WORKSPACE_DATABASE_HOST": db_credentials["host"],
+                "WORKSPACE_DATABASE_PORT": db_credentials["port"],
+                "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
+                "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
+                "WORKSPACE_DATABASE_URL": workspace_db_url,
+                "GCS_TOKEN": "gcs-token",
+            },
+        )
+        self.assertEqual(
+            response_data["notebooks_server_hash"],
+            str(run.id),
         )
