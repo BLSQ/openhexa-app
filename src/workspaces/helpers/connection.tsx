@@ -575,25 +575,25 @@ export const CONNECTION_TYPES = {
   [ConnectionType.Dhis2]: {
     label: "DHIS2 Instance",
     color: "bg-pink-300",
-    iconSrc: "/static/connector_dhis2/img/symbol.svg",
+    iconSrc: "/images/dhis2.svg",
     Form: DHIS2Form,
   },
   [ConnectionType.S3]: {
     label: "Amazon S3 Bucket",
     color: "bg-orange-200",
-    iconSrc: "/static/connector_s3/img/symbol.svg",
+    iconSrc: "/images/s3.svg",
     Form: S3BucketForm,
   },
   [ConnectionType.Gcs]: {
     label: "Google Cloud Bucket",
     color: "bg-blue-200",
-    iconSrc: "/static/connector_gcs/img/symbol.svg",
+    iconSrc: "/images/gcs.svg",
     Form: GCSBucketForm,
   },
   [ConnectionType.Iaso]: {
     label: "IASO Account",
     color: "bg-green-300",
-    iconSrc: "/static/connector_iaso/img/symbol.svg",
+    iconSrc: "/images/iaso.svg",
     Form: IASOForm,
   },
   [ConnectionType.Custom]: {
