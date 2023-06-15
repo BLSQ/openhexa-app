@@ -29,6 +29,7 @@ app.prepare().then(async () => {
           req.path.startsWith("/airflow") ||
           req.path.startsWith("/images") ||
           req.path.startsWith("/_next") ||
+          req.path.startsWith("/__nextjs") ||
           req.path === "/" ||
           req.path.startsWith("/ready");
 

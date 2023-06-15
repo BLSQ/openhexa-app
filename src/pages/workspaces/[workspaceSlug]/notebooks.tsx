@@ -33,7 +33,6 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (!server?.ready) {
-      console.log("fetch server");
       timeout = setTimeout(() => {
         launchNotebookServer(client, workspaceSlug).then(setServer);
       }, 1000);
@@ -41,7 +40,6 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [server]);
-  console.log(server);
 
   if (!data?.workspace) {
     return null;
