@@ -78,6 +78,7 @@ type PipelineRun {
   logs: String
   outputs: [PipelineRunOutput!]!
   code: String!
+  send_mail_notification: Boolean!
 }
 
 enum PipelineRunOrderBy {
@@ -174,6 +175,7 @@ input RunPipelineInput {
   id: UUID!
   version: Int
   config: JSON!
+  send_mail_notification: Boolean
 }
 
 type RunPipelineResult {

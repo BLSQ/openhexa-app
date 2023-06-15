@@ -336,6 +336,7 @@ def resolve_run_pipeline(_, info, **kwargs):
         pipeline_version=version,
         trigger_mode=PipelineRunTrigger.MANUAL,
         config=input.get("config", {}),
+        send_mail_notification=input.get("send_mail_notification"),
     )
 
     return {

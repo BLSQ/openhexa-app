@@ -164,6 +164,7 @@ class Pipeline(models.Model):
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] = None,
+        send_mail_notification: bool = False,
     ):
         run = PipelineRun.objects.create(
             user=user,
@@ -175,6 +176,7 @@ class Pipeline(models.Model):
             state=PipelineRunState.QUEUED,
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
+            send_mail_notification=send_mail_notification,
         )
 
         return run
@@ -272,6 +274,7 @@ class PipelineRun(Base, WithStatus):
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
+    send_mail_notification = models.BooleanField(null=True, default=False)
 
     objects = PipelineRunQuerySet.as_manager()
 
@@ -322,6 +325,13 @@ class PipelineRun(Base, WithStatus):
         self.refresh_from_db()
         self.current_progress = percent
         self.save()
+
+
+class PipelineRunRecipients:
+    users = models.ForeignKey(
+        "user_management.User", null=False, on_delete=models.CASCADE
+    )
+    pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
 
 
 class EnvironmentsSyncJob(BaseJob):

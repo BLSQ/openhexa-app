@@ -1,0 +1,8 @@
+The report for pipeline {{pipeline_code}}is available:
+Status : {{status}}
+Executed at : {{executed_at}}
+Duration at : {{duration}}
+
+Please go to the following page to access it: {{ run_url }}
+
+The OpenHexa team
