@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.1](https://github.com/BLSQ/openhexa-frontend/compare/0.31.0...0.31.1) (2023-06-15)
+
+
+### Miscellaneous
+
+* Remove console.log & fix erorr in dev mode ([#334](https://github.com/BLSQ/openhexa-frontend/issues/334)) ([8a1d695](https://github.com/BLSQ/openhexa-frontend/commit/8a1d695f80f641aba5878ed51515d0441832e01f))
+
 ## [0.31.0](https://github.com/BLSQ/openhexa-frontend/compare/0.30.2...0.31.0) (2023-06-13)
 
 
