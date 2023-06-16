@@ -1,5 +1,3 @@
-import base64
-import json
 import uuid
 from logging import getLogger
 
@@ -15,9 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.app import get_hexa_app_configs
-from hexa.databases.api import get_db_server_credentials
 from hexa.pipelines.models import Environment
-from hexa.workspaces.models import Connection, ConnectionType
 
 from .credentials import PipelinesCredentials
 from .models import Pipeline, PipelineRun
@@ -87,66 +83,6 @@ def credentials(request: HttpRequest) -> HttpResponse:
 
     return JsonResponse(
         pipeline_credentials.to_dict(),
-        status=200,
-    )
-
-
-@require_POST
-@csrf_exempt
-def credentials2(request: HttpRequest) -> HttpResponse:
-    """This API endpoint is called by the Pipelines v2 to get credentials"""
-    auth_type, token = request.headers.get("Authorization", " ").split(" ")
-    if auth_type.lower() != "bearer":
-        return JsonResponse(
-            {"error": "Authorization header should start with 'bearer'"}, status=401
-        )
-    try:
-        access_token = Signer().unsign_object(token)
-    except BadSignature:
-        return JsonResponse({"error": "Token signature is invalid"}, status=401)
-
-    run = PipelineRun.objects.get(access_token=access_token)
-    workspace = run.pipeline.workspace
-
-    # should follow the same logic as workspace.views.credentials
-    # FIXME: when workspace bucket credentials are working -> refactor/merge
-
-    env = {}
-    gcs_buckets = []
-
-    connections = Connection.objects.filter(workspace=workspace)
-    for connection in connections:
-        if connection.connection_type == ConnectionType.GCS:
-            gcs_buckets.append({"name": connection.name, "mode": "RW"})
-        else:
-            env.update(connection.env_variables)
-
-    db_credentials = get_db_server_credentials()
-    env.update(
-        {
-            "WORKSPACE_DATABASE_DB_NAME": workspace.db_name,
-            "WORKSPACE_DATABASE_HOST": db_credentials["host"],
-            "WORKSPACE_DATABASE_PORT": db_credentials["port"],
-            "WORKSPACE_DATABASE_USERNAME": workspace.db_name,
-            "WORKSPACE_DATABASE_PASSWORD": workspace.db_password,
-            "WORKSPACE_DATABASE_URL": workspace.db_url,
-        }
-    )
-
-    gcs_buckets.append(
-        {
-            "name": run.pipeline.workspace.bucket_name,
-            "mode": "RW",
-            "mount": "/workspace",
-        }
-    )
-    env["WORKSPACE_BUCKET_NAME"] = run.pipeline.workspace.bucket_name
-    env["GCS_BUCKETS"] = base64.b64encode(
-        json.dumps({"buckets": gcs_buckets}).encode()
-    ).decode()
-
-    return JsonResponse(
-        {"env": env, "files": {}},
         status=200,
     )
 

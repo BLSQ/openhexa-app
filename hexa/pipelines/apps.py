@@ -5,4 +5,4 @@ class PipelinesConfig(CoreAppConfig):
     name = "hexa.pipelines"
     label = "pipelines"
 
-    ANONYMOUS_URLS = ["pipelines:credentials", "pipelines:credentials2"]
+    ANONYMOUS_URLS = ["pipelines:credentials"]
