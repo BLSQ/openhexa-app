@@ -25,7 +25,7 @@ CMD start
 FROM deps as app
 # We need to have the docker client in the container to run docker-compose commands and execute pipelines
 # Needed for TailwindCSS
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get install -y nodejs
 
 RUN python manage.py tailwind install
