@@ -32,6 +32,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const { open, onClose, pipeline } = props;
   const [showVersionPicker, setShowVersionPicker] = useState(false);
   const clearCache = useCacheKey(["pipelines", pipeline.code]);
+  const { t } = useTranslation();
 
   const [fetch, { data }] = useLazyQuery<PipelineCurrentVersionQuery>(
     gql`
@@ -83,8 +84,17 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
       return state;
     },
+    validate(values) {
+      const errors = {} as any;
+      const { version, ...fields } = values;
+      version?.parameters.forEach((param) => {
+        if (param.required && !fields[param.code]) {
+          errors[param.code] = t("This field is required");
+        }
+      });
+      return errors;
+    },
   });
-  const { t } = useTranslation();
 
   useEffect(() => {
     if (!open) {
@@ -205,6 +215,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     name={param.code}
                     label={param.name}
                     help={param.help}
+                    error={form.touched[param.code] && form.errors[param.code]}
                   >
                     <ParameterField
                       parameter={param}
