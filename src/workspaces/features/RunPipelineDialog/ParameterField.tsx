@@ -75,7 +75,7 @@ const ParameterField = (props: ParameterFieldProps) => {
           rows={4}
           required={Boolean(parameter.required)}
           className="w-full"
-          value={value && value.join("\n")}
+          value={value ? value.join("\n") : ""}
           onChange={(event) => {
             handleChange(event.target.value.split("\n") || []);
           }}

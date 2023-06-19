@@ -200,7 +200,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               >
                 {parameters.map((param, i) => (
                   <Field
-                    required={param.required ?? true} // We also support parameters where required is not set
+                    required={param.required}
                     key={i}
                     name={param.code}
                     label={param.name}
