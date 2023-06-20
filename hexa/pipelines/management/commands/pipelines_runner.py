@@ -13,7 +13,7 @@ from django.utils import timezone
 from slugify import slugify
 
 from hexa.pipelines.models import PipelineRun, PipelineRunState
-from hexa.pipelines.utils import send_mail_to_pipelinerun_users
+from hexa.pipelines.utils import mail_run_recipients
 
 logger = getLogger(__name__)
 
@@ -266,7 +266,7 @@ def run_pipeline(run: PipelineRun):
         run.state = PipelineRunState.FAILED
     run.save()
     if run.send_mail_notification:
-        send_mail_to_pipelinerun_users(run)
+        mail_run_recipients(run)
     logger.info("End of run pipeline: %s", run)
 
     sys.exit()
