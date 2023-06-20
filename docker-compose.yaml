@@ -28,7 +28,7 @@ x-app: &common
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
       - NEW_FRONTEND_DOMAIN=localhost:3000
-      - NEW_FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=http://localhost:3000
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
 

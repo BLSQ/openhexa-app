@@ -155,6 +155,7 @@ class Pipeline(models.Model):
     cpu_limit = models.CharField(blank=True, max_length=32)
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
+    recipients = models.ManyToManyField(User, through="PipelineRunRecipient")
 
     objects = PipelineQuerySet.as_manager()
 
@@ -208,6 +209,11 @@ class Pipeline(models.Model):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
+        if "recipientIds" in kwargs:
+            for id in kwargs["recipientIds"]:
+                user = User.objects.get(id=id)
+                PipelineRunRecipient.objects.get_or_create(user=user, pipeline=self)
+
         return self.save()
 
     @property
@@ -228,6 +234,16 @@ class Pipeline(models.Model):
             return self.name
 
         return self.code
+
+
+class PipelineRunRecipient(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        "user_management.User", null=False, on_delete=models.CASCADE
+    )
+    pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class PipelineRunQuerySet(BaseQuerySet):
@@ -325,13 +341,6 @@ class PipelineRun(Base, WithStatus):
         self.refresh_from_db()
         self.current_progress = percent
         self.save()
-
-
-class PipelineRunRecipients:
-    users = models.ForeignKey(
-        "user_management.User", null=False, on_delete=models.CASCADE
-    )
-    pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
 
 
 class EnvironmentsSyncJob(BaseJob):

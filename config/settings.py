@@ -35,7 +35,7 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 # Domain of the new frontend (it is used to redirect the user to new pages not implemented in Django)
 NEW_FRONTEND_DOMAIN = os.environ.get("NEW_FRONTEND_DOMAIN")
-NEW_FRONTEND_URL = os.environ.get("NEW_FRONTEND_URL")
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
 
 # Application definition
 INSTALLED_APPS = [

@@ -47,6 +47,9 @@ class Command(BaseCommand):
                     user=None,
                     pipeline_version=pipeline.last_version,
                     trigger_mode=PipelineRunTrigger.SCHEDULED,
+                    send_mail_notification=True
+                    if pipeline.recipients.count() > 0
+                    else False,
                 )
 
             empty_delay = cutoff - (timezone.now() - start_time).total_seconds()

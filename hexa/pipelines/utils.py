@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy
 from config import settings
 from hexa.core.utils import send_mail
 
-from .models import PipelineRun, PipelineRunRecipients, PipelineRunTrigger
+from .models import PipelineRun, PipelineRunTrigger
 
 
 def send_mail_to_pipelinerun_users(run: PipelineRun):
@@ -11,11 +11,13 @@ def send_mail_to_pipelinerun_users(run: PipelineRun):
     if run.trigger_mode == PipelineRunTrigger.MANUAL:
         recipient_list = [run.user.email]
     else:
-        recipient_list = PipelineRunRecipients.objects.get(pipeline=run.pipeline)
+        recipient_list = [
+            recipient.email for recipient in run.pipeline.recipients.all()
+        ]
 
     workspace_slug = run.pipeline.workspace.slug
     send_mail(
-        title=gettext_lazy(f"Report for pipeline {run.pipeline.code}"),
+        title=gettext_lazy(f"Run report of {run.pipeline.code}({run.state.name})"),
         template_name="pipelines/mails/run_report",
         template_variables={
             "pipeline_code": run.pipeline.code,
@@ -24,7 +26,7 @@ def send_mail_to_pipelinerun_users(run: PipelineRun):
             "duration": int(run.duration.total_seconds())
             if run.duration is not None
             else 0,
-            "run_url": f"{settings.NEW_FRONTEND_URL}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
+            "run_url": f"{settings.FRONTEND_URL}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
         },
         recipient_list=recipient_list,
     )
