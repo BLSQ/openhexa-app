@@ -155,7 +155,7 @@ class Pipeline(models.Model):
     cpu_limit = models.CharField(blank=True, max_length=32)
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
-    recipients = models.ManyToManyField(User, through="PipelineRunRecipient")
+    recipients = models.ManyToManyField(User, through="PipelineRecipient")
 
     objects = PipelineQuerySet.as_manager()
 
@@ -212,7 +212,7 @@ class Pipeline(models.Model):
         if "recipientIds" in kwargs:
             for id in kwargs["recipientIds"]:
                 user = User.objects.get(id=id)
-                PipelineRunRecipient.objects.get_or_create(user=user, pipeline=self)
+                PipelineRecipient.objects.get_or_create(user=user, pipeline=self)
 
         return self.save()
 
@@ -236,7 +236,7 @@ class Pipeline(models.Model):
         return self.code
 
 
-class PipelineRunRecipient(models.Model):
+class PipelineRecipient(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         "user_management.User", null=False, on_delete=models.CASCADE

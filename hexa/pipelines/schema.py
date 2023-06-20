@@ -13,8 +13,8 @@ from hexa.workspaces.schema.types import workspace_permissions
 from .authentication import PipelineRunUser
 from .models import (
     Pipeline,
+    PipelineRecipient,
     PipelineRun,
-    PipelineRunRecipient,
     PipelineRunState,
     PipelineRunTrigger,
     PipelineVersion,
@@ -133,7 +133,7 @@ def resolve_pipeline_runs(pipeline: Pipeline, info, **kwargs):
 
 @pipeline_object.field("recipients")
 def resolve_pipeline_recipients(pipeline: Pipeline, info, **kwargs):
-    qs = pipeline.pipelinerunrecipient_set.all().order_by("-updated_at")
+    qs = pipeline.pipelinerecipient_set.all().order_by("-updated_at")
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
@@ -285,7 +285,7 @@ def resolve_update_pipeline(_, info, **kwargs):
             id=input.pop("id")
         )
         if "recipientIds" in input:
-            old_recipients = PipelineRunRecipient.objects.filter(pipeline=pipeline)
+            old_recipients = PipelineRecipient.objects.filter(pipeline=pipeline)
             for old_recipient in old_recipients:
                 if old_recipient.user.id not in input["recipientIds"]:
                     old_recipient.delete()

@@ -111,13 +111,13 @@ type PipelineVersionPage {
   totalItems: Int!
 }
 
-type PipelineRunRecipient {
+type PipelineRecipient {
   user: User!
   pipeline: Pipeline!
 }
 
-type PipelineRunRecipientsPage {
-  items: [PipelineRunRecipient!]!
+type PipelineRecipientPage {
+  items: [PipelineRecipient!]!
   pageNumber: Int!
   totalPages: Int!
   totalItems: Int!
@@ -137,7 +137,7 @@ type Pipeline {
   currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
-  recipients(page: Int, perPage: Int): PipelineRunRecipientsPage!
+  recipients(page: Int, perPage: Int): PipelineRecipientPage!
 }
 
 type PipelinesPage {
