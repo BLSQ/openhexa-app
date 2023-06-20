@@ -516,3 +516,43 @@ class PipelinesV2Test(GraphQLTestCase):
             {"success": True, "errors": []},
             r["data"]["deletePipelineVersion"],
         )
+
+    def test_add_pipeline_recipients(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        recipients {
+                            items {
+                                user {
+                                    id
+                                }
+                            }
+                        }
+                    }
+                  }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "recipientIds": [str(self.USER_ROOT.id)],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "recipients": {"items": [{"user": {"id": str(self.USER_ROOT.id)}}]}
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
