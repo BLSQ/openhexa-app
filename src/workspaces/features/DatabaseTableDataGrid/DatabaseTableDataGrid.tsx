@@ -1,80 +1,60 @@
-import { gql, useQuery } from "@apollo/client";
+import { gql } from "@apollo/client";
 import clsx from "clsx";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { SimplePagination } from "core/components/Pagination";
+import { CustomApolloClient } from "core/helpers/apollo";
 import { OrderByDirection } from "graphql-types";
-import { useRouter } from "next/router";
 import {
-  DatabaseTableDataGridQuery,
   DatabaseTableDataGrid_TableFragment,
   DatabaseTableDataGrid_WorkspaceFragment,
+  useDatabaseTableDataGridQuery,
 } from "./DatabaseTableDataGrid.generated";
 
 type DatabaseTableDataGridProps = {
   table: DatabaseTableDataGrid_TableFragment;
   workspace: DatabaseTableDataGrid_WorkspaceFragment;
   className?: string;
+  orderBy: string;
+  direction: OrderByDirection;
+  page: number;
+  onChange(params: {
+    page: number;
+    orderBy?: string;
+    direction?: OrderByDirection;
+  }): void;
 };
 
 const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
-  const { table, workspace, className } = props;
-  const router = useRouter();
+  const { table, workspace, className, orderBy, direction, page, onChange } =
+    props;
 
-  const variables = {
-    slug: workspace.slug,
-    tableName: table.name,
-    orderBy: (router.query.column as string) ?? table.columns[0].name,
-    direction: router.query.dir ?? OrderByDirection.Asc,
-    page: router.query.page ? parseInt(router.query.page as string, 10) : 1,
-    perPage: 15,
-  };
-
-  const { data } = useQuery<DatabaseTableDataGridQuery>(
-    gql`
-      query DatabaseTableDataGrid(
-        $slug: String!
-        $tableName: String!
-        $orderBy: String!
-        $direction: OrderByDirection!
-        $page: Int!
-        $perPage: Int
-      ) {
-        workspace(slug: $slug) {
-          slug
-          database {
-            table(name: $tableName) {
-              rows(
-                orderBy: $orderBy
-                direction: $direction
-                page: $page
-                perPage: $perPage
-              ) {
-                pageNumber
-                hasNextPage
-                hasPreviousPage
-                items
-              }
-            }
-          }
-        }
-      }
-    `,
-    {
-      variables,
-    }
-  );
+  const { data } = useDatabaseTableDataGridQuery({
+    variables: {
+      workspaceSlug: workspace.slug,
+      orderBy,
+      direction,
+      page,
+      tableName: table.name,
+    },
+  });
 
   const onSort = ({ sortBy }: any) => {
-    router.push({
-      pathname: `/workspaces/[workspaceSlug]/databases/[tableId]`,
-      query: {
-        ...router.query,
+    if (sortBy.length > 0) {
+      onChange({
         page: 1,
-        column: sortBy[0].id,
-        dir: sortBy[0].desc ? OrderByDirection.Desc : OrderByDirection.Asc,
-      },
-    });
+        orderBy: sortBy[0].id,
+        direction: sortBy[0].desc
+          ? OrderByDirection.Desc
+          : OrderByDirection.Asc,
+      });
+    } else {
+      onChange({
+        page: 1,
+        orderBy: table.columns[0].name,
+        direction: OrderByDirection.Desc,
+      });
+    }
   };
 
   const { rows } = data?.workspace?.database?.table ?? {};
@@ -86,11 +66,11 @@ const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
     <div>
       <DataGrid
         data={rows.items ?? []}
-        defaultPageSize={20}
+        defaultPageSize={10}
         defaultSortBy={[
           {
-            id: variables.orderBy,
-            desc: variables.direction === OrderByDirection.Desc,
+            id: orderBy,
+            desc: direction === OrderByDirection.Desc,
           },
         ]}
         className={clsx(className)}
@@ -110,19 +90,56 @@ const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
       <SimplePagination
         hasNextPage={rows.hasNextPage ?? false}
         hasPreviousPage={rows.hasPreviousPage ?? false}
-        page={variables.page}
-        onChange={(page) => {
-          router.push({
-            pathname: `/workspaces/[workspaceSlug]/databases/[tableId]`,
-            query: {
-              ...router.query,
-              page,
-            },
-          });
-        }}
+        page={page}
+        onChange={(page) => onChange({ page, orderBy, direction })}
       />
     </div>
   );
+};
+
+type PrefetchVariables = {
+  workspaceSlug: string;
+  tableName: string;
+  orderBy: string;
+  direction: OrderByDirection;
+  page?: number;
+};
+
+DatabaseTableDataGrid.prefetch = async (
+  client: CustomApolloClient,
+  variables: PrefetchVariables
+) => {
+  await client.query({
+    query: gql`
+      query DatabaseTableDataGrid(
+        $workspaceSlug: String!
+        $tableName: String!
+        $orderBy: String!
+        $direction: OrderByDirection!
+        $page: Int!
+      ) {
+        workspace(slug: $workspaceSlug) {
+          slug
+          database {
+            table(name: $tableName) {
+              rows(
+                orderBy: $orderBy
+                direction: $direction
+                page: $page
+                perPage: 10
+              ) {
+                pageNumber
+                hasNextPage
+                hasPreviousPage
+                items
+              }
+            }
+          }
+        }
+      }
+    `,
+    variables,
+  });
 };
 
 DatabaseTableDataGrid.fragments = {

@@ -8,21 +8,28 @@ import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import { OrderByDirection } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import DatabaseTableDataGrid from "workspaces/features/DatabaseTableDataGrid/DatabaseTableDataGrid";
 import {
   useWorkspaceDatabaseTablePageQuery,
   WorkspaceDatabaseTablePageDocument,
+  WorkspaceDatabaseTablePageQuery,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
   page: number;
-  perPage: number;
+  direction: OrderByDirection;
+  orderBy: string;
 };
 
-const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
+const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
+  page,
+  direction,
+  orderBy,
+}: Props) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { data } = useWorkspaceDatabaseTablePageQuery({
@@ -73,7 +80,26 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = (props: Props) => {
         <WorkspaceLayout.PageContent className="space-y-4">
           <Block className="divide-y-2 divide-gray-100">
             <Block.Content title={t("Data")}>
-              <DatabaseTableDataGrid workspace={workspace} table={table} />
+              {table.columns.length > 0 ? (
+                <DatabaseTableDataGrid
+                  workspace={workspace}
+                  table={table}
+                  page={page}
+                  direction={direction}
+                  orderBy={orderBy}
+                  onChange={(options) =>
+                    router.push({
+                      pathname: router.pathname,
+                      query: {
+                        ...router.query,
+                        ...options,
+                      },
+                    })
+                  }
+                />
+              ) : (
+                <p>{t("This table has no columns")}</p>
+              )}
             </Block.Content>
             <Block.Content title={t("Usage")} className="space-y-2">
               <p>
@@ -131,7 +157,7 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await WorkspaceLayout.prefetch(ctx, client);
-    const { data } = await client.query({
+    const { data } = await client.query<WorkspaceDatabaseTablePageQuery>({
       query: WorkspaceDatabaseTablePageDocument,
       variables: {
         workspaceSlug: ctx.params?.workspaceSlug,
@@ -139,9 +165,35 @@ export const getServerSideProps = createGetServerSideProps({
       },
     });
 
-    if (!data.workspace?.database.table) {
+    const { workspace } = data ?? {};
+    if (!workspace?.database.table) {
       return {
         notFound: true,
+      };
+    }
+    if (!ctx.query.orderBy && workspace.database.table.columns.length > 0) {
+      return {
+        redirect: {
+          permanent: false,
+          destination:
+            ctx.resolvedUrl +
+            "?orderBy=" +
+            encodeURIComponent(workspace.database.table.columns[0].name),
+        },
+      };
+    } else if (workspace.database.table.columns.length > 0) {
+      const variables = {
+        workspaceSlug: workspace.slug,
+        tableName: ctx.params?.tableId as string,
+        orderBy: ctx.query.orderBy as string,
+        direction:
+          (ctx.query.direction as OrderByDirection) || OrderByDirection.Asc,
+        page: ctx.query.page ? parseInt(ctx.query.page as string, 10) : 1,
+      };
+
+      await DatabaseTableDataGrid.prefetch(client, variables);
+      return {
+        props: variables,
       };
     }
   },

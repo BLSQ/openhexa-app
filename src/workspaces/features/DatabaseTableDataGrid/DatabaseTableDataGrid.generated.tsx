@@ -4,12 +4,11 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DatabaseTableDataGridQueryVariables = Types.Exact<{
-  slug: Types.Scalars['String']['input'];
+  workspaceSlug: Types.Scalars['String']['input'];
   tableName: Types.Scalars['String']['input'];
   orderBy: Types.Scalars['String']['input'];
   direction: Types.OrderByDirection;
   page: Types.Scalars['Int']['input'];
-  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
@@ -34,12 +33,12 @@ export const DatabaseTableDataGrid_TableFragmentDoc = gql`
 }
     `;
 export const DatabaseTableDataGridDocument = gql`
-    query DatabaseTableDataGrid($slug: String!, $tableName: String!, $orderBy: String!, $direction: OrderByDirection!, $page: Int!, $perPage: Int) {
-  workspace(slug: $slug) {
+    query DatabaseTableDataGrid($workspaceSlug: String!, $tableName: String!, $orderBy: String!, $direction: OrderByDirection!, $page: Int!) {
+  workspace(slug: $workspaceSlug) {
     slug
     database {
       table(name: $tableName) {
-        rows(orderBy: $orderBy, direction: $direction, page: $page, perPage: $perPage) {
+        rows(orderBy: $orderBy, direction: $direction, page: $page, perPage: 10) {
           pageNumber
           hasNextPage
           hasPreviousPage
@@ -63,12 +62,11 @@ export const DatabaseTableDataGridDocument = gql`
  * @example
  * const { data, loading, error } = useDatabaseTableDataGridQuery({
  *   variables: {
- *      slug: // value for 'slug'
+ *      workspaceSlug: // value for 'workspaceSlug'
  *      tableName: // value for 'tableName'
  *      orderBy: // value for 'orderBy'
  *      direction: // value for 'direction'
  *      page: // value for 'page'
- *      perPage: // value for 'perPage'
  *   },
  * });
  */
