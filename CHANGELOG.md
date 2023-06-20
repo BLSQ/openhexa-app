@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.31.2](https://github.com/BLSQ/openhexa-frontend/compare/0.31.1...0.31.2) (2023-06-20)
+
+
+### Bug Fixes
+
+* **Pipelines:** validate form data before submit ([#332](https://github.com/BLSQ/openhexa-frontend/issues/332)) ([ab912ff](https://github.com/BLSQ/openhexa-frontend/commit/ab912ff179cdf3ab66fd032ec46daa9ba2c5ddee))
+* **RunPipeline:** Default value for textarea & fix required prop ([a073fc2](https://github.com/BLSQ/openhexa-frontend/commit/a073fc26824374f8f1a0f093522163502fc8f805))
+* **Table:** Remove flicker when changing order by or page ([2ef3761](https://github.com/BLSQ/openhexa-frontend/commit/2ef37612265cee26ce32122cb8a74056674fcb96))
+
 ## [0.31.1](https://github.com/BLSQ/openhexa-frontend/compare/0.31.0...0.31.1) (2023-06-15)
 
 
