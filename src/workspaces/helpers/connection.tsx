@@ -585,7 +585,7 @@ export const CONNECTION_TYPES = {
     Form: S3BucketForm,
   },
   [ConnectionType.Gcs]: {
-    label: "Google Cloud Bucket",
+    label: "Google GCS Bucket",
     color: "bg-blue-200",
     iconSrc: "/images/gcs.svg",
     Form: GCSBucketForm,
