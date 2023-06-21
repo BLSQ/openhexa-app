@@ -6,3 +6,6 @@ class PipelinesConfig(CoreAppConfig):
     label = "pipelines"
 
     ANONYMOUS_URLS = ["pipelines:credentials"]
+
+    def ready(self):
+        from . import signals  # noqa

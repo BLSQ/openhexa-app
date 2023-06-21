@@ -265,7 +265,7 @@ def run_pipeline(run: PipelineRun):
     else:
         run.state = PipelineRunState.FAILED
     run.save()
-    if run.send_mail_notification:
+    if run.send_mail_notifications:
         mail_run_recipients(run)
     logger.info("End of run pipeline: %s", run)
 

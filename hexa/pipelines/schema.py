@@ -13,7 +13,6 @@ from hexa.workspaces.schema.types import workspace_permissions
 from .authentication import PipelineRunUser
 from .models import (
     Pipeline,
-    PipelineRecipient,
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
@@ -133,12 +132,7 @@ def resolve_pipeline_runs(pipeline: Pipeline, info, **kwargs):
 
 @pipeline_object.field("recipients")
 def resolve_pipeline_recipients(pipeline: Pipeline, info, **kwargs):
-    qs = pipeline.pipelinerecipient_set.all().order_by("-updated_at")
-    return result_page(
-        queryset=qs,
-        page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage"),
-    )
+    return pipeline.pipelinerecipient_set.all()
 
 
 pipeline_run_object = ObjectType("PipelineRun")
@@ -284,12 +278,6 @@ def resolve_update_pipeline(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(request.user).get(
             id=input.pop("id")
         )
-        if "recipientIds" in input:
-            old_recipients = PipelineRecipient.objects.filter(pipeline=pipeline)
-            for old_recipient in old_recipients:
-                if old_recipient.user.id not in input["recipientIds"]:
-                    old_recipient.delete()
-
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
     except Pipeline.DoesNotExist:
@@ -353,7 +341,7 @@ def resolve_run_pipeline(_, info, **kwargs):
         pipeline_version=version,
         trigger_mode=PipelineRunTrigger.MANUAL,
         config=input.get("config", {}),
-        send_mail_notification=input.get("sendMailNotification"),
+        send_mail_notifications=input.get("sendMailNotifications"),
     )
 
     return {

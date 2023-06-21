@@ -165,7 +165,7 @@ class Pipeline(models.Model):
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] = None,
-        send_mail_notification: bool = False,
+        send_mail_notifications: bool = False,
     ):
         run = PipelineRun.objects.create(
             user=user,
@@ -177,7 +177,7 @@ class Pipeline(models.Model):
             state=PipelineRunState.QUEUED,
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
-            send_mail_notification=send_mail_notification,
+            send_mail_notifications=send_mail_notifications,
         )
 
         return run
@@ -210,6 +210,9 @@ class Pipeline(models.Model):
                 setattr(self, key, kwargs[key])
 
         if "recipientIds" in kwargs:
+            PipelineRecipient.objects.filter(
+                Q(pipeline=self) & ~Q(user_id__in=kwargs["recipientIds"])
+            ).delete()
             for id in kwargs["recipientIds"]:
                 user = User.objects.get(id=id)
                 PipelineRecipient.objects.get_or_create(user=user, pipeline=self)
@@ -236,14 +239,21 @@ class Pipeline(models.Model):
         return self.code
 
 
-class PipelineRecipient(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class PipelineRecipient(Base):
+    class Meta:
+        ordering = ("-updated_at",)
+        constraints = [
+            models.UniqueConstraint(
+                "user",
+                "pipeline",
+                name="unique_recipient_per_pipeline",
+            )
+        ]
+
     user = models.ForeignKey(
         "user_management.User", null=False, on_delete=models.CASCADE
     )
     pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class PipelineRunQuerySet(BaseQuerySet):
@@ -290,7 +300,7 @@ class PipelineRun(Base, WithStatus):
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
-    send_mail_notification = models.BooleanField(null=True, default=False)
+    send_mail_notifications = models.BooleanField(null=True, default=False)
 
     objects = PipelineRunQuerySet.as_manager()
 

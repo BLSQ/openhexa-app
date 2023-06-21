@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy
 from config import settings
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
-from hexa.pipelines.models import PipelineRecipient
 from hexa.user_management.models import User
 
 from ..models import (
@@ -194,10 +193,6 @@ def resolve_delete_workspace_member(_, info, **kwargs):
     try:
         workspace_membership = WorkspaceMembership.objects.get(id=input["membershipId"])
         workspace_membership.delete_if_has_perm(principal=request.user)
-
-        if PipelineRecipient.objects.filter(user=workspace_membership.user).exists():
-            PipelineRecipient.objects.get(user=workspace_membership.user).delete()
-
         return {"success": True, "errors": []}
     except WorkspaceMembership.DoesNotExist:
         return {

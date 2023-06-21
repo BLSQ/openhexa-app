@@ -78,7 +78,7 @@ type PipelineRun {
   logs: String
   outputs: [PipelineRunOutput!]!
   code: String!
-  sendMailNotification: Boolean!
+  sendMailNotifications: Boolean!
 }
 
 enum PipelineRunOrderBy {
@@ -116,13 +116,6 @@ type PipelineRecipient {
   pipeline: Pipeline!
 }
 
-type PipelineRecipientPage {
-  items: [PipelineRecipient!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-}
-
 type Pipeline {
   id: UUID!
   name: String
@@ -137,7 +130,7 @@ type Pipeline {
   currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
-  recipients(page: Int, perPage: Int): PipelineRecipientPage!
+  recipients: [PipelineRecipient!]!
 }
 
 type PipelinesPage {
@@ -188,7 +181,7 @@ input RunPipelineInput {
   id: UUID!
   version: Int
   config: JSON!
-  sendMailNotification: Boolean
+  sendMailNotifications: Boolean
 }
 
 type RunPipelineResult {

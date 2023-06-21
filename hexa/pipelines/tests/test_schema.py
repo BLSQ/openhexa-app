@@ -529,10 +529,8 @@ class PipelinesV2Test(GraphQLTestCase):
                     errors
                     pipeline {
                         recipients {
-                            items {
-                                user {
-                                    id
-                                }
+                            user {
+                                id
                             }
                         }
                     }
@@ -550,9 +548,7 @@ class PipelinesV2Test(GraphQLTestCase):
             {
                 "success": True,
                 "errors": [],
-                "pipeline": {
-                    "recipients": {"items": [{"user": {"id": str(self.USER_ROOT.id)}}]}
-                },
+                "pipeline": {"recipients": [{"user": {"id": str(self.USER_ROOT.id)}}]},
             },
             r["data"]["updatePipeline"],
         )
