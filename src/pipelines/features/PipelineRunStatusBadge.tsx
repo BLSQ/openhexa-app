@@ -9,6 +9,7 @@ import {
   PipelineRunStatusBadge_DagRunFragment,
   PipelineRunStatusBadge_RunFragment,
 } from "./PipelineRunStatusBadge.generated";
+import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 
 type PipelineRunStatusBadgeProps = {
   run:
@@ -18,6 +19,7 @@ type PipelineRunStatusBadgeProps = {
 
 const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
   const { run } = props;
+  usePipelineRunPoller((run as any).id);
   let className = useMemo(() => {
     switch (run.status) {
       case DagRunStatus.Failed:
@@ -48,6 +50,7 @@ PipelineRunStatusBadge.fragments = {
   `,
   pipelineRun: gql`
     fragment PipelineRunStatusBadge_run on PipelineRun {
+      id
       status
     }
   `,
