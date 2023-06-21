@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.3](https://github.com/BLSQ/openhexa-frontend/compare/0.31.2...0.31.3) (2023-06-21)
+
+
+### Bug Fixes
+
+* **Pipelines:** add comparator function for parameters with choices ([#345](https://github.com/BLSQ/openhexa-frontend/issues/345)) ([720e9c8](https://github.com/BLSQ/openhexa-frontend/commit/720e9c80b18e6792c79ea5b06eb895006c84373f))
+* **Pipelines:** display error only after when a form field is edited ([#343](https://github.com/BLSQ/openhexa-frontend/issues/343)) ([f74fac2](https://github.com/BLSQ/openhexa-frontend/commit/f74fac2c67fff5c1be70a51d7f20997ae845ac0d))
+* **Run:** Poll the status of the run if it's queued or in progress ([#342](https://github.com/BLSQ/openhexa-frontend/issues/342)) ([3960afe](https://github.com/BLSQ/openhexa-frontend/commit/3960afefc88d20539fc9e95fbe0c8045ce182122))
+
+
+### Miscellaneous
+
+* **Connections:** change label for GCS buckets ([#341](https://github.com/BLSQ/openhexa-frontend/issues/341)) ([8571a5a](https://github.com/BLSQ/openhexa-frontend/commit/8571a5a8b92b862c19ca460e16c3076d71e0e8bc))
+
 ## [0.31.2](https://github.com/BLSQ/openhexa-frontend/compare/0.31.1...0.31.2) (2023-06-20)
 
 
