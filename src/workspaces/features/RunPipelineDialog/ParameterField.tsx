@@ -56,6 +56,7 @@ const ParameterField = (props: ParameterFieldProps) => {
         multiple={parameter.multiple}
         options={choices ?? []}
         getOptionLabel={(option) => option}
+        by={(a, b) => a == b}
         onCreate={
           !parameter.choices
             ? (query) =>

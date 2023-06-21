@@ -89,7 +89,7 @@ function Select<O>(props: SelectProps<O>) {
       className={className}
       onChange={onChange}
       displayValue={displayValue as any}
-      by={by}
+      by={by as any /* Otherwise typescript is not happy */}
       loading={loading}
       withPortal
     >

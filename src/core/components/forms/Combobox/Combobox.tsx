@@ -33,7 +33,7 @@ export type ComboboxProps<T> = {
     clear: () => void;
   }) => ReactNode;
   loading?: boolean;
-  by?: keyof T & string;
+  by?: (keyof T & string) | ((a: T, z: T) => boolean);
   onOpen?: () => void;
   displayValue(value: T): string;
   onClose?: () => void;

@@ -32,7 +32,7 @@ type MultiComboboxProps<T> = {
     clear: () => void;
   }) => ReactNode;
   loading?: boolean;
-  by?: keyof T & string;
+  by?: (keyof T & string) | ((a: T, z: T) => boolean);
   onOpen?: () => void;
   displayValue(value: T): ReactNode;
   onClose?: () => void;
