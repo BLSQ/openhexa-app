@@ -87,11 +87,16 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     validate(values) {
       const errors = {} as any;
       const { version, ...fields } = values;
-      version?.parameters.forEach((param) => {
-        if (param.required && !fields[param.code]) {
-          errors[param.code] = t("This field is required");
-        }
-      });
+      version?.parameters
+        .filter((param) => param.type !== "bool")
+        .map((param) => {
+          if (param.multiple && !fields[param.code]?.length) {
+            errors[param.code] = t("This field is required");
+          }
+          if (param.required && !fields[param.code]) {
+            errors[param.code] = t("This field is required");
+          }
+        });
       return errors;
     },
   });
@@ -123,9 +128,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       if (version) {
         version.parameters.map((param) => {
           if ("run" in props && props.run?.config[param.code] !== null) {
-            form.setFieldValue(param.code, props.run.config[param.code]);
+            form.setFieldValue(param.code, props.run.config[param.code], false);
           } else {
-            form.setFieldValue(param.code, param.default);
+            form.setFieldValue(param.code, param.default, false);
           }
         });
       }

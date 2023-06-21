@@ -77,7 +77,9 @@ const ParameterField = (props: ParameterFieldProps) => {
           className="w-full"
           value={value ? value.join("\n") : ""}
           onChange={(event) => {
-            handleChange(event.target.value.split("\n") || []);
+            handleChange(
+              event.target.value ? event.target.value.split("\n") : []
+            );
           }}
         />
         <small className="ml-2 text-gray-600">
