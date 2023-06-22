@@ -41,7 +41,9 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["objectKey"]
-        download_url = generate_download_url(workspace.bucket_name, object_key)
+        download_url = generate_download_url(
+            workspace.bucket_name, object_key, force_attachment=True
+        )
 
         return {"success": True, "download_url": download_url, "errors": []}
     except (NotFound, Workspace.DoesNotExist):
