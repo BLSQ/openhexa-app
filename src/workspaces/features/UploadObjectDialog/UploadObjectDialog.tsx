@@ -3,11 +3,10 @@ import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Dropzone from "core/components/Dropzone";
-import Field from "core/components/forms/Field";
 import { uploader } from "core/helpers/files";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
 import { UploadObjectDialog_WorkspaceFragment } from "./UploadObjectDialog.generated";
@@ -63,29 +62,19 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
     }
   }, [open]);
 
-  const directory = useMemo(
-    () => [workspace.bucket.name, prefix ?? ""].join("/"),
-    [prefix, workspace]
-  );
   return (
     <Dialog open={open} onClose={onClose}>
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title onClose={onClose}>
           {t("Upload files in workspace")}
         </Dialog.Title>
-        <Dialog.Content className="space-y-3">
-          <Field label={t("Destination")} name="path" required>
-            <div className="rounded-md bg-gray-100 p-1 font-mono text-xs">
-              {directory}
-            </div>
-          </Field>
-          <Field label={t("Files")} name="files" required>
-            <Dropzone
-              onChange={(files) => form.setFieldValue("files", files)}
-              disabled={form.isSubmitting}
-              label={t("Drop files here or click to select")}
-            />
-          </Field>
+        <Dialog.Content>
+          <Dropzone
+            className="h-48"
+            onChange={(files) => form.setFieldValue("files", files)}
+            disabled={form.isSubmitting}
+            label={t("Drop files here or click to select")}
+          />
           {form.submitError && (
             <p className={"text-sm text-red-600"}>{form.submitError}</p>
           )}
@@ -121,9 +110,6 @@ UploadObjectDialog.fragments = {
       slug
       permissions {
         createObject
-      }
-      bucket {
-        name
       }
     }
   `,
