@@ -10,5 +10,7 @@ from .models import PipelineRecipient
 
 @receiver(post_delete, sender=WorkspaceMembership, dispatch_uid=uuid4())
 def delete_member_handler(sender: type, instance: WorkspaceMembership, **kwargs):
-    if PipelineRecipient.objects.filter(user=instance.user).exists():
+    try:
         PipelineRecipient.objects.get(user=instance.user).delete()
+    except PipelineRecipient.DoesNotExist:
+        pass
