@@ -300,7 +300,7 @@ class PipelineRun(Base, WithStatus):
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
-    send_mail_notifications = models.BooleanField(null=True, default=False)
+    send_mail_notifications = models.BooleanField(default=False)
 
     objects = PipelineRunQuerySet.as_manager()
 

@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("pipelines", "0025_pipeline_container_resources"),
@@ -18,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="pipelinerun",
             name="send_mail_notifications",
-            field=models.BooleanField(default=False, null=True),
+            field=models.BooleanField(default=False),
         ),
         migrations.CreateModel(
             name="PipelineRecipient",
