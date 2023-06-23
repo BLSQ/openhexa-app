@@ -71,6 +71,7 @@ export async function runPipeline(
   version?: number
 ) {
   const client = getApolloClient();
+
   const { data } = await client.mutate<RunWorkspacePipelineMutation>({
     mutation: gql`
       mutation RunWorkspacePipeline($input: RunPipelineInput!) {

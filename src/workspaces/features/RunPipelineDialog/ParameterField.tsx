@@ -19,19 +19,18 @@ const ParameterField = (props: ParameterFieldProps) => {
 
   const handleChange = useCallback(
     (value: any) => {
-      if (!value) {
-        onChange(parameter.multiple ? [] : null);
+      if (parameter.multiple && (value === null || value === undefined)) {
+        onChange([]);
       }
-      let internalValue = ensureArray(value); // It's easier to manipulate an array
-      if (parameter.type === "float") {
-        internalValue = internalValue.map((v) => parseFloat(v));
-      } else if (parameter.type === "int") {
-        internalValue = internalValue.map((v) => parseInt(v, 10));
+      if (parameter.type === "int" && value !== "") {
+        onChange(parseInt(value, 10));
+      } else if (parameter.type === "float" && value !== "") {
+        onChange(parseFloat(value));
+      } else {
+        onChange(value);
       }
-
-      onChange(parameter.multiple ? internalValue : internalValue[0]);
     },
-    [parameter.type, onChange, parameter.multiple]
+    [onChange, parameter.multiple, parameter.type]
   );
 
   if (parameter.type === "bool") {
@@ -72,7 +71,8 @@ const ParameterField = (props: ParameterFieldProps) => {
     return (
       <>
         <Textarea
-          name="value"
+          aria-label={parameter.code}
+          name={parameter.code}
           rows={4}
           required={Boolean(parameter.required)}
           className="w-full"
@@ -99,17 +99,18 @@ const ParameterField = (props: ParameterFieldProps) => {
           name={parameter.code}
           required={Boolean(parameter.required)}
           onChange={(event) => handleChange(event.target.value)}
-          value={value || ""}
+          value={value ?? ""}
         />
       );
     case "str":
       return (
         <Input
           type="text"
+          aria-label={parameter.code}
           name={parameter.code}
           required={Boolean(parameter.required)}
           onChange={(event) => handleChange(event.target.value)}
-          value={value || ""}
+          value={value ?? ""}
         />
       );
   }

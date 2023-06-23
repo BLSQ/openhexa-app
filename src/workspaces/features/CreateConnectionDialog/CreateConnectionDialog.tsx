@@ -117,7 +117,9 @@ export default function CreateCollectionDialog({
       ) {
         throw new Error(t("Unknown workspace"));
       } else if (errors.find((x) => x === CreateConnectionError.InvalidSlug)) {
-        throw new Error(t("Connection' slug is invalid"));
+        throw new Error(
+          t("The slug of the connection or one of the field is invalid")
+        );
       } else if (
         errors.find((x) => x === CreateConnectionError.PermissionDenied)
       ) {

@@ -20,6 +20,7 @@ import {
   RunPipelineDialog_RunFragment,
 } from "./RunPipelineDialog.generated";
 import Spinner from "core/components/Spinner";
+import { ensureArray } from "core/helpers/array";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -36,7 +37,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   const [fetch, { data }] = useLazyQuery<PipelineCurrentVersionQuery>(
     gql`
-      ${ParameterField.fragments.parameter}
       query PipelineCurrentVersion(
         $workspaceSlug: String!
         $pipelineCode: String!
@@ -54,6 +54,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           }
         }
       }
+      ${ParameterField.fragments.parameter}
     `,
     { fetchPolicy: "no-cache" }
   );
@@ -62,7 +63,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     async onSubmit(values) {
       const { version, ...params } = values;
       const run = await runPipeline(pipeline.id, params, version?.number);
-      router.push(
+      await router.push(
         `/workspaces/${encodeURIComponent(
           router.query.workspaceSlug as string
         )}/pipelines/${encodeURIComponent(
@@ -87,16 +88,44 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     validate(values) {
       const errors = {} as any;
       const { version, ...fields } = values;
-      version?.parameters
-        .filter((param) => param.type !== "bool")
-        .map((param) => {
-          if (param.multiple && !fields[param.code]?.length) {
-            errors[param.code] = t("This field is required");
+      if (!version) {
+        return { version: t("The version is required") };
+      }
+
+      for (const parameter of version.parameters) {
+        if (
+          parameter.type === "bool" &&
+          parameter.required &&
+          !fields[parameter.code]
+        ) {
+          errors[parameter.code] = t("This switch must by checked");
+        }
+
+        const val = fields[parameter.code];
+        if (parameter.type === "int") {
+          if (isNaN(val)) {
+            errors[parameter.code] = t("This field must be a number");
+          } else if (!val?.toString() && parameter.required) {
+            errors[parameter.code] = t("This field is required");
           }
-          if (param.required && !fields[param.code]) {
-            errors[param.code] = t("This field is required");
+        }
+
+        if (parameter.type === "float") {
+          if (isNaN(val)) {
+            errors[parameter.code] = t("This field must be a number");
+          } else if (!val?.toString() && parameter.required) {
+            errors[parameter.code] = t("This field is required");
           }
-        });
+        }
+
+        if (parameter.type === "str" && parameter.required) {
+          if (parameter.multiple && ensureArray(val).length === 0) {
+            errors[parameter.code] = t("This field is required");
+          } else if (!fields[parameter.code]) {
+            errors[parameter.code] = t("This field is required");
+          }
+        }
+      }
       return errors;
     },
   });
@@ -123,17 +152,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     const version = form.formData.version;
     if (version) {
       form.resetForm();
-
       form.setFieldValue("version", version);
-      if (version) {
-        version.parameters.map((param) => {
-          if ("run" in props && props.run?.config[param.code] !== null) {
-            form.setFieldValue(param.code, props.run.config[param.code], false);
-          } else {
-            form.setFieldValue(param.code, param.default, false);
-          }
-        });
-      }
+      version.parameters.map((param) => {
+        if ("run" in props && props.run?.config[param.code] !== null) {
+          form.setFieldValue(param.code, props.run.config[param.code], false);
+        } else {
+          form.setFieldValue(param.code, param.default, false);
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form, form.formData.version]);
@@ -155,6 +181,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   }
 
   const parameters = form.formData.version?.parameters ?? [];
+
   return (
     <Dialog
       open={open}
@@ -163,6 +190,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
+        {form.errors.version && (
+          <div className="mt-3 text-sm text-red-600">{form.errors.version}</div>
+        )}
         {open && !form.formData.version ? (
           <Dialog.Content>
             <Spinner />
@@ -173,10 +203,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               {!showVersionPicker ? (
                 <div className="mb-6 flex justify-start gap-x-1">
                   <p>
-                    {!("run" in props) &&
-                      t("This pipeline will run using the latest version")}
-                    {"run" in props &&
-                      t("This pipeline will run using the same version")}
+                    {!("run" in props)
+                      ? t("This pipeline will run using the latest version")
+                      : t("This pipeline will run using the same version")}
                   </p>
                   <button
                     className="text-sm text-blue-600 hover:text-blue-500"
@@ -225,9 +254,9 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     <ParameterField
                       parameter={param}
                       value={form.formData[param.code]}
-                      onChange={(value: any) =>
-                        form.setFieldValue(param.code, value)
-                      }
+                      onChange={(value: any) => {
+                        form.setFieldValue(param.code, value);
+                      }}
                     />
                   </Field>
                 ))}
@@ -245,7 +274,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={form.isSubmitting || !form.isValid}
+                disabled={form.isSubmitting}
                 leadingIcon={<PlayIcon className="h-4 w-4" />}
               >
                 {t("Run")}

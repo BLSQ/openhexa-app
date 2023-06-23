@@ -88,10 +88,10 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     if (entry.type === "bool") {
       return <Switch checked={entry.value} disabled />;
     }
-    if (entry.type === "int" && entry.value) {
+    if (entry.type === "int" && entry.value !== null) {
       return entry.value;
     }
-    if (entry.type === "float" && entry.value) {
+    if (entry.type === "float" && entry.value !== null) {
       return entry.value;
     }
     return "-";
