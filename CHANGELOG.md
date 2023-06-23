@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.31.4](https://github.com/BLSQ/openhexa-frontend/compare/0.31.3...0.31.4) (2023-06-23)
+
+
+### Bug Fixes
+
+* **Files:** Do not display the target directory ([#347](https://github.com/BLSQ/openhexa-frontend/issues/347)) ([3665399](https://github.com/BLSQ/openhexa-frontend/commit/3665399b2d7054160d3630c1bce14b4e7c660da3))
+* **Pipelines:** only validate required params ([#346](https://github.com/BLSQ/openhexa-frontend/issues/346)) ([e42a7af](https://github.com/BLSQ/openhexa-frontend/commit/e42a7aff5c7e5936a2727d13acba8b738dece99d))
+
 ## [0.31.3](https://github.com/BLSQ/openhexa-frontend/compare/0.31.2...0.31.3) (2023-06-21)
 
 
