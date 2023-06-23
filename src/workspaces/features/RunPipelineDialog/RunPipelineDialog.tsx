@@ -98,7 +98,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           parameter.required &&
           !fields[parameter.code]
         ) {
-          errors[parameter.code] = t("This switch must by checked");
+          errors[parameter.code] = t("This switch must be checked");
         }
 
         const val = fields[parameter.code];
