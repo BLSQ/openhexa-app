@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.31.6](https://github.com/BLSQ/openhexa-frontend/compare/0.31.5...0.31.6) (2023-06-26)
+
+
+### Bug Fixes
+
+* **Files:** The download of an object happens with a content-disposition:download ([#349](https://github.com/BLSQ/openhexa-frontend/issues/349)) ([394396b](https://github.com/BLSQ/openhexa-frontend/commit/394396bd4f31d87aacd4e10641f52eca951680ac))
+
+
+### Miscellaneous
+
+* **Sidebar:** Visual improvements on how we display the workspaces ([#350](https://github.com/BLSQ/openhexa-frontend/issues/350)) ([9036a1a](https://github.com/BLSQ/openhexa-frontend/commit/9036a1a907fdd2ecafb7894a41774667fa796ed7))
+
 ## [0.31.5](https://github.com/BLSQ/openhexa-frontend/compare/0.31.4...0.31.5) (2023-06-26)
 
 
