@@ -4,6 +4,8 @@ import {
   ArrowLeftCircleIcon,
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
+  GlobeAltIcon,
+  GlobeEuropeAfricaIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
@@ -41,7 +43,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   const { t } = useTranslation();
   const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const isAdmin = useFeature("adminPanel");
   const [hasLegacyAccess] = useFeature("openhexa_legacy");
   const router = useRouter();
   useEffect(() => {
@@ -189,27 +190,32 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             </div>
 
             <div className="max-h-96 overflow-y-auto">
-              {data?.workspaces.items.map((workspace, index) => (
+              {data?.workspaces.items.map((ws, index) => (
                 <Link
                   noStyle
                   href={{
                     pathname: "/workspaces/[workspaceSlug]",
-                    query: { workspaceSlug: workspace.slug },
+                    query: { workspaceSlug: ws.slug },
                   }}
-                  className="flex items-center px-4 py-2.5 hover:bg-gray-100"
+                  className={clsx(
+                    "flex items-center px-4 py-2.5 hover:bg-gray-100",
+                    ws.slug === workspace.slug && "bg-gray-100 font-medium"
+                  )}
                   key={index}
                 >
-                  {workspace.countries && workspace.countries.length === 1 && (
-                    <div className="mr-2.5 flex h-full items-center">
+                  <div className="mr-2.5 flex h-full w-5 items-center">
+                    {ws.countries && ws.countries.length === 1 ? (
                       <img
                         alt="Country flag"
-                        className="h-4 flex-shrink rounded-sm"
-                        src={workspace.countries[0].flag}
+                        className="w-5 flex-shrink rounded-sm"
+                        src={ws.countries[0].flag}
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <GlobeAltIcon className="w-5 flex-shrink rounded-sm text-gray-400" />
+                    )}
+                  </div>
                   <span className="text-sm leading-tight tracking-tight">
-                    {workspace.name}
+                    {ws.name}
                   </span>
                 </Link>
               ))}
@@ -225,17 +231,6 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 </div>
               )}
             </div>
-
-            {false && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  className="pb-2  text-xs font-normal  text-gray-500"
-                >
-                  {t("See all")}
-                </button>
-              </div>
-            )}
           </section>
 
           <section className="flex flex-col text-sm font-normal">
