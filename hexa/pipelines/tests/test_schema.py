@@ -4,7 +4,12 @@ from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineRunState
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRecipient,
+    PipelineRun,
+    PipelineRunState,
+)
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -551,4 +556,99 @@ class PipelinesV2Test(GraphQLTestCase):
                 "pipeline": {"recipients": [{"user": {"id": str(self.USER_ROOT.id)}}]},
             },
             r["data"]["updatePipeline"],
+        )
+
+    def test_pipeline_new_run_with_recipients(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        self.test_create_pipeline_version()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        id1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                    run {id status}
+                }
+            }
+            """,
+            {"input": {"id": str(id1), "config": {}}},
+        )
+        self.assertEqual(True, r["data"]["runPipeline"]["success"])
+        self.assertEqual(
+            PipelineRunState.QUEUED, r["data"]["runPipeline"]["run"]["status"]
+        )
+        self.assertEqual(1, len(PipelineRun.objects.all()))
+
+    def test_update_pipeline_recipients(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_ROOT)
+
+        self.assertEqual(pipeline.recipients.first(), self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        recipients {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                  }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "recipientIds": [str(self.USER_LAMBDA.id)],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "recipients": [{"user": {"id": str(self.USER_LAMBDA.id)}}]
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
+
+    def test_delete_pipeline_workspace_members(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_LAMBDA)
+        self.WORKSPACE1_MEMBERSHIP_2.delete()
+
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    recipients {
+                      user {
+                        displayName
+                      }
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(
+            {"recipients": []},
+            r["data"]["pipelineByCode"],
         )
