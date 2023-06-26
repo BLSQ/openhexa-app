@@ -7,15 +7,15 @@ import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type VisualizationsPageQueryVariables = Types.Exact<{
-  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 
 export type VisualizationsPageQuery = { __typename?: 'Query', externalDashboards: { __typename?: 'ExternalDashboardPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'ExternalDashboard', id: string, name: string, url: any, description?: string | null, createdAt: any, updatedAt: any, pictureUrl: any, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, tags: Array<{ __typename?: 'Tag', id: string, name: string }> }> } };
 
 export type VisualizationQueryVariables = Types.Exact<{
-  id: Types.Scalars['UUID']['input'];
+  id: Types.Scalars['UUID'];
 }>;
 
 

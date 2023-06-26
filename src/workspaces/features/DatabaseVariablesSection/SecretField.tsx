@@ -1,4 +1,4 @@
-import ClipboardButton from "core/components/ClipboardButton";
+import Clipboard from "core/components/Clipboard";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -25,7 +25,7 @@ const SecretField = (field: { value: string | number }) => {
         >
           <EyeSlashIcon className="h-4 w-4" />
         </button>
-        <ClipboardButton className="h-4 w-4" value={value.toString()} />
+        <Clipboard iconClassName="h-4 w-4" value={value.toString()} />
       </div>
     );
   }
@@ -40,7 +40,7 @@ const SecretField = (field: { value: string | number }) => {
       >
         <EyeIcon className="h-4 w-4" />
       </button>
-      <ClipboardButton className="h-4 w-4" value={value.toString()} />
+      <Clipboard iconClassName="h-4 w-4" value={value.toString()} />
     </div>
   );
 };

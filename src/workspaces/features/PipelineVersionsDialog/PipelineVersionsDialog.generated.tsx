@@ -5,9 +5,9 @@ import { User_UserFragmentDoc } from '../../../core/features/User/User.generated
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineVersionsDialogQueryVariables = Types.Exact<{
-  pipelineId: Types.Scalars['UUID']['input'];
-  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  pipelineId: Types.Scalars['UUID'];
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 

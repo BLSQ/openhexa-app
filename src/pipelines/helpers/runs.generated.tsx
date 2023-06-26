@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetPipelineRunQueryVariables = Types.Exact<{
-  runId: Types.Scalars['UUID']['input'];
+  runId: Types.Scalars['UUID'];
 }>;
 
 

@@ -17,7 +17,7 @@ import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.genera
 import { convertFieldsToInput, slugify } from "workspaces/helpers/connection";
 import ConnectionFieldDialog from "../ConnectionFieldDialog";
 import { ConnectionFieldsSection_ConnectionFragment } from "./ConnectionFieldsSection.generated";
-import ClipboardButton from "core/components/ClipboardButton";
+import Clipboard from "core/components/Clipboard";
 
 type ConnectionFieldsSectionProps = {
   connection: ConnectionFieldsSection_ConnectionFragment;
@@ -104,21 +104,26 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
         </span>
       )}
       <DataGrid
-        className="max-2w-lg w-3/4 rounded-md border"
+        className="rounded-md border 2xl:w-3/4"
         data={connection.fields}
-        fixedLayout={true}
-        defaultPageSize={5}
+        fixedLayout={false}
       >
-        <TextColumn className="py-3" label={t("Name")} accessor={"code"} />
+        <TextColumn
+          className="py-3 font-mono"
+          label={t("Name")}
+          accessor={"code"}
+        />
         <BaseColumn label={t("Environment variable")} accessor={"code"}>
           {(value) => (
-            <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium text-gray-600">
-              {slugify(connection.slug, value)}
-            </code>
+            <Clipboard value={slugify(connection.slug, value)}>
+              <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium  text-gray-600">
+                {slugify(connection.slug, value)}
+              </code>
+            </Clipboard>
           )}
         </BaseColumn>
         <BaseColumn
-          className="flex justify-start gap-x-2 text-gray-900"
+          className="flex justify-start gap-x-2 font-mono text-gray-900"
           label={t("Value")}
         >
           {(field) => (
@@ -131,9 +136,12 @@ const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
                     {t("No value")}
                   </span>
                 ))}
+              {!field.secret && field.value && (
+                <Clipboard value={field.value} />
+              )}
               <button
                 onClick={() => setEditedState({ isOpen: true, field })}
-                className="ml-2 rounded-sm text-blue-500  hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                className="rounded-sm text-blue-500  hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
                 title={t("Update")}
               >
                 <PencilIcon className="h-3.5 w-3.5" />

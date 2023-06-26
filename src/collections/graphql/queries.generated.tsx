@@ -10,15 +10,15 @@ import { CollectionActionsMenu_CollectionFragmentDoc } from '../features/Collect
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CollectionsPageQueryVariables = Types.Exact<{
-  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  page?: Types.InputMaybe<Types.Scalars['Int']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
 }>;
 
 
 export type CollectionsPageQuery = { __typename?: 'Query', collections: { __typename?: 'CollectionPage', pageNumber: number, totalPages: number, totalItems: number, items: Array<{ __typename?: 'Collection', id: string, name: string, summary?: string | null, createdAt: any, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, countries: Array<{ __typename?: 'Country', code: string, name: string, flag: string }>, author?: { __typename?: 'User', displayName: string } | null }> } };
 
 export type CollectionPageQueryVariables = Types.Exact<{
-  id: Types.Scalars['UUID']['input'];
+  id: Types.Scalars['UUID'];
 }>;
 
 

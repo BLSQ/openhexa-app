@@ -4,11 +4,11 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type DatabaseTableDataGridQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
-  tableName: Types.Scalars['String']['input'];
-  orderBy: Types.Scalars['String']['input'];
+  workspaceSlug: Types.Scalars['String'];
+  tableName: Types.Scalars['String'];
+  orderBy: Types.Scalars['String'];
   direction: Types.OrderByDirection;
-  page: Types.Scalars['Int']['input'];
+  page: Types.Scalars['Int'];
 }>;
 
 
