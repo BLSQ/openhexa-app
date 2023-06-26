@@ -205,11 +205,17 @@ def delete_object(bucket_name, name):
     return
 
 
-def generate_download_url(bucket_name: str, target_key: str):
+def generate_download_url(bucket_name: str, target_key: str, force_attachment=False):
     client = get_storage_client()
     gcs_bucket = client.get_bucket(bucket_name)
     blob: Blob = gcs_bucket.get_blob(target_key)
-    return blob.generate_signed_url(expiration=600, version="v4")
+    response_disposition = (
+        f"attachment;filename={blob.name}" if force_attachment else None
+    )
+
+    return blob.generate_signed_url(
+        expiration=600, version="v4", response_disposition=response_disposition
+    )
 
 
 def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
