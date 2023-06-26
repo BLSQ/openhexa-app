@@ -83,7 +83,7 @@ describe("RunPipelineDialog", () => {
     );
   });
 
-  it("does not call the runPipeline with a required bool not true", async () => {
+  it("calls the runPipeline with a required bool not checked", async () => {
     const pipeline = pipelineWithParameters([
       {
         code: "is_ok",
@@ -104,7 +104,7 @@ describe("RunPipelineDialog", () => {
 
     render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
     await submitForm(user);
-    expect(runPipelineMock).not.toHaveBeenCalled();
+    expect(runPipelineMock).toHaveBeenCalled();
   });
 
   it("calls the runPipeline with a optional int", async () => {

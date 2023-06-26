@@ -93,14 +93,6 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       }
 
       for (const parameter of version.parameters) {
-        if (
-          parameter.type === "bool" &&
-          parameter.required &&
-          !fields[parameter.code]
-        ) {
-          errors[parameter.code] = t("This switch must be checked");
-        }
-
         const val = fields[parameter.code];
         if (parameter.type === "int") {
           if (isNaN(val)) {
@@ -244,7 +236,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
               >
                 {parameters.map((param, i) => (
                   <Field
-                    required={param.required}
+                    required={param.required || param.type === "bool"}
                     key={i}
                     name={param.code}
                     label={param.name}
