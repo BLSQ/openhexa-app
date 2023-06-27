@@ -25,7 +25,7 @@ from hexa.core.models import (
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
 class Index(BaseIndex):
@@ -213,9 +213,10 @@ class Pipeline(models.Model):
             PipelineRecipient.objects.filter(
                 Q(pipeline=self) & ~Q(user_id__in=kwargs["recipientIds"])
             ).delete()
-            for id in kwargs["recipientIds"]:
-                user = User.objects.get(id=id)
-                PipelineRecipient.objects.get_or_create(user=user, pipeline=self)
+            for member in WorkspaceMembership.objects.filter(
+                workspace=self.workspace, user_id__in=kwargs["recipientIds"]
+            ):
+                PipelineRecipient.objects.get_or_create(user=member.user, pipeline=self)
 
         return self.save()
 
