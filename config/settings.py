@@ -68,7 +68,6 @@ INSTALLED_APPS = [
     "hexa.ui",
     "hexa.plugins.connector_dhis2",
     "hexa.plugins.connector_s3",
-    "hexa.plugins.connector_gcs",
     "hexa.plugins.connector_airflow",
     "hexa.plugins.connector_postgresql",
     "hexa.plugins.connector_accessmod",
