@@ -79,7 +79,28 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { is_ok: null },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
+    );
+  });
+
+  it("configure the run to receive the result by mail", async () => {
+    const pipeline = pipelineWithParameters([]);
+    useLazyQueryMock.mockReturnValue([
+      jest.fn(),
+      { loading: false, data: { pipelineByCode: pipeline } },
+    ]);
+
+    const user = userEvent.setup();
+
+    render(<RunPipelineDialog open pipeline={pipeline} onClose={() => {}} />);
+    await user.click(await screen.findByLabelText("Receive mail notification"));
+    await submitForm(user);
+    expect(runPipelineMock).toHaveBeenCalledWith(
+      pipeline.id,
+      {},
+      pipeline.currentVersion.number,
+      true
     );
   });
 
@@ -131,7 +152,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { int: null },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
     );
   });
 
@@ -177,7 +199,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { int_param: 0, float_param: 2.2 },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
     );
   });
 
@@ -211,7 +234,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { multi: ["0", "1", "2"] },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
     );
   });
 
@@ -245,7 +269,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { string: "coucou" },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
     );
   });
 
@@ -280,7 +305,8 @@ describe("RunPipelineDialog", () => {
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
       { choices_param: 2 },
-      pipeline.currentVersion.number
+      pipeline.currentVersion.number,
+      false
     );
   });
 });

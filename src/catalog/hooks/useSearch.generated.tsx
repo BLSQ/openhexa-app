@@ -5,11 +5,11 @@ import { SearchResult_ResultFragmentDoc } from '../features/SearchResult.generat
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SearchQueryQueryVariables = Types.Exact<{
-  query?: Types.InputMaybe<Types.Scalars['String']>;
-  types?: Types.InputMaybe<Array<Types.Scalars['String']> | Types.Scalars['String']>;
-  datasourceIds?: Types.InputMaybe<Array<Types.Scalars['UUID']> | Types.Scalars['UUID']>;
-  page?: Types.InputMaybe<Types.Scalars['Int']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']>;
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  types?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  datasourceIds?: Types.InputMaybe<Array<Types.Scalars['UUID']['input']> | Types.Scalars['UUID']['input']>;
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 

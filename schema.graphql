@@ -1465,6 +1465,7 @@ type Pipeline {
   currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
+  recipients: [PipelineRecipient!]!
 }
 
 enum PipelineError {
@@ -1494,6 +1495,11 @@ type PipelinePermissions {
   deleteVersion: Boolean!
 }
 
+type PipelineRecipient {
+  user: User!
+  pipeline: Pipeline!
+}
+
 type PipelineRun {
   id: UUID!
   run_id: UUID!
@@ -1510,6 +1516,7 @@ type PipelineRun {
   logs: String
   outputs: [PipelineRunOutput!]!
   code: String!
+  sendMailNotifications: Boolean!
 }
 
 type PipelineRunMessage {
@@ -1739,6 +1746,7 @@ input RunPipelineInput {
   id: UUID!
   version: Int
   config: JSON!
+  sendMailNotifications: Boolean
 }
 
 type RunPipelineResult {
@@ -2086,6 +2094,7 @@ input UpdatePipelineInput {
   config: JSON
   schedule: String
   description: String
+  recipientIds: [UUID!]
 }
 
 input UpdatePipelineProgressInput {

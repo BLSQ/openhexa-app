@@ -29,6 +29,7 @@ export type FormInstance<T, TData = void> = {
   ) => void;
   setFieldValue: (fieldName: keyof T, value: any, isTouched?: boolean) => void;
   resetForm: () => void;
+  validate(): void;
   handleSubmit(event?: {
     preventDefault: Function;
     stopPropagation: Function;
@@ -56,6 +57,9 @@ function useForm<T = FormData, TData = void>(
   const { t } = useTranslation();
   const { initialState = {}, getInitialState, validate, onSubmit } = options;
   const [isSubmitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ [key in keyof T]?: FormFieldError }>(
+    {}
+  );
   const timeouts = useRef<{ [key in keyof T]?: any }>({});
   const [hasBeenSubmitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -84,6 +88,17 @@ function useForm<T = FormData, TData = void>(
     internalInitialState.current ?? {}
   );
   const previousFormData = usePrevious<Partial<T>>(formData);
+
+  const _validate = useCallback(() => {
+    if (!validate) {
+      setErrors({});
+    } else {
+      setErrors(validate(formData) ?? {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]);
+
+  useEffect(() => _validate(), [_validate]);
 
   const resetForm = useCallback(() => {
     setSubmitted(false);
@@ -143,16 +158,6 @@ function useForm<T = FormData, TData = void>(
     },
     [setFieldValue]
   );
-
-  const errors = useMemo(() => {
-    if (!validate) {
-      return {};
-    }
-
-    const errors = validate(formData);
-    return errors || {};
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData]);
 
   const isValid = useMemo(() => {
     if (Object.values(errors).filter(Boolean).length > 0) {
@@ -223,6 +228,7 @@ function useForm<T = FormData, TData = void>(
         handleInputChange,
         setFieldValue,
         setDebouncedFieldValue,
+        validate: _validate,
         resetForm,
         isValid,
         isSubmitting,
@@ -242,6 +248,7 @@ function useForm<T = FormData, TData = void>(
       isValid,
       isSubmitting,
       handleSubmit,
+      _validate,
     ]
   );
 

@@ -39,19 +39,21 @@ type FormSectionProps = {
   onSave?: OnSaveFn;
   title?: string;
   children: ReactNode;
+  validate?: boolean;
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
   Omit<React.ComponentProps<typeof BlockSection>, "title" | "children">;
 
-const getPropertyFlag = (
+function getPropertyFlag<F>(
   flag: PropertyFlag | undefined,
   displayValue: any,
-  isEdited: boolean = false
-) => {
+  isEdited: boolean = false,
+  form: FormInstance<F>
+) {
   if (typeof flag === "function") {
-    return flag(displayValue, isEdited);
+    return flag(displayValue, isEdited, form.formData);
   }
   return flag;
-};
+}
 
 function getProperty<F>(
   definition: PropertyDefinition,
@@ -72,11 +74,14 @@ function getProperty<F>(
     help: definition.help,
     hideLabel: definition.hideLabel ?? false,
     readonly:
-      getPropertyFlag(definition.readonly, displayValue, isEdited) ?? false,
+      getPropertyFlag<F>(definition.readonly, displayValue, isEdited, form) ??
+      false,
     required:
-      getPropertyFlag(definition.required, displayValue, isEdited) ?? false,
+      getPropertyFlag<F>(definition.required, displayValue, isEdited, form) ??
+      false,
     visible:
-      getPropertyFlag(definition.visible, displayValue, isEdited) ?? true,
+      getPropertyFlag<F>(definition.visible, displayValue, isEdited, form) ??
+      true,
   };
   return prop;
 }
@@ -96,6 +101,7 @@ function FormSection<F extends { [key: string]: any }>(
     defaultOpen,
     children,
     onSave,
+    validate = true,
   } = props;
   const { item } = useItemContext();
 
@@ -127,22 +133,21 @@ function FormSection<F extends { [key: string]: any }>(
           errors[property.id] = t("This field is required");
         }
         if (property.validate) {
-          const error = property.validate(values[property.id]);
+          const error = property.validate(values[property.id], values);
           if (error) {
             errors[property.id] = error;
           }
         }
       }
-
       return errors;
     },
   });
 
   useEffect(() => {
-    if (isEdited) {
+    if (isEdited || !validate) {
       form.resetForm();
     }
-  }, [form, isEdited]);
+  }, [form, isEdited, validate]);
 
   useEffect(() => {
     properties.current = definitions.current.reduce<{
@@ -151,7 +156,8 @@ function FormSection<F extends { [key: string]: any }>(
       acc[def.id] = getProperty<F>(def, item, form, isEdited);
       return acc;
     }, {});
-  }, [definitions, item, form, isEdited]);
+    form.validate();
+  }, [definitions, item, form, form.formData, isEdited]);
 
   const section = {
     item,

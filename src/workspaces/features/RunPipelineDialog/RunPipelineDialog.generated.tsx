@@ -6,8 +6,8 @@ import { PipelineVersionPicker_PipelineFragmentDoc } from '../PipelineVersionPic
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineCurrentVersionQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String'];
-  pipelineCode: Types.Scalars['String'];
+  workspaceSlug: Types.Scalars['String']['input'];
+  pipelineCode: Types.Scalars['String']['input'];
 }>;
 
 

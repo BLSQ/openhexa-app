@@ -1,20 +1,22 @@
-import { InputHTMLAttributes } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
+import Tooltip from "core/components/Tooltip/Tooltip";
+import { InputHTMLAttributes } from "react";
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   description?: string;
+  help?: string;
 }
 
 const Checkbox = (props: CheckboxProps) => {
-  const { id, name, label, description, className, ...delegated } = props;
+  const { id, name, label, description, className, help, ...delegated } = props;
 
   const inputClassName = clsx(
-    "form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-0 focus:ring-offset-0",
-    className
+    "form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-0 focus:ring-offset-0"
   );
   return (
-    <div className="relative flex items-start">
+    <div className={clsx("relative flex items-start", className)}>
       <div className="flex h-5 items-center">
         <input
           id={id ?? name}
@@ -37,6 +39,11 @@ const Checkbox = (props: CheckboxProps) => {
             </p>
           )}
         </div>
+      )}
+      {help && (
+        <Tooltip label={help}>
+          <InformationCircleIcon className="ml-1 h-3 w-3" />
+        </Tooltip>
       )}
     </div>
   );

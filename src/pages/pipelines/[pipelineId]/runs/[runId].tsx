@@ -1,7 +1,7 @@
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
-import DefaultLayout from "core/layouts/default";
 import { createGetServerSideProps } from "core/helpers/page";
+import DefaultLayout from "core/layouts/default";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunDataCard from "pipelines/features/PipelineRunDataCard";
@@ -11,8 +11,6 @@ import {
   usePipelineRunPageQuery,
 } from "pipelines/graphql/queries.generated";
 import { getPipelineRunLabel } from "pipelines/helpers/runs";
-import { useMemo } from "react";
-import { PipelineRunStatus } from "graphql-types";
 
 type Props = {
   page: number;

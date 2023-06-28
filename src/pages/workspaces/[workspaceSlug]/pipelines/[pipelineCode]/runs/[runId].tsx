@@ -36,6 +36,7 @@ import Button from "core/components/Button";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
+import Checkbox from "core/components/forms/Checkbox";
 
 type Props = {
   workspaceSlug: string;
@@ -215,6 +216,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 ) : null}
                 <DescriptionList.Item label={t("Version")}>
                   {run.version.number}
+                </DescriptionList.Item>
+                <DescriptionList.Item label={t("Notifications")}>
+                  <Checkbox checked={run.sendMailNotifications} disabled />
                 </DescriptionList.Item>
               </DescriptionList>
             </Block.Section>

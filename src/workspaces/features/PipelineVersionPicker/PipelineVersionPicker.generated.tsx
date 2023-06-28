@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineVersionPickerQueryVariables = Types.Exact<{
-  pipelineId: Types.Scalars['UUID'];
+  pipelineId: Types.Scalars['UUID']['input'];
 }>;
 
 

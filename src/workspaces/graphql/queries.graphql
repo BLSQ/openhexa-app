@@ -89,6 +89,12 @@ query WorkspacePipelinePage(
       id
       number
     }
+    recipients {
+      user {
+        id
+        displayName
+      }
+    }
     runs(page: $page, perPage: $perPage) {
       items {
         id
@@ -147,6 +153,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
     executionDate
     duration
     triggerMode
+    sendMailNotifications
     pipeline {
       id
       code

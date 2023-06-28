@@ -3,7 +3,11 @@ import { ValueAccessor } from "core/hooks/useItemContext";
 
 export type PropertyFlag =
   | boolean
-  | ((value: any, isEditing: boolean) => boolean);
+  | ((
+      value: any,
+      isEditing: boolean,
+      formData: FormInstance<any>["formData"]
+    ) => boolean);
 
 export type PropertyDefinition = {
   id: string;
@@ -13,8 +17,13 @@ export type PropertyDefinition = {
   readonly?: PropertyFlag;
   visible?: PropertyFlag;
   required?: PropertyFlag;
-  validate?(value: string): string | null | undefined;
-  defaultValue?: string;
+  validate?(
+    value: any,
+    formValues: {
+      [key: string]: any;
+    }
+  ): string | boolean | null | undefined;
+  defaultValue?: string | boolean;
   hideLabel?: boolean;
 };
 export type Property<V = any, FV = V> = PropertyDefinition & {

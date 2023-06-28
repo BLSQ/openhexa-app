@@ -11,10 +11,10 @@ import {
 type CronPropertyProps = PropertyDefinition & { className?: string };
 
 const CronProperty = (props: CronPropertyProps) => {
-  const { className, required, ...delegated } = props;
+  const { className, ...delegated } = props;
   const { t } = useTranslation();
   const validateCron = (value: string) => {
-    if (required && !validateCronExpression(value)) {
+    if (value && !validateCronExpression(value)) {
       return t("Invalid cron expression");
     }
     return null;
@@ -22,9 +22,9 @@ const CronProperty = (props: CronPropertyProps) => {
 
   const { property, section } = useDataCardProperty({
     ...delegated,
-    required,
     validate: validateCron,
   });
+
   if (section.isEdited && !property.readonly) {
     return (
       <DataCard.Property property={property}>

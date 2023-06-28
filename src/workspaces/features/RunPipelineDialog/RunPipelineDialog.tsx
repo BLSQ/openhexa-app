@@ -21,6 +21,7 @@ import {
 } from "./RunPipelineDialog.generated";
 import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
+import Checkbox from "core/components/forms/Checkbox/Checkbox";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -61,8 +62,13 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
     async onSubmit(values) {
-      const { version, ...params } = values;
-      const run = await runPipeline(pipeline.id, params, version?.number);
+      const { version, sendMailNotifications, ...params } = values;
+      const run = await runPipeline(
+        pipeline.id,
+        params,
+        version?.number,
+        sendMailNotifications
+      );
       await router.push(
         `/workspaces/${encodeURIComponent(
           router.query.workspaceSlug as string
@@ -77,6 +83,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       const version = ("run" in props && props.run.version) || null;
       let state: any = {
         version,
+        sendMailNotifications: false,
       };
 
       if ("run" in props && props.run) {
@@ -259,7 +266,18 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                 </div>
               )}
             </Dialog.Content>
-            <Dialog.Actions>
+            <Dialog.Actions className="flex-1 items-center">
+              <div className="flex flex-1 items-center">
+                <Checkbox
+                  checked={form.formData.sendMailNotifications}
+                  name="sendMailNotifications"
+                  onChange={form.handleInputChange}
+                  label={t("Receive mail notification")}
+                  help={t(
+                    "You will receive an email when the pipeline is done"
+                  )}
+                />
+              </div>
               <Button type="button" variant="white" onClick={onClose}>
                 {t("Cancel")}
               </Button>
