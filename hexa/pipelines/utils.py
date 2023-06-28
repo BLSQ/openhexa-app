@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils.translation import gettext_lazy
 
 from config import settings
@@ -21,11 +23,11 @@ def mail_run_recipients(run: PipelineRun):
         template_name="pipelines/mails/run_report",
         template_variables={
             "pipeline_code": run.pipeline.code,
-            "status": run.status.name,
+            "status": run.state.label,
             "executed_at": run.execution_date,
-            "duration": int(run.duration.total_seconds())
+            "duration": run.duration
             if run.duration is not None
-            else 0,
+            else datetime.timedelta(seconds=0),
             "run_url": f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{run.pipeline.code}/runs/{run.id}",
         },
         recipient_list=recipient_list,

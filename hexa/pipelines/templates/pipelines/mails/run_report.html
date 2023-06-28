@@ -1,10 +1,10 @@
-{% load i18n %}
+{% load i18n date_utils %}
 {% autoescape off %}
 {% blocktranslate %}The report for pipeline <b>{{pipeline_code}}</b> is available:{% endblocktranslate %}
 <ul>
     <li>Status : {{status}}</li>
     <li>Executed at : {{executed_at}}</li>
-    <li>Duration : {{duration}}s</li>
+    <li>Duration : {{duration | duration_format:True }}</li>
 </ul>
 {% translate "Please go to the following page to view it:" %}
 
