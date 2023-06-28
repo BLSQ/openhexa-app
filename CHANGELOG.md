@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.0](https://github.com/BLSQ/openhexa-frontend/compare/0.31.6...0.32.0) (2023-06-28)
+
+
+### Features
+
+* **Pipelines:** mail notifications for pipelines ([#339](https://github.com/BLSQ/openhexa-frontend/issues/339)) ([02be4fb](https://github.com/BLSQ/openhexa-frontend/commit/02be4fb7b76e869f8db849c68fc329cdd9242109))
+
 ## [0.31.6](https://github.com/BLSQ/openhexa-frontend/compare/0.31.5...0.31.6) (2023-06-26)
 
 
