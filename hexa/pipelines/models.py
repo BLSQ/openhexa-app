@@ -25,7 +25,7 @@ from hexa.core.models import (
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
 class Index(BaseIndex):
@@ -155,6 +155,7 @@ class Pipeline(models.Model):
     cpu_limit = models.CharField(blank=True, max_length=32)
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
+    recipients = models.ManyToManyField(User, through="PipelineRecipient")
 
     objects = PipelineQuerySet.as_manager()
 
@@ -164,6 +165,7 @@ class Pipeline(models.Model):
         pipeline_version: PipelineVersion,
         trigger_mode: PipelineRunTrigger,
         config: typing.Mapping[typing.Dict, typing.Any] = None,
+        send_mail_notifications: bool = False,
     ):
         run = PipelineRun.objects.create(
             user=user,
@@ -175,6 +177,7 @@ class Pipeline(models.Model):
             state=PipelineRunState.QUEUED,
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
+            send_mail_notifications=send_mail_notifications,
         )
 
         return run
@@ -206,6 +209,15 @@ class Pipeline(models.Model):
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
+        if "recipientIds" in kwargs:
+            PipelineRecipient.objects.filter(
+                Q(pipeline=self) & ~Q(user_id__in=kwargs["recipientIds"])
+            ).delete()
+            for member in WorkspaceMembership.objects.filter(
+                workspace=self.workspace, user_id__in=kwargs["recipientIds"]
+            ):
+                PipelineRecipient.objects.get_or_create(user=member.user, pipeline=self)
+
         return self.save()
 
     @property
@@ -226,6 +238,23 @@ class Pipeline(models.Model):
             return self.name
 
         return self.code
+
+
+class PipelineRecipient(Base):
+    class Meta:
+        ordering = ("-updated_at",)
+        constraints = [
+            models.UniqueConstraint(
+                "user",
+                "pipeline",
+                name="unique_recipient_per_pipeline",
+            )
+        ]
+
+    user = models.ForeignKey(
+        "user_management.User", null=False, on_delete=models.CASCADE
+    )
+    pipeline = models.ForeignKey(Pipeline, null=False, on_delete=models.CASCADE)
 
 
 class PipelineRunQuerySet(BaseQuerySet):
@@ -272,6 +301,7 @@ class PipelineRun(Base, WithStatus):
     outputs = models.JSONField(null=True, blank=True, default=list)
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
+    send_mail_notifications = models.BooleanField(default=False)
 
     objects = PipelineRunQuerySet.as_manager()
 

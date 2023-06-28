@@ -130,6 +130,11 @@ def resolve_pipeline_runs(pipeline: Pipeline, info, **kwargs):
     )
 
 
+@pipeline_object.field("recipients")
+def resolve_pipeline_recipients(pipeline: Pipeline, info, **kwargs):
+    return pipeline.pipelinerecipient_set.all()
+
+
 pipeline_run_object = ObjectType("PipelineRun")
 
 
@@ -336,6 +341,7 @@ def resolve_run_pipeline(_, info, **kwargs):
         pipeline_version=version,
         trigger_mode=PipelineRunTrigger.MANUAL,
         config=input.get("config", {}),
+        send_mail_notifications=input.get("sendMailNotifications", False),
     )
 
     return {

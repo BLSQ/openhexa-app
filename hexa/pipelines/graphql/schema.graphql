@@ -78,6 +78,7 @@ type PipelineRun {
   logs: String
   outputs: [PipelineRunOutput!]!
   code: String!
+  sendMailNotifications: Boolean!
 }
 
 enum PipelineRunOrderBy {
@@ -110,6 +111,11 @@ type PipelineVersionPage {
   totalItems: Int!
 }
 
+type PipelineRecipient {
+  user: User!
+  pipeline: Pipeline!
+}
+
 type Pipeline {
   id: UUID!
   name: String
@@ -124,6 +130,7 @@ type Pipeline {
   currentVersion: PipelineVersion
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
+  recipients: [PipelineRecipient!]!
 }
 
 type PipelinesPage {
@@ -174,6 +181,7 @@ input RunPipelineInput {
   id: UUID!
   version: Int
   config: JSON!
+  sendMailNotifications: Boolean
 }
 
 type RunPipelineResult {
@@ -242,6 +250,7 @@ input UpdatePipelineInput {
   config: JSON
   schedule: String
   description: String
+  recipientIds: [UUID!]
 }
 enum UpdatePipelineError {
   NOT_FOUND

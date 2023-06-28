@@ -2,9 +2,21 @@ import base64
 import uuid
 from unittest.mock import patch
 
+from django import test
+from django.conf import settings
+from django.core import mail
+
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineRunState
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRecipient,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
+from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
@@ -35,9 +47,17 @@ class PipelinesV2Test(GraphQLTestCase):
             "viewer@bluesquarehub.com",
             "standardpassword",
         )
+        cls.USER_SABRINA = User.objects.create_user(
+            "sabrina@bluesquarehub.com",
+            "standardpassword",
+        )
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces"), user=cls.USER_NOOB
         )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.create(code="workspaces"), user=cls.USER_SABRINA
+        )
+
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
@@ -59,6 +79,11 @@ class PipelinesV2Test(GraphQLTestCase):
         cls.WORKSPACE1_MEMBERSHIP_2 = WorkspaceMembership.objects.create(
             workspace=cls.WS1,
             user=cls.USER_LAMBDA,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        cls.WORKSPACE1_MEMBERSHIP_3 = WorkspaceMembership.objects.create(
+            workspace=cls.WS1,
+            user=cls.USER_SABRINA,
             role=WorkspaceMembershipRole.EDITOR,
         )
 
@@ -515,4 +540,216 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(
             {"success": True, "errors": []},
             r["data"]["deletePipelineVersion"],
+        )
+
+    def test_add_pipeline_recipients(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        recipients {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                  }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "recipientIds": [str(self.USER_ROOT.id)],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {"recipients": [{"user": {"id": str(self.USER_ROOT.id)}}]},
+            },
+            r["data"]["updatePipeline"],
+        )
+
+    def test_update_pipeline_recipients(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_ROOT)
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_LAMBDA)
+
+        self.assertEqual(pipeline.recipients.count(), 2)
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        recipients {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                  }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "recipientIds": [
+                        str(self.USER_LAMBDA.id),
+                        str(self.USER_SABRINA.id),
+                    ],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "recipients": [
+                        {"user": {"id": str(self.USER_SABRINA.id)}},
+                        {"user": {"id": str(self.USER_LAMBDA.id)}},
+                    ]
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
+
+    def test_update_pipeline_recipients_no_workspace_members(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        recipients {
+                            user {
+                                id
+                            }
+                        }
+                    }
+                  }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "recipientIds": [
+                        str(self.USER_LAMBDA.id),
+                        str(self.USER_NOOB.id),
+                    ],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "recipients": [
+                        {"user": {"id": str(self.USER_LAMBDA.id)}},
+                    ]
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
+
+    def test_delete_pipeline_workspace_members(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_LAMBDA)
+        self.WORKSPACE1_MEMBERSHIP_2.delete()
+
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    recipients {
+                      user {
+                        displayName
+                      }
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+
+        self.assertEqual(
+            {"recipients": []},
+            r["data"]["pipelineByCode"],
+        )
+
+    @test.override_settings(NEW_FRONT_DOMAIN="localhost:3000")
+    def test_mail_run_recipients_manual_trigger(self):
+        self.client.force_login(self.USER_ROOT)
+        self.test_pipeline_new_run()
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        version = PipelineVersion.objects.get(pipeline=pipeline, number=1)
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+            send_mail_notifications=True,
+        )
+
+        mail_run_recipients(run)
+        self.assertEqual(
+            f"Run report of {pipeline.code}({run.state.name})",
+            mail.outbox[0].subject,
+        )
+        self.assertListEqual([self.USER_ROOT.email], mail.outbox[0].recipients())
+        self.assertTrue(
+            f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{pipeline.workspace.slug}/pipelines/{pipeline.code}/runs/{run.id}"
+            in mail.outbox[0].body
+        )
+
+    @test.override_settings(NEW_FRONT_DOMAIN="localhost:3000")
+    def test_mail_run_recipients_scheduled_trigger(self):
+        self.client.force_login(self.USER_ROOT)
+        self.test_pipeline_new_run()
+
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        version = PipelineVersion.objects.get(pipeline=pipeline, number=1)
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_ROOT)
+        PipelineRecipient.objects.create(pipeline=pipeline, user=self.USER_LAMBDA)
+
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=version,
+            trigger_mode=PipelineRunTrigger.SCHEDULED,
+            config={},
+            send_mail_notifications=True,
+        )
+
+        mail_run_recipients(run)
+        self.assertEqual(
+            f"Run report of {pipeline.code}({run.state.name})",
+            mail.outbox[0].subject,
+        )
+        self.assertListEqual(
+            [self.USER_LAMBDA.email, self.USER_ROOT.email], mail.outbox[0].recipients()
+        )
+        self.assertTrue(
+            f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{pipeline.workspace.slug}/pipelines/{pipeline.code}/runs/{run.id}"
+            in mail.outbox[0].body
         )

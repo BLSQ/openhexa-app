@@ -1,0 +1,10 @@
+{% load date_utils %}
+
+The report for pipeline {{pipeline_code}} is available:
+Status : {{status}}
+Executed at : {{executed_at}}
+Duration : {{duration | duration_format:True}}
+
+Please go to the following page to view it: {{ run_url }}
+
+The OpenHexa team

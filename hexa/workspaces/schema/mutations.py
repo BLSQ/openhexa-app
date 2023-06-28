@@ -193,7 +193,6 @@ def resolve_delete_workspace_member(_, info, **kwargs):
     try:
         workspace_membership = WorkspaceMembership.objects.get(id=input["membershipId"])
         workspace_membership.delete_if_has_perm(principal=request.user)
-
         return {"success": True, "errors": []}
     except WorkspaceMembership.DoesNotExist:
         return {
