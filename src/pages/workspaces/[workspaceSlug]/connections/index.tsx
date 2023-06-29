@@ -92,26 +92,18 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                   <Card
                     key={connection.id}
                     title={
-                      <div className="flex justify-between gap-3">
-                        <>
-                          <div className="flex items-center gap-x-2">
-                            {CONNECTION_TYPES[connection.type].iconSrc && (
-                              <img
-                                src={CONNECTION_TYPES[connection.type].iconSrc!}
-                                className="h-6 w-6"
-                                alt=""
-                              />
-                            )}
-                            {connection.name}
-                          </div>
-                          <Badge
-                            className={CONNECTION_TYPES[connection.type].color}
-                          >
-                            {CONNECTION_TYPES[connection.type].label}
-                          </Badge>
-                        </>
+                      <div className="flex items-center gap-x-2">
+                        {CONNECTION_TYPES[connection.type].iconSrc && (
+                          <img
+                            src={CONNECTION_TYPES[connection.type].iconSrc!}
+                            className="h-6 w-6"
+                            alt=""
+                          />
+                        )}
+                        {connection.name}
                       </div>
                     }
+                    subtitle={CONNECTION_TYPES[connection.type].label}
                     href={{
                       pathname:
                         "/workspaces/[workspaceSlug]/connections/[connectionId]",
