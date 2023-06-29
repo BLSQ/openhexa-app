@@ -714,7 +714,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         mail_run_recipients(run)
         self.assertEqual(
-            f"Run report of {pipeline.code}({run.state.name})",
+            f"Run report of {pipeline.code} ({run.state.label})",
             mail.outbox[0].subject,
         )
         self.assertListEqual([self.USER_ROOT.email], mail.outbox[0].recipients())
@@ -743,7 +743,7 @@ class PipelinesV2Test(GraphQLTestCase):
 
         mail_run_recipients(run)
         self.assertEqual(
-            f"Run report of {pipeline.code}({run.state.name})",
+            f"Run report of {pipeline.code} ({run.state.label})",
             mail.outbox[0].subject,
         )
         self.assertListEqual(
