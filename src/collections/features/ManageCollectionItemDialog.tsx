@@ -214,12 +214,7 @@ const ManageCollectionItemDialog = (props: ManageCollectionItemDialogProps) => {
         <Button variant="white" onClick={onClose}>
           {t("Cancel")}
         </Button>
-        <Button
-          disabled={
-            loading || (currentTabIndex === 1 ? !collectionForm.isValid : false)
-          }
-          onClick={onSave}
-        >
+        <Button disabled={loading} onClick={onSave}>
           {loading && <Spinner className="mr-1" size="xs" />}
           {t("Done")}
         </Button>

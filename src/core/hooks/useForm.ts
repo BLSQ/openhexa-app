@@ -35,7 +35,6 @@ export type FormInstance<T, TData = void> = {
     stopPropagation: Function;
   }): Promise<TData | void> | TData | void;
   touched: { [key in keyof Partial<T>]: boolean };
-  isValid: boolean;
   isDirty: boolean;
   isSubmitting: boolean;
 };
@@ -57,9 +56,7 @@ function useForm<T = FormData, TData = void>(
   const { t } = useTranslation();
   const { initialState = {}, getInitialState, validate, onSubmit } = options;
   const [isSubmitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ [key in keyof T]?: FormFieldError }>(
-    {}
-  );
+  const errorsRef = useRef<{ [key in keyof T]?: FormFieldError }>({});
   const timeouts = useRef<{ [key in keyof T]?: any }>({});
   const [hasBeenSubmitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -69,6 +66,8 @@ function useForm<T = FormData, TData = void>(
       }
     | {}
   >({});
+
+  // Validate on submit
 
   // This is intended to always return the same object to avoid to have side-effect in useEffect because of a object ref change
   const uniqueRef = useRef<{}>({});
@@ -91,20 +90,23 @@ function useForm<T = FormData, TData = void>(
 
   const _validate = useCallback(() => {
     if (!validate) {
-      setErrors({});
+      errorsRef.current = {};
     } else {
-      setErrors(validate(formData) ?? {});
+      errorsRef.current = validate(formData) ?? {};
     }
+
+    return Object.values(errorsRef.current).filter(Boolean).length === 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData]);
 
-  useEffect(() => _validate(), [_validate]);
+  // useEffect(() => _validate(), [_validate]);
 
   const resetForm = useCallback(() => {
     setSubmitted(false);
     Object.values(timeouts).forEach((timeout) => clearTimeout(timeout));
     timeouts.current = {};
     setTouched({});
+    errorsRef.current = {};
     setSubmitError(null);
     setInitialState();
     setFormData(internalInitialState.current ?? {});
@@ -159,22 +161,12 @@ function useForm<T = FormData, TData = void>(
     [setFieldValue]
   );
 
-  const isValid = useMemo(() => {
-    if (Object.values(errors).filter(Boolean).length > 0) {
-      // Ignore {myField: null | undefined}
-      return false;
-    }
-    if (Object.keys(timeouts.current).length > 0) {
-      // Some changes are not processed yet
-      return false;
-    }
-    return true;
-  }, [errors, timeouts]);
-
   const handleSubmit = useCallback(
     async (event?: { preventDefault: Function; stopPropagation: Function }) => {
-      event?.preventDefault();
-      event?.stopPropagation();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
 
       if (isSubmitting) return;
 
@@ -182,7 +174,7 @@ function useForm<T = FormData, TData = void>(
       setSubmitting(true);
       setSubmitted(true);
 
-      if (isValid) {
+      if (_validate() && Object.keys(timeouts.current).length === 0) {
         try {
           const result = await onSubmit(formData as T);
           setInitialState();
@@ -198,7 +190,7 @@ function useForm<T = FormData, TData = void>(
       setSubmitting(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [formData, errors, isValid, touched]
+    [formData, touched]
   );
 
   // Proxy the touched fields to ensure that all errors are shown when the user ...
@@ -221,7 +213,7 @@ function useForm<T = FormData, TData = void>(
       Object.assign(uniqueRef.current, {
         formData,
         previousFormData,
-        errors,
+        errors: errorsRef.current,
         submitError,
         isDirty,
         touched: allTouched,
@@ -230,14 +222,13 @@ function useForm<T = FormData, TData = void>(
         setDebouncedFieldValue,
         validate: _validate,
         resetForm,
-        isValid,
         isSubmitting,
         handleSubmit,
       }),
     [
       formData,
       previousFormData,
-      errors,
+      errorsRef,
       submitError,
       isDirty,
       allTouched,
@@ -245,13 +236,12 @@ function useForm<T = FormData, TData = void>(
       setFieldValue,
       setDebouncedFieldValue,
       resetForm,
-      isValid,
+
       isSubmitting,
       handleSubmit,
       _validate,
     ]
   );
-
   return result;
 }
 

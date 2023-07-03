@@ -79,14 +79,47 @@ export async function runPipeline(
         runPipeline(input: $input) {
           success
           errors
+
           run {
             id
+            pipeline {
+              __typename
+              id
+            }
           }
         }
       }
     `,
     variables: {
       input: { id: pipelineId, config, version, sendMailNotifications },
+    },
+    update: (cache, { data }) => {
+      if (!data || !data.runPipeline.run) {
+        return;
+      }
+      const {
+        runPipeline: { run },
+      } = data;
+      cache.modify({
+        id: cache.identify(run.pipeline),
+        fields: {
+          runs(existing) {
+            const runRef = cache.writeFragment({
+              data: run,
+              fragment: gql`
+                fragment NewRun on PipelineRun {
+                  id
+                }
+              `,
+            });
+            return {
+              ...existing,
+              totalItems: existing.totalItems + 1,
+              items: [runRef, ...existing.items],
+            };
+          },
+        },
+      });
     },
   });
 

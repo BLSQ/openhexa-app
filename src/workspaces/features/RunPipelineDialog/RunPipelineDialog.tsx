@@ -189,16 +189,18 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-        {form.errors.version && (
-          <div className="mt-3 text-sm text-red-600">{form.errors.version}</div>
-        )}
-        {open && !form.formData.version ? (
-          <Dialog.Content>
-            <Spinner />
+        {!form.formData.version ? (
+          <Dialog.Content className="flex h-36 items-center justify-center">
+            <Spinner size="lg" />
           </Dialog.Content>
         ) : (
           <>
             <Dialog.Content className="-m-1 max-h-[600px] overflow-y-auto p-1">
+              {form.errors.version && (
+                <div className="mt-3 text-sm text-red-600">
+                  {form.errors.version}
+                </div>
+              )}
               {!showVersionPicker ? (
                 <div className="mb-6 flex justify-start gap-x-1">
                   <p>
@@ -232,7 +234,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                 </Field>
               )}
 
-              {form.formData.version && parameters.length === 0 && (
+              {parameters.length === 0 && (
                 <p>{t("This pipeline has no parameter")}</p>
               )}
               <div

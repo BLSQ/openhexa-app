@@ -202,7 +202,7 @@ export default function CreateCollectionDialog({
             </Button>
             <Button
               type="submit"
-              disabled={!form.isValid || form.isSubmitting}
+              disabled={form.isSubmitting}
               data-testid="create-connection"
             >
               {form.isSubmitting && <Spinner size="xs" className="mr-1" />}

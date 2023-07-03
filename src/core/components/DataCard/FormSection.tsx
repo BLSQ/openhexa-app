@@ -39,7 +39,6 @@ type FormSectionProps = {
   onSave?: OnSaveFn;
   title?: string;
   children: ReactNode;
-  validate?: boolean;
 } & Pick<DescriptionListProps, "displayMode" | "columns"> &
   Omit<React.ComponentProps<typeof BlockSection>, "title" | "children">;
 
@@ -101,7 +100,6 @@ function FormSection<F extends { [key: string]: any }>(
     defaultOpen,
     children,
     onSave,
-    validate = true,
   } = props;
   const { item } = useItemContext();
 
@@ -144,10 +142,10 @@ function FormSection<F extends { [key: string]: any }>(
   });
 
   useEffect(() => {
-    if (isEdited || !validate) {
+    if (isEdited) {
       form.resetForm();
     }
-  }, [form, isEdited, validate]);
+  }, [form, isEdited]);
 
   useEffect(() => {
     properties.current = definitions.current.reduce<{
@@ -156,7 +154,7 @@ function FormSection<F extends { [key: string]: any }>(
       acc[def.id] = getProperty<F>(def, item, form, isEdited);
       return acc;
     }, {});
-    form.validate();
+    // form.validate();
   }, [definitions, item, form, form.formData, isEdited]);
 
   const section = {
@@ -225,10 +223,7 @@ function FormSection<F extends { [key: string]: any }>(
                 </p>
               )}
               <div className="mt-6 flex items-center justify-end gap-2">
-                <Button
-                  type="submit"
-                  disabled={form.isSubmitting || !form.isValid}
-                >
+                <Button type="submit" disabled={form.isSubmitting}>
                   {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
                   {t("Save")}
                 </Button>

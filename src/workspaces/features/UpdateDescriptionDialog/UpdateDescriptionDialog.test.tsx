@@ -102,12 +102,8 @@ describe("EditWorkspaceDescriptionDialog", () => {
     await user.clear(descriptionInput);
 
     const saveButton = screen.getByRole("button", { name: "Save" });
-    expect(saveButton).toBeDisabled();
-    await user.type(descriptionInput, "Description");
-    expect(saveButton).not.toBeDisabled();
-
     await user.click(saveButton);
-
+    await user.type(descriptionInput, "Description");
     expect(useUpdateWorkspaceMutationMock).toHaveBeenCalled();
   });
 });

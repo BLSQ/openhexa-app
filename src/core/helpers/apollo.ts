@@ -68,6 +68,10 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
       keyFields: ["key"],
     },
+
+    Pipeline: {
+      merge: true,
+    },
   },
 };
 
@@ -122,6 +126,12 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     link,
     cache,
     defaultOptions: {
+      mutate: {
+        update() {
+          // Clear the apolloClient on mutation to force a query refetch
+          apolloClient?.resetStore();
+        },
+      },
       watchQuery: {
         nextFetchPolicy: "cache-and-network",
       },

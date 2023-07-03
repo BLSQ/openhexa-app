@@ -104,12 +104,10 @@ describe("LoginPage: No Two Factor Authentication", () => {
     const passwordInput = screen.getByTestId("password");
     const submitBtn = screen.getByRole("button", { name: "Sign in" });
 
-    expect(submitBtn).toBeDisabled();
     await user.type(emailInput, "root@openhexa.org");
     await user.click(submitBtn);
     expect(pushSpy).not.toHaveBeenCalled();
     await user.type(passwordInput, "pA$$W0rd");
-    expect(submitBtn).not.toBeDisabled();
     await user.click(submitBtn);
     waitFor(() => {
       expect(pushSpy).toHaveBeenCalled();

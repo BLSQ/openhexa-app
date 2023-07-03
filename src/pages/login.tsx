@@ -205,7 +205,7 @@ const LoginPage: NextPageWithLayout = () => {
         <div className="space-y-2">
           <Button
             data-testid="submit"
-            disabled={form.isSubmitting || !form.isValid}
+            disabled={form.isSubmitting}
             type="submit"
             className="w-full"
           >

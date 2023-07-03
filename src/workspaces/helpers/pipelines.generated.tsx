@@ -15,9 +15,15 @@ export type RunWorkspacePipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type RunWorkspacePipelineMutation = { __typename?: 'Mutation', runPipeline: { __typename?: 'RunPipelineResult', success: boolean, errors: Array<Types.PipelineError>, run?: { __typename?: 'PipelineRun', id: string } | null } };
+export type RunWorkspacePipelineMutation = { __typename?: 'Mutation', runPipeline: { __typename?: 'RunPipelineResult', success: boolean, errors: Array<Types.PipelineError>, run?: { __typename?: 'PipelineRun', id: string, pipeline: { __typename: 'Pipeline', id: string } } | null } };
 
+export type NewRunFragment = { __typename?: 'PipelineRun', id: string };
 
+export const NewRunFragmentDoc = gql`
+    fragment NewRun on PipelineRun {
+  id
+}
+    `;
 export const UpdateWorkspacePipelineDocument = gql`
     mutation UpdateWorkspacePipeline($input: UpdatePipelineInput!) {
   updatePipeline(input: $input) {
@@ -67,6 +73,10 @@ export const RunWorkspacePipelineDocument = gql`
     errors
     run {
       id
+      pipeline {
+        __typename
+        id
+      }
     }
   }
 }

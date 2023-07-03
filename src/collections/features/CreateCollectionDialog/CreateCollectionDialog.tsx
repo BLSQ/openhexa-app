@@ -33,7 +33,7 @@ const CreateCollectionDialog = (props: CreateCollectionDialogProps) => {
           <Button variant="white" onClick={handleClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !form.isValid} type="submit">
+          <Button disabled={form.isSubmitting} type="submit">
             {t("Create")}
           </Button>
         </Dialog.Actions>

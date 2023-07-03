@@ -115,7 +115,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
               {t("Cancel")}
             </Button>
           )}
-          <Button disabled={form.isSubmitting || !form.isValid} type="submit">
+          <Button disabled={form.isSubmitting} type="submit">
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {t("Create")}
           </Button>

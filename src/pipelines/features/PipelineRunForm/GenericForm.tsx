@@ -65,7 +65,7 @@ const GenericForm = (props: GenericFormProps) => {
       {!readOnly && (
         <div className="col-span-2 text-right">
           <Button
-            disabled={!form.isValid}
+            disabled={form.isSubmitting}
             type="submit"
             leadingIcon={<PlayIcon className="w-4" />}
           >

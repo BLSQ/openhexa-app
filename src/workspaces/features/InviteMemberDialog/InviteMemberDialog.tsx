@@ -143,7 +143,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
           <Button
             type="submit"
             className="space-x-2"
-            disabled={!form.isValid || form.isSubmitting}
+            disabled={form.isSubmitting}
           >
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {t("Invite")}

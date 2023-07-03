@@ -28,10 +28,10 @@ describe("useForm", () => {
     );
 
     expect(onSubmit).not.toHaveBeenCalled();
-    expect(onValidate).toHaveBeenCalledWith({ field1: "default_value" });
+    expect(onValidate).not.toHaveBeenCalled();
   });
 
-  it("calls validate when a field is updated", async () => {
+  it("calls validate on submit", async () => {
     const { result } = renderHook(() =>
       useForm<any>({
         onSubmit,
@@ -47,7 +47,7 @@ describe("useForm", () => {
     });
 
     await waitFor(() => {
-      expect(onValidate).toHaveBeenLastCalledWith({ field1: "new_value" });
+      expect(onValidate).not.toHaveBeenCalled();
     });
     await waitFor(async () => {
       await result.current.handleSubmit(FAKE_EVENT);
@@ -147,14 +147,18 @@ describe("useForm", () => {
         },
       })
     );
-
-    expect(result.current.isValid).toBeFalsy();
+    await result.current.handleSubmit();
+    await waitFor(() => {
+      expect(result.current.errors).toEqual({ field1: "Wrong" });
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
     await waitFor(() => {
       result.current.setFieldValue("field1", "good_value_1");
     });
+    await result.current.handleSubmit();
 
     await waitFor(() => {
-      expect(result.current.isValid).toBeTruthy();
+      expect(onSubmit).toHaveBeenCalled();
     });
   });
 });

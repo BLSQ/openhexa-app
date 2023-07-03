@@ -95,7 +95,7 @@ const UpdateWorkspaceMemberDialog = (
           <Button variant="white" type="button" onClick={onClose}>
             {t("Cancel")}
           </Button>
-          <Button disabled={form.isSubmitting || !form.isValid} type="submit">
+          <Button disabled={form.isSubmitting} type="submit">
             {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
             {t("Save")}
           </Button>

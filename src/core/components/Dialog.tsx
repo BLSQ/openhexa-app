@@ -92,7 +92,7 @@ function Dialog(props: DialogProps) {
         >
           <BaseDialog.Overlay
             className={clsx(
-              "fixed inset-0 bg-gray-800 bg-opacity-50 backdrop-blur-sm transition-opacity",
+              "fixed inset-0 -z-10 bg-gray-800 bg-opacity-50 backdrop-blur-sm transition-opacity",
               !closeOnOutsideClick && "pointer-events-none" // Let's prevent mouse events to be triggered to ensure the dialog stay open.
             )}
           />

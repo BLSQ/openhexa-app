@@ -58,9 +58,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     },
   });
 
-  const [isSchedulingEnabled, setIsSchedulingEnabled] = useState(
-    Boolean(data?.pipeline?.schedule)
-  );
   const clearCache = useCacheKey(["pipelines", pipelineCode], () => refetch());
 
   if (!data?.workspace || !data?.pipeline) {
@@ -177,7 +174,6 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               title={t("Scheduling")}
               onSave={pipeline.permissions.update ? onSave : undefined}
               collapsible={false}
-              validate={isSchedulingEnabled}
             >
               <SwitchProperty
                 id="enableScheduling"
@@ -188,9 +184,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 id="schedule"
                 accessor="schedule"
                 label={t("Cron expression")}
-                defaultValue={"-"}
-                visible={(_, __, values) => values.enableScheduling}
-                required={(_, __, values) => values.enableScheduling}
+                visible={(_, __, values) =>
+                  Boolean(values.enableScheduling || pipeline.schedule)
+                }
+                required={(_, __, values) => Boolean(values.enableScheduling)}
               />
               <WorkspaceMemberProperty
                 id="recipients"
@@ -199,7 +196,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 slug={workspace.slug}
                 multiple
                 defaultValue="-"
-                visible={(_, __, values) => values.enableScheduling}
+                visible={(_, __, values) =>
+                  Boolean(values.enableScheduling || pipeline.schedule)
+                }
               />
             </DataCard.FormSection>
           </DataCard>
