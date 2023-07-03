@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.1](https://github.com/BLSQ/openhexa-frontend/compare/0.32.0...0.32.1) (2023-07-03)
+
+
+### Bug Fixes
+
+* **Connections:** Remove the badge on the card and display it as a subtitle ([#356](https://github.com/BLSQ/openhexa-frontend/issues/356)) ([c2499b3](https://github.com/BLSQ/openhexa-frontend/commit/c2499b328242cc0fb5e98e35304f84ce22603736))
+* **Pipelines:** Various fixes ([0540ccd](https://github.com/BLSQ/openhexa-frontend/commit/0540ccd9ddf6a9643b6cd8c04fe7ef812272f6c5))
+
 ## [0.32.0](https://github.com/BLSQ/openhexa-frontend/compare/0.31.6...0.32.0) (2023-06-28)
 
 
