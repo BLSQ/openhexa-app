@@ -6,11 +6,10 @@
     <li>Executed at : {{executed_at}}</li>
     <li>Duration : {{duration | duration_format:True }}</li>
 </ul>
-{% translate "Please go to the following page to view it:" %}
 
-<a href="{{ run_url }}"> {% translate "Full report" %}</a>
+<a href="{{ run_url }}"> {% translate "View the full report" %}</a>
 
-
+<p>
 {% blocktranslate %}The OpenHexa team{% endblocktranslate %}
-
+</p>
 {% endautoescape %}

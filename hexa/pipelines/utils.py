@@ -19,7 +19,7 @@ def mail_run_recipients(run: PipelineRun):
 
     workspace_slug = run.pipeline.workspace.slug
     send_mail(
-        title=gettext_lazy(f"Run report of {run.pipeline.code}({run.state.name})"),
+        title=gettext_lazy(f"Run report of {run.pipeline.code} ({run.state.label})"),
         template_name="pipelines/mails/run_report",
         template_variables={
             "pipeline_code": run.pipeline.code,
