@@ -1,15 +1,27 @@
 import { PlayIcon } from "@heroicons/react/24/outline";
+import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
+import { BaseColumn } from "core/components/DataGrid";
+import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
+import DataGrid from "core/components/DataGrid/DataGrid";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
+import UserColumn from "core/components/DataGrid/UserColumn";
+import Link from "core/components/Link";
 import Page from "core/components/Page";
+import Time from "core/components/Time/Time";
+import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
+import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineRecipient } from "graphql-types";
+import { PipelineRecipient, PipelineRunTrigger } from "graphql-types";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
+import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
 import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
@@ -34,6 +46,7 @@ type Props = {
 const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { pipelineCode, workspaceSlug, page, perPage } = props;
   const { t } = useTranslation();
+  const router = useRouter();
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
   const { data } = useWorkspacePipelinePageQuery({
@@ -194,7 +207,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </DataCard.FormSection>
           </DataCard>
 
-          {/* <div>
+          <div>
             <Title level={4} className="font-medium">
               {t("Runs")}
             </Title>
@@ -271,7 +284,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 />
               </DataGrid>
             </Block>
-          </div> */}
+          </div>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
       <PipelineVersionsDialog
