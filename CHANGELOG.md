@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.2](https://github.com/BLSQ/openhexa-frontend/compare/0.32.1...0.32.2) (2023-07-04)
+
+
+### Bug Fixes
+
+* Bring more fixes on FormSection & Apollo caching ([40188ef](https://github.com/BLSQ/openhexa-frontend/commit/40188ef45d848034ac8d6324668308b262cf4f72))
+
+
+### Miscellaneous
+
+* **Backoff:** Implement a backoff mechanism to retrieve the run status ([#361](https://github.com/BLSQ/openhexa-frontend/issues/361)) ([98ab635](https://github.com/BLSQ/openhexa-frontend/commit/98ab6354815714d4ef351e1ebfee9fafc77ddaa3))
+
 ## [0.32.1](https://github.com/BLSQ/openhexa-frontend/compare/0.32.0...0.32.1) (2023-07-03)
 
 
