@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.3](https://github.com/BLSQ/openhexa-frontend/compare/0.32.2...0.32.3) (2023-07-04)
+
+
+### Bug Fixes
+
+* Uncomment runs block on the pipeline page ([#365](https://github.com/BLSQ/openhexa-frontend/issues/365)) ([0cc7a00](https://github.com/BLSQ/openhexa-frontend/commit/0cc7a0029582174df4a85bb9617989190cefce9d))
+
 ## [0.32.2](https://github.com/BLSQ/openhexa-frontend/compare/0.32.1...0.32.2) (2023-07-04)
 
 
