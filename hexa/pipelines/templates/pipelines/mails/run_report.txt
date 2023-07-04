@@ -7,4 +7,5 @@ Duration : {{duration | duration_format:True}}
 
 Please go to the following page to view it: {{ run_url }}
 
+
 The OpenHexa team
