@@ -28,6 +28,12 @@ export async function updatePipeline(pipelineId: string, values: any) {
             schedule
             config
             updatedAt
+            recipients {
+              user {
+                id
+                displayName
+              }
+            }
           }
         }
       }

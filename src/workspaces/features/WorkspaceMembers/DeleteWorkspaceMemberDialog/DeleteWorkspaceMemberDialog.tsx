@@ -26,7 +26,7 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [deleteWorkspaceMember] = useDeleteWorkspaceMemberMutation();
-  const clearCache = useCacheKey(["workspace", member.id]);
+  const clearCache = useCacheKey("workspace");
 
   const onSubmit = async () => {
     setIsSubmitting(true);

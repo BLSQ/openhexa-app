@@ -104,7 +104,6 @@ function FormSection<F extends { [key: string]: any }>(
   const { item } = useItemContext();
 
   const [isEdited, setEdited] = useState<boolean>(false);
-  const toggleEdit = useCallback(() => setEdited((isEdited) => !isEdited), []);
 
   const definitions = useRef<PropertyDefinition[]>([]);
   const properties = useRef<{ [key: Property["id"]]: Property }>({});
@@ -117,12 +116,14 @@ function FormSection<F extends { [key: string]: any }>(
       });
       return initialState;
     },
+
     onSubmit: async (values) => {
       if (onSave) {
         await onSave(values, item);
       }
       setEdited(false);
     },
+
     validate(values) {
       const errors = {} as any;
 
@@ -142,12 +143,6 @@ function FormSection<F extends { [key: string]: any }>(
   });
 
   useEffect(() => {
-    if (isEdited) {
-      form.resetForm();
-    }
-  }, [form, isEdited]);
-
-  useEffect(() => {
     properties.current = definitions.current.reduce<{
       [key: string]: Property;
     }>((acc, def) => {
@@ -156,6 +151,11 @@ function FormSection<F extends { [key: string]: any }>(
     }, {});
     // form.validate();
   }, [definitions, item, form, form.formData, isEdited]);
+
+  const toggleEdit = useCallback(() => {
+    form.resetForm();
+    setEdited((prev) => !prev);
+  }, [form]);
 
   const section = {
     item,
@@ -189,7 +189,7 @@ function FormSection<F extends { [key: string]: any }>(
               <DisableClickPropagation>
                 <button
                   className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
-                  onClick={toggleEdit}
+                  onClick={section.toggleEdit}
                 >
                   {editLabel ?? t("Edit")}
                   {editIcon ?? <PencilIcon className="h-4" />}

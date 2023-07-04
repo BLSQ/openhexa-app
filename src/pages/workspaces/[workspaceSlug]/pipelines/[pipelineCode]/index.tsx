@@ -1,27 +1,15 @@
 import { PlayIcon } from "@heroicons/react/24/outline";
-import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
-import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
-import UserColumn from "core/components/DataGrid/UserColumn";
-import Link from "core/components/Link";
 import Page from "core/components/Page";
-import Time from "core/components/Time";
-import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
-import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import useCacheKey from "core/hooks/useCacheKey";
-import { PipelineRecipient, PipelineRunTrigger } from "graphql-types";
+import { PipelineRecipient } from "graphql-types";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
-import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
 import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
@@ -48,8 +36,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
-  const router = useRouter();
-  const { data, refetch } = useWorkspacePipelinePageQuery({
+  const { data } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
       pipelineCode,
@@ -58,22 +45,24 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     },
   });
 
-  const clearCache = useCacheKey(["pipelines", pipelineCode], () => refetch());
-
   if (!data?.workspace || !data?.pipeline) {
     return null;
   }
   const { workspace, pipeline } = data;
 
-  const onSave = async (values: any) => {
+  const onSavePipeline = async (values: any) => {
     await updatePipeline(pipeline.id, {
       name: values.name,
       description: values.description,
+    });
+  };
+
+  const onSaveScheduling = async (values: any) => {
+    await updatePipeline(pipeline.id, {
       schedule: values.enableScheduling ? values.schedule : null,
       recipientIds:
         values.recipients?.map((r: PipelineRecipient) => r.user.id) ?? [],
     });
-    clearCache();
   };
 
   return (
@@ -121,7 +110,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
           <DataCard item={pipeline} className="divide-y-2 divide-gray-100">
             <DataCard.FormSection
               title={t("Information")}
-              onSave={pipeline.permissions.update ? onSave : undefined}
+              onSave={pipeline.permissions.update ? onSavePipeline : undefined}
               collapsible={false}
             >
               <TextProperty
@@ -172,7 +161,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </DataCard.FormSection>
             <DataCard.FormSection
               title={t("Scheduling")}
-              onSave={pipeline.permissions.update ? onSave : undefined}
+              onSave={
+                pipeline.permissions.update ? onSaveScheduling : undefined
+              }
               collapsible={false}
             >
               <SwitchProperty
@@ -203,7 +194,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </DataCard.FormSection>
           </DataCard>
 
-          <div>
+          {/* <div>
             <Title level={4} className="font-medium">
               {t("Runs")}
             </Title>
@@ -280,7 +271,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 />
               </DataGrid>
             </Block>
-          </div>
+          </div> */}
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
       <PipelineVersionsDialog

@@ -126,14 +126,8 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
     link,
     cache,
     defaultOptions: {
-      mutate: {
-        update() {
-          // Clear the apolloClient on mutation to force a query refetch
-          apolloClient?.resetStore();
-        },
-      },
       watchQuery: {
-        nextFetchPolicy: "cache-and-network",
+        fetchPolicy: "cache-and-network",
       },
     },
   });
