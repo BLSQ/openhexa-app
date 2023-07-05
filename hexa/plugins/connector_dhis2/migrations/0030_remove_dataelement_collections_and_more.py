@@ -4,17 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0029_collections"),
     ]
 
-    operations = [
-        migrations.RemoveField(
-            model_name="dataelement",
-            name="collections",
-        ),
-        migrations.DeleteModel(
-            name="DataElementCollectionElement",
-        ),
-    ]
+    operations = []
