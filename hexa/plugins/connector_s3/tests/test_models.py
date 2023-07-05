@@ -5,7 +5,6 @@ from moto import mock_s3, mock_sts
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
-from hexa.data_collections.models import Collection, CollectionElement
 from hexa.plugins.connector_s3.models import Bucket, BucketPermission, Object
 from hexa.user_management.models import Membership, PermissionMode, Team, User
 
@@ -37,7 +36,6 @@ class ModelTest(TestCase):
             is_superuser=False,
         )
         Membership.objects.create(team=cls.TEAM, user=cls.USER_JANE)
-        cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria collection")
         cls.BUCKET_1 = Bucket.objects.create(name="test-bucket-1")
         BucketPermission.objects.create(
             team=cls.TEAM, bucket=cls.BUCKET_1, mode=PermissionMode.EDITOR
@@ -174,15 +172,6 @@ class ModelTest(TestCase):
 
         with self.assertRaises(ValidationError):
             bucket.clean()
-
-    def test_add_object_to_collection(self):
-        self.COLLECTION_MALARIA.add_object(self.USER_JIM, self.OBJECT_1)
-        self.OBJECT_1.refresh_from_db()
-        elements = CollectionElement.objects.filter_for_user(
-            self.USER_JIM
-        ).filter_for_object(self.OBJECT_1)
-        self.assertEqual(1, elements.count())
-        self.assertEqual(self.OBJECT_1, elements.first().object)
 
 
 class PermissionTest(TestCase):

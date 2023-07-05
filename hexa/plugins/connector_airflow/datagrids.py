@@ -1,6 +1,5 @@
 from django.utils.translation import gettext_lazy as _
 
-from hexa.data_collections.datagrid import CollectionColumn
 from hexa.plugins.connector_airflow.models import DAGRun
 from hexa.ui.datagrid import (
     CountryColumn,
@@ -23,7 +22,6 @@ class DAGGrid(Datagrid):
         translate=False,
     )
     location = CountryColumn(value="index.countries")
-    collections = CollectionColumn()
     last_run = DateColumn(date="last_run.execution_date", label=_("Last run"))
     last_state = StatusColumn(value="last_run.status", label=_("Last state"))
     view = LinkColumn(text="View")

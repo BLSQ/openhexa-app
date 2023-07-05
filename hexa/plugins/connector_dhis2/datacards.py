@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
-from hexa.data_collections.datacards import CollectionsSection
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     Action,
@@ -117,7 +116,6 @@ class DataElementCard(Datacard):
 
     external = DataElementSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    collections = CollectionsSection()
 
     @property
     def generic_description(self):
@@ -152,7 +150,6 @@ class OrganisationUnitCard(Datacard):
 
     external = OrganisationUnitSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    collections = CollectionsSection()
 
     @property
     def generic_description(self):
@@ -188,7 +185,6 @@ class IndicatorCard(Datacard):
 
     external = IndicatorSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    collections = CollectionsSection()
 
     @property
     def generic_description(self):
@@ -218,7 +214,6 @@ class DatasetCard(Datacard):
 
     external = DatasetSection()
     metadata = OpenHexaMetaDataSection(value="index")
-    collections = CollectionsSection()
 
     @property
     def generic_description(self):

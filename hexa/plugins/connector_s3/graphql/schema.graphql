@@ -16,7 +16,6 @@ type S3Object {
     type: String!  # TODO: Enum
     lastModified: DateTime!
     etag: String!
-    collections: [Collection!]!
     createdAt: DateTime!
     updatedAt: DateTime!
 }

@@ -7,7 +7,6 @@ from django.utils import timezone
 
 from hexa.catalog.models import Index
 from hexa.core.test import TestCase
-from hexa.data_collections.models import Collection, CollectionElement
 from hexa.plugins.connector_dhis2.api import DataElementResult, Dhis2Client
 from hexa.plugins.connector_dhis2.models import (
     Credentials,
@@ -36,7 +35,6 @@ logger = getLogger(__name__)
 
 class ModelsTestTest(TestCase):
     DHIS2_INSTANCE_PLAY = None
-    COLLECTION_MALARIA = None
     DATA_ELEMENT_FOO = None
     INDICATOR_BAR = None
     USER_BJORN = None
@@ -51,7 +49,6 @@ class ModelsTestTest(TestCase):
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
             url="https://play.dhis2.org.invalid",
         )
-        cls.COLLECTION_MALARIA = Collection.objects.create(name="Malaria collection")
         cls.DATA_ELEMENT_FOO = DataElement.objects.create(
             name="Foo",
             external_access=False,
@@ -85,16 +82,6 @@ class ModelsTestTest(TestCase):
         self.assertEqual(1, Index.objects.filter(object_id=data_element_id).count())
         data_element.delete()
         self.assertEqual(0, Index.objects.filter(object_id=data_element_id).count())
-
-    def test_add_data_element_to_collection(self):
-        self.COLLECTION_MALARIA.add_object(self.USER_BJORN, self.DATA_ELEMENT_FOO)
-        self.DATA_ELEMENT_FOO.refresh_from_db()
-
-        elements = CollectionElement.objects.filter_for_user(
-            self.USER_BJORN
-        ).filter_for_object(self.DATA_ELEMENT_FOO)
-        self.assertEqual(1, elements.count())
-        self.assertEqual(self.DATA_ELEMENT_FOO, elements.first().object)
 
 
 class PermissionTest(TestCase):
