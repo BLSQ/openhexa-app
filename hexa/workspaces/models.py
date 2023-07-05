@@ -7,6 +7,7 @@ import uuid
 import stringcase
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
@@ -282,6 +283,57 @@ class WorkspaceMembership(models.Model):
             raise PermissionDenied
 
         return self.delete()
+
+
+class WorkspaceInvitationStatus(models.TextChoices):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+
+
+class WorkspaceInvitationQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User]
+    ) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(
+            user, Q(workspace__members=user), return_all_if_superuser=False
+        )
+
+
+class WorkspaceInvitationManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        workspace: Workspace,
+        email: string,
+        role: WorkspaceMembershipRole,
+    ):
+        if not principal.has_perm("workspaces.manage_members", workspace):
+            raise PermissionDenied
+
+        return self.create(
+            email=email, workspace=workspace, role=role, inviter=principal
+        )
+
+
+class WorkspaceInvitation(Base):
+    email = CIEmailField()
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+    )
+    inviter = models.ForeignKey(
+        "user_management.User",
+        on_delete=models.CASCADE,
+    )
+    role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
+    status = models.CharField(
+        max_length=50,
+        choices=WorkspaceInvitationStatus.choices,
+        default=WorkspaceInvitationStatus.PENDING,
+    )
+
+    objects = WorkspaceInvitationManager.from_queryset(WorkspaceInvitationQuerySet)()
 
 
 class ConnectionQuerySet(BaseQuerySet):

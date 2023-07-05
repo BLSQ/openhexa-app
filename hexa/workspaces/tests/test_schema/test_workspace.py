@@ -1,3 +1,4 @@
+import base64
 import uuid
 from unittest.mock import patch
 
@@ -10,6 +11,8 @@ from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
     Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -491,41 +494,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["inviteWorkspaceMember"],
         )
 
-    def test_invite_workspace_member_member_not_found(self):
-        self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
-                inviteWorkspaceMember(input: $input) {
-                    success
-                    errors
-                    workspaceMembership {
-                        id
-                        user {
-                          email
-                        }
-                    }
-                }
-            }
-
-            """,
-            {
-                "input": {
-                    "workspaceSlug": self.WORKSPACE.slug,
-                    "userEmail": "unknown@openhexa.com",
-                    "role": WorkspaceMembershipRole.EDITOR,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["USER_NOT_FOUND"],
-                "workspaceMembership": None,
-            },
-            r["data"]["inviteWorkspaceMember"],
-        )
-
     def test_invite_workspace_member_workspace_already_exist(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
@@ -815,3 +783,50 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["generateWorkspaceToken"],
         )
+
+    def test_invite_workspace_member_external_user(self):
+        import random
+        import string
+        from urllib import parse
+
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = random_string
+
+            encoded = base64.b64encode(random_string.encode("utf-8")).decode()
+            user_email = "johndoe@foo.com"
+
+            self.client.force_login(self.USER_WORKSPACE_ADMIN)
+            r = self.run_query(
+                """
+                mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                    inviteWorkspaceMember(input: $input) {
+                        success
+                        errors
+                    }
+                }
+
+                """,
+                {
+                    "input": {
+                        "workspaceSlug": self.WORKSPACE.slug,
+                        "userEmail": user_email,
+                        "role": WorkspaceMembershipRole.VIEWER,
+                    }
+                },
+            )
+
+            invitation = WorkspaceInvitation.objects.filter(email=user_email).first()
+            self.assertIsNotNone(invitation)
+            self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
+            self.assertEqual(
+                f"You've been invited to join the workspace {self.WORKSPACE.name}",
+                mail.outbox[0].subject,
+            )
+            self.assertListEqual([user_email], mail.outbox[0].recipients())
+            self.assertTrue(
+                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?user={parse.quote(user_email)}&amp;token={encoded}"
+                in mail.outbox[0].body
+            )

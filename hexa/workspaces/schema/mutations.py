@@ -1,6 +1,9 @@
+import base64
+from urllib import parse
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import Signer
+from django.core.signing import Signer, TimestampSigner
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -13,6 +16,7 @@ from ..models import (
     AlreadyExists,
     Connection,
     Workspace,
+    WorkspaceInvitation,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -114,23 +118,60 @@ def resolve_create_workspace_member(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspaceSlug"]
         )
-        user = User.objects.get(email=input["userEmail"])
-
-        workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
-            principal=request.user, workspace=workspace, user=user, role=input["role"]
-        )
-        send_mail(
-            title=gettext_lazy(f"You've been added to the workspace {workspace.name}"),
-            template_name="workspaces/mails/invite_member",
-            template_variables={
-                "workspace": workspace.name,
-                "owner": request.user.display_name,
-                "workspace_url": request.build_absolute_uri(
-                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+        _user = User.objects.filter(email=input["userEmail"])
+        params = {}
+        workspace_membership = None
+        if _user:
+            user = _user.first()
+            workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                user=user,
+                role=input["role"],
+            )
+            params = {
+                "title": gettext_lazy(
+                    f"You've been added to the workspace {workspace.name}"
                 ),
-            },
-            recipient_list=[user.email],
-        )
+                "template_name": "workspaces/mails/invite_member",
+                "template_variables": {
+                    "workspace": workspace.name,
+                    "owner": request.user.display_name,
+                    "workspace_url": request.build_absolute_uri(
+                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+                    ),
+                },
+                "recipient_list": [user.email],
+            }
+        else:
+            invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                email=input["userEmail"],
+                role=input["role"],
+            )
+            signer = TimestampSigner()
+            token = base64.b64encode(
+                signer.sign(invitation.id).encode("utf-8")
+            ).decode()
+            user_email = parse.quote(input["userEmail"])
+            params = {
+                "title": gettext_lazy(
+                    f"You've been invited to join the workspace {workspace.name}"
+                ),
+                "template_name": "workspaces/mails/invite_external_user",
+                "template_variables": {
+                    "workspace": workspace.name,
+                    "owner": request.user.display_name,
+                    "workspace_signup_url": request.build_absolute_uri(
+                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?user={user_email}&token={token}"
+                    ),
+                },
+                "recipient_list": [input["userEmail"]],
+            }
+
+        send_mail(**params)
+
         return {
             "success": True,
             "errors": [],
@@ -140,11 +181,6 @@ def resolve_create_workspace_member(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
-        }
-    except User.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["USER_NOT_FOUND"],
         }
     except PermissionDenied:
         return {
