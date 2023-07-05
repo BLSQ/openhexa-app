@@ -1,9 +1,6 @@
-import base64
-from urllib import parse
-
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import Signer, TimestampSigner
+from django.core.signing import Signer
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -111,72 +108,68 @@ def resolve_archive_workspace(_, info, **kwargs):
 
 
 @workspace_mutations.field("inviteWorkspaceMember")
-def resolve_create_workspace_member(_, info, **kwargs):
+def resolve_invite_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspaceSlug"]
         )
-        _user = User.objects.filter(email=input["userEmail"])
-        params = {}
-        workspace_membership = None
-        if _user:
-            user = _user.first()
+        try:
+            user = User.objects.get(email=input["userEmail"])
             workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
                 principal=request.user,
                 workspace=workspace,
                 user=user,
                 role=input["role"],
             )
-            params = {
-                "title": gettext_lazy(
+            send_mail(
+                title=gettext_lazy(
                     f"You've been added to the workspace {workspace.name}"
                 ),
-                "template_name": "workspaces/mails/invite_member",
-                "template_variables": {
+                template_name="workspaces/mails/invite_member",
+                template_variables={
                     "workspace": workspace.name,
                     "owner": request.user.display_name,
                     "workspace_url": request.build_absolute_uri(
                         f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
                     ),
                 },
-                "recipient_list": [user.email],
+                recipient_list=[user.email],
+            )
+            return {
+                "success": True,
+                "errors": [],
+                "workspace_membership": workspace_membership,
             }
-        else:
+        except User.DoesNotExist:
             invitation = WorkspaceInvitation.objects.create_if_has_perm(
                 principal=request.user,
                 workspace=workspace,
                 email=input["userEmail"],
                 role=input["role"],
             )
-            signer = TimestampSigner()
-            token = base64.b64encode(
-                signer.sign(invitation.id).encode("utf-8")
-            ).decode()
-            user_email = parse.quote(input["userEmail"])
-            params = {
-                "title": gettext_lazy(
-                    f"You've been invited to join the workspace {workspace.name}"
+
+            token = invitation.generate_invitation_token()
+            send_mail(
+                title=gettext_lazy(
+                    f"You've been invited to join the workspace {workspace.name} on OpenHexa"
                 ),
-                "template_name": "workspaces/mails/invite_external_user",
-                "template_variables": {
+                template_name="workspaces/mails/invite_external_user",
+                template_variables={
                     "workspace": workspace.name,
                     "owner": request.user.display_name,
                     "workspace_signup_url": request.build_absolute_uri(
-                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?user={user_email}&token={token}"
+                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?user={input['userEmail']}&token={token}"
                     ),
                 },
-                "recipient_list": [input["userEmail"]],
+                recipient_list=[input["userEmail"]],
+            )
+            return {
+                "success": True,
+                "errors": [],
             }
 
-        send_mail(**params)
-
-        return {
-            "success": True,
-            "errors": [],
-            "workspace_membership": workspace_membership,
-        }
     except Workspace.DoesNotExist:
         return {
             "success": False,

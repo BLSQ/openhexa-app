@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import secrets
 import string
@@ -9,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
+from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import Q
@@ -312,7 +314,7 @@ class WorkspaceInvitationManager(models.Manager):
             raise PermissionDenied
 
         return self.create(
-            email=email, workspace=workspace, role=role, inviter=principal
+            email=email, workspace=workspace, role=role, invited_by=principal
         )
 
 
@@ -322,9 +324,10 @@ class WorkspaceInvitation(Base):
         Workspace,
         on_delete=models.CASCADE,
     )
-    inviter = models.ForeignKey(
+    invited_by = models.ForeignKey(
         "user_management.User",
-        on_delete=models.CASCADE,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
     status = models.CharField(
@@ -334,6 +337,10 @@ class WorkspaceInvitation(Base):
     )
 
     objects = WorkspaceInvitationManager.from_queryset(WorkspaceInvitationQuerySet)()
+
+    def generate_invitation_token(self):
+        signer = TimestampSigner()
+        return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
 
 
 class ConnectionQuerySet(BaseQuerySet):

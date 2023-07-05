@@ -787,9 +787,8 @@ class WorkspaceTest(GraphQLTestCase):
     def test_invite_workspace_member_external_user(self):
         import random
         import string
-        from urllib import parse
 
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+        with patch("hexa.workspaces.models.TimestampSigner") as mocked_signer:
             random_string = "".join(random.choices(string.ascii_lowercase, k=10))
 
             signer = mocked_signer.return_value
@@ -818,15 +817,16 @@ class WorkspaceTest(GraphQLTestCase):
                 },
             )
 
-            invitation = WorkspaceInvitation.objects.filter(email=user_email).first()
-            self.assertIsNotNone(invitation)
+            invitation = WorkspaceInvitation.objects.get(
+                workspace=self.WORKSPACE, email=user_email
+            )
             self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
             self.assertEqual(
-                f"You've been invited to join the workspace {self.WORKSPACE.name}",
+                f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
                 mail.outbox[0].subject,
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertTrue(
-                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?user={parse.quote(user_email)}&amp;token={encoded}"
+                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?user={user_email}&amp;token={encoded}"
                 in mail.outbox[0].body
             )

@@ -1,5 +1,6 @@
 You have been invited to join the workspace {{workspace}} by {{owner}}.
 
-Use the following link proceed {{ workspace_signup_url }}
+Create your account using this link {{ workspace_signup_url }}
+
 
 The OpenHexa team
