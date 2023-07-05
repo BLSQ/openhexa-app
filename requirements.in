@@ -40,9 +40,6 @@ moto[s3]
 # connector_airflow
 google-auth
 
-# connector_gcs
-google-cloud-iam
-
 # meta
 pip-tools
 
