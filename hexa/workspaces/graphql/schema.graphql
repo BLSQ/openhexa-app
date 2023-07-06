@@ -184,6 +184,28 @@ enum GenerateWorkspaceTokenError {
   PERMISSION_DENIED
 }
 
+input JoinWorkspaceInput {
+  token: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  confirmPassword: String!
+}
+
+type JoinWorkspaceResult {
+  success: Boolean!
+  token: String
+  workspace: Workspace
+  errors: [String!]!
+}
+
+enum JoinWorkspaceError {
+  TOKEN_EXPIRED
+  INVALID_TOKEN
+  ALREADY_EXISTS
+  INVALID_CREDENTIALS
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
@@ -193,6 +215,7 @@ extend type Mutation {
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
 }
 
 ### Connections

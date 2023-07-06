@@ -1,10 +1,13 @@
 import base64
+import binascii
+import random
+import string
 import uuid
 from unittest.mock import patch
 
 from django.conf import settings
 from django.core import mail
-from django.core.signing import Signer
+from django.core.signing import BadSignature, SignatureExpired, Signer, TimestampSigner
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
@@ -23,6 +26,7 @@ class WorkspaceTest(GraphQLTestCase):
     USER_REBECCA = None
     USER_JULIA = None
     USER_WORKSPACE_ADMIN = None
+    USER_EXTERNAL = None
     WORKSPACE = None
 
     @classmethod
@@ -48,6 +52,7 @@ class WorkspaceTest(GraphQLTestCase):
             "workspaceroot@bluesquarehub.com",
             "workspace",
         )
+        cls.USER_EXTERNAL = "user@external.com"
 
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
@@ -822,11 +827,312 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
             self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                },
+                r["data"]["inviteWorkspaceMember"],
+            )
+            self.assertEqual(
                 f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
                 mail.outbox[0].subject,
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertTrue(
-                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?user={user_email}&amp;token={encoded}"
+                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
                 in mail.outbox[0].body
+            )
+
+    def test_join_workspace_bad_signature_token(self):
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.side_effect = BadSignature()
+            token = "".join(random.choices(string.ascii_lowercase, k=10))
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "john@john",
+                        "confirmPassword": "john@john",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["INVALID_TOKEN"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_incorrect_token_padding(self):
+        with patch("hexa.workspaces.schema.mutations.b64decode") as mocked_base64decode:
+            mocked_base64decode.side_effect = binascii.Error()
+            token = "".join(random.choices(string.ascii_lowercase, k=10))
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "john@john",
+                        "confirmPassword": "john@john",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["INVALID_TOKEN"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_expired_token(self):
+        signer = TimestampSigner()
+        signed_value = signer.sign(
+            "".join(random.choices(string.ascii_lowercase, k=10))
+        )
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.side_effect = SignatureExpired()
+
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "john@john",
+                        "confirmPassword": "john@john",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["TOKEN_EXPIRED"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_invitation_already_accepted(self):
+        signer = TimestampSigner()
+        signed_value = signer.sign(
+            "".join(random.choices(string.ascii_lowercase, k=10))
+        )
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email=self.USER_EXTERNAL,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.ACCEPTED,
+        )
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.return_value = invitation.id
+
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "john@john",
+                        "confirmPassword": "john@john",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["ALREADY_EXISTS"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_invitation_already_member(self):
+        random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+        signer = TimestampSigner()
+        signed_value = signer.sign(random_string)
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email=self.USER_REBECCA.email,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.return_value = invitation.id
+
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": random_string,
+                        "confirmPassword": random_string,
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["ALREADY_EXISTS"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_invitation_invalid_credentials(self):
+        random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+        signer = TimestampSigner()
+        signed_value = signer.sign(random_string)
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email=self.USER_EXTERNAL,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.return_value = invitation.id
+
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "dedednzndined",
+                        "confirmPassword": "123",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["INVALID_CREDENTIALS"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_invitation_success(self):
+        random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+
+        signer = TimestampSigner()
+        signed_value = signer.sign(random_string)
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email=self.USER_EXTERNAL,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
+            signer = mocked_signer.return_value
+            signer.unsign.return_value = invitation.id
+
+            r = self.run_query(
+                """
+                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                        joinWorkspace(input: $input) {
+                            success
+                            errors
+                        }
+                    }
+
+                    """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": random_string,
+                        "confirmPassword": random_string,
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                },
+                r["data"]["joinWorkspace"],
+            )
+            self.assertEqual(
+                WorkspaceInvitation.objects.get(id=invitation.id).status,
+                WorkspaceInvitationStatus.ACCEPTED,
+            )
+            self.assertTrue(
+                WorkspaceMembership.objects.filter(
+                    user__email=invitation.email
+                ).exists()
             )
