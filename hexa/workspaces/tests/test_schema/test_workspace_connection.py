@@ -26,6 +26,10 @@ class ConnectionTest(GraphQLTestCase):
             "rebecca@bluesquarehub.com",
             "standardpassword",
         )
+        cls.USER_VIEWER = User.objects.create_user(
+            "viewer@bluesquarehub.com",
+            "standardpassword",
+        )
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "standardpassword", is_superuser=True
         )
@@ -45,6 +49,11 @@ class ConnectionTest(GraphQLTestCase):
             workspace=cls.WORKSPACE,
             user=cls.USER_REBECCA,
             role=WorkspaceMembershipRole.EDITOR,
+        )
+        cls.WORKSPACE_MEMBERSHIP_VIEWER = WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE,
+            user=cls.USER_VIEWER,
+            role=WorkspaceMembershipRole.VIEWER,
         )
         cls.WORKSPACE_CONNECTION = Connection.objects.create_if_has_perm(
             cls.USER_SABRINA,
@@ -182,7 +191,7 @@ class ConnectionTest(GraphQLTestCase):
                         {
                             "code": "password",
                             "secret": True,
-                            "value": None,
+                            "value": "pA$$",
                         },
                     ],
                 },
@@ -246,8 +255,123 @@ class ConnectionTest(GraphQLTestCase):
                 "connection": {
                     "name": "DB (updated)",
                     "description": "Connection's description",
-                    "fields": [{"code": "url", "secret": True, "value": None}],
+                    "fields": [
+                        {"code": "url", "secret": True, "value": "http://otherhost"}
+                    ],
                 },
+            },
+            r["data"]["updateConnection"],
+        )
+
+    def test_secret_field_no_value_for_viewer(self):
+        self.client.force_login(self.USER_VIEWER)
+        self.WORKSPACE_CONNECTION.set_fields(
+            self.USER_SABRINA,
+            [
+                {
+                    "code": "url",
+                    "value": "http://localhost",
+                    "secret": False,
+                },
+                {
+                    "code": "password",
+                    "value": "pA$$",
+                    "secret": True,
+                },
+            ],
+        )
+        r = self.run_query(
+            """
+            query getConnection($connectionId: UUID!) {
+                connection(id: $connectionId) {
+                    fields {
+                        code
+                        value
+                        secret
+                    }
+                    
+                }
+            }
+            """,
+            {
+                "connectionId": str(self.WORKSPACE_CONNECTION.id),
+            },
+        )
+        self.assertEqual(
+            {
+                "connection": {
+                    "fields": [
+                        {
+                            "code": "url",
+                            "value": "http://localhost",
+                            "secret": False,
+                        },
+                        {
+                            "code": "password",
+                            "value": None,
+                            "secret": True,
+                        },
+                    ]
+                },
+            },
+            r["data"],
+        )
+
+    def test_update_connection_viewer_permission_denied(self):
+        self.WORKSPACE_CONNECTION.set_fields(
+            self.USER_SABRINA,
+            [
+                {
+                    "code": "url",
+                    "value": "http://localhost",
+                    "secret": False,
+                },
+                {
+                    "code": "password",
+                    "value": "pa$$",
+                    "secret": True,
+                },
+            ],
+        )
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            """
+            mutation updateConnection($input:UpdateConnectionInput!) {
+                updateConnection(input: $input) {
+                    success
+                    connection {
+                        name
+                        description
+                        fields {
+                            code
+                            value
+                            secret
+                        }
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WORKSPACE_CONNECTION.id),
+                    "name": "DB (updated)",
+                    "fields": [
+                        {
+                            "code": "password",
+                            "value": "newPass",
+                            "secret": False,
+                        },
+                    ],
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "connection": None,
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
             },
             r["data"]["updateConnection"],
         )

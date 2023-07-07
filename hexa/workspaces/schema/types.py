@@ -108,10 +108,13 @@ def resolve_workspace_connection_fields(obj, info, **kwargs):
 
 @connection_field_object.field("value")
 def resolve_connection_field_value(obj: ConnectionField, info, **kwargs):
-    if obj.secret:
-        return None
-    else:
+    request: HttpRequest = info.context["request"]
+    if obj.secret is False:
         return obj.value
+    elif request.user.has_perm("workspaces.update_connection", obj.connection):
+        return obj.value
+    else:
+        return None
 
 
 connection_object.set_alias("type", "connection_type")
