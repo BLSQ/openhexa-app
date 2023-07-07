@@ -317,6 +317,13 @@ class WorkspaceInvitationManager(models.Manager):
             email=email, workspace=workspace, role=role, invited_by=principal
         )
 
+    def get_by_token(self, token: string):
+        signer = TimestampSigner()
+        decoded_value = base64.b64decode(token).decode("utf-8")
+        # the token is valid for 48h
+        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
+        return self.get(id=invitation_id)
+
 
 class WorkspaceInvitation(Base):
     email = CIEmailField()

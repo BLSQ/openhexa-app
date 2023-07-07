@@ -1,10 +1,9 @@
 import binascii
-from base64 import b64decode
 
 from ariadne import MutationType
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import BadSignature, SignatureExpired, Signer, TimestampSigner
+from django.core.signing import BadSignature, SignatureExpired, Signer
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -198,25 +197,19 @@ def resolver_join_workspace(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        signer = TimestampSigner()
-        decoded_value = b64decode(input["token"]).decode("utf-8")
-        # the token is valid for 48h
-        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
-
-        invitation = WorkspaceInvitation.objects.get(id=invitation_id)
+        invitation = WorkspaceInvitation.objects.get_by_token(input["token"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
             raise AlreadyExists
-        workspace = invitation.workspace
 
         if WorkspaceMembership.objects.filter(
-            user__email=invitation.email, workspace=workspace
+            user__email=invitation.email, workspace=invitation.workspace
         ).exists():
             raise AlreadyExists(
-                f"Already got a membership for {invitation.email} and workspace {workspace.name}"
+                f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
             )
 
         if input["password"] != input["confirmPassword"]:
-            raise ValidationError("The two passwords didn't match.")
+            raise ValidationError("The two passwords do not match.")
 
         validate_password(password=input["password"])
         user = User.objects.create_user(
@@ -229,18 +222,18 @@ def resolver_join_workspace(_, info, **kwargs):
             feature=Feature.objects.get(code="workspaces"), user=user
         )
         WorkspaceMembership.objects.create(
-            workspace=workspace,
+            workspace=invitation.workspace,
             user=user,
             role=invitation.role,
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
-        return {"success": True, "errors": [], "workspace": workspace}
+        return {"success": True, "errors": [], "workspace": invitation.workspace}
 
     except SignatureExpired:
         return {
             "success": False,
-            "errors": ["TOKEN_EXPIRED"],
+            "errors": ["EXPIRED_TOKEN"],
         }
     except (binascii.Error, BadSignature) as e:
         return {
@@ -252,10 +245,15 @@ def resolver_join_workspace(_, info, **kwargs):
             "success": False,
             "errors": ["ALREADY_EXISTS"],
         }
-    except ValidationError as v:
+    except ValidationError:
         return {
             "success": False,
             "errors": ["INVALID_CREDENTIALS"],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
         }
 
 

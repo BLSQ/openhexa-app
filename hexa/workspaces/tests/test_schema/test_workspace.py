@@ -811,7 +811,6 @@ class WorkspaceTest(GraphQLTestCase):
                         errors
                     }
                 }
-
                 """,
                 {
                     "input": {
@@ -844,20 +843,20 @@ class WorkspaceTest(GraphQLTestCase):
             )
 
     def test_join_workspace_bad_signature_token(self):
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.side_effect = BadSignature()
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.side_effect = BadSignature()
             token = "".join(random.choices(string.ascii_lowercase, k=10))
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                 mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -877,19 +876,20 @@ class WorkspaceTest(GraphQLTestCase):
             )
 
     def test_join_workspace_incorrect_token_padding(self):
-        with patch("hexa.workspaces.schema.mutations.b64decode") as mocked_base64decode:
-            mocked_base64decode.side_effect = binascii.Error()
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.side_effect = binascii.Error()
             token = "".join(random.choices(string.ascii_lowercase, k=10))
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                 mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -914,20 +914,20 @@ class WorkspaceTest(GraphQLTestCase):
             "".join(random.choices(string.ascii_lowercase, k=10))
         )
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.side_effect = SignatureExpired()
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.side_effect = SignatureExpired()
 
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -941,10 +941,41 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertEqual(
                 {
                     "success": False,
-                    "errors": ["TOKEN_EXPIRED"],
+                    "errors": ["EXPIRED_TOKEN"],
                 },
                 r["data"]["joinWorkspace"],
             )
+
+    def test_join_workspace_invitation_not_found(self):
+        signer = TimestampSigner()
+        signed_value = signer.sign(str(uuid.uuid4()))
+        token = base64.b64encode(signed_value.encode("utf-8")).decode()
+        r = self.run_query(
+            """
+            mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                joinWorkspace(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "firstName": "john",
+                    "lastName": "doe",
+                    "token": token,
+                    "password": "john@john",
+                    "confirmPassword": "john@john",
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVITATION_NOT_FOUND"],
+            },
+            r["data"]["joinWorkspace"],
+        )
 
     def test_join_workspace_invitation_already_accepted(self):
         signer = TimestampSigner()
@@ -960,20 +991,20 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.ACCEPTED,
         )
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.return_value = invitation.id
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
 
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -1005,20 +1036,20 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.PENDING,
         )
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.return_value = invitation.id
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
 
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -1050,20 +1081,20 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.PENDING,
         )
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.return_value = invitation.id
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
 
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -1096,20 +1127,20 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.PENDING,
         )
-        with patch("hexa.workspaces.schema.mutations.TimestampSigner") as mocked_signer:
-            signer = mocked_signer.return_value
-            signer.unsign.return_value = invitation.id
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
 
             r = self.run_query(
                 """
-                    mutation joinWorkspace($input: JoinWorkspaceInput!) {
-                        joinWorkspace(input: $input) {
-                            success
-                            errors
-                        }
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
                     }
-
-                    """,
+                }
+                """,
                 {
                     "input": {
                         "firstName": "john",
@@ -1127,12 +1158,10 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 r["data"]["joinWorkspace"],
             )
-            self.assertEqual(
-                WorkspaceInvitation.objects.get(id=invitation.id).status,
-                WorkspaceInvitationStatus.ACCEPTED,
-            )
-            self.assertTrue(
-                WorkspaceMembership.objects.filter(
-                    user__email=invitation.email
-                ).exists()
-            )
+        self.assertEqual(
+            WorkspaceInvitation.objects.get(id=invitation.id).status,
+            WorkspaceInvitationStatus.ACCEPTED,
+        )
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(user__email=invitation.email).exists()
+        )

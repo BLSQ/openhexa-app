@@ -194,16 +194,16 @@ input JoinWorkspaceInput {
 
 type JoinWorkspaceResult {
   success: Boolean!
-  token: String
   workspace: Workspace
-  errors: [String!]!
+  errors: [JoinWorkspaceError!]!
 }
 
 enum JoinWorkspaceError {
-  TOKEN_EXPIRED
+  EXPIRED_TOKEN
   INVALID_TOKEN
   ALREADY_EXISTS
   INVALID_CREDENTIALS
+  INVITATION_NOT_FOUND
 }
 
 extend type Mutation {
