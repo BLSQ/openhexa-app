@@ -120,6 +120,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
             slug=input["workspaceSlug"]
         )
         try:
+            # If the user already exists, we add it to the workspace
             user = User.objects.get(email=input["userEmail"])
             workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
                 principal=request.user,
@@ -147,6 +148,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 "workspace_membership": workspace_membership,
             }
         except User.DoesNotExist:
+            # If the user does not exist, we create an invitation to create an account and join the workspace
             invitation = WorkspaceInvitation.objects.create_if_has_perm(
                 principal=request.user,
                 workspace=workspace,
