@@ -307,7 +307,7 @@ class ConnectionManager(models.Manager):
             raise PermissionDenied
 
         if not slug:
-            slug = slugify(name)[:100]
+            slug = slugify(name)[:40]
 
         connection = Connection(
             workspace=workspace, user=principal, name=name, slug=slug, **kwargs
