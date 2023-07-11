@@ -1215,6 +1215,28 @@ enum InviteWorkspaceMembershipError {
   WORKSPACE_NOT_FOUND
 }
 
+enum JoinWorkspaceError {
+  EXPIRED_TOKEN
+  INVALID_TOKEN
+  ALREADY_EXISTS
+  INVALID_CREDENTIALS
+  INVITATION_NOT_FOUND
+}
+
+input JoinWorkspaceInput {
+  token: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  confirmPassword: String!
+}
+
+type JoinWorkspaceResult {
+  success: Boolean!
+  workspace: Workspace
+  errors: [JoinWorkspaceError!]!
+}
+
 scalar JSON
 
 enum LaunchAccessmodAnalysisError {
@@ -1397,6 +1419,7 @@ type Mutation {
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
@@ -2236,8 +2259,32 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
+  invitations(status: WorkspaceInvitationStatus, page: Int, perPage: Int): WorkspaceInvitationPage!
   database: Database!
   bucket: Bucket!
+}
+
+type WorkspaceInvitation {
+  id: UUID!
+  email: String!
+  workspace: Workspace!
+  role: WorkspaceMembershipRole!
+  status: WorkspaceInvitationStatus!
+  invited_by: User
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+type WorkspaceInvitationPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [WorkspaceInvitation!]!
+}
+
+enum WorkspaceInvitationStatus {
+  PENDING
+  ACCEPTED
 }
 
 type WorkspaceMembership {

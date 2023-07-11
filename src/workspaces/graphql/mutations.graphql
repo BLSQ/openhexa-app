@@ -112,3 +112,14 @@ mutation deletePipelineVersion($input: DeletePipelineVersionInput!) {
     errors
   }
 }
+
+
+mutation joinWorkspace($input: JoinWorkspaceInput!) {
+  joinWorkspace(input: $input) {
+    success
+    errors
+    workspace {
+      slug
+    }
+  }
+}

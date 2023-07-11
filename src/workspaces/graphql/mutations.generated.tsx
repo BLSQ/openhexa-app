@@ -80,6 +80,13 @@ export type DeletePipelineVersionMutationVariables = Types.Exact<{
 
 export type DeletePipelineVersionMutation = { __typename?: 'Mutation', deletePipelineVersion: { __typename?: 'DeletePipelineVersionResult', success: boolean, errors: Array<Types.DeletePipelineVersionError> } };
 
+export type JoinWorkspaceMutationVariables = Types.Exact<{
+  input: Types.JoinWorkspaceInput;
+}>;
+
+
+export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<Types.JoinWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string } | null } };
+
 
 export const CreateWorkspaceDocument = gql`
     mutation createWorkspace($input: CreateWorkspaceInput!) {
@@ -492,3 +499,40 @@ export function useDeletePipelineVersionMutation(baseOptions?: Apollo.MutationHo
 export type DeletePipelineVersionMutationHookResult = ReturnType<typeof useDeletePipelineVersionMutation>;
 export type DeletePipelineVersionMutationResult = Apollo.MutationResult<DeletePipelineVersionMutation>;
 export type DeletePipelineVersionMutationOptions = Apollo.BaseMutationOptions<DeletePipelineVersionMutation, DeletePipelineVersionMutationVariables>;
+export const JoinWorkspaceDocument = gql`
+    mutation joinWorkspace($input: JoinWorkspaceInput!) {
+  joinWorkspace(input: $input) {
+    success
+    errors
+    workspace {
+      slug
+    }
+  }
+}
+    `;
+export type JoinWorkspaceMutationFn = Apollo.MutationFunction<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>;
+
+/**
+ * __useJoinWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useJoinWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useJoinWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [joinWorkspaceMutation, { data, loading, error }] = useJoinWorkspaceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useJoinWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>(JoinWorkspaceDocument, options);
+      }
+export type JoinWorkspaceMutationHookResult = ReturnType<typeof useJoinWorkspaceMutation>;
+export type JoinWorkspaceMutationResult = Apollo.MutationResult<JoinWorkspaceMutation>;
+export type JoinWorkspaceMutationOptions = Apollo.BaseMutationOptions<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>;

@@ -1360,6 +1360,29 @@ export enum InviteWorkspaceMembershipError {
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
+export enum JoinWorkspaceError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  ExpiredToken = 'EXPIRED_TOKEN',
+  InvalidCredentials = 'INVALID_CREDENTIALS',
+  InvalidToken = 'INVALID_TOKEN',
+  InvitationNotFound = 'INVITATION_NOT_FOUND'
+}
+
+export type JoinWorkspaceInput = {
+  confirmPassword: Scalars['String']['input'];
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+};
+
+export type JoinWorkspaceResult = {
+  __typename?: 'JoinWorkspaceResult';
+  errors: Array<JoinWorkspaceError>;
+  success: Scalars['Boolean']['output'];
+  workspace?: Maybe<Workspace>;
+};
+
 export enum LaunchAccessmodAnalysisError {
   LaunchFailed = 'LAUNCH_FAILED'
 }
@@ -1522,6 +1545,7 @@ export type Mutation = {
   generateNewDatabasePassword: GenerateNewDatabasePasswordResult;
   generateWorkspaceToken: GenerateWorkspaceTokenResult;
   inviteWorkspaceMember: InviteWorkspaceMemberResult;
+  joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
   logPipelineMessage: LogPipelineMessageResult;
@@ -1742,6 +1766,11 @@ export type MutationGenerateWorkspaceTokenArgs = {
 
 export type MutationInviteWorkspaceMemberArgs = {
   input: InviteWorkspaceMemberInput;
+};
+
+
+export type MutationJoinWorkspaceArgs = {
+  input: JoinWorkspaceInput;
 };
 
 
@@ -2985,6 +3014,7 @@ export type Workspace = {
   createdBy: User;
   database: Database;
   description?: Maybe<Scalars['String']['output']>;
+  invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];
   permissions: WorkspacePermissions;
@@ -2993,10 +3023,42 @@ export type Workspace = {
 };
 
 
+export type WorkspaceInvitationsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<WorkspaceInvitationStatus>;
+};
+
+
 export type WorkspaceMembersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
+
+export type WorkspaceInvitation = {
+  __typename?: 'WorkspaceInvitation';
+  createdAt: Scalars['DateTime']['output'];
+  email: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+  invited_by?: Maybe<User>;
+  role: WorkspaceMembershipRole;
+  status: WorkspaceInvitationStatus;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  workspace: Workspace;
+};
+
+export type WorkspaceInvitationPage = {
+  __typename?: 'WorkspaceInvitationPage';
+  items: Array<WorkspaceInvitation>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export enum WorkspaceInvitationStatus {
+  Accepted = 'ACCEPTED',
+  Pending = 'PENDING'
+}
 
 export type WorkspaceMembership = {
   __typename?: 'WorkspaceMembership';

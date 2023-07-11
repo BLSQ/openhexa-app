@@ -1,0 +1,213 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WorkspaceSignUpPage renders the sign up page 1`] = `
+<div>
+  <form
+    class="max-w-md flex-1 space-y-6"
+  >
+    <div>
+      <div
+        class="relative h-16 w-auto"
+      >
+        <span
+          style="box-sizing: border-box; display: block; overflow: hidden; background: none; opacity: 1; border: 0px; margin: 0px; padding: 0px; position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px;"
+        >
+          <img
+            alt="OpenHexa logo"
+            class="mx-auto block h-16 w-auto"
+            data-nimg="fill"
+            decoding="async"
+            sizes="100vw"
+            src="/images/logo.svg"
+            srcset="/images/logo.svg 640w, /images/logo.svg 750w, /images/logo.svg 828w, /images/logo.svg 1080w, /images/logo.svg 1200w, /images/logo.svg 1920w, /images/logo.svg 2048w, /images/logo.svg 3840w"
+            style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px; box-sizing: border-box; padding: 0px; margin: auto; display: block; width: 0px; height: 0px; min-width: 100%; max-width: 100%; min-height: 100%; max-height: 100%;"
+          />
+        </span>
+      </div>
+      <h2
+        class="mt-6 text-center text-3xl font-extrabold text-gray-900"
+      >
+        Sign up
+      </h2>
+    </div>
+    <div
+      class="space-y-4 pt-2"
+    >
+      <div>
+        <div
+          class="mb-1 flex justify-between"
+        >
+          <label
+            class="block text-sm font-medium text-gray-600 flex"
+            for="email"
+          >
+            Email
+          </label>
+        </div>
+        <div
+          class="group relative"
+        >
+          <input
+            aria-describedby="email-description"
+            aria-invalid="false"
+            class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+            disabled=""
+            id="email"
+            name="email"
+            required=""
+            type="email"
+            value=""
+          />
+        </div>
+      </div>
+      <div>
+        <div
+          class="mb-1 flex justify-between"
+        >
+          <label
+            class="block text-sm font-medium text-gray-600 flex"
+            for="firstName"
+          >
+            First name
+          </label>
+        </div>
+        <div
+          class="group relative"
+        >
+          <input
+            aria-describedby="firstName-description"
+            aria-invalid="false"
+            class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+            data-testid="firstName"
+            id="firstName"
+            name="firstName"
+            required=""
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div>
+        <div
+          class="mb-1 flex justify-between"
+        >
+          <label
+            class="block text-sm font-medium text-gray-600 flex"
+            for="lastName"
+          >
+            Last name
+          </label>
+        </div>
+        <div
+          class="group relative"
+        >
+          <input
+            aria-describedby="lastName-description"
+            aria-invalid="false"
+            class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+            data-testid="lastName"
+            id="lastName"
+            name="lastName"
+            required=""
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+      <div>
+        <div>
+          <div
+            class="mb-1 flex justify-between"
+          >
+            <label
+              class="block text-sm font-medium text-gray-600 flex"
+              for="password"
+            >
+              Password
+            </label>
+          </div>
+          <div
+            class="group relative"
+          >
+            <input
+              aria-describedby="password-description"
+              aria-invalid="false"
+              class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+              data-testid="password"
+              id="password"
+              name="password"
+              required=""
+              type="password"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div>
+        <div
+          class="mb-1 flex justify-between"
+        >
+          <label
+            class="block text-sm font-medium text-gray-600 flex"
+            for="confirmPassword"
+          >
+            Confirm password
+          </label>
+        </div>
+        <div
+          class="group relative"
+        >
+          <input
+            aria-describedby="confirmPassword-description"
+            aria-invalid="false"
+            class="w-full form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-none focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+            data-testid="confirmPassword"
+            id="confirmPassword"
+            name="confirmPassword"
+            required=""
+            type="password"
+            value=""
+          />
+        </div>
+      </div>
+      <p
+        class="mt-2 text-xs"
+      >
+        <span>
+          The password must respect the following criterias:
+        </span>
+      </p>
+      <ul
+        class="list my-2 list-inside list-disc text-xs"
+      >
+        <li>
+          At least 8 characters.
+        </li>
+        <li>
+          Alphanumeric (can't be entirely numeric)
+          .
+        </li>
+        <li>
+          Can't be a commonly used password or similar to your personal information
+        </li>
+      </ul>
+    </div>
+    <div
+      class="space-y-2"
+    >
+      <button
+        class="relative rounded h-fit
+    focus:outline-none focus:ring-2 focus:ring-offset-2
+    inline-flex items-center justify-center transition-all
+    border font-medium
+    disabled:opacity-50 disabled:cursor-not-allowed
+   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 w-full"
+        data-testid="submit"
+        type="submit"
+      >
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
+`;

@@ -5,7 +5,6 @@ import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-import Tabs from "core/components/Tabs";
 import Button from "core/components/Button";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
@@ -25,6 +24,8 @@ import CountryProperty from "core/components/DataCard/CountryProperty";
 import { ensureArray } from "core/helpers/array";
 import GenerateWorkspaceDatabasePasswordDialog from "workspaces/features/GenerateDatabasePasswordDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
+import WorkspaceInvitations from "workspaces/features/WorkspaceInvitations";
+import Title from "core/components/Title";
 
 type Props = {
   page: number;
@@ -91,57 +92,59 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           )}
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-10">
-          <div>
-            <DataCard className="w-full" item={workspace}>
-              <DataCard.FormSection
-                onSave={onSectionSave}
-                title={t("General settings")}
+          <DataCard className="w-full" item={workspace}>
+            <DataCard.FormSection
+              onSave={onSectionSave}
+              title={t("General settings")}
+            >
+              <TextProperty
+                required
+                id="name"
+                accessor="name"
+                label={t("Name")}
+                defaultValue="-"
+              />
+              <CountryProperty
+                id="countries"
+                accessor="countries"
+                multiple
+                visible={(value, isEditing) => isEditing || value?.length > 0}
+                label={t("Countries")}
+                defaultValue="-"
+              />
+            </DataCard.FormSection>
+            <DataCard.Section title={t("Database")}>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setIsGeneratePwdDialogOpen(true)}
               >
-                <TextProperty
-                  required
-                  id="name"
-                  accessor="name"
-                  label={t("Name")}
-                  defaultValue="-"
-                />
-                <CountryProperty
-                  id="countries"
-                  accessor="countries"
-                  multiple
-                  visible={(value, isEditing) => isEditing || value?.length > 0}
-                  label={t("Countries")}
-                  defaultValue="-"
-                />
-              </DataCard.FormSection>
-              <DataCard.Section title={t("Database")}>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setIsGeneratePwdDialogOpen(true)}
-                >
-                  {t("Regenerate password")}
-                </Button>
-              </DataCard.Section>
-            </DataCard>
-          </div>
+                {t("Regenerate password")}
+              </Button>
+            </DataCard.Section>
+          </DataCard>
 
           <div>
-            <Tabs defaultIndex={0}>
-              <Tabs.Tab className="mt-4" label={t("Members")}>
-                <div className="mb-4 flex justify-end">
-                  <Button
-                    onClick={() => setIsNewMemberDialogOpen(true)}
-                    leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
-                  >
-                    {t("Invite member")}
-                  </Button>
-                </div>
-                <Block>
-                  <WorkspaceMembers workspaceSlug={workspace.slug} />
-                </Block>
-              </Tabs.Tab>
-            </Tabs>
+            <Title level={2}>{t("Members")}</Title>
+            <div className="mb-4 flex justify-end">
+              <Button
+                onClick={() => setIsNewMemberDialogOpen(true)}
+                leadingIcon={<PlusCircleIcon className="mr-1 h-4 w-4" />}
+              >
+                {t("Invite member")}
+              </Button>
+            </div>
+            <Block>
+              <WorkspaceMembers workspaceSlug={workspace.slug} />
+            </Block>
           </div>
+          <div>
+            <Title level={2}>{t("Pending invitations")}</Title>
+            <Block>
+              <WorkspaceInvitations workspaceSlug={workspace.slug} />
+            </Block>
+          </div>
+          <div></div>
           <ArchiveWorkspaceDialog
             workspace={workspace}
             open={isArchiveDialogOpen}
