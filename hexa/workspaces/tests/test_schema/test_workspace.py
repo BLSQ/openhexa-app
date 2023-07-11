@@ -82,6 +82,21 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.ADMIN,
         )
 
+        cls.INVITATION_FOO = WorkspaceInvitation.objects.create(
+            invited_by=cls.USER_WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE,
+            email=cls.USER_EXTERNAL,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+        cls.INVITATION_BAR = WorkspaceInvitation.objects.create(
+            invited_by=cls.USER_WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE,
+            email=cls.USER_REBECCA.email,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.ACCEPTED,
+        )
+
     @mock_gcp_storage
     def test_create_workspace_denied(self):
         self.client.force_login(self.USER_SABRINA)
@@ -531,7 +546,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
-            query workspaceById($slug: String!) {
+            query workspaceBySlug($slug: String!) {
                 workspace(slug: $slug) {
                     members {
                         items {
@@ -1164,4 +1179,85 @@ class WorkspaceTest(GraphQLTestCase):
         )
         self.assertTrue(
             WorkspaceMembership.objects.filter(user__email=invitation.email).exists()
+        )
+
+    def test_get_all_workspace_invitations(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            query workspaceBySlug($slug: String!,$status: WorkspaceInvitationStatus) {
+                workspace(slug: $slug) {
+                    invitations(status:$status) {
+                        totalItems
+                        items {
+                            email
+                            role
+                            status
+                            invited_by {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {
+                "totalItems": 2,
+                "items": [
+                    {
+                        "email": self.INVITATION_BAR.email,
+                        "role": self.INVITATION_BAR.role,
+                        "status": WorkspaceInvitationStatus.ACCEPTED,
+                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                    },
+                    {
+                        "email": self.INVITATION_FOO.email,
+                        "role": self.INVITATION_FOO.role,
+                        "status": WorkspaceInvitationStatus.PENDING,
+                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                    },
+                ],
+            },
+            r["data"]["workspace"]["invitations"],
+        )
+
+    def test_get_workspace_invitations_by_status(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            query workspaceBySlug($slug: String!,$status: WorkspaceInvitationStatus) {
+                workspace(slug: $slug) {
+                    invitations(status:$status) {
+                        totalItems
+                        items {
+                            email
+                            role
+                            status
+                            invited_by {
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            {"slug": self.WORKSPACE.slug, "status": WorkspaceInvitationStatus.PENDING},
+        )
+
+        self.assertEqual(
+            {
+                "totalItems": 1,
+                "items": [
+                    {
+                        "email": self.INVITATION_FOO.email,
+                        "role": self.INVITATION_FOO.role,
+                        "status": WorkspaceInvitationStatus.PENDING,
+                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                    },
+                ],
+            },
+            r["data"]["workspace"]["invitations"],
         )
