@@ -4,13 +4,7 @@ from django.http import HttpRequest
 from hexa.core.graphql import result_page
 from hexa.user_management.schema import me_permissions_object
 
-from ..models import (
-    Connection,
-    ConnectionField,
-    Workspace,
-    WorkspaceInvitation,
-    WorkspaceInvitationStatus,
-)
+from ..models import Connection, ConnectionField, Workspace, WorkspaceInvitation
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
@@ -106,19 +100,16 @@ def resolve_workspace_members(workspace: Workspace, info, **kwargs):
 def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
-    status = [WorkspaceInvitationStatus.ACCEPTED, WorkspaceInvitationStatus.PENDING]
-    if kwargs.get("status"):
-        status = [kwargs.get("status")]
-
-    qs = (
-        WorkspaceInvitation.objects.filter_for_user(request.user)
-        .filter(status__in=status)
-        .order_by("-updated_at")
+    qs = WorkspaceInvitation.objects.filter_for_user(request.user).order_by(
+        "-updated_at"
     )
+    if kwargs.get("status"):
+        qs = qs.filter(status=kwargs["status"])
+
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
-        per_page=kwargs.get("perPage", qs.count()),
+        per_page=kwargs.get("perPage", 5),
     )
 
 

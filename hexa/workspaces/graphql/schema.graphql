@@ -25,7 +25,7 @@ type WorkspaceInvitation {
   workspace: Workspace!
   role: WorkspaceMembershipRole!
   status: WorkspaceInvitationStatus!
-  invited_by: User!
+  invited_by: User
   createdAt: DateTime!
   updatedAt: DateTime
 }
