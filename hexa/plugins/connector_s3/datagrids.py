@@ -1,6 +1,5 @@
 from django.urls import reverse
 
-from hexa.data_collections.datagrid import CollectionColumn
 from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datagrid import (
     Action,
@@ -43,7 +42,6 @@ class ObjectGrid(Datagrid):
     directory = TextColumn(text="parent_key", translate=False)
     size = TextColumn(text="file_size_display", translate=False)
     type = TextColumn(text="type_display")
-    collections = CollectionColumn()
     last_modified = DateColumn(date="last_modified", date_format="%Y-%m-%d %H:%M:%S %Z")
     link = LinkColumn(text="View")
 

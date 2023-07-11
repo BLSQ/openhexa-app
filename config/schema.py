@@ -9,7 +9,6 @@ from ariadne import (
 from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 from hexa.core.schema import core_bindables, core_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
-from hexa.data_collections.schema import collections_bindables, collections_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.files.schema import files_bindables, files_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
@@ -39,7 +38,6 @@ schema = make_executable_schema(
         catalog_type_defs,
         identity_type_defs,
         tags_type_defs,
-        collections_type_defs,
         dags_type_defs,
         *dhis2_type_defs,
         *s3_type_defs,
@@ -58,7 +56,6 @@ schema = make_executable_schema(
         *pipelines_bindables,
         *identity_bindables,
         *tags_bindables,
-        *collections_bindables,
         *dags_bindables,
         *dhis2_bindables,
         *s3_bindables,
