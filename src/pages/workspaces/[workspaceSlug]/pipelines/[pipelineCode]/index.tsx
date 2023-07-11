@@ -248,7 +248,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 </BaseColumn>
                 <BaseColumn<PipelineRunTrigger>
                   label={t("Trigger")}
-                  accessor="trigger"
+                  accessor="triggerMode"
                 >
                   {(value) => (
                     <span>
