@@ -9,8 +9,31 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
+  invitations(status: WorkspaceInvitationStatus,page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 
+type WorkspaceInvitationPage {
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+  items: [WorkspaceInvitation!]!
+}
+
+type WorkspaceInvitation {
+  id: UUID!
+  email: String!
+  workspace: Workspace!
+  role: WorkspaceMembershipRole!
+  status: WorkspaceInvitationStatus!
+  invited_by: User
+  createdAt: DateTime!
+  updatedAt: DateTime
+}
+
+enum WorkspaceInvitationStatus {
+  PENDING
+  ACCEPTED
+}
 
 type WorkspacePermissions {
   update: Boolean!
@@ -184,6 +207,28 @@ enum GenerateWorkspaceTokenError {
   PERMISSION_DENIED
 }
 
+input JoinWorkspaceInput {
+  token: String!
+  firstName: String!
+  lastName: String!
+  password: String!
+  confirmPassword: String!
+}
+
+type JoinWorkspaceResult {
+  success: Boolean!
+  workspace: Workspace
+  errors: [JoinWorkspaceError!]!
+}
+
+enum JoinWorkspaceError {
+  EXPIRED_TOKEN
+  INVALID_TOKEN
+  ALREADY_EXISTS
+  INVALID_CREDENTIALS
+  INVITATION_NOT_FOUND
+}
+
 extend type Mutation {
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
@@ -193,6 +238,7 @@ extend type Mutation {
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
 }
 
 ### Connections

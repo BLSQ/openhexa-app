@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import secrets
 import string
@@ -7,7 +8,9 @@ import uuid
 import stringcase
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
+from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
 from django.db.models import Q
@@ -282,6 +285,69 @@ class WorkspaceMembership(models.Model):
             raise PermissionDenied
 
         return self.delete()
+
+
+class WorkspaceInvitationStatus(models.TextChoices):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+
+
+class WorkspaceInvitationQuerySet(BaseQuerySet):
+    def filter_for_user(
+        self, user: typing.Union[AnonymousUser, User]
+    ) -> models.QuerySet:
+        return self._filter_for_user_and_query_object(
+            user, Q(workspace__members=user), return_all_if_superuser=False
+        )
+
+
+class WorkspaceInvitationManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        *,
+        workspace: Workspace,
+        email: string,
+        role: WorkspaceMembershipRole,
+    ):
+        if not principal.has_perm("workspaces.manage_members", workspace):
+            raise PermissionDenied
+
+        return self.create(
+            email=email, workspace=workspace, role=role, invited_by=principal
+        )
+
+    def get_by_token(self, token: string):
+        signer = TimestampSigner()
+        decoded_value = base64.b64decode(token).decode("utf-8")
+        # the token is valid for 48h
+        invitation_id = signer.unsign(decoded_value, max_age=48 * 3600)
+        return self.get(id=invitation_id)
+
+
+class WorkspaceInvitation(Base):
+    email = CIEmailField()
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+    )
+    invited_by = models.ForeignKey(
+        "user_management.User",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
+    status = models.CharField(
+        max_length=50,
+        choices=WorkspaceInvitationStatus.choices,
+        default=WorkspaceInvitationStatus.PENDING,
+    )
+
+    objects = WorkspaceInvitationManager.from_queryset(WorkspaceInvitationQuerySet)()
+
+    def generate_invitation_token(self):
+        signer = TimestampSigner()
+        return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
 
 
 class ConnectionQuerySet(BaseQuerySet):

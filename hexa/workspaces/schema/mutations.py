@@ -1,18 +1,23 @@
+import binascii
+
 from ariadne import MutationType
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import Signer
+from django.core.signing import BadSignature, SignatureExpired, Signer
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
 from config import settings
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
-from hexa.user_management.models import User
+from hexa.user_management.models import Feature, FeatureFlag, User
 
 from ..models import (
     AlreadyExists,
     Connection,
     Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -107,44 +112,74 @@ def resolve_archive_workspace(_, info, **kwargs):
 
 
 @workspace_mutations.field("inviteWorkspaceMember")
-def resolve_create_workspace_member(_, info, **kwargs):
+def resolve_invite_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspaceSlug"]
         )
-        user = User.objects.get(email=input["userEmail"])
-
-        workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
-            principal=request.user, workspace=workspace, user=user, role=input["role"]
-        )
-        send_mail(
-            title=gettext_lazy(f"You've been added to the workspace {workspace.name}"),
-            template_name="workspaces/mails/invite_member",
-            template_variables={
-                "workspace": workspace.name,
-                "owner": request.user.display_name,
-                "workspace_url": request.build_absolute_uri(
-                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+        try:
+            # If the user already exists, we add it to the workspace
+            user = User.objects.get(email=input["userEmail"])
+            workspace_membership = WorkspaceMembership.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                user=user,
+                role=input["role"],
+            )
+            send_mail(
+                title=gettext_lazy(
+                    f"You've been added to the workspace {workspace.name}"
                 ),
-            },
-            recipient_list=[user.email],
-        )
-        return {
-            "success": True,
-            "errors": [],
-            "workspace_membership": workspace_membership,
-        }
+                template_name="workspaces/mails/invite_member",
+                template_variables={
+                    "workspace": workspace.name,
+                    "owner": request.user.display_name,
+                    "workspace_url": request.build_absolute_uri(
+                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+                    ),
+                },
+                recipient_list=[user.email],
+            )
+            return {
+                "success": True,
+                "errors": [],
+                "workspace_membership": workspace_membership,
+            }
+        except User.DoesNotExist:
+            # If the user does not exist, we create an invitation to create an account and join the workspace
+            invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                email=input["userEmail"],
+                role=input["role"],
+            )
+
+            token = invitation.generate_invitation_token()
+            send_mail(
+                title=gettext_lazy(
+                    f"You've been invited to join the workspace {workspace.name} on OpenHexa"
+                ),
+                template_name="workspaces/mails/invite_external_user",
+                template_variables={
+                    "workspace": workspace.name,
+                    "owner": request.user.display_name,
+                    "workspace_signup_url": request.build_absolute_uri(
+                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?email={input['userEmail']}&token={token}"
+                    ),
+                },
+                recipient_list=[input["userEmail"]],
+            )
+            return {
+                "success": True,
+                "errors": [],
+            }
+
     except Workspace.DoesNotExist:
         return {
             "success": False,
             "errors": ["WORKSPACE_NOT_FOUND"],
-        }
-    except User.DoesNotExist:
-        return {
-            "success": False,
-            "errors": ["USER_NOT_FOUND"],
         }
     except PermissionDenied:
         return {
@@ -155,6 +190,72 @@ def resolve_create_workspace_member(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["ALREADY_EXISTS"],
+        }
+
+
+@workspace_mutations.field("joinWorkspace")
+def resolver_join_workspace(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = WorkspaceInvitation.objects.get_by_token(input["token"])
+        if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
+            raise AlreadyExists
+
+        if WorkspaceMembership.objects.filter(
+            user__email=invitation.email, workspace=invitation.workspace
+        ).exists():
+            raise AlreadyExists(
+                f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
+            )
+
+        if input["password"] != input["confirmPassword"]:
+            raise ValidationError("The two passwords do not match.")
+
+        validate_password(password=input["password"])
+        user = User.objects.create_user(
+            email=invitation.email,
+            first_name=input["firstName"],
+            last_name=input["lastName"],
+            password=input["password"],
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.get(code="workspaces"), user=user
+        )
+        WorkspaceMembership.objects.create(
+            workspace=invitation.workspace,
+            user=user,
+            role=invitation.role,
+        )
+        invitation.status = WorkspaceInvitationStatus.ACCEPTED
+        invitation.save()
+        return {"success": True, "errors": [], "workspace": invitation.workspace}
+
+    except SignatureExpired:
+        return {
+            "success": False,
+            "errors": ["EXPIRED_TOKEN"],
+        }
+    except (binascii.Error, BadSignature) as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_TOKEN"],
+        }
+    except AlreadyExists:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+        }
+    except ValidationError:
+        return {
+            "success": False,
+            "errors": ["INVALID_CREDENTIALS"],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
         }
 
 

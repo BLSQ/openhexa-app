@@ -10,6 +10,8 @@ from hexa.workspaces.models import (
     Connection,
     ConnectionType,
     Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -51,7 +53,6 @@ class WorkspaceTest(TestCase):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
         ), patch("hexa.workspaces.models.load_database_sample_data"):
-
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="this is a very long workspace name",
@@ -65,7 +66,6 @@ class WorkspaceTest(TestCase):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
         ), patch("hexa.workspaces.models.load_database_sample_data"):
-
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Worksp?ace_wi😱th_und~ersc!/ore",
@@ -79,7 +79,6 @@ class WorkspaceTest(TestCase):
         with patch("secrets.token_hex", lambda _: "mock"), patch(
             "hexa.workspaces.models.create_database"
         ), patch("hexa.workspaces.models.load_database_sample_data"):
-
             workspace = Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="1workspace_with#_random$_char*",
@@ -98,7 +97,6 @@ class WorkspaceTest(TestCase):
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
-        workspace.save()
         self.assertEqual(1, Workspace.objects.all().count())
 
     @backend.mock_storage
@@ -111,8 +109,7 @@ class WorkspaceTest(TestCase):
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
-        workspace.save()
-        self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
+            self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
 
     def test_get_workspace_by_id_failed(self):
         with self.assertRaises(ObjectDoesNotExist):
@@ -128,22 +125,43 @@ class WorkspaceTest(TestCase):
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
             )
-        workspace.save()
-        self.assertTrue(
-            WorkspaceMembership.objects.filter(
-                user=self.USER_JULIA,
+            self.assertTrue(
+                WorkspaceMembership.objects.filter(
+                    user=self.USER_JULIA,
+                    workspace=workspace,
+                    role=WorkspaceMembershipRole.ADMIN,
+                ).exists()
+            )
+            self.assertEqual(
+                hashlib.blake2s(
+                    f"{workspace.id}_{self.USER_JULIA.id}".encode("utf-8"),
+                    digest_size=16,
+                ).hexdigest(),
+                WorkspaceMembership.objects.get(
+                    user=self.USER_JULIA, workspace=workspace
+                ).notebooks_server_hash,
+            )
+
+    @backend.mock_storage
+    def test_add_external_user(self):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            workspace = Workspace.objects.create_if_has_perm(
+                self.USER_JULIA,
+                name="Senegal Workspace",
+                description="This is test for creating workspace",
+            )
+
+            invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                principal=self.USER_JULIA,
                 workspace=workspace,
-                role=WorkspaceMembershipRole.ADMIN,
-            ).exists()
-        )
-        self.assertEqual(
-            hashlib.blake2s(
-                f"{workspace.id}_{self.USER_JULIA.id}".encode("utf-8"), digest_size=16
-            ).hexdigest(),
-            WorkspaceMembership.objects.get(
-                user=self.USER_JULIA, workspace=workspace
-            ).notebooks_server_hash,
-        )
+                email="john@doe.com",
+                role=WorkspaceMembershipRole.VIEWER,
+            )
+            self.assertIsInstance(invitation, WorkspaceInvitation)
+            self.assertEqual(invitation.status, WorkspaceInvitationStatus.PENDING)
+            self.assertEqual(invitation.invited_by, self.USER_JULIA)
 
 
 class ConnectionTest(TestCase):
