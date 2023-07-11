@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.4](https://github.com/BLSQ/openhexa-frontend/compare/0.32.3...0.32.4) (2023-07-11)
+
+
+### Bug Fixes
+
+* **Pipelines:** display correct trigger mode ([#371](https://github.com/BLSQ/openhexa-frontend/issues/371)) ([2fd5448](https://github.com/BLSQ/openhexa-frontend/commit/2fd544858dae2b9ab7161842053a59f35773316d))
+
+
+### Miscellaneous
+
+* **Workspaces:** allow admin to invite external users ([#370](https://github.com/BLSQ/openhexa-frontend/issues/370)) ([476a854](https://github.com/BLSQ/openhexa-frontend/commit/476a8547bb813f2905be66b8e727bbda368b76d3))
+
 ## [0.32.3](https://github.com/BLSQ/openhexa-frontend/compare/0.32.2...0.32.3) (2023-07-04)
 
 
