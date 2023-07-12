@@ -53,29 +53,6 @@ const SearchResult = (props: SearchResultProps) => {
           {renderActions && renderActions(result)}
         </>
       )}
-      {result.object.__typename === "Collection" && (
-        <>
-          <div className="w-5">
-            <CircleStackIcon className="h-5 w-5 flex-shrink-0" />
-          </div>
-
-          <div className="flex-1 truncate">
-            <Link
-              className="font-medium"
-              href={{
-                pathname: "/collections/[collectionId]",
-                query: { collectionId: result.object.id },
-              }}
-            >
-              {result.object.name}
-            </Link>
-            <span className="ml-2 font-sans text-xs text-gray-300">
-              #{Math.round(result.rank * 100) / 100}
-            </span>
-            <div className="mt-1 text-xs text-gray-500">{t("Collection")}</div>
-          </div>
-        </>
-      )}
     </div>
   );
 };
@@ -86,10 +63,6 @@ SearchResult.fragments = {
       rank
       object {
         __typename
-        ... on Collection {
-          id
-          name
-        }
         ... on CatalogEntry {
           id
           name

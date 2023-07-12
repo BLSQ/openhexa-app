@@ -23,14 +23,10 @@ const Item = ({ href, children }: { href: string; children: ReactNode }) => {
 };
 
 const Navbar = () => {
-  const [isCollectionsEnabled] = useFeature("collections");
   const { t } = useTranslation();
   return (
     <nav className="relative flex flex-1 items-center space-x-4 text-sm font-medium">
       <Item href="/">{t("Dashboard")}</Item>
-      {isCollectionsEnabled && (
-        <Item href="/collections">{t("Collections")}</Item>
-      )}
       <Item href="/catalog">{t("Catalog")}</Item>
       <Item href="/notebooks">{t("Notebooks")}</Item>
       <Item href="/pipelines">{t("Pipelines")}</Item>

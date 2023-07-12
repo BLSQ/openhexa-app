@@ -26,12 +26,7 @@ const { publicRuntimeConfig } = getConfig();
 const CACHE_CONFIG: InMemoryCacheConfig = {
   // possibleTypes must be provided to cache correctly unions and interfaces
   // https://www.apollographql.com/docs/react/data/fragments/#using-fragments-with-unions-and-interfaces
-  possibleTypes: {
-    CollectionElement: [
-      "DHIS2DataElementCollectionElement",
-      "S3ObjectCollectionElement",
-    ],
-  },
+  possibleTypes: {},
   typePolicies: {
     Team: {
       merge: true,

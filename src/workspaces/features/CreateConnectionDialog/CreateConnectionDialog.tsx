@@ -64,7 +64,7 @@ const ConnectionTypePanel = ({
   );
 };
 
-export default function CreateCollectionDialog({
+export default function CreateConnectionDialog({
   open,
   onClose,
   workspace,
@@ -228,7 +228,7 @@ export default function CreateCollectionDialog({
   );
 }
 
-CreateCollectionDialog.fragments = {
+CreateConnectionDialog.fragments = {
   workspace: gql`
     fragment CreateConnectionDialog_workspace on Workspace {
       slug

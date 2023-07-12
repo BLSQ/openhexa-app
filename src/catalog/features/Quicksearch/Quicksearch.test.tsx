@@ -45,65 +45,6 @@ describe("Quicksearch", () => {
     });
   });
 
-  it("displays the results", async () => {
-    const user = await userEvent.setup({ delay: null });
-    useSearchMock.mockImplementation(() => {
-      return {
-        results: [
-          {
-            rank: 1,
-            object: {
-              __typename: "Collection",
-              id: "1",
-              name: "Collection",
-            },
-          },
-        ],
-        types: [],
-        loading: false,
-      };
-    });
-
-    const mocks = [
-      {
-        request: {
-          query: SearchQueryDocument,
-          variables: {
-            input: {
-              query: "Test",
-              perPage: 10,
-            },
-          },
-        },
-      },
-    ];
-
-    render(
-      <>
-        <Quicksearch onClose={onClose} open />
-      </>
-    );
-
-    const dialog = await screen.queryByRole("dialog");
-    expect(dialog).toBeInTheDocument();
-    expect(useSearchMock).toHaveBeenCalledWith({
-      query: "",
-      perPage: 10,
-      skip: true, // Tested line
-    });
-    const searchInput = screen.getByTestId("search-input");
-    await user.type(searchInput, "Test");
-
-    await screen.findByDisplayValue("Test");
-    expect(useSearchMock).toHaveBeenLastCalledWith({
-      query: "Test",
-      skip: false,
-      perPage: 10,
-    });
-
-    expect(await screen.findByTestId("results")).toBeInTheDocument();
-  });
-
   it("removes the dialog from the dom when closed", async () => {
     function TestQuicksearch() {
       const [isOpen, setOpen] = useState(false);

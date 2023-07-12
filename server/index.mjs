@@ -19,7 +19,6 @@ app.prepare().then(async () => {
           req.path.startsWith("/login") ||
           req.path.startsWith("/user/account") ||
           req.path.startsWith("/two_factor") ||
-          req.path.startsWith("/collections") ||
           req.path.startsWith("/visualizations") ||
           req.path.startsWith("/notebooks") ||
           req.path.startsWith("/pipelines") ||

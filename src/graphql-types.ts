@@ -463,62 +463,6 @@ export type CatalogPage = {
   totalPages: Scalars['Int']['output'];
 };
 
-export type Collection = {
-  __typename?: 'Collection';
-  author?: Maybe<User>;
-  countries: Array<Country>;
-  createdAt: Scalars['DateTime']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  elements: CollectionElementPage;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  permissions: CollectionPermissions;
-  summary?: Maybe<Scalars['String']['output']>;
-  tags: Array<Tag>;
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-
-export type CollectionElementsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  perPage?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type CollectionElement = {
-  __typename?: 'CollectionElement';
-  app: Scalars['String']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['UUID']['output'];
-  model: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  objectId: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-  url?: Maybe<Scalars['URL']['output']>;
-};
-
-export type CollectionElementPage = {
-  __typename?: 'CollectionElementPage';
-  items: Array<CollectionElement>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
-};
-
-export type CollectionPage = {
-  __typename?: 'CollectionPage';
-  items: Array<Collection>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
-};
-
-export type CollectionPermissions = {
-  __typename?: 'CollectionPermissions';
-  delete: Scalars['Boolean']['output'];
-  update: Scalars['Boolean']['output'];
-};
-
 export type Connection = {
   __typename?: 'Connection';
   createdAt: Scalars['DateTime']['output'];
@@ -704,46 +648,6 @@ export type CreateBucketFolderResult = {
   __typename?: 'CreateBucketFolderResult';
   errors: Array<CreateBucketFolderError>;
   folder?: Maybe<BucketObject>;
-  success: Scalars['Boolean']['output'];
-};
-
-export enum CreateCollectionElementError {
-  CollectionNotFound = 'COLLECTION_NOT_FOUND',
-  Invalid = 'INVALID',
-  ObjectNotFound = 'OBJECT_NOT_FOUND'
-}
-
-export type CreateCollectionElementInput = {
-  app: Scalars['String']['input'];
-  collectionId: Scalars['UUID']['input'];
-  model: Scalars['String']['input'];
-  objectId: Scalars['String']['input'];
-};
-
-export type CreateCollectionElementResult = {
-  __typename?: 'CreateCollectionElementResult';
-  element?: Maybe<CollectionElement>;
-  errors: Array<CreateCollectionElementError>;
-  success: Scalars['Boolean']['output'];
-};
-
-export enum CreateCollectionError {
-  Invalid = 'INVALID'
-}
-
-export type CreateCollectionInput = {
-  authorId?: InputMaybe<Scalars['String']['input']>;
-  countries?: InputMaybe<Array<CountryInput>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
-  summary?: InputMaybe<Scalars['String']['input']>;
-  tagIds?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-export type CreateCollectionResult = {
-  __typename?: 'CreateCollectionResult';
-  collection?: Maybe<Collection>;
-  errors: Array<CreateCollectionError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -1093,36 +997,6 @@ export type DeleteBucketObjectResult = {
   success: Scalars['Boolean']['output'];
 };
 
-export enum DeleteCollectionElementError {
-  Invalid = 'INVALID',
-  NotFound = 'NOT_FOUND'
-}
-
-export type DeleteCollectionElementInput = {
-  id: Scalars['UUID']['input'];
-};
-
-export type DeleteCollectionElementResult = {
-  __typename?: 'DeleteCollectionElementResult';
-  collection?: Maybe<Collection>;
-  errors: Array<DeleteCollectionElementError>;
-  success: Scalars['Boolean']['output'];
-};
-
-export enum DeleteCollectionError {
-  Invalid = 'INVALID'
-}
-
-export type DeleteCollectionInput = {
-  id: Scalars['UUID']['input'];
-};
-
-export type DeleteCollectionResult = {
-  __typename?: 'DeleteCollectionResult';
-  errors: Array<DeleteCollectionError>;
-  success: Scalars['Boolean']['output'];
-};
-
 export enum DeleteConnectionError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
@@ -1460,7 +1334,6 @@ export type MePermissions = {
   __typename?: 'MePermissions';
   adminPanel: Scalars['Boolean']['output'];
   createAccessmodProject: Scalars['Boolean']['output'];
-  createCollection: Scalars['Boolean']['output'];
   createTeam: Scalars['Boolean']['output'];
   createWorkspace: Scalars['Boolean']['output'];
   manageAccessmodAccessRequests: Scalars['Boolean']['output'];
@@ -1517,8 +1390,6 @@ export type Mutation = {
   createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
   createBucketFolder: CreateBucketFolderResult;
-  createCollection: CreateCollectionResult;
-  createCollectionElement: CreateCollectionElementResult;
   createConnection: CreateConnectionResult;
   createMembership: CreateMembershipResult;
   createPipeline: CreatePipelineResult;
@@ -1529,8 +1400,6 @@ export type Mutation = {
   deleteAccessmodProject: DeleteAccessmodProjectResult;
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
   deleteBucketObject: DeleteBucketObjectResult;
-  deleteCollection: DeleteCollectionResult;
-  deleteCollectionElement: DeleteCollectionElementResult;
   deleteConnection: DeleteConnectionResult;
   deleteMembership: DeleteMembershipResult;
   deletePipeline: DeletePipelineResult;
@@ -1569,7 +1438,6 @@ export type Mutation = {
   updateAccessmodProject: UpdateAccessmodProjectResult;
   updateAccessmodProjectMember: UpdateAccessmodProjectMemberResult;
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
-  updateCollection: UpdateCollectionResult;
   updateConnection: UpdateConnectionResult;
   updateDAG: UpdateDagResult;
   updateExternalDashboard: UpdateExternalDashboardResult;
@@ -1634,16 +1502,6 @@ export type MutationCreateBucketFolderArgs = {
 };
 
 
-export type MutationCreateCollectionArgs = {
-  input: CreateCollectionInput;
-};
-
-
-export type MutationCreateCollectionElementArgs = {
-  input: CreateCollectionElementInput;
-};
-
-
 export type MutationCreateConnectionArgs = {
   input: CreateConnectionInput;
 };
@@ -1691,16 +1549,6 @@ export type MutationDeleteAccessmodProjectMemberArgs = {
 
 export type MutationDeleteBucketObjectArgs = {
   input: DeleteBucketObjectInput;
-};
-
-
-export type MutationDeleteCollectionArgs = {
-  input: DeleteCollectionInput;
-};
-
-
-export type MutationDeleteCollectionElementArgs = {
-  input: DeleteCollectionElementInput;
 };
 
 
@@ -1881,11 +1729,6 @@ export type MutationUpdateAccessmodProjectMemberArgs = {
 
 export type MutationUpdateAccessmodZonalStatisticsArgs = {
   input?: InputMaybe<UpdateAccessmodZonalStatisticsInput>;
-};
-
-
-export type MutationUpdateCollectionArgs = {
-  input: UpdateCollectionInput;
 };
 
 
@@ -2242,8 +2085,6 @@ export type Query = {
   accessmodProjects: AccessmodProjectPage;
   boundaries: Array<WhoBoundary>;
   catalog: CatalogPage;
-  collection?: Maybe<Collection>;
-  collections: CollectionPage;
   connection?: Maybe<Connection>;
   countries: Array<Country>;
   country?: Maybe<Country>;
@@ -2332,17 +2173,6 @@ export type QueryBoundariesArgs = {
 export type QueryCatalogArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   path?: InputMaybe<Scalars['String']['input']>;
-  perPage?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryCollectionArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryCollectionsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
@@ -2515,7 +2345,6 @@ export type S3Bucket = {
 export type S3Object = {
   __typename?: 'S3Object';
   bucket: S3Bucket;
-  collections: Array<Collection>;
   createdAt: Scalars['DateTime']['output'];
   etag: Scalars['String']['output'];
   filename: Scalars['String']['output'];
@@ -2549,7 +2378,7 @@ export type SearchResult = {
   rank: Scalars['Float']['output'];
 };
 
-export type SearchResultObject = CatalogEntry | Collection;
+export type SearchResultObject = CatalogEntry;
 
 export type SearchType = {
   __typename?: 'SearchType';
@@ -2752,28 +2581,6 @@ export type UpdateAccessmodZonalStatisticsResult = {
   __typename?: 'UpdateAccessmodZonalStatisticsResult';
   analysis?: Maybe<AccessmodZonalStatistics>;
   errors: Array<UpdateAccessmodZonalStatisticsError>;
-  success: Scalars['Boolean']['output'];
-};
-
-export enum UpdateCollectionError {
-  Invalid = 'INVALID',
-  NotFound = 'NOT_FOUND'
-}
-
-export type UpdateCollectionInput = {
-  authorId?: InputMaybe<Scalars['String']['input']>;
-  countries?: InputMaybe<Array<CountryInput>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-  summary?: InputMaybe<Scalars['String']['input']>;
-  tagIds?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-export type UpdateCollectionResult = {
-  __typename?: 'UpdateCollectionResult';
-  collection?: Maybe<Collection>;
-  errors: Array<CreateCollectionError>;
   success: Scalars['Boolean']['output'];
 };
 

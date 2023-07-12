@@ -406,51 +406,6 @@ type CatalogPage {
   totalItems: Int!
 }
 
-type Collection {
-  id: UUID!
-  name: String!
-  author: User
-  countries: [Country!]!
-  tags: [Tag!]!
-  description: String
-  summary: String
-  elements(page: Int, perPage: Int): CollectionElementPage!
-  permissions: CollectionPermissions!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type CollectionElement {
-  id: UUID!
-  app: String!
-  model: String!
-  type: String!
-  name: String!
-  objectId: String!
-  url: URL
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type CollectionElementPage {
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-  items: [CollectionElement!]!
-}
-
-type CollectionPage {
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-  items: [Collection!]!
-}
-
-type CollectionPermissions {
-  update: Boolean!
-  delete: Boolean!
-}
-
 type Connection {
   id: String!
   name: String!
@@ -626,44 +581,6 @@ type CreateBucketFolderResult {
   success: Boolean!
   errors: [CreateBucketFolderError!]!
   folder: BucketObject
-}
-
-enum CreateCollectionElementError {
-  COLLECTION_NOT_FOUND
-  OBJECT_NOT_FOUND
-  INVALID
-}
-
-input CreateCollectionElementInput {
-  collectionId: UUID!
-  app: String!
-  model: String!
-  objectId: String!
-}
-
-type CreateCollectionElementResult {
-  success: Boolean!
-  errors: [CreateCollectionElementError!]!
-  element: CollectionElement
-}
-
-enum CreateCollectionError {
-  INVALID
-}
-
-input CreateCollectionInput {
-  name: String!
-  authorId: String
-  countries: [CountryInput!]
-  tagIds: [String!]
-  summary: String
-  description: String
-}
-
-type CreateCollectionResult {
-  success: Boolean!
-  errors: [CreateCollectionError!]!
-  collection: Collection
 }
 
 enum CreateConnectionError {
@@ -941,34 +858,6 @@ input DeleteBucketObjectInput {
 type DeleteBucketObjectResult {
   success: Boolean!
   errors: [DeleteBucketObjectError!]!
-}
-
-enum DeleteCollectionElementError {
-  NOT_FOUND
-  INVALID
-}
-
-input DeleteCollectionElementInput {
-  id: UUID!
-}
-
-type DeleteCollectionElementResult {
-  success: Boolean!
-  errors: [DeleteCollectionElementError!]!
-  collection: Collection
-}
-
-enum DeleteCollectionError {
-  INVALID
-}
-
-input DeleteCollectionInput {
-  id: UUID!
-}
-
-type DeleteCollectionResult {
-  success: Boolean!
-  errors: [DeleteCollectionError!]!
 }
 
 enum DeleteConnectionError {
@@ -1337,7 +1226,6 @@ type MePermissions {
   createTeam: Boolean!
   adminPanel: Boolean!
   superUser: Boolean!
-  createCollection: Boolean!
   createAccessmodProject: Boolean!
   manageAccessmodAccessRequests: Boolean!
   createWorkspace: Boolean!
@@ -1368,11 +1256,6 @@ type Mutation {
   createMembership(input: CreateMembershipInput!): CreateMembershipResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   deleteMembership(input: DeleteMembershipInput!): DeleteMembershipResult!
-  createCollection(input: CreateCollectionInput!): CreateCollectionResult!
-  updateCollection(input: UpdateCollectionInput!): UpdateCollectionResult!
-  deleteCollection(input: DeleteCollectionInput!): DeleteCollectionResult!
-  createCollectionElement(input: CreateCollectionElementInput!): CreateCollectionElementResult!
-  deleteCollectionElement(input: DeleteCollectionElementInput!): DeleteCollectionElementResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
   updateDAG(input: UpdateDAGInput!): UpdateDAGResult!
   prepareDownloadURL(input: PrepareDownloadURLInput!): PrepareDownloadURLResult
@@ -1690,8 +1573,6 @@ type Query {
   team(id: UUID!): Team
   teams(term: String, page: Int, perPage: Int): TeamPage!
   organizations: [Organization!]!
-  collection(id: UUID!): Collection
-  collections(page: Int, perPage: Int): CollectionPage!
   dags(page: Int, perPage: Int): DAGPage!
   dag(id: UUID!): DAG
   dagRun(id: UUID!): DAGRun
@@ -1796,7 +1677,6 @@ type S3Object {
   type: String!
   lastModified: DateTime!
   etag: String!
-  collections: [Collection!]!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1818,7 +1698,7 @@ type SearchResult {
   rank: Float!
 }
 
-union SearchResultObject = CatalogEntry | Collection
+union SearchResultObject = CatalogEntry
 
 type SearchType {
   value: String!
@@ -2008,27 +1888,6 @@ type UpdateAccessmodZonalStatisticsResult {
   success: Boolean!
   analysis: AccessmodZonalStatistics
   errors: [UpdateAccessmodZonalStatisticsError!]!
-}
-
-enum UpdateCollectionError {
-  NOT_FOUND
-  INVALID
-}
-
-input UpdateCollectionInput {
-  id: UUID!
-  name: String
-  summary: String
-  authorId: String
-  countries: [CountryInput!]
-  tagIds: [String!]
-  description: String
-}
-
-type UpdateCollectionResult {
-  success: Boolean!
-  errors: [CreateCollectionError!]!
-  collection: Collection
 }
 
 enum UpdateConnectionError {

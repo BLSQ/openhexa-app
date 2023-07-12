@@ -13,7 +13,7 @@ export type SearchQueryQueryVariables = Types.Exact<{
 }>;
 
 
-export type SearchQueryQuery = { __typename?: 'Query', search: { __typename?: 'SearchQueryResult', results: Array<{ __typename?: 'SearchResult', rank: number, object: { __typename: 'CatalogEntry', id: string, name: string, objectId: string, objectUrl: any, symbol?: any | null, datasource?: { __typename?: 'Datasource', id: string, name: string } | null, type: { __typename?: 'CatalogEntryType', model: string, app: string, name: string } } | { __typename: 'Collection', id: string, name: string } }>, types: Array<{ __typename?: 'SearchType', value: string, label: string }> } };
+export type SearchQueryQuery = { __typename?: 'Query', search: { __typename?: 'SearchQueryResult', results: Array<{ __typename?: 'SearchResult', rank: number, object: { __typename: 'CatalogEntry', id: string, name: string, objectId: string, objectUrl: any, symbol?: any | null, datasource?: { __typename?: 'Datasource', id: string, name: string } | null, type: { __typename?: 'CatalogEntryType', model: string, app: string, name: string } } }>, types: Array<{ __typename?: 'SearchType', value: string, label: string }> } };
 
 
 export const SearchQueryDocument = gql`
