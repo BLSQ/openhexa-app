@@ -152,8 +152,7 @@ class Workspace(Base):
 
     @property
     def db_url(self):
-        host = get_db_server_credentials()["host"]
-        return f"postgresql://{self.db_name}:{self.db_password}@{host}:{self.db_port}/{self.db_name}"
+        return f"postgresql://{self.db_name}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
