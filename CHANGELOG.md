@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.32.5](https://github.com/BLSQ/openhexa-frontend/compare/0.32.4...0.32.5) (2023-07-12)
+
+
+### Bug Fixes
+
+* Remove collections ([#367](https://github.com/BLSQ/openhexa-frontend/issues/367)) ([b21bab3](https://github.com/BLSQ/openhexa-frontend/commit/b21bab3a8e2f3825764b61cc0bdab9af40f7f2f2))
+
+
+### Miscellaneous
+
+* Remove collections ([b21bab3](https://github.com/BLSQ/openhexa-frontend/commit/b21bab3a8e2f3825764b61cc0bdab9af40f7f2f2))
+
 ## [0.32.4](https://github.com/BLSQ/openhexa-frontend/compare/0.32.3...0.32.4) (2023-07-11)
 
 
