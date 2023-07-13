@@ -1,20 +1,11 @@
-import { LinkIcon, PlusIcon } from "@heroicons/react/24/outline";
-import Badge from "core/components/Badge";
-import Block from "core/components/Block";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Card from "core/components/Card";
-import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { Connection } from "graphql-types";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { useState } from "react";
 import CreateConnectionDialog from "workspaces/features/CreateConnectionDialog";
 import {
@@ -42,7 +33,23 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
   return (
     <>
       <Page title={workspace.name}>
-        <WorkspaceLayout workspace={workspace}>
+        <WorkspaceLayout
+          workspace={workspace}
+          helpLinks={[
+            {
+              label: t("About connections"),
+              href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
+            },
+            {
+              label: t("Using connections in notebooks"),
+              href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
+            },
+            {
+              label: t("Using connections in pipelines"),
+              href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections",
+            },
+          ]}
+        >
           <WorkspaceLayout.Header>
             <div className="flex items-center justify-between">
               <Breadcrumbs withHome={false}>

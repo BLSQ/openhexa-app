@@ -40,7 +40,19 @@ const WorkspaceHome: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={workspace.name}>
-      <WorkspaceLayout workspace={workspace}>
+      <WorkspaceLayout
+        workspace={workspace}
+        helpLinks={[
+          {
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#about-workspaces",
+            label: t("About workspaces"),
+          },
+          {
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#editing-the-workspace-homepage",
+            label: t("Editing the workspace homepage"),
+          },
+        ]}
+      >
         <WorkspaceLayout.Header className="flex items-center justify-between">
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part

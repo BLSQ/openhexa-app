@@ -63,7 +63,23 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={workspace.name}>
-      <WorkspaceLayout workspace={workspace}>
+      <WorkspaceLayout
+        workspace={workspace}
+        helpLinks={[
+          {
+            label: t("About the workspace's filesystem"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#file-management-in-workspaces",
+          },
+          {
+            label: t("Using the filesystem in notebooks"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-the-workspace-filesystem",
+          },
+          {
+            label: t("Using the filesystem in pipelines"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#reading-and-writing-files",
+          },
+        ]}
+      >
         <WorkspaceLayout.Header className="flex items-center justify-between">
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part

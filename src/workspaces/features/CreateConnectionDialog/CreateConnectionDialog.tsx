@@ -18,6 +18,7 @@ import {
   convertFieldsToInput,
 } from "workspaces/helpers/connection";
 import { CreateConnectionDialog_WorkspaceFragment } from "./CreateConnectionDialog.generated";
+import Help from "workspaces/layouts/WorkspaceLayout/Help";
 
 interface CreateConnectionDialogProps {
   open: boolean;
@@ -218,6 +219,20 @@ export default function CreateConnectionDialog({
             />
           </Dialog.Content>
           <Dialog.Actions>
+            <div className="flex-1">
+              <Help
+                links={[
+                  {
+                    label: t("About connections"),
+                    href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
+                  },
+                  {
+                    label: t("Using connections"),
+                    href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
+                  },
+                ]}
+              />
+            </div>
             <Button type="button" variant="white" onClick={handleClose}>
               {t("Cancel")}
             </Button>

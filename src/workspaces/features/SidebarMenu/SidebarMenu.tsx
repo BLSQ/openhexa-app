@@ -5,7 +5,7 @@ import {
   ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   GlobeAltIcon,
-  GlobeEuropeAfricaIcon,
+  QuestionMarkCircleIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
@@ -23,6 +23,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import useOnClickOutside from "use-onclickoutside";
 
+import UserAvatar from "identity/features/UserAvatar";
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
 import {
   SidebarMenuDocument,
@@ -30,7 +31,6 @@ import {
   SidebarMenuQueryVariables,
   SidebarMenu_WorkspaceFragment,
 } from "./SidebarMenu.generated";
-import UserAvatar from "identity/features/UserAvatar";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
@@ -252,6 +252,14 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 {t("Administration")}
               </Link>
             )}
+            <Link
+              href="https://github.com/BLSQ/openhexa/wiki/User-manual"
+              noStyle
+              className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
+            >
+              <QuestionMarkCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
+              {t("Documentation")}
+            </Link>
             {hasLegacyAccess && (
               <Link
                 href="/"

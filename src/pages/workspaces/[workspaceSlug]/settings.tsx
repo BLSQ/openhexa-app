@@ -69,7 +69,23 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={workspace.name}>
-      <WorkspaceLayout workspace={workspace}>
+      <WorkspaceLayout
+        workspace={workspace}
+        helpLinks={[
+          {
+            label: t("Workspace settings"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#workspace-settings",
+          },
+          {
+            label: t("Inviting and managing users"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#inviting-and-managing-users",
+          },
+          {
+            label: t("Regenerating the database password"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#regenerating-the-workspace-database-password",
+          },
+        ]}
+      >
         <WorkspaceLayout.Header className="flex justify-between">
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part

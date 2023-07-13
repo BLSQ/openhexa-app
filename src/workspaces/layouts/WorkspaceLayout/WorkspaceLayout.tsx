@@ -2,21 +2,32 @@ import { gql } from "@apollo/client";
 import clsx from "clsx";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
-import { createContext, ReactElement, useEffect, useState } from "react";
+import {
+  ComponentProps,
+  createContext,
+  ReactElement,
+  useEffect,
+  useState,
+} from "react";
 import Header from "./Header";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
 import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
 import { getCookie, setCookie } from "cookies-next";
 import { GetServerSidePropsContext } from "next";
+import Help from "./Help";
 type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
   className?: string;
   workspace: WorkspaceLayout_WorkspaceFragment;
   forceCompactSidebar?: boolean;
+  helpLinks?: ComponentProps<typeof Help>["links"];
 };
 
-export const LayoutContext = createContext({
+export const LayoutContext = createContext<{
+  isSidebarOpen: boolean;
+  setSidebarOpen(open: boolean): void;
+}>({
   isSidebarOpen: false,
   setSidebarOpen: (open: boolean) => {},
 });
@@ -32,7 +43,13 @@ function getDefaultSidebarOpen() {
 }
 
 const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
-  const { children, className, workspace, forceCompactSidebar = false } = props;
+  const {
+    children,
+    className,
+    workspace,
+    forceCompactSidebar = false,
+    helpLinks,
+  } = props;
   const [_, setLastWorkspace] = useLocalStorage("last-visited-workspace");
   const defaultSidebarOpen = getDefaultSidebarOpen();
 
@@ -74,6 +91,13 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         >
           {children}
         </main>
+        <div className="fixed bottom-6 right-6">
+          <Help links={helpLinks}>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500 ring-opacity-5 transition-all hover:bg-gray-50 hover:text-4xl">
+              ?
+            </div>
+          </Help>
+        </div>
       </div>
     </LayoutContext.Provider>
   );
@@ -100,5 +124,6 @@ WorkspaceLayout.prefetch = async (
 
 WorkspaceLayout.PageContent = PageContent;
 WorkspaceLayout.Header = Header;
+WorkspaceLayout.Help = Help;
 
 export default WorkspaceLayout;

@@ -80,7 +80,19 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={pipeline.name ?? t("Pipeline run")}>
-      <WorkspaceLayout workspace={workspace}>
+      <WorkspaceLayout
+        workspace={workspace}
+        helpLinks={[
+          {
+            label: t("About pipelines"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-pipelines",
+          },
+          {
+            label: t("Writing OpenHexa pipelines"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines",
+          },
+        ]}
+      >
         <WorkspaceLayout.Header>
           <div className="flex items-center justify-between">
             <Breadcrumbs withHome={false}>
