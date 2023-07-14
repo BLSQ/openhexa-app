@@ -124,7 +124,6 @@ class ViewsTest(TestCase):
         )
 
         db_credentials = get_db_server_credentials()
-        workspace_db_url = f"postgresql://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{db_credentials['host']}:{db_credentials['port']}/{self.WORKSPACE.db_name}"
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
@@ -144,7 +143,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
-                "WORKSPACE_DATABASE_URL": workspace_db_url,
+                "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "GCS_TOKEN": "gcs-token",
             },
         )
@@ -194,7 +193,6 @@ class ViewsTest(TestCase):
         )
 
         db_credentials = get_db_server_credentials()
-        workspace_db_url = f"postgresql://{self.WORKSPACE.db_name}:{self.WORKSPACE.db_password}@{db_credentials['host']}:{db_credentials['port']}/{self.WORKSPACE.db_name}"
 
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
@@ -214,7 +212,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PORT": db_credentials["port"],
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
-                "WORKSPACE_DATABASE_URL": workspace_db_url,
+                "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "GCS_TOKEN": "gcs-token",
             },
         )
