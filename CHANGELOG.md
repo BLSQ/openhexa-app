@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.32.6](https://github.com/BLSQ/openhexa-frontend/compare/0.32.5...0.32.6) (2023-07-13)
+
+
+### Miscellaneous
+
+* Help popup everywhere ([#376](https://github.com/BLSQ/openhexa-frontend/issues/376)) ([f5cb22e](https://github.com/BLSQ/openhexa-frontend/commit/f5cb22eec0ee34ae49bd42ad7b211a68ecd19d6c))
+
 ## [0.32.5](https://github.com/BLSQ/openhexa-frontend/compare/0.32.4...0.32.5) (2023-07-12)
 
 
