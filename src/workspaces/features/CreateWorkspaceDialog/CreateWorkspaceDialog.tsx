@@ -53,8 +53,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
       ) {
         throw new Error("You are not authorized to perform this action");
       } else {
-        onClose();
-        router.push({
+        await router.push({
           pathname: "/workspaces/[workspaceSlug]",
           query: { workspaceSlug: data?.createWorkspace.workspace?.slug },
         });
@@ -74,7 +73,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       form.resetForm();
     }
   }, [open, form]);

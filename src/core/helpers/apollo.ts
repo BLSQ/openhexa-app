@@ -53,6 +53,10 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
       keyFields: ["slug"],
     },
+    WorkspacePermission: {
+      merge: true,
+    },
+
     DatabaseTable: {
       merge: true,
     },

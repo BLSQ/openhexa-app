@@ -57,7 +57,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       setProgress(0);
     }
   }, [open]);

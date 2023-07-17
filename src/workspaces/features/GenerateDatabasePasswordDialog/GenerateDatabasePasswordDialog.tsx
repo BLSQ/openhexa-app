@@ -37,9 +37,9 @@ const GenerateWorkspaceDatabasePasswordDialog = (
     }
 
     if (data.generateNewDatabasePassword.success) {
-      setIsSubmitting(false);
       displayAlert(t("Password successfully changed"), AlertType.info);
       onClose();
+      setIsSubmitting(false);
     }
     if (
       data.generateNewDatabasePassword.errors.includes(

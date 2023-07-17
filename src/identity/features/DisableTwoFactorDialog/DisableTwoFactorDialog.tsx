@@ -22,7 +22,7 @@ const DisableTwoFactorDialog = (props: DisableTwoFactorDialogProps) => {
   const [token, setToken] = useState<string>("");
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       setToken("");
       setChallengeGenerated(false);
     }

@@ -10,7 +10,7 @@ import useForm from "core/hooks/useForm";
 import { ConnectionType, CreateConnectionError } from "graphql-types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useCreateConnectionMutation } from "workspaces/graphql/mutations.generated";
 import {
   ConnectionForm,
@@ -105,7 +105,7 @@ export default function CreateConnectionDialog({
       }
       const { success, errors, connection } = data.createConnection;
       if (success) {
-        router.push({
+        await router.push({
           pathname: "/workspaces/[workspaceSlug]/connections/[connectionId]",
           query: {
             connectionId: connection!.id,
@@ -128,11 +128,11 @@ export default function CreateConnectionDialog({
       }
     },
   });
-
-  const handleClose = () => {
-    form.resetForm();
-    onClose();
-  };
+  useEffect(() => {
+    if (open) {
+      form.resetForm();
+    }
+  }, [open, form]);
 
   const connectionType = useMemo(
     () => (form.formData.type ? CONNECTION_TYPES[form.formData.type] : null),
@@ -142,7 +142,7 @@ export default function CreateConnectionDialog({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       centered={false}
       maxWidth={form.formData.type ? "max-w-7xl" : "max-w-3xl"}
     >
@@ -198,7 +198,7 @@ export default function CreateConnectionDialog({
           </Dialog.Content>
 
           <Dialog.Actions>
-            <Button type="button" variant="white" onClick={handleClose}>
+            <Button type="button" variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
             <Button
@@ -233,7 +233,7 @@ export default function CreateConnectionDialog({
                 ]}
               />
             </div>
-            <Button type="button" variant="white" onClick={handleClose}>
+            <Button type="button" variant="white" onClick={onClose}>
               {t("Cancel")}
             </Button>
           </Dialog.Actions>

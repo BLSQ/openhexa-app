@@ -59,7 +59,7 @@ const UpdateWorkspaceMemberDialog = (
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       form.resetForm();
     }
   }, [open, form]);

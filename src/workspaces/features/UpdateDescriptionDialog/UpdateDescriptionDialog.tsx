@@ -60,14 +60,10 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
   });
 
   useEffect(() => {
-    form.resetForm();
-  }, [form, workspace]);
-
-  useEffect(() => {
-    if (!open) {
+    if (open) {
       form.resetForm();
     }
-  }, [open, form]);
+  }, [open, form, workspace]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">

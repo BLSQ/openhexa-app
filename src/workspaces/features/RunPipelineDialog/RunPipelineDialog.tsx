@@ -130,10 +130,11 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   });
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       form.resetForm();
       setShowVersionPicker(false);
-    } else if (!("run" in props)) {
+    }
+    if (!("run" in props)) {
       fetch({
         variables: {
           workspaceSlug: pipeline.workspace?.slug,
@@ -144,8 +145,10 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   }, [open, form, fetch, props, pipeline]);
 
   useEffect(() => {
-    form.setFieldValue("version", data?.pipelineByCode?.currentVersion);
-  }, [form, data]);
+    if (!form.formData.version && open) {
+      form.setFieldValue("version", data?.pipelineByCode?.currentVersion);
+    }
+  }, [open, form, data]);
 
   useEffect(() => {
     const version = form.formData.version;

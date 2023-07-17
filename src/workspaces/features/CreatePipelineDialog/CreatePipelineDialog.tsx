@@ -42,7 +42,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   };
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       setToken(null);
     }
   }, [open]);

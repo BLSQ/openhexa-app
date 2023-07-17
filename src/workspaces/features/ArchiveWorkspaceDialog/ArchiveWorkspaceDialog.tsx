@@ -42,7 +42,7 @@ const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
     if (data.archiveWorkspace.success) {
       clearCache();
       setIsSubmitting(false);
-      router.push("/workspaces");
+      await router.push("/workspaces");
     }
     if (
       data.archiveWorkspace.errors.includes(

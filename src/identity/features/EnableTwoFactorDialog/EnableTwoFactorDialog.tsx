@@ -28,7 +28,7 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
       setToken("");
       setVerificationNeeded(false);
       setError(null);

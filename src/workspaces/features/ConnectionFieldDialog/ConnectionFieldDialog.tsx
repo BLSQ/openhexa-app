@@ -103,7 +103,7 @@ const ConnectionFieldDialog = (props: ConnectionFieldDialogProps) => {
           )}
         </Dialog.Content>
         <Dialog.Actions>
-          <Button variant="white" onClick={onClose}>
+          <Button type="button" variant="white" onClick={onClose}>
             {t("Cancel")}
           </Button>
           <Button type="submit">{t("Save")}</Button>

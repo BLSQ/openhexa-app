@@ -14,6 +14,7 @@ import SimpleSelect from "core/components/forms/SimpleSelect";
 import { gql } from "@apollo/client";
 import { InviteMemberWorkspace_WorkspaceFragment } from "./InviteMemberDialog.generated";
 import useCacheKey from "core/hooks/useCacheKey";
+import { useEffect } from "react";
 
 type InviteMemberDialogProps = {
   onClose(): void;
@@ -88,9 +89,14 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   });
 
   const handleClose = () => {
-    form.resetForm();
     onClose();
   };
+
+  useEffect(() => {
+    if (open) {
+      form.resetForm();
+    }
+  }, [open, form]);
 
   return (
     <Dialog open={open} onClose={handleClose}>

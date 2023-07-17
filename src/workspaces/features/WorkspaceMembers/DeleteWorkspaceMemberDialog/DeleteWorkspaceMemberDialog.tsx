@@ -46,7 +46,7 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
       clearCache();
       setIsSubmitting(false);
       if (me.user?.id === member.user.id) {
-        router.push("/workspaces");
+        await router.push("/workspaces");
       }
       onClose();
     }
