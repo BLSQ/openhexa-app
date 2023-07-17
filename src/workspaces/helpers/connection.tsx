@@ -592,7 +592,7 @@ export const CONNECTION_TYPES = {
   },
   [ConnectionType.Iaso]: {
     label: "IASO Account",
-    color: "bg-green-300",
+    color: "bg-yellow-200",
     iconSrc: "/images/iaso.svg",
     Form: IASOForm,
   },
