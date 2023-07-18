@@ -8,10 +8,13 @@ import {
   validateCronExpression,
 } from "workspaces/helpers/pipelines";
 
-type CronPropertyProps = PropertyDefinition & { className?: string };
+type CronPropertyProps = PropertyDefinition & {
+  className?: string;
+  placeholder?: string;
+};
 
 const CronProperty = (props: CronPropertyProps) => {
-  const { className, ...delegated } = props;
+  const { className, placeholder, ...delegated } = props;
   const { t } = useTranslation();
   const validateCron = (value: string) => {
     if (value && !validateCronExpression(value)) {
@@ -33,6 +36,7 @@ const CronProperty = (props: CronPropertyProps) => {
           onChange={(e) => property.setValue(e.target.value)}
           required={property.required}
           readOnly={property.readonly}
+          placeholder={placeholder}
         />
       </DataCard.Property>
     );
