@@ -1,4 +1,5 @@
 import hashlib
+import uuid
 from unittest.mock import patch
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
@@ -218,6 +219,31 @@ class ConnectionTest(TestCase):
                 slug="conn",
                 connection_type=ConnectionType.CUSTOM,
             )
+
+    def test_create_connection_new_slug(self):
+        con = Connection.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.WORKSPACE,
+            name="Connection with a slug",
+            connection_type=ConnectionType.CUSTOM,
+        )
+
+        self.assertEqual(con.slug, "connection-with-a-slug")
+
+    def test_create_connection_existing_slug(self):
+        self.test_create_connection_new_slug()
+
+        slug_uuid = uuid.uuid4()
+
+        with patch("uuid.uuid4", return_value=slug_uuid):
+            con = Connection.objects.create_if_has_perm(
+                self.USER_SERENA,
+                self.WORKSPACE,
+                name="connection-with-a slug",
+                connection_type=ConnectionType.CUSTOM,
+            )
+
+        self.assertEqual(con.slug, f"connection-with-a-slug-{slug_uuid.hex[:4]}")
 
     def test_add_connection_field(self):
         connection = Connection.objects.create_if_has_perm(

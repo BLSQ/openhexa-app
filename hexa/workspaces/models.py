@@ -371,8 +371,13 @@ class ConnectionManager(models.Manager):
         if not principal.has_perm("workspaces.create_connection", workspace):
             raise PermissionDenied
 
+        # Check if the slug does not already exist
         if not slug:
             slug = slugify(name)[:40]
+
+        if self.filter(workspace=workspace, slug=slug).exists():
+            # If the slug already exists, we add a random string to it
+            slug = f"{slug}-{uuid.uuid4().hex[:4]}"
 
         connection = Connection(
             workspace=workspace, user=principal, name=name, slug=slug, **kwargs
