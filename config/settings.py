@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
-    "hexa.data_collections",
     "hexa.countries",
     "hexa.visualizations",
     "hexa.notebooks",

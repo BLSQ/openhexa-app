@@ -4,17 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0033_collections"),
     ]
 
-    operations = [
-        migrations.RemoveField(
-            model_name="object",
-            name="collections",
-        ),
-        migrations.DeleteModel(
-            name="ObjectCollectionElement",
-        ),
-    ]
+    operations = []
