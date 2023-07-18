@@ -6,8 +6,8 @@ export const TableClasses = {
   thead: "",
   tbody: "divide-y divide-gray-200",
   tr: "",
-  th: "px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
-  td: "px-4 py-5 text-sm text-gray-500 h-full",
+  th: "px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider first:pl-6 last:pr-6",
+  td: "px-4 py-5 text-sm text-gray-500 h-full first:pl-6 last:pr-6",
 };
 
 export const Table = (props: HTMLAttributes<HTMLTableElement>) => (

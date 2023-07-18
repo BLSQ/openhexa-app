@@ -23,7 +23,7 @@ const Help = (props: HelpProps) => {
   if (links) {
     return (
       <Popover
-        buttonClassName={clsx("outline-none", className)}
+        buttonClassName={className}
         trigger={children}
         className="w-96"
         placement={placement}

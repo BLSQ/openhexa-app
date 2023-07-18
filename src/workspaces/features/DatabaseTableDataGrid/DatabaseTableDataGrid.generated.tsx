@@ -16,7 +16,7 @@ export type DatabaseTableDataGridQuery = { __typename?: 'Query', workspace?: { _
 
 export type DatabaseTableDataGrid_WorkspaceFragment = { __typename?: 'Workspace', slug: string };
 
-export type DatabaseTableDataGrid_TableFragment = { __typename?: 'DatabaseTable', name: string, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> };
+export type DatabaseTableDataGrid_TableFragment = { __typename?: 'DatabaseTable', name: string, columns: Array<{ __typename?: 'TableColumn', name: string }> };
 
 export const DatabaseTableDataGrid_WorkspaceFragmentDoc = gql`
     fragment DatabaseTableDataGrid_workspace on Workspace {
@@ -28,7 +28,6 @@ export const DatabaseTableDataGrid_TableFragmentDoc = gql`
   name
   columns {
     name
-    type
   }
 }
     `;

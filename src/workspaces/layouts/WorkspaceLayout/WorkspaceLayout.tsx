@@ -75,7 +75,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         setSidebarOpen: onChangeSidebar,
       }}
     >
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen w-screen">
         <div className="bg-gray-800">
           <Sidebar
             workspace={workspace}
@@ -87,7 +87,10 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         </div>
 
         <main
-          className={clsx("flex flex-1 flex-col transition-all", className)}
+          className={clsx(
+            "flex flex-1 flex-col overflow-y-hidden transition-all",
+            className
+          )}
         >
           {children}
         </main>

@@ -1,9 +1,11 @@
 import { ReactElement } from "react";
+import { UseTableColumnOptions } from "react-table";
 import { useCellContext } from "./helpers";
 
 export type BaseColumnProps = { [key: string]: any } & {
   id?: string;
   label?: string;
+  header?: UseTableColumnOptions<any>["Header"];
   hideLabel?: boolean;
   accessor?: string | ((value: any) => any);
   className?: string;

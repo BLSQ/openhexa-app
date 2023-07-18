@@ -7,7 +7,7 @@ exports[`Workspaces renders null as workspace doesn't exist 1`] = `<div />`;
 exports[`Workspaces renders the workspace page 1`] = `
 <div>
   <div
-    class="flex min-h-screen"
+    class="flex min-h-screen w-screen"
   >
     <div
       class="bg-gray-800"
@@ -225,7 +225,7 @@ exports[`Workspaces renders the workspace page 1`] = `
       </div>
     </div>
     <main
-      class="flex flex-1 flex-col transition-all"
+      class="flex flex-1 flex-col overflow-y-hidden transition-all"
     >
       <div
         class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white py-3 shadow group relative px-4 md:px-6 xl:px-10 2xl:px-12"
@@ -317,7 +317,7 @@ exports[`Workspaces renders the workspace page 1`] = `
 exports[`Workspaces shows the jupyterhub entry when user have the launchNotebookServer permission  1`] = `
 <div>
   <div
-    class="flex min-h-screen"
+    class="flex min-h-screen w-screen"
   >
     <div
       class="bg-gray-800"
@@ -559,7 +559,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       </div>
     </div>
     <main
-      class="flex flex-1 flex-col transition-all"
+      class="flex flex-1 flex-col overflow-y-hidden transition-all"
     >
       <div
         class="sticky top-0 z-10 flex h-16 flex-shrink-0 items-center justify-between border-b border-gray-200 bg-white py-3 shadow group relative px-4 md:px-6 xl:px-10 2xl:px-12"
