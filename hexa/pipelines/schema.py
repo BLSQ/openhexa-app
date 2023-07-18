@@ -96,6 +96,16 @@ def resolve_pipeline_permissions_delete_version(pipeline: Pipeline, info, **kwar
     )
 
 
+@pipeline_permissions.field("schedule")
+def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return (
+        request.user.is_authenticated
+        and request.user.has_perm("pipelines.run_pipeline", pipeline)
+        and len(pipeline.last_version.parameters) == 0
+    )
+
+
 @pipeline_object.field("currentVersion")
 def resolve_pipeline_current_version(pipeline: Pipeline, info, **kwargs):
     return pipeline.last_version
