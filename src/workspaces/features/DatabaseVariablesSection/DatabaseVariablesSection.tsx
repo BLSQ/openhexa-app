@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import { slugify } from "workspaces/helpers/connection";
 import SecretField from "./SecretField";
 import Clipboard from "core/components/Clipboard";
+import { slugify } from "workspaces/helpers/connections/utils";
 
 type DatabaseVariablesSectionProps = {
   workspace: DatabaseVariablesSection_WorkspaceFragment;

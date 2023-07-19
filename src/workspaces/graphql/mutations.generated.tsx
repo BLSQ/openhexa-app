@@ -64,7 +64,7 @@ export type UpdateConnectionMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null } | null } };
+export type UpdateConnectionMutation = { __typename?: 'Mutation', updateConnection: { __typename?: 'UpdateConnectionResult', success: boolean, errors: Array<Types.UpdateConnectionError>, connection?: { __typename?: 'Connection', id: string, name: string, slug: string, description?: string | null, fields: Array<{ __typename?: 'ConnectionField', code: string, value?: string | null, secret: boolean }> } | null } };
 
 export type GenerateNewDatabasePasswordMutationVariables = Types.Exact<{
   input: Types.GenerateNewDatabasePasswordInput;
@@ -401,6 +401,11 @@ export const UpdateConnectionDocument = gql`
       name
       slug
       description
+      fields {
+        code
+        value
+        secret
+      }
     }
   }
 }

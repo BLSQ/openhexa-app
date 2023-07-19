@@ -9,16 +9,16 @@ import {
 import userEvent from "@testing-library/user-event";
 import router from "next/router";
 import { faker } from "@faker-js/faker";
-import { deleteConnection } from "workspaces/helpers/connection";
+import { deleteConnection } from "workspaces/helpers/connections/utils";
 
 jest.mock("core/components/CodeEditor/CodeEditor", () => ({
   __esModule: true,
   default: () => "CODE_EDITOR",
 }));
 
-jest.mock("workspaces/helpers/connection", () => ({
+jest.mock("workspaces/helpers/connections/utils", () => ({
   __esModule: true,
-  ...jest.requireActual("workspaces/helpers/connection"),
+  ...jest.requireActual("workspaces/helpers/connections/utils"),
   deleteConnection: jest.fn(),
 }));
 
@@ -261,14 +261,13 @@ describe("Connections", () => {
       </TestApp>
     );
     expect(await screen.findByText("Information")).toBeInTheDocument();
-    expect(screen.getByText("Edit")).toBeInTheDocument();
+    expect(screen.queryAllByText("Edit").length).toBe(2);
 
     expect(screen.getByText("Value field 1")).toBeInTheDocument();
     expect(screen.queryByText("secret_value")).not.toBeInTheDocument();
   });
 
   it("displays the button to delete the connection", async () => {
-    const user = userEvent.setup();
     const deleteConnectionMock = deleteConnection as jest.Mock;
     deleteConnectionMock.mockReturnValue(true);
     const graphqlMocks = [

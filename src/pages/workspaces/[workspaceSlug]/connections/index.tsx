@@ -12,7 +12,7 @@ import {
   ConnectionsPageDocument,
   useConnectionsPageQuery,
 } from "workspaces/graphql/queries.generated";
-import { CONNECTION_TYPES } from "workspaces/helpers/connection";
+import Connections from "workspaces/helpers/connections";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -100,9 +100,9 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                     key={connection.id}
                     title={
                       <div className="flex items-center gap-x-2">
-                        {CONNECTION_TYPES[connection.type].iconSrc && (
+                        {Connections[connection.type].iconSrc && (
                           <img
-                            src={CONNECTION_TYPES[connection.type].iconSrc!}
+                            src={Connections[connection.type].iconSrc!}
                             className="h-6 w-6"
                             alt=""
                           />
@@ -110,7 +110,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                         {connection.name}
                       </div>
                     }
-                    subtitle={CONNECTION_TYPES[connection.type].label}
+                    subtitle={Connections[connection.type].label}
                     href={{
                       pathname:
                         "/workspaces/[workspaceSlug]/connections/[connectionId]",

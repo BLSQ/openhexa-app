@@ -1,11 +1,10 @@
+import { render } from "@testing-library/react";
+import { deleteConnection } from "workspaces/helpers/connections/utils";
 import DeleteConnectionTrigger from "./DeleteConnectionTrigger";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { deleteConnection } from "workspaces/helpers/connection";
 
-jest.mock("workspaces/helpers/connection", () => ({
+jest.mock("workspaces/helpers/connections/utils", () => ({
   __esModule: true,
-  ...jest.requireActual("workspaces/helpers/connection"),
+  ...jest.requireActual("workspaces/helpers/connections/utils"),
   deleteConnection: jest.fn(),
 }));
 

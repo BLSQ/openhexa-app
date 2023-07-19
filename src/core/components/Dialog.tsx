@@ -35,7 +35,9 @@ const DialogContent = (props: { children: ReactNode; className?: string }) => {
 };
 
 const DialogActions = (props: { children: ReactNode; className?: string }) => (
-  <div className={clsx("mt-5 flex justify-end sm:gap-3 md:mt-7")}>
+  <div
+    className={clsx("mt-5 flex justify-end sm:gap-3 md:mt-7", props.className)}
+  >
     {props.children}
   </div>
 );
@@ -119,7 +121,7 @@ function Dialog(props: DialogProps) {
           >
             <div
               className={clsx(
-                "inline-block transform px-2 transition-all sm:my-24 sm:w-full sm:px-4",
+                "my-12 inline-block transform px-2 transition-all sm:w-full sm:px-4 tall:my-24",
                 maxWidth ?? "max-w-lg",
                 centered && "sm:align-middle"
               )}

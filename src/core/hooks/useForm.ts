@@ -28,6 +28,7 @@ export type FormInstance<T, TData = void> = {
     delay?: number
   ) => void;
   setFieldValue: (fieldName: keyof T, value: any, isTouched?: boolean) => void;
+  setFormData: (formData: Partial<T>) => void;
   resetForm: () => void;
   validate(): void;
   handleSubmit(event?: {
@@ -220,6 +221,7 @@ function useForm<T = FormData, TData = void>(
         handleInputChange,
         setFieldValue,
         setDebouncedFieldValue,
+        setFormData,
         validate: _validate,
         resetForm,
         isSubmitting,
@@ -234,6 +236,7 @@ function useForm<T = FormData, TData = void>(
       allTouched,
       handleInputChange,
       setFieldValue,
+      setFormData,
       setDebouncedFieldValue,
       resetForm,
 

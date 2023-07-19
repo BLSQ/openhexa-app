@@ -21,7 +21,7 @@ import {
   ConnectionPageQueryVariables,
   useConnectionPageQuery,
 } from "workspaces/graphql/queries.generated";
-import { CONNECTION_TYPES } from "workspaces/helpers/connection";
+import Connections from "workspaces/helpers/connections";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
 type Props = {
@@ -49,7 +49,6 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
         input: {
           id: item.id,
           name: values.name,
-          slug: values.slug,
           description: values.description,
         },
       },
@@ -61,7 +60,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
   }
   const { workspace, connection } = data;
 
-  const type = CONNECTION_TYPES[connection.type];
+  const type = Connections[connection.type];
   if (!connection || !type) {
     return null;
   }
@@ -135,12 +134,13 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                 <TextProperty id="name" label={t("Name")} accessor="name" />
                 <TextProperty
                   id="slug"
-                  label={t("Slug")}
+                  label={t("Identifier")}
+                  readonly
                   accessor="slug"
                   help={t(
-                    "The slug is used as the prefix for the environment variables in the notebooks"
+                    "The identifier is used as the prefix for the environment variables in the notebooks"
                   )}
-                  className="font-mono uppercase"
+                  className="font-mono"
                 />
                 <DescriptionList.Item label={t("Type")}>
                   <Badge className={type.color}>{type.label ?? "custom"}</Badge>
@@ -161,50 +161,6 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                 <ConnectionFieldsSection connection={connection} />
               )}
             </div>
-            <DataCard.Section title={t("Usage")}>
-              <div className="space-y-2">
-                <p>
-                  The following guides gives you a general introduction to
-                  connections and how you can use them in notebooks or data
-                  pipelines:
-                </p>
-                <ul className="list list-inside list-disc">
-                  <li>
-                    <a
-                      href={
-                        "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections"
-                      }
-                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
-                      target="_blank"
-                    >
-                      {t("Connections general documentation")}
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href={
-                        "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections"
-                      }
-                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
-                      target="_blank"
-                    >
-                      {t("Using connections in notebooks")}
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href={
-                        "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections"
-                      }
-                      className="text-blue-600 hover:text-blue-500 focus:outline-none"
-                      target="_blank"
-                    >
-                      {t("Using connections in pipelines")}
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </DataCard.Section>
           </DataCard>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>

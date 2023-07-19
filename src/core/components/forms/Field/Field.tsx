@@ -9,7 +9,7 @@ interface CommonProps {
   label?: string;
   error?: string | null | false;
   required?: boolean;
-  description?: string;
+  description?: ReactNode | string;
   name: string;
   help?: ReactNode;
   className?: string;

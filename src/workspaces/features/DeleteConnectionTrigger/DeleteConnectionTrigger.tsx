@@ -4,11 +4,11 @@ import { useRouter } from "next/router";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ReactElement } from "react-markdown/lib/react-markdown";
-import { deleteConnection } from "workspaces/helpers/connection";
 import {
   DeleteConnectionTrigger_ConnectionFragment,
   DeleteConnectionTrigger_WorkspaceFragment,
 } from "./DeleteConnectionTrigger.generated";
+import { deleteConnection } from "workspaces/helpers/connections/utils";
 
 type DeleteConnectionTriggerProps = {
   children: ({ onClick }: { onClick: () => void }) => ReactElement;

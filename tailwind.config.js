@@ -8,6 +8,11 @@ module.exports = {
       fontFamily: {
         sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
+
+      screens: {
+        tall: { raw: "(min-height: 901px)" },
+        // => @media (min-height: 901px) { ... }
+      },
     },
   },
   plugins: [

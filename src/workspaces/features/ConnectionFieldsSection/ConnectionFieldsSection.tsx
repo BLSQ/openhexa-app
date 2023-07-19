@@ -1,23 +1,14 @@
 import { gql } from "@apollo/client";
-import {
-  LockClosedIcon,
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { LockClosedIcon, PencilIcon } from "@heroicons/react/24/outline";
 import { BlockSection } from "core/components/Block";
-import Button from "core/components/Button";
+import Clipboard from "core/components/Clipboard";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import useCacheKey from "core/hooks/useCacheKey";
-import { ConnectionField, ConnectionType } from "graphql-types";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useUpdateConnectionMutation } from "workspaces/graphql/mutations.generated";
-import { convertFieldsToInput, slugify } from "workspaces/helpers/connection";
-import ConnectionFieldDialog from "../ConnectionFieldDialog";
+import { slugify } from "workspaces/helpers/connections/utils";
+import UpdateConnectionFieldsDialog from "../UpdateConnectionFieldsDialog/UpdateConnectionFieldsDialog";
 import { ConnectionFieldsSection_ConnectionFragment } from "./ConnectionFieldsSection.generated";
-import Clipboard from "core/components/Clipboard";
 
 type ConnectionFieldsSectionProps = {
   connection: ConnectionFieldsSection_ConnectionFragment;
@@ -26,144 +17,77 @@ type ConnectionFieldsSectionProps = {
 const ConnectionFieldsSection = (props: ConnectionFieldsSectionProps) => {
   const { connection } = props;
   const { t } = useTranslation();
-  const [editedState, setEditedState] = useState<{
-    field?: React.ComponentProps<typeof ConnectionFieldDialog>["field"];
-    isOpen: boolean;
-  }>({
-    isOpen: false,
-  });
-  const [updateConnection] = useUpdateConnectionMutation();
-  const clearCache = useCacheKey(["connections", connection.id]);
-
-  const onFieldSave: React.ComponentProps<
-    typeof ConnectionFieldDialog
-  >["onSave"] = async (field) => {
-    const fields = [...connection.fields];
-    const idx = fields.findIndex((x) => x.code === field.code);
-    if (idx !== -1) {
-      fields[idx] = field;
-    } else {
-      fields.push(field as ConnectionField);
-    }
-
-    await updateConnection({
-      variables: {
-        input: {
-          id: connection.id,
-          fields: convertFieldsToInput(fields),
-        },
-      },
-    });
-    clearCache();
-  };
-
-  const onFieldDelete = async (field: Pick<ConnectionField, "code">) => {
-    if (
-      window.confirm(
-        t("Are you sure to delete this field from the connection?")
-      )
-    ) {
-      await updateConnection({
-        variables: {
-          input: {
-            id: connection.id,
-            fields: convertFieldsToInput(
-              connection.fields.filter((f) => f.code !== field.code)
-            ),
-          },
-        },
-      });
-      clearCache();
-    }
-  };
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
 
   return (
     <BlockSection
       collapsible={false}
       title={(open) => (
-        <div className="flex flex-1 items-center justify-between">
+        <div className="flex flex-1 items-center">
           <h4 className="font-medium">{t("Fields")}</h4>
 
-          {connection.type === ConnectionType.Custom &&
-            connection.permissions.update && (
-              <Button
-                size="sm"
-                variant="white"
-                leadingIcon={<PlusIcon className="h-4 w-4" />}
-                onClick={() => setEditedState({ isOpen: true })}
-              >
-                {t("Add field")}
-              </Button>
-            )}
+          {connection.permissions.update && (
+            <button
+              className="ml-4 inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-400"
+              onClick={() => setShowUpdateDialog(true)}
+            >
+              {t("Edit")}
+              <PencilIcon className="h-4" />
+            </button>
+          )}
         </div>
       )}
     >
-      {connection.fields.length === 0 && (
+      {connection.fields.length === 0 ? (
         <span className="text-sm text-gray-500">
           {t("There are no fields for this connection yet.")}
         </span>
-      )}
-      <DataGrid
-        className="rounded-md border 2xl:w-3/4"
-        data={connection.fields}
-        fixedLayout={false}
-      >
-        <TextColumn
-          className="py-3 font-mono"
-          label={t("Name")}
-          accessor={"code"}
-        />
-        <BaseColumn label={t("Environment variable")} accessor={"code"}>
-          {(value) => (
-            <Clipboard value={slugify(connection.slug, value)}>
-              <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium  text-gray-600">
-                {slugify(connection.slug, value)}
-              </code>
-            </Clipboard>
-          )}
-        </BaseColumn>
-        <BaseColumn
-          className="flex justify-start gap-x-2 font-mono text-gray-900"
-          label={t("Value")}
+      ) : (
+        <DataGrid
+          className="rounded-md border 2xl:w-3/4"
+          data={connection.fields}
+          fixedLayout={false}
         >
-          {(field) => (
-            <>
-              {field.secret && <LockClosedIcon className="h-3 w-3" />}
-              {field.secret && "*********"}
-              {!field.secret &&
-                (field.value || (
-                  <span className="text-sm italic text-gray-500">
-                    {t("No value")}
-                  </span>
-                ))}
-              {!field.secret && field.value && (
-                <Clipboard value={field.value} />
-              )}
-              <button
-                onClick={() => setEditedState({ isOpen: true, field })}
-                className="rounded-sm text-blue-500  hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                title={t("Update")}
-              >
-                <PencilIcon className="h-3.5 w-3.5" />
-              </button>
-              {connection.type === ConnectionType.Custom && (
-                <button
-                  title={t("Delete")}
-                  className=" rounded p-0.5 text-red-500 hover:bg-red-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                  onClick={() => onFieldDelete(field)}
-                >
-                  <TrashIcon className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </>
-          )}
-        </BaseColumn>
-      </DataGrid>
-      <ConnectionFieldDialog
-        onSave={onFieldSave}
-        onClose={() => setEditedState({ isOpen: false })}
-        open={editedState.isOpen}
-        field={editedState.field}
+          <TextColumn
+            className="py-3 font-mono"
+            label={t("Name")}
+            accessor={"code"}
+          />
+          <BaseColumn label={t("Environment variable")} accessor={"code"}>
+            {(value) => (
+              <Clipboard value={slugify(connection.slug, value)}>
+                <code className="rounded-md bg-slate-100 p-1.5 font-mono text-xs font-medium  text-gray-600">
+                  {slugify(connection.slug, value)}
+                </code>
+              </Clipboard>
+            )}
+          </BaseColumn>
+          <BaseColumn
+            className="flex justify-start gap-x-2 font-mono text-gray-900"
+            label={t("Value")}
+          >
+            {(field) => (
+              <>
+                {field.secret && <LockClosedIcon className="h-3 w-3" />}
+                {field.secret && "*********"}
+                {!field.secret &&
+                  (field.value || (
+                    <span className="text-sm italic text-gray-500">
+                      {t("No value")}
+                    </span>
+                  ))}
+                {!field.secret && field.value && (
+                  <Clipboard value={field.value} />
+                )}
+              </>
+            )}
+          </BaseColumn>
+        </DataGrid>
+      )}
+      <UpdateConnectionFieldsDialog
+        open={showUpdateDialog}
+        onClose={() => setShowUpdateDialog(false)}
+        connection={connection}
       />
     </BlockSection>
   );
@@ -183,7 +107,9 @@ ConnectionFieldsSection.fragments = {
       permissions {
         update
       }
+      ...UpdateConnectionFieldsDialog_connection
     }
+    ${UpdateConnectionFieldsDialog.fragments.connection}
   `,
 };
 

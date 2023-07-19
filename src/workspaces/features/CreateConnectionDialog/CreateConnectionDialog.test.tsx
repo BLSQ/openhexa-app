@@ -51,15 +51,20 @@ describe("CreateConnectionDialog", () => {
       screen.getByRole("textbox", { name: "Connection name" }),
       "My Connection"
     );
-    await user.type(screen.getByRole("textbox", { name: "Slug" }), "CONN");
     await user.type(
       screen.getByRole("textbox", { name: "Description" }),
       "Description"
     );
 
     await user.click(screen.getByTestId("add-field"));
-    await user.type(screen.getByRole("textbox", { name: "Name" }), "field");
-    await user.type(screen.getByRole("textbox", { name: "Value" }), "val");
+    await user.type(
+      screen.getByRole("textbox", { name: "Field name" }),
+      "field"
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Field value" }),
+      "val"
+    );
     expect(createConnectionMock).not.toHaveBeenCalled();
     await user.click(screen.getByTestId("create-connection"));
     expect(createConnectionMock).toHaveBeenCalledWith({
@@ -67,7 +72,6 @@ describe("CreateConnectionDialog", () => {
         input: {
           workspaceSlug: WORKSPACE.slug,
           name: "My Connection",
-          slug: "CONN",
           description: "Description",
           type: "CUSTOM",
           fields: [
