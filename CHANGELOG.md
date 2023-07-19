@@ -1,3 +1,21 @@
+# Changelog
+
+## [0.58.0](https://github.com/BLSQ/openhexa-app/compare/0.57.6...0.58.0) (2023-07-19)
+
+
+### Bug Fixes
+
+* **Connections:** Add a suffix to connection slug if it exists ([#505](https://github.com/BLSQ/openhexa-app/issues/505)) ([d32d2fb](https://github.com/BLSQ/openhexa-app/commit/d32d2fb61f9d1043bd5833af2439036de80d2480))
+
+
+### Miscellaneous
+
+* Configure release-please ([#502](https://github.com/BLSQ/openhexa-app/issues/502)) ([b970ee4](https://github.com/BLSQ/openhexa-app/commit/b970ee46fc3648a39ac9919a3fee18e80e2e25d0))
+* **Connections:** Limit slug to 40 chars ([9c0e188](https://github.com/BLSQ/openhexa-app/commit/9c0e188156a71a5916103c72f51f1dba743e2259))
+* **Pipelines:** add schedule permission ([#501](https://github.com/BLSQ/openhexa-app/issues/501)) ([a5afa79](https://github.com/BLSQ/openhexa-app/commit/a5afa79251cb904813396d80eac39b97b92bdd40))
+* **Release:** Release 0.58.0 ([1997a4b](https://github.com/BLSQ/openhexa-app/commit/1997a4be92167aafa09b6c81cdeff278d6abfe32))
+* Remove data_collections STEP 2 ([#496](https://github.com/BLSQ/openhexa-app/issues/496)) ([52c537d](https://github.com/BLSQ/openhexa-app/commit/52c537de3fabc1500778c5b6ce8cea2865dde17c))
+
 Changelog
 =========
 
