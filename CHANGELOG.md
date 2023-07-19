@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.33.0](https://github.com/BLSQ/openhexa-frontend/compare/0.32.6...0.33.0) (2023-07-19)
+
+
+### Features
+
+* **Database:** User can select/deselect the columns he wants to see ([#382](https://github.com/BLSQ/openhexa-frontend/issues/382)) ([974ec3b](https://github.com/BLSQ/openhexa-frontend/commit/974ec3b8ef2e04710b0aa8017b386e4483fbf113))
+
+
+### Bug Fixes
+
+* **Modals:** prevent glitch when closing modal ([#377](https://github.com/BLSQ/openhexa-frontend/issues/377)) ([5274ab1](https://github.com/BLSQ/openhexa-frontend/commit/5274ab175bca0f85174da4163705eff7843e7fa3))
+* **Pipelines:** allow scheduling for only pipelines without parameters ([#381](https://github.com/BLSQ/openhexa-frontend/issues/381)) ([47dad85](https://github.com/BLSQ/openhexa-frontend/commit/47dad85d773f5949cdf214c630bb75aba98515f7))
+
+
+### Miscellaneous
+
+* 'feat' creates a patch version and not a minor version ([434703c](https://github.com/BLSQ/openhexa-frontend/commit/434703c62cccbf206cc49481a12347e50c7b8b2d))
+* Connections UX improvements ([#373](https://github.com/BLSQ/openhexa-frontend/issues/373)) ([386c8cf](https://github.com/BLSQ/openhexa-frontend/commit/386c8cf2047739f7d378d3598c695c2929af907c))
+* **Connections:** update IASO logo ([#380](https://github.com/BLSQ/openhexa-frontend/issues/380)) ([6f73ff2](https://github.com/BLSQ/openhexa-frontend/commit/6f73ff2a853a86f71ad99f1cad6305bccb303c42))
+* **deps:** bump semver from 5.7.1 to 5.7.2 ([#374](https://github.com/BLSQ/openhexa-frontend/issues/374)) ([1a97f5b](https://github.com/BLSQ/openhexa-frontend/commit/1a97f5b8525e0076cfb92eeedcfbce8f7b6b5479))
+* **deps:** bump tough-cookie from 4.1.2 to 4.1.3 ([#368](https://github.com/BLSQ/openhexa-frontend/issues/368)) ([4696462](https://github.com/BLSQ/openhexa-frontend/commit/46964627217ca6cafe036994e218a3923eefbc81))
+* **i18n:** update translations ([386c8cf](https://github.com/BLSQ/openhexa-frontend/commit/386c8cf2047739f7d378d3598c695c2929af907c))
+* **Pipelines:** scheduling section ux fine-tuning ([#383](https://github.com/BLSQ/openhexa-frontend/issues/383)) ([5e3754f](https://github.com/BLSQ/openhexa-frontend/commit/5e3754fb35a95bef957cef32ff919780bb88977d))
+
 ## [0.32.6](https://github.com/BLSQ/openhexa-frontend/compare/0.32.5...0.32.6) (2023-07-13)
 
 
