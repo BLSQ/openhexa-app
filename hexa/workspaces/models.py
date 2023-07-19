@@ -523,6 +523,7 @@ class ConnectionField(models.Model):
 
     class Meta:
         unique_together = [["connection", "code"]]
+        ordering = ("created_at",)
 
 
 DEFAULT_WORKSPACE_DESCRIPTION = """# {workspace_name}
