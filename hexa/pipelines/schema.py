@@ -12,6 +12,7 @@ from hexa.workspaces.schema.types import workspace_permissions
 
 from .authentication import PipelineRunUser
 from .models import (
+    InvalidDefinition,
     Pipeline,
     PipelineRun,
     PipelineRunState,
@@ -398,6 +399,8 @@ def resolve_upload_pipeline(_, info, **kwargs):
             parameters=input["parameters"],
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
+    except InvalidDefinition as e:
+        return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except Exception as e:
         return {"success": False, "errors": [str(e)]}
 
