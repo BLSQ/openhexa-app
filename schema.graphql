@@ -1399,6 +1399,7 @@ type PipelinePermissions {
   delete: Boolean!
   run: Boolean!
   deleteVersion: Boolean!
+  schedule: Boolean!
 }
 
 type PipelineRecipient {

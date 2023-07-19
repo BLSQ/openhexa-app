@@ -85,6 +85,9 @@ query WorkspacePipelinePage(
     name
     description
     schedule
+    permissions {
+      schedule
+    }
     currentVersion {
       id
       number
