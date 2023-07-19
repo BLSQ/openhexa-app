@@ -28,7 +28,7 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
-class InvalidDefinition(Exception):
+class PipelineDoesNotSupportParametersError(Exception):
     pass
 
 
@@ -193,7 +193,7 @@ class Pipeline(models.Model):
     def upload_new_version(self, user: User, zipfile, parameters):
         if self.last_version:
             if self.schedule and parameters:
-                raise InvalidDefinition(
+                raise PipelineDoesNotSupportParametersError(
                     "Cannot push a new version with parameters for a scheduled pipeline."
                 )
             newnumber = self.last_version.number + 1
