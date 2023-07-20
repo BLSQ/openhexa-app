@@ -53,7 +53,6 @@ class ConnectionFieldAdmin(admin.ModelAdmin):
 @admin.register(WorkspaceInvitation)
 class WorkspaceInvitationAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
         "email",
         "invited_by",
         "workspace",
