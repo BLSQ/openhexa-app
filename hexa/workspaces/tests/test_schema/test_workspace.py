@@ -6,6 +6,7 @@ import uuid
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib import auth
 from django.core import mail
 from django.core.signing import BadSignature, SignatureExpired, Signer, TimestampSigner
 
@@ -1180,6 +1181,8 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertTrue(
             WorkspaceMembership.objects.filter(user__email=invitation.email).exists()
         )
+        user = auth.get_user(self.client)
+        self.assertTrue(user.is_authenticated)
 
     def test_get_all_workspace_invitations(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
