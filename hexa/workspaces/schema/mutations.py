@@ -1,6 +1,7 @@
 import binascii
 
 from ariadne import MutationType
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired, Signer
@@ -230,6 +231,11 @@ def resolver_join_workspace(_, info, **kwargs):
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
+        # automatically signup user
+        authenticated_user = authenticate(
+            username=invitation.email, password=input["password"]
+        )
+        login(request, authenticated_user)
         return {"success": True, "errors": [], "workspace": invitation.workspace}
 
     except SignatureExpired:
