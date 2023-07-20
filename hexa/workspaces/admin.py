@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Connection, ConnectionField, Workspace, WorkspaceMembership
+from .models import (
+    Connection,
+    ConnectionField,
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceMembership,
+)
 
 
 @admin.register(Workspace)
@@ -41,4 +47,16 @@ class ConnectionFieldAdmin(admin.ModelAdmin):
         "id",
         "connection",
         "code",
+    )
+
+
+@admin.register(WorkspaceInvitation)
+class WorkspaceInvitationAdmin(admin.ModelAdmin):
+    list_display = (
+        "email",
+        "invited_by",
+        "workspace",
+        "status",
+        "created_at",
+        "updated_at",
     )
