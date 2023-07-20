@@ -832,3 +832,43 @@ class PipelinesV2Test(GraphQLTestCase):
             },
             r["data"]["pipelineByCode"],
         )
+
+    def test_upload_pipeline_parameters_not_supported(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline.schedule = "0 15 * * *"
+        pipeline.save()
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "parameters": [
+                        {
+                            "code": "param1",
+                            "name": "Param 1",
+                            "type": "string",
+                            "help": "Param 1's Help",
+                            "default": "default value",
+                            "multiple": True,
+                            "required": True,
+                            "choices": ["Choice 1", "Choice 2"],
+                        }
+                    ],
+                    "zipfile": "",
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]},
+            r["data"]["uploadPipeline"],
+        )

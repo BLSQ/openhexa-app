@@ -28,6 +28,10 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 
+class PipelineDoesNotSupportParametersError(Exception):
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
@@ -188,6 +192,10 @@ class Pipeline(models.Model):
 
     def upload_new_version(self, user: User, zipfile, parameters):
         if self.last_version:
+            if self.schedule and parameters:
+                raise PipelineDoesNotSupportParametersError(
+                    "Cannot push a new version with parameters for a scheduled pipeline."
+                )
             newnumber = self.last_version.number + 1
         else:
             newnumber = 1
