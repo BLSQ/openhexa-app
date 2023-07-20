@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.58.1](https://github.com/BLSQ/openhexa-app/compare/0.58.0...0.58.1) (2023-07-20)
+
+
+### Features
+
+* **Pipelines:** prevent push of version with params for scheduled pipeline. ([#507](https://github.com/BLSQ/openhexa-app/issues/507)) ([8d58d3c](https://github.com/BLSQ/openhexa-app/commit/8d58d3c00e8ce03fb3b63f5d32f7edb0d460e9c1))
+* **Workspaces:** add workspace invitations list to django admin ([#508](https://github.com/BLSQ/openhexa-app/issues/508)) ([b4ac2ba](https://github.com/BLSQ/openhexa-app/commit/b4ac2baa1d5ec3363b11584df6b55cec3e35d650))
+* **Workspaces:** Automatically log in users after signup ([#510](https://github.com/BLSQ/openhexa-app/issues/510)) ([a06e9ad](https://github.com/BLSQ/openhexa-app/commit/a06e9adaaccff105019d15782e109ad0d9edc499))
+
+
+### Bug Fixes
+
+* **ConnectionFields:** order fields by creation date ([#506](https://github.com/BLSQ/openhexa-app/issues/506)) ([0c8c494](https://github.com/BLSQ/openhexa-app/commit/0c8c4948cf9fd5ad00dc80b2fdb60206b7818ffe))
+
 ## [0.58.0](https://github.com/BLSQ/openhexa-app/compare/0.57.6...0.58.0) (2023-07-19)
 
 
