@@ -42,6 +42,7 @@ def resolve_create_workspace(_, info, **kwargs):
             ]
             if "countries" in create_input
             else None,
+            load_sample_data=create_input.get("loadSampleData"),
         )
 
         return {"success": True, "workspace": workspace, "errors": []}

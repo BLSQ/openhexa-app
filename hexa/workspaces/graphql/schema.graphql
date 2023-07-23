@@ -160,6 +160,7 @@ input CreateWorkspaceInput {
   slug: String
   description: String
   countries: [CountryInput!]
+  loadSampleData: Boolean
 }
 
 input UpdateWorkspaceInput {
