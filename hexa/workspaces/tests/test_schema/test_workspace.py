@@ -127,10 +127,55 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     @mock_gcp_storage
-    def test_create_workspace(self):
+    def test_create_workspace_with_demo_data(self):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
-        ):
+        ) as mocked_load_database_sample, patch(
+            "hexa.workspaces.models.load_bucket_sample_data"
+        ) as mocked_load_bucket_sample:
+            self.client.force_login(self.USER_JULIA)
+            r = self.run_query(
+                """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+                {
+                    "input": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                        "loadSampleData": True,
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "workspace": {
+                        "name": "Cameroon workspace",
+                        "description": "Description",
+                    },
+                },
+                r["data"]["createWorkspace"],
+            )
+            self.assertTrue(mocked_load_bucket_sample.called)
+            self.assertTrue(mocked_load_database_sample.called)
+
+    @mock_gcp_storage
+    def test_create_workspace_without_demo_data(self):
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ) as mocked_load_database_sample, patch(
+            "hexa.workspaces.models.load_bucket_sample_data"
+        ) as mocked_load_bucket_sample:
             self.client.force_login(self.USER_JULIA)
             r = self.run_query(
                 """
@@ -163,6 +208,8 @@ class WorkspaceTest(GraphQLTestCase):
                 },
                 r["data"]["createWorkspace"],
             )
+            self.assertFalse(mocked_load_bucket_sample.called)
+            self.assertFalse(mocked_load_database_sample.called)
 
     @mock_gcp_storage
     def test_create_workspace_with_country(self):

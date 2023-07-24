@@ -66,6 +66,7 @@ class WorkspaceManager(models.Manager):
         name: str,
         description: str = None,
         countries: typing.Sequence[Country] = None,
+        load_sample_data: bool = False,
     ):
         if not principal.has_perm("workspaces.create_workspace"):
             raise PermissionDenied
@@ -83,13 +84,14 @@ class WorkspaceManager(models.Manager):
         db_name = generate_database_name()
         create_kwargs["db_password"] = db_password
         create_kwargs["db_name"] = db_name
-
         create_database(db_name, db_password)
-        load_database_sample_data(db_name)
 
         bucket = create_bucket(settings.WORKSPACE_BUCKET_PREFIX + slug)
-        load_bucket_sample_data(bucket.name)
         create_kwargs["bucket_name"] = bucket.name
+
+        if load_sample_data:
+            load_database_sample_data(db_name)
+            load_bucket_sample_data(bucket.name)
 
         workspace = self.create(**create_kwargs)
 
