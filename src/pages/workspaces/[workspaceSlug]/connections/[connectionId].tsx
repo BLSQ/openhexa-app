@@ -1,12 +1,10 @@
 import { TrashIcon } from "@heroicons/react/24/outline";
-import Badge from "core/components/Badge";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import DateProperty from "core/components/DataCard/DateProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import TextProperty from "core/components/DataCard/TextProperty";
-import DescriptionList from "core/components/DescriptionList";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -142,9 +140,6 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                   )}
                   className="font-mono"
                 />
-                <DescriptionList.Item label={t("Type")}>
-                  <Badge className={type.color}>{type.label ?? "custom"}</Badge>
-                </DescriptionList.Item>
                 <DateProperty
                   readonly
                   id="createdAt"
