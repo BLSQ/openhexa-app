@@ -729,6 +729,7 @@ export enum CreateWorkspaceError {
 export type CreateWorkspaceInput = {
   countries?: InputMaybe<Array<CountryInput>>;
   description?: InputMaybe<Scalars['String']['input']>;
+  loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
   slug?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1867,6 +1868,7 @@ export enum PipelineError {
   InvalidConfig = 'INVALID_CONFIG',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
+  PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'

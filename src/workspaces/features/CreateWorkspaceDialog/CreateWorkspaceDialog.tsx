@@ -8,9 +8,9 @@ import useForm from "core/hooks/useForm";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useCreateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
-import { ensureArray } from "core/helpers/array";
 import { useRouter } from "next/router";
 import { CreateWorkspaceError } from "graphql-types";
+import Checkbox from "core/components/forms/Checkbox/Checkbox";
 
 type CreateWorkspaceDialogProps = {
   onClose(): void;
@@ -21,6 +21,7 @@ type CreateWorkspaceDialogProps = {
 type Form = {
   name: string;
   country: CountryPicker_CountryFragment;
+  loadSampleData: boolean;
 };
 
 const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
@@ -38,6 +39,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
             countries: values.country
               ? [{ code: values.country.code }]
               : undefined,
+            loadSampleData: values.loadSampleData,
           },
         },
       });
@@ -69,6 +71,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
     },
     initialState: {
       name: "",
+      loadSampleData: false,
     },
   });
 
@@ -104,11 +107,23 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
               onChange={(value) => form.setFieldValue("country", value)}
             />
           </Field>
+
           {form.submitError && (
             <div className="text-danger mt-3 text-sm">{form.submitError}</div>
           )}
         </Dialog.Content>
         <Dialog.Actions>
+          <div className="flex flex-1 items-center">
+            <Checkbox
+              checked={form.formData.loadSampleData}
+              name="loadSampleData"
+              onChange={form.handleInputChange}
+              label={t("Add tutorial content")}
+              help={t(
+                "Enabling this option will import tutorial content in your new workspace"
+              )}
+            />
+          </div>
           {showCancel && (
             <Button variant="white" type="button" onClick={onClose}>
               {t("Cancel")}

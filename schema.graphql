@@ -659,6 +659,7 @@ input CreateWorkspaceInput {
   slug: String
   description: String
   countries: [CountryInput!]
+  loadSampleData: Boolean
 }
 
 type CreateWorkspaceResult {
@@ -1377,6 +1378,7 @@ type Pipeline {
 enum PipelineError {
   PIPELINE_NOT_FOUND
   PIPELINE_VERSION_NOT_FOUND
+  PIPELINE_DOES_NOT_SUPPORT_PARAMETERS
   WORKSPACE_NOT_FOUND
   PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
