@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/BLSQ/openhexa-frontend/compare/0.33.0...0.33.1) (2023-07-25)
+
+
+### Features
+
+* **Workspaces:** set demo content optional ([#388](https://github.com/BLSQ/openhexa-frontend/issues/388)) ([9f268b9](https://github.com/BLSQ/openhexa-frontend/commit/9f268b9ed74c4c0ddafb77dfd31cb6449b2c92d9))
+
 ## [0.33.0](https://github.com/BLSQ/openhexa-frontend/compare/0.32.6...0.33.0) (2023-07-19)
 
 
