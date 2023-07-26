@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.2](https://github.com/BLSQ/openhexa-app/compare/0.58.1...0.58.2) (2023-07-24)
+
+
+### Features
+
+* **Workspaces:** set demo data optional ([#511](https://github.com/BLSQ/openhexa-app/issues/511)) ([10d79d4](https://github.com/BLSQ/openhexa-app/commit/10d79d4644e29f114a0494e7648349e1d6b0be94))
+
 ## [0.58.1](https://github.com/BLSQ/openhexa-app/compare/0.58.0...0.58.1) (2023-07-20)
 
 
