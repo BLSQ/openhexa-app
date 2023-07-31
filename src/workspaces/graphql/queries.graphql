@@ -254,6 +254,7 @@ query ConnectionsPage($workspaceSlug: String!) {
     name
     permissions {
       update
+      createConnection
     }
     ...CreateConnectionDialog_workspace
     connections {

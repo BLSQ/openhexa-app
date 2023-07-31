@@ -111,7 +111,7 @@ export type ConnectionsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type ConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, manageMembers: boolean, launchNotebookServer: boolean }, connections: Array<{ __typename?: 'Connection', id: string, description?: string | null, name: string, type: Types.ConnectionType, slug: string, updatedAt?: any | null, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean } }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type ConnectionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', update: boolean, createConnection: boolean, manageMembers: boolean, launchNotebookServer: boolean }, connections: Array<{ __typename?: 'Connection', id: string, description?: string | null, name: string, type: Types.ConnectionType, slug: string, updatedAt?: any | null, permissions: { __typename?: 'ConnectionPermissions', update: boolean, delete: boolean } }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type ConnectionPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -691,6 +691,7 @@ export const ConnectionsPageDocument = gql`
     name
     permissions {
       update
+      createConnection
     }
     ...CreateConnectionDialog_workspace
     connections {

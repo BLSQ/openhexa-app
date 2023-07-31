@@ -83,7 +83,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
             {workspace.connections.length === 0 ? (
               <div className="text-center text-gray-500">
                 <div>{t("This workspace does not have any connection.")}</div>
-                {workspace.permissions.update && (
+                {workspace.permissions.createConnection && (
                   <Button
                     variant="secondary"
                     onClick={() => setOpenModal(true)}

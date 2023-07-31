@@ -145,7 +145,7 @@ export default function CreateConnectionDialog({
       } else if (
         errors.find((x) => x === CreateConnectionError.PermissionDenied)
       ) {
-        throw new Error(t("Permissions denied"));
+        throw new Error(t("Permission denied"));
       }
     },
   });
@@ -226,12 +226,10 @@ export default function CreateConnectionDialog({
                 required
               />
               <connection.Form form={form} />
-              {form.submitError && (
-                <p className={"my-2 text-sm text-red-600"}>
-                  {form.submitError}
-                </p>
-              )}
             </div>
+            {form.submitError && (
+              <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
+            )}
           </Dialog.Content>
 
           <Dialog.Actions>
