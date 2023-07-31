@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.58.3](https://github.com/BLSQ/openhexa-app/compare/0.58.2...0.58.3) (2023-07-31)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump socket.io-parser in /hexa/ui/static_src ([#503](https://github.com/BLSQ/openhexa-app/issues/503)) ([68614c2](https://github.com/BLSQ/openhexa-app/commit/68614c27b0e5319459ec0aba94f556035f9630d5))
+* **deps:** bump yaml from 2.2.1 to 2.2.2 in /hexa/ui/static_src ([#464](https://github.com/BLSQ/openhexa-app/issues/464)) ([9263dd2](https://github.com/BLSQ/openhexa-app/commit/9263dd21b6a173659ffb26af6362a60a18831344))
+
 ## [0.58.2](https://github.com/BLSQ/openhexa-app/compare/0.58.1...0.58.2) (2023-07-24)
 
 
