@@ -1,4 +1,5 @@
 import base64
+import os
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
@@ -270,13 +271,22 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
+        if input.get("timeout") and input.get("timeout") > int(
+            os.environ.get("PIPELINE_RUN_MAX_TIMEOUT")
+        ):
+            raise Exception("Pipeline timeout greater than the maximum allowed value.")
+
         pipeline = Pipeline.objects.create(
             code=input["code"],
             name=input.get("name"),
             workspace=workspace,
+            timeout=input.get("timeout"),
         )
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
+    except Exception:
+        return {"success": False, "errors": ["INVALID_CONFIG"]}
+
     return {"pipeline": pipeline, "success": True, "errors": []}
 
 

@@ -30,6 +30,8 @@ x-app: &common
       - NEW_FRONTEND_DOMAIN=localhost:3000
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
+      - PIPELINE_RUN_DEFAULT_TIMEOUT=14400
+      - PIPELINE_RUN_MAX_TIMEOUT=43200
 
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING

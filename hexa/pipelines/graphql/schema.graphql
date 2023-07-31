@@ -162,6 +162,7 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
+  timeout: Int
 }
 
 type CreatePipelineResult {
