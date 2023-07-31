@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.2](https://github.com/BLSQ/openhexa-frontend/compare/0.33.1...0.33.2) (2023-07-31)
+
+
+### Bug Fixes
+
+* **Connections:** Only display the submitError element if there is an error ([d0b290d](https://github.com/BLSQ/openhexa-frontend/commit/d0b290db3989c36aabb059bd68f5120cdc32260e))
+* **Connections:** Wrong permission was checked to display the create a connection dialog ([#392](https://github.com/BLSQ/openhexa-frontend/issues/392)) ([fdc3834](https://github.com/BLSQ/openhexa-frontend/commit/fdc3834fa80549652f2db290132251d0894c6abf))
+
 ## [0.33.1](https://github.com/BLSQ/openhexa-frontend/compare/0.33.0...0.33.1) (2023-07-25)
 
 
