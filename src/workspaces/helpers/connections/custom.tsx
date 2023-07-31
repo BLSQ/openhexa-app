@@ -1,12 +1,11 @@
+import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import Button from "core/components/Button/Button";
+import Title from "core/components/Title";
+import Checkbox from "core/components/forms/Checkbox/Checkbox";
+import Field from "core/components/forms/Field/Field";
 import { FormInstance } from "core/hooks/useForm";
 import { useTranslation } from "react-i18next";
 import { ConnectionForm, FieldForm } from "./utils";
-import Title from "core/components/Title";
-import Field from "core/components/forms/Field/Field";
-import Checkbox from "core/components/forms/Checkbox/Checkbox";
-import { PlusCircleIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import Button from "core/components/Button/Button";
-import { i18n } from "next-i18next";
 
 function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;

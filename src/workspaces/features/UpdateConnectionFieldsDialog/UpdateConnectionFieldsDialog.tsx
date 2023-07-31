@@ -77,7 +77,9 @@ const UpdateConnectionFieldsDialog = (
         <Dialog.Content className="grid flex-1 grid-cols-2 gap-x-2 gap-y-4 ">
           <definition.Form form={form} />
 
-          <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
+          {form.submitError && (
+            <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
+          )}
         </Dialog.Content>
         <Dialog.Actions>
           <div className="flex-1">
