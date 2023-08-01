@@ -142,7 +142,36 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": False,
-                "errors": ["INVALID_CONFIG"],
+                "errors": ["INVALID_TIMEOUT_VALUE"],
+            },
+            r["data"]["createPipeline"],
+        )
+
+    def test_create_pipeline_with_negative_timeout(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+                mutation createPipeline($input: CreatePipelineInput!) {
+                    createPipeline(input: $input) {
+                        success errors
+                    }
+                }
+            """,
+            {
+                "input": {
+                    "code": "new_pipeline",
+                    "name": "MonBeauPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "timeout": -46800,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVALID_TIMEOUT_VALUE"],
             },
             r["data"]["createPipeline"],
         )

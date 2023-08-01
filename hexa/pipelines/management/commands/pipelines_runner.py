@@ -41,7 +41,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     pipeline_timeout = (
         run.pipeline.timeout
         if run.pipeline.timeout
-        else os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT")
+        else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
     )
 
     config.load_incluster_config()

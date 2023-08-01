@@ -1,8 +1,8 @@
 import base64
-import os
 import pathlib
 
 from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
@@ -13,6 +13,7 @@ from hexa.workspaces.schema.types import workspace_permissions
 
 from .authentication import PipelineRunUser
 from .models import (
+    InvalidTimeoutValueError,
     Pipeline,
     PipelineDoesNotSupportParametersError,
     PipelineRun,
@@ -271,10 +272,13 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        if input.get("timeout") and input.get("timeout") > int(
-            os.environ.get("PIPELINE_RUN_MAX_TIMEOUT")
+        if input.get("timeout") and (
+            input.get("timeout") < 0
+            or input.get("timeout") > int(settings.PIPELINE_RUN_MAX_TIMEOUT)
         ):
-            raise Exception("Pipeline timeout greater than the maximum allowed value.")
+            raise InvalidTimeoutValueError(
+                "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
+            )
 
         pipeline = Pipeline.objects.create(
             code=input["code"],
@@ -284,8 +288,8 @@ def resolve_create_pipeline(_, info, **kwargs):
         )
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
-    except Exception:
-        return {"success": False, "errors": ["INVALID_CONFIG"]}
+    except InvalidTimeoutValueError:
+        return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
 
     return {"pipeline": pipeline, "success": True, "errors": []}
 

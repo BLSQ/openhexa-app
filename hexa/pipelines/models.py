@@ -32,6 +32,10 @@ class PipelineDoesNotSupportParametersError(Exception):
     pass
 
 
+class InvalidTimeoutValueError(Exception):
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
