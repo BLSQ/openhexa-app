@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 
 
 class PodTerminationReason(Enum):
-    DeadLineExceeded = "DeadLineExceeded"
+    DeadlineExceeded = "DeadlineExceeded"
 
 
 def run_pipeline_kube(run: PipelineRun, env_var: dict):
@@ -190,6 +190,9 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     except Exception:
         logger.exception("get logs")
         stdout = ""
+    # check termination reason
+    if remote_pod.status.reason == PodTerminationReason.DeadlineExceeded.value:
+        stdout = f"Timeout killed run {run.pipeline.name} #{run.id}"
 
     # delete terminated pod
     try:
