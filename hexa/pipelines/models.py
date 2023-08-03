@@ -32,6 +32,10 @@ class PipelineDoesNotSupportParametersError(Exception):
     pass
 
 
+class InvalidTimeoutValueError(Exception):
+    pass
+
+
 class Index(BaseIndex):
     class Meta:
         verbose_name = "Pipeline index"
@@ -160,6 +164,7 @@ class Pipeline(models.Model):
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
+    timeout = models.IntegerField(null=True)
 
     objects = PipelineQuerySet.as_manager()
 

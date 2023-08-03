@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from datetime import timedelta
+from enum import Enum
 from logging import getLogger
 from time import sleep
 
@@ -16,6 +17,10 @@ from hexa.pipelines.models import PipelineRun, PipelineRunState
 from hexa.pipelines.utils import mail_run_recipients
 
 logger = getLogger(__name__)
+
+
+class PodTerminationReason(Enum):
+    DeadlineExceeded = "DeadlineExceeded"
 
 
 def run_pipeline_kube(run: PipelineRun, env_var: dict):
@@ -33,6 +38,12 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         + "-"
         + exec_time_str
     )
+    pipeline_timeout = (
+        run.pipeline.timeout
+        if run.pipeline.timeout
+        else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
+    )
+
     config.load_incluster_config()
     v1 = CoreV1Api()
     pod = k8s.V1Pod(
@@ -53,6 +64,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         ),
         spec=k8s.V1PodSpec(
             restart_policy="Never",
+            active_deadline_seconds=pipeline_timeout,
             tolerations=[
                 k8s.V1Toleration(
                     key="hub.jupyter.org_dedicated",
@@ -178,6 +190,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     except Exception:
         logger.exception("get logs")
         stdout = ""
+    # check termination reason
+    if remote_pod.status.reason == PodTerminationReason.DeadlineExceeded.value:
+        reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
+        stdout = "\n".join([stdout, reason])
 
     # delete terminated pod
     try:
@@ -240,7 +256,6 @@ def run_pipeline(run: PipelineRun):
     env_var["HEXA_PIPELINE_IMAGE"] = settings.PIPELINE_IMAGE
 
     time_start = timezone.now()
-
     try:
         if settings.PIPELINE_SCHEDULER_SPAWNER == "docker":
             success, logs = run_pipeline_docker(run, env_var)
