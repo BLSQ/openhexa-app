@@ -192,7 +192,8 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         stdout = ""
     # check termination reason
     if remote_pod.status.reason == PodTerminationReason.DeadlineExceeded.value:
-        stdout = f"Timeout killed run {run.pipeline.name} #{run.id}"
+        reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
+        stdout = "\n".join([stdout, reason])
 
     # delete terminated pod
     try:
