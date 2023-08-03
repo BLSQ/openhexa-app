@@ -41,12 +41,23 @@ def resolve_bucket_name(workspace, info, **kwargs):
 
 @bucket_object.field("objects")
 @convert_kwargs_to_snake_case
-def resolve_bucket_objects(workspace, info, prefix=None, page=1, per_page=15, **kwargs):
+def resolve_bucket_objects(
+    workspace,
+    info,
+    prefix=None,
+    page=1,
+    per_page=15,
+    ignore_hidden_files=True,
+    **kwargs
+):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
-
     page = list_bucket_objects(
-        workspace.bucket_name, prefix=prefix, page=page, per_page=per_page
+        workspace.bucket_name,
+        prefix=prefix,
+        page=page,
+        per_page=per_page,
+        ignore_hidden_files=ignore_hidden_files,
     )
 
     return page

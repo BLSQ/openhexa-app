@@ -1,12 +1,6 @@
 from google.cloud.storage._helpers import _validate_name
 
-
-class MockBlob:
-    def __init__(self):
-        pass
-
-    def upload_from_filename(self, *args, **kwargs):
-        pass
+from .blob import MockBlob
 
 
 class MockBucket:
@@ -34,7 +28,9 @@ class MockBucket:
         return self.client.list_blobs(self, *args, **kwargs)
 
     def blob(self, *args, **kwargs):
-        return MockBlob()
+        b = MockBlob(*args, bucket=self, **kwargs)
+        self._blobs.append(b)
+        return b
 
     def patch(self):
         pass

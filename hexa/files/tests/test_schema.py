@@ -55,7 +55,6 @@ class FilesTest(GraphQLTestCase):
         """,
             {"workspaceSlug": self.WORKSPACE.slug},
         )
-
         self.assertEqual(
             {
                 "bucket": {

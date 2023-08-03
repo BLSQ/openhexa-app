@@ -9,11 +9,9 @@ class StorageBackend(object):
             project = "test-project-" + str(uuid.uuid1())
         self.project = project
         self.buckets = {}
-        self.blobs = {}
 
     def reset(self):
         self.buckets = {}
-        self.blobs = {}
 
     def create_bucket(self, bucket_name, *args, **kwargs):
         pass
@@ -29,8 +27,6 @@ class StorageBackend(object):
             return client
 
         def wrapper(*args, **kwargs):
-            self.reset()
-
             with patch("hexa.files.api.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 

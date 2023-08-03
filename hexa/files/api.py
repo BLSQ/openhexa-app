@@ -132,38 +132,76 @@ def _prefix_to_dict(bucket_name, name: str):
     }
 
 
-def list_bucket_objects(bucket_name, prefix=None, page: int = 1, per_page=30):
+def list_bucket_objects(
+    bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
+):
+    """Returns the list of objects in a bucket with pagination support.
+    Objects starting with a dot can be ignored using `ignore_hidden_files`.
+
+    Args:
+        bucket_name (str): Bucket name
+        prefix (str, optional): The prefix the keys of the objects must have to be returned. Defaults to None.
+        page (int, optional): Page to return. Defaults to 1.
+        per_page (int, optional): Items per page. Defaults to 30.
+        ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
+
+    """
     client = get_storage_client()
 
     request = client.list_blobs(
         bucket_name,
         prefix=prefix,
-        page_size=per_page,
+        # We take twice the number of items to be sure to have enough
+        page_size=per_page * 2,
         delimiter="/",
         include_trailing_delimiter=True,
     )
+    pages = request.pages
+
+    max_items = (page * per_page) + 1
+    start_offset = (page - 1) * per_page
+    end_offset = page * per_page
+
     objects = []
-    next_page = None
-    page_number = 0
-    for req_page in request.pages:
-        if request.page_number == page:
-            if page == 1:
-                # Add the prefix to the response if the user requests the first page
-                for prefix in request.prefixes:
-                    objects.append(_prefix_to_dict(bucket_name, prefix))
+    try:
+        current_page = next(pages)
 
-            page_number = request.page_number
-            objects += [_blob_to_dict(obj) for obj in req_page if _is_dir(obj) is False]
-        elif request.page_number > page:
-            next_page = req_page
-            break
+        # Start by adding all the prefixes
+        # Prefixes are virtual directories based on the delimiter specified in the request
+        # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
+        for prefix in request.prefixes:
+            res = _prefix_to_dict(bucket_name, prefix)
+            if not ignore_hidden_files or not res["name"].startswith("."):
+                objects.append(res)
+        while len(objects) <= max_items:
+            for obj in current_page:
+                if _is_dir(obj):
+                    # We ignore objects that are directories (object with a size = 0 and ending with a /)
+                    # because they are already listed in the prefixes
+                    continue
 
-    return ObjectsPage(
-        items=objects,
-        page_number=page_number,
-        has_previous_page=page_number > 1,
-        has_next_page=bool(next_page),
-    )
+                res = _blob_to_dict(obj)
+                if not ignore_hidden_files or not res["name"].startswith("."):
+                    objects.append(res)
+
+            current_page = next(pages)
+
+        return ObjectsPage(
+            items=objects[start_offset:end_offset],
+            page_number=page,
+            has_previous_page=page > 1,
+            has_next_page=len(objects) > page * per_page,
+        )
+
+    except StopIteration:
+        # We reached the end of the list of pages. Let's return what we have and set the
+        # has_next_page to false
+        return ObjectsPage(
+            items=objects[start_offset:end_offset],
+            page_number=page,
+            has_previous_page=page > 1,
+            has_next_page=False,
+        )
 
 
 def ensure_is_folder(object_key: str):
