@@ -1,13 +1,21 @@
 import base64
 import pathlib
 
-from ariadne import EnumType, MutationType, ObjectType, QueryType, load_schema_from_path
+from ariadne import (
+    EnumType,
+    MutationType,
+    ObjectType,
+    QueryType,
+    UnionType,
+    load_schema_from_path,
+)
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
+from hexa.files.api import get_bucket_object
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -47,6 +55,16 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
+generic_output_object = ObjectType("GenericOutput")
+
+pipeline_run_output_union = UnionType("PipelineRunOutput")
+
+
+@pipeline_run_output_union.type_resolver
+def resolve_run_output_type(obj, *_):
+    if obj["type"] == "file":
+        return "BucketObject"
+    return "GenericOutput"
 
 
 @pipeline_parameter.field("name")
@@ -252,6 +270,26 @@ def resolve_pipeline_run(_, info, **kwargs):
 
     except PipelineRun.DoesNotExist:
         return None
+
+
+@pipeline_run_object.field("outputs")
+def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
+    result = []
+    workspace = run.pipeline.workspace
+    for output in run.outputs:
+        if output["type"] == "file" and output["uri"].startswith(
+            f"gs://{workspace.bucket_name}/"
+        ):
+            result.append(
+                get_bucket_object(
+                    workspace.bucket_name,
+                    output["uri"][len(f"gs://{workspace.bucket_name}/") :],
+                )
+            )
+        else:
+            result.append(output)
+
+    return result
 
 
 pipelines_mutations = MutationType()
@@ -562,4 +600,6 @@ pipelines_bindables = [
     pipeline_run_order_by_enum,
     pipeline_version_object,
     pipeline_permissions,
+    pipeline_run_output_union,
+    generic_output_object,
 ]
