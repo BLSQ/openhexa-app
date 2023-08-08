@@ -6,24 +6,21 @@ class MockBlob:
         self,
         name,
         bucket,
-        chunk_size=None,
-        encryption_key=None,
-        kms_key_name=None,
-        generation=None,
+        size=None,
+        content_type=None,
     ):
         self.name = _bytes_to_unicode(name)
-        self.chunk_size = chunk_size  # Check that setter accepts value.
-        self._bucket = bucket
-        # self._acl = ObjectACL(self)
-        if encryption_key is not None and kms_key_name is not None:
-            raise ValueError(
-                "Pass at most one of 'encryption_key' " "and 'kms_key_name'"
-            )
+        self.size = size
+        self._content_type = content_type
+        self.bucket = bucket
 
-        self._encryption_key = encryption_key
+    @property
+    def content_type(self):
+        return self._content_type
 
-        if kms_key_name is not None:
-            self._properties["kmsKeyName"] = kms_key_name
+    @property
+    def updated(self):
+        return None
 
-        if generation is not None:
-            self._properties["generation"] = generation
+    def __repr__(self) -> str:
+        return f"<MockBlob: {self.name}>"

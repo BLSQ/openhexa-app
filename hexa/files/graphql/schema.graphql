@@ -26,7 +26,7 @@ type BucketObjectPage {
 
 type Bucket {
   name: String!
-  objects(prefix: String, page: Int = 1, perPage: Int = 15): BucketObjectPage!
+  objects(prefix: String, page: Int = 1, perPage: Int = 15, ignoreHiddenFiles: Boolean = true): BucketObjectPage!
   object(key: String!): BucketObject
 }
 
