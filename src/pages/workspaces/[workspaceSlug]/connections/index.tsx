@@ -69,7 +69,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                 </Breadcrumbs.Part>
               </Breadcrumbs>
 
-              {workspace.permissions.update && (
+              {workspace.permissions.createConnection && (
                 <Button
                   leadingIcon={<PlusIcon className="w-4" />}
                   onClick={() => setOpenModal(true)}

@@ -32,6 +32,7 @@ describe("Connections", () => {
     permissions: {
       update: true,
       delete: true,
+      createConnection: true,
       manageMembers: true,
     },
     connections: [],
@@ -67,6 +68,40 @@ describe("Connections", () => {
       },
     ],
   };
+  it("does not display the 'add connection' to non-admins", async () => {
+    const graphqlMocks = [
+      {
+        request: {
+          query: ConnectionsPageDocument,
+          variables: {
+            workspaceSlug: WORKSPACE.slug,
+          },
+        },
+        result: {
+          data: {
+            workspace: {
+              ...WORKSPACE,
+              permissions: {
+                ...WORKSPACE.permissions,
+                createConnection: false,
+              },
+            },
+          },
+        },
+      },
+    ];
+    render(
+      <TestApp mocks={graphqlMocks}>
+        <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
+      </TestApp>
+    );
+
+    const btn = await screen.queryByText("Add connection", {
+      selector: "button",
+    }); // Wait for page rendering
+    expect(btn).not.toBeInTheDocument();
+  });
+
   it("renders the page without connections", async () => {
     const graphqlMocks = [
       {
@@ -216,6 +251,7 @@ describe("Connections", () => {
             workspace: {
               ...WORKSPACE,
               permissions: {
+                ...WORKSPACE.permissions,
                 update: true,
               },
               connections: [CONNECTION],

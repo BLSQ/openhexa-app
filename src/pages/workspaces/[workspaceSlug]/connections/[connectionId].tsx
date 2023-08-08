@@ -125,7 +125,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
           <DataCard item={connection} className="divide-y-2 divide-gray-100">
             <div>
               <DataCard.FormSection
-                onSave={onSave}
+                onSave={connection.permissions.update ? onSave : undefined}
                 title={t("Information")}
                 className="space-y-4"
               >
@@ -152,9 +152,8 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                   accessor="description"
                 />
               </DataCard.FormSection>
-              {workspace.permissions.update && (
-                <ConnectionFieldsSection connection={connection} />
-              )}
+
+              <ConnectionFieldsSection connection={connection} />
             </div>
           </DataCard>
         </WorkspaceLayout.PageContent>
