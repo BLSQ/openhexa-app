@@ -32,7 +32,6 @@ type BucketExplorerProps = {
 const BucketExplorer = (props: BucketExplorerProps) => {
   const { t } = useTranslation();
   const { workspace, objects, perPage, onChangePage } = props;
-
   return (
     <>
       <DataGrid

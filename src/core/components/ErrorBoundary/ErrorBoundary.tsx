@@ -1,5 +1,4 @@
 import { ErrorBoundary as SentryErrorBoundary } from "@sentry/nextjs";
-import Title from "../Title";
 
 export default function ErrorBoundary({
   children,

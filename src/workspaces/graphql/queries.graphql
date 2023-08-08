@@ -184,6 +184,7 @@ query WorkspaceFilesPage(
   $page: Int!
   $perPage: Int!
   $prefix: String!
+  $ignoreHiddenFiles: Boolean
 ) {
   workspace(slug: $workspaceSlug) {
     slug
@@ -195,7 +196,12 @@ query WorkspaceFilesPage(
     ...BucketExplorer_workspace
 
     bucket {
-      objects(page: $page, prefix: $prefix, perPage: $perPage) {
+      objects(
+        page: $page
+        prefix: $prefix
+        perPage: $perPage
+        ignoreHiddenFiles: $ignoreHiddenFiles
+      ) {
         ...BucketExplorer_objects
       }
     }

@@ -1,7 +1,7 @@
 import { Popover as HeadlessPopover, Portal } from "@headlessui/react";
 import { Placement, PositioningStrategy } from "@popperjs/core";
 import clsx from "clsx";
-import { ReactElement, ReactNode, useState } from "react";
+import { ReactElement, useState } from "react";
 import { usePopper } from "react-popper";
 
 type PopoverProps = {
@@ -12,7 +12,7 @@ type PopoverProps = {
   buttonClassName?: string;
   strategy?: PositioningStrategy;
   withPortal?: boolean;
-  children: ReactNode | ReactElement | ReactElement[];
+  children: React.ComponentProps<typeof HeadlessPopover>["children"];
 };
 
 const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [0, 8] } }];
@@ -44,7 +44,7 @@ const Popover = (props: PopoverProps) => {
       ref={setPopperElement}
       style={styles.popper}
       className={clsx(
-        "overflow-hidden rounded-lg bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5",
+        "z-10 overflow-hidden rounded-lg bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5",
         className
       )}
       {...attributes.popper}

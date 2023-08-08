@@ -1,8 +1,15 @@
-import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUpTrayIcon,
+  Cog6ToothIcon,
+  FolderPlusIcon,
+} from "@heroicons/react/24/outline";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
+import Popover from "core/components/Popover/Popover";
+import Switch from "core/components/Switch/Switch";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
@@ -13,10 +20,10 @@ import BucketExplorer from "workspaces/features/BucketExplorer";
 import CreateBucketFolderDialog from "workspaces/features/CreateBucketFolderDialog";
 import UploadObjectDialog from "workspaces/features/UploadObjectDialog";
 import {
-  useWorkspaceFilesPageQuery,
   WorkspaceFilesPageDocument,
   WorkspaceFilesPageQuery,
   WorkspaceFilesPageQueryVariables,
+  useWorkspaceFilesPageQuery,
 } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -25,11 +32,12 @@ type Props = {
   perPage: number;
   prefix: string;
   workspaceSlug: string;
+  ignoreHiddenFiles: boolean;
 };
 
 export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const { page, prefix, workspaceSlug, perPage } = props;
+  const { page, prefix, workspaceSlug, perPage, ignoreHiddenFiles } = props;
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCreateFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
   const router = useRouter();
@@ -40,6 +48,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
       page,
       prefix,
       perPage,
+      ignoreHiddenFiles,
     },
   });
   useCacheKey(["workspace", "files", prefix], () => refetch());
@@ -59,6 +68,18 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         workspace.slug
       )}/files/${prefix}?page=${page}`
     );
+  };
+
+  const onChangeHiddenFiles = (checked: boolean, onClose: () => void) => {
+    if (checked) {
+      // We don't want to show hidden files
+      deleteCookie("show-hidden-files");
+    } else {
+      setCookie("show-hidden-files", true);
+    }
+
+    window.location.reload();
+    onClose();
   };
 
   return (
@@ -109,6 +130,24 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-4">
           <div className="flex items-center justify-end gap-3">
+            <Popover
+              as="div"
+              trigger={
+                <Button variant="secondary">
+                  <Cog6ToothIcon className="h-4 w-4" />
+                </Button>
+              }
+              className="flex flex-col items-center justify-between"
+            >
+              {({ close }) => (
+                <Switch
+                  checked={ignoreHiddenFiles}
+                  onChange={(checked) => onChangeHiddenFiles(checked, close)}
+                  labelClassName="whitespace-nowrap"
+                  label={t("Mask hidden files")}
+                />
+              )}
+            </Popover>
             <Button
               variant="secondary"
               leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
@@ -159,8 +198,8 @@ export const getServerSideProps = createGetServerSideProps({
     const prefixArr = (ctx.params?.prefix as string[]) ?? [];
     const prefix = prefixArr.length > 0 ? prefixArr.join("/") + "/" : "";
     const page = ctx.query?.page ? parseInt(ctx.query.page as string, 10) : 1;
-
-    const perPage = 25;
+    const ignoreHiddenFiles = getCookie("show-hidden-files", ctx) === undefined;
+    const perPage = 10;
     const { data } = await client.query<
       WorkspaceFilesPageQuery,
       WorkspaceFilesPageQueryVariables
@@ -171,6 +210,7 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         prefix,
         perPage,
+        ignoreHiddenFiles,
       },
     });
 
@@ -185,6 +225,7 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         perPage,
         prefix,
+        ignoreHiddenFiles,
         workspaceSlug: ctx.params?.workspaceSlug,
       },
     };

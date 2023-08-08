@@ -400,6 +400,7 @@ export type BucketObjectArgs = {
 
 
 export type BucketObjectsArgs = {
+  ignoreHiddenFiles?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   prefix?: InputMaybe<Scalars['String']['input']>;
