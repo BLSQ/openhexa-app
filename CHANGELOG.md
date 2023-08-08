@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.33.3](https://github.com/BLSQ/openhexa-frontend/compare/0.33.2...0.33.3) (2023-08-08)
+
+
+### Features
+
+* **Files:** Show/hide hidden files & directories ([#395](https://github.com/BLSQ/openhexa-frontend/issues/395)) ([903ac4f](https://github.com/BLSQ/openhexa-frontend/commit/903ac4fdd2894c55f570cc2f434d9313d5956c0b))
+
+
+### Bug Fixes
+
+* **Connections:** Hide 'add connection' button for non-admins ([#398](https://github.com/BLSQ/openhexa-frontend/issues/398)) ([e758916](https://github.com/BLSQ/openhexa-frontend/commit/e758916d37a702abf94108afefd4d3d8ab79a7bb))
+
 ## [0.33.2](https://github.com/BLSQ/openhexa-frontend/compare/0.33.1...0.33.2) (2023-07-31)
 
 
