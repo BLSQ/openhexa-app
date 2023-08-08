@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import sys
@@ -95,11 +96,17 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     image=env_var["HEXA_PIPELINE_IMAGE"],
                     name=container_name,
                     image_pull_policy="Always",
-                    args=[json.dumps(run.config)],
+                    args=[
+                        "cloudrun",
+                        "--config",
+                        base64.b64encode(json.dumps(run.config).encode("utf-8")).decode(
+                            "utf-8"
+                        ),
+                    ],
                     env=[
                         k8s.V1EnvVar(
                             name="HEXA_ENVIRONMENT",
-                            value="PIPELINE",
+                            value="CLOUD_PIPELINE",
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_SERVER_URL",
@@ -213,8 +220,11 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]}'
-    cmd = docker_cmd.split(" ") + [f"{json.dumps(run.config)}"]
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]} run'
+    cmd = docker_cmd.split(" ") + [
+        "--config",
+        f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
+    ]
 
     proc = Popen(
         cmd,
