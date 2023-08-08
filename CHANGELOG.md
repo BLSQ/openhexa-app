@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.58.4](https://github.com/BLSQ/openhexa-app/compare/0.58.3...0.58.4) (2023-08-08)
+
+
+### Features
+
+* **Files:** Show/hide hidden files & directories ([#517](https://github.com/BLSQ/openhexa-app/issues/517)) ([8033cce](https://github.com/BLSQ/openhexa-app/commit/8033cce28e63dff7549391678cf4742f5ad965ce))
+* **Pipelines:** define timeout for pipeline run ([#515](https://github.com/BLSQ/openhexa-app/issues/515)) ([ce4fc62](https://github.com/BLSQ/openhexa-app/commit/ce4fc6240f97ade1db4d671e0f3a9a0e50f8218c))
+
 ## [0.58.3](https://github.com/BLSQ/openhexa-app/compare/0.58.2...0.58.3) (2023-07-31)
 
 
