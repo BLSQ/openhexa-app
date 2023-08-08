@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.5](https://github.com/BLSQ/openhexa-app/compare/0.58.5...0.58.5) (2023-08-08)
+
+
+### Miscellaneous
+
+* fix release ([6b9e25f](https://github.com/BLSQ/openhexa-app/commit/6b9e25f25222f015562fd9260d370c6ddd2b3d40))
+
 ## [0.58.5](https://github.com/BLSQ/openhexa-app/compare/0.58.4...0.58.5) (2023-08-08)
 
 
