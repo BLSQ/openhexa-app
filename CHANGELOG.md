@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.5](https://github.com/BLSQ/openhexa-app/compare/0.58.4...0.58.5) (2023-08-08)
+
+
+### Bug Fixes
+
+* **pipelines:** Use the new command 'cloudrun' in k8s & pass config as expected ([e660199](https://github.com/BLSQ/openhexa-app/commit/e660199beb2bf688e61404fbd38d3e4ed11c5b51))
+
 ## [0.58.4](https://github.com/BLSQ/openhexa-app/compare/0.58.3...0.58.4) (2023-08-08)
 
 
