@@ -97,11 +97,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                     name=container_name,
                     image_pull_policy="Always",
                     args=[
+                        "pipeline",
                         "cloudrun",
                         "--config",
-                        base64.b64encode(json.dumps(run.config).encode("utf-8")).decode(
-                            "utf-8"
-                        ),
+                        f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
                     ],
                     env=[
                         k8s.V1EnvVar(
