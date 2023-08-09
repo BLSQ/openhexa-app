@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.7](https://github.com/BLSQ/openhexa-app/compare/0.58.6...0.58.7) (2023-08-09)
+
+
+### Bug Fixes
+
+* **Pipelines:** Add missing command to pod creation ([6e68334](https://github.com/BLSQ/openhexa-app/commit/6e68334ae3c3e9136bef7e8dd41ad6c5b9ea5dc9))
+
 ## [0.58.6](https://github.com/BLSQ/openhexa-app/compare/0.58.5...0.58.6) (2023-08-08)
 
 
