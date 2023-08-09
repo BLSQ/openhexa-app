@@ -350,6 +350,12 @@ class WorkspaceInvitation(Base):
         signer = TimestampSigner()
         return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
 
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("workspaces.manage_members", self.workspace):
+            raise PermissionDenied
+
+        return self.delete()
+
 
 class ConnectionQuerySet(BaseQuerySet):
     def filter_for_user(

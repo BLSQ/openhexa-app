@@ -905,6 +905,59 @@ class WorkspaceTest(GraphQLTestCase):
                 in mail.outbox[0].body
             )
 
+    def test_invite_workspace_member_invitation_already_exist(self):
+        import random
+        import string
+
+        with patch("hexa.workspaces.models.TimestampSigner") as mocked_signer:
+            random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = random_string
+
+            encoded = base64.b64encode(random_string.encode("utf-8")).decode()
+            user_email = self.INVITATION_FOO.email
+
+            self.client.force_login(self.USER_WORKSPACE_ADMIN)
+            r = self.run_query(
+                """
+                mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
+                    inviteWorkspaceMember(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "workspaceSlug": self.WORKSPACE.slug,
+                        "userEmail": user_email,
+                        "role": WorkspaceMembershipRole.VIEWER,
+                    }
+                },
+            )
+
+            invitation = WorkspaceInvitation.objects.filter(
+                workspace=self.WORKSPACE, email=user_email
+            )
+            self.assertEqual(invitation.count(), 1)
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                },
+                r["data"]["inviteWorkspaceMember"],
+            )
+            self.assertEqual(
+                f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
+                mail.outbox[0].subject,
+            )
+            self.assertListEqual([user_email], mail.outbox[0].recipients())
+            self.assertTrue(
+                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
+                in mail.outbox[0].body
+            )
+
     def test_join_workspace_bad_signature_token(self):
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
@@ -1310,4 +1363,76 @@ class WorkspaceTest(GraphQLTestCase):
                 ],
             },
             r["data"]["workspace"]["invitations"],
+        )
+
+    def test_delete_workspace_invitation_not_found(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVITATION_NOT_FOUND"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation_already_accepted(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_BAR.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteWorkspaceInvitation"],
         )

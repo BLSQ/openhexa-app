@@ -150,13 +150,19 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 "workspace_membership": workspace_membership,
             }
         except User.DoesNotExist:
-            # If the user does not exist, we create an invitation to create an account and join the workspace
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                workspace=workspace,
-                email=input["userEmail"],
-                role=input["role"],
-            )
+            # If the user does not exist we first
+            # check if he already has an invitation instead of creating a new one each time.
+            invitation = WorkspaceInvitation.objects.filter(
+                email=input["userEmail"], status=WorkspaceInvitationStatus.PENDING
+            ).first()
+
+            if not invitation:
+                invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    workspace=workspace,
+                    email=input["userEmail"],
+                    role=input["role"],
+                )
 
             token = invitation.generate_invitation_token()
             send_mail(
@@ -401,3 +407,28 @@ def resolve_generate_workspace_token(_, info, **kwargs):
 
     token = Signer().sign_object(str(membership.access_token))
     return {"success": True, "errors": [], "token": token}
+
+
+@workspace_mutations.field("deleteWorkspaceInvitation")
+def resolve_delete_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
+            raise PermissionDenied(
+                "Cannot delete an invitation that has already been accepted."
+            )
+
+        invitation.delete_if_has_perm(principal=request.user)
+        return {"success": True, "errors": []}
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
