@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.8](https://github.com/BLSQ/openhexa-app/compare/0.58.7...0.58.8) (2023-08-09)
+
+
+### Bug Fixes
+
+* Revert not ready commit ([090e638](https://github.com/BLSQ/openhexa-app/commit/090e6386fbfc50c055e9b5966c6e6a5ecf66ecdb))
+
 ## [0.58.7](https://github.com/BLSQ/openhexa-app/compare/0.58.6...0.58.7) (2023-08-09)
 
 
