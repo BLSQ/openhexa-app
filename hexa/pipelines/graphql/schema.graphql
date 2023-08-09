@@ -17,14 +17,11 @@ enum PipelineRunTrigger {
   manual
 }
 
-type GenericOutput {
+type PipelineRunOutput {
   name: String
   type: String!
   uri: String!
 }
-
-
-union PipelineRunOutput = BucketObject | GenericOutput
 
 enum PipelineRunStatus {
   success
