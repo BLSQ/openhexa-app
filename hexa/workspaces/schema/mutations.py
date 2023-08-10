@@ -150,19 +150,12 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 "workspace_membership": workspace_membership,
             }
         except User.DoesNotExist:
-            # If the user does not exist we first
-            # check if he already has an invitation instead of creating a new one each time.
-            invitation = WorkspaceInvitation.objects.filter(
-                email=input["userEmail"], status=WorkspaceInvitationStatus.PENDING
-            ).first()
-
-            if not invitation:
-                invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                    principal=request.user,
-                    workspace=workspace,
-                    email=input["userEmail"],
-                    role=input["role"],
-                )
+            invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                principal=request.user,
+                workspace=workspace,
+                email=input["userEmail"],
+                role=input["role"],
+            )
 
             token = invitation.generate_invitation_token()
             send_mail(
@@ -202,7 +195,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
 
 
 @workspace_mutations.field("joinWorkspace")
-def resolver_join_workspace(_, info, **kwargs):
+def resolve_join_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
@@ -272,8 +265,57 @@ def resolver_join_workspace(_, info, **kwargs):
         }
 
 
+@workspace_mutations.field("resendWorkspaceInvitation")
+def resolve_resend_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
+            raise PermissionDenied
+
+        if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
+            raise AlreadyExists("Invitation already accepted.")
+
+        token = invitation.generate_invitation_token()
+        send_mail(
+            title=gettext_lazy(
+                f"You've been invited to join the workspace {invitation.workspace.name} on OpenHexa"
+            ),
+            template_name="workspaces/mails/invite_external_user",
+            template_variables={
+                "workspace": invitation.workspace.name,
+                "owner": request.user.display_name,
+                "workspace_signup_url": request.build_absolute_uri(
+                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{invitation.workspace.slug}/signup?email={invitation.email}&token={token}"
+                ),
+            },
+            recipient_list=[invitation.email],
+        )
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+    except AlreadyExists:
+        return {
+            "success": False,
+            "errors": ["ALREADY_EXISTS"],
+        }
+
+
 @workspace_mutations.field("updateWorkspaceMember")
-def resolver_update_workspace_member(_, info, **kwargs):
+def resolve_update_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:

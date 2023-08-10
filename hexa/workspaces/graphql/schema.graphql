@@ -180,6 +180,10 @@ input InviteWorkspaceMemberInput {
   role: WorkspaceMembershipRole!
 }
 
+input ResendWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
 input DeleteWorkspaceMemberInput {
   membershipId: UUID!
 }
@@ -231,6 +235,17 @@ type DeleteWorkspaceInvitationResult {
   errors: [DeleteWorkspaceInvitationError!]!
 }
 
+type ResendWorkspaceInvitationResult {
+  success: Boolean!
+  errors: [ResendWorkspaceInvitationError!]!
+}
+
+enum ResendWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
 enum DeleteWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
@@ -254,6 +269,7 @@ extend type Mutation {
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
 }
 
