@@ -140,12 +140,19 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
               className="flex flex-col items-center justify-between"
             >
               {({ close }) => (
-                <Switch
-                  checked={ignoreHiddenFiles}
-                  onChange={(checked) => onChangeHiddenFiles(checked, close)}
-                  labelClassName="whitespace-nowrap"
-                  label={t("Mask hidden files")}
-                />
+                <div>
+                  <Switch
+                    checked={ignoreHiddenFiles}
+                    onChange={(checked) => onChangeHiddenFiles(checked, close)}
+                    labelClassName="whitespace-nowrap"
+                    label={t("Hide hidden files")}
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    {t(
+                      'This will hide files and directories starting by a "." (dot)'
+                    )}
+                  </p>
+                </div>
               )}
             </Popover>
             <Button
