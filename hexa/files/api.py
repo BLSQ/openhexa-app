@@ -173,7 +173,8 @@ def list_bucket_objects(
             res = _prefix_to_dict(bucket_name, prefix)
             if not ignore_hidden_files or not res["name"].startswith("."):
                 objects.append(res)
-        while len(objects) <= max_items:
+
+        while True:
             for obj in current_page:
                 if _is_dir(obj):
                     # We ignore objects that are directories (object with a size = 0 and ending with a /)
@@ -184,6 +185,11 @@ def list_bucket_objects(
                 if not ignore_hidden_files or not res["name"].startswith("."):
                     objects.append(res)
 
+            if len(objects) >= max_items:
+                # We have enough items, let's break
+                break
+
+            # Otherwise we load the next page and continue our loop
             current_page = next(pages)
 
         return ObjectsPage(
