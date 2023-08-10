@@ -901,7 +901,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertTrue(
-                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
+                f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
                 in mail.outbox[0].body
             )
 
@@ -1426,27 +1426,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["resendWorkspaceInvitation"],
         )
 
-    def test_resend_workspace_member_invitation_already_accepted(self):
-        self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
-                resendWorkspaceInvitation(input: $input) {
-                    success
-                    errors
-                }
-            }
-            """,
-            {"input": {"invitationId": str(self.INVITATION_BAR.id)}},
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["ALREADY_EXISTS"],
-            },
-            r["data"]["resendWorkspaceInvitation"],
-        )
-
     def test_resend_workspace_member_invitation(self):
         import random
         import string
@@ -1485,6 +1464,6 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertTrue(
-                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
+                f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
                 in mail.outbox[0].body
             )

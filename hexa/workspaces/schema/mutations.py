@@ -22,6 +22,7 @@ from ..models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from ..utils import send_workspace_invitation_email
 
 workspace_mutations = MutationType()
 
@@ -156,22 +157,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 email=input["userEmail"],
                 role=input["role"],
             )
-
-            token = invitation.generate_invitation_token()
-            send_mail(
-                title=gettext_lazy(
-                    f"You've been invited to join the workspace {workspace.name} on OpenHexa"
-                ),
-                template_name="workspaces/mails/invite_external_user",
-                template_variables={
-                    "workspace": workspace.name,
-                    "owner": request.user.display_name,
-                    "workspace_signup_url": request.build_absolute_uri(
-                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?email={input['userEmail']}&token={token}"
-                    ),
-                },
-                recipient_list=[input["userEmail"]],
-            )
+            send_workspace_invitation_email(invitation)
             return {
                 "success": True,
                 "errors": [],
@@ -271,28 +257,14 @@ def resolve_resend_workspace_invitation(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        invitation = WorkspaceInvitation.objects.filter(
+            status=WorkspaceInvitationStatus.PENDING
+        ).get(id=input["invitationId"])
+
         if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
             raise PermissionDenied
 
-        if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
-            raise AlreadyExists("Invitation already accepted.")
-
-        token = invitation.generate_invitation_token()
-        send_mail(
-            title=gettext_lazy(
-                f"You've been invited to join the workspace {invitation.workspace.name} on OpenHexa"
-            ),
-            template_name="workspaces/mails/invite_external_user",
-            template_variables={
-                "workspace": invitation.workspace.name,
-                "owner": request.user.display_name,
-                "workspace_signup_url": request.build_absolute_uri(
-                    f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{invitation.workspace.slug}/signup?email={invitation.email}&token={token}"
-                ),
-            },
-            recipient_list=[invitation.email],
-        )
+        send_workspace_invitation_email(invitation)
         return {
             "success": True,
             "errors": [],
@@ -306,11 +278,6 @@ def resolve_resend_workspace_invitation(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["INVITATION_NOT_FOUND"],
-        }
-    except AlreadyExists:
-        return {
-            "success": False,
-            "errors": ["ALREADY_EXISTS"],
         }
 
 

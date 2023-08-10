@@ -243,7 +243,6 @@ type ResendWorkspaceInvitationResult {
 enum ResendWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
-  ALREADY_EXISTS
 }
 
 enum DeleteWorkspaceInvitationError {
