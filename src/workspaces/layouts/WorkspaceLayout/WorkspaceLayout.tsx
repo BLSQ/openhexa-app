@@ -80,7 +80,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           <Sidebar
             workspace={workspace}
             className={clsx(
-              "sticky top-0 flex flex-col transition-all duration-75",
+              "sticky top-0 flex max-h-screen flex-col transition-all duration-75",
               isSidebarOpen ? "w-64 2xl:w-72" : "w-16"
             )}
           />
