@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired, Signer
+from django.db import IntegrityError
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -151,17 +152,23 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 "workspace_membership": workspace_membership,
             }
         except User.DoesNotExist:
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                workspace=workspace,
-                email=input["userEmail"],
-                role=input["role"],
-            )
-            send_workspace_invitation_email(invitation)
-            return {
-                "success": True,
-                "errors": [],
-            }
+            try:
+                invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    workspace=workspace,
+                    email=input["userEmail"],
+                    role=input["role"],
+                )
+                send_workspace_invitation_email(invitation)
+                return {
+                    "success": True,
+                    "errors": [],
+                }
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "errors": ["ALREADY_EXISTS"],
+                }
 
     except Workspace.DoesNotExist:
         return {
