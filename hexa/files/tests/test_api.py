@@ -137,3 +137,31 @@ class APITestCase(TestCase):
                 "dir/readme.md",
             ],
         )
+
+    @backend.mock_storage
+    def test_list_blobs_pagination(self):
+        bucket = create_bucket("my_bucket")
+        for i in range(0, 12):
+            bucket.blob(
+                f"test_{i}.txt",
+                size=123 * i,
+                content_type="text/plain",
+            )
+
+        res = list_bucket_objects(bucket.name, page=1, per_page=10)
+        self.assertTrue(res.has_next_page)
+        self.assertFalse(res.has_previous_page)
+        self.assertEqual(res.page_number, 1)
+
+        res = list_bucket_objects(bucket.name, page=1, per_page=20)
+        self.assertFalse(res.has_next_page)
+
+        res = list_bucket_objects(bucket.name, page=2, per_page=10)
+        self.assertFalse(res.has_next_page)
+        self.assertTrue(res.has_previous_page)
+        self.assertEqual(res.page_number, 2)
+
+        res = list_bucket_objects(bucket.name, page=2, per_page=5)
+        self.assertTrue(res.has_next_page)
+        self.assertTrue(res.has_previous_page)
+        self.assertEqual(res.page_number, 2)
