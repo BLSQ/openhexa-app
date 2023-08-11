@@ -327,6 +327,15 @@ class WorkspaceInvitationManager(models.Manager):
 
 
 class WorkspaceInvitation(Base):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "email",
+                "workspace",
+                name="workspace_invitation_unique_workspace_email",
+            )
+        ]
+
     email = CIEmailField()
     workspace = models.ForeignKey(
         Workspace,
@@ -349,6 +358,12 @@ class WorkspaceInvitation(Base):
     def generate_invitation_token(self):
         signer = TimestampSigner()
         return base64.b64encode(signer.sign(self.id).encode("utf-8")).decode()
+
+    def delete_if_has_perm(self, principal: User):
+        if not principal.has_perm("workspaces.manage_members", self.workspace):
+            raise PermissionDenied
+
+        return self.delete()
 
 
 class ConnectionQuerySet(BaseQuerySet):

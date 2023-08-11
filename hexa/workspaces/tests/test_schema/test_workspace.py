@@ -901,7 +901,7 @@ class WorkspaceTest(GraphQLTestCase):
             )
             self.assertListEqual([user_email], mail.outbox[0].recipients())
             self.assertTrue(
-                f"http://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
+                f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
                 in mail.outbox[0].body
             )
 
@@ -1047,17 +1047,10 @@ class WorkspaceTest(GraphQLTestCase):
         )
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.ACCEPTED,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_BAR
 
             r = self.run_query(
                 """
@@ -1092,17 +1085,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_REBECCA.email,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_BAR
 
             r = self.run_query(
                 """
@@ -1137,17 +1123,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_FOO
 
             r = self.run_query(
                 """
@@ -1183,17 +1162,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_FOO
 
             r = self.run_query(
                 """
@@ -1222,11 +1194,13 @@ class WorkspaceTest(GraphQLTestCase):
                 r["data"]["joinWorkspace"],
             )
         self.assertEqual(
-            WorkspaceInvitation.objects.get(id=invitation.id).status,
+            WorkspaceInvitation.objects.get(id=self.INVITATION_FOO.id).status,
             WorkspaceInvitationStatus.ACCEPTED,
         )
         self.assertTrue(
-            WorkspaceMembership.objects.filter(user__email=invitation.email).exists()
+            WorkspaceMembership.objects.filter(
+                user__email=self.INVITATION_FOO.email
+            ).exists()
         )
         user = auth.get_user(self.client)
         self.assertTrue(user.is_authenticated)
@@ -1311,3 +1285,159 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["workspace"]["invitations"],
         )
+
+    def test_delete_workspace_invitation_not_found(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVITATION_NOT_FOUND"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation_already_accepted(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_BAR.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"]},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_delete_workspace_invitation(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
+                deleteWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+        self.assertEqual(
+            {"success": True, "errors": []},
+            r["data"]["deleteWorkspaceInvitation"],
+        )
+
+    def test_resend_workspace_member_invitation_not_found(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVITATION_NOT_FOUND"],
+            },
+            r["data"]["resendWorkspaceInvitation"],
+        )
+
+    def test_resend_workspace_member_invitation_permission_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["resendWorkspaceInvitation"],
+        )
+
+    def test_resend_workspace_member_invitation(self):
+        import random
+        import string
+
+        with patch("hexa.workspaces.models.TimestampSigner") as mocked_signer:
+            random_string = "".join(random.choices(string.ascii_lowercase, k=10))
+
+            signer = mocked_signer.return_value
+            signer.sign.return_value = random_string
+
+            encoded = base64.b64encode(random_string.encode("utf-8")).decode()
+            user_email = self.INVITATION_FOO.email
+
+            self.client.force_login(self.USER_WORKSPACE_ADMIN)
+            r = self.run_query(
+                """
+                mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                    resendWorkspaceInvitation(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {"input": {"invitationId": str(self.INVITATION_FOO.id)}},
+            )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                },
+                r["data"]["resendWorkspaceInvitation"],
+            )
+            self.assertEqual(
+                f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
+                mail.outbox[0].subject,
+            )
+            self.assertListEqual([user_email], mail.outbox[0].recipients())
+            self.assertTrue(
+                f"https://{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}/signup?email={user_email}&amp;token={encoded}"
+                in mail.outbox[0].body
+            )

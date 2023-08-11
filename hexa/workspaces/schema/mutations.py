@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired, Signer
+from django.db import IntegrityError
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -22,6 +23,7 @@ from ..models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from ..utils import send_workspace_invitation_email
 
 workspace_mutations = MutationType()
 
@@ -150,33 +152,23 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 "workspace_membership": workspace_membership,
             }
         except User.DoesNotExist:
-            # If the user does not exist, we create an invitation to create an account and join the workspace
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                workspace=workspace,
-                email=input["userEmail"],
-                role=input["role"],
-            )
-
-            token = invitation.generate_invitation_token()
-            send_mail(
-                title=gettext_lazy(
-                    f"You've been invited to join the workspace {workspace.name} on OpenHexa"
-                ),
-                template_name="workspaces/mails/invite_external_user",
-                template_variables={
-                    "workspace": workspace.name,
-                    "owner": request.user.display_name,
-                    "workspace_signup_url": request.build_absolute_uri(
-                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}/signup?email={input['userEmail']}&token={token}"
-                    ),
-                },
-                recipient_list=[input["userEmail"]],
-            )
-            return {
-                "success": True,
-                "errors": [],
-            }
+            try:
+                invitation = WorkspaceInvitation.objects.create_if_has_perm(
+                    principal=request.user,
+                    workspace=workspace,
+                    email=input["userEmail"],
+                    role=input["role"],
+                )
+                send_workspace_invitation_email(invitation)
+                return {
+                    "success": True,
+                    "errors": [],
+                }
+            except IntegrityError:
+                return {
+                    "success": False,
+                    "errors": ["ALREADY_EXISTS"],
+                }
 
     except Workspace.DoesNotExist:
         return {
@@ -196,7 +188,7 @@ def resolve_invite_workspace_member(_, info, **kwargs):
 
 
 @workspace_mutations.field("joinWorkspace")
-def resolver_join_workspace(_, info, **kwargs):
+def resolve_join_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
@@ -266,8 +258,38 @@ def resolver_join_workspace(_, info, **kwargs):
         }
 
 
+@workspace_mutations.field("resendWorkspaceInvitation")
+def resolve_resend_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = WorkspaceInvitation.objects.filter(
+            status=WorkspaceInvitationStatus.PENDING
+        ).get(id=input["invitationId"])
+
+        if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
+            raise PermissionDenied
+
+        send_workspace_invitation_email(invitation)
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+
+
 @workspace_mutations.field("updateWorkspaceMember")
-def resolver_update_workspace_member(_, info, **kwargs):
+def resolve_update_workspace_member(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
     try:
@@ -401,3 +423,28 @@ def resolve_generate_workspace_token(_, info, **kwargs):
 
     token = Signer().sign_object(str(membership.access_token))
     return {"success": True, "errors": [], "token": token}
+
+
+@workspace_mutations.field("deleteWorkspaceInvitation")
+def resolve_delete_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+        if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
+            raise PermissionDenied(
+                "Cannot delete an invitation that has already been accepted."
+            )
+
+        invitation.delete_if_has_perm(principal=request.user)
+        return {"success": True, "errors": []}
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
