@@ -327,6 +327,15 @@ class WorkspaceInvitationManager(models.Manager):
 
 
 class WorkspaceInvitation(Base):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                "email",
+                "workspace",
+                name="workspace_invitation_unique_workspace_email",
+            )
+        ]
+
     email = CIEmailField()
     workspace = models.ForeignKey(
         Workspace,

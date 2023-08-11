@@ -1047,17 +1047,10 @@ class WorkspaceTest(GraphQLTestCase):
         )
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.ACCEPTED,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_BAR
 
             r = self.run_query(
                 """
@@ -1092,17 +1085,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_REBECCA.email,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_BAR
 
             r = self.run_query(
                 """
@@ -1137,17 +1123,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_FOO
 
             r = self.run_query(
                 """
@@ -1183,17 +1162,10 @@ class WorkspaceTest(GraphQLTestCase):
         signed_value = signer.sign(random_string)
         token = base64.b64encode(signed_value.encode("utf-8")).decode()
 
-        invitation = WorkspaceInvitation.objects.create(
-            invited_by=self.USER_WORKSPACE_ADMIN,
-            workspace=self.WORKSPACE,
-            email=self.USER_EXTERNAL,
-            role=WorkspaceMembershipRole.VIEWER,
-            status=WorkspaceInvitationStatus.PENDING,
-        )
         with patch(
             "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
         ) as mocked_objects:
-            mocked_objects.get_by_token.return_value = invitation
+            mocked_objects.get_by_token.return_value = self.INVITATION_FOO
 
             r = self.run_query(
                 """
@@ -1222,11 +1194,13 @@ class WorkspaceTest(GraphQLTestCase):
                 r["data"]["joinWorkspace"],
             )
         self.assertEqual(
-            WorkspaceInvitation.objects.get(id=invitation.id).status,
+            WorkspaceInvitation.objects.get(id=self.INVITATION_FOO.id).status,
             WorkspaceInvitationStatus.ACCEPTED,
         )
         self.assertTrue(
-            WorkspaceMembership.objects.filter(user__email=invitation.email).exists()
+            WorkspaceMembership.objects.filter(
+                user__email=self.INVITATION_FOO.email
+            ).exists()
         )
         user = auth.get_user(self.client)
         self.assertTrue(user.is_authenticated)
