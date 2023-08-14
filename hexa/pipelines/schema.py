@@ -63,7 +63,6 @@ pipeline_run_output_union = UnionType("PipelineRunOutput")
 
 @pipeline_run_output_union.type_resolver
 def resolve_run_output_type(obj, *_):
-    print(obj, flush=True)
     if "columns" in obj:
         return "DatabaseTable"
     elif obj["type"] == "file" or obj["type"] == "directory":
