@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.11](https://github.com/BLSQ/openhexa-app/compare/0.58.10...0.58.11) (2023-08-14)
+
+
+### Bug Fixes
+
+* **Pipelines:** set timeout field on PipelineVersion model ([#529](https://github.com/BLSQ/openhexa-app/issues/529)) ([5f33e27](https://github.com/BLSQ/openhexa-app/commit/5f33e27c3c906329ff5738f17d9ba01a6b4389f6))
+
 ## [0.58.10](https://github.com/BLSQ/openhexa-app/compare/0.58.9...0.58.10) (2023-08-14)
 
 
