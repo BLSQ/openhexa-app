@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.33.4](https://github.com/BLSQ/openhexa-frontend/compare/0.33.3...0.33.4) (2023-08-14)
+
+
+### Features
+
+* **Pipelines:** Display nicely db & file outputs ([f77c51d](https://github.com/BLSQ/openhexa-frontend/commit/f77c51da9176f8a8c87c94e509718b203932b4a2))
+* **Workspaces:** improve invitation management ([#400](https://github.com/BLSQ/openhexa-frontend/issues/400)) ([3536eff](https://github.com/BLSQ/openhexa-frontend/commit/3536effe34e53c7f85ad1fff4c6cfcfcb78a9945))
+
+
+### Bug Fixes
+
+* **Files:** Add a description on what does the toggle ([#401](https://github.com/BLSQ/openhexa-frontend/issues/401)) ([9663645](https://github.com/BLSQ/openhexa-frontend/commit/9663645726db5de61f16b16047e0bca84f44e9e6))
+* **Workspace:** Layout is broken; Sidebar should not scroll ([#403](https://github.com/BLSQ/openhexa-frontend/issues/403)) ([e09c5c6](https://github.com/BLSQ/openhexa-frontend/commit/e09c5c617ac41694754543cb674ac41c601c31c7))
+
 ## [0.33.3](https://github.com/BLSQ/openhexa-frontend/compare/0.33.2...0.33.3) (2023-08-08)
 
 
