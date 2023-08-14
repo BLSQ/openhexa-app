@@ -1101,6 +1101,12 @@ type GenerateWorkspaceTokenResult {
 
 scalar Generic
 
+type GenericOutput {
+  name: String
+  type: String!
+  uri: String!
+}
+
 input InviteWorkspaceMemberInput {
   workspaceSlug: String!
   userEmail: String!
@@ -1457,11 +1463,7 @@ enum PipelineRunOrderBy {
   EXECUTION_DATE_ASC
 }
 
-type PipelineRunOutput {
-  name: String
-  type: String!
-  uri: String!
-}
+union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
 
 type PipelineRunPage {
   items: [PipelineRun!]!

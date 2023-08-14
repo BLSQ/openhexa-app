@@ -53,7 +53,7 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
       keyFields: ["slug"],
     },
-    WorkspacePermission: {
+    WorkspacePermissions: {
       merge: true,
     },
 

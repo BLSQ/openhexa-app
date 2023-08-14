@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
-import { CircleStackIcon, DocumentIcon } from "@heroicons/react/24/outline";
+import {
+  CircleStackIcon,
+  DocumentIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import Link from "core/components/Link";
@@ -22,26 +26,27 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
   const { t } = useTranslation();
 
   const renderOutputAction = useCallback(
-    (output: PipelineRunOutput) => {
-      switch (output.type) {
-        case "file":
+    (output: any) => {
+      switch (output.__typename) {
+        case "BucketObject":
           return (
             <DownloadBucketObject
               variant="outlined"
               size="sm"
               workspace={workspace}
-              object={{
-                key: output.uri.split(`gs://${workspace.bucket.name}/`)[1],
-              }}
+              object={output}
             />
           );
-        case "db":
+        case "DatabaseTable":
           return (
             <Link
               noStyle
               href={{
                 pathname: "/workspaces/[workspaceSlug]/databases/[table]",
-                query: { workspaceSlug: workspace.slug, table: output.name },
+                query: {
+                  workspaceSlug: workspace.slug,
+                  table: output.tableName,
+                },
               }}
             >
               <Button variant="outlined" size="sm">
@@ -49,6 +54,7 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
               </Button>
             </Link>
           );
+
         default:
           return null;
       }
@@ -56,22 +62,19 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
     [workspace, t]
   );
 
-  const renderOutputIcon = useCallback((type: string) => {
-    switch (type) {
-      case "file":
-        return <DocumentIcon className="w-4" />;
-      case "db":
-        return <CircleStackIcon className="w-4" />;
-      default:
-        return null;
-    }
-  }, []);
-
-  const getDirectory = useCallback((path: string) => {
-    const parts = path.split("/");
-    parts.pop();
-    return parts.join("/");
-  }, []);
+  const renderOutputIcon = useCallback(
+    (typename: PipelineRunOutput["__typename"]) => {
+      switch (typename) {
+        case "BucketObject":
+          return <DocumentIcon className="w-4" />;
+        case "DatabaseTable":
+          return <CircleStackIcon className="w-4" />;
+        default:
+          return <ExclamationTriangleIcon className="w-4" />;
+      }
+    },
+    []
+  );
 
   if (!run.outputs.length) {
     return null;
@@ -84,11 +87,14 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
       totalItems={run.outputs.length}
       className="rounded-md border"
     >
-      <BaseColumn label={t("Name")}>
+      <BaseColumn<RunOutputsTable_RunFragment["outputs"][0]> label={t("Name")}>
         {(output) => (
           <div className="flex h-full items-center gap-1.5 text-gray-600">
-            {renderOutputIcon(output.type)}
-            {output.name}
+            {renderOutputIcon(output.__typename)}
+            {output.__typename == "DatabaseTable" && output.tableName}
+            {output.__typename == "BucketObject" &&
+              output.path.slice(workspace.bucket.name.length + 1)}
+            {output.__typename == "GenericOutput" && output.genericName}
           </div>
         )}
       </BaseColumn>
@@ -114,9 +120,22 @@ RunOutputsTable.fragments = {
     fragment RunOutputsTable_run on PipelineRun {
       id
       outputs {
-        name
-        type
-        uri
+        __typename
+        ... on GenericOutput {
+          genericName: name
+          genericType: type
+          genericUri: uri
+        }
+        ... on BucketObject {
+          name
+          key
+          path
+          type
+        }
+
+        ... on DatabaseTable {
+          tableName: name
+        }
       }
     }
   `,

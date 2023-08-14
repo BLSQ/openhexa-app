@@ -163,11 +163,6 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
       name
       ...RunPipelineDialog_pipeline
     }
-    outputs {
-      name
-      type
-      uri
-    }
     user {
       ...User_user
     }
