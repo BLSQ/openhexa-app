@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.58.9](https://github.com/BLSQ/openhexa-app/compare/0.58.8...0.58.9) (2023-08-14)
+
+
+### Features
+
+* **Pipelines:** Try to convert raw outputs to database table or bucket ([#518](https://github.com/BLSQ/openhexa-app/issues/518)) ([9f7bc27](https://github.com/BLSQ/openhexa-app/commit/9f7bc274423512e1d3b55a8d5b9a67bce3e1dbb2))
+* **Workspaces:** improve invitation management ([#523](https://github.com/BLSQ/openhexa-app/issues/523)) ([10dcb8f](https://github.com/BLSQ/openhexa-app/commit/10dcb8fc0d1203a343f2871962adb41927c8639e))
+
+
+### Bug Fixes
+
+* **files:** Break when we have enough objects (and before loading the next page) ([#525](https://github.com/BLSQ/openhexa-app/issues/525)) ([204be98](https://github.com/BLSQ/openhexa-app/commit/204be98dc7bb8f103a4a0d9911f51a9c8f25872c))
+
 ## [0.58.8](https://github.com/BLSQ/openhexa-app/compare/0.58.7...0.58.8) (2023-08-09)
 
 
