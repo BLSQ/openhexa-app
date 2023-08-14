@@ -313,24 +313,13 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        if input.get("timeout") and (
-            input.get("timeout") < 0
-            or input.get("timeout") > int(settings.PIPELINE_RUN_MAX_TIMEOUT)
-        ):
-            raise InvalidTimeoutValueError(
-                "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
-            )
-
         pipeline = Pipeline.objects.create(
             code=input["code"],
             name=input.get("name"),
             workspace=workspace,
-            timeout=input.get("timeout"),
         )
     except IntegrityError:
         return {"success": False, "errors": ["PIPELINE_ALREADY_EXISTS"]}
-    except InvalidTimeoutValueError:
-        return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
 
     return {"pipeline": pipeline, "success": True, "errors": []}
 
@@ -448,14 +437,25 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
     try:
+        if input.get("timeout") and (
+            input.get("timeout") < 0
+            or input.get("timeout") > int(settings.PIPELINE_RUN_MAX_TIMEOUT)
+        ):
+            raise InvalidTimeoutValueError(
+                "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
+            )
+
         newpipelineversion = pipeline.upload_new_version(
             user=request.user,
             zipfile=base64.b64decode(input.get("zipfile").encode("ascii")),
             parameters=input["parameters"],
+            timeout=input.get("timeout"),
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
     except PipelineDoesNotSupportParametersError as e:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except InvalidTimeoutValueError:
+        return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except Exception as e:
         return {"success": False, "errors": [str(e)]}
 

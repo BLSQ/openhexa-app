@@ -63,6 +63,7 @@ type PipelineVersion {
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
   zipfile: String!
+  timeout: Int
 }
 
 type PipelineRun {
@@ -166,7 +167,6 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
-  timeout: Int
 }
 
 type CreatePipelineResult {
@@ -213,6 +213,7 @@ input UploadPipelineInput {
   code: String!
   parameters: [ParameterInput!]!
   zipfile: String!
+  timeout: Int
 }
 
 type UploadPipelineResult {

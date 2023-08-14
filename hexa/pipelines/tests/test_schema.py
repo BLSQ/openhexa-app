@@ -118,64 +118,6 @@ class PipelinesV2Test(GraphQLTestCase):
         self.assertEqual(1, len(Pipeline.objects.all()))
         self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
 
-    def test_create_pipeline_with_timeout_greater_than_allowed(self):
-        self.assertEqual(0, len(Pipeline.objects.all()))
-
-        self.client.force_login(self.USER_ROOT)
-        r = self.run_query(
-            """
-                mutation createPipeline($input: CreatePipelineInput!) {
-                    createPipeline(input: $input) {
-                        success errors
-                    }
-                }
-            """,
-            {
-                "input": {
-                    "code": "new_pipeline",
-                    "name": "MonBeauPipeline",
-                    "workspaceSlug": self.WS1.slug,
-                    "timeout": 46800,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["INVALID_TIMEOUT_VALUE"],
-            },
-            r["data"]["createPipeline"],
-        )
-
-    def test_create_pipeline_with_negative_timeout(self):
-        self.assertEqual(0, len(Pipeline.objects.all()))
-
-        self.client.force_login(self.USER_ROOT)
-        r = self.run_query(
-            """
-                mutation createPipeline($input: CreatePipelineInput!) {
-                    createPipeline(input: $input) {
-                        success errors
-                    }
-                }
-            """,
-            {
-                "input": {
-                    "code": "new_pipeline",
-                    "name": "MonBeauPipeline",
-                    "workspaceSlug": self.WS1.slug,
-                    "timeout": -46800,
-                }
-            },
-        )
-        self.assertEqual(
-            {
-                "success": False,
-                "errors": ["INVALID_TIMEOUT_VALUE"],
-            },
-            r["data"]["createPipeline"],
-        )
-
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()
@@ -243,6 +185,70 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(
             {"success": True, "version": 1, "errors": []}, r["data"]["uploadPipeline"]
+        )
+
+    def test_create_pipeline_version_negative_timeout(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        self.test_create_pipeline()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    version
+                }
+            }""",
+            {
+                "input": {
+                    "code": code1,
+                    "workspaceSlug": self.WS1.slug,
+                    "parameters": [],
+                    "zipfile": "",
+                    "timeout": -46800,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"], "version": None},
+            r["data"]["uploadPipeline"],
+        )
+
+    def test_create_pipeline_version_timeout_greater_than_max_timeout(self):
+        self.assertEqual(0, len(PipelineRun.objects.all()))
+        self.test_create_pipeline()
+        self.assertEqual(1, len(Pipeline.objects.all()))
+
+        code1 = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().code
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    version
+                }
+            }""",
+            {
+                "input": {
+                    "code": code1,
+                    "workspaceSlug": self.WS1.slug,
+                    "parameters": [],
+                    "zipfile": "",
+                    "timeout": 46800,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"], "version": None},
+            r["data"]["uploadPipeline"],
         )
 
     def test_create_pipeline_w_parameters(self):
