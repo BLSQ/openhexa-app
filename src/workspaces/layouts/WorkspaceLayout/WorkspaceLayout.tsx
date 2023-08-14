@@ -86,14 +86,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           />
         </div>
 
-        <main
-          className={clsx(
-            "flex flex-1 flex-col overflow-y-hidden transition-all",
-            className
-          )}
-        >
-          {children}
-        </main>
+        <main className={clsx("w-full", className)}>{children}</main>
         <div className="fixed bottom-6 right-6">
           <Help links={helpLinks}>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500 ring-opacity-5 transition-all hover:bg-gray-50 hover:text-4xl">
