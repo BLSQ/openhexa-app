@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.5](https://github.com/BLSQ/openhexa-frontend/compare/0.33.4...0.33.5) (2023-08-14)
+
+
+### Bug Fixes
+
+* **Layout:** Header was not sticky, make css simpler ([#407](https://github.com/BLSQ/openhexa-frontend/issues/407)) ([d66d96d](https://github.com/BLSQ/openhexa-frontend/commit/d66d96de4fcb13ade9ecde29b194debc35c0fc39))
+
 ## [0.33.4](https://github.com/BLSQ/openhexa-frontend/compare/0.33.3...0.33.4) (2023-08-14)
 
 
