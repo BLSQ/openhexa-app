@@ -1,6 +1,6 @@
 import base64
 import uuid
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django import test
 from django.conf import settings
@@ -434,6 +434,47 @@ class PipelinesV2Test(GraphQLTestCase):
             None,
             r["data"]["pipelineByCode"],
         )
+
+    def test_pipeline_run_outputs(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        run.state = PipelineRunState.SUCCESS
+        run.add_output(
+            f"gs://{pipeline.workspace.bucket_name}/my_file", "file", "my_file"
+        )
+        run.add_output("uri2", "db", "my_table")
+        run.add_output("uri3", "link", "my_link")
+
+        with patch(
+            "hexa.pipelines.schema.get_bucket_object",
+            MagicMock(),
+        ) as bucket_mock, patch(
+            "hexa.pipelines.schema.get_table_definition",
+            MagicMock(),
+        ) as table_mock:
+            r = self.run_query(
+                """
+                query pipelineRunOutputs($id: UUID!) {
+                    pipelineRun(id: $id) {
+                        outputs {
+                            __typename
+                        }
+                    }
+                }
+            """,
+                {"id": str(run.id)},
+            )
+            bucket_mock.assert_called_once_with(
+                pipeline.workspace.bucket_name, "my_file"
+            )
+            table_mock.assert_called_once_with(pipeline.workspace, "my_table")
 
     def test_delete_pipeline_version_pipeline_not_found(self):
         self.test_create_pipeline()
