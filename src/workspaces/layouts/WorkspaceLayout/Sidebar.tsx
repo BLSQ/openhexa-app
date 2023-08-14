@@ -86,7 +86,7 @@ const Sidebar = (props: SidebarProps) => {
   const { slug } = workspace;
 
   return (
-    <div className={clsx("relative z-20 h-full", className)}>
+    <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800">
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 

@@ -76,17 +76,27 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       }}
     >
       <div className="flex min-h-screen w-screen">
-        <div className="bg-gray-800">
-          <Sidebar
-            workspace={workspace}
-            className={clsx(
-              "sticky top-0 flex max-h-screen flex-col transition-all duration-75",
-              isSidebarOpen ? "w-64 2xl:w-72" : "w-16"
-            )}
-          />
+        <div
+          className={clsx(
+            "fixed h-screen bg-gray-800 transition-all duration-75",
+            isSidebarOpen ? "w-64 2xl:w-72" : "w-16"
+          )}
+        >
+          <Sidebar workspace={workspace} />
+        </div>
+        <div
+          className={clsx(
+            "w-full transition-all duration-75",
+            isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16"
+          )}
+        >
+          <main
+            className={clsx("flex flex-1 flex-col transition-all", className)}
+          >
+            {children}
+          </main>
         </div>
 
-        <main className={clsx("w-full", className)}>{children}</main>
         <div className="fixed bottom-6 right-6">
           <Help links={helpLinks}>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-3xl shadow-xl ring-1 ring-gray-500 ring-opacity-5 transition-all hover:bg-gray-50 hover:text-4xl">
