@@ -40,8 +40,8 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         + exec_time_str
     )
     pipeline_timeout = (
-        run.pipeline.timeout
-        if run.pipeline.timeout
+        run.pipeline_version.timeout
+        if run.pipeline_version.timeout
         else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
     )
 

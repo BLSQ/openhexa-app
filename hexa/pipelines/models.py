@@ -119,6 +119,7 @@ class PipelineVersion(models.Model):
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
     parameters = models.JSONField(blank=True, default=dict)
+    timeout = models.IntegerField(null=True)
 
     objects = PipelineVersionQuerySet.as_manager()
 
@@ -164,7 +165,6 @@ class Pipeline(models.Model):
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
-    timeout = models.IntegerField(null=True)
 
     objects = PipelineQuerySet.as_manager()
 
@@ -195,7 +195,7 @@ class Pipeline(models.Model):
     def last_run(self) -> "PipelineRun":
         return self.pipelinerun_set.first()
 
-    def upload_new_version(self, user: User, zipfile, parameters):
+    def upload_new_version(self, user: User, zipfile, parameters, timeout: int = None):
         if self.last_version:
             if self.schedule and parameters:
                 raise PipelineDoesNotSupportParametersError(
@@ -211,6 +211,7 @@ class Pipeline(models.Model):
             number=newnumber,
             zipfile=zipfile,
             parameters=parameters,
+            timeout=timeout,
         )
         return version
 
