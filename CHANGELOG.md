@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.10](https://github.com/BLSQ/openhexa-app/compare/0.58.9...0.58.10) (2023-08-14)
+
+
+### Miscellaneous
+
+* remove print ([0ea5890](https://github.com/BLSQ/openhexa-app/commit/0ea5890305e2db01ded9b4d18281cfa5796c0eee))
+
 ## [0.58.9](https://github.com/BLSQ/openhexa-app/compare/0.58.8...0.58.9) (2023-08-14)
 
 
