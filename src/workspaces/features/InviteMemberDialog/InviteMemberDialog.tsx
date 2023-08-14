@@ -52,22 +52,22 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
       if (
         data.inviteWorkspaceMember.errors.includes(
-          InviteWorkspaceMembershipError.AlreadyExists
+          InviteWorkspaceMembershipError.AlreadyExists,
         )
       ) {
-        throw new Error("User already added to this workspace.");
+        throw new Error("User already invited to this workspace.");
       }
 
       if (
         data.inviteWorkspaceMember.errors.includes(
-          InviteWorkspaceMembershipError.UserNotFound
+          InviteWorkspaceMembershipError.UserNotFound,
         )
       ) {
         throw new Error("No user matching this email address.");
       }
       if (
         data.inviteWorkspaceMember.errors.includes(
-          InviteWorkspaceMembershipError.PermissionDenied
+          InviteWorkspaceMembershipError.PermissionDenied,
         )
       ) {
         throw new Error("You are not authorized to perform this action");

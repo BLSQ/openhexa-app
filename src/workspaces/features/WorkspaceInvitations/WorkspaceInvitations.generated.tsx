@@ -11,16 +11,20 @@ export type WorskspaceInvitationsQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorskspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', role: Types.WorkspaceMembershipRole, email: string, status: Types.WorkspaceInvitationStatus, createdAt: any, invited_by?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type WorskspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, role: Types.WorkspaceMembershipRole, email: string, status: Types.WorkspaceInvitationStatus, createdAt: any, invited_by?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 
 export const WorskspaceInvitationsDocument = gql`
     query WorskspaceInvitations($slug: String!, $status: WorkspaceInvitationStatus, $page: Int, $perPage: Int) {
   workspace(slug: $slug) {
     slug
+    permissions {
+      manageMembers
+    }
     invitations(status: $status, page: $page, perPage: $perPage) {
       totalItems
       items {
+        id
         role
         email
         status

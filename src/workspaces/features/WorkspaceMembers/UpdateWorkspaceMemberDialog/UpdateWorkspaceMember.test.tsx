@@ -1,7 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
-  DeleteWorkspaceMemberDocument,
   UpdateWorkspaceMemberDocument,
   useUpdateWorkspaceMemberMutation,
 } from "workspaces/graphql/mutations.generated";
@@ -105,7 +104,7 @@ describe("UpdateWorkspaceMemberDialog", () => {
     );
     expect(useUpdateWorkspaceMemberMutationMock).toHaveBeenCalled();
 
-    const deleteButton = screen.getByRole("button", { name: "Save" });
-    await user.click(deleteButton);
+    const updateButton = screen.getByRole("button", { name: "Save" });
+    await user.click(updateButton);
   });
 });

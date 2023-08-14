@@ -626,6 +626,7 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
+  timeout: Int
 }
 
 type CreatePipelineResult {
@@ -935,6 +936,20 @@ enum DeleteWorkspaceError {
 
 input DeleteWorkspaceInput {
   slug: String!
+}
+
+enum DeleteWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+type DeleteWorkspaceInvitationResult {
+  success: Boolean!
+  errors: [DeleteWorkspaceInvitationError!]!
 }
 
 enum DeleteWorkspaceMemberError {
@@ -1304,6 +1319,8 @@ type Mutation {
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
+  deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult!
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
   updateConnection(input: UpdateConnectionInput!): UpdateConnectionResult!
   deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult!
@@ -1383,6 +1400,7 @@ enum PipelineError {
   PIPELINE_ALREADY_EXISTS
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
+  INVALID_TIMEOUT_VALUE
 }
 
 type PipelineParameter {
@@ -1622,6 +1640,21 @@ input RequestAccessmodAccessInput {
 type RequestAccessmodAccessInputResult {
   success: Boolean!
   errors: [RequestAccessmodAccessError!]!
+}
+
+enum ResendWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
+input ResendWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+type ResendWorkspaceInvitationResult {
+  success: Boolean!
+  errors: [ResendWorkspaceInvitationError!]!
 }
 
 input ResetPasswordInput {
