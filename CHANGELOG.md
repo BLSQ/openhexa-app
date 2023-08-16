@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.6](https://github.com/BLSQ/openhexa-frontend/compare/0.33.5...0.33.6) (2023-08-16)
+
+
+### Bug Fixes
+
+* **tests:** I broke the tests... ([c4ad3fb](https://github.com/BLSQ/openhexa-frontend/commit/c4ad3fb3eab5431d0507bd05e53b3cb3ed93b919))
+* **WorkspaceLayout:** Fix problem with very tables with a lot of columns ([fb91722](https://github.com/BLSQ/openhexa-frontend/commit/fb91722b86ea4009ac6de6dca681083467d41ce7))
+
 ## [0.33.5](https://github.com/BLSQ/openhexa-frontend/compare/0.33.4...0.33.5) (2023-08-14)
 
 
