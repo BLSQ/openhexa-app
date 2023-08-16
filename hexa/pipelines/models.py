@@ -119,7 +119,10 @@ class PipelineVersion(models.Model):
     number = models.SmallIntegerField()
     zipfile = models.BinaryField()
     parameters = models.JSONField(blank=True, default=dict)
-    timeout = models.IntegerField(null=True)
+    timeout = models.IntegerField(
+        null=True,
+        help_text="Time (in seconds) after which the pipeline execution will be stopped (with a default value of 4 hours up to 12 max).",
+    )
 
     objects = PipelineVersionQuerySet.as_manager()
 

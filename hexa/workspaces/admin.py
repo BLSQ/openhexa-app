@@ -13,6 +13,10 @@ from .models import (
 class WorkspaceAdmin(admin.ModelAdmin):
     list_display = ("slug", "name", "created_at", "updated_at", "archived")
     list_filter = ("archived",)
+    search_fields = (
+        "slug",
+        "name",
+    )
 
 
 @admin.register(WorkspaceMembership)
