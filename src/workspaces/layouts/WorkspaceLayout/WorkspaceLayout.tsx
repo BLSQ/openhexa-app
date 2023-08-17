@@ -1,7 +1,9 @@
 import { gql } from "@apollo/client";
 import clsx from "clsx";
+import { getCookie, setCookie } from "cookies-next";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
+import { GetServerSidePropsContext } from "next";
 import {
   ComponentProps,
   createContext,
@@ -10,12 +12,10 @@ import {
   useState,
 } from "react";
 import Header from "./Header";
+import Help from "./Help";
 import PageContent from "./PageContent";
 import Sidebar from "./Sidebar";
 import { WorkspaceLayout_WorkspaceFragment } from "./WorkspaceLayout.generated";
-import { getCookie, setCookie } from "cookies-next";
-import { GetServerSidePropsContext } from "next";
-import Help from "./Help";
 type WorkspaceLayoutProps = {
   children: ReactElement | ReactElement[];
   className?: string;

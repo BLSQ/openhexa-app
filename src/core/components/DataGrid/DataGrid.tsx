@@ -30,6 +30,7 @@ import Pagination from "../Pagination";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "../Table";
 import { BaseColumnProps } from "./BaseColumn";
 import { CellContextProvider } from "./helpers";
+import Overflow from "../Overflow";
 export type { Cell, SortingRule } from "react-table";
 
 export type Column<D extends object = any> = ReactTableColumn<D> & {
@@ -237,7 +238,7 @@ function DataGrid(props: DataGridProps) {
 
   return (
     <div className={className}>
-      <div className="overflow-x-auto overflow-y-hidden">
+      <Overflow horizontal gradientWidth="w-12">
         <Table
           {...getTableProps()}
           className={clsx(fixedLayout && "table-fixed")}
@@ -308,7 +309,7 @@ function DataGrid(props: DataGridProps) {
             {emptyLabel}
           </div>
         )}
-      </div>
+      </Overflow>
 
       {totalItems !== undefined && (
         <Pagination
