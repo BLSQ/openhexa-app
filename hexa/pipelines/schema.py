@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
@@ -280,17 +281,22 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
     result = []
     workspace = run.pipeline.workspace
     for output in run.outputs:
-        if output["type"] == "file":
-            result.append(
-                get_bucket_object(
-                    workspace.bucket_name,
-                    output["uri"][len(f"gs://{workspace.bucket_name}/") :],
+        try:
+            if output["type"] == "file":
+                result.append(
+                    get_bucket_object(
+                        workspace.bucket_name,
+                        output["uri"][len(f"gs://{workspace.bucket_name}/") :],
+                    )
                 )
-            )
-        elif output["type"] == "db":
-            result.append(get_table_definition(workspace, output["name"]))
-        else:
-            result.append(output)
+            elif output["type"] == "db":
+                result.append(get_table_definition(workspace, output["name"]))
+            else:
+                result.append(output)
+        except Exception as e:
+            # Table or Bucket object might be deleted
+            capture_exception(e)
+            continue
 
     return result
 
