@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.12](https://github.com/BLSQ/openhexa-app/compare/0.58.11...0.58.12) (2023-08-18)
+
+
+### Bug Fixes
+
+* **Pipelines:** Do not throw an error when an output does not exist anymore ([#534](https://github.com/BLSQ/openhexa-app/issues/534)) ([ba75bdb](https://github.com/BLSQ/openhexa-app/commit/ba75bdb5d3ce29348df6ccce85920ec09515debd))
+
 ## [0.58.11](https://github.com/BLSQ/openhexa-app/compare/0.58.10...0.58.11) (2023-08-14)
 
 
