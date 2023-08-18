@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "hexa.workspaces",
     "hexa.databases",
     "hexa.files",
+    "hexa.datasets",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -434,6 +435,9 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 # Filesystem configuration
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
 WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
+
+# Datasets config
+WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
 # Base64 encoded service account key
 # To generate a service account key, follow the instructions here:

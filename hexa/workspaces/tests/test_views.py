@@ -184,12 +184,11 @@ class ViewsTest(TestCase):
         run = self.PIPELINE.run(
             self.USER_JULIA, self.PIPELINE.last_version, PipelineRunTrigger.MANUAL, {}
         )
+        token = Signer().sign_object(run.access_token)
         response = self.client.post(
             reverse("workspaces:credentials"),
             data={"workspace": self.WORKSPACE.slug},
-            **{
-                "HTTP_Authorization": f"Bearer {Signer().sign_object(run.access_token)}"
-            },
+            **{"HTTP_Authorization": f"Bearer {token}"},
         )
 
         db_credentials = get_db_server_credentials()
@@ -214,6 +213,7 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "GCS_TOKEN": "gcs-token",
+                "HEXA_TOKEN": token,
             },
         )
         self.assertEqual(

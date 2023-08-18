@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 from google.cloud._helpers import _bytes_to_unicode
 
 
@@ -13,6 +15,8 @@ class MockBlob:
         self.size = size
         self._content_type = content_type
         self.bucket = bucket
+
+        self.upload_from_string = Mock()
 
     @property
     def content_type(self):

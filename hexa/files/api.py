@@ -253,8 +253,14 @@ def generate_download_url(bucket_name: str, target_key: str, force_attachment=Fa
     client = get_storage_client()
     gcs_bucket = client.get_bucket(bucket_name)
     blob: Blob = gcs_bucket.get_blob(target_key)
+
+    if blob is None:
+        return None
+
+    filename = blob.name.split("/")[-1]
+
     response_disposition = (
-        f"attachment;filename={blob.name}" if force_attachment else None
+        f"attachment;filename={filename}" if force_attachment else None
     )
 
     return blob.generate_signed_url(
@@ -262,9 +268,13 @@ def generate_download_url(bucket_name: str, target_key: str, force_attachment=Fa
     )
 
 
-def generate_upload_url(bucket_name: str, target_key: str, content_type: str):
+def generate_upload_url(
+    bucket_name: str, target_key: str, content_type: str, raise_if_exists=False
+):
     client = get_storage_client()
     gcs_bucket = client.get_bucket(bucket_name)
+    if raise_if_exists and gcs_bucket.get_blob(target_key) is not None:
+        raise ValidationError(f"GCS: Object {target_key} already exists!")
     blob = gcs_bucket.blob(target_key)
     return blob.generate_signed_url(
         expiration=3600, version="v4", method="PUT", content_type=content_type

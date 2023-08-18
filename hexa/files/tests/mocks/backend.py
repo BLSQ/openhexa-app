@@ -13,12 +13,6 @@ class StorageBackend(object):
     def reset(self):
         self.buckets = {}
 
-    def create_bucket(self, bucket_name, *args, **kwargs):
-        pass
-
-    def create_blob(self, bucket_name, blob_name, **kwargs):
-        pass
-
     def mock_storage(self, func):
         from .client import MockClient
 
