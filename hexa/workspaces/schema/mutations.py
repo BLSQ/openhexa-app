@@ -132,6 +132,11 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                 user=user,
                 role=input["role"],
             )
+            if not user.has_feature_flag("workspaces"):
+                FeatureFlag.objects.create(
+                    feature=Feature.objects.get(code="workspaces"), user=user
+                )
+
             send_mail(
                 title=gettext_lazy(
                     f"You've been added to the workspace {workspace.name}"
@@ -224,11 +229,13 @@ def resolve_join_workspace(_, info, **kwargs):
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
-        # automatically signup user
+
+        # Let's authenticate the user automatically
         authenticated_user = authenticate(
             username=invitation.email, password=input["password"]
         )
         login(request, authenticated_user)
+
         return {"success": True, "errors": [], "workspace": invitation.workspace}
 
     except SignatureExpired:

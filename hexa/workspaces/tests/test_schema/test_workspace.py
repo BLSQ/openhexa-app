@@ -481,6 +481,7 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_invite_workspace_member(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        self.assertFalse(self.USER_SABRINA.has_feature_flag("workspaces"))
         r = self.run_query(
             """
             mutation inviteWorkspaceMember($input: InviteWorkspaceMemberInput!) {
@@ -518,6 +519,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(1, len(mail.outbox))
+        self.assertTrue(self.USER_SABRINA.has_feature_flag("workspaces"))
         self.assertEqual(
             f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
