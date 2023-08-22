@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.58.13](https://github.com/BLSQ/openhexa-app/compare/0.58.12...0.58.13) (2023-08-22)
+
+
+### Features
+
+* admin improvements ([#532](https://github.com/BLSQ/openhexa-app/issues/532)) ([1aa130d](https://github.com/BLSQ/openhexa-app/commit/1aa130de60d0e92199d9c0fa3f46d9e5c4b42a86))
+
+
+### Bug Fixes
+
+* **Workspaces:** Add the 'workspaces' feature to legacy users invited in a workspace ([#537](https://github.com/BLSQ/openhexa-app/issues/537)) ([ed6fedf](https://github.com/BLSQ/openhexa-app/commit/ed6fedff7a1c4709ec003bb96ed9115cec1101ad))
+* **Workspaces:** filter invitations by user and workspace ([#538](https://github.com/BLSQ/openhexa-app/issues/538)) ([bf99e12](https://github.com/BLSQ/openhexa-app/commit/bf99e128f424c3d3ae9555418b5b219254aefcc8))
+
+
+### Miscellaneous
+
+* remove IASO connector (step 2) ([#531](https://github.com/BLSQ/openhexa-app/issues/531)) ([90a8410](https://github.com/BLSQ/openhexa-app/commit/90a8410995a48c1c495ba09533a8724b1272cb29))
+
 ## [0.58.12](https://github.com/BLSQ/openhexa-app/compare/0.58.11...0.58.12) (2023-08-18)
 
 
