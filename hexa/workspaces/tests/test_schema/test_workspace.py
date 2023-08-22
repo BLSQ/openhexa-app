@@ -97,6 +97,13 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.ACCEPTED,
         )
+        cls.INVITATION_BAZ = WorkspaceInvitation.objects.create(
+            invited_by=cls.USER_WORKSPACE_ADMIN,
+            workspace=cls.WORKSPACE_2,
+            email=cls.USER_REBECCA.email,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.ACCEPTED,
+        )
 
     @mock_gcp_storage
     def test_create_workspace_denied(self):
@@ -1207,7 +1214,7 @@ class WorkspaceTest(GraphQLTestCase):
         user = auth.get_user(self.client)
         self.assertTrue(user.is_authenticated)
 
-    def test_get_all_workspace_invitations(self):
+    def test_get_workspace_invitations(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
         r = self.run_query(
             """
