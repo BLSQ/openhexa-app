@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.34.0](https://github.com/BLSQ/openhexa-frontend/compare/0.33.6...0.34.0) (2023-08-21)
+
+
+### Features
+
+* **Overflow:** Add a overflow component that displays a gradient when there is an overflow ([5cae039](https://github.com/BLSQ/openhexa-frontend/commit/5cae03930f5e524be0a2c457e7b85bf9e35788ee))
+
+
+### Miscellaneous
+
+* Prepare release 0.34.0 ([d7387cc](https://github.com/BLSQ/openhexa-frontend/commit/d7387ccf1ba8478e5af0d7aeb333614a261b4034))
+
 ## [0.33.6](https://github.com/BLSQ/openhexa-frontend/compare/0.33.5...0.33.6) (2023-08-16)
 
 
