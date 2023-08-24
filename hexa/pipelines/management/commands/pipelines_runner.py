@@ -12,6 +12,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.signing import Signer
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from slugify import slugify
 
 from hexa.pipelines.models import PipelineRun, PipelineRunState
@@ -32,13 +33,11 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 
     exec_time_str = timezone.now().replace(tzinfo=None, microsecond=0).isoformat()
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
+    suffix = f"-{exec_time_str}-{get_random_string(8)}"
     container_name = slugify(
-        f"pipeline-{run.pipeline.code}"[
-            : 62 - len("-" + exec_time_str)
-        ]  # Max length of a pod name is 63 characters
-        + "-"
-        + exec_time_str
+        f"pipeline-{run.pipeline.code}"[: 63 - len(suffix)] + suffix
     )
+
     pipeline_timeout = (
         run.pipeline_version.timeout
         if run.pipeline_version.timeout
