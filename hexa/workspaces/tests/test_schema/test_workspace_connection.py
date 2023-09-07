@@ -132,6 +132,56 @@ class ConnectionTest(GraphQLTestCase):
             r["data"]["createConnection"],
         )
 
+    def test_create_connection_invalid_fields(self):
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+            mutation createConnection($input:CreateConnectionInput!) {
+                createConnection(input: $input) {
+                    success
+                    connection {
+                        name
+                        slug
+                        type
+                        fields {
+                            code
+                            value
+                            secret
+                        }
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "name": "Connection",
+                    "slug": "con",
+                    "type": ConnectionType.CUSTOM,
+                    "fields": [
+                        {
+                            "code": "this is an invalid field",
+                            "value": "http://localhost",
+                            "secret": False,
+                        },
+                        {
+                            "code": "password",
+                            "value": "pA$$",
+                            "secret": True,
+                        },
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(
+            {"success": False, "connection": None, "errors": ["INVALID_SLUG"]},
+            r["data"]["createConnection"],
+        )
+        with self.assertRaises(Connection.DoesNotExist):
+            Connection.objects.get(slug="con")
+
     def test_create_connection(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
