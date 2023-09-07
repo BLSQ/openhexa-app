@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import BadSignature, SignatureExpired, Signer
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
@@ -353,10 +353,10 @@ def resolve_create_workspace_connection(_, info, **kwargs):
             slug=mutation_input.pop("workspaceSlug")
         )
         mutation_input["connection_type"] = mutation_input.pop("type")
-
-        connection = Connection.objects.create_if_has_perm(
-            request.user, workspace, **mutation_input
-        )
+        with transaction.atomic():
+            connection = Connection.objects.create_if_has_perm(
+                request.user, workspace, **mutation_input
+            )
 
         return {"success": True, "errors": [], "connection": connection}
     except ValidationError:
