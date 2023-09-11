@@ -40,14 +40,6 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
               label: t("About connections"),
               href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
             },
-            {
-              label: t("Using connections in notebooks"),
-              href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
-            },
-            {
-              label: t("Using connections in pipelines"),
-              href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines#using-connections",
-            },
           ]}
         >
           <WorkspaceLayout.Header>
