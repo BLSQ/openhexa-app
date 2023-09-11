@@ -6,10 +6,8 @@ import DescriptionList, {
 } from "core/components/DescriptionList";
 import Page from "core/components/Page";
 import Time from "core/components/Time";
-import User from "core/features/User";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
-import DefaultLayout from "core/layouts/default";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
 import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
 import {
@@ -20,76 +18,81 @@ import {
 import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
+import BackLayout from "core/layouts/back";
+import { useRouter } from "next/router";
 
 function AccountPage() {
   const { t } = useTranslation();
   const { data } = useAccountPageQuery();
   const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
-
+  const router = useRouter();
   if (!data?.me.user) {
     return null;
   }
 
   const { user } = data.me;
   return (
-    <>
-      <Page title={t("Account")}>
-        <DefaultLayout.PageContent className="my-6">
-          <Block className="divide-y divide-gray-100">
-            <Block.Header className="flex items-center justify-between">
-              <User user={user} />
-              <Button
-                variant="primary"
-                onClick={() => logout()}
-                leadingIcon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
-              >
-                {t("Logout")}
-              </Button>
-            </Block.Header>
-            <Block.Content>
+    <Page title={t("Account")}>
+      <BackLayout
+        onBack={() => router.back()}
+        title={
+          <div className={"flex justify-between items-center gap-3"}>
+            {t("Your account")}
+            <Button
+              variant="primary"
+              onClick={() => logout()}
+              leadingIcon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
+            >
+              {t("Logout")}
+            </Button>
+          </div>
+        }
+      >
+        <Block className="divide-y divide-gray-100">
+          <Block.Header>{user.displayName}</Block.Header>
+          <Block.Content>
+            <DescriptionList
+              columns={2}
+              displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+            >
+              <DescriptionList.Item label={t("First name")}>
+                {user.firstName || "-"}
+              </DescriptionList.Item>
+              <DescriptionList.Item label={t("Last name")}>
+                {user.lastName || "-"}
+              </DescriptionList.Item>
+              <DescriptionList.Item label={t("Email")}>
+                {user.email}
+              </DescriptionList.Item>
+              <DescriptionList.Item label={t("Joined")}>
+                <Time relative datetime={user.dateJoined} />
+              </DescriptionList.Item>
+            </DescriptionList>
+          </Block.Content>
+          {twoFactorEnabled && (
+            <Block.Section title={t("Security")} collapsible={false}>
               <DescriptionList
                 columns={2}
                 displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
               >
-                <DescriptionList.Item label={t("First name")}>
-                  {user.firstName}
-                </DescriptionList.Item>
-                <DescriptionList.Item label={t("Last name")}>
-                  {user.lastName}
-                </DescriptionList.Item>
-                <DescriptionList.Item label={t("Email")}>
-                  {user.email}
-                </DescriptionList.Item>
-                <DescriptionList.Item label={t("Joined")}>
-                  <Time relative datetime={user.dateJoined} />
+                <DescriptionList.Item label={t("Two-Factor Authentication")}>
+                  {data.me.hasTwoFactorEnabled
+                    ? t("Currently enabled")
+                    : t("Currently disabled")}
+                  <Button
+                    size="sm"
+                    className="ml-2"
+                    onClick={toggleTwoFactorDialog}
+                  >
+                    {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
+                  </Button>
                 </DescriptionList.Item>
               </DescriptionList>
-            </Block.Content>
-            {twoFactorEnabled && (
-              <Block.Section title={t("Security")} collapsible={false}>
-                <DescriptionList
-                  columns={2}
-                  displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-                >
-                  <DescriptionList.Item label={t("Two-Factor Authentication")}>
-                    {data.me.hasTwoFactorEnabled
-                      ? t("Currently enabled")
-                      : t("Currently disabled")}
-                    <Button
-                      size="sm"
-                      className="ml-2"
-                      onClick={toggleTwoFactorDialog}
-                    >
-                      {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
-                    </Button>
-                  </DescriptionList.Item>
-                </DescriptionList>
-              </Block.Section>
-            )}
-          </Block>
-        </DefaultLayout.PageContent>
-      </Page>
+            </Block.Section>
+          )}
+        </Block>
+      </BackLayout>
 
       {data.me.hasTwoFactorEnabled ? (
         <DisableTwoFactorDialog
@@ -102,9 +105,11 @@ function AccountPage() {
           onClose={toggleTwoFactorDialog}
         />
       )}
-    </>
+    </Page>
   );
 }
+
+AccountPage.getLayout = (page: any) => page;
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,

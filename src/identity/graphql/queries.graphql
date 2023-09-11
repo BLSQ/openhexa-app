@@ -1,38 +1,41 @@
 query GetUser {
-  me {
-    hasTwoFactorEnabled
-    permissions {
-      adminPanel
-      superUser
-      createWorkspace
+    me {
+        hasTwoFactorEnabled
+        permissions {
+            adminPanel
+            superUser
+            createWorkspace
+        }
+        features {
+            code
+            config
+        }
+        user {
+            ...UserAvatar_user
+            email
+            id
+            firstName
+            lastName
+            displayName
+            avatar {
+                initials
+                color
+            }
+        }
     }
-    features {
-      code
-      config
-    }
-    user {
-      ...UserAvatar_user
-      email
-      id
-      firstName
-      lastName
-      displayName
-      avatar {
-        initials
-        color
-      }
-    }
-  }
 }
 
 query AccountPage {
-  me {
-    hasTwoFactorEnabled
-    user {
-      firstName
-      lastName
-      dateJoined
-      ...User_user
+    me {
+        hasTwoFactorEnabled
+        user {
+            firstName
+            lastName
+            dateJoined
+            displayName
+            id
+            email
+            ...User_user
+        }
     }
-  }
 }

@@ -21,6 +21,7 @@ interface CreateGetServerSideProps {
 
 interface ServerSideProps {
   me: Awaited<ReturnType<typeof getMe>>;
+
   [key: string]: any;
 }
 
@@ -66,7 +67,9 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
 
       if (
         !features.some((f) => f.code === "openhexa_legacy") &&
-        !ctx.resolvedUrl.startsWith("/workspaces")
+        ["/workspaces", "/user"].every(
+          (path) => !ctx.resolvedUrl.startsWith(path),
+        )
       ) {
         return {
           redirect: {
