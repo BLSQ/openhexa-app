@@ -125,10 +125,13 @@ def resolve_pipeline_permissions_delete_version(pipeline: Pipeline, info, **kwar
 @pipeline_permissions.field("schedule")
 def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
+    is_schedulable = len(pipeline.last_version.parameters) == 0 or all(
+        [parameter.get("default") for parameter in pipeline.last_version.parameters]
+    )
     return (
         request.user.is_authenticated
         and request.user.has_perm("pipelines.run_pipeline", pipeline)
-        and len(pipeline.last_version.parameters) == 0
+        and is_schedulable
     )
 
 
