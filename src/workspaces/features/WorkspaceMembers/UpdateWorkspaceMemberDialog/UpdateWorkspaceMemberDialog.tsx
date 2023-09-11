@@ -25,7 +25,7 @@ type Form = {
 };
 
 const UpdateWorkspaceMemberDialog = (
-  props: UpdateWorkspaceMemberDialogProps
+  props: UpdateWorkspaceMemberDialogProps,
 ) => {
   const { t } = useTranslation();
   const { open, onClose, member } = props;
@@ -46,7 +46,7 @@ const UpdateWorkspaceMemberDialog = (
       }
       if (
         data.updateWorkspaceMember.errors.includes(
-          UpdateWorkspaceMemberError.PermissionDenied
+          UpdateWorkspaceMemberError.PermissionDenied,
         )
       ) {
         throw new Error("You are not authorized to perform this action");
@@ -65,42 +65,38 @@ const UpdateWorkspaceMemberDialog = (
   }, [open, form]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog onSubmit={form.handleSubmit} open={open} onClose={onClose}>
       <Dialog.Title>{t("Edit member")}</Dialog.Title>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Content className="space-y-4">
-          <Field name="role" label={t("Role")} required>
-            <SimpleSelect
-              name="role"
-              value={form.formData.role}
-              onChange={form.handleInputChange}
-              required
-            >
-              <option value={WorkspaceMembershipRole.Admin}>
-                {t("Admin")}
-              </option>
-              <option value={WorkspaceMembershipRole.Editor}>
-                {t("Editor")}
-              </option>
-              <option value={WorkspaceMembershipRole.Viewer}>
-                {t("Viewer")}
-              </option>
-            </SimpleSelect>
-          </Field>
-          {form.submitError && (
-            <div className="text-danger mt-3 text-sm">{form.submitError}</div>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button variant="white" type="button" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
-          <Button disabled={form.isSubmitting} type="submit">
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Save")}
-          </Button>
-        </Dialog.Actions>
-      </form>
+      <Dialog.Content className="space-y-4">
+        <Field name="role" label={t("Role")} required>
+          <SimpleSelect
+            name="role"
+            value={form.formData.role}
+            onChange={form.handleInputChange}
+            required
+          >
+            <option value={WorkspaceMembershipRole.Admin}>{t("Admin")}</option>
+            <option value={WorkspaceMembershipRole.Editor}>
+              {t("Editor")}
+            </option>
+            <option value={WorkspaceMembershipRole.Viewer}>
+              {t("Viewer")}
+            </option>
+          </SimpleSelect>
+        </Field>
+        {form.submitError && (
+          <div className="text-danger mt-3 text-sm">{form.submitError}</div>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button variant="white" type="button" onClick={onClose}>
+          {t("Cancel")}
+        </Button>
+        <Button disabled={form.isSubmitting} type="submit">
+          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Save")}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

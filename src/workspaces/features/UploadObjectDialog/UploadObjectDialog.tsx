@@ -40,7 +40,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
           const url = await getBucketObjectUploadUrl(
             workspace.slug,
             (prefix ?? "") + file.name,
-            contentType
+            contentType,
           );
 
           return {
@@ -63,43 +63,41 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title onClose={onClose}>
-          {t("Upload files in workspace")}
-        </Dialog.Title>
-        <Dialog.Content>
-          <Dropzone
-            className="h-48"
-            onChange={(files) => form.setFieldValue("files", files)}
+    <Dialog onSubmit={form.handleSubmit} open={open} onClose={onClose}>
+      <Dialog.Title onClose={onClose}>
+        {t("Upload files in workspace")}
+      </Dialog.Title>
+      <Dialog.Content>
+        <Dropzone
+          className="h-48"
+          onChange={(files) => form.setFieldValue("files", files)}
+          disabled={form.isSubmitting}
+          label={t("Drop files here or click to select")}
+        />
+        {form.submitError && (
+          <p className={"text-sm text-red-600"}>{form.submitError}</p>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions className="justify-between">
+        <div className="flex items-center justify-between gap-3">
+          <Button
+            variant="white"
+            onClick={onClose}
             disabled={form.isSubmitting}
-            label={t("Drop files here or click to select")}
-          />
-          {form.submitError && (
-            <p className={"text-sm text-red-600"}>{form.submitError}</p>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions className="justify-between">
-          <div className="flex items-center justify-between gap-3">
-            <Button
-              variant="white"
-              onClick={onClose}
-              disabled={form.isSubmitting}
-            >
-              {t("Cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={form.isSubmitting}
-              leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
-            >
-              {form.isSubmitting
-                ? t("Uploading: {{progress}}%", { progress })
-                : t("Upload")}
-            </Button>
-          </div>
-        </Dialog.Actions>
-      </form>
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            type="submit"
+            disabled={form.isSubmitting}
+            leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+          >
+            {form.isSubmitting
+              ? t("Uploading: {{progress}}%", { progress })
+              : t("Upload")}
+          </Button>
+        </div>
+      </Dialog.Actions>
     </Dialog>
   );
 };

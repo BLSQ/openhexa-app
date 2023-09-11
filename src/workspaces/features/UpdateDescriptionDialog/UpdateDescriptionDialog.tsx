@@ -39,7 +39,7 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
       }
       if (
         data.updateWorkspace.errors.includes(
-          UpdateWorkspaceError.PermissionDenied
+          UpdateWorkspaceError.PermissionDenied,
         )
       ) {
         throw new Error("You are not authorized to perform this action");
@@ -66,32 +66,35 @@ const UpdateDescriptionDialog = (props: UpdateDescriptionDialogProps) => {
   }, [open, form, workspace]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-5xl">
+    <Dialog
+      onSubmit={form.handleSubmit}
+      open={open}
+      onClose={onClose}
+      maxWidth="max-w-5xl"
+    >
       <Dialog.Title>{t("Edit workspace's description")}</Dialog.Title>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Content className="space-y-4">
-          <Textarea
-            name="description"
-            required
-            value={form.formData.description}
-            onChange={form.handleInputChange}
-            rows={20}
-            data-testid="description"
-          />
-          {form.submitError && (
-            <div className="text-danger mt-3 text-sm">{form.submitError}</div>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button variant="white" type="button" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
-          <Button disabled={form.isSubmitting} type="submit">
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Save")}
-          </Button>
-        </Dialog.Actions>
-      </form>
+      <Dialog.Content className="space-y-4">
+        <Textarea
+          name="description"
+          required
+          value={form.formData.description}
+          onChange={form.handleInputChange}
+          rows={20}
+          data-testid="description"
+        />
+        {form.submitError && (
+          <div className="text-danger mt-3 text-sm">{form.submitError}</div>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button variant="white" type="button" onClick={onClose}>
+          {t("Cancel")}
+        </Button>
+        <Button disabled={form.isSubmitting} type="submit">
+          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Save")}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

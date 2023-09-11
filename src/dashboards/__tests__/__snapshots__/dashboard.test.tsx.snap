@@ -260,10 +260,10 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             class="relative"
           >
             <div
-              class="h-full overflow-x-auto overflow-y-auto"
+              class="h-full overflow-x-auto"
             >
               <div
-                class="pointer-events-none absolute bottom-0 left-0 top-0 bg-gradient-to-r to-transparent  transition-opacity duration-100 from-white w-12 opacity-0"
+                class="pointer-events-none absolute bottom-0 left-0 top-0 bg-gradient-to-r to-transparent transition-opacity duration-100 from-white w-12 opacity-0"
               />
               <div
                 id="child"
@@ -384,7 +384,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 </table>
               </div>
               <div
-                class="pointer-events-none absolute bottom-0 right-0 top-0 bg-gradient-to-l to-transparent  transition-opacity duration-100 from-white w-12 opacity-0"
+                class="pointer-events-none absolute bottom-0 right-0 top-0 bg-gradient-to-l to-transparent transition-opacity duration-100 from-white w-12 opacity-0"
               />
             </div>
           </div>

@@ -2,7 +2,13 @@ import { Dialog as BaseDialog, Transition } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import useEventListener from "core/hooks/useEventListener";
-import { Fragment, ReactElement, ReactNode, useRef } from "react";
+import {
+  FormEventHandler,
+  Fragment,
+  ReactElement,
+  ReactNode,
+  useRef,
+} from "react";
 
 type DialogProps = {
   open: boolean;
@@ -10,6 +16,7 @@ type DialogProps = {
   centered?: boolean;
   padding?: string;
   children: ReactElement | ReactElement[];
+  onSubmit?: FormEventHandler;
   closeOnOutsideClick?: boolean;
   closeOnEsc?: boolean;
   className?: string;
@@ -20,7 +27,7 @@ const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
   return (
     <BaseDialog.Title
       as="h3"
-      className="mb-5 flex items-center justify-between text-2xl font-medium text-gray-900 md:mb-7"
+      className="mb-2 tall:mb-7 flex items-center justify-between text-2xl font-medium text-gray-900"
     >
       {props.children}
       {props.onClose && (
@@ -31,12 +38,24 @@ const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
 };
 
 const DialogContent = (props: { children: ReactNode; className?: string }) => {
-  return <div className={props.className}>{props.children}</div>;
+  return (
+    <div
+      className={clsx(
+        "flex-1 overflow-y-auto -mx-4 px-4 tall:px-6 tall:-mx-6 -my-1 py-1",
+        props.className,
+      )}
+    >
+      {props.children}
+    </div>
+  );
 };
 
 const DialogActions = (props: { children: ReactNode; className?: string }) => (
   <div
-    className={clsx("mt-5 flex justify-end sm:gap-3 md:mt-7", props.className)}
+    className={clsx(
+      "mt-3 flex justify-end sm:gap-3 tall:mt-7",
+      props.className,
+    )}
   >
     {props.children}
   </div>
@@ -55,6 +74,7 @@ function Dialog(props: DialogProps) {
   const {
     open,
     onClose,
+    onSubmit,
     children,
     centered = true,
     padding,
@@ -73,8 +93,10 @@ function Dialog(props: DialogProps) {
         event.stopImmediatePropagation();
       }
     },
-    dialogRef
+    dialogRef,
   );
+
+  const ContentElement = onSubmit ? "form" : "div";
 
   return (
     <Transition.Root show={open} as={Fragment}>
@@ -95,7 +117,7 @@ function Dialog(props: DialogProps) {
           <BaseDialog.Overlay
             className={clsx(
               "fixed inset-0 -z-10 bg-gray-800 bg-opacity-50 backdrop-blur-sm transition-opacity",
-              !closeOnOutsideClick && "pointer-events-none" // Let's prevent mouse events to be triggered to ensure the dialog stay open.
+              !closeOnOutsideClick && "pointer-events-none", // Let's prevent mouse events to be triggered to ensure the dialog stay open.
             )}
           />
         </Transition.Child>
@@ -104,7 +126,7 @@ function Dialog(props: DialogProps) {
           <span
             className={clsx(
               "hidden sm:inline-block sm:h-screen",
-              centered && "sm:align-middle"
+              centered && "sm:align-middle",
             )}
             aria-hidden="true"
           >
@@ -121,20 +143,23 @@ function Dialog(props: DialogProps) {
           >
             <div
               className={clsx(
-                "my-12 inline-block transform px-2 transition-all sm:w-full sm:px-4 tall:my-24",
+                "my-8 inline-block transform px-2 transition-all sm:w-full sm:px-4 tall:my-20 max-h-full",
                 maxWidth ?? "max-w-lg",
-                centered && "sm:align-middle"
+                centered && "sm:align-middle",
               )}
             >
-              <div
+              <ContentElement
+                onSubmit={onSubmit}
                 className={clsx(
-                  "overflow-y-hidden rounded-lg bg-white text-left text-gray-600 shadow-2xl",
-                  padding ?? "px-4 py-5 sm:p-6",
-                  className
+                  "rounded-lg bg-white text-left text-gray-600 shadow-2xl",
+                  padding ?? "px-4 py-5 tall:p-6",
+                  "flex flex-col",
+                  className,
                 )}
+                style={{ maxHeight: "calc(100vh - 5rem)" }}
               >
                 {children}
-              </div>
+              </ContentElement>
             </div>
           </Transition.Child>
         </div>

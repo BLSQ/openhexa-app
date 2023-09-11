@@ -99,63 +99,59 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
   }, [open, form]);
 
   return (
-    <Dialog open={open} onClose={handleClose}>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title>
-          {t("Invite member in {{name}}", { name: workspace.name })}
-        </Dialog.Title>
+    <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
+      <Dialog.Title>
+        {t("Invite member in {{name}}", { name: workspace.name })}
+      </Dialog.Title>
 
-        <Dialog.Content className="space-y-4">
-          <Field name="email" label={t("Email address")} type="email" required>
-            <Input
-              placeholder={t("sabrina@bluesquarehub.com")}
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={form.formData.email}
-              onChange={form.handleInputChange}
-              error={form.touched.email && form.errors.email}
-            />
-          </Field>
-          <Field name="role" label={t("Role")} required>
-            <SimpleSelect
-              name="role"
-              value={form.formData.role}
-              onChange={form.handleInputChange}
-              required
-            >
-              <option value={WorkspaceMembershipRole.Admin}>
-                {t("Admin")}
-              </option>
-              <option value={WorkspaceMembershipRole.Editor}>
-                {t("Editor")}
-              </option>
-              <option value={WorkspaceMembershipRole.Viewer}>
-                {t("Viewer")}
-              </option>
-            </SimpleSelect>
-          </Field>
-
-          {form.submitError && (
-            <div className="text-danger mt-3 text-sm">{form.submitError}</div>
-          )}
-        </Dialog.Content>
-
-        <Dialog.Actions>
-          <Button type="button" onClick={handleClose} variant="white">
-            {t("Cancel")}
-          </Button>
-          <Button
-            type="submit"
-            className="space-x-2"
-            disabled={form.isSubmitting}
+      <Dialog.Content className="space-y-4">
+        <Field name="email" label={t("Email address")} type="email" required>
+          <Input
+            placeholder={t("sabrina@bluesquarehub.com")}
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={form.formData.email}
+            onChange={form.handleInputChange}
+            error={form.touched.email && form.errors.email}
+          />
+        </Field>
+        <Field name="role" label={t("Role")} required>
+          <SimpleSelect
+            name="role"
+            value={form.formData.role}
+            onChange={form.handleInputChange}
+            required
           >
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Invite")}
-          </Button>
-        </Dialog.Actions>
-      </form>
+            <option value={WorkspaceMembershipRole.Admin}>{t("Admin")}</option>
+            <option value={WorkspaceMembershipRole.Editor}>
+              {t("Editor")}
+            </option>
+            <option value={WorkspaceMembershipRole.Viewer}>
+              {t("Viewer")}
+            </option>
+          </SimpleSelect>
+        </Field>
+
+        {form.submitError && (
+          <div className="text-danger mt-3 text-sm">{form.submitError}</div>
+        )}
+      </Dialog.Content>
+
+      <Dialog.Actions>
+        <Button type="button" onClick={handleClose} variant="white">
+          {t("Cancel")}
+        </Button>
+        <Button
+          type="submit"
+          className="space-x-2"
+          disabled={form.isSubmitting}
+        >
+          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Invite")}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

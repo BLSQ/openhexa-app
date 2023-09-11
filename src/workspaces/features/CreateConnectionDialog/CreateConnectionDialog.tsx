@@ -72,12 +72,12 @@ export default function CreateConnectionDialog({
   const { t } = useTranslation();
   const [createConnection] = useCreateConnectionMutation();
   const [connectionType, setConnectionType] = useState<ConnectionType | null>(
-    null
+    null,
   );
   const router = useRouter();
   const connection = useMemo(
     () => (connectionType ? Connections[connectionType] : null),
-    [connectionType]
+    [connectionType],
   );
 
   const form = useForm<ConnectionForm>({
@@ -140,7 +140,7 @@ export default function CreateConnectionDialog({
         throw new Error(t("Unknown workspace"));
       } else if (errors.find((x) => x === CreateConnectionError.InvalidSlug)) {
         throw new Error(
-          t("One of the fields is invalid. Please check your inputs.")
+          t("One of the fields is invalid. Please check your inputs."),
         );
       } else if (
         errors.find((x) => x === CreateConnectionError.PermissionDenied)
@@ -174,12 +174,18 @@ export default function CreateConnectionDialog({
   }, [form, connection]);
 
   return (
-    <Dialog open={open} onClose={onClose} centered={false} maxWidth="max-w-4xl">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      centered={false}
+      maxWidth="max-w-4xl"
+      onSubmit={connection ? form.handleSubmit : undefined}
+    >
       <Dialog.Title>
         {t("Create a {{type}} connection", { type: connection?.label })}
       </Dialog.Title>
       {connection ? (
-        <form onSubmit={form.handleSubmit}>
+        <>
           <Dialog.Content>
             <p className="mb-5">
               You can create a connection based on our supported integrations or
@@ -259,7 +265,7 @@ export default function CreateConnectionDialog({
               {t("Create connection")}
             </Button>
           </Dialog.Actions>
-        </form>
+        </>
       ) : (
         <>
           <Dialog.Content>

@@ -50,7 +50,7 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
 
       if (
         data.createWorkspace.errors.includes(
-          CreateWorkspaceError.PermissionDenied
+          CreateWorkspaceError.PermissionDenied,
         )
       ) {
         throw new Error("You are not authorized to perform this action");
@@ -82,59 +82,57 @@ const CreateWorkspaceDialog = (props: CreateWorkspaceDialogProps) => {
   }, [open, form]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog onSubmit={form.handleSubmit} open={open} onClose={onClose}>
       <Dialog.Title>{t("Create a workspace")}</Dialog.Title>
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Content className="space-y-4">
-          <Field
-            name="name"
-            required
-            data-testid="name"
-            label={t("Workspace name")}
-            value={form.formData.name}
-            onChange={form.handleInputChange}
-            autoComplete="off"
+      <Dialog.Content className="space-y-4">
+        <Field
+          name="name"
+          required
+          data-testid="name"
+          label={t("Workspace name")}
+          value={form.formData.name}
+          onChange={form.handleInputChange}
+          autoComplete="off"
+        />
+
+        <Field
+          name="country"
+          label={t("Country")}
+          help={t("Add the country flag to the workspace")}
+        >
+          <CountryPicker
+            withPortal
+            value={form.formData.country}
+            onChange={(value) => form.setFieldValue("country", value)}
           />
+        </Field>
 
-          <Field
-            name="country"
-            label={t("Country")}
-            help={t("Add the country flag to the workspace")}
-          >
-            <CountryPicker
-              withPortal
-              value={form.formData.country}
-              onChange={(value) => form.setFieldValue("country", value)}
-            />
-          </Field>
-
-          {form.submitError && (
-            <div className="text-danger mt-3 text-sm">{form.submitError}</div>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <div className="flex flex-1 items-center">
-            <Checkbox
-              checked={form.formData.loadSampleData}
-              name="loadSampleData"
-              onChange={form.handleInputChange}
-              label={t("Add tutorial content")}
-              help={t(
-                "Enabling this option will import tutorial content in your new workspace"
-              )}
-            />
-          </div>
-          {showCancel && (
-            <Button variant="white" type="button" onClick={onClose}>
-              {t("Cancel")}
-            </Button>
-          )}
-          <Button disabled={form.isSubmitting} type="submit">
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Create")}
+        {form.submitError && (
+          <div className="text-danger mt-3 text-sm">{form.submitError}</div>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <div className="flex flex-1 items-center">
+          <Checkbox
+            checked={form.formData.loadSampleData}
+            name="loadSampleData"
+            onChange={form.handleInputChange}
+            label={t("Add tutorial content")}
+            help={t(
+              "Enabling this option will import tutorial content in your new workspace",
+            )}
+          />
+        </div>
+        {showCancel && (
+          <Button variant="white" type="button" onClick={onClose}>
+            {t("Cancel")}
           </Button>
-        </Dialog.Actions>
-      </form>
+        )}
+        <Button disabled={form.isSubmitting} type="submit">
+          {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+          {t("Create")}
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

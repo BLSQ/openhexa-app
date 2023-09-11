@@ -28,14 +28,14 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
     try {
       const folder = await createBucketFolder(
         workspace.slug,
-        (prefix || "") + folderName
+        (prefix || "") + folderName,
       );
       await router.push(`/workspaces/${workspace.slug}/files/${folder.key}`);
       onClose();
     } catch (err) {
       displayAlert(
         t("An error occurred while creating the folder"),
-        AlertType.error
+        AlertType.error,
       );
     }
   };
@@ -47,36 +47,39 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-2xl">
-      <form onSubmit={handleSubmit}>
-        <Dialog.Title>{t("Create a folder")}</Dialog.Title>
-        <Dialog.Content>
-          <Field label={t("Folder name")} required name="folderName">
-            <div className="flex w-full items-center gap-1.5">
-              {prefix && (
-                <span className="flex-1 rounded-md bg-gray-100 p-1 font-mono text-xs">
-                  {prefix}
-                </span>
-              )}
-              <div className="w-64">
-                <Input
-                  name="folderName"
-                  value={folderName}
-                  placeholder={t("my-folder")}
-                  onChange={(event) => setFolderName(event.target.value)}
-                  required
-                />
-              </div>
+    <Dialog
+      onSubmit={handleSubmit}
+      open={open}
+      onClose={onClose}
+      maxWidth="max-w-2xl"
+    >
+      <Dialog.Title>{t("Create a folder")}</Dialog.Title>
+      <Dialog.Content>
+        <Field label={t("Folder name")} required name="folderName">
+          <div className="flex w-full items-center gap-1.5">
+            {prefix && (
+              <span className="flex-1 rounded-md bg-gray-100 p-1 font-mono text-xs">
+                {prefix}
+              </span>
+            )}
+            <div className="w-64">
+              <Input
+                name="folderName"
+                value={folderName}
+                placeholder={t("my-folder")}
+                onChange={(event) => setFolderName(event.target.value)}
+                required
+              />
             </div>
-          </Field>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button variant="white" type="button" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
-          <Button type="submit">{t("Create")}</Button>
-        </Dialog.Actions>
-      </form>
+          </div>
+        </Field>
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button variant="white" type="button" onClick={onClose}>
+          {t("Cancel")}
+        </Button>
+        <Button type="submit">{t("Create")}</Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };

@@ -57,7 +57,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       }
       ${ParameterField.fragments.parameter}
     `,
-    { fetchPolicy: "no-cache" }
+    { fetchPolicy: "no-cache" },
   );
 
   const form = useForm<{ version: PipelineVersion; [key: string]: any }>({
@@ -67,14 +67,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         pipeline.id,
         params,
         version?.number,
-        sendMailNotifications
+        sendMailNotifications,
       );
       await router.push(
         `/workspaces/${encodeURIComponent(
-          router.query.workspaceSlug as string
+          router.query.workspaceSlug as string,
         )}/pipelines/${encodeURIComponent(
-          pipeline.id
-        )}/runs/${encodeURIComponent(run.id)}`
+          pipeline.id,
+        )}/runs/${encodeURIComponent(run.id)}`,
       );
       clearCache();
       onClose();
@@ -188,116 +188,114 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     <Dialog
       open={open}
       onClose={onClose}
+      centered={false}
+      onSubmit={form.handleSubmit}
       maxWidth={parameters.length > 4 ? "max-w-3xl" : "max-w-2xl"}
     >
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
-        {!form.formData.version ? (
-          <Dialog.Content className="flex h-36 items-center justify-center">
-            <Spinner size="lg" />
-          </Dialog.Content>
-        ) : (
-          <>
-            <Dialog.Content className="-m-1 max-h-[600px] overflow-y-auto p-1">
-              {form.errors.version && (
-                <div className="mt-3 text-sm text-red-600">
-                  {form.errors.version}
-                </div>
-              )}
-              {!showVersionPicker ? (
-                <div className="mb-6 flex justify-start gap-x-1">
-                  <p>
-                    {!("run" in props)
-                      ? t("This pipeline will run using the latest version")
-                      : t("This pipeline will run using the same version")}
-                  </p>
-                  <button
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                    role="link"
-                    onClick={() => {
-                      setShowVersionPicker(true);
-                    }}
-                  >
-                    {t("(select specific version)")}
-                  </button>
-                </div>
-              ) : (
-                <Field
-                  name="version"
-                  label={t("Version")}
-                  required
-                  className="mb-6"
+      <Dialog.Title>{t("Run pipeline")}</Dialog.Title>
+      {!form.formData.version ? (
+        <Dialog.Content className="flex  items-center justify-center">
+          <Spinner size="lg" />
+        </Dialog.Content>
+      ) : (
+        <>
+          <Dialog.Content>
+            {form.errors.version && (
+              <div className="mt-3 text-sm text-red-600">
+                {form.errors.version}
+              </div>
+            )}
+            {!showVersionPicker ? (
+              <div className="mb-6 flex justify-start gap-x-1">
+                <p>
+                  {!("run" in props)
+                    ? t("This pipeline will run using the latest version")
+                    : t("This pipeline will run using the same version")}
+                </p>
+                <button
+                  className="text-sm text-blue-600 hover:text-blue-500"
+                  role="link"
+                  onClick={() => {
+                    setShowVersionPicker(true);
+                  }}
                 >
-                  <PipelineVersionPicker
-                    required
-                    pipeline={pipeline}
-                    value={form.formData.version ?? null}
-                    onChange={(value) => form.setFieldValue("version", value)}
+                  {t("(select specific version)")}
+                </button>
+              </div>
+            ) : (
+              <Field
+                name="version"
+                label={t("Version")}
+                required
+                className="mb-6"
+              >
+                <PipelineVersionPicker
+                  required
+                  pipeline={pipeline}
+                  value={form.formData.version ?? null}
+                  onChange={(value) => form.setFieldValue("version", value)}
+                />
+              </Field>
+            )}
+
+            {parameters.length === 0 && (
+              <p>{t("This pipeline has no parameter")}</p>
+            )}
+            <div
+              className={clsx(
+                "grid gap-x-3 gap-y-4",
+                parameters.length > 4 && "grid-cols-2 gap-x-5",
+              )}
+            >
+              {parameters.map((param, i) => (
+                <Field
+                  required={param.required || param.type === "bool"}
+                  key={i}
+                  name={param.code}
+                  label={param.name}
+                  help={param.help}
+                  error={form.touched[param.code] && form.errors[param.code]}
+                >
+                  <ParameterField
+                    parameter={param}
+                    value={form.formData[param.code]}
+                    onChange={(value: any) => {
+                      form.setFieldValue(param.code, value);
+                    }}
                   />
                 </Field>
-              )}
-
-              {parameters.length === 0 && (
-                <p>{t("This pipeline has no parameter")}</p>
-              )}
-              <div
-                className={clsx(
-                  "grid gap-x-3 gap-y-4",
-                  parameters.length > 4 && "grid-cols-2 gap-x-5"
-                )}
-              >
-                {parameters.map((param, i) => (
-                  <Field
-                    required={param.required || param.type === "bool"}
-                    key={i}
-                    name={param.code}
-                    label={param.name}
-                    help={param.help}
-                    error={form.touched[param.code] && form.errors[param.code]}
-                  >
-                    <ParameterField
-                      parameter={param}
-                      value={form.formData[param.code]}
-                      onChange={(value: any) => {
-                        form.setFieldValue(param.code, value);
-                      }}
-                    />
-                  </Field>
-                ))}
+              ))}
+            </div>
+            {form.submitError && (
+              <div className="mt-3 text-sm text-red-600">
+                {form.submitError}
               </div>
-              {form.submitError && (
-                <div className="mt-3 text-sm text-red-600">
-                  {form.submitError}
-                </div>
-              )}
-            </Dialog.Content>
-            <Dialog.Actions className="flex-1 items-center">
-              <div className="flex flex-1 items-center">
-                <Checkbox
-                  checked={form.formData.sendMailNotifications}
-                  name="sendMailNotifications"
-                  onChange={form.handleInputChange}
-                  label={t("Receive mail notification")}
-                  help={t(
-                    "You will receive an email when the pipeline is done"
-                  )}
-                />
-              </div>
-              <Button type="button" variant="white" onClick={onClose}>
-                {t("Cancel")}
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={form.isSubmitting}
-                leadingIcon={<PlayIcon className="h-4 w-4" />}
-              >
-                {t("Run")}
-              </Button>
-            </Dialog.Actions>
-          </>
-        )}
-      </form>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions className="flex-1 items-center">
+            <div className="flex flex-1 items-center">
+              <Checkbox
+                checked={form.formData.sendMailNotifications}
+                name="sendMailNotifications"
+                onChange={form.handleInputChange}
+                label={t("Receive mail notification")}
+                help={t("You will receive an email when the pipeline is done")}
+              />
+            </div>
+            <Button type="button" variant="white" onClick={onClose}>
+              {t("Cancel")}
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={form.isSubmitting}
+              leadingIcon={<PlayIcon className="h-4 w-4" />}
+            >
+              {t("Run")}
+            </Button>
+          </Dialog.Actions>
+        </>
+      )}
     </Dialog>
   );
 };

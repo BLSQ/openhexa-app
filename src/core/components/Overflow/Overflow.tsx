@@ -15,6 +15,7 @@ enum OverflowY {
   BOTTOM,
   BOTH,
 }
+
 enum OverflowX {
   NONE,
   LEFT,
@@ -118,7 +119,11 @@ const Overflow = (props: OverflowProps) => {
       <div
         {...delegated}
         ref={containerRef}
-        className="h-full overflow-x-auto overflow-y-auto"
+        className={clsx(
+          "h-full",
+          horizontal && "overflow-x-auto",
+          vertical && "overflow-y-auto",
+        )}
       >
         {vertical && (
           <div
@@ -127,18 +132,18 @@ const Overflow = (props: OverflowProps) => {
               fromColor,
               gradientHeight,
               ![OverflowY.BOTH, OverflowY.TOP].includes(overflowY) &&
-                "opacity-0"
+                "opacity-0",
             )}
           ></div>
         )}
         {horizontal && (
           <div
             className={clsx(
-              "pointer-events-none absolute bottom-0 left-0 top-0 bg-gradient-to-r to-transparent  transition-opacity duration-100",
+              "pointer-events-none absolute bottom-0 left-0 top-0 bg-gradient-to-r to-transparent transition-opacity duration-100",
               fromColor,
               gradientWidth,
               ![OverflowX.BOTH, OverflowX.LEFT].includes(overflowX) &&
-                "opacity-0"
+                "opacity-0",
             )}
           ></div>
         )}
@@ -148,11 +153,11 @@ const Overflow = (props: OverflowProps) => {
         {horizontal && (
           <div
             className={clsx(
-              "pointer-events-none absolute bottom-0 right-0 top-0 bg-gradient-to-l to-transparent  transition-opacity duration-100",
+              "pointer-events-none absolute bottom-0 right-0 top-0 bg-gradient-to-l to-transparent transition-opacity duration-100",
               fromColor,
               gradientWidth,
               ![OverflowX.BOTH, OverflowX.RIGHT].includes(overflowX) &&
-                "opacity-0"
+                "opacity-0",
             )}
           ></div>
         )}
@@ -163,7 +168,7 @@ const Overflow = (props: OverflowProps) => {
               fromColor,
               gradientHeight,
               ![OverflowY.BOTH, OverflowY.BOTTOM].includes(overflowY) &&
-                "opacity-0"
+                "opacity-0",
             )}
           ></div>
         )}

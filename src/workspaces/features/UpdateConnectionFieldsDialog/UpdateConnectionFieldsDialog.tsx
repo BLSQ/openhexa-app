@@ -6,8 +6,8 @@ import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Connections, {
   ConnectionForm,
-  FieldForm,
   convertFieldsToInput,
+  FieldForm,
 } from "workspaces/helpers/connections";
 import { UpdateConnectionFieldsDialog_ConnectionFragment } from "./UpdateConnectionFieldsDialog.generated";
 import { ConnectionType } from "graphql-types";
@@ -21,7 +21,7 @@ type UpdateConnectionFieldsDialogProps = {
 };
 
 const UpdateConnectionFieldsDialog = (
-  props: UpdateConnectionFieldsDialogProps
+  props: UpdateConnectionFieldsDialogProps,
 ) => {
   const { open, connection, onClose } = props;
   const { t } = useTranslation();
@@ -67,42 +67,45 @@ const UpdateConnectionFieldsDialog = (
   }, [open, form]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl">
-      <form onSubmit={form.handleSubmit}>
-        <Dialog.Title onClose={onClose}>
-          {t("Update connection fields for {{name}}", {
-            name: connection.name,
-          })}
-        </Dialog.Title>
-        <Dialog.Content className="grid flex-1 grid-cols-2 gap-x-2 gap-y-4 ">
-          <definition.Form form={form} />
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="max-w-4xl"
+      onSubmit={form.handleSubmit}
+    >
+      <Dialog.Title onClose={onClose}>
+        {t("Update connection fields for {{name}}", {
+          name: connection.name,
+        })}
+      </Dialog.Title>
+      <Dialog.Content className="grid flex-1 grid-cols-2 gap-x-2 gap-y-4 ">
+        <definition.Form form={form} />
 
-          {form.submitError && (
-            <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
-          )}
-        </Dialog.Content>
-        <Dialog.Actions>
-          <div className="flex-1">
-            <Help
-              links={[
-                {
-                  label: t("About connections"),
-                  href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
-                },
-                {
-                  label: t("Using connections"),
-                  href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
-                },
-              ]}
-            />
-          </div>
+        {form.submitError && (
+          <p className={"my-2 text-sm text-red-600"}>{form.submitError}</p>
+        )}
+      </Dialog.Content>
+      <Dialog.Actions>
+        <div className="flex-1">
+          <Help
+            links={[
+              {
+                label: t("About connections"),
+                href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
+              },
+              {
+                label: t("Using connections"),
+                href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
+              },
+            ]}
+          />
+        </div>
 
-          <Button type="button" variant="white" onClick={onClose}>
-            {t("Cancel")}
-          </Button>
-          <Button type="submit">{t("Save")}</Button>
-        </Dialog.Actions>
-      </form>
+        <Button type="button" variant="white" onClick={onClose}>
+          {t("Cancel")}
+        </Button>
+        <Button type="submit">{t("Save")}</Button>
+      </Dialog.Actions>
     </Dialog>
   );
 };
