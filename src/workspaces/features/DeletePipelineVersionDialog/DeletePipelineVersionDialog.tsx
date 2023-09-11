@@ -21,7 +21,7 @@ type DeletePipelineVersionDialogProps = {
 };
 
 const DeletePipelineVersionDialog = (
-  props: DeletePipelineVersionDialogProps
+  props: DeletePipelineVersionDialogProps,
 ) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -54,7 +54,7 @@ const DeletePipelineVersionDialog = (
     }
     if (
       data.deletePipelineVersion.errors.includes(
-        DeletePipelineVersionError.PermissionDenied
+        DeletePipelineVersionError.PermissionDenied,
       )
     ) {
       throw new Error("You are not authorized to perform this action");
@@ -71,7 +71,7 @@ const DeletePipelineVersionDialog = (
             {
               number: version.number,
               name: pipeline.name,
-            }
+            },
           )}
         </p>
       </Dialog.Content>

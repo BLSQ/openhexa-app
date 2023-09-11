@@ -125,7 +125,7 @@ type PrefetchVariables = {
 
 DatabaseTableDataGrid.prefetch = async (
   client: CustomApolloClient,
-  variables: PrefetchVariables
+  variables: PrefetchVariables,
 ) => {
   await client.query({
     query: gql`

@@ -23,7 +23,7 @@ describe("PipelineRunFavoriteTrigger", () => {
     const { container, debug } = render(
       <MockedProvider>
         <PipelineRunFavoriteTrigger run={{ isFavorite: false, id: "1" }} />
-      </MockedProvider>
+      </MockedProvider>,
     );
 
     expect(container).toMatchSnapshot();
@@ -34,7 +34,7 @@ describe("PipelineRunFavoriteTrigger", () => {
 
     mutationMock.mockReturnValue({ data: jest.fn() });
     const { container, debug } = render(
-      <PipelineRunFavoriteTrigger run={{ isFavorite: false, id: "1" }} />
+      <PipelineRunFavoriteTrigger run={{ isFavorite: false, id: "1" }} />,
     );
 
     expect(container).toMatchSnapshot();
@@ -83,7 +83,7 @@ describe("PipelineRunFavoriteTrigger", () => {
 
     mutationMock.mockReturnValue({ data: jest.fn() });
     const { container, debug } = render(
-      <PipelineRunFavoriteTrigger run={{ isFavorite: true, id: "1" }} />
+      <PipelineRunFavoriteTrigger run={{ isFavorite: true, id: "1" }} />,
     );
 
     // Click on the button

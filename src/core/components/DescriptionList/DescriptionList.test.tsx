@@ -8,7 +8,7 @@ describe("DescriptionList", () => {
     const { container } = render(
       <DescriptionList>
         <DescriptionList.Item label="label">value</DescriptionList.Item>
-      </DescriptionList>
+      </DescriptionList>,
     );
 
     expect(screen.getByText("label")).toBeInTheDocument();
@@ -22,7 +22,7 @@ describe("DescriptionList", () => {
       <DescriptionList columns={2}>
         <DescriptionList.Item label="label 1">value 1</DescriptionList.Item>
         <DescriptionList.Item label="label 2">value 2</DescriptionList.Item>
-      </DescriptionList>
+      </DescriptionList>,
     );
 
     const element = container.getElementsByTagName("dl")[0];
@@ -39,7 +39,7 @@ describe("DescriptionList", () => {
       >
         <DescriptionList.Item label="label 1">value 1</DescriptionList.Item>
         <DescriptionList.Item label="label 2">value 2</DescriptionList.Item>
-      </DescriptionList>
+      </DescriptionList>,
     );
 
     const element = container.getElementsByTagName("dl")[0];

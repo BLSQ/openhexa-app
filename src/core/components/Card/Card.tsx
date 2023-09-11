@@ -20,7 +20,7 @@ const Card = (props: CardProps) => {
       className={clsx(
         "flex flex-col gap-2 overflow-hidden rounded-md bg-white px-4 py-3 shadow lg:px-5 lg:py-4",
         href && "h-full hover:shadow-md",
-        className
+        className,
       )}
     >
       {title && <CardHeader title={title} subtitle={subtitle} />}

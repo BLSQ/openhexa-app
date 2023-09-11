@@ -6,7 +6,7 @@ import { DataCardSectionInstance, Property, PropertyDefinition } from "./types";
 type RenderPropertyProps<T> = {
   children: (
     property: Property<T>,
-    section: DataCardSectionInstance
+    section: DataCardSectionInstance,
   ) => ReactElement;
 } & PropertyDefinition;
 

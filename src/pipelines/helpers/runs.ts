@@ -60,7 +60,7 @@ export function getPipelineRunLabel(
       displayName: string;
     } | null;
   },
-  pipeline: { label: string | null; externalId: string }
+  pipeline: { label: string | null; externalId: string },
 ) {
   if (run.label) {
     return run.label;

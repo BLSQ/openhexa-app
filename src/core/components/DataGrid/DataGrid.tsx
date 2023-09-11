@@ -46,7 +46,7 @@ interface IDataGridProps {
   fixedLayout?: boolean;
   onSelectionChange?: (
     pageRows: object[],
-    allIds: Record<string, boolean>
+    allIds: Record<string, boolean>,
   ) => void;
   fetchData?: (params: {
     page: number;
@@ -121,7 +121,7 @@ function DataGrid(props: DataGridProps) {
       ["minWidth", "width", "maxWidth"].forEach((field) => {
         if (!fixedLayout && column.props[field]) {
           console.warn(
-            `"${field}" is only used when DataGrid is in fixedLayout mode.`
+            `"${field}" is only used when DataGrid is in fixedLayout mode.`,
           );
         }
         if (column.props[field]) {
@@ -184,7 +184,7 @@ function DataGrid(props: DataGridProps) {
 
       ...extraTableProps,
     },
-    ...hooks
+    ...hooks,
   );
 
   const prevVariables = usePrevious({ pageIndex, sortBy, pageSize });
@@ -193,7 +193,7 @@ function DataGrid(props: DataGridProps) {
     if (onSelectionChange) {
       onSelectionChange(
         selectedFlatRows.map((x) => x.original),
-        selectedRowIds
+        selectedRowIds,
       );
     }
   }, [selectedFlatRows, selectedRowIds, onSelectionChange]);
@@ -212,7 +212,7 @@ function DataGrid(props: DataGridProps) {
         setLoading(false);
       }
     },
-    [fetchData]
+    [fetchData],
   );
   const onPaginationChange = useCallback(
     (page: number, perPage: number) => {
@@ -223,7 +223,7 @@ function DataGrid(props: DataGridProps) {
         gotoPage(page - 1);
       }
     },
-    [gotoPage, setPageSize, pageIndex, pageSize]
+    [gotoPage, setPageSize, pageIndex, pageSize],
   );
 
   useEffect(() => {
@@ -260,7 +260,7 @@ function DataGrid(props: DataGridProps) {
                         {column.isSorted && i === headerGroups.length - 1 && (
                           <div
                             className={clsx(
-                              "ml-2 inline-block w-3 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300"
+                              "ml-2 inline-block w-3 flex-none rounded bg-gray-200 text-gray-900 group-hover:bg-gray-300",
                             )}
                           >
                             {column.isSortedDesc ? (

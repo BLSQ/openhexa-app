@@ -20,7 +20,7 @@ const CountryColumn = (props: CountryColumnProps) => {
 
   const countries = useMemo(
     () => (max ? allCountries.slice(0, max) : allCountries),
-    [max, allCountries]
+    [max, allCountries],
   );
 
   return (

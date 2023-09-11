@@ -25,7 +25,7 @@ export type FormInstance<T, TData = void> = {
   setDebouncedFieldValue: (
     fieldName: keyof T,
     value: any,
-    delay?: number
+    delay?: number,
   ) => void;
   setFieldValue: (fieldName: keyof T, value: any, isTouched?: boolean) => void;
   setFormData: (formData: Partial<T>) => void;
@@ -52,7 +52,7 @@ type UseFormOptions<T> = {
 };
 
 function useForm<T = FormData, TData = void>(
-  options: UseFormOptions<T>
+  options: UseFormOptions<T>,
 ): FormInstance<T, TData> {
   const { t } = useTranslation();
   const { initialState = {}, getInitialState, validate, onSubmit } = options;
@@ -85,7 +85,7 @@ function useForm<T = FormData, TData = void>(
     setInitialState();
   }
   const [formData, setFormData] = useState<Partial<T>>(
-    internalInitialState.current ?? {}
+    internalInitialState.current ?? {},
   );
   const previousFormData = usePrevious<Partial<T>>(formData);
 
@@ -128,7 +128,7 @@ function useForm<T = FormData, TData = void>(
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [],
   );
 
   const setFieldValue = useCallback(
@@ -142,7 +142,7 @@ function useForm<T = FormData, TData = void>(
         [field]: isTouched,
       }));
     },
-    []
+    [],
   );
 
   const setDebouncedFieldValue = useCallback(
@@ -159,7 +159,7 @@ function useForm<T = FormData, TData = void>(
         }, delay),
       };
     },
-    [setFieldValue]
+    [setFieldValue],
   );
 
   const handleSubmit = useCallback(
@@ -182,7 +182,7 @@ function useForm<T = FormData, TData = void>(
           return result;
         } catch (err: any) {
           setSubmitError(
-            err.message ?? (t("An unexpected error ocurred.") as string)
+            err.message ?? (t("An unexpected error ocurred.") as string),
           );
         } finally {
           setSubmitting(false);
@@ -191,7 +191,7 @@ function useForm<T = FormData, TData = void>(
       setSubmitting(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [formData, touched]
+    [formData, touched],
   );
 
   // Proxy the touched fields to ensure that all errors are shown when the user ...
@@ -206,7 +206,7 @@ function useForm<T = FormData, TData = void>(
 
   const isDirty = useMemo(
     () => !_.isEqual(formData, internalInitialState.current),
-    [formData, internalInitialState]
+    [formData, internalInitialState],
   );
 
   const result = useMemo(
@@ -243,7 +243,7 @@ function useForm<T = FormData, TData = void>(
       isSubmitting,
       handleSubmit,
       _validate,
-    ]
+    ],
   );
   return result;
 }

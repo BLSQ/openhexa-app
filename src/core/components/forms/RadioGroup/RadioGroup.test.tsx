@@ -17,7 +17,7 @@ describe("RadioGroup", () => {
         onChange={onChange}
         value={"2"}
         options={options}
-      />
+      />,
     );
 
     const selectedOption: HTMLInputElement | null =
@@ -42,7 +42,7 @@ describe("RadioGroup", () => {
         disabled
         value={"2"}
         options={options}
-      />
+      />,
     );
 
     await userEvent.click(screen.getByLabelText("Option 1"));

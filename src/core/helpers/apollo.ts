@@ -92,14 +92,14 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
         graphQLErrors.forEach(({ message, locations, path, extensions }) => {
           console.error(
             `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(
-              locations
-            )}, Path: ${path}, Extension Code: ${extensions?.code}`
+              locations,
+            )}, Path: ${path}, Extension Code: ${extensions?.code}`,
           );
         });
       }
       if (networkError) {
         console.error(
-          `[Network error]: ${networkError}. Backend is unreachable. Is it running?`
+          `[Network error]: ${networkError}. Backend is unreachable. Is it running?`,
         );
       }
     }),
@@ -142,7 +142,7 @@ export const getApolloClient = (
   { headers, initialState }: GetApolloClient = {
     headers: null,
     initialState: null,
-  }
+  },
 ) => {
   const client = apolloClient ?? createApolloClient(headers);
 
@@ -158,7 +158,7 @@ export const getApolloClient = (
       arrayMerge: (destinationArray, sourceArray) => [
         ...sourceArray,
         ...destinationArray.filter((d) =>
-          sourceArray.every((s) => !isEqual(d, s))
+          sourceArray.every((s) => !isEqual(d, s)),
         ),
       ],
     });
@@ -182,12 +182,12 @@ export const addApolloState = (client: ApolloClient<NormalizedCacheObject>) => {
 };
 
 export function useApollo(
-  pageProps: AppProps<{ [key: string]: any }>["pageProps"]
+  pageProps: AppProps<{ [key: string]: any }>["pageProps"],
 ) {
   const state = pageProps[APOLLO_STATE_PROP_NAME];
   const client = useMemo(
     () => getApolloClient({ initialState: state }),
-    [state]
+    [state],
   );
   return client;
 }

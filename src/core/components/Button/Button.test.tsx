@@ -25,7 +25,7 @@ describe("Button", () => {
     render(
       <Button disabled onClick={onClick}>
         button
-      </Button>
+      </Button>,
     );
 
     const btn = screen.getByRole("button");
@@ -46,7 +46,7 @@ describe("Button", () => {
             ))}
           </div>
         ))}
-      </div>
+      </div>,
     );
 
     expect(container).toMatchSnapshot();
@@ -59,7 +59,7 @@ describe("Button", () => {
         leadingIcon={<PlusIcon className="w-4" data-testid="icon" />}
       >
         button
-      </Button>
+      </Button>,
     );
 
     const icon = screen.getByTestId("icon");

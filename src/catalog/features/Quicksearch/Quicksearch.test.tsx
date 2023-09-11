@@ -77,7 +77,7 @@ describe("Quicksearch", () => {
     render(
       <>
         <Quicksearch onClose={onClose} open />
-      </>
+      </>,
     );
 
     expect(onClose).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe("Quicksearch", () => {
     render(
       <>
         <Quicksearch onClose={onClose} open />
-      </>
+      </>,
     );
 
     expect(screen.queryByRole("dialog")).toBeInTheDocument();

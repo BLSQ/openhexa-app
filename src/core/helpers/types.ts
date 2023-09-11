@@ -14,7 +14,7 @@ export type NextPageWithFragments<T = any> = NextPage<T> & {
 export type NextPageWithPrefetch<T = any> = NextPage<T> & {
   prefetch: (
     client: CustomApolloClient,
-    options: { [key: string]: any }
+    options: { [key: string]: any },
   ) => Promise<void> | void;
 };
 

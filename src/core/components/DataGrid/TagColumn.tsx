@@ -20,7 +20,7 @@ const TagColumn = (props: TagColumnProps) => {
 
   const tags = useMemo(
     () => (max ? allTags.slice(0, max) : allTags),
-    [max, allTags]
+    [max, allTags],
   );
 
   return (

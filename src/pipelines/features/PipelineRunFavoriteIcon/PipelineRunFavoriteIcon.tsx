@@ -27,7 +27,7 @@ const PipelineRunFavoriteIcon = (props: PipelineRunFavoriteIconProps) => {
         animate && run.isFavorite && "hover:fill-transparent",
         animate &&
           !run.isFavorite &&
-          "hover:fill-yellow-300 hover:stroke-yellow-400"
+          "hover:fill-yellow-300 hover:stroke-yellow-400",
       )}
     />
   );

@@ -73,7 +73,7 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
         <Dialog.Content className="space-y-4">
           <p>
             {t(
-              "Check your inbox and enter the token you received to enable the two-factor authentication."
+              "Check your inbox and enter the token you received to enable the two-factor authentication.",
             )}
           </p>
           <Input
@@ -99,7 +99,7 @@ const EnableTwoFactorDialog = (props: EnableTwoFactorDialogProps) => {
         <Dialog.Content className="space-y-4">
           <p>
             {t(
-              "This will enable the two-factor authentication using your email address. A one-time code will be sent to you every time you try to log in."
+              "This will enable the two-factor authentication using your email address. A one-time code will be sent to you every time you try to log in.",
             )}
           </p>
         </Dialog.Content>

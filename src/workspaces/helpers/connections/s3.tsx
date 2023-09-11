@@ -21,7 +21,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         <Title level={6}>{t("Credentials")}</Title>
         <p className="text-sm text-gray-500">
           {t(
-            "The credentials are required if the bucket cannot be accessed publicly."
+            "The credentials are required if the bucket cannot be accessed publicly.",
           )}
         </p>
       </div>
@@ -31,7 +31,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         name="access_key_id"
         label={t("Access key ID")}
         help={t(
-          'The "Access key ID" of the AWS user with access to the bucket. This can be found in the AWS console.'
+          'The "Access key ID" of the AWS user with access to the bucket. This can be found in the AWS console.',
         )}
       />
 
@@ -41,7 +41,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
         name="access_key_secret"
         label={t("Secret access key")}
         help={t(
-          'The "secret access key" of the AWS user with access to the bucket. This can be found in the AWS console.'
+          'The "secret access key" of the AWS user with access to the bucket. This can be found in the AWS console.',
         )}
       />
     </>

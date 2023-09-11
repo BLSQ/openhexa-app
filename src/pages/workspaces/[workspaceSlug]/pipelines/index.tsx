@@ -70,7 +70,7 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
             <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/pipelines`}
             >
               {t("Pipelines")}

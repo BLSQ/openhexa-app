@@ -16,7 +16,7 @@ type GenerateDatabasePasswordDialogProps = {
 };
 
 const GenerateWorkspaceDatabasePasswordDialog = (
-  props: GenerateDatabasePasswordDialogProps
+  props: GenerateDatabasePasswordDialogProps,
 ) => {
   const { open, onClose, workspace } = props;
   const { t } = useTranslation();
@@ -43,7 +43,7 @@ const GenerateWorkspaceDatabasePasswordDialog = (
     }
     if (
       data.generateNewDatabasePassword.errors.includes(
-        GenerateNewDatabasePasswordError.PermissionDenied
+        GenerateNewDatabasePasswordError.PermissionDenied,
       )
     ) {
       throw new Error("You are not authorized to perform this action");
@@ -56,7 +56,7 @@ const GenerateWorkspaceDatabasePasswordDialog = (
       <Dialog.Content className="space-y-4">
         <p>
           {t(
-            "You're about to generate a new password for the workspace database. This action cannot be undone. Make sure to:"
+            "You're about to generate a new password for the workspace database. This action cannot be undone. Make sure to:",
           )}
         </p>
         <ul className="list list-inside list-disc">

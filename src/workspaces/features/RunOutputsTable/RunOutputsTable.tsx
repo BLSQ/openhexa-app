@@ -59,7 +59,7 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
           return null;
       }
     },
-    [workspace, t]
+    [workspace, t],
   );
 
   const renderOutputIcon = useCallback(
@@ -73,7 +73,7 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
           return <ExclamationTriangleIcon className="w-4" />;
       }
     },
-    []
+    [],
   );
 
   if (!run.outputs.length) {

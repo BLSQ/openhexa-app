@@ -53,7 +53,7 @@ const DatasourcePicker = (props: DatasourcePickerProps) => {
         app: item.type.app,
         type: item.type.name,
       })) ?? [],
-    [data]
+    [data],
   );
 
   const getOptionLabel = (option: Option) => {

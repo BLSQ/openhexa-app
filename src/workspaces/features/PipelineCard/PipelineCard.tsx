@@ -48,7 +48,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
       <Card.Content
         className={clsx(
           "line-clamp-3",
-          !pipeline.description && "italic text-gray-300"
+          !pipeline.description && "italic text-gray-300",
         )}
         title={pipeline.description ?? ""}
       >

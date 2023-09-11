@@ -3,7 +3,7 @@ import useMe from "./useMe";
 
 type UseFeatureResult = [
   isEnabled: boolean,
-  config: { [key: string]: any } | null
+  config: { [key: string]: any } | null,
 ];
 
 export default function useFeature(code: string): UseFeatureResult {
@@ -11,7 +11,7 @@ export default function useFeature(code: string): UseFeatureResult {
 
   const feature = useMemo(
     () => me.features.find((x) => x.code === code),
-    [me, code]
+    [me, code],
   );
 
   return [Boolean(feature), feature?.config ?? null];

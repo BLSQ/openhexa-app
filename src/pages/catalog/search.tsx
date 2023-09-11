@@ -45,7 +45,7 @@ const SearchPage = () => {
   const filterOptions = (options: Option, query: string) => {
     return (
       options?.filter((opt) =>
-        opt.label.toLowerCase().includes(query.toLowerCase())
+        opt.label.toLowerCase().includes(query.toLowerCase()),
       ) || []
     );
   };
@@ -75,7 +75,7 @@ const SearchPage = () => {
                 />
                 <div className="mt-1 text-sm text-gray-500">
                   {t(
-                    'Enter one or more search terms separated by spaces. Use "quotes" for exact matches.'
+                    'Enter one or more search terms separated by spaces. Use "quotes" for exact matches.',
                   )}
                 </div>
                 <h4 className="text-sm font-medium">

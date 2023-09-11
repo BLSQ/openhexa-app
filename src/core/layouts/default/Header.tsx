@@ -29,7 +29,7 @@ const Header = () => {
       <div
         className={clsx(
           LayoutClasses.container,
-          "flex h-16 items-center gap-6"
+          "flex h-16 items-center gap-6",
         )}
       >
         <Link href="/" className="relative flex h-8 flex-shrink-0 items-center">

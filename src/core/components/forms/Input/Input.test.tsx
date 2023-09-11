@@ -7,7 +7,7 @@ describe("Input", () => {
   it("renders", async () => {
     const onChange = jest.fn();
     const { container } = render(
-      <Input data-testid="input" name="a_field" onChange={onChange} />
+      <Input data-testid="input" name="a_field" onChange={onChange} />,
     );
     expect(container).toMatchSnapshot();
 
@@ -29,7 +29,7 @@ describe("Input", () => {
         value="Value"
         onChange={onChange}
         data-testid="input"
-      />
+      />,
     );
 
     const input = screen.getByTestId("input");
@@ -46,7 +46,7 @@ describe("Input", () => {
         value={""}
         onChange={() => {}}
         trailingIcon={<EyeIcon className="w-4" />}
-      />
+      />,
     );
 
     expect(container).toMatchSnapshot();
@@ -54,7 +54,7 @@ describe("Input", () => {
 
   it("has an invalid status", () => {
     render(
-      <Input error="Err" data-testid="input" value={""} onChange={() => {}} />
+      <Input error="Err" data-testid="input" value={""} onChange={() => {}} />,
     );
 
     const input = screen.getByTestId("input");

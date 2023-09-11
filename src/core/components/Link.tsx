@@ -22,7 +22,7 @@ const Link = (props: LinkProps) => {
       {...delegated}
       className={clsx(
         className,
-        !noStyle && (customStyle ?? "text-blue-600 hover:text-blue-500")
+        !noStyle && (customStyle ?? "text-blue-600 hover:text-blue-500"),
       )}
     >
       {children}

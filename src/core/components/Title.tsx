@@ -24,7 +24,7 @@ const Title = (props: TitleProps) => {
     {
       className: clsx(className, Classes[level]),
     },
-    children
+    children,
   );
 };
 

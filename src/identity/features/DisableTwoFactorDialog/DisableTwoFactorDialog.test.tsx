@@ -28,10 +28,10 @@ describe("DisableTwoFactorDialog", () => {
     const { container } = render(
       <TestApp>
         <DisableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     const alertText = await screen.findByText(
-      "Two-Factor Authentication is not enabled for your account"
+      "Two-Factor Authentication is not enabled for your account",
     );
     expect(alertText).toBeInTheDocument();
   });
@@ -44,12 +44,12 @@ describe("DisableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
       >
         <DisableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     expect(generateChallengeMock).not.toHaveBeenCalled();
     expect(disableTwoFactorMock).not.toHaveBeenCalled();
     const alertText = await screen.findByText(
-      "Are you sure to disable the two-factor authentication for your account?"
+      "Are you sure to disable the two-factor authentication for your account?",
     );
     expect(alertText).toBeInTheDocument();
 
@@ -57,8 +57,8 @@ describe("DisableTwoFactorDialog", () => {
     expect(generateChallengeMock).toHaveBeenCalled();
     expect(
       screen.getByText(
-        "Check your inbox and type the token you received to disable the two-factor authentication."
-      )
+        "Check your inbox and type the token you received to disable the two-factor authentication.",
+      ),
     ).toBeInTheDocument();
     const inputElement = await screen.getByPlaceholderText("123456");
     await user.type(inputElement, "999999");
@@ -76,12 +76,12 @@ describe("DisableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
       >
         <DisableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     expect(generateChallengeMock).not.toHaveBeenCalled();
     expect(disableTwoFactorMock).not.toHaveBeenCalled();
     const alertText = await screen.findByText(
-      "Are you sure to disable the two-factor authentication for your account?"
+      "Are you sure to disable the two-factor authentication for your account?",
     );
     expect(alertText).toBeInTheDocument();
 
@@ -89,8 +89,8 @@ describe("DisableTwoFactorDialog", () => {
     expect(generateChallengeMock).toHaveBeenCalled();
     expect(
       screen.getByText(
-        "Check your inbox and type the token you received to disable the two-factor authentication."
-      )
+        "Check your inbox and type the token you received to disable the two-factor authentication.",
+      ),
     ).toBeInTheDocument();
     const btn = screen.getByText("Disable", { selector: "button" });
     expect(btn).toBeDisabled();

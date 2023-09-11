@@ -44,7 +44,7 @@ const SimplePagination = (props: Props) => {
       <div
         className={clsx(
           "hidden sm:flex sm:flex-1 sm:items-center",
-          loading || children ? "sm:justify-between" : "sm:justify-end"
+          loading || children ? "sm:justify-between" : "sm:justify-end",
         )}
       >
         {loading && (

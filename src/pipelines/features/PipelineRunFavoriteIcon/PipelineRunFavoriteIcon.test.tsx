@@ -8,12 +8,12 @@ describe("PipelineRunFavoriteIcon", () => {
         run={{
           isFavorite: true,
         }}
-      />
+      />,
     );
 
     expect(screen.getByTestId("favorite-icon")).toHaveClass("fill-yellow-300");
     expect(screen.getByTestId("favorite-icon")).not.toHaveClass(
-      "stroke-gray-300"
+      "stroke-gray-300",
     );
   });
 
@@ -23,11 +23,11 @@ describe("PipelineRunFavoriteIcon", () => {
         run={{
           isFavorite: false,
         }}
-      />
+      />,
     );
 
     expect(screen.getByTestId("favorite-icon")).not.toHaveClass(
-      "fill-yellow-300"
+      "fill-yellow-300",
     );
     expect(screen.getByTestId("favorite-icon")).toHaveClass("stroke-gray-300");
   });
@@ -39,7 +39,7 @@ describe("PipelineRunFavoriteIcon", () => {
         run={{
           isFavorite: false,
         }}
-      />
+      />,
     );
 
     expect(screen.getByTestId("favorite-icon")).not.toHaveClass("h-6 w-6");
@@ -53,7 +53,7 @@ describe("PipelineRunFavoriteIcon", () => {
         run={{
           isFavorite: false,
         }}
-      />
+      />,
     );
     expect(container).toMatchSnapshot();
   });

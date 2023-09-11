@@ -35,7 +35,7 @@ const Avatar = (props: AvatarProps) => {
       style={{ background: color }}
       className={clsx(
         "inline-flex flex-shrink-0 items-center justify-center rounded-full bg-gray-500",
-        className
+        className,
       )}
     >
       <span className="font-medium leading-none text-white">{initials}</span>

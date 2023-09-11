@@ -87,7 +87,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/databases`}
             >
               {t("Database")}
@@ -95,7 +95,7 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
             <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/databases/${router.query.tableId}`}
             >
               {table.name}
@@ -124,15 +124,15 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
                       name={column.name}
                       label={column.name}
                       checked={displayColumns.some(
-                        (c) => c.name === column.name
+                        (c) => c.name === column.name,
                       )}
                       onChange={(event) =>
                         event.target.checked
                           ? setDisplayColumns([...displayColumns, column])
                           : setDisplayColumns(
                               displayColumns.filter(
-                                (c) => c.name !== column.name
-                              )
+                                (c) => c.name !== column.name,
+                              ),
                             )
                       }
                     />

@@ -20,7 +20,7 @@ describe("Time", () => {
     const dt = DateTime.local(2022, 2, 20, 10, 11, 34);
     nowMock.mockReturnValue(dt.plus({ hours: 0, minutes: 10 }).toMillis());
     const { container, rerender } = render(
-      <Time relative datetime={dt.toISO()} />
+      <Time relative datetime={dt.toISO()} />,
     );
     expect(container).toMatchSnapshot();
 

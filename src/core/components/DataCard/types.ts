@@ -6,7 +6,7 @@ export type PropertyFlag =
   | ((
       value: any,
       isEditing: boolean,
-      formData: FormInstance<any>["formData"]
+      formData: FormInstance<any>["formData"],
     ) => boolean);
 
 export type PropertyDefinition = {
@@ -21,7 +21,7 @@ export type PropertyDefinition = {
     value: any,
     formValues: {
       [key: string]: any;
-    }
+    },
   ): string | boolean | null | undefined;
   defaultValue?: string | boolean;
   hideLabel?: boolean;

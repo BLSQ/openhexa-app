@@ -27,10 +27,10 @@ describe("EnableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: true }}
       >
         <EnableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     const alertText = await screen.findByText(
-      "Two-Factor Authentication is already enabled for your account."
+      "Two-Factor Authentication is already enabled for your account.",
     );
     expect(alertText).toBeInTheDocument();
   });
@@ -44,7 +44,7 @@ describe("EnableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
       >
         <EnableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     expect(enableTwoFactorMock).not.toHaveBeenCalled();
 
@@ -65,7 +65,7 @@ describe("EnableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
       >
         <EnableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     expect(enableTwoFactorMock).not.toHaveBeenCalled();
 
@@ -87,7 +87,7 @@ describe("EnableTwoFactorDialog", () => {
         me={{ features: [{ code: "two_factor" }], hasTwoFactorEnabled: false }}
       >
         <EnableTwoFactorDialog open onClose={onClose} />
-      </TestApp>
+      </TestApp>,
     );
     expect(enableTwoFactorMock).not.toHaveBeenCalled();
 

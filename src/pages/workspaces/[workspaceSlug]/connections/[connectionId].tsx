@@ -92,7 +92,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/connections`}
             >
               {t("Connections")}
@@ -100,7 +100,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
             <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/pipelines/${encodeURIComponent(connection.id)}`}
             >
               {connection.name}
@@ -136,7 +136,7 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
                   readonly
                   accessor="slug"
                   help={t(
-                    "The identifier is used as the prefix for the environment variables in the notebooks"
+                    "The identifier is used as the prefix for the environment variables in the notebooks",
                   )}
                   className="font-mono"
                 />

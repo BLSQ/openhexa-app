@@ -25,7 +25,7 @@ jest.mock("workspaces/helpers/pipelines", () => ({
 const useLazyQueryMock = useLazyQuery as jest.Mock;
 
 const pipelineWithParameters = (
-  parameters: Array<ParameterField_ParameterFragment>
+  parameters: Array<ParameterField_ParameterFragment>,
 ) => {
   return {
     id: v4(),
@@ -80,7 +80,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { is_ok: null },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 
@@ -100,7 +100,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       {},
       pipeline.currentVersion.number,
-      true
+      true,
     );
   });
 
@@ -153,7 +153,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { int: null },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 
@@ -200,7 +200,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { int_param: 0, float_param: 2.2 },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 
@@ -235,7 +235,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { multi: ["0", "1", "2"] },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 
@@ -270,7 +270,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { string: "coucou" },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 
@@ -306,7 +306,7 @@ describe("RunPipelineDialog", () => {
       pipeline.id,
       { choices_param: 2 },
       pipeline.currentVersion.number,
-      false
+      false,
     );
   });
 });

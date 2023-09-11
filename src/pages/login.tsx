@@ -47,7 +47,7 @@ const LoginPage: NextPageWithLayout = () => {
         await router.push((router.query.next as string) ?? "/");
       } else if (
         data.login.errors?.some(
-          (error) => error === LoginError.InvalidCredentials
+          (error) => error === LoginError.InvalidCredentials,
         )
       ) {
         throw new Error(t("Wrong email address and/or password."));
@@ -102,7 +102,7 @@ const LoginPage: NextPageWithLayout = () => {
       <form
         className={clsx(
           showOTPForm ? "max-w-xs" : "max-w-md",
-          "flex-1 space-y-6"
+          "flex-1 space-y-6",
         )}
         onSubmit={form.handleSubmit}
       >

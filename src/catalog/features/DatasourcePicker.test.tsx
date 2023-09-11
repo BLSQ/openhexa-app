@@ -10,7 +10,7 @@ describe("DatasourcePicker", () => {
     const { container } = render(
       <MockedProvider mocks={[]}>
         <DatasourcePicker onChange={onChange} value={undefined} />
-      </MockedProvider>
+      </MockedProvider>,
     );
     expect(container).toMatchSnapshot();
   });

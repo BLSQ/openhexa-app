@@ -25,7 +25,7 @@ describe("DataCard", () => {
         <DataCard.FormSection>
           <TextProperty id="name" label="Name" accessor="name" />
         </DataCard.FormSection>
-      </DataCard>
+      </DataCard>,
     );
 
     expect(container).toMatchSnapshot();

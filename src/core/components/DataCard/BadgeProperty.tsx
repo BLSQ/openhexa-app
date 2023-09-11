@@ -32,7 +32,7 @@ const BadgeProperty = (props: BadgePropertyProps) => {
             <Badge key={i} size={badge.size}>
               {badge.label}
             </Badge>
-          )
+          ),
         )}
       </div>
     </PropertyDisplay>

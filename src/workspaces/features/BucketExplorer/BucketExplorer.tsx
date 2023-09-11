@@ -45,7 +45,7 @@ const BucketExplorer = (props: BucketExplorerProps) => {
               <Link
                 noStyle
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug
+                  workspace.slug,
                 )}/files/${value.key}`}
                 className="flex items-center gap-1.5 font-medium text-gray-700 hover:text-gray-800"
               >

@@ -46,7 +46,7 @@ const ArchiveWorkspaceDialog = (props: ArchiveWorkspaceDialogProps) => {
     }
     if (
       data.archiveWorkspace.errors.includes(
-        ArchiveWorkspaceError.PermissionDenied
+        ArchiveWorkspaceError.PermissionDenied,
       )
     ) {
       throw new Error("You are not authorized to perform this action");

@@ -58,16 +58,16 @@ const PipelineRunDataCard = (props: PipelineRunDataCardProps) => {
     useCallback(() => {
       onRefresh();
     }, [onRefresh]),
-    intervalDuration
+    intervalDuration,
   );
 
   const durationStr = useMemo(
     () => (dagRun.duration ? formatDuration(dagRun.duration) : null),
-    [dagRun.duration]
+    [dagRun.duration],
   );
   const isFinished = useMemo(
     () => [DagRunStatus.Failed, DagRunStatus.Success].includes(dagRun.status),
-    [dagRun.status]
+    [dagRun.status],
   );
 
   const executionDateRelative = useRelativeTime(dagRun.executionDate);

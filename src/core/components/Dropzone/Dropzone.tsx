@@ -19,7 +19,7 @@ export type DropzoneProps = {
   maxFiles?: number;
   onChange: <T extends File>(
     acceptedFiles: T[],
-    rejectedFiles: FileRejection[]
+    rejectedFiles: FileRejection[],
   ) => void;
   validator?: <T extends File>(file: T) => FileError | FileError[] | null;
 };
@@ -73,7 +73,7 @@ const Dropzone = (props: DropzoneProps) => {
     <div
       className={clsx(
         "flex w-full cursor-pointer items-center justify-center gap-3 rounded-md border-2 border-dashed border-blue-500 px-5 py-5 text-sm text-gray-500 shadow-sm hover:border-blue-700",
-        className
+        className,
       )}
       {...getRootProps()}
     >

@@ -25,7 +25,7 @@ const GenericForm = (props: GenericFormProps) => {
         JSON.parse(values.textConfig ?? "");
       } catch {
         errors.textConfig = t(
-          "Invalid configuration. This is not a valid JSON."
+          "Invalid configuration. This is not a valid JSON.",
         );
       }
 

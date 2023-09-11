@@ -17,7 +17,7 @@ describe("Pagination", () => {
         totalItems={28}
         countItems={15}
         loading
-      />
+      />,
     );
     const prevButton = screen.getByRole("button", { name: "Previous" });
     expect(prevButton).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe("Pagination", () => {
         totalItems={28}
         countItems={15}
         loading
-      />
+      />,
     );
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });

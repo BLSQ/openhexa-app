@@ -24,7 +24,7 @@ describe("CreateConnectionDialog", () => {
     const { container } = render(
       <TestApp>
         <CreateConnectionDialog open onClose={onClose} workspace={WORKSPACE} />
-      </TestApp>
+      </TestApp>,
     );
 
     const customConnectionElement = await screen.findByText("Custom");
@@ -40,7 +40,7 @@ describe("CreateConnectionDialog", () => {
     const { container } = render(
       <TestApp>
         <CreateConnectionDialog open onClose={onClose} workspace={WORKSPACE} />
-      </TestApp>
+      </TestApp>,
     );
 
     const customConnectionElement = await screen.findByText("Custom");
@@ -49,21 +49,21 @@ describe("CreateConnectionDialog", () => {
     await user.click(customConnectionElement);
     await user.type(
       screen.getByRole("textbox", { name: "Connection name" }),
-      "My Connection"
+      "My Connection",
     );
     await user.type(
       screen.getByRole("textbox", { name: "Description" }),
-      "Description"
+      "Description",
     );
 
     await user.click(screen.getByTestId("add-field"));
     await user.type(
       screen.getByRole("textbox", { name: "Field name" }),
-      "field"
+      "field",
     );
     await user.type(
       screen.getByRole("textbox", { name: "Field value" }),
-      "val"
+      "val",
     );
     expect(createConnectionMock).not.toHaveBeenCalled();
     await user.click(screen.getByTestId("create-connection"));

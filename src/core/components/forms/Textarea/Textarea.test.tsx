@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 describe("Textarea", () => {
   it("renders", async () => {
     const { container } = render(
-      <Textarea value={"this is a textarea"} onChange={() => {}} />
+      <Textarea value={"this is a textarea"} onChange={() => {}} />,
     );
 
     expect(container).toMatchSnapshot();
@@ -18,7 +18,7 @@ describe("Textarea", () => {
         data-testid="textarea"
         value={"this is a textarea"}
         onChange={onChange}
-      />
+      />,
     );
     const textarea = screen.getByTestId("textarea");
 

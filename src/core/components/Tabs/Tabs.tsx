@@ -23,7 +23,7 @@ const Tabs = (props: TabsProps) => {
       <HeadlessTab.List
         className={clsx(
           "border-b border-gray-200 text-sm font-medium ",
-          className
+          className,
         )}
       >
         <nav className="-mb-px flex space-x-8" aria-label={t("Tabs")}>
@@ -36,14 +36,14 @@ const Tabs = (props: TabsProps) => {
                       "cursor-pointer whitespace-nowrap border-b-2 px-1.5 py-2.5 tracking-wide",
                       selected
                         ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
                     )}
                   >
                     {child.props.label}
                   </a>
                 )}
               </HeadlessTab>
-            ) : null
+            ) : null,
           )}
         </nav>
       </HeadlessTab.List>

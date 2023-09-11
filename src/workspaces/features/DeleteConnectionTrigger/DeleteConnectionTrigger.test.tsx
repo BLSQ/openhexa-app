@@ -21,7 +21,7 @@ describe("DeleteConnectionTrigger", () => {
     const { container } = render(
       <DeleteConnectionTrigger workspace={{ id: "1" }} connection={CONNECTION}>
         {Children}
-      </DeleteConnectionTrigger>
+      </DeleteConnectionTrigger>,
     );
 
     expect(Children).toHaveBeenCalled();
@@ -39,7 +39,7 @@ describe("DeleteConnectionTrigger", () => {
     const { container } = render(
       <DeleteConnectionTrigger workspace={{ id: "" }} connection={CONNECTION}>
         {Children}
-      </DeleteConnectionTrigger>
+      </DeleteConnectionTrigger>,
     );
 
     expect(Children).not.toHaveBeenCalled();
@@ -60,7 +60,7 @@ describe("DeleteConnectionTrigger", () => {
         connection={CONNECTION}
       >
         {Children}
-      </DeleteConnectionTrigger>
+      </DeleteConnectionTrigger>,
     );
 
     expect(Children).toHaveBeenCalled();

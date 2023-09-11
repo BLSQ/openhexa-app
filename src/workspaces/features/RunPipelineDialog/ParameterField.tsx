@@ -30,7 +30,7 @@ const ParameterField = (props: ParameterFieldProps) => {
         onChange(value);
       }
     },
-    [onChange, parameter.multiple, parameter.type]
+    [onChange, parameter.multiple, parameter.type],
   );
 
   if (parameter.type === "bool") {
@@ -60,7 +60,7 @@ const ParameterField = (props: ParameterFieldProps) => {
           !parameter.choices
             ? (query) =>
                 handleChange(
-                  parameter.multiple ? [...(value ?? []), query] : query
+                  parameter.multiple ? [...(value ?? []), query] : query,
                 )
             : undefined
         }
@@ -79,7 +79,7 @@ const ParameterField = (props: ParameterFieldProps) => {
           value={value ? value.join("\n") : ""}
           onChange={(event) => {
             handleChange(
-              event.target.value ? event.target.value.split("\n") : []
+              event.target.value ? event.target.value.split("\n") : [],
             );
           }}
         />

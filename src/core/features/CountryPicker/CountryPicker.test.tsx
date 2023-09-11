@@ -10,7 +10,7 @@ describe("CountryPicker", () => {
     const { container, debug } = render(
       <MockedProvider mocks={[]}>
         <CountryPicker onChange={onChange} value={undefined} />
-      </MockedProvider>
+      </MockedProvider>,
     );
     expect(container).toMatchSnapshot();
   });

@@ -38,7 +38,7 @@ describe("DeletePipelineVersionDialog", () => {
         pipeline={PIPELINE}
         version={VERSION}
         onClose={() => {}}
-      />
+      />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -55,7 +55,7 @@ describe("DeletePipelineVersionDialog", () => {
           version={VERSION}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -66,10 +66,10 @@ describe("DeletePipelineVersionDialog", () => {
 
   it("Archives a workspace ", async () => {
     const { useArchiveWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useDeletePipelineVersionMutationMock.mockImplementation(
-      useArchiveWorkspaceMutation
+      useArchiveWorkspaceMutation,
     );
 
     const user = userEvent.setup();
@@ -102,7 +102,7 @@ describe("DeletePipelineVersionDialog", () => {
           version={VERSION}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(useDeletePipelineVersionMutation).toHaveBeenCalled();
   });

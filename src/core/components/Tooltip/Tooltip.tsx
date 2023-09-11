@@ -30,7 +30,7 @@ const Tooltip = (props: Props) => {
         ? React.createElement(
             as,
             { type: "button", ref: setTriggerRef },
-            props.children
+            props.children,
           )
         : props.renderTrigger(setTriggerRef)}
       {typeof window !== "undefined" &&
@@ -54,7 +54,7 @@ const Tooltip = (props: Props) => {
               {label}
             </div>
           </Transition>,
-          document.body
+          document.body,
         )}
     </>
   );

@@ -41,7 +41,7 @@ const VisualizationPage = ({ visualizationId }: Props) => {
           description:
             values.description ?? externalDashboard.description ?? "",
           countries: ensureArray(
-            values.countries || externalDashboard.countries
+            values.countries || externalDashboard.countries,
           ).map(({ code }) => ({
             code,
           })),

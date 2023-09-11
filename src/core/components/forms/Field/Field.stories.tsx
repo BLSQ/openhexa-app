@@ -5,7 +5,7 @@ import Input from "../Input";
 import Checkbox from "../Checkbox";
 
 export const FieldStory: Story<React.ComponentProps<typeof Field>> = (
-  props
+  props,
 ) => (
   <div className="space-y-4">
     <Field {...props}>

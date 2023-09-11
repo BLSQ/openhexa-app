@@ -7,7 +7,7 @@ import DashboardPage from "pages";
 describe("Dashboard", () => {
   it("renders the dashboards' page", async () => {
     (Settings.now as jest.Mock).mockReturnValue(
-      DateTime.fromObject({ year: 2022, month: 10, day: 22 }).toMillis()
+      DateTime.fromObject({ year: 2022, month: 10, day: 22 }).toMillis(),
     );
     const graphqlMocks = [
       {
@@ -39,7 +39,7 @@ describe("Dashboard", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <DashboardPage />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("Overview");
     expect(elm).toBeInTheDocument();

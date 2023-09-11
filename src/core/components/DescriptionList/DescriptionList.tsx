@@ -48,14 +48,15 @@ DescriptionList.Item = function Item({
       className={clsx(
         displayMode === DescriptionListDisplayMode.LABEL_LEFT &&
           "grid grid-cols-5 gap-2 sm:gap-4",
-        displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1"
+        displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1",
       )}
     >
       <dt
         className={clsx(
           "flex text-sm font-medium text-gray-500",
           displayMode === DescriptionListDisplayMode.LABEL_LEFT && "col-span-1",
-          displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "col-span-5"
+          displayMode === DescriptionListDisplayMode.LABEL_ABOVE &&
+            "col-span-5",
         )}
       >
         <span className="inline">{label}</span>

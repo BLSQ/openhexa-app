@@ -44,7 +44,7 @@ function useSearch(options: UseSearchOptions) {
     {
       variables: { query, page, perPage, datasourceIds, types },
       skip,
-    }
+    },
   );
   if (skip) {
     return { results: undefined, types: undefined, loading: false };

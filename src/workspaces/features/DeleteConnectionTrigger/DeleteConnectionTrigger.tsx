@@ -27,7 +27,7 @@ const DeleteConnectionTrigger = (props: DeleteConnectionTriggerProps) => {
       'Are you sure you want to delete the connection "{{name}}"?',
       {
         name: connection.name,
-      }
+      },
     ),
   } = props;
   const router = useRouter();

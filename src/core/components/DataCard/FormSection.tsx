@@ -30,7 +30,7 @@ import { Property, PropertyDefinition, PropertyFlag } from "./types";
 
 export type OnSaveFn = (
   values: { [key: string]: any },
-  item: ItemInstance
+  item: ItemInstance,
 ) => Promise<void> | void;
 
 type FormSectionProps = {
@@ -46,7 +46,7 @@ function getPropertyFlag<F>(
   flag: PropertyFlag | undefined,
   displayValue: any,
   isEdited: boolean = false,
-  form: FormInstance<F>
+  form: FormInstance<F>,
 ) {
   if (typeof flag === "function") {
     return flag(displayValue, isEdited, form.formData);
@@ -58,7 +58,7 @@ function getProperty<F>(
   definition: PropertyDefinition,
   item: ItemInstance,
   form: FormInstance<F>,
-  isEdited: boolean
+  isEdited: boolean,
 ) {
   const displayValue = getValue(item, definition.accessor);
   const prop: Property = {
@@ -86,7 +86,7 @@ function getProperty<F>(
 }
 
 function FormSection<F extends { [key: string]: any }>(
-  props: FormSectionProps
+  props: FormSectionProps,
 ) {
   const { t } = useTranslation();
   const {
@@ -165,7 +165,7 @@ function FormSection<F extends { [key: string]: any }>(
     form,
     setProperty(definition: PropertyDefinition) {
       const existingDefinition = definitions.current.find(
-        (x) => x.id === definition.id
+        (x) => x.id === definition.id,
       );
       if (!_.isEqual(definition, existingDefinition)) {
         definitions.current = definitions.current

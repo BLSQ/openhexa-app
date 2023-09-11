@@ -44,7 +44,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
       }
       ${PipelinesPicker.fragments.value}
     `,
-    { fetchPolicy: "cache-first" }
+    { fetchPolicy: "cache-first" },
   );
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
@@ -53,7 +53,7 @@ const PipelinesPicker = (props: PipelinesPickerProps) => {
     const lowercaseQuery = debouncedQuery.toLowerCase();
     return (
       data?.dags?.items?.filter((p) =>
-        p.externalId.toLowerCase().includes(lowercaseQuery)
+        p.externalId.toLowerCase().includes(lowercaseQuery),
       ) ?? []
     );
   }, [data, debouncedQuery]);

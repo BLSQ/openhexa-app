@@ -32,7 +32,7 @@ const RadioGroup = ({
             name={name}
             disabled={disabled}
             className={clsx(
-              "form-radio text-gray-800 focus:outline-none focus:ring-transparent"
+              "form-radio text-gray-800 focus:outline-none focus:ring-transparent",
             )}
             value={option.id}
             onChange={onChange}

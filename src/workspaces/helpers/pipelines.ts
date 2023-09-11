@@ -59,7 +59,7 @@ export function validateCronExpression(cronExpression: string) {
 
 export function getCronExpressionDescription(
   cronExpression: string,
-  locale?: "en" | "fr"
+  locale?: "en" | "fr",
 ) {
   if (!validateCronExpression(cronExpression)) {
     return null;
@@ -75,7 +75,7 @@ export async function runPipeline(
   pipelineId: string,
   config: any,
   version?: number,
-  sendMailNotifications?: boolean
+  sendMailNotifications?: boolean,
 ) {
   const client = getApolloClient();
 
@@ -133,7 +133,7 @@ export async function runPipeline(
     return data.runPipeline.run;
   } else if (
     data?.runPipeline.errors.some((e: any) =>
-      ["PIPELINE_NOT_FOUND", "PIPELINE_VERSION_NOT_FOUND"].includes(e)
+      ["PIPELINE_NOT_FOUND", "PIPELINE_VERSION_NOT_FOUND"].includes(e),
     )
   ) {
     throw new Error("Pipeline not found");

@@ -36,7 +36,7 @@ function CheckOption(props: CheckOptionsProps) {
         clsx(
           "relative cursor-default select-none px-2 py-2",
           active ? "bg-blue-500 text-white" : "text-gray-900",
-          className
+          className,
         )
       }
     >
@@ -46,13 +46,13 @@ function CheckOption(props: CheckOptionsProps) {
             className={clsx(
               "flex items-center pr-4",
               !selected && !forceSelected && "invisible",
-              active ? "text-white" : "text-gray-900"
+              active ? "text-white" : "text-gray-900",
             )}
           >
             <CheckIcon
               className={clsx(
                 "h-5 w-5",
-                (selected || forceSelected) && !active && "text-blue-500"
+                (selected || forceSelected) && !active && "text-blue-500",
               )}
               aria-hidden="true"
             />
@@ -60,7 +60,7 @@ function CheckOption(props: CheckOptionsProps) {
           <span
             className={clsx(
               "flex-1 truncate",
-              (selected || forceSelected) && "font-semibold"
+              (selected || forceSelected) && "font-semibold",
             )}
           >
             {typeof children === "function"

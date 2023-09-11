@@ -33,7 +33,7 @@ describe("GenerateDatabasePasswordDialog", () => {
         workspace={WORKSPACE}
         open={false}
         onClose={() => {}}
-      />
+      />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe("GenerateDatabasePasswordDialog", () => {
           open={true}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -60,10 +60,10 @@ describe("GenerateDatabasePasswordDialog", () => {
 
   it("Generate new database password", async () => {
     const { useGenerateNewDatabasePasswordMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useGenerateDatabasePasswordMutationMock.mockImplementation(
-      useGenerateNewDatabasePasswordMutation
+      useGenerateNewDatabasePasswordMutation,
     );
 
     const user = userEvent.setup();
@@ -95,7 +95,7 @@ describe("GenerateDatabasePasswordDialog", () => {
           open={true}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const saveButton = screen.getByRole("button", { name: "Generate" });

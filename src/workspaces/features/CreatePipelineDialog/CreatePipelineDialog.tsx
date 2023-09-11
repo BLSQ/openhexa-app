@@ -31,7 +31,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
         }
       }
     `,
-    { variables: { input: { slug: workspace.slug } } }
+    { variables: { input: { slug: workspace.slug } } },
   );
 
   const onTokenClick = async () => {

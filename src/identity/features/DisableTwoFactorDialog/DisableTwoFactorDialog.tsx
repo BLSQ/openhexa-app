@@ -55,7 +55,7 @@ const DisableTwoFactorDialog = (props: DisableTwoFactorDialogProps) => {
         <Dialog.Content>
           <p>
             {t(
-              "Are you sure to disable the two-factor authentication for your account?"
+              "Are you sure to disable the two-factor authentication for your account?",
             )}
           </p>
         </Dialog.Content>
@@ -63,7 +63,7 @@ const DisableTwoFactorDialog = (props: DisableTwoFactorDialogProps) => {
         <Dialog.Content className="space-y-4">
           <p>
             {t(
-              "Check your inbox and type the token you received to disable the two-factor authentication."
+              "Check your inbox and type the token you received to disable the two-factor authentication.",
             )}
           </p>
           <Input

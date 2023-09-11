@@ -16,7 +16,7 @@ const Spinner = (props: {
         size === "md" && "h-7 w-7",
         size === "lg" && "h-10 w-10",
         size === "xl" && "h-12 w-12",
-        className
+        className,
       )}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"

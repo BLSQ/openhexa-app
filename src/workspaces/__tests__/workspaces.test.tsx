@@ -39,7 +39,7 @@ describe("Workspaces", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("Rwanda Workspace", { selector: "a" });
     expect(elm).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe("Workspaces", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
-      </TestApp>
+      </TestApp>,
     );
 
     expect(container.firstChild).toBeNull();
@@ -109,7 +109,7 @@ describe("Workspaces", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
-      </TestApp>
+      </TestApp>,
     );
     const editButton = screen.queryByText("Edit");
     expect(editButton).toBeNull();
@@ -151,7 +151,7 @@ describe("Workspaces", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("JupyterHub", { selector: "a" });
     expect(elm).toBeInTheDocument();

@@ -32,7 +32,7 @@ const IHPForm = (props: IHPFormProps) => {
         values.start_date >= values.end_date
       ) {
         errors.start_date = t(
-          "Enter start and end date. Start date must be before end date."
+          "Enter start and end date. Start date must be before end date.",
         );
       }
 

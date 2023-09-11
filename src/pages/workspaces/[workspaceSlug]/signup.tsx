@@ -58,14 +58,14 @@ const WorkspaceSignUpPage: NextPageWithLayout = (props: Props) => {
       } else if (errors.includes(JoinWorkspaceError.AlreadyExists)) {
         throw new Error(
           t(
-            "An account already exists with this email address. Please go to the login page."
-          )
+            "An account already exists with this email address. Please go to the login page.",
+          ),
         );
       } else if (
         errors.some(
           (x) =>
             x === JoinWorkspaceError.InvalidToken ||
-            x === JoinWorkspaceError.InvitationNotFound
+            x === JoinWorkspaceError.InvitationNotFound,
         )
       ) {
         throw new Error(t("The invite link is invalid."));
@@ -97,7 +97,7 @@ const WorkspaceSignUpPage: NextPageWithLayout = (props: Props) => {
         values.password !== values.confirmPassword
       ) {
         errors.confirmPassword = t(
-          "The password confirmation does not match the given password"
+          "The password confirmation does not match the given password",
         );
       }
 
@@ -189,7 +189,7 @@ const WorkspaceSignUpPage: NextPageWithLayout = (props: Props) => {
             <li>{t("Alphanumeric (can't be entirely numeric)")}.</li>
             <li>
               {t(
-                "Can't be a commonly used password or similar to your personal information"
+                "Can't be a commonly used password or similar to your personal information",
               )}
             </li>
           </ul>

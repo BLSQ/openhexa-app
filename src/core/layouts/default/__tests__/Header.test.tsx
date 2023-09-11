@@ -22,7 +22,7 @@ describe("Header", () => {
     const { container, debug } = render(
       <TestApp>
         <Header />
-      </TestApp>
+      </TestApp>,
     );
 
     const search = screen.getByText("Search");
@@ -43,7 +43,7 @@ describe("Header", () => {
     const { container, debug } = render(
       <TestApp>
         <Header />
-      </TestApp>
+      </TestApp>,
     );
 
     const search = screen.getByText("Search");

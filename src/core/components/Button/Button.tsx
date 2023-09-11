@@ -61,7 +61,7 @@ const Button = (props: ButtonProps) => {
     Classes.base,
     Classes[size],
     variant !== "custom" && Classes[variant],
-    className
+    className,
   );
   return (
     <button className={classes} disabled={disabled} {...delegated}>
@@ -80,7 +80,7 @@ const LeadingIcon = (props: { children: ReactElement; size?: ButtonSize }) => {
     <div
       className={clsx(
         "-ml-1",
-        props.size === ButtonSizes[0] ? "mr-1" : "mr-1.5"
+        props.size === ButtonSizes[0] ? "mr-1" : "mr-1.5",
       )}
       aria-hidden="true"
     >

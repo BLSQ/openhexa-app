@@ -35,7 +35,7 @@ export const getValue = (item: any, accessor?: ValueAccessor) => {
 };
 
 export function ItemProvider<T extends ItemInstance>(
-  props: ItemProviderProps<T>
+  props: ItemProviderProps<T>,
 ) {
   const { item, children } = props;
   return (

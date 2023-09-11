@@ -25,7 +25,7 @@ const MarkdownViewer = (props: MarkdownViewerProps) => {
         <ul className="list-disc">{props.children}</ul>
       ),
     }),
-    []
+    [],
   );
   return (
     <ReactMarkdown

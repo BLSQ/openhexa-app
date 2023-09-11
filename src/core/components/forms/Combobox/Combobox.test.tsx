@@ -49,7 +49,7 @@ describe("Combobox", () => {
             {option.label}
           </Combobox.CheckOption>
         ))}
-      </ComboboxWrapper>
+      </ComboboxWrapper>,
     );
     const comboboxButton = screen.getByTestId("combobox-button");
     const comboboxInput = screen.getByTestId("combobox-input");
@@ -90,7 +90,7 @@ describe("Combobox", () => {
             {option.label}
           </Combobox.CheckOption>
         ))}
-      </ComboboxWrapper>
+      </ComboboxWrapper>,
     );
     expect(screen.getByTestId("spinner")).toBeInTheDocument();
   });
@@ -116,7 +116,7 @@ describe("Combobox", () => {
             {option.label}
           </Combobox.CheckOption>
         ))}
-      </ComboboxWrapper>
+      </ComboboxWrapper>,
     );
     expect(renderIcon).toHaveBeenCalledWith(options[0]);
     expect(displayValue).toHaveBeenCalledWith(options[0]);

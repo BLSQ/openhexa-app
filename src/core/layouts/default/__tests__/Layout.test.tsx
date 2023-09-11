@@ -14,7 +14,7 @@ describe("DefaultLayout", () => {
         <DefaultLayout pageProps={{}}>
           <span data-testid="page" />
         </DefaultLayout>
-      </TestApp>
+      </TestApp>,
     );
 
     expect(screen.getByTestId("page")).toBeInTheDocument();
@@ -29,7 +29,7 @@ describe("DefaultLayout", () => {
         <DefaultLayout pageProps={{}}>
           <span data-testid="page" />
         </DefaultLayout>
-      </TestApp>
+      </TestApp>,
     );
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(container).toMatchSnapshot();

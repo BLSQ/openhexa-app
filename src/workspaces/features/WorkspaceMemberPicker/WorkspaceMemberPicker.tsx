@@ -42,7 +42,7 @@ const WorkspaceMemberPicker = (props: WorkspaceMemberPickerProps) => {
       }
       ${WorkspaceMemberPicker.fragments.workspace}
     `,
-    { variables: { slug: workspaceSlug } }
+    { variables: { slug: workspaceSlug } },
   );
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
@@ -51,14 +51,14 @@ const WorkspaceMemberPicker = (props: WorkspaceMemberPickerProps) => {
     const lowercaseQuery = debouncedQuery.toLowerCase();
     return (
       data?.workspace?.members.items?.filter((c) =>
-        c.user.displayName.toLowerCase().includes(lowercaseQuery)
+        c.user.displayName.toLowerCase().includes(lowercaseQuery),
       ) ?? []
     );
   }, [data, debouncedQuery]);
 
   const displayValue = useCallback(
     (option: Option) => (option ? option.user.displayName : ""),
-    []
+    [],
   );
 
   return (
@@ -71,7 +71,7 @@ const WorkspaceMemberPicker = (props: WorkspaceMemberPickerProps) => {
       by={(a: Option, b: Option) => a.user.id === b.user.id}
       onInputChange={useCallback(
         (event: any) => setQuery(event.target.value),
-        []
+        [],
       )}
       placeholder={placeholder}
       value={value as any}

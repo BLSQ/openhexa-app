@@ -19,7 +19,7 @@ describe("ProgressPie", () => {
         progress={30}
         background="text-teal-500"
         foreground="text-teal-700"
-      />
+      />,
     );
 
     expect(container.getElementsByClassName("text-teal-500").length).toEqual(1);

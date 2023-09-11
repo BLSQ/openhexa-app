@@ -11,7 +11,7 @@ import {
 
 export async function getBucketObjectDownloadUrl(
   workspaceSlug: string,
-  objectKey: string
+  objectKey: string,
 ): Promise<string> {
   const client = getApolloClient();
   const { data } = await client.mutate<
@@ -52,7 +52,7 @@ export async function downloadURL(url: string, target: string = "") {
 
 export async function deleteBucketObject(
   workspaceSlug: string,
-  objectKey: string
+  objectKey: string,
 ) {
   const client = getApolloClient();
   const { data } = await client.mutate<
@@ -87,7 +87,7 @@ export async function deleteBucketObject(
 export async function getBucketObjectUploadUrl(
   workspaceSlug: string,
   key: string,
-  contentType: string
+  contentType: string,
 ) {
   const client = getApolloClient();
   const { data } = await client.mutate<
@@ -120,7 +120,7 @@ export async function getBucketObjectUploadUrl(
 
 export async function createBucketFolder(
   workspaceSlug: string,
-  folderKey: string
+  folderKey: string,
 ) {
   const client = getApolloClient();
   const { data } = await client.mutate({

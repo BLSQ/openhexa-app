@@ -85,7 +85,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             </Breadcrumbs.Part>
             <Breadcrumbs.Part
               href={`/workspaces/${encodeURIComponent(
-                data.workspace.slug
+                data.workspace.slug,
               )}/notebooks`}
               isLast
             >
@@ -126,7 +126,7 @@ export const getServerSideProps = createGetServerSideProps({
     }
     const server = await launchNotebookServer(
       client,
-      ctx.params?.workspaceSlug as string
+      ctx.params?.workspaceSlug as string,
     );
 
     return {

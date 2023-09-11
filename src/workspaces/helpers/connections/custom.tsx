@@ -40,7 +40,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
               name={`code-${index}`}
               pattern="^[a-zA-Z0-9-_]*$"
               help={t(
-                "Only letters, numbers, dashes and underscores are allowed. 'code' and 'description' are protected words and cannot be used."
+                "Only letters, numbers, dashes and underscores are allowed. 'code' and 'description' are protected words and cannot be used.",
               )}
               placeholder="my-custom-field-1"
               label={t("Field name")}
@@ -80,8 +80,8 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
                   form.setFieldValue(
                     "fields",
                     form.formData.fields.filter(
-                      (_: any, i: number) => i !== index
-                    )
+                      (_: any, i: number) => i !== index,
+                    ),
                   )
                 }
               >

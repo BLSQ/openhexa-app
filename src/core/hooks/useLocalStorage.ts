@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export default function useLocalStorage<T = any>(
   key: string,
-  initialValue?: T
+  initialValue?: T,
 ) {
   // State to store our value
   // Pass initial state function to useState so logic is only executed once

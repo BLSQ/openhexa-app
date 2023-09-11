@@ -17,7 +17,7 @@ const useBeforeUnload = (cancel: () => void | true | false | string) => {
       e.returnValue = cancelMessage || defaultMessage;
       return e;
     },
-    [cancel]
+    [cancel],
   );
 
   const onNavigation = useCallback(() => {
@@ -26,7 +26,7 @@ const useBeforeUnload = (cancel: () => void | true | false | string) => {
 
     if (
       window.confirm(
-        typeof cancelMessage === "string" ? cancelMessage : defaultMessage
+        typeof cancelMessage === "string" ? cancelMessage : defaultMessage,
       )
     )
       return;

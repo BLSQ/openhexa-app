@@ -28,16 +28,16 @@ export function TextColumn(props: TextColumnProps) {
 
   const text = useMemo(
     () => (textPath ? _.get(cell.value, textPath) : cell.value),
-    [cell.value, textPath]
+    [cell.value, textPath],
   );
   const subtext = useMemo(
     () => (subtextPath ? _.get(cell.value, subtextPath) : ""),
-    [cell.value, subtextPath]
+    [cell.value, subtextPath],
   );
 
   const symbol = useMemo(
     () => (symbolPath ? _.get(cell.value, symbolPath) : null),
-    [cell.value, symbolPath]
+    [cell.value, symbolPath],
   );
 
   const href = useMemo(() => {

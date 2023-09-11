@@ -91,7 +91,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     `,
     {
       variables: { page: 1, perPage: 5 },
-    }
+    },
   );
 
   useCacheKey("workspaces", () => {
@@ -130,7 +130,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             )}
             <div
               className={clsx(
-                "line-clamp-2 flex-1 text-sm tracking-tight text-gray-50"
+                "line-clamp-2 flex-1 text-sm tracking-tight text-gray-50",
               )}
               title={workspace.name}
             >
@@ -199,7 +199,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                   }}
                   className={clsx(
                     "flex items-center px-4 py-2.5 hover:bg-gray-100",
-                    ws.slug === workspace.slug && "bg-gray-100 font-medium"
+                    ws.slug === workspace.slug && "bg-gray-100 font-medium",
                   )}
                   key={index}
                 >

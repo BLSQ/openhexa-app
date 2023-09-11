@@ -93,7 +93,7 @@ describe("Connections", () => {
     render(
       <TestApp mocks={graphqlMocks}>
         <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
-      </TestApp>
+      </TestApp>,
     );
 
     const btn = await screen.queryByText("Add connection", {
@@ -121,10 +121,10 @@ describe("Connections", () => {
     render(
       <TestApp mocks={graphqlMocks}>
         <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText(
-      "This workspace does not have any connection."
+      "This workspace does not have any connection.",
     );
     expect(elm).toBeInTheDocument();
   });
@@ -149,7 +149,7 @@ describe("Connections", () => {
     render(
       <TestApp mocks={graphqlMocks}>
         <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
-      </TestApp>
+      </TestApp>,
     );
     const btn = await screen.findByText("Add connection", {
       selector: "button",
@@ -163,8 +163,8 @@ describe("Connections", () => {
 
     expect(
       await screen.findByText(
-        "You can create a connection based on our supported integrations"
-      )
+        "You can create a connection based on our supported integrations",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -206,7 +206,7 @@ describe("Connections", () => {
     const { debug } = render(
       <TestApp mocks={graphqlMocks}>
         <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText(CONNECTION.name);
 
@@ -219,7 +219,7 @@ describe("Connections", () => {
     expect(
       screen.queryByText("Add connection", {
         selector: "button",
-      })
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -263,7 +263,7 @@ describe("Connections", () => {
     const { debug } = render(
       <TestApp mocks={graphqlMocks}>
         <ConnectionsPage workspaceSlug={WORKSPACE.slug} />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("Add connection");
     expect(elm).toBeInTheDocument();
@@ -294,7 +294,7 @@ describe("Connections", () => {
           workspaceSlug={WORKSPACE.slug}
           connectionId={CONNECTION.id}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(await screen.findByText("Information")).toBeInTheDocument();
     expect(screen.queryAllByText("Edit").length).toBe(2);
@@ -329,7 +329,7 @@ describe("Connections", () => {
           workspaceSlug={WORKSPACE.slug}
           connectionId={CONNECTION.id}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(await screen.findByText("Delete")).toBeInTheDocument();
   });

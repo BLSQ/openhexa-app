@@ -40,13 +40,13 @@ const PipelineConfigureRunPage = (props: Props) => {
     } catch (err) {
       displayAlert(
         (err as Error).message ?? "An unexpected error ocurred.",
-        AlertType.error
+        AlertType.error,
       );
     }
   };
   const description = useMemo(
     () => data?.dag?.description || data?.dag?.template.description,
-    [data]
+    [data],
   );
   if (!data || !data.dag) {
     return null;

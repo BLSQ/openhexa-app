@@ -70,7 +70,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
             <Breadcrumbs.Part
               isLast
               href={`/workspaces/${encodeURIComponent(
-                workspace.slug
+                workspace.slug,
               )}/databases`}
             >
               {t("Database")}
@@ -133,7 +133,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               accessor="name"
               url={(value: any) => ({
                 pathname: `/workspaces/${encodeURIComponent(
-                  workspace.slug
+                  workspace.slug,
                 )}/databases/[tableId]`,
                 query: { tableId: value },
               })}

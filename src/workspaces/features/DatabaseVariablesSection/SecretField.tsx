@@ -11,7 +11,7 @@ const SecretField = (field: { value: string | number }) => {
   const [showSecret, setShowSecret] = useState<boolean>(false);
   const toggleSecret = useCallback(
     () => setShowSecret((showSecet) => !showSecet),
-    []
+    [],
   );
 
   if (showSecret) {

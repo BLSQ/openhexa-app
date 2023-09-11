@@ -38,7 +38,7 @@ describe("UpdateWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -54,7 +54,7 @@ describe("UpdateWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -66,10 +66,10 @@ describe("UpdateWorkspaceMemberDialog", () => {
   it("Update a workspace member ", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useUpdateWorkspaceMemberMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useUpdateWorkspaceMemberMutationMock.mockImplementation(
-      useUpdateWorkspaceMemberMutation
+      useUpdateWorkspaceMemberMutation,
     );
 
     const user = userEvent.setup();
@@ -100,7 +100,7 @@ describe("UpdateWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(useUpdateWorkspaceMemberMutationMock).toHaveBeenCalled();
 

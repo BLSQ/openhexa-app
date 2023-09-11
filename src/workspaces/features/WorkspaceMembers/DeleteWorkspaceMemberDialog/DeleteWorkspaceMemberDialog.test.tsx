@@ -40,7 +40,7 @@ describe("DeleteWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -56,7 +56,7 @@ describe("DeleteWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -68,10 +68,10 @@ describe("DeleteWorkspaceMemberDialog", () => {
   it("Deletes a workspace member ", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useDeleteWorkspaceMemberMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useDeleteWorkspaceMemberMutationMock.mockImplementation(
-      useDeleteWorkspaceMemberMutation
+      useDeleteWorkspaceMemberMutation,
     );
 
     const user = userEvent.setup();
@@ -102,7 +102,7 @@ describe("DeleteWorkspaceMemberDialog", () => {
           member={MEMBER}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(useDeleteWorkspaceMemberMutationMock).toHaveBeenCalled();
 

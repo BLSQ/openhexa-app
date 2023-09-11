@@ -8,7 +8,7 @@ const Label = (props: LabelHTMLAttributes<HTMLLabelElement>) => {
       className={clsx(
         "block text-sm font-medium",
         props.color ?? "text-gray-600",
-        props.className
+        props.className,
       )}
     />
   );

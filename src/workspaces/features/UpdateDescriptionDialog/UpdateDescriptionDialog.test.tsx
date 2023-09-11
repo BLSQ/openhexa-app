@@ -33,7 +33,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
         workspace={WORKSPACE}
         open={false}
         onClose={() => {}}
-      />
+      />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -49,7 +49,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
           open={true}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -60,10 +60,10 @@ describe("EditWorkspaceDescriptionDialog", () => {
 
   it("Edit workspace description", async () => {
     const { useUpdateWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useUpdateWorkspaceMutationMock.mockImplementation(
-      useUpdateWorkspaceMutation
+      useUpdateWorkspaceMutation,
     );
 
     const user = userEvent.setup();
@@ -95,7 +95,7 @@ describe("EditWorkspaceDescriptionDialog", () => {
           open={true}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const descriptionInput = await screen.getByTestId("description");

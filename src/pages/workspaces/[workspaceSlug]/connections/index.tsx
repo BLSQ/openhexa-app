@@ -62,7 +62,7 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                 <Breadcrumbs.Part
                   isLast
                   href={`/workspaces/${encodeURIComponent(
-                    workspace.slug
+                    workspace.slug,
                   )}/connections`}
                 >
                   {t("Connections")}

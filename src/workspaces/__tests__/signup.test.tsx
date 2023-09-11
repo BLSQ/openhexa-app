@@ -19,7 +19,7 @@ const USER = {
 
 jest.mock("workspaces/graphql/mutations.generated", () => {
   const actualModule = jest.requireActual(
-    "workspaces/graphql/mutations.generated"
+    "workspaces/graphql/mutations.generated",
   );
   return {
     ...actualModule,
@@ -41,7 +41,7 @@ describe("WorkspaceSignUpPage", () => {
     const { container } = render(
       <TestApp>
         <SignUpPage />
-      </TestApp>
+      </TestApp>,
     );
 
     expect(container).toMatchSnapshot();
@@ -55,7 +55,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp>
         <SignUpPage email={USER.email} token={USER.token} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -84,7 +84,7 @@ describe("WorkspaceSignUpPage", () => {
 
     expect(joinWorkspace).not.toHaveBeenCalled();
     const errorMessage = await screen.findByText(
-      "The password confirmation does not match the given password"
+      "The password confirmation does not match the given password",
     );
     expect(errorMessage).toBeInTheDocument();
 
@@ -109,7 +109,7 @@ describe("WorkspaceSignUpPage", () => {
   it("redirects the user on success", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useJoinWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
     const user = userEvent.setup();
@@ -144,7 +144,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp mocks={mocks}>
         <SignUpPage email={USER.email} token={USER.token} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -172,7 +172,7 @@ describe("WorkspaceSignUpPage", () => {
   it("displays invalid password formet error message when the password is similar to user info", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useJoinWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
     const user = userEvent.setup();
@@ -205,7 +205,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp mocks={mocks}>
         <SignUpPage email={USER.email} token={USER.token} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -231,7 +231,7 @@ describe("WorkspaceSignUpPage", () => {
   it("displays an invalid token error message when the token format is not correct or not linked to an invitation", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useJoinWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
     const user = userEvent.setup();
@@ -264,7 +264,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp mocks={mocks}>
         <SignUpPage email={USER.email} token={"123"} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -290,7 +290,7 @@ describe("WorkspaceSignUpPage", () => {
   it("displays expired invitation error message when the token is expired", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useJoinWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
     const user = userEvent.setup();
@@ -323,7 +323,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp mocks={mocks}>
         <SignUpPage email={USER.email} token={USER.token} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -349,7 +349,7 @@ describe("WorkspaceSignUpPage", () => {
   it("displays account already exists error message when the user has already an account", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useJoinWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
     const user = userEvent.setup();
@@ -382,7 +382,7 @@ describe("WorkspaceSignUpPage", () => {
     render(
       <TestApp mocks={mocks}>
         <SignUpPage email={USER.email} token={USER.token} />
-      </TestApp>
+      </TestApp>,
     );
 
     const submitBtn = screen.getByRole("button", { name: "Submit" });
@@ -402,7 +402,7 @@ describe("WorkspaceSignUpPage", () => {
     await user.click(submitBtn);
 
     const errorMessage = await screen.findByText(
-      "An account already exists with this email address. Please go to the login page."
+      "An account already exists with this email address. Please go to the login page.",
     );
     expect(errorMessage).toBeInTheDocument();
   });

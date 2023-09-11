@@ -53,7 +53,7 @@ const DeleteWorkspaceMemberDialog = (props: DeleteWorkspaceMemberProps) => {
 
     if (
       data.deleteWorkspaceMember.errors.includes(
-        DeleteWorkspaceMemberError.PermissionDenied
+        DeleteWorkspaceMemberError.PermissionDenied,
       )
     ) {
       throw new Error("You are not authorized to perform this action");

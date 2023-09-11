@@ -16,7 +16,7 @@ const CountryProperty = (props: CountryPropertyProps) => {
 
   const countriesArray = useMemo(
     () => ensureArray(property.displayValue),
-    [property]
+    [property],
   );
 
   return (

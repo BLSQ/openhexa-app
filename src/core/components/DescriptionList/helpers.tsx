@@ -16,7 +16,7 @@ export const useDescriptionList = () => {
 
   if (!config) {
     throw new Error(
-      "useDescriptionList must be under a DescriptionList component"
+      "useDescriptionList must be under a DescriptionList component",
     );
   }
   return config;

@@ -53,7 +53,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           countries: ensureArray(values.countries || workspace.countries).map(
             ({ code }) => ({
               code,
-            })
+            }),
           ),
         },
       },

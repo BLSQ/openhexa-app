@@ -56,7 +56,7 @@ export default function WorkspaceMembers({
         }
       }
     `,
-    { variables: { slug: workspaceSlug, page: 1, perPage: DEFAULT_PAGE_SIZE } }
+    { variables: { slug: workspaceSlug, page: 1, perPage: DEFAULT_PAGE_SIZE } },
   );
 
   useCacheKey("workspace", () => refetch());

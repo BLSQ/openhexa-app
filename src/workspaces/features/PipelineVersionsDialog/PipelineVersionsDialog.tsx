@@ -65,7 +65,7 @@ const PipelineVersionsDialog = (props: PipelineVersionsDialogProps) => {
         pipelineId: pipeline.id,
         perPage: DEFAULT_PAGE_SIZE,
       },
-    }
+    },
   );
 
   const canDeletePipeline = useMemo(() => {

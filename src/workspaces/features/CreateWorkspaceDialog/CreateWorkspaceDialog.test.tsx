@@ -25,7 +25,7 @@ describe("CreateWorkspaceDialog", () => {
 
   it("is not displayed ", async () => {
     const { container } = render(
-      <CreateWorkspaceDialog open={false} onClose={() => {}} />
+      <CreateWorkspaceDialog open={false} onClose={() => {}} />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -37,7 +37,7 @@ describe("CreateWorkspaceDialog", () => {
     const { container } = render(
       <TestApp mocks={[]}>
         <CreateWorkspaceDialog open onClose={() => {}} />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -54,7 +54,7 @@ describe("CreateWorkspaceDialog", () => {
     const { container } = render(
       <TestApp>
         <CreateWorkspaceDialog open onClose={() => {}} />
-      </TestApp>
+      </TestApp>,
     );
 
     const createButton = screen.getByRole("button", { name: "Create" });
@@ -79,10 +79,10 @@ describe("CreateWorkspaceDialog", () => {
 
   it("redirects to the new workspace ", async () => {
     const { useCreateWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useCreateWorkspaceMutationMock.mockImplementation(
-      useCreateWorkspaceMutation
+      useCreateWorkspaceMutation,
     );
     const pushSpy = jest.spyOn(router, "push");
 
@@ -118,7 +118,7 @@ describe("CreateWorkspaceDialog", () => {
     render(
       <TestApp mocks={mocks}>
         <CreateWorkspaceDialog open onClose={() => {}} />
-      </TestApp>
+      </TestApp>,
     );
     expect(useCreateWorkspaceMutationMock).toHaveBeenCalled();
 

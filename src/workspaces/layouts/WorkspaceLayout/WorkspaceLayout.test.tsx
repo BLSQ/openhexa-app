@@ -32,7 +32,7 @@ describe("WorkspaceLayout", () => {
         <WorkspaceLayout workspace={workspace}>
           <WorkspaceLayout.PageContent>Content</WorkspaceLayout.PageContent>
         </WorkspaceLayout>
-      </TestApp>
+      </TestApp>,
     );
 
     expect(screen.findByText("Content")).toBeTruthy();

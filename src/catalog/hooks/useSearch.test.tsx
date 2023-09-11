@@ -13,7 +13,7 @@ describe.only("useSearch", () => {
   it("returns empty lists when skipped", () => {
     useQueryMock.mockReturnValue([]);
     const { result } = renderHook(() =>
-      useSearch({ query: "QUERY", skip: true })
+      useSearch({ query: "QUERY", skip: true }),
     );
 
     expect(useQueryMock).toHaveBeenCalledWith("GQL", {
@@ -45,7 +45,7 @@ describe.only("useSearch", () => {
       },
     });
     const { result } = renderHook(() =>
-      useSearch({ query: "QUERY", page: 2, types: ["1"] })
+      useSearch({ query: "QUERY", page: 2, types: ["1"] }),
     );
 
     expect(useQueryMock).toHaveBeenCalledWith("GQL", {

@@ -28,11 +28,11 @@ function Heading<T extends ItemInstance>(props: HeadingProps<T>) {
 
   const title = useMemo(
     () => getValue(item, titleAccessor),
-    [item, titleAccessor]
+    [item, titleAccessor],
   );
   const subtitle = useMemo(
     () => (subtitleAccessor ? getValue(item, subtitleAccessor) : null),
-    [item, subtitleAccessor]
+    [item, subtitleAccessor],
   );
 
   return (

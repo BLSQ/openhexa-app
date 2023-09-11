@@ -6,7 +6,7 @@ import {
 
 export async function launchNotebookServer(
   client: ApolloClient<unknown>,
-  workspaceSlug: string
+  workspaceSlug: string,
 ) {
   const { data } = await client.mutate<
     LaunchNotebookServerMutation,

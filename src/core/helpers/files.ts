@@ -4,7 +4,7 @@ import { createDeferred, Deferred } from "./promise";
 
 type ProgressFunc = (progress: number) => void;
 type BeforeFileUploadFunc<T extends File = File> = (
-  file: T
+  file: T,
 ) => Promise<AxiosRequestConfig | void>;
 
 type JobOptions<T extends File> = {
@@ -44,7 +44,7 @@ class Job<T extends JobFile = JobFile> {
     const total = this._files.reduce((acc, file) => acc + file.size, 0);
     const loaded = this._files.reduce(
       (acc, file) => acc + (file.loaded || 0),
-      0
+      0,
     );
     return Math.round((loaded * 100) / (total || 1));
   }
@@ -114,7 +114,7 @@ class Job<T extends JobFile = JobFile> {
         console.log(
           `Upload of "${file.name}" completed.`,
           response.status,
-          response.data
+          response.data,
         );
         if (this.onAfterFileUpload) {
           await this.onAfterFileUpload(file, response);
@@ -190,13 +190,16 @@ class UploadManager<T extends JobFile = JobFile> {
           err.job = job;
           deferred.reject(err);
         } else {
-          setTimeout(() => {
-            this.pendingJobs.push(next);
-            this.process();
-          }, 2 ^ (job.runs + 1));
+          setTimeout(
+            () => {
+              this.pendingJobs.push(next);
+              this.process();
+            },
+            2 ^ (job.runs + 1),
+          );
         }
         this.process();
-      }
+      },
     );
   }
 

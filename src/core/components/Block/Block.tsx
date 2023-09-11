@@ -24,10 +24,10 @@ const Block = (props: Props) => {
       ...delegated,
       className: clsx(
         "sm:rounded-lg overflow-hidden shadow border-b border-gray-200 bg-white",
-        className
+        className,
       ),
     },
-    children
+    children,
   );
 };
 

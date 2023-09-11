@@ -20,7 +20,7 @@ const WorkspaceMemberProperty = (props: WorkspaceMemberPropertyProps) => {
 
   const membersArray = useMemo(
     () => ensureArray(property.displayValue),
-    [property]
+    [property],
   );
   return (
     <DataCard.Property property={property}>

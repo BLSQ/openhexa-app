@@ -68,7 +68,7 @@ const Pagination = (props: Props) => {
                   totalItems,
                   start,
                   end,
-                }
+                },
               )}
             </p>
           </div>

@@ -33,7 +33,7 @@ export type ConnectionDefinition = {
 export const updateFormField = (
   form: FormInstance<ConnectionForm>,
   index: number,
-  values: any
+  values: any,
 ) => {
   const newFields = [...(form.formData.fields ?? [])];
   newFields.splice(index, 1, { ...newFields[index], ...values });
@@ -45,7 +45,7 @@ export const slugify = (...keys: string[]) =>
 
 export function convertFieldsToInput(
   connectionType: ConnectionDefinition,
-  fields: { [key: string]: any }
+  fields: { [key: string]: any },
 ) {
   return connectionType.fields.map((f: any) => ({
     code: f.code,
@@ -57,7 +57,7 @@ export function convertFieldsToInput(
 export function getUsageSnippets(
   connection: Pick<Connection, "slug" | "type"> & {
     fields: { code: string }[];
-  }
+  },
 ) {
   switch (connection.type) {
     case ConnectionType.Dhis2:
@@ -144,7 +144,7 @@ AWS_S3_BUCKET = os.getenv("${slugify(connection.slug, "bucket_name")}")
 AWS_ACCESS_KEY_ID = os.getenv("${slugify(connection.slug, "access_key_id")}")
 AWS_SECRET_ACCESS_KEY = os.getenv("${slugify(
             connection.slug,
-            "access_key_secret"
+            "access_key_secret",
           )}")
 AWS_SESSION_TOKEN = None
   
@@ -188,9 +188,9 @@ ${connection.fields
   .map(
     (f) => `${slugify(connection.slug, f.code)} = os.getenv("${slugify(
       connection.slug,
-      f.code
+      f.code,
     )}")
-`
+`,
   )
   .join("")}
 `,

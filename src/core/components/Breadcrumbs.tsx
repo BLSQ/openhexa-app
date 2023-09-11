@@ -37,7 +37,9 @@ export const Part = ({
           className={clsx(
             !isFirst && !small && "ml-3",
             "text-sm hover:text-gray-700",
-            isLast ? "font-semibold text-gray-800" : "font-medium text-gray-500"
+            isLast
+              ? "font-semibold text-gray-800"
+              : "font-medium text-gray-500",
           )}
         >
           {href ? (

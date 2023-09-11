@@ -50,7 +50,7 @@ const Classes = {
 };
 
 function MultiCombobox<T extends { [key: string]: any }>(
-  props: MultiComboboxProps<T>
+  props: MultiComboboxProps<T>,
 ) {
   const {
     loading = false,
@@ -95,7 +95,7 @@ function MultiCombobox<T extends { [key: string]: any }>(
     (item: T) => {
       value && onChange(value.filter((x) => x !== item));
     },
-    [onChange, value]
+    [onChange, value],
   );
 
   const optionsElement = (
@@ -131,7 +131,7 @@ function MultiCombobox<T extends { [key: string]: any }>(
               "form-input flex w-full items-center rounded-md border-gray-300 shadow-sm disabled:border-gray-300",
               "focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
               "sm:text-sm",
-              open ? "border-blue-500" : "hover:border-gray-400"
+              open ? "border-blue-500" : "hover:border-gray-400",
             )}
           >
             <div className="mr-1 flex flex-1 flex-wrap items-center gap-2 truncate">

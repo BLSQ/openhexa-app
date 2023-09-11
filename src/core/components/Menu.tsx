@@ -12,7 +12,7 @@ export const MenuClasses = {
     "group",
     ButtonClasses.base,
     ButtonClasses.white,
-    ButtonClasses.md
+    ButtonClasses.md,
   ),
   Item: "group text-left flex transition px-2 py-2 items-center w-full text-sm rounded hover:bg-blue-500 hover:text-white",
   ActiveItem: "bg-blue-500 text-white",

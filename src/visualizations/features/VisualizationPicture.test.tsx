@@ -10,7 +10,7 @@ describe("VisualizationPicture", () => {
   };
   it("renders properly", () => {
     const { container: visualizationComponent } = render(
-      <VisualizationPicture visualization={visualization} />
+      <VisualizationPicture visualization={visualization} />,
     );
     expect(visualizationComponent).toMatchSnapshot();
   });

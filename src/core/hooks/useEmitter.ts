@@ -4,7 +4,7 @@ type EventElement = HTMLElement | Window;
 
 export const useEmitter = <T = any>(
   eventName: string,
-  element?: EventElement
+  element?: EventElement,
 ) => {
   const callEvent = useCallback(
     (data?: T) => {
@@ -12,7 +12,7 @@ export const useEmitter = <T = any>(
 
       (element || window).dispatchEvent(event);
     },
-    [eventName, element]
+    [eventName, element],
   );
 
   return callEvent;
@@ -22,7 +22,7 @@ export const useListener = <T = any>(
   eventName: string,
   onEvent: (e: CustomEvent<T>) => void,
   element?: EventElement,
-  options: boolean | AddEventListenerOptions = {}
+  options: boolean | AddEventListenerOptions = {},
 ) => {
   useEffect(() => {
     if (typeof onEvent === "function") {
@@ -36,7 +36,7 @@ export const useListener = <T = any>(
         (element || window).removeEventListener(
           eventName,
           handleSignal,
-          options
+          options,
         );
     }
   }, [element, eventName, onEvent, options]);

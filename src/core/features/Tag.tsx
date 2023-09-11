@@ -27,7 +27,7 @@ const Tag = (props: TagProps) => {
         className,
         "hover:bg-opacity-70",
         borderColor,
-        bgColor
+        bgColor,
       )}
       onClick={onClick}
     >

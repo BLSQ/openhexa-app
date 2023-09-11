@@ -12,7 +12,7 @@ interface CreateGetServerSideProps {
   requireAuth?: boolean;
   getServerSideProps?: (
     ctx: GetServerSidePropsContextWithUser,
-    client: CustomApolloClient
+    client: CustomApolloClient,
   ) =>
     | Promise<GetServerSidePropsResult<any> | void>
     | GetServerSidePropsResult<any>
@@ -32,7 +32,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   } = options;
 
   return async function (
-    ctx: GetServerSidePropsContextWithUser
+    ctx: GetServerSidePropsContextWithUser,
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
     const translations = await serverSideTranslations("en", i18n);
 
@@ -56,11 +56,11 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
 
       if (
         !features.some(
-          (f) => f.code === "openhexa_legacy" || f.code === "workspaces"
+          (f) => f.code === "openhexa_legacy" || f.code === "workspaces",
         )
       ) {
         throw new Error(
-          "There is a configuration error with this account. Please contact your administrator."
+          "There is a configuration error with this account. Please contact your administrator.",
         );
       }
 

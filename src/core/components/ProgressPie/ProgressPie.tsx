@@ -21,7 +21,7 @@ const ProgressPie = (props: ProgressPieProps) => {
   const value = useMemo(
     () =>
       progress !== undefined ? Math.min(100, Math.max(0, progress)) : undefined,
-    [progress]
+    [progress],
   );
   return (
     <div
@@ -52,7 +52,7 @@ const ProgressPie = (props: ProgressPieProps) => {
           fill="none"
           className={clsx(
             "transition-all duration-700 ease-in-out ",
-            foreground
+            foreground,
           )}
         />
       </svg>

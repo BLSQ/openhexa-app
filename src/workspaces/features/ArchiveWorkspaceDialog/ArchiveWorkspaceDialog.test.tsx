@@ -35,7 +35,7 @@ describe("ArchiveWorkspaceDialog", () => {
         open={false}
         workspace={WORKSPACE}
         onClose={() => {}}
-      />
+      />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -51,7 +51,7 @@ describe("ArchiveWorkspaceDialog", () => {
           workspace={WORKSPACE}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
 
     const dialog = await screen.queryByRole("dialog");
@@ -63,10 +63,10 @@ describe("ArchiveWorkspaceDialog", () => {
   it("Archives a workspace ", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useArchiveWorkspaceMutation } = jest.requireActual(
-      "workspaces/graphql/mutations.generated"
+      "workspaces/graphql/mutations.generated",
     );
     useArchiveWorkspaceMutationMock.mockImplementation(
-      useArchiveWorkspaceMutation
+      useArchiveWorkspaceMutation,
     );
 
     const user = userEvent.setup();
@@ -97,7 +97,7 @@ describe("ArchiveWorkspaceDialog", () => {
           workspace={WORKSPACE}
           onClose={() => {}}
         />
-      </TestApp>
+      </TestApp>,
     );
     expect(useArchiveWorkspaceMutationMock).toHaveBeenCalled();
 

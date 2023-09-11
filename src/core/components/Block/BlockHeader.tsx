@@ -9,7 +9,7 @@ function BlockHeader({
     <h3
       className={clsx(
         "px-4 py-5 pt-7 text-lg font-medium leading-4 text-gray-900 sm:px-6",
-        className
+        className,
       )}
     >
       {children}

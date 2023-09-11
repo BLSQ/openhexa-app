@@ -29,27 +29,25 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
   const [setFavorite] = useMutation<
     SetFavoriteRunMutation,
     SetFavoriteRunMutationVariables
-  >(
-    gql`
-      mutation setFavoriteRun($input: SetDAGRunFavoriteInput!) {
-        setDAGRunFavorite(input: $input) {
-          success
-          errors
-          dagRun {
-            id
-            label
-            isFavorite
-          }
+  >(gql`
+    mutation setFavoriteRun($input: SetDAGRunFavoriteInput!) {
+      setDAGRunFavorite(input: $input) {
+        success
+        errors
+        dagRun {
+          id
+          label
+          isFavorite
         }
       }
-    `
-  );
+    }
+  `);
 
   const onClick = async () => {
     if (run.isFavorite) {
       if (
         window.confirm(
-          t("Are you sure to remove this run from your favorites?")
+          t("Are you sure to remove this run from your favorites?"),
         )
       ) {
         const { data } = await setFavorite({
@@ -58,7 +56,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
         if (!data?.setDAGRunFavorite?.success) {
           displayAlert(
             t("We were not able to remove it from your favorites"),
-            AlertType.error
+            AlertType.error,
           );
         }
       }
@@ -76,7 +74,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
     if (!data?.setDAGRunFavorite?.success) {
       displayAlert(
         t("We were not able to add this run to your favorites"),
-        AlertType.error
+        AlertType.error,
       );
     }
     setFalse();
@@ -104,7 +102,7 @@ const PipelineRunFavoriteTrigger = (props: PipelineRunFavoriteTriggerProps) => {
             <Dialog.Content>
               <Dialog.Description>
                 {t(
-                  "Marking this run as favorite will put it on top of the list of the runs. Please enter a label that better describes it."
+                  "Marking this run as favorite will put it on top of the list of the runs. Please enter a label that better describes it.",
                 )}
               </Dialog.Description>
               <Field

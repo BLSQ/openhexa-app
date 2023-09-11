@@ -57,13 +57,13 @@ const NavItem = (props: {
         isCurrent
           ? "text-white"
           : " text-gray-300 hover:bg-gray-700 hover:text-white",
-        compact && "justify-center "
+        compact && "justify-center ",
       )}
     >
       <div
         className={clsx(
           "absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity",
-          isCurrent ? "opacity-100" : "opacity-0"
+          isCurrent ? "opacity-100" : "opacity-0",
         )}
       ></div>
       <Icon className={clsx(compact ? "h-7 w-7" : "ml-1 h-5 w-5")} />

@@ -31,7 +31,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
     trailingIcon && "pr-4",
     leading && "pl-10",
-    className
+    className,
   );
 
   return (

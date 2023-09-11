@@ -18,6 +18,6 @@ export default function useInputKeyDown({
         onCommandShiftEnter();
       }
     },
-    [onEscape, onCommandShiftEnter]
+    [onEscape, onCommandShiftEnter],
   );
 }

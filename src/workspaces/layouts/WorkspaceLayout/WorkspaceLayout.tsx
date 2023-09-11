@@ -54,7 +54,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
   const defaultSidebarOpen = getDefaultSidebarOpen();
 
   const [isSidebarOpen, setSidebarOpen] = useState(
-    !forceCompactSidebar && defaultSidebarOpen
+    !forceCompactSidebar && defaultSidebarOpen,
   );
 
   useEffect(() => {
@@ -79,7 +79,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         <div
           className={clsx(
             "fixed h-screen bg-gray-800 transition-all duration-75",
-            isSidebarOpen ? "w-64 2xl:w-72" : "w-16"
+            isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
           )}
         >
           <Sidebar workspace={workspace} />
@@ -87,7 +87,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         <div
           className={clsx(
             "w-full transition-all duration-75",
-            isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16"
+            isSidebarOpen ? "pl-64 2xl:pl-72" : "pl-16",
           )}
         >
           <main
@@ -121,7 +121,7 @@ WorkspaceLayout.fragments = {
 
 WorkspaceLayout.prefetch = async (
   ctx: GetServerSidePropsContext,
-  client: CustomApolloClient
+  client: CustomApolloClient,
 ) => {
   // Load the cookie value from the request to render it correctly on the server
   cookieSidebarOpenState = (getCookie("sidebar-open", ctx) as boolean) ?? true;

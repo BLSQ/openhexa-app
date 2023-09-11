@@ -26,7 +26,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
   const [check] = useCheckWorkspaceAvailabilityLazyQuery();
 
   const [lastWorkspace, setLastWorkspace] = useLocalStorage(
-    "last-visited-workspace"
+    "last-visited-workspace",
   );
   const [isChecking, setChecking] = useState(true);
 
@@ -34,7 +34,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     if (!isChecking || typeof window === "undefined") return;
     const promise = lastWorkspace
       ? check({ variables: { slug: lastWorkspace } }).then(
-          (res) => res.data?.workspace
+          (res) => res.data?.workspace,
         )
       : Promise.resolve(null);
 

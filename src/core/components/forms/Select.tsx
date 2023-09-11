@@ -33,7 +33,7 @@ export type SelectProps<O> = {
 
 const DEFAULT_FILTER_OPTIONS = (options: SelectOption[], query: string) => {
   return options.filter((opt) =>
-    opt.toLowerCase().includes(query.toLowerCase())
+    opt.toLowerCase().includes(query.toLowerCase()),
   );
 };
 
@@ -65,7 +65,7 @@ function Select<O>(props: SelectProps<O>) {
 
   const filteredOptions = useMemo(
     () => (!query ? options : filterOptions(options, query)),
-    [options, query, filterOptions]
+    [options, query, filterOptions],
   );
 
   const handleCreate: MouseEventHandler<HTMLDivElement> = (event) => {

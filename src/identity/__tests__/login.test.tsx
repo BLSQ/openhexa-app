@@ -12,7 +12,7 @@ import LoginPage from "pages/login";
 
 jest.mock("identity/graphql/mutations.generated", () => {
   const actualModule = jest.requireActual(
-    "identity/graphql/mutations.generated"
+    "identity/graphql/mutations.generated",
   );
   return {
     ...actualModule,
@@ -32,7 +32,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
     const { container } = render(
       <TestApp>
         <LoginPage />
-      </TestApp>
+      </TestApp>,
     );
 
     expect(container).toMatchSnapshot();
@@ -45,7 +45,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
     const { container } = render(
       <TestApp>
         <LoginPage />
-      </TestApp>
+      </TestApp>,
     );
 
     const emailInput = screen.getByTestId("email");
@@ -73,7 +73,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
   it("redirects the user on success", async () => {
     const pushSpy = jest.spyOn(router, "push");
     const { useLoginMutation } = jest.requireActual(
-      "identity/graphql/mutations.generated"
+      "identity/graphql/mutations.generated",
     );
     useLoginMutationMock.mockImplementation(useLoginMutation);
     const user = userEvent.setup();
@@ -96,7 +96,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
     render(
       <TestApp mocks={mocks}>
         <LoginPage />
-      </TestApp>
+      </TestApp>,
     );
     expect(useLoginMutationMock).toHaveBeenCalled();
 
@@ -116,7 +116,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
 
   it("displays an error message if email/password is incorrect", async () => {
     const { useLoginMutation } = jest.requireActual(
-      "identity/graphql/mutations.generated"
+      "identity/graphql/mutations.generated",
     );
     useLoginMutationMock.mockImplementation(useLoginMutation);
     const user = userEvent.setup();
@@ -140,7 +140,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
     render(
       <TestApp mocks={mocks}>
         <LoginPage />
-      </TestApp>
+      </TestApp>,
     );
 
     const emailInput = screen.getByTestId("email");
@@ -150,7 +150,7 @@ describe("LoginPage: No Two Factor Authentication", () => {
     await user.type(passwordInput, PWD);
     await user.click(submitBtn);
     const errorMessage = await screen.findByText(
-      "Wrong email address and/or password."
+      "Wrong email address and/or password.",
     );
 
     expect(errorMessage).toBeInTheDocument();
@@ -177,7 +177,7 @@ describe("LoginPage: With Two Factor Authentication", () => {
     render(
       <TestApp me={{ hasTwoFactorEnabled: true }}>
         <LoginPage />
-      </TestApp>
+      </TestApp>,
     );
 
     const emailInput = screen.getByTestId("email");
@@ -189,7 +189,7 @@ describe("LoginPage: With Two Factor Authentication", () => {
     expect(doLogin).toHaveBeenCalled();
 
     const message = await screen.findByText(
-      "Enter the OTP code you received in your mailbox."
+      "Enter the OTP code you received in your mailbox.",
     );
     expect(message).toBeInTheDocument();
 

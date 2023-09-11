@@ -14,12 +14,12 @@ const DisableClickPropagation = (props: DisableClickPropagationProps) => {
       event.preventDefault();
       event.stopPropagation();
     },
-    []
+    [],
   );
   return React.createElement<any>(
     as,
     { className, onClick: handler, onMouseDown: handler, onMouseUp: handler },
-    children
+    children,
   );
 };
 

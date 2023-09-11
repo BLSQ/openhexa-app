@@ -13,7 +13,7 @@ type Props = {
 const Time = (props: Props) => {
   const datetime = useMemo(
     () => DateTime.fromISO(props.datetime),
-    [props.datetime]
+    [props.datetime],
   );
 
   const relativeDate = useRelativeTime(datetime);

@@ -33,7 +33,7 @@ export const TableCell = (
     wrap?: boolean;
 
     overrideStyle?: boolean;
-  }
+  },
 ) => {
   const {
     heading = false,
@@ -59,7 +59,7 @@ export const TableCell = (
       className={clsx(
         overrideStyle ? className : TableClasses[Elm],
         !overrideStyle && className,
-        !wrap && "whitespace-nowrap"
+        !wrap && "whitespace-nowrap",
       )}
     >
       {children}

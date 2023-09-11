@@ -19,7 +19,7 @@ const CountryBadge = (props: CountryBadgeProps) => {
         "border border-gray-300 bg-gray-50",
         "hover-bg-opacity-70",
         className,
-        onClick && "cursor-pointer"
+        onClick && "cursor-pointer",
       )}
     >
       <img

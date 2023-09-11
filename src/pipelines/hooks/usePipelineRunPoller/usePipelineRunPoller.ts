@@ -6,7 +6,7 @@ import { PipelineRunPollerQuery } from "./usePipelineRunPoller.generated";
 
 export default function usePipelineRunPoller(runId: PipelineRun["id"] | null) {
   const backoffRef = useRef(
-    new Backoff({ min: 200, max: 10000, factor: 2, jitter: 0.2 })
+    new Backoff({ min: 200, max: 10000, factor: 2, jitter: 0.2 }),
   );
   const [fetch] = useLazyQuery<PipelineRunPollerQuery>(
     gql`
@@ -19,7 +19,7 @@ export default function usePipelineRunPoller(runId: PipelineRun["id"] | null) {
         }
       }
     `,
-    { variables: { runId } }
+    { variables: { runId } },
   );
 
   const retry = useCallback(async () => {
@@ -27,7 +27,7 @@ export default function usePipelineRunPoller(runId: PipelineRun["id"] | null) {
     if (
       data?.run &&
       [PipelineRunStatus.Queued, PipelineRunStatus.Running].includes(
-        data.run.status
+        data.run.status,
       )
     ) {
       setTimeout(() => retry(), backoffRef.current.duration());

@@ -8,7 +8,7 @@ describe("Field", () => {
     const { container } = render(
       <Field name="field" label={"Field"}>
         <Input name="field" value="" onChange={() => {}} />
-      </Field>
+      </Field>,
     );
 
     expect(container).toMatchSnapshot();
@@ -17,7 +17,12 @@ describe("Field", () => {
   it("renders a input if no child is given", async () => {
     const onChange = jest.fn();
     const { container } = render(
-      <Field name="field" label={"Field"} onChange={onChange} value={"Value"} />
+      <Field
+        name="field"
+        label={"Field"}
+        onChange={onChange}
+        value={"Value"}
+      />,
     );
 
     expect(screen.getByDisplayValue("Value")).toBeInTheDocument();
@@ -28,7 +33,7 @@ describe("Field", () => {
     render(
       <Field name="field" label={"Field"} help="Help">
         <span>Hey</span>
-      </Field>
+      </Field>,
     );
     expect(screen.getByTestId("help")).toBeInTheDocument();
   });

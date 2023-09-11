@@ -8,7 +8,7 @@ export function useDataCardSection() {
   const section = React.useContext(DataCardSectionContext);
   if (!section) {
     throw new Error(
-      "useDataCardSection must be wrapped by a DataCard.FormSection."
+      "useDataCardSection must be wrapped by a DataCard.FormSection.",
     );
   }
 
@@ -16,7 +16,7 @@ export function useDataCardSection() {
 }
 
 export function useDataCardProperty<V = any, FV = V>(
-  definition: PropertyDefinition
+  definition: PropertyDefinition,
 ): { property: Property<V, FV>; section: DataCardSectionInstance } {
   const section = useDataCardSection();
   const property = section.setProperty(definition);

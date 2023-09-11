@@ -17,7 +17,7 @@ function PipelineRunForm(props: PipelineRunFormProps) {
 
   const defaultConfig = useMemo(
     () => fromConfig || dag.template.sampleConfig,
-    [dag, fromConfig]
+    [dag, fromConfig],
   );
 
   switch (dag.formCode) {

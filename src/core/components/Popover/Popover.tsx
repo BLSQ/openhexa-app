@@ -31,7 +31,7 @@ const Popover = (props: PopoverProps) => {
   const [referenceElement, setReferenceElement] =
     useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
-    null
+    null,
   );
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement,
@@ -45,7 +45,7 @@ const Popover = (props: PopoverProps) => {
       style={styles.popper}
       className={clsx(
         "z-10 overflow-hidden rounded-lg bg-white p-4 shadow-lg ring-1 ring-black ring-opacity-5",
-        className
+        className,
       )}
       {...attributes.popper}
     >

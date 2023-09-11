@@ -127,7 +127,7 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
               "focus-within:outline-none focus:ring-transparent focus-visible:border-blue-500 disabled:cursor-not-allowed ",
               "sm:text-sm",
               open ? "border-blue-500" : "hover:border-gray-400",
-              className
+              className,
             )}
           >
             <div className="mr-1 flex flex-1 items-center truncate">

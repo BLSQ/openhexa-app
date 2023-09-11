@@ -49,7 +49,7 @@ describe("AccountPage", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks}>
         <AccountPage />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("Alphonse Brown");
     expect(elm).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("AccountPage", () => {
     const { container } = render(
       <TestApp mocks={graphqlMocks} me={{ features: [{ code: "two_factor" }] }}>
         <AccountPage />
-      </TestApp>
+      </TestApp>,
     );
     const elm = await screen.findByText("Alphonse Brown");
     expect(elm).toBeInTheDocument();

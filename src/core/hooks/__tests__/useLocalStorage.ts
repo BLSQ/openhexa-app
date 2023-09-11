@@ -21,7 +21,7 @@ describe("useLocalStorage", () => {
 
   it("sets the value passed", async () => {
     const { result, rerender } = renderHook(() =>
-      useLocalStorage("key", "value")
+      useLocalStorage("key", "value"),
     );
 
     const [value, setValue] = result.current;

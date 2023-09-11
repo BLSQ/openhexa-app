@@ -24,7 +24,7 @@ describe("useForm", () => {
         initialState: {
           field1: "default_value",
         },
-      })
+      }),
     );
 
     expect(onSubmit).not.toHaveBeenCalled();
@@ -39,7 +39,7 @@ describe("useForm", () => {
         initialState: {
           field1: "default_value",
         },
-      })
+      }),
     );
 
     await waitFor(() => {
@@ -68,7 +68,7 @@ describe("useForm", () => {
         initialState: {
           field1: "default_value",
         },
-      })
+      }),
     );
     await waitFor(() => {
       result.current.setFieldValue("field2", "value_2");
@@ -92,7 +92,7 @@ describe("useForm", () => {
         onSubmit,
         validate: onValidate,
         getInitialState,
-      })
+      }),
     );
 
     expect(getInitialState).toHaveBeenCalled();
@@ -114,7 +114,7 @@ describe("useForm", () => {
           field1: "value_1",
           field2: "value_2",
         },
-      })
+      }),
     );
 
     expect(result.current.touched).toEqual({});
@@ -145,7 +145,7 @@ describe("useForm", () => {
           field1: "value_1",
           field2: "value_2",
         },
-      })
+      }),
     );
     await result.current.handleSubmit();
     await waitFor(() => {

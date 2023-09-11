@@ -24,7 +24,7 @@ const PipelineRunOutputEntry = (props: PipelineRunOutputEntryProps) => {
       setLoading(false);
       displayAlert(
         t("We were unable to create a link for this output."),
-        AlertType.warning
+        AlertType.warning,
       );
       return;
     }

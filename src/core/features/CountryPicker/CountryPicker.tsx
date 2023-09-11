@@ -17,7 +17,7 @@ type CountryPickerProps = {
   withPortal?: boolean;
   value?: CountryPicker_CountryFragment | CountryPicker_CountryFragment[];
   onChange(
-    value?: CountryPicker_CountryFragment | CountryPicker_CountryFragment[]
+    value?: CountryPicker_CountryFragment | CountryPicker_CountryFragment[],
   ): void;
 };
 
@@ -45,7 +45,7 @@ function CountryPicker(props: CountryPickerProps) {
       }
       ${CountryPicker.fragments.country}
     `,
-    { fetchPolicy: "cache-first" }
+    { fetchPolicy: "cache-first" },
   );
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 150);
@@ -54,7 +54,7 @@ function CountryPicker(props: CountryPickerProps) {
     const lowercaseQuery = debouncedQuery.toLowerCase();
     return (
       data?.countries?.filter((c) =>
-        c.name.toLowerCase().includes(lowercaseQuery)
+        c.name.toLowerCase().includes(lowercaseQuery),
       ) ?? []
     );
   }, [data, debouncedQuery]);
@@ -70,7 +70,7 @@ function CountryPicker(props: CountryPickerProps) {
       by="code"
       onInputChange={useCallback(
         (event: any) => setQuery(event.target.value),
-        []
+        [],
       )}
       placeholder={placeholder}
       value={value as any}

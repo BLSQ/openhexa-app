@@ -20,7 +20,7 @@ const SearchResult = (props: SearchResultProps) => {
     <div
       className={clsx(
         "flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50",
-        className
+        className,
       )}
       key={result.object.id}
     >

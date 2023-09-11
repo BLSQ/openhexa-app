@@ -65,8 +65,8 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const onChangePage = (page: number) => {
     router.push(
       `/workspaces/${encodeURIComponent(
-        workspace.slug
-      )}/files/${prefix}?page=${page}`
+        workspace.slug,
+      )}/files/${prefix}?page=${page}`,
     );
   };
 
@@ -120,7 +120,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
                 key={idx}
                 isLast={idx === crumbs.length}
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug
+                  workspace.slug,
                 )}/files/${crumbs.slice(0, idx + 1).join("/")}`}
               >
                 {directory}
@@ -149,7 +149,7 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
                   />
                   <p className="mt-1 text-sm text-gray-500">
                     {t(
-                      'This will hide files and directories starting by a "." (dot)'
+                      'This will hide files and directories starting by a "." (dot)',
                     )}
                   </p>
                 </div>

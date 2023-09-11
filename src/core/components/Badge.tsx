@@ -25,7 +25,7 @@ const Badge = ({
         size === "xs" && Classes.xs,
         size === "sm" && Classes.sm,
         size === "md" && Classes.md,
-        className
+        className,
       )}
     >
       {children}

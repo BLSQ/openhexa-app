@@ -50,7 +50,7 @@ const DatabaseVariablesSection = (props: DatabaseVariablesSectionProps) => {
         secret: true,
       },
     ],
-    [credentials]
+    [credentials],
   );
   return (
     <DataGrid
