@@ -626,7 +626,6 @@ input CreatePipelineInput {
   code: String!
   name: String
   workspaceSlug: String!
-  timeout: Int
 }
 
 type CreatePipelineResult {
@@ -1510,6 +1509,7 @@ type PipelineVersion {
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
   zipfile: String!
+  timeout: Int
 }
 
 type PipelineVersionPage {
@@ -1647,7 +1647,6 @@ type RequestAccessmodAccessInputResult {
 enum ResendWorkspaceInvitationError {
   INVITATION_NOT_FOUND
   PERMISSION_DENIED
-  ALREADY_EXISTS
 }
 
 input ResendWorkspaceInvitationInput {
@@ -2088,6 +2087,7 @@ input UploadPipelineInput {
   code: String!
   parameters: [ParameterInput!]!
   zipfile: String!
+  timeout: Int
 }
 
 type UploadPipelineResult {

@@ -104,7 +104,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               </Breadcrumbs.Part>
               <Breadcrumbs.Part
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug
+                  workspace.slug,
                 )}/pipelines`}
               >
                 {t("Pipelines")}
@@ -112,7 +112,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               <Breadcrumbs.Part
                 isLast
                 href={`/workspaces/${encodeURIComponent(
-                  workspace.slug
+                  workspace.slug,
                 )}/pipelines/${encodeURIComponent(pipeline.code)}`}
               >
                 {pipeline.name}
@@ -149,7 +149,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 accessor={"code"}
                 label={t("Code")}
                 help={t(
-                  "This is the code used to identify this pipeline using the cli."
+                  "This is the code used to identify this pipeline using the cli.",
                 )}
                 readonly
               />
@@ -205,7 +205,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                     accessor="schedule"
                     label={t("Schedule")}
                     help={t(
-                      "The schedule value should follow the CRON syntax."
+                      "The schedule value should follow the CRON syntax.",
                     )}
                     placeholder="0 15 * * *"
                     visible={(_, __, values) =>

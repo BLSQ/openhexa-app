@@ -696,7 +696,6 @@ export type CreateMembershipResult = {
 export type CreatePipelineInput = {
   code: Scalars['String']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2011,6 +2010,7 @@ export type PipelineVersion = {
   number: Scalars['Int']['output'];
   parameters: Array<PipelineParameter>;
   pipeline: Pipeline;
+  timeout?: Maybe<Scalars['Int']['output']>;
   user?: Maybe<User>;
   zipfile: Scalars['String']['output'];
 };
@@ -2329,7 +2329,6 @@ export type RequestAccessmodAccessInputResult = {
 };
 
 export enum ResendWorkspaceInvitationError {
-  AlreadyExists = 'ALREADY_EXISTS',
   InvitationNotFound = 'INVITATION_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -2802,6 +2801,7 @@ export type UpdateWorkspaceResult = {
 export type UploadPipelineInput = {
   code: Scalars['String']['input'];
   parameters: Array<ParameterInput>;
+  timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
   zipfile: Scalars['String']['input'];
 };
