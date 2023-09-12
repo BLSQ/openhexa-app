@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/BLSQ/openhexa-frontend/compare/0.35.1...0.36.0) (2023-09-12)
+
+
+### Miscellaneous
+
+* **Releases:** Prepare next release ([03745b6](https://github.com/BLSQ/openhexa-frontend/commit/03745b6494a4c7c22367b16980e3f9c443e86691))
+
 ## [0.35.1](https://github.com/BLSQ/openhexa-frontend/compare/0.35.0...0.35.1) (2023-09-12)
 
 
