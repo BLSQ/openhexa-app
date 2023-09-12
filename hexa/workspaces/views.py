@@ -21,7 +21,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     workspace = None
     server_hash = None
-
+    sdk_auth_token = None
     workspace_slug = (
         request.POST.get("workspace", None)
         if workspace_slug is None
@@ -48,6 +48,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             run = PipelineRun.objects.get(
                 pipeline__workspace=workspace, access_token=access_token
             )
+            sdk_auth_token = access_token
             server_hash = str(run.id)
         except BadSignature:
             return JsonResponse({"error": "Token signature is invalid"}, status=401)
@@ -62,6 +63,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 workspace=workspace, user=request.user
             )
             server_hash = membership.notebooks_server_hash
+            sdk_auth_token = membership.access_token
             if not request.user.has_perm("workspaces.launch_notebooks", workspace):
                 return JsonResponse(
                     {},
@@ -104,6 +106,10 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             "GCS_TOKEN": token,
         }
     )
+
+    if sdk_auth_token is not None:
+        # SDK Credentials
+        env.update({"HEXA_TOKEN": Signer().sign_object(sdk_auth_token)})
 
     return JsonResponse(
         {"env": env, "notebooks_server_hash": server_hash},

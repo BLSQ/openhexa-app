@@ -29,6 +29,7 @@ from hexa.databases.api import (
     load_database_sample_data,
     update_database_password,
 )
+from hexa.datasets.models import Dataset
 from hexa.files.api import create_bucket, load_bucket_sample_data
 from hexa.user_management.models import User
 
@@ -141,6 +142,9 @@ class Workspace(Base):
         null=True,
     )
     archived = models.BooleanField(default=False)
+    datasets = models.ManyToManyField(
+        Dataset, through="datasets.DatasetLink", related_name="+"
+    )
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 

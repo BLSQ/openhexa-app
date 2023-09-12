@@ -182,9 +182,6 @@ class TeamAdmin(admin.ModelAdmin):
 @admin.register(Feature)
 class FeatureAdmin(admin.ModelAdmin):
     list_display = ("code",)
-    inlines = [
-        FeatureFlagInline,
-    ]
 
 
 @admin.register(FeatureFlag)

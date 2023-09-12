@@ -1,0 +1,291 @@
+
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  permissions: DatasetPermissions!
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  version(id: ID!): DatasetVersion
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetPermissions {
+  update: Boolean!
+  delete: Boolean!
+  createVersion: Boolean!
+}
+
+type DatasetVersion {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  createdBy: User
+  permissions: DatasetVersionPermissions!
+  fileByName(name: String!): DatasetVersionFile
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+}
+
+type DatasetLink {
+  id: ID!
+  isPinned: Boolean!
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  workspace: Workspace!
+  permissions: DatasetLinkPermissions!
+  }
+
+type DatasetLinkPermissions {
+  delete: Boolean!
+  pin: Boolean!
+}
+
+type DatasetLinkPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetLink!]!
+}
+
+type DatasetVersionPermissions {
+  update: Boolean!
+  delete: Boolean!
+  download: Boolean!
+}
+
+type DatasetVersionFile {
+  id: ID!
+  uri: String!
+  filename: String!
+  createdAt: DateTime!
+  createdBy: User
+  contentType: String!
+}
+
+type DatasetVersionFilePage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersionFile!]!
+}
+
+type DatasetVersionPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersion!]!
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+extend type Workspace {
+  datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+extend type WorkspacePermissions {
+  createDataset: Boolean!
+}
+
+
+# Create Dataset
+input CreateDatasetInput {
+  workspaceSlug: String!
+  name: String!
+  description: String
+}
+enum CreateDatasetError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+type CreateDatasetResult {
+  link: DatasetLink
+  dataset: Dataset
+  success: Boolean!
+  errors: [CreateDatasetError!]!
+}
+
+# Update Dataset
+input UpdateDatasetInput {
+  datasetId: ID!
+  name: String
+  description: String
+}
+enum UpdateDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+type UpdateDatasetResult {
+  dataset: Dataset
+  success: Boolean!
+  errors: [UpdateDatasetError!]!
+}
+
+# Delete Dataset
+input DeleteDatasetInput {
+  id: ID!
+}
+enum DeleteDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+type DeleteDatasetResult {
+  success: Boolean!
+  errors: [DeleteDatasetError!]!
+}
+
+# Create a version of dataset
+input CreateDatasetVersionInput {
+  datasetId: ID!
+  name: String!
+  description: String
+}
+enum CreateDatasetVersionError {
+  DATASET_NOT_FOUND
+  DUPLICATE_NAME
+  PERMISSION_DENIED
+}
+type CreateDatasetVersionResult {
+  version: DatasetVersion
+  success: Boolean!
+  errors: [CreateDatasetVersionError!]!
+}
+
+
+# Delete a version of dataset
+input DeleteDatasetVersionInput {
+  versionId: ID!
+}
+enum DeleteDatasetVersionError {
+  VERSION_NOT_FOUND
+  PERMISSION_DENIED
+}
+type DeleteDatasetVersionResult {
+  success: Boolean!
+  errors: [DeleteDatasetVersionError!]!
+}
+
+# Create a file in a dataset version
+input CreateDatasetVersionFileInput {
+  versionId: ID!
+  contentType: String!
+  uri: String!
+}
+
+enum CreateDatasetVersionFileError {
+  VERSION_NOT_FOUND
+  ALREADY_EXISTS
+  INVALID_URI
+  PERMISSION_DENIED
+}
+
+type CreateDatasetVersionFileResult {
+  file: DatasetVersionFile
+  uploadUrl: String
+  success: Boolean!
+  errors: [CreateDatasetVersionFileError!]!
+}
+
+# Link a dataset with another workspace
+input LinkDatasetInput {
+  datasetId: ID!
+  workspaceSlug: String!
+}
+
+enum LinkDatasetError {
+  DATASET_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_LINKED
+}
+
+type LinkDatasetResult {
+  link: DatasetLink
+  success: Boolean!
+  errors: [LinkDatasetError!]!
+}
+
+
+# Delete the share of a dataset with another workspace
+input DeleteDatasetLinkInput {
+  id: ID!
+}
+
+enum DeleteDatasetLinkError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type DeleteDatasetLinkResult {
+  success: Boolean!
+  errors: [DeleteDatasetLinkError!]!
+}
+
+input PrepareVersionFileDownloadInput {
+  fileId: ID!
+}
+
+enum PrepareVersionFileDownloadError {
+  FILE_NOT_FOUND
+  FILE_NOT_UPLOADED
+  PERMISSION_DENIED
+}
+
+type PrepareVersionFileDownloadResult {
+  downloadUrl: String
+  success: Boolean!
+  errors: [PrepareVersionFileDownloadError!]!
+}
+
+input PinDatasetInput {
+  linkId: ID!
+  pinned: Boolean!
+}
+
+enum PinDatasetError {
+  LINK_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type PinDatasetResult {
+  link: DatasetLink
+  success: Boolean!
+  errors: [PinDatasetError!]!
+}
+
+extend type Query {
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+  datasetLinkBySlug(workspaceSlug: String!, datasetSlug: String!): DatasetLink
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+}
+
+extend type Mutation {
+  createDataset(input: CreateDatasetInput!): CreateDatasetResult! @loginRequired
+  updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult! @loginRequired
+  deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult! @loginRequired
+
+  createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult! @loginRequired
+  deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult! @loginRequired
+
+  createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
+  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult! @loginRequired
+
+  linkDataset(input: LinkDatasetInput!): LinkDatasetResult! @loginRequired
+  deleteDatasetLink(input: DeleteDatasetLinkInput!): DeleteDatasetLinkResult! @loginRequired
+
+  pinDataset(input: PinDatasetInput!): PinDatasetResult! @loginRequired
+}

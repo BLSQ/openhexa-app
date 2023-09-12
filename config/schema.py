@@ -10,6 +10,7 @@ from hexa.catalog.schema import catalog_bindables, catalog_type_defs
 from hexa.core.schema import core_bindables, core_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
+from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
 from hexa.pipelines.schema import pipelines_bindables, pipelines_type_defs
@@ -50,6 +51,7 @@ schema = make_executable_schema(
         workspaces_type_def,
         databases_types_def,
         files_type_def,
+        datasets_type_defs,
     ],
     [
         *catalog_bindables,
@@ -67,6 +69,7 @@ schema = make_executable_schema(
         *workspaces_bindables,
         *databases_bindables,
         *files_bindables,
+        *datasets_bindables,
         snake_case_fallback_resolvers,
     ],
     directives=identity_directives,
