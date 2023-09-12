@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.59.0](https://github.com/BLSQ/openhexa-app/compare/0.58.13...0.59.0) (2023-09-12)
+
+
+### Bug Fixes
+
+* **Connections:** abort connection creation transaction if an error occurs ([#541](https://github.com/BLSQ/openhexa-app/issues/541)) ([c0fbd85](https://github.com/BLSQ/openhexa-app/commit/c0fbd85a5b025e9f6fdbaa65913dd899a9f5eb86))
+* **Pipelines:** generate random string to avoid pod names collision ([#539](https://github.com/BLSQ/openhexa-app/issues/539)) ([0bcf78f](https://github.com/BLSQ/openhexa-app/commit/0bcf78f33b84fe1c71b176d0c8984586115fc88c))
+
+
+### Miscellaneous
+
+* **Releases:** Prepare release 0.59.0 ([baa67b5](https://github.com/BLSQ/openhexa-app/commit/baa67b5c5dac3dfec46de56c51aa30918b588484))
+
 ## [0.58.13](https://github.com/BLSQ/openhexa-app/compare/0.58.12...0.58.13) (2023-08-22)
 
 
