@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.1](https://github.com/BLSQ/openhexa-frontend/compare/0.35.0...0.35.1) (2023-09-12)
+
+
+### Bug Fixes
+
+* **Connections:** revert changes on doc links ([#424](https://github.com/BLSQ/openhexa-frontend/issues/424)) ([8ec73f8](https://github.com/BLSQ/openhexa-frontend/commit/8ec73f8036afd341293587b6dc2b915079ce57fb))
+
 ## [0.35.0](https://github.com/BLSQ/openhexa-frontend/compare/0.34.0...0.35.0) (2023-09-12)
 
 
