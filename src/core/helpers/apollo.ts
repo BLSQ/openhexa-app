@@ -1,10 +1,10 @@
 import {
   ApolloClient,
   ApolloLink,
+  createHttpLink,
   InMemoryCache,
   InMemoryCacheConfig,
   NormalizedCacheObject,
-  createHttpLink,
 } from "@apollo/client";
 import { onError } from "@apollo/link-error";
 import merge from "deepmerge";
@@ -42,6 +42,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
     User: {
       merge: true,
     },
+    Dataset: {
+      merge: true,
+    },
     Country: {
       // Country code are unique (at least it should). Let's use that for the cache key
       keyFields: ["code"],
@@ -57,6 +60,9 @@ const CACHE_CONFIG: InMemoryCacheConfig = {
       merge: true,
     },
 
+    DatasetPermissions: {
+      merge: true,
+    },
     DatabaseTable: {
       merge: true,
     },
@@ -133,6 +139,7 @@ const createApolloClient = (headers: IncomingHttpHeaders | null = null) => {
 };
 
 type InitialState = NormalizedCacheObject | undefined;
+
 export interface GetApolloClient {
   headers?: IncomingHttpHeaders | null;
   initialState?: InitialState | null;

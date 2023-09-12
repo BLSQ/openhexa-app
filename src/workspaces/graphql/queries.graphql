@@ -1,307 +1,414 @@
 query WorkspacesPage {
-  workspaces(page: 1, perPage: 1) {
-    items {
-      slug
+    workspaces(page: 1, perPage: 1) {
+        items {
+            slug
+        }
     }
-  }
 }
 
 query WorkspacePage($slug: String!) {
-  workspace(slug: $slug) {
-    slug
-    name
-    description
-    countries {
-      code
-      flag
-      name
+    workspace(slug: $slug) {
+        slug
+        name
+        description
+        countries {
+            code
+            flag
+            name
+        }
+        permissions {
+            delete
+            update
+            manageMembers
+        }
+        ...ArchiveWorkspace_workspace
+        ...InviteMemberWorkspace_workspace
+        ...UpdateWorkspaceDescription_workspace
+        ...WorkspaceLayout_workspace
     }
-    permissions {
-      delete
-      update
-      manageMembers
-    }
-    ...ArchiveWorkspace_workspace
-    ...InviteMemberWorkspace_workspace
-    ...UpdateWorkspaceDescription_workspace
-    ...WorkspaceLayout_workspace
-  }
 }
 
 query WorkspacePipelinesPage(
-  $workspaceSlug: String!
-  $page: Int
-  $perPage: Int
+    $workspaceSlug: String!
+    $page: Int
+    $perPage: Int
 ) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-    ...CreatePipelineDialog_workspace
-  }
-
-  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
-    items {
-      ...PipelineCard_pipeline
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        ...WorkspaceLayout_workspace
+        ...CreatePipelineDialog_workspace
     }
-    totalItems
-    totalPages
-    pageNumber
-  }
+
+    pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+        items {
+            ...PipelineCard_pipeline
+        }
+        totalItems
+        totalPages
+        pageNumber
+    }
 }
 query WorkspaceNotebooksPage($workspaceSlug: String!) {
-  notebooksUrl
-  workspace(slug: $workspaceSlug) {
-    slug
-    permissions {
-      launchNotebookServer
+    notebooksUrl
+    workspace(slug: $workspaceSlug) {
+        slug
+        permissions {
+            launchNotebookServer
+        }
+        ...WorkspaceLayout_workspace
     }
-    ...WorkspaceLayout_workspace
-  }
 }
 
 query WorkspacePipelinePage(
-  $workspaceSlug: String!
-  $pipelineCode: String!
-  $page: Int = 1
-  $perPage: Int = 10
+    $workspaceSlug: String!
+    $pipelineCode: String!
+    $page: Int = 1
+    $perPage: Int = 10
 ) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-  }
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        ...WorkspaceLayout_workspace
+    }
 
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineVersionsDialog_pipeline
-    ...RunPipelineDialog_pipeline
-    ...DeletePipelineVersion_pipeline
-    permissions {
-      run
-      update
-    }
-    id
-    code
-    name
-    description
-    schedule
-    permissions {
-      schedule
-    }
-    currentVersion {
-      id
-      number
-    }
-    recipients {
-      user {
-        id
-        displayName
-      }
-    }
-    runs(page: $page, perPage: $perPage) {
-      items {
-        id
-        version {
-          number
-          ...DeletePipelineVersion_version
+    pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+        ...PipelineVersionsDialog_pipeline
+        ...RunPipelineDialog_pipeline
+        ...DeletePipelineVersion_pipeline
+        permissions {
+            run
+            update
         }
-        executionDate
-        duration
-        triggerMode
+        id
+        code
+        name
+        description
+        schedule
+        permissions {
+            schedule
+        }
+        currentVersion {
+            id
+            number
+        }
+        recipients {
+            user {
+                id
+                displayName
+            }
+        }
+        runs(page: $page, perPage: $perPage) {
+            items {
+                id
+                version {
+                    number
+                    ...DeletePipelineVersion_version
+                }
+                executionDate
+                duration
+                triggerMode
 
-        user {
-          ...UserColumn_user
+                user {
+                    ...UserColumn_user
+                }
+                ...PipelineRunStatusBadge_run
+            }
+            totalItems
+            totalPages
+            pageNumber
         }
-        ...PipelineRunStatusBadge_run
-      }
-      totalItems
-      totalPages
-      pageNumber
     }
-  }
 }
 
 query WorkspacePipelineStartPage($workspaceSlug: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-  }
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        ...WorkspaceLayout_workspace
+    }
 }
 
 query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-    ...RunOutputsTable_workspace
-  }
-
-  pipelineRun(id: $runId) {
-    id
-    version {
-      number
-      timeout
-      parameters {
-        code
+    workspace(slug: $workspaceSlug) {
+        slug
         name
-        help
-        type
-        default
-        required
-        choices
-        multiple
-      }
+        ...WorkspaceLayout_workspace
+        ...RunOutputsTable_workspace
     }
-    config
-    executionDate
-    duration
-    triggerMode
-    sendMailNotifications
-    pipeline {
-      id
-      code
-      name
-      ...RunPipelineDialog_pipeline
+
+    pipelineRun(id: $runId) {
+        id
+        version {
+            number
+            parameters {
+                code
+                name
+                help
+                type
+                default
+                required
+                choices
+                multiple
+            }
+            timeout
+        }
+        config
+        executionDate
+        duration
+        triggerMode
+        sendMailNotifications
+        pipeline {
+            id
+            code
+            name
+            ...RunPipelineDialog_pipeline
+        }
+        user {
+            ...User_user
+        }
+        ...RunOutputsTable_run
+        ...RunPipelineDialog_run
+        ...RunMessages_run
+        ...RunLogs_run
+        ...PipelineRunStatusBadge_run
     }
-    user {
-      ...User_user
+}
+
+query WorkspaceDatasetsPage(
+    $workspaceSlug: String!
+    $page: Int
+    $perPage: Int
+    $query: String
+) {
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        ...WorkspaceLayout_workspace
+        ...CreateDatasetDialog_workspace
+        permissions {
+            createDataset
+        }
+        pinnedDatasets: datasets(pinned: true, page: 1, perPage: 6) {
+            items {
+                ...DatasetCard_link
+            }
+        }
+        datasets(query: $query, page: $page, perPage: $perPage) {
+            items {
+                ...PinDatasetButton_link
+                id
+                dataset {
+                    id
+                    name
+                    slug
+                    description
+                    updatedAt
+                    workspace {
+                        slug
+                        name
+                    }
+                    permissions {
+                        update
+                        delete
+                    }
+                    createdBy {
+                        ...User_user
+                    }
+                }
+            }
+            totalItems
+            totalPages
+            pageNumber
+        }
     }
-    ...RunOutputsTable_run
-    ...RunPipelineDialog_run
-    ...RunMessages_run
-    ...RunLogs_run
-    ...PipelineRunStatusBadge_run
-  }
+}
+
+query WorkspaceDatasetPage(
+    $workspaceSlug: String!
+    $datasetSlug: String!
+    $versionId: ID!
+    $isSpecificVersion: Boolean!
+) {
+    datasetLink: datasetLinkBySlug(workspaceSlug: $workspaceSlug, datasetSlug: $datasetSlug) {
+        id
+        ...PinDatasetButton_link
+        ...UploadDatasetVersionDialog_datasetLink
+        workspace {
+            slug
+            name
+            ...WorkspaceLayout_workspace
+        }
+        dataset {
+            id
+            name
+            slug
+            description
+            updatedAt
+            workspace {
+                slug
+                name
+            }
+            ...DeleteDatasetTrigger_dataset
+            ...DatasetLinksDataGrid_dataset
+            ...DatasetVersionPicker_dataset
+            createdBy {
+                ...User_user
+            }
+            createdAt
+            latestVersion {
+                createdBy {
+                    displayName
+                }
+                createdAt
+                ...DatasetVersionFilesDataGrid_version
+                ...DatasetVersionPicker_version
+            }
+            version(id: $versionId) @include(if: $isSpecificVersion) {
+                createdBy {
+                    displayName
+                }
+                createdAt
+                ...DatasetVersionFilesDataGrid_version
+                ...DatasetVersionPicker_version
+            }
+
+            permissions {
+                update
+                delete
+                createVersion
+            }
+        }
+    }
 }
 
 query WorkspaceFilesPage(
-  $workspaceSlug: String!
-  $page: Int!
-  $perPage: Int!
-  $prefix: String!
-  $ignoreHiddenFiles: Boolean
+    $workspaceSlug: String!
+    $page: Int!
+    $perPage: Int!
+    $prefix: String!
+    $ignoreHiddenFiles: Boolean
 ) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...BucketExplorer_workspace
-    ...WorkspaceLayout_workspace
-    ...UploadObjectDialog_workspace
-    ...CreateBucketFolderDialog_workspace
-    ...BucketExplorer_workspace
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        ...BucketExplorer_workspace
+        ...WorkspaceLayout_workspace
+        ...UploadObjectDialog_workspace
+        ...CreateBucketFolderDialog_workspace
+        ...BucketExplorer_workspace
 
-    bucket {
-      objects(
-        page: $page
-        prefix: $prefix
-        perPage: $perPage
-        ignoreHiddenFiles: $ignoreHiddenFiles
-      ) {
-        ...BucketExplorer_objects
-      }
+        bucket {
+            objects(
+                page: $page
+                prefix: $prefix
+                perPage: $perPage
+                ignoreHiddenFiles: $ignoreHiddenFiles
+            ) {
+                ...BucketExplorer_objects
+            }
+        }
     }
-  }
 }
 
 query WorkspaceDatabasesPage(
-  $workspaceSlug: String!
-  $page: Int
-  $perPage: Int
+    $workspaceSlug: String!
+    $page: Int
+    $perPage: Int
 ) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    permissions {
-      update
-    }
-    database {
-      tables(page: $page, perPage: $perPage) {
-        totalPages
-        totalItems
-        items {
-          name
-          count
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        permissions {
+            update
         }
-      }
+        database {
+            tables(page: $page, perPage: $perPage) {
+                totalPages
+                totalItems
+                items {
+                    name
+                    count
+                }
+            }
+        }
+        ...DatabaseVariablesSection_workspace
+        ...WorkspaceLayout_workspace
     }
-    ...DatabaseVariablesSection_workspace
-    ...WorkspaceLayout_workspace
-  }
 }
 
 query WorkspaceDatabaseTablePage($workspaceSlug: String!, $tableName: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    database {
-      table(name: $tableName) {
+    workspace(slug: $workspaceSlug) {
+        slug
         name
-        count
-        columns {
-          name
-          type
+        database {
+            table(name: $tableName) {
+                name
+                count
+                columns {
+                    name
+                    type
+                }
+                ...DatabaseTableDataGrid_table
+            }
         }
-        ...DatabaseTableDataGrid_table
-      }
+        ...DatabaseTableDataGrid_workspace
+        ...WorkspaceLayout_workspace
     }
-    ...DatabaseTableDataGrid_workspace
-    ...WorkspaceLayout_workspace
-  }
 }
 
 query ConnectionsPage($workspaceSlug: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    permissions {
-      update
-      createConnection
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        permissions {
+            update
+            createConnection
+        }
+        ...CreateConnectionDialog_workspace
+        connections {
+            id
+            description
+            name
+            type
+            slug
+            updatedAt
+            permissions {
+                update
+                delete
+            }
+        }
+        ...WorkspaceLayout_workspace
     }
-    ...CreateConnectionDialog_workspace
-    connections {
-      id
-      description
-      name
-      type
-      slug
-      updatedAt
-      permissions {
-        update
-        delete
-      }
-    }
-    ...WorkspaceLayout_workspace
-  }
 }
 
 query ConnectionPage($workspaceSlug: String!, $connectionId: UUID!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    permissions {
-      update
+    workspace(slug: $workspaceSlug) {
+        slug
+        name
+        permissions {
+            update
+        }
+        ...WorkspaceLayout_workspace
     }
-    ...WorkspaceLayout_workspace
-  }
-  connection(id: $connectionId) {
-    id
-    name
-    slug
-    description
-    type
-    createdAt
-    permissions {
-      update
-      delete
+    connection(id: $connectionId) {
+        id
+        name
+        slug
+        description
+        type
+        createdAt
+        permissions {
+            update
+            delete
+        }
+        ...ConnectionUsageSnippets_connection
+        ...ConnectionFieldsSection_connection
     }
-    ...ConnectionUsageSnippets_connection
-    ...ConnectionFieldsSection_connection
-  }
 }
 
 query CheckWorkspaceAvailability($slug: String!) {
-  workspace(slug: $slug) {
-    slug
-  }
+    workspace(slug: $slug) {
+        slug
+    }
 }

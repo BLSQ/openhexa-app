@@ -688,7 +688,6 @@ exports[`Visualization renders the visualizations' page with data 1`] = `
                     role="rowgroup"
                   >
                     <tr
-                      class=""
                       role="row"
                       style="display: flex; flex: 1 0 auto; min-width: 330px;"
                     >

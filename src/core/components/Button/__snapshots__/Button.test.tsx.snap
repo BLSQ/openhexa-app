@@ -179,7 +179,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-xs px-2 py-1 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
             danger
           </button>
@@ -189,7 +189,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
             danger
           </button>
@@ -199,7 +199,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-sm px-4 py-2.5 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
             danger
           </button>
@@ -209,7 +209,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-base px-4 py-2 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
             danger
           </button>
@@ -219,7 +219,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-base px-6 py-3 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
             danger
           </button>
@@ -510,7 +510,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-xs px-2 py-1 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-xs px-2 py-1 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
         >
           danger
         </button>
@@ -520,7 +520,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-sm px-3 py-2.5 leading-4 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
         >
           danger
         </button>
@@ -530,7 +530,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-sm px-4 py-2.5 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-sm px-4 py-2.5 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
         >
           danger
         </button>
@@ -540,7 +540,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-4 py-2 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-base px-4 py-2 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
         >
           danger
         </button>
@@ -550,7 +550,7 @@ exports[`Button renders all variants and all sizes of the button 1`] = `
     inline-flex items-center justify-center transition-all
     border font-medium
     disabled:opacity-50 disabled:cursor-not-allowed
-   text-base px-6 py-3 shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700"
+   text-base px-6 py-3 shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600"
         >
           danger
         </button>

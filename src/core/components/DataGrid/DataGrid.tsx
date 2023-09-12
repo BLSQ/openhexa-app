@@ -31,6 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableRow } from "../Table";
 import { BaseColumnProps } from "./BaseColumn";
 import { CellContextProvider } from "./helpers";
 import Overflow from "../Overflow";
+
 export type { Cell, SortingRule } from "react-table";
 
 export type Column<D extends object = any> = ReactTableColumn<D> & {
@@ -63,6 +64,7 @@ interface IDataGridProps {
   emptyLabel?: string;
   defaultSortBy?: SortingRule<object>[];
   pageSizeOptions?: number[];
+  rowClassName?: string;
 }
 
 type DataGridProps = IDataGridProps;
@@ -72,6 +74,7 @@ function DataGrid(props: DataGridProps) {
   const {
     children,
     data,
+    rowClassName,
     fixedLayout = true,
     onSelectionChange,
     emptyLabel = t("No elements to display"),
@@ -287,7 +290,7 @@ function DataGrid(props: DataGridProps) {
             {page.map((row, i) => {
               prepareRow(row);
               return (
-                <TableRow {...row.getRowProps()}>
+                <TableRow {...row.getRowProps()} className={rowClassName}>
                   {row.cells.map((cell) => (
                     <TableCell
                       {...cell.getCellProps({

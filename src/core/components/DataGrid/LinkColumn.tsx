@@ -6,7 +6,7 @@ import { useCellContext } from "./helpers";
 type URLResolver = (value: any) => LinkProps["href"];
 export type LinkColumnProps = Omit<BaseColumnProps, "children"> & {
   url: LinkProps["href"] | URLResolver;
-  children?: ReactNode;
+  children?: ReactNode | ((value: any) => ReactNode);
 } & Pick<LinkProps, "customStyle" | "className" | "noStyle">;
 
 const LinkColumn = (props: LinkColumnProps) => {
@@ -23,7 +23,7 @@ const LinkColumn = (props: LinkColumnProps) => {
 
   return (
     <Link {...delegated} href={href}>
-      {children}
+      {typeof children === "function" ? children(cell.value) : children}
     </Link>
   );
 };

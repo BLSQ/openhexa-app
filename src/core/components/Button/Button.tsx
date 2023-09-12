@@ -36,7 +36,7 @@ export const Classes: { [key: string]: string } = {
     "shadow-sm text-gray-800 border-gray-400 bg-white hover:bg-gray-50 focus:ring-gray-400",
   outlined: "text-gray-800 border-transparent hover:bg-gray-100",
   danger:
-    "shadow-sm border-transparent text-white bg-red-700 hover:bg-red-800 focus:ring-red-700",
+    "shadow-sm border-transparent text-white bg-red-600 hover:bg-red-700 focus:ring-red-600",
 
   // Sizes
   sm: "text-xs px-2 py-1",

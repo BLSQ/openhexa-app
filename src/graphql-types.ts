@@ -674,6 +674,65 @@ export type CreateConnectionResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum CreateDatasetError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type CreateDatasetInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type CreateDatasetResult = {
+  __typename?: 'CreateDatasetResult';
+  dataset?: Maybe<Dataset>;
+  errors: Array<CreateDatasetError>;
+  link?: Maybe<DatasetLink>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum CreateDatasetVersionError {
+  DatasetNotFound = 'DATASET_NOT_FOUND',
+  DuplicateName = 'DUPLICATE_NAME',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export enum CreateDatasetVersionFileError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  InvalidUri = 'INVALID_URI',
+  PermissionDenied = 'PERMISSION_DENIED',
+  VersionNotFound = 'VERSION_NOT_FOUND'
+}
+
+export type CreateDatasetVersionFileInput = {
+  contentType: Scalars['String']['input'];
+  uri: Scalars['String']['input'];
+  versionId: Scalars['ID']['input'];
+};
+
+export type CreateDatasetVersionFileResult = {
+  __typename?: 'CreateDatasetVersionFileResult';
+  errors: Array<CreateDatasetVersionFileError>;
+  file?: Maybe<DatasetVersionFile>;
+  success: Scalars['Boolean']['output'];
+  uploadUrl?: Maybe<Scalars['String']['output']>;
+};
+
+export type CreateDatasetVersionInput = {
+  datasetId: Scalars['ID']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+};
+
+export type CreateDatasetVersionResult = {
+  __typename?: 'CreateDatasetVersionResult';
+  errors: Array<CreateDatasetVersionError>;
+  success: Scalars['Boolean']['output'];
+  version?: Maybe<DatasetVersion>;
+};
+
 export enum CreateMembershipError {
   AlreadyExists = 'ALREADY_EXISTS',
   NotFound = 'NOT_FOUND',
@@ -916,6 +975,136 @@ export type DatabaseTablePage = {
   totalPages: Scalars['Int']['output'];
 };
 
+export type Dataset = {
+  __typename?: 'Dataset';
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  latestVersion?: Maybe<DatasetVersion>;
+  links: DatasetLinkPage;
+  name: Scalars['String']['output'];
+  permissions: DatasetPermissions;
+  slug: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  version?: Maybe<DatasetVersion>;
+  versions: DatasetVersionPage;
+  workspace?: Maybe<Workspace>;
+};
+
+
+export type DatasetLinksArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type DatasetVersionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type DatasetVersionsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DatasetLink = {
+  __typename?: 'DatasetLink';
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  dataset: Dataset;
+  id: Scalars['ID']['output'];
+  isPinned: Scalars['Boolean']['output'];
+  permissions: DatasetLinkPermissions;
+  workspace: Workspace;
+};
+
+export type DatasetLinkPage = {
+  __typename?: 'DatasetLinkPage';
+  items: Array<DatasetLink>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export type DatasetLinkPermissions = {
+  __typename?: 'DatasetLinkPermissions';
+  delete: Scalars['Boolean']['output'];
+  pin: Scalars['Boolean']['output'];
+};
+
+export type DatasetPage = {
+  __typename?: 'DatasetPage';
+  items: Array<Dataset>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export type DatasetPermissions = {
+  __typename?: 'DatasetPermissions';
+  createVersion: Scalars['Boolean']['output'];
+  delete: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
+};
+
+export type DatasetVersion = {
+  __typename?: 'DatasetVersion';
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  description?: Maybe<Scalars['String']['output']>;
+  fileByName?: Maybe<DatasetVersionFile>;
+  files: DatasetVersionFilePage;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  permissions: DatasetVersionPermissions;
+};
+
+
+export type DatasetVersionFileByNameArgs = {
+  name: Scalars['String']['input'];
+};
+
+
+export type DatasetVersionFilesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DatasetVersionFile = {
+  __typename?: 'DatasetVersionFile';
+  contentType: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  filename: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  uri: Scalars['String']['output'];
+};
+
+export type DatasetVersionFilePage = {
+  __typename?: 'DatasetVersionFilePage';
+  items: Array<DatasetVersionFile>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export type DatasetVersionPage = {
+  __typename?: 'DatasetVersionPage';
+  items: Array<DatasetVersion>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export type DatasetVersionPermissions = {
+  __typename?: 'DatasetVersionPermissions';
+  delete: Scalars['Boolean']['output'];
+  download: Scalars['Boolean']['output'];
+  update: Scalars['Boolean']['output'];
+};
+
 export type Datasource = {
   __typename?: 'Datasource';
   id: Scalars['UUID']['output'];
@@ -1011,6 +1200,51 @@ export type DeleteConnectionInput = {
 export type DeleteConnectionResult = {
   __typename?: 'DeleteConnectionResult';
   errors: Array<DeleteConnectionError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum DeleteDatasetError {
+  DatasetNotFound = 'DATASET_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteDatasetInput = {
+  id: Scalars['ID']['input'];
+};
+
+export enum DeleteDatasetLinkError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeleteDatasetLinkInput = {
+  id: Scalars['ID']['input'];
+};
+
+export type DeleteDatasetLinkResult = {
+  __typename?: 'DeleteDatasetLinkResult';
+  errors: Array<DeleteDatasetLinkError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export type DeleteDatasetResult = {
+  __typename?: 'DeleteDatasetResult';
+  errors: Array<DeleteDatasetError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum DeleteDatasetVersionError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  VersionNotFound = 'VERSION_NOT_FOUND'
+}
+
+export type DeleteDatasetVersionInput = {
+  versionId: Scalars['ID']['input'];
+};
+
+export type DeleteDatasetVersionResult = {
+  __typename?: 'DeleteDatasetVersionResult';
+  errors: Array<DeleteDatasetVersionError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -1312,6 +1546,25 @@ export type LaunchNotebookServerResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum LinkDatasetError {
+  AlreadyLinked = 'ALREADY_LINKED',
+  DatasetNotFound = 'DATASET_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type LinkDatasetInput = {
+  datasetId: Scalars['ID']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type LinkDatasetResult = {
+  __typename?: 'LinkDatasetResult';
+  errors: Array<LinkDatasetError>;
+  link?: Maybe<DatasetLink>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type LogPipelineMessageInput = {
   message: Scalars['String']['input'];
   priority: MessagePriority;
@@ -1415,6 +1668,9 @@ export type Mutation = {
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
   createBucketFolder: CreateBucketFolderResult;
   createConnection: CreateConnectionResult;
+  createDataset: CreateDatasetResult;
+  createDatasetVersion: CreateDatasetVersionResult;
+  createDatasetVersionFile: CreateDatasetVersionFileResult;
   createMembership: CreateMembershipResult;
   createPipeline: CreatePipelineResult;
   createTeam: CreateTeamResult;
@@ -1425,6 +1681,9 @@ export type Mutation = {
   deleteAccessmodProjectMember: DeleteAccessmodProjectMemberResult;
   deleteBucketObject: DeleteBucketObjectResult;
   deleteConnection: DeleteConnectionResult;
+  deleteDataset: DeleteDatasetResult;
+  deleteDatasetLink: DeleteDatasetLinkResult;
+  deleteDatasetVersion: DeleteDatasetVersionResult;
   deleteMembership: DeleteMembershipResult;
   deletePipeline: DeletePipelineResult;
   deletePipelineVersion: DeletePipelineVersionResult;
@@ -1442,9 +1701,11 @@ export type Mutation = {
   joinWorkspace: JoinWorkspaceResult;
   launchAccessmodAnalysis: LaunchAccessmodAnalysisResult;
   launchNotebookServer: LaunchNotebookServerResult;
+  linkDataset: LinkDatasetResult;
   logPipelineMessage: LogPipelineMessageResult;
   login: LoginResult;
   logout: LogoutResult;
+  pinDataset: PinDatasetResult;
   pipelineToken: PipelineTokenResult;
   prepareAccessmodFileDownload: PrepareAccessmodFileDownloadResult;
   prepareAccessmodFileUpload: PrepareAccessmodFileUploadResult;
@@ -1452,6 +1713,7 @@ export type Mutation = {
   prepareDownloadURL?: Maybe<PrepareDownloadUrlResult>;
   prepareObjectDownload: PrepareObjectDownloadResult;
   prepareObjectUpload: PrepareObjectUploadResult;
+  prepareVersionFileDownload: PrepareVersionFileDownloadResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   resetPassword: ResetPasswordResult;
@@ -1466,6 +1728,7 @@ export type Mutation = {
   updateAccessmodZonalStatistics: UpdateAccessmodZonalStatisticsResult;
   updateConnection: UpdateConnectionResult;
   updateDAG: UpdateDagResult;
+  updateDataset: UpdateDatasetResult;
   updateExternalDashboard: UpdateExternalDashboardResult;
   updateMembership: UpdateMembershipResult;
   updatePipeline: UpdatePipelineResult;
@@ -1533,6 +1796,21 @@ export type MutationCreateConnectionArgs = {
 };
 
 
+export type MutationCreateDatasetArgs = {
+  input: CreateDatasetInput;
+};
+
+
+export type MutationCreateDatasetVersionArgs = {
+  input: CreateDatasetVersionInput;
+};
+
+
+export type MutationCreateDatasetVersionFileArgs = {
+  input: CreateDatasetVersionFileInput;
+};
+
+
 export type MutationCreateMembershipArgs = {
   input: CreateMembershipInput;
 };
@@ -1580,6 +1858,21 @@ export type MutationDeleteBucketObjectArgs = {
 
 export type MutationDeleteConnectionArgs = {
   input: DeleteConnectionInput;
+};
+
+
+export type MutationDeleteDatasetArgs = {
+  input: DeleteDatasetInput;
+};
+
+
+export type MutationDeleteDatasetLinkArgs = {
+  input: DeleteDatasetLinkInput;
+};
+
+
+export type MutationDeleteDatasetVersionArgs = {
+  input: DeleteDatasetVersionInput;
 };
 
 
@@ -1663,6 +1956,11 @@ export type MutationLaunchNotebookServerArgs = {
 };
 
 
+export type MutationLinkDatasetArgs = {
+  input: LinkDatasetInput;
+};
+
+
 export type MutationLogPipelineMessageArgs = {
   input?: InputMaybe<LogPipelineMessageInput>;
 };
@@ -1670,6 +1968,11 @@ export type MutationLogPipelineMessageArgs = {
 
 export type MutationLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationPinDatasetArgs = {
+  input: PinDatasetInput;
 };
 
 
@@ -1705,6 +2008,11 @@ export type MutationPrepareObjectDownloadArgs = {
 
 export type MutationPrepareObjectUploadArgs = {
   input: PrepareObjectUploadInput;
+};
+
+
+export type MutationPrepareVersionFileDownloadArgs = {
+  input: PrepareVersionFileDownloadInput;
 };
 
 
@@ -1775,6 +2083,11 @@ export type MutationUpdateConnectionArgs = {
 
 export type MutationUpdateDagArgs = {
   input: UpdateDagInput;
+};
+
+
+export type MutationUpdateDatasetArgs = {
+  input: UpdateDatasetInput;
 };
 
 
@@ -1867,6 +2180,24 @@ export enum PermissionMode {
   Owner = 'OWNER',
   Viewer = 'VIEWER'
 }
+
+export enum PinDatasetError {
+  LinkNotFound = 'LINK_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type PinDatasetInput = {
+  linkId: Scalars['ID']['input'];
+  pinned: Scalars['Boolean']['input'];
+};
+
+export type PinDatasetResult = {
+  __typename?: 'PinDatasetResult';
+  errors: Array<PinDatasetError>;
+  link?: Maybe<DatasetLink>;
+  success: Scalars['Boolean']['output'];
+};
 
 export type Pipeline = {
   __typename?: 'Pipeline';
@@ -2107,6 +2438,23 @@ export type PrepareObjectUploadResult = {
   uploadUrl?: Maybe<Scalars['URL']['output']>;
 };
 
+export enum PrepareVersionFileDownloadError {
+  FileNotFound = 'FILE_NOT_FOUND',
+  FileNotUploaded = 'FILE_NOT_UPLOADED',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type PrepareVersionFileDownloadInput = {
+  fileId: Scalars['ID']['input'];
+};
+
+export type PrepareVersionFileDownloadResult = {
+  __typename?: 'PrepareVersionFileDownloadResult';
+  downloadUrl?: Maybe<Scalars['String']['output']>;
+  errors: Array<PrepareVersionFileDownloadError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
@@ -2127,6 +2475,11 @@ export type Query = {
   dagRun?: Maybe<DagRun>;
   dags: DagPage;
   databaseTable?: Maybe<DatabaseTable>;
+  dataset?: Maybe<Dataset>;
+  datasetLink?: Maybe<DatasetLink>;
+  datasetLinkBySlug?: Maybe<DatasetLink>;
+  datasetVersion?: Maybe<DatasetVersion>;
+  datasets: DatasetPage;
   externalDashboard?: Maybe<ExternalDashboard>;
   externalDashboards: ExternalDashboardPage;
   lastActivities: Array<Activity>;
@@ -2244,6 +2597,34 @@ export type QueryDatabaseTableArgs = {
 };
 
 
+export type QueryDatasetArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDatasetLinkArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDatasetLinkBySlugArgs = {
+  datasetSlug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryDatasetVersionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryDatasetsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryExternalDashboardArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -2307,6 +2688,7 @@ export type QueryWorkspaceArgs = {
 export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum RequestAccessmodAccessError {
@@ -2675,6 +3057,24 @@ export type UpdateDagResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum UpdateDatasetError {
+  DatasetNotFound = 'DATASET_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdateDatasetInput = {
+  datasetId: Scalars['ID']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateDatasetResult = {
+  __typename?: 'UpdateDatasetResult';
+  dataset?: Maybe<Dataset>;
+  errors: Array<UpdateDatasetError>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum UpdateExternalDashboardError {
   Invalid = 'INVALID',
   NotFound = 'NOT_FOUND'
@@ -2871,6 +3271,7 @@ export type Workspace = {
   createdAt: Scalars['DateTime']['output'];
   createdBy: User;
   database: Database;
+  datasets: DatasetLinkPage;
   description?: Maybe<Scalars['String']['output']>;
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
@@ -2878,6 +3279,14 @@ export type Workspace = {
   permissions: WorkspacePermissions;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+
+export type WorkspaceDatasetsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  pinned?: InputMaybe<Scalars['Boolean']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -2953,6 +3362,7 @@ export type WorkspacePage = {
 export type WorkspacePermissions = {
   __typename?: 'WorkspacePermissions';
   createConnection: Scalars['Boolean']['output'];
+  createDataset: Scalars['Boolean']['output'];
   createObject: Scalars['Boolean']['output'];
   createPipeline: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];

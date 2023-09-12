@@ -8,6 +8,7 @@ import {
   Cog6ToothIcon,
   FolderOpenIcon,
   HomeIcon,
+  Square2StackIcon,
   SwatchIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
@@ -20,6 +21,7 @@ import SidebarMenu from "workspaces/features/SidebarMenu";
 import { LayoutContext } from "./WorkspaceLayout";
 import Badge from "core/components/Badge";
 import { Sidebar_WorkspaceFragment } from "./Sidebar.generated";
+import useFeature from "identity/hooks/useFeature";
 
 type SidebarProps = {
   workspace: Sidebar_WorkspaceFragment;
@@ -83,6 +85,7 @@ const Sidebar = (props: SidebarProps) => {
   const { t } = useTranslation();
   const { isSidebarOpen, setSidebarOpen } = useContext(LayoutContext);
 
+  const [hasDatasetsEnabled] = useFeature("datasets");
   const { slug } = workspace;
 
   return (
@@ -111,6 +114,14 @@ const Sidebar = (props: SidebarProps) => {
               label={t("Database")}
               compact={!isSidebarOpen}
             />
+            {hasDatasetsEnabled && (
+              <NavItem
+                href={`/workspaces/${encodeURIComponent(slug)}/datasets`}
+                Icon={Square2StackIcon}
+                label={t("Datasets")}
+                compact={!isSidebarOpen}
+              />
+            )}
             <NavItem
               href={`/workspaces/${encodeURIComponent(slug)}/connections`}
               Icon={SwatchIcon}

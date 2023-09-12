@@ -604,6 +604,62 @@ type CreateConnectionResult {
   errors: [CreateConnectionError!]!
 }
 
+enum CreateDatasetError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input CreateDatasetInput {
+  workspaceSlug: String!
+  name: String!
+  description: String
+}
+
+type CreateDatasetResult {
+  link: DatasetLink
+  dataset: Dataset
+  success: Boolean!
+  errors: [CreateDatasetError!]!
+}
+
+enum CreateDatasetVersionError {
+  DATASET_NOT_FOUND
+  DUPLICATE_NAME
+  PERMISSION_DENIED
+}
+
+enum CreateDatasetVersionFileError {
+  VERSION_NOT_FOUND
+  ALREADY_EXISTS
+  INVALID_URI
+  PERMISSION_DENIED
+}
+
+input CreateDatasetVersionFileInput {
+  versionId: ID!
+  contentType: String!
+  uri: String!
+}
+
+type CreateDatasetVersionFileResult {
+  file: DatasetVersionFile
+  uploadUrl: String
+  success: Boolean!
+  errors: [CreateDatasetVersionFileError!]!
+}
+
+input CreateDatasetVersionInput {
+  datasetId: ID!
+  name: String!
+  description: String
+}
+
+type CreateDatasetVersionResult {
+  version: DatasetVersion
+  success: Boolean!
+  errors: [CreateDatasetVersionError!]!
+}
+
 enum CreateMembershipError {
   ALREADY_EXISTS
   PERMISSION_DENIED
@@ -780,6 +836,97 @@ type DatabaseTablePage {
   items: [DatabaseTable!]!
 }
 
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  permissions: DatasetPermissions!
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  version(id: ID!): DatasetVersion
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetLink {
+  id: ID!
+  isPinned: Boolean!
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  workspace: Workspace!
+  permissions: DatasetLinkPermissions!
+}
+
+type DatasetLinkPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetLink!]!
+}
+
+type DatasetLinkPermissions {
+  delete: Boolean!
+  pin: Boolean!
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+type DatasetPermissions {
+  update: Boolean!
+  delete: Boolean!
+  createVersion: Boolean!
+}
+
+type DatasetVersion {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  createdBy: User
+  permissions: DatasetVersionPermissions!
+  fileByName(name: String!): DatasetVersionFile
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+}
+
+type DatasetVersionFile {
+  id: ID!
+  uri: String!
+  filename: String!
+  createdAt: DateTime!
+  createdBy: User
+  contentType: String!
+}
+
+type DatasetVersionFilePage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersionFile!]!
+}
+
+type DatasetVersionPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersion!]!
+}
+
+type DatasetVersionPermissions {
+  update: Boolean!
+  delete: Boolean!
+  download: Boolean!
+}
+
 type Datasource {
   id: UUID!
   name: String!
@@ -873,6 +1020,48 @@ input DeleteConnectionInput {
 type DeleteConnectionResult {
   success: Boolean!
   errors: [DeleteConnectionError!]!
+}
+
+enum DeleteDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteDatasetInput {
+  id: ID!
+}
+
+enum DeleteDatasetLinkError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteDatasetLinkInput {
+  id: ID!
+}
+
+type DeleteDatasetLinkResult {
+  success: Boolean!
+  errors: [DeleteDatasetLinkError!]!
+}
+
+type DeleteDatasetResult {
+  success: Boolean!
+  errors: [DeleteDatasetError!]!
+}
+
+enum DeleteDatasetVersionError {
+  VERSION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeleteDatasetVersionInput {
+  versionId: ID!
+}
+
+type DeleteDatasetVersionResult {
+  success: Boolean!
+  errors: [DeleteDatasetVersionError!]!
 }
 
 enum DeleteMembershipError {
@@ -1178,6 +1367,24 @@ type LaunchNotebookServerResult {
   errors: [LaunchNotebookServerError!]!
 }
 
+enum LinkDatasetError {
+  DATASET_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_LINKED
+}
+
+input LinkDatasetInput {
+  datasetId: ID!
+  workspaceSlug: String!
+}
+
+type LinkDatasetResult {
+  link: DatasetLink
+  success: Boolean!
+  errors: [LinkDatasetError!]!
+}
+
 enum LoginError {
   OTP_REQUIRED
   INVALID_CREDENTIALS
@@ -1334,6 +1541,16 @@ type Mutation {
   prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
   prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+  createDataset(input: CreateDatasetInput!): CreateDatasetResult!
+  updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult!
+  deleteDataset(input: DeleteDatasetInput!): DeleteDatasetResult!
+  createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult!
+  deleteDatasetVersion(input: DeleteDatasetVersionInput!): DeleteDatasetVersionResult!
+  createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
+  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
+  linkDataset(input: LinkDatasetInput!): LinkDatasetResult!
+  deleteDatasetLink(input: DeleteDatasetLinkInput!): DeleteDatasetLinkResult!
+  pinDataset(input: PinDatasetInput!): PinDatasetResult!
 }
 
 type NotebookServer {
@@ -1378,6 +1595,23 @@ enum PermissionMode {
   OWNER
   EDITOR
   VIEWER
+}
+
+enum PinDatasetError {
+  LINK_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input PinDatasetInput {
+  linkId: ID!
+  pinned: Boolean!
+}
+
+type PinDatasetResult {
+  link: DatasetLink
+  success: Boolean!
+  errors: [PinDatasetError!]!
 }
 
 type Pipeline {
@@ -1589,6 +1823,22 @@ type PrepareObjectUploadResult {
   errors: [PrepareObjectUploadError!]!
 }
 
+enum PrepareVersionFileDownloadError {
+  FILE_NOT_FOUND
+  FILE_NOT_UPLOADED
+  PERMISSION_DENIED
+}
+
+input PrepareVersionFileDownloadInput {
+  fileId: ID!
+}
+
+type PrepareVersionFileDownloadResult {
+  downloadUrl: String
+  success: Boolean!
+  errors: [PrepareVersionFileDownloadError!]!
+}
+
 type Query {
   search(query: String, page: Int, perPage: Int, datasourceIds: [UUID!], types: [String!]): SearchQueryResult!
   catalog(path: String, page: Int, perPage: Int): CatalogPage!
@@ -1621,9 +1871,14 @@ type Query {
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
   pipelineRun(id: UUID!): PipelineRun
   workspace(slug: String!): Workspace
-  workspaces(page: Int, perPage: Int): WorkspacePage!
+  workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+  datasetLinkBySlug(workspaceSlug: String!, datasetSlug: String!): DatasetLink
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
 }
 
 enum RequestAccessmodAccessError {
@@ -1966,6 +2221,23 @@ type UpdateDAGResult {
   dag: DAG
 }
 
+enum UpdateDatasetError {
+  DATASET_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input UpdateDatasetInput {
+  datasetId: ID!
+  name: String
+  description: String
+}
+
+type UpdateDatasetResult {
+  dataset: Dataset
+  success: Boolean!
+  errors: [UpdateDatasetError!]!
+}
+
 enum UpdateExternalDashboardError {
   INVALID
   NOT_FOUND
@@ -2159,6 +2431,7 @@ type Workspace {
   invitations(status: WorkspaceInvitationStatus, page: Int, perPage: Int): WorkspaceInvitationPage!
   database: Database!
   bucket: Bucket!
+  datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
 }
 
 type WorkspaceInvitation {
@@ -2223,5 +2496,6 @@ type WorkspacePermissions {
   createObject: Boolean!
   deleteObject: Boolean!
   downloadObject: Boolean!
+  createDataset: Boolean!
 }
 
