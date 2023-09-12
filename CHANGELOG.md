@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.35.0](https://github.com/BLSQ/openhexa-frontend/compare/0.34.0...0.35.0) (2023-09-12)
+
+
+### Features
+
+* **Pipelines:** display timeout on pipeline run page ([#418](https://github.com/BLSQ/openhexa-frontend/issues/418)) ([975499e](https://github.com/BLSQ/openhexa-frontend/commit/975499e7bc274d422d411b503aae6d2e6607e0e1))
+
+
+### Bug Fixes
+
+* **Dialog:** Make the dialog's content scrollable ([#419](https://github.com/BLSQ/openhexa-frontend/issues/419)) ([9774720](https://github.com/BLSQ/openhexa-frontend/commit/9774720d2262ee41a3116a78361707df75e44498))
+* Make the account page accessible to non legacy users ([18fe53f](https://github.com/BLSQ/openhexa-frontend/commit/18fe53f0bd9cab79844a277d8429450b21e97b9e))
+* **Pipelines:** fix broken link in breadcrumbs ([#417](https://github.com/BLSQ/openhexa-frontend/issues/417)) ([d1512e4](https://github.com/BLSQ/openhexa-frontend/commit/d1512e4150a1e5c2ccbcd5e39ec2125ac9be2e6a))
+
+
+### Miscellaneous
+
+* **deps:** bump cron-parser from 4.8.1 to 4.9.0 ([#413](https://github.com/BLSQ/openhexa-frontend/issues/413)) ([5ca4310](https://github.com/BLSQ/openhexa-frontend/commit/5ca43103a4bbf9209cb7194c65b04f2acb2455f8))
+* **deps:** bump jest-environment-jsdom from 29.4.1 to 29.6.4 ([#414](https://github.com/BLSQ/openhexa-frontend/issues/414)) ([5abc3c7](https://github.com/BLSQ/openhexa-frontend/commit/5abc3c7825a83127e8f9aad54ae36eba88390601))
+* **Release:** Prepare release 0.35.0 ([56fdebc](https://github.com/BLSQ/openhexa-frontend/commit/56fdebc51d93f7d1ebad067abe265bc5c2299b9e))
+
 ## [0.34.0](https://github.com/BLSQ/openhexa-frontend/compare/0.33.6...0.34.0) (2023-08-21)
 
 
