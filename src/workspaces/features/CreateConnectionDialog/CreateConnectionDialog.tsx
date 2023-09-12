@@ -246,10 +246,6 @@ export default function CreateConnectionDialog({
                     label: t("About connections"),
                     href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
                   },
-                  {
-                    label: t("Using connections"),
-                    href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
-                  },
                 ]}
               />
             </div>
@@ -278,10 +274,6 @@ export default function CreateConnectionDialog({
                   {
                     label: t("About connections"),
                     href: "https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections",
-                  },
-                  {
-                    label: t("Using connections"),
-                    href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa#using-connections",
                   },
                 ]}
               />
