@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.60.0](https://github.com/BLSQ/openhexa-app/compare/0.59.0...0.60.0) (2023-09-12)
+
+
+### Features
+
+* **Datasets:** Implement workspace datasets & sharing ([#533](https://github.com/BLSQ/openhexa-app/issues/533)) ([fcd8f19](https://github.com/BLSQ/openhexa-app/commit/fcd8f1903ead55d0869175a98ec1581c1d91c381))
+
+
+### Miscellaneous
+
+* **releases:** Prepare next release 0.60.0 ([50f4bb1](https://github.com/BLSQ/openhexa-app/commit/50f4bb1c71ffa5451b3de74fb41fd1d22351a824))
+
 ## [0.59.0](https://github.com/BLSQ/openhexa-app/compare/0.58.13...0.59.0) (2023-09-12)
 
 
