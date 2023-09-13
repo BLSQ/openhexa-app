@@ -55,6 +55,7 @@ export default {
       code: "service_account_key",
       name: "Service Account Key",
       required: true,
+      secret: true,
     },
   ],
 };
