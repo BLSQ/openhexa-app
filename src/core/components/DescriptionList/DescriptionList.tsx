@@ -54,7 +54,8 @@ DescriptionList.Item = function Item({
       <dt
         className={clsx(
           "flex text-sm font-medium text-gray-500",
-          displayMode === DescriptionListDisplayMode.LABEL_LEFT && "col-span-1",
+          displayMode === DescriptionListDisplayMode.LABEL_LEFT &&
+            "col-span-1 items-center",
           displayMode === DescriptionListDisplayMode.LABEL_ABOVE &&
             "col-span-5",
         )}

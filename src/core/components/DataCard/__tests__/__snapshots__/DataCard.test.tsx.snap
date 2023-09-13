@@ -43,7 +43,7 @@ exports[`DataCard renders 1`] = `
                 class="grid grid-cols-5 gap-2 sm:gap-4"
               >
                 <dt
-                  class="flex text-sm font-medium text-gray-500 col-span-1"
+                  class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
                 >
                   <span
                     class="inline"
