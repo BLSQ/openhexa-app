@@ -162,7 +162,7 @@ def resolve_version_files(obj: DatasetVersion, info, **kwargs):
 @dataset_version_object.field("fileByName")
 def resolve_file_by_name(obj: DatasetVersion, info, name, **kwargs):
     try:
-        return obj.files.get(filename=name)
+        return obj.get_file_by_name(name)
     except DatasetVersionFile.DoesNotExist:
         return None
 

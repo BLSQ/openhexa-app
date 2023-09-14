@@ -1,6 +1,6 @@
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 
 from hexa.workspaces.models import Workspace
 
@@ -188,22 +188,26 @@ def resolve_create_version_file(_, info, **kwargs):
         ):
             raise PermissionDenied
 
-        full_uri = version.get_full_uri(mutation_input["uri"])
-        file = None
-        try:
-            file = DatasetVersionFile.objects.get(uri=full_uri)
-            if get_blob(file) is not None:
-                return {"success": False, "errors": ["ALREADY_EXISTS"]}
-        except DatasetVersionFile.DoesNotExist:
-            file = DatasetVersionFile.objects.create(
-                dataset_version=version,
-                uri=full_uri,
-                content_type=mutation_input["contentType"],
-                created_by=request.user,
-            )
-        upload_url = generate_upload_url(file)
-
-        return {"success": True, "errors": [], "file": file, "upload_url": upload_url}
+        with transaction.atomic():
+            file = None
+            try:
+                file = version.get_file_by_name(mutation_input["uri"])
+                if get_blob(file) is not None:
+                    return {"success": False, "errors": ["ALREADY_EXISTS"]}
+            except DatasetVersionFile.DoesNotExist:
+                file = DatasetVersionFile.objects.create(
+                    dataset_version=version,
+                    uri=version.get_full_uri(mutation_input["uri"]),
+                    content_type=mutation_input["contentType"],
+                    created_by=request.user,
+                )
+            upload_url = generate_upload_url(file)
+            return {
+                "success": True,
+                "errors": [],
+                "file": file,
+                "upload_url": upload_url,
+            }
     except ValidationError:
         return {"success": False, "errors": ["INVALID_URI"]}
     except DatasetVersion.DoesNotExist:
