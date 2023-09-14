@@ -3,7 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 
 from hexa.core.test import TestCase
-from hexa.datasets.models import Dataset, DatasetVersion
+from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.files.api import create_bucket
 from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -176,6 +176,23 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
         version.delete_if_has_perm(principal=self.USER_EDITOR)
         with self.assertRaises(ObjectDoesNotExist):
             DatasetVersion.objects.get(id=version.id)
+
+    def test_get_file_by_name(self):
+        version = self.test_create_dataset_version()
+        with self.assertRaises(ObjectDoesNotExist):
+            version.get_file_by_name("file.txt")
+
+        DatasetVersionFile.objects.create(
+            dataset_version=version,
+            uri=version.get_full_uri("file.txt"),
+            created_by=self.USER_ADMIN,
+            content_type="text/plain",
+        )
+
+        self.assertEqual(
+            version.get_file_by_name("file.txt").uri,
+            f"{version.dataset.id}/{version.id}/file.txt",
+        )
 
 
 @override_settings(WORKSPACE_DATASETS_BUCKET="hexa-datasets")

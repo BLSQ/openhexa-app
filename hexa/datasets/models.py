@@ -158,6 +158,11 @@ class DatasetVersion(Base):
     def get_full_uri(self, file_uri):
         return f"{self.dataset.id}/{self.id}/{file_uri.lstrip('/')}"
 
+    def get_file_by_name(self, name: str):
+        return DatasetVersionFile.objects.get(
+            dataset_version=self, uri=self.get_full_uri(name)
+        )
+
 
 class DatasetVersionFileQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
