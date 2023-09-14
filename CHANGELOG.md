@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.60.1](https://github.com/BLSQ/openhexa-app/compare/0.60.0...0.60.1) (2023-09-14)
+
+
+### Features
+
+* **Connections:** migration to hide service account key value ([#544](https://github.com/BLSQ/openhexa-app/issues/544)) ([b546c7c](https://github.com/BLSQ/openhexa-app/commit/b546c7ccb7afcd2c78e922cf4d7abbd55cd541b6))
+
+
+### Bug Fixes
+
+* **datasets:** Fix get_file_by_name for a version ([#546](https://github.com/BLSQ/openhexa-app/issues/546)) ([10bb6e4](https://github.com/BLSQ/openhexa-app/commit/10bb6e474b8ff2fac215776fdd4c45bbc05f9508))
+
 ## [0.60.0](https://github.com/BLSQ/openhexa-app/compare/0.59.0...0.60.0) (2023-09-12)
 
 
