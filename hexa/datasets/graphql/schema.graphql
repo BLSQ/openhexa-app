@@ -185,9 +185,11 @@ input CreateDatasetVersionFileInput {
 
 enum CreateDatasetVersionFileError {
   VERSION_NOT_FOUND
+  LOCKED_VERSION
   ALREADY_EXISTS
   INVALID_URI
   PERMISSION_DENIED
+
 }
 
 type CreateDatasetVersionFileResult {
