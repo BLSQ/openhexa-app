@@ -967,6 +967,15 @@ class PipelinesV2Test(GraphQLTestCase):
                     "multiple": False,
                     "required": True,
                 },
+                {
+                    "code": "param3",
+                    "name": "Param 3",
+                    "type": "bool",
+                    "help": "Param 3's Help",
+                    "default": False,
+                    "multiple": False,
+                    "required": True,
+                },
             ],
         )
 

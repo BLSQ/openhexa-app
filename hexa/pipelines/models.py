@@ -129,7 +129,7 @@ class PipelineVersion(models.Model):
     @property
     def is_schedulable(self):
         return len(self.parameters) == 0 or all(
-            [parameter.get("default") for parameter in self.parameters]
+            [parameter.get("default") is not None for parameter in self.parameters]
         )
 
     @property
