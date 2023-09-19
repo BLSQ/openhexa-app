@@ -1,9 +1,10 @@
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
+from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
-from ..models import Dataset
+from ..models import Dataset, DatasetVersionFile
 from .testutils import DatasetTestMixin
 
 
@@ -361,5 +362,53 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["createDatasetVersion"],
         )
 
+    def test_create_duplicate(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
         with self.assertRaises(IntegrityError):
             dataset.create_version(principal=superuser, name="Version 1")
+
+    def test_get_file_by_name(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+
+        r = self.run_query(
+            """
+            query getFileByName($versionId: ID!, $name: String!) {
+                datasetVersion(id: $versionId) {
+                    fileByName(name: $name) {
+                        filename
+                    }
+                }
+            }
+        """,
+            {"versionId": str(dataset.latest_version.id), "name": "file.csv"},
+        )
+
+        self.assertEqual({"datasetVersion": {"fileByName": None}}, r["data"])
+
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+        )
+
+        r = self.run_query(
+            """
+            query getFileByName($versionId: ID!, $name: String!) {
+                datasetVersion(id: $versionId) {
+                    fileByName(name: $name) {
+                        filename
+                    }
+                }
+            }
+        """,
+            {"versionId": str(dataset.latest_version.id), "name": "file.csv"},
+        )
+
+        self.assertEqual(
+            {"datasetVersion": {"fileByName": {"filename": file.filename}}}, r["data"]
+        )

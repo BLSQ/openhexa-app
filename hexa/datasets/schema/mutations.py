@@ -188,6 +188,9 @@ def resolve_create_version_file(_, info, **kwargs):
         ):
             raise PermissionDenied
 
+        if version.id != version.dataset.latest_version.id:
+            return {"success": False, "errors": ["LOCKED_VERSION"]}
+
         with transaction.atomic():
             file = None
             try:
