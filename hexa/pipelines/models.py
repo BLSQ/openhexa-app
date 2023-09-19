@@ -127,6 +127,12 @@ class PipelineVersion(models.Model):
     objects = PipelineVersionQuerySet.as_manager()
 
     @property
+    def is_schedulable(self):
+        return len(self.parameters) == 0 or all(
+            [parameter.get("default") is not None for parameter in self.parameters]
+        )
+
+    @property
     def display_name(self):
         return f"{self.pipeline.name} - v{self.number}"
 

@@ -859,7 +859,7 @@ class PipelinesV2Test(GraphQLTestCase):
             in mail.outbox[0].body
         )
 
-    def test_pipeline_permission_schedule_true(self):
+    def test_pipelines_permissions_schedule_true(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_SABRINA)
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
@@ -894,24 +894,147 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["pipelineByCode"],
         )
 
-    def test_pipeline_permission_schedule_false(self):
+    def test_pipelines_permissions_schedule_false(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_SABRINA)
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
         pipeline.upload_new_version(
             user=self.USER_ROOT,
             zipfile=base64.b64decode("".encode("ascii")),
-            parameters={
-                "code": "param1",
-                "name": "Param 1",
-                "type": "string",
-                "help": "Param 1's Help",
-                "default": "default value",
-                "multiple": True,
-                "required": True,
-                "choices": ["Choice 1", "Choice 2"],
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": True,
+                    "required": True,
+                    "choices": ["Choice 1", "Choice 2"],
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
             },
         )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": False},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_with_params_true(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": "Default",
+                    "multiple": True,
+                    "required": True,
+                    "choices": ["Choice 1", "Choice 2"],
+                },
+                {
+                    "code": "param2",
+                    "name": "Param 2",
+                    "type": "int",
+                    "help": "Param 2's Help",
+                    "default": 2,
+                    "multiple": False,
+                    "required": True,
+                },
+                {
+                    "code": "param3",
+                    "name": "Param 3",
+                    "type": "bool",
+                    "help": "Param 3's Help",
+                    "default": False,
+                    "multiple": False,
+                    "required": True,
+                },
+            ],
+        )
+
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": True},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_with_params_false(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": "Default",
+                    "multiple": True,
+                    "required": True,
+                    "choices": ["Choice 1", "Choice 2"],
+                },
+                {
+                    "code": "param2",
+                    "name": "Param 2",
+                    "type": "int",
+                    "help": "Param 2's Help",
+                    "default": None,
+                    "multiple": False,
+                    "required": True,
+                },
+            ],
+        )
+
         r = self.run_query(
             """
             query pipelineByCode($code: String!, $workspaceSlug: String!) {

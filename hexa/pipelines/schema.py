@@ -128,7 +128,7 @@ def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
     return (
         request.user.is_authenticated
         and request.user.has_perm("pipelines.run_pipeline", pipeline)
-        and len(pipeline.last_version.parameters) == 0
+        and pipeline.last_version.is_schedulable
     )
 
 
