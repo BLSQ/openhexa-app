@@ -94,7 +94,7 @@
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-operations": "^4.0.1",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
-    "@next/eslint-plugin-next": "^13.4.4",
+    "@next/eslint-plugin-next": "^13.4.19",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
