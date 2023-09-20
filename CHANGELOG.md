@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.60.2](https://github.com/BLSQ/openhexa-app/compare/0.60.1...0.60.2) (2023-09-19)
+
+
+### Features
+
+* **Datasets:** add fileByName on dataset's version, datasets ([#548](https://github.com/BLSQ/openhexa-app/issues/548)) ([ba1c23a](https://github.com/BLSQ/openhexa-app/commit/ba1c23a08a7aabd02a9a027dc7d9ae538b58e4dd))
+* **Pipelines:** allow scheduling if all params have default value ([#542](https://github.com/BLSQ/openhexa-app/issues/542)) ([5e6f4b8](https://github.com/BLSQ/openhexa-app/commit/5e6f4b8639e7cb601ac1c7c9048a346b7bfad9f5))
+
 ## [0.60.1](https://github.com/BLSQ/openhexa-app/compare/0.60.0...0.60.1) (2023-09-14)
 
 
