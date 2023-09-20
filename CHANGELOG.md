@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.36.1](https://github.com/BLSQ/openhexa-frontend/compare/0.36.0...0.36.1) (2023-09-13)
+
+
+### Features
+
+* **Connections:** hide gcs connection service_account_key value ([#428](https://github.com/BLSQ/openhexa-frontend/issues/428)) ([373c73e](https://github.com/BLSQ/openhexa-frontend/commit/373c73e8bc8ca08657caf16d0d2f7a82ebadb505))
+
+
+### Bug Fixes
+
+* Align vertically the label in description list ([#427](https://github.com/BLSQ/openhexa-frontend/issues/427)) ([8b4d954](https://github.com/BLSQ/openhexa-frontend/commit/8b4d954b4ff131e567bc7a406dc5db32c51fb3b1))
+
 ## [0.36.0](https://github.com/BLSQ/openhexa-frontend/compare/0.35.1...0.36.0) (2023-09-12)
 
 
