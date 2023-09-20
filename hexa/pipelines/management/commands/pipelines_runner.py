@@ -33,12 +33,6 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     logger.debug("K8S RUN %s: %s for %s", os.getpid(), run.pipeline.name, exec_time_str)
     container_name = generate_pipeline_container_name(run)
 
-    pipeline_timeout = (
-        run.pipeline_version.timeout
-        if run.pipeline_version.timeout
-        else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
-    )
-
     config.load_incluster_config()
     v1 = CoreV1Api()
     pod = k8s.V1Pod(
@@ -59,7 +53,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         ),
         spec=k8s.V1PodSpec(
             restart_policy="Never",
-            active_deadline_seconds=pipeline_timeout,
+            active_deadline_seconds=run.timeout,
             tolerations=[
                 k8s.V1Toleration(
                     key="hub.jupyter.org_dedicated",
