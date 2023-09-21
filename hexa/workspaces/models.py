@@ -254,21 +254,20 @@ class WorkspaceMembership(models.Model):
         on_delete=models.CASCADE,
     )
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
-    notebooks_server_hash = models.TextField(unique=True, blank=True)
-    access_token = models.TextField(max_length=50, null=True, blank=True, unique=True)
+    notebooks_server_hash = models.TextField(unique=True)
+    access_token = models.TextField(max_length=50, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()
-
-    def generate_access_token(self):
-        self.access_token = uuid.uuid4()
-        self.save()
 
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
             self.notebooks_server_hash = hashlib.blake2s(
                 f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
             ).hexdigest()
+
+        if self.access_token == "":
+            self.access_token = uuid.uuid4()
 
         super().save(*args, **kwargs)
 
