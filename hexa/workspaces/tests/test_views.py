@@ -46,7 +46,11 @@ class ViewsTest(TestCase):
             countries=[{"code": "AL"}],
         )
 
-        cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
+        cls.WORKSPACE_MEMBERSHIP_JULIA = WorkspaceMembership.objects.get(
+            workspace=cls.WORKSPACE, user=cls.USER_JULIA
+        )
+
+        cls.WORKSPACE_MEMBERSHIP_REBECCA = WorkspaceMembership.objects.create(
             user=cls.USER_REBECCA,
             workspace=cls.WORKSPACE,
             role=WorkspaceMembershipRole.VIEWER,
@@ -125,6 +129,8 @@ class ViewsTest(TestCase):
 
         db_credentials = get_db_server_credentials()
 
+        self.maxDiff = None
+
         response_data = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -145,6 +151,9 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "GCS_TOKEN": "gcs-token",
+                "HEXA_TOKEN": Signer().sign_object(
+                    self.WORKSPACE_MEMBERSHIP_JULIA.access_token
+                ),
             },
         )
         self.assertEqual(
