@@ -427,6 +427,7 @@ def resolve_generate_workspace_token(_, info, **kwargs):
 
     if not membership.access_token:
         membership.generate_access_token()
+        membership.save()
 
     token = Signer().sign_object(str(membership.access_token))
     return {"success": True, "errors": [], "token": token}

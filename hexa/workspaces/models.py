@@ -260,9 +260,12 @@ class WorkspaceMembership(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.generate_access_token()
+
     def generate_access_token(self):
         self.access_token = uuid.uuid4()
-        self.save()
 
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
