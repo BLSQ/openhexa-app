@@ -3,6 +3,7 @@ import typing
 import uuid
 from datetime import datetime
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.indexes import GinIndex, GistIndex
@@ -196,6 +197,9 @@ class Pipeline(models.Model):
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
+            timeout=pipeline_version.timeout
+            if pipeline_version.timeout
+            else settings.PIPELINE_RUN_DEFAULT_TIMEOUT,
         )
 
         return run
@@ -325,6 +329,7 @@ class PipelineRun(Base, WithStatus):
     run_logs = models.TextField(null=True, blank=True)
     current_progress = models.PositiveSmallIntegerField(default=0)
     send_mail_notifications = models.BooleanField(default=False)
+    timeout = models.IntegerField(null=True)
 
     objects = PipelineRunQuerySet.as_manager()
 
