@@ -28,6 +28,7 @@ class WorkspaceMembershipAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     )
+    readonly_fields = ("notebooks_server_hash",)
 
 
 class ConnectionFieldInline(admin.StackedInline):
