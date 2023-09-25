@@ -254,8 +254,18 @@ class WorkspaceMembership(models.Model):
         on_delete=models.CASCADE,
     )
     role = models.CharField(choices=WorkspaceMembershipRole.choices, max_length=50)
-    notebooks_server_hash = models.TextField(unique=True)
-    access_token = models.TextField(max_length=50, unique=True)
+    notebooks_server_hash = models.TextField(
+        blank=True,
+        unique=True,
+        help_text="Can be used to identify a notebook server for a given user and workspace (will be generated automatically)",
+        editable=False,
+    )
+    access_token = models.TextField(
+        max_length=50,
+        blank=True,
+        unique=True,
+        help_text="Access token that can be used to interact with the OpenHexa API (will be generated automatically, set to empty to regenerate a new token)",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = WorkspaceMembershipManager.from_queryset(WorkspaceMembershipQuerySet)()
