@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.60.3](https://github.com/BLSQ/openhexa-app/compare/0.60.2...0.60.3) (2023-09-25)
+
+
+### Features
+
+* **Pipelines:** add timeout to PipelineRun model ([#549](https://github.com/BLSQ/openhexa-app/issues/549)) ([294fc44](https://github.com/BLSQ/openhexa-app/commit/294fc44812c788144fd306e6df5765e395891b7a))
+
+
+### Bug Fixes
+
+* **Workspaces:** ensure the presence of a token / server hash in memberships ([#552](https://github.com/BLSQ/openhexa-app/issues/552)) ([1f1c4da](https://github.com/BLSQ/openhexa-app/commit/1f1c4da6f3413a3810b61339cf5be233f587a915))
+
 ## [0.60.2](https://github.com/BLSQ/openhexa-app/compare/0.60.1...0.60.2) (2023-09-19)
 
 
