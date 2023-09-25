@@ -7,7 +7,6 @@ import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Pagination from "core/components/Pagination";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -28,6 +27,7 @@ import Title from "core/components/Title";
 import PinDatasetButton from "datasets/features/PinDatasetButton";
 import useCacheKey from "core/hooks/useCacheKey";
 import clsx from "clsx";
+import Link from "core/components/Link";
 
 type Props = {
   page: number;
@@ -136,14 +136,15 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
               fetchData={onPaginate}
               totalItems={workspace.datasets.totalItems}
               defaultPageSize={perPage}
+              fixedLayout={false}
               rowClassName={"items-center"}
             >
-              <BaseColumn className="max-w-[50ch] py-3" id="name" label="Name">
+              <BaseColumn className="py-3" id="name" label="Name">
                 {(value) => (
-                  <div className="flex items-center gap-2">
+                  <div className={"min-w-0 flex items-center gap-2"}>
                     <PinDatasetButton link={value} />
                     <Link
-                      customStyle="font-medium text-gray-600 hover:text-gray-800"
+                      customStyle="font-medium text-gray-600 hover:text-gray-800 text-ellipsis overflow-hidden"
                       href={{
                         pathname:
                           "/workspaces/[workspaceSlug]/datasets/[datasetSlug]",
