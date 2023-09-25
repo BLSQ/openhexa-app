@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.4](https://github.com/BLSQ/openhexa-app/compare/0.60.3...0.60.4) (2023-09-25)
+
+
+### Bug Fixes
+
+* **Workspaces:** set access_token directly in migration ([#554](https://github.com/BLSQ/openhexa-app/issues/554)) ([954ea94](https://github.com/BLSQ/openhexa-app/commit/954ea94f1ded0972e3179c088a93629fae035ef9))
+
 ## [0.60.3](https://github.com/BLSQ/openhexa-app/compare/0.60.2...0.60.3) (2023-09-25)
 
 
