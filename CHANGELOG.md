@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.2](https://github.com/BLSQ/openhexa-frontend/compare/0.36.1...0.36.2) (2023-09-25)
+
+
+### Bug Fixes
+
+* Align vertically the label in description list ([#434](https://github.com/BLSQ/openhexa-frontend/issues/434)) ([037488f](https://github.com/BLSQ/openhexa-frontend/commit/037488f3a95e356b6d60e1e1eb24c4f1bc4856f1))
+* **datasets:** add an ellipsis on the first column of the datasets list ([037488f](https://github.com/BLSQ/openhexa-frontend/commit/037488f3a95e356b6d60e1e1eb24c4f1bc4856f1))
+
+
+### Miscellaneous
+
+* **deps:** bump @uiw/react-codemirror from 4.20.2 to 4.21.13 ([#431](https://github.com/BLSQ/openhexa-frontend/issues/431)) ([65b85c7](https://github.com/BLSQ/openhexa-frontend/commit/65b85c7e9c5b67df2607fafe83b59e8120fa313c))
+
 ## [0.36.1](https://github.com/BLSQ/openhexa-frontend/compare/0.36.0...0.36.1) (2023-09-13)
 
 
