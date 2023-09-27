@@ -211,8 +211,11 @@ class DatasetLinkTest(BaseTestMixin, TestCase):
         )
 
     def test_cannot_link_dataset(self):
-        with self.assertRaises(PermissionDenied):
-            self.DATASET.link(self.USER_SERENA, self.WORKSPACE_2)
+        self.assertFalse(
+            self.USER_SERENA.has_perm(
+                "datasets.link_dataset", (self.DATASET, self.WORKSPACE_2)
+            )
+        )
 
     def test_link_dataset(self):
         self.assertFalse(

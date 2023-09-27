@@ -2,6 +2,7 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 
+from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
@@ -16,9 +17,13 @@ def resolve_create_dataset(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=mutation_input["workspaceSlug"]
-        )
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        if isinstance(request.user, PipelineRunUser):
+            workspace = request.user.pipeline_run.pipeline.workspace
+        else:
+            workspace = Workspace.objects.filter_for_user(request.user).get(
+                slug=mutation_input["workspaceSlug"]
+            )
         dataset = Dataset.objects.create_if_has_perm(
             principal=request.user,
             workspace=workspace,
@@ -183,11 +188,6 @@ def resolve_create_version_file(_, info, **kwargs):
             id=mutation_input["versionId"]
         )
 
-        if not request.user.has_perm(
-            "datasets.create_dataset_version", version.dataset
-        ):
-            raise PermissionDenied
-
         if version.id != version.dataset.latest_version.id:
             return {"success": False, "errors": ["LOCKED_VERSION"]}
 
@@ -198,11 +198,11 @@ def resolve_create_version_file(_, info, **kwargs):
                 if get_blob(file) is not None:
                     return {"success": False, "errors": ["ALREADY_EXISTS"]}
             except DatasetVersionFile.DoesNotExist:
-                file = DatasetVersionFile.objects.create(
+                file = DatasetVersionFile.objects.create_if_has_perm(
+                    principal=request.user,
                     dataset_version=version,
                     uri=version.get_full_uri(mutation_input["uri"]),
                     content_type=mutation_input["contentType"],
-                    created_by=request.user,
                 )
             upload_url = generate_upload_url(file)
             return {
@@ -228,8 +228,14 @@ def resolve_version_file_download(_, info, **kwargs):
         file = DatasetVersionFile.objects.filter_for_user(request.user).get(
             id=mutation_input["fileId"]
         )
-
-        if not request.user.has_perm(
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        if isinstance(request.user, PipelineRunUser):
+            if (
+                request.user.pipeline_run.pipeline.workspace
+                != file.dataset_version.dataset.workspace
+            ):
+                raise PermissionDenied
+        elif not request.user.has_perm(
             "datasets.download_dataset", file.dataset_version.dataset
         ):
             raise PermissionDenied

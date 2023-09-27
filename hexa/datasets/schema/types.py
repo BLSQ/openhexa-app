@@ -57,6 +57,7 @@ def resolve_workspace_datasets(obj: Workspace, info, pinned=None, query=None, **
 @workspace_permissions.field("createDataset")
 def resolve_workspace_permissions_create_dataset(obj: Workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    # FIXME: This should support the PipelineRunUser
     return (
         request.user.has_perm("datasets.create_dataset", obj)
         if request.user.is_authenticated
@@ -113,6 +114,7 @@ def resolve_dataset_version_permissions(obj: DatasetVersion, info, **kwargs):
 @dataset_permissions.field("createVersion")
 def resolve_dataset_permissions_create_version(obj: Dataset, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    # FIXME: This should support the PipelineRunUser
     return (
         request.user.has_perm("datasets.create_dataset_version", obj)
         if request.user.is_authenticated

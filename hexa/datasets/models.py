@@ -18,13 +18,18 @@ def create_dataset_slug(name: str):
 
 class DatasetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        # TODO: It should also check workspace where it's added
+        from hexa.pipelines.authentication import PipelineRunUser
 
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(links__workspace__members=user),
-            return_all_if_superuser=False,
-        )
+        if isinstance(user, PipelineRunUser):
+            return self._filter_for_user_and_query_object(
+                user, models.Q(links__workspace=user.pipeline_run.pipeline.workspace)
+            )
+        else:
+            return self._filter_for_user_and_query_object(
+                user,
+                models.Q(links__workspace__members=user),
+                return_all_if_superuser=False,
+            )
 
 
 class DatasetManager(models.Manager):
@@ -36,18 +41,25 @@ class DatasetManager(models.Manager):
         name: str,
         description: str,
     ):
-        if not principal.has_perm("datasets.create_dataset", workspace):
+        from hexa.pipelines.authentication import PipelineRunUser
+
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        if isinstance(principal, PipelineRunUser):
+            if principal.pipeline_run.pipeline.workspace != workspace:
+                raise PermissionDenied
+        elif not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
 
+        created_by = principal if not isinstance(principal, PipelineRunUser) else None
         dataset = self.create(
             workspace=workspace,
             slug=create_dataset_slug(name),
-            created_by=principal,
+            created_by=created_by,
             name=name,
             description=description,
         )
         # Create the DatasetLink for the workspace
-        dataset.link(principal, workspace)
+        dataset.link(created_by, workspace)
 
         return dataset
 
@@ -95,9 +107,6 @@ class Dataset(Base):
         )
 
     def link(self, principal: User, workspace: any):
-        if not principal.has_perm("datasets.link_dataset", (self, workspace)):
-            raise PermissionDenied
-
         return DatasetLink.objects.create(
             created_by=principal,
             dataset=self,
@@ -119,13 +128,19 @@ class DatasetVersionManager(models.Manager):
     def create_if_has_perm(
         self, principal: User, dataset: Dataset, *, name: str, description: str
     ):
-        if not principal.has_perm("datasets.create_dataset_version", dataset):
-            raise PermissionDenied
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        from hexa.pipelines.authentication import PipelineRunUser
 
+        if isinstance(principal, PipelineRunUser):
+            if principal.pipeline_run.pipeline.workspace != dataset.workspace:
+                raise PermissionDenied
+        elif not principal.has_perm("datasets.create_dataset_version", dataset):
+            raise PermissionDenied
+        created_by = principal if not isinstance(principal, PipelineRunUser) else None
         version = self.create(
             name=name,
             dataset=dataset,
-            created_by=principal,
+            created_by=created_by,
             description=description,
         )
 
@@ -175,6 +190,39 @@ class DatasetVersionFileQuerySet(BaseQuerySet):
         )
 
 
+class DatasetVersionFileManager(models.Manager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        dataset_version: DatasetVersion,
+        *,
+        uri: str,
+        content_type: str,
+    ):
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        from hexa.pipelines.authentication import PipelineRunUser
+
+        if isinstance(principal, PipelineRunUser):
+            if (
+                principal.pipeline_run.pipeline.workspace
+                != dataset_version.dataset.workspace
+            ):
+                raise PermissionDenied
+        elif not principal.has_perm(
+            "datasets.create_dataset_version_file", dataset_version
+        ):
+            raise PermissionDenied
+
+        created_by = principal if not isinstance(principal, PipelineRunUser) else None
+
+        return self.create(
+            dataset_version=dataset_version,
+            uri=uri,
+            content_type=content_type,
+            created_by=created_by,
+        )
+
+
 class DatasetVersionFile(Base):
     uri = models.TextField(null=False, blank=False, unique=True)
     content_type = models.TextField(null=False, blank=False)
@@ -187,7 +235,7 @@ class DatasetVersionFile(Base):
         related_name="files",
     )
 
-    objects = DatasetVersionFileQuerySet.as_manager()
+    objects = DatasetVersionFileManager.from_queryset(DatasetVersionFileQuerySet)()
 
     @property
     def filename(self):
@@ -199,11 +247,20 @@ class DatasetVersionFile(Base):
 
 class DatasetLinkQuerySet(BaseQuerySet):
     def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(workspace__members=user),
-            return_all_if_superuser=False,
-        )
+        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+        from hexa.pipelines.authentication import PipelineRunUser
+
+        if isinstance(user, PipelineRunUser):
+            return self._filter_for_user_and_query_object(
+                user,
+                models.Q(workspace=user.pipeline_run.pipeline.workspace),
+            )
+        else:
+            return self._filter_for_user_and_query_object(
+                user,
+                models.Q(workspace__members=user),
+                return_all_if_superuser=False,
+            )
 
 
 class DatasetLink(Base):

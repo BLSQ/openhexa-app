@@ -106,3 +106,10 @@ def pin_dataset(principal: User, link: DatasetLink):
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
     ).exists()
+
+
+def create_dataset_version_file(principal: User, dataset_version: DatasetVersion):
+    if dataset_version != dataset_version.dataset.latest_version:
+        return False
+
+    return create_dataset_version(principal, dataset_version.dataset)
