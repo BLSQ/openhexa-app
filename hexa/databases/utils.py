@@ -155,7 +155,7 @@ def get_table_rows(
             page=page,
             has_previous=page > 1,
             has_next=len(data) > per_page,
-            items=data[:-1],
+            items=data[:per_page],
         )
     finally:
         if conn:

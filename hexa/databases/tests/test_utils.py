@@ -3,7 +3,13 @@ from unittest import mock
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
-from hexa.databases.utils import get_database_definition, get_table_definition
+from hexa.databases.utils import (
+    OrderByDirectionEnum,
+    TableRowsPage,
+    get_database_definition,
+    get_table_definition,
+    get_table_rows,
+)
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import Feature, FeatureFlag, User
@@ -111,3 +117,65 @@ class DatabaseUtilsTest(TestCase):
         result = get_table_definition(self.WORKSPACE, table_name)
 
         self.assertIsNone(result)
+
+    @mock.patch("psycopg2.connect")
+    def test_get_paginate_table_rows(self, mock_connect):
+        mock_context_object = mock_connect.return_value
+        cursor = mock_context_object.cursor.return_value.__enter__.return_value
+
+        items = [{"id": x} for x in range(10)]
+
+        cursor.fetchall.return_value = items
+
+        # Exact number as the page size
+        self.assertEqual(
+            TableRowsPage(has_previous=False, has_next=False, page=1, items=items),
+            get_table_rows(
+                self.WORKSPACE,
+                "database_tutorial",
+                "id",
+                OrderByDirectionEnum.ASC,
+                1,
+                10,
+            ),
+        )
+
+        # First page; page < items
+        self.assertEqual(
+            TableRowsPage(has_previous=False, has_next=True, page=1, items=items[0:5]),
+            get_table_rows(
+                self.WORKSPACE,
+                "database_tutorial",
+                "id",
+                OrderByDirectionEnum.ASC,
+                1,
+                5,
+            ),
+        )
+        # Second page
+        cursor.fetchall.return_value = items[5:]
+        self.assertEqual(
+            TableRowsPage(has_previous=True, has_next=False, page=2, items=items[5:]),
+            get_table_rows(
+                self.WORKSPACE,
+                "database_tutorial",
+                "id",
+                OrderByDirectionEnum.ASC,
+                2,
+                5,
+            ),
+        )
+
+        # Page in between
+        cursor.fetchall.return_value = items[3:7]
+        self.assertEqual(
+            TableRowsPage(has_previous=True, has_next=True, page=2, items=items[3:6]),
+            get_table_rows(
+                self.WORKSPACE,
+                "database_tutorial",
+                "id",
+                OrderByDirectionEnum.ASC,
+                2,
+                3,
+            ),
+        )
