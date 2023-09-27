@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.6](https://github.com/BLSQ/openhexa-app/compare/0.60.5...0.60.6) (2023-09-27)
+
+
+### Bug Fixes
+
+* **Databases:** get_table_rows has to take the page_size from the db return ([#558](https://github.com/BLSQ/openhexa-app/issues/558)) ([4c212d8](https://github.com/BLSQ/openhexa-app/commit/4c212d8196b002dc8feb3183b5ca47a4ef381d5b))
+
 ## [0.60.5](https://github.com/BLSQ/openhexa-app/compare/0.60.4...0.60.5) (2023-09-27)
 
 
