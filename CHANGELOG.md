@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.5](https://github.com/BLSQ/openhexa-app/compare/0.60.4...0.60.5) (2023-09-27)
+
+
+### Bug Fixes
+
+* **datasets:** Make the datasets working with pipelines ([#556](https://github.com/BLSQ/openhexa-app/issues/556)) ([27358eb](https://github.com/BLSQ/openhexa-app/commit/27358ebc15247ff98310777fe3d565a12cbcb368))
+
 ## [0.60.4](https://github.com/BLSQ/openhexa-app/compare/0.60.3...0.60.4) (2023-09-25)
 
 
