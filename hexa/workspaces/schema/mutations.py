@@ -425,9 +425,6 @@ def resolve_generate_workspace_token(_, info, **kwargs):
     if membership.role == WorkspaceMembershipRole.VIEWER:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    if not membership.access_token:
-        membership.generate_access_token()
-
     token = Signer().sign_object(str(membership.access_token))
     return {"success": True, "errors": [], "token": token}
 
