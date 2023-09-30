@@ -41,7 +41,7 @@ class AlreadyExists(Exception):
 def create_workspace_slug(name):
     suffix = secrets.token_hex(3)
     prefix = slugify(name[:23])
-    return prefix[:23] + "-" + suffix
+    return prefix[:23].rstrip("-") + "-" + suffix
 
 
 def generate_database_name():
@@ -413,7 +413,7 @@ class ConnectionManager(models.Manager):
 
         # Check if the slug does not already exist
         if not slug:
-            slug = slugify(name)[:40]
+            slug = slugify(name)[:40].rstrip("-")
 
         if self.filter(workspace=workspace, slug=slug).exists():
             # If the slug already exists, we add a random string to it
