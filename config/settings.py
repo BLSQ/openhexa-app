@@ -439,6 +439,10 @@ WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")
 
+WORKSPACE_DOCKER_IMAGE = os.environ.get(
+    "WORKSPACE_DOCKER_IMAGE", "blsq/openhexa-workspace:latest"
+)
+
 # Base64 encoded service account key
 # To generate a service account key, follow the instructions here:
 # import base64
