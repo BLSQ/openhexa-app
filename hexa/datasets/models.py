@@ -13,7 +13,7 @@ from hexa.user_management.models import User
 def create_dataset_slug(name: str):
     suffix = secrets.token_hex(3)
     prefix = slugify(name[: 64 - 3])
-    return prefix[:23] + "-" + suffix
+    return prefix[:23].rstrip("-") + "-" + suffix
 
 
 class DatasetQuerySet(BaseQuerySet):

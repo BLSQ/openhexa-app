@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
@@ -85,6 +87,11 @@ class DatasetTest(BaseTestMixin, TestCase):
         self.assertEqual(dataset.created_by, self.USER_EDITOR)
 
         return dataset
+
+    def test_create_dataset_with_double_dash(self):
+        with patch("secrets.token_hex", return_value="123"):
+            dataset = self.test_create_dataset(name="My dataset -- test-")
+        self.assertEqual(dataset.slug, "my-dataset-test-123")
 
     def test_workspace_datasets(self):
         self.test_create_dataset(name="dataset_1", description="description_1")
