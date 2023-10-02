@@ -30,7 +30,7 @@ const config = {
 
   poweredByHeader: false, // Disable 'x-powered-by' header
   reactStrictMode: true,
-  trailingSlash: false,
+  trailingSlash: true,
   i18n,
 };
 
