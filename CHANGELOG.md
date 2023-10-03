@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.60.7](https://github.com/BLSQ/openhexa-app/compare/0.60.6...0.60.7) (2023-10-02)
+
+
+### Bug Fixes
+
+* Do not allow slugs for workspace, datasets & connection to have double dash ([#562](https://github.com/BLSQ/openhexa-app/issues/562)) ([1199cfb](https://github.com/BLSQ/openhexa-app/commit/1199cfbfa6ed0894c488ab43b82b3a9242e1e975))
+* **Workspaces:** don't test for access tokens in resolve_generate_workspace_token ([#560](https://github.com/BLSQ/openhexa-app/issues/560)) ([c54b1a9](https://github.com/BLSQ/openhexa-app/commit/c54b1a93d9781c1e58a5b84392ce4669b3a24e0c))
+
 ## [0.60.6](https://github.com/BLSQ/openhexa-app/compare/0.60.5...0.60.6) (2023-09-27)
 
 
