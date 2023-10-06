@@ -93,19 +93,19 @@ The following steps will get you up and running:
 ```bash
 cp .env.dist .env
 docker network create openhexa
-docker-compose build
-docker-compose run app fixtures
-docker-compose run app manage tailwind install
-docker-compose run app manage tailwind build
-docker-compose up
+docker compose build
+docker compose run app fixtures
+docker compose run app manage tailwind install
+docker compose run app manage tailwind build
+docker compose up
 ```
 
-This will correctly configure all the environment variables, fill the database with some initial data and start the base `db` and `app` services.
+This will correctly configure all the environment variables, fill the database with some initial data and start the base `db` and `app` services. The app is then exposed on `localhost:8000`.
 
 If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can running the following command **instead of** `docker-compose up`:
 
 ```bash
-docker-compose --profile pipelines --profile dataworker up 
+docker compose --profile pipelines --profile dataworker up 
 ```
 
 You can then log in with the following credentials: `root@openhexa.org`/`root`
@@ -119,13 +119,13 @@ can then rebuild the Docker image.
 The app Docker image contains an entrypoint. You can use the following to list the available commands:
 
 ```bash
-docker-compose run app help
+docker compose run app help
 ```
 
 As an example, use the following command to run the migrations:
 
 ```bash
-docker-compose run app migrate
+docker compose run app migrate
 ```
 
 ### Running the tests
@@ -133,24 +133,38 @@ docker-compose run app migrate
 Running the tests is as simple as:
 
 ```bash
-docker-compose run app test
+docker compose run app test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker-compose run app test --exclude-tag=external
+docker compose run app test --exclude-tag=external
+```
+
+You can run a specific test as it follows:
+
+```bash
+docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 ```
 
 Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
 
 ```bash
-docker-compose run app coveraged-test
+docker compose run app coveraged-test
 ```
 
-If you have the .coverage generated, you can also create html report with the command
-```coverage html```.
+If you have the .coverage generated, you can also create HTML report from the
+container:
+
+```bash
+docker compose run app bash
+coverage html
+```
+
+The reports are put into the directory `htmlcov`. You might need to change the
+ownership of those files to get access to them.
 
 ### Code style
 
