@@ -12,8 +12,8 @@ function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
       <div className="col-span-2">
         <Field
           onChange={form.handleInputChange}
-          value={form.formData.api_url}
-          name="api_url"
+          value={form.formData.url}
+          name="url"
           type="url"
           required
           placeholder="https://iaso.bluesquare.org"
@@ -47,7 +47,7 @@ export default {
   iconSrc: "/images/iaso.svg",
   Form: IASOForm,
   fields: [
-    { code: "api_url", name: "IASO Instance URL", required: true },
+    { code: "url", name: "IASO Instance URL", required: true },
     { code: "username", name: "Username", required: true },
     { code: "password", secret: true, name: "Password", required: true },
   ],
