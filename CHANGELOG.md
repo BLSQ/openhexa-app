@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.8](https://github.com/BLSQ/openhexa-app/compare/0.60.7...0.60.8) (2023-10-09)
+
+
+### Bug Fixes
+
+* **Connections:** rename IASO connection api_url to url ([#566](https://github.com/BLSQ/openhexa-app/issues/566)) ([c68ab2d](https://github.com/BLSQ/openhexa-app/commit/c68ab2df70cf81796cb2df41abc02b7fabe5972e))
+
 ## [0.60.7](https://github.com/BLSQ/openhexa-app/compare/0.60.6...0.60.7) (2023-10-02)
 
 
