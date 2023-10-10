@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.3](https://github.com/BLSQ/openhexa-frontend/compare/0.36.2...0.36.3) (2023-10-10)
+
+
+### Bug Fixes
+
+* **Connections:** rename IASO instance api_url to url ([#445](https://github.com/BLSQ/openhexa-frontend/issues/445)) ([1b41dd7](https://github.com/BLSQ/openhexa-frontend/commit/1b41dd74eb46bac9f3dc0e8c63ec107d240fcaee))
+* **Datasets:** Update CTA to create a version; Update snippet ([#437](https://github.com/BLSQ/openhexa-frontend/issues/437)) ([66698af](https://github.com/BLSQ/openhexa-frontend/commit/66698afe4b8a126fece8ff89731e6f8a9589b010))
+
 ## [0.36.2](https://github.com/BLSQ/openhexa-frontend/compare/0.36.1...0.36.2) (2023-09-25)
 
 
