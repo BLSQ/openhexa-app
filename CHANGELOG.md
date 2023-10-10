@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.4](https://github.com/BLSQ/openhexa-frontend/compare/0.36.3...0.36.4) (2023-10-10)
+
+
+### Bug Fixes
+
+* **Datasets:** rename upload a version to create a version ([#448](https://github.com/BLSQ/openhexa-frontend/issues/448)) ([cf1a00a](https://github.com/BLSQ/openhexa-frontend/commit/cf1a00a532cc21f911bc6feeaac3b33443e72e75))
+
 ## [0.36.3](https://github.com/BLSQ/openhexa-frontend/compare/0.36.2...0.36.3) (2023-10-10)
 
 
