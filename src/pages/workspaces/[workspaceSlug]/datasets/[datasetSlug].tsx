@@ -1,4 +1,8 @@
-import { CloudArrowUpIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  CloudArrowUpIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button/Button";
 import DataCard from "core/components/DataCard";
@@ -217,10 +221,10 @@ const WorkspaceDatasetPage: NextPageWithLayout = (props: Props) => {
                   {datasetLink.dataset.permissions.createVersion &&
                     isWorkspaceSource && (
                       <Button
-                        leadingIcon={<CloudArrowUpIcon className="h-4 w-4" />}
+                        leadingIcon={<PlusIcon className="h-4 w-4" />}
                         onClick={() => setUploadDialogOpen(true)}
                       >
-                        {t("Upload files")}
+                        {t("Create new version")}
                       </Button>
                     )}
                 </div>

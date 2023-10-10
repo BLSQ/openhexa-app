@@ -98,7 +98,7 @@ const UploadDatasetVersionDialog = ({
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title onClose={onClose}>
-          {t("Upload a new version")}
+          {t("Create a new version")}
         </Dialog.Title>
         <Dialog.Content>
           <Tabs onChange={(index) => setTabIndex(index)}>
