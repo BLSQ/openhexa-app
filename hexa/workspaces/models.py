@@ -516,6 +516,15 @@ class Connection(models.Model):
     @property
     def env_variables(self):
         env = {f.env_key: f.value for f in self.fields.all()}
+
+        if self.connection_type == ConnectionType.IASO:
+            fields = {f.code: f.value for f in self.fields.all()}
+            env.update(
+                {
+                    # Add "_API_URL" for backward-compatibility (we now use "_URL" but it used to be _API_URL")
+                    stringcase.constcase(f"{self.slug}_api_url".lower()): fields["url"]
+                }
+            )
         if self.connection_type == ConnectionType.POSTGRESQL:
             fields = {f.code: f.value for f in self.fields.all()}
             env.update(
