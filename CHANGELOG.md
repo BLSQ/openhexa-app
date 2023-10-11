@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.5](https://github.com/BLSQ/openhexa-frontend/compare/0.36.4...0.36.5) (2023-10-11)
+
+
+### Bug Fixes
+
+* **Datasets:** Set create button on upload section ([#450](https://github.com/BLSQ/openhexa-frontend/issues/450)) ([f440080](https://github.com/BLSQ/openhexa-frontend/commit/f440080bb7b414d8fb707671e8c0cd08df00a2b7))
+
 ## [0.36.4](https://github.com/BLSQ/openhexa-frontend/compare/0.36.3...0.36.4) (2023-10-10)
 
 
