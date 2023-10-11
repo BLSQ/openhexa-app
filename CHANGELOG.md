@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.9](https://github.com/BLSQ/openhexa-app/compare/0.60.8...0.60.9) (2023-10-11)
+
+
+### Bug Fixes
+
+* **Connections:** add _API_URL env variable for Iaso connections (backwards-compatibility) ([#568](https://github.com/BLSQ/openhexa-app/issues/568)) ([a92ffc4](https://github.com/BLSQ/openhexa-app/commit/a92ffc4d49681126b6c068fb096c3474e987704e))
+
 ## [0.60.8](https://github.com/BLSQ/openhexa-app/compare/0.60.7...0.60.8) (2023-10-09)
 
 
