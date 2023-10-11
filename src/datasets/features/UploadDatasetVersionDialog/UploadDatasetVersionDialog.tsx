@@ -98,10 +98,31 @@ const UploadDatasetVersionDialog = ({
     >
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title onClose={onClose}>
-          {t("Create a new version")}
+          {t("Upload a new version")}
         </Dialog.Title>
         <Dialog.Content>
           <Tabs onChange={(index) => setTabIndex(index)}>
+            <Tabs.Tab label={t("Using SDK")} className={"space-y-2 pt-2"}>
+              <p>
+                You can upload a new version of your dataset from Pipelines &
+                Jupyter using the following snippet.
+              </p>
+              <pre
+                className={
+                  "bg-slate-100 p-2 font-mono text-sm leading-6 whitespace-break-spaces"
+                }
+              >
+                from pathlib import Path
+                <br />
+                from openhexa.sdk import workspace
+                <br />
+                dataset = workspace.get_dataset(&quot;
+                {datasetLink.dataset.slug}&quot;)
+                <br />
+                dataset.create_version(&quot;v2&quot;,
+                [Path(&quot;/path/to/file.csv&quot;)])
+              </pre>
+            </Tabs.Tab>
             <Tabs.Tab label={t("Upload files")} className={"space-y-4 pt-2"}>
               <Field
                 name={"name"}
@@ -121,26 +142,6 @@ const UploadDatasetVersionDialog = ({
                 />
               </Field>
             </Tabs.Tab>
-            <Tabs.Tab label={t("Using the SDK")} className={"space-y-2 pt-2"}>
-              <p>
-                You can upload a new version of your dataset from Pipelines &
-                Jupyter using the following snippet.
-              </p>
-              <pre
-                className={
-                  "bg-slate-100 p-2 font-mono text-sm leading-6 whitespace-break-spaces"
-                }
-              >
-                from openhexa.sdk import workspace
-                <br />
-                dataset = workspace.get_dataset(&quot;
-                {datasetLink.dataset.slug}&quot;)
-                <br />
-                version = dataset.create_version(&quot;v2&quot;)
-                <br />
-                version.add_file(&quot;/path/to/file.csv&quot;)
-              </pre>
-            </Tabs.Tab>
           </Tabs>
         </Dialog.Content>
         <Dialog.Actions>
@@ -149,7 +150,7 @@ const UploadDatasetVersionDialog = ({
             onClick={onClose}
             disabled={form.isSubmitting}
           >
-            {t("Cancel")}
+            {t("Close")}
           </Button>
           {tabIndex === 1 && (
             <Button disabled={form.isSubmitting} type={"submit"}>
