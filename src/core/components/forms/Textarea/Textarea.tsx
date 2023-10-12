@@ -6,10 +6,9 @@ type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
 };
 
 const Textarea = (props: TextareaProps) => {
-  const { className, error, rows = 4 } = props;
+  const { className, error, rows = 4, value, ...delegated } = props;
   return (
     <textarea
-      {...props}
       rows={rows}
       className={clsx(
         "form-textarea w-full appearance-none rounded-md border px-3 py-2 focus:z-10 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm",
@@ -18,7 +17,9 @@ const Textarea = (props: TextareaProps) => {
           : "border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500",
         className,
       )}
-    ></textarea>
+      value={value}
+      {...delegated}
+    />
   );
 };
 

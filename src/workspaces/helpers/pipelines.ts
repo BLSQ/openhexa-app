@@ -8,7 +8,7 @@ import {
   UpdateWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
-import { PipelineParameter } from "graphql-types";
+import { PipelineParameter, PipelineVersion } from "graphql-types";
 
 export async function updatePipeline(pipelineId: string, values: any) {
   const client = getApolloClient();
@@ -56,6 +56,39 @@ export function validateCronExpression(cronExpression: string) {
     return false;
   }
 }
+
+export const convertParametersToPipelineInput = (
+  version: PipelineVersion,
+  fields: { [key: string]: any },
+): any => {
+  const params: { [key: string]: any } = {};
+  for (const parameter of version.parameters) {
+    const val = fields[parameter.code];
+
+    if (parameter.type === "int") {
+      if (parameter.multiple && val) {
+        params[parameter.code] = val
+          .filter((v: string) => v !== "")
+          .map((v: string) => parseInt(v, 10));
+      } else {
+        params[parameter.code] = val !== null ? parseInt(val, 10) : null;
+      }
+    } else if (parameter.type === "float") {
+      if (parameter.multiple && val) {
+        params[parameter.code] = val
+          .filter((v: string) => v !== "")
+          .map((v: string) => parseFloat(v));
+      } else {
+        params[parameter.code] = val !== null ? parseFloat(val) : null;
+      }
+    } else if (parameter.type === "str" && parameter.multiple && val) {
+      params[parameter.code] = val.filter((s: string) => s !== "");
+    } else {
+      params[parameter.code] = val;
+    }
+  }
+  return params;
+};
 
 export function getCronExpressionDescription(
   cronExpression: string,

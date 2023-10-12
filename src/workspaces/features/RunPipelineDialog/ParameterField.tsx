@@ -20,17 +20,14 @@ const ParameterField = (props: ParameterFieldProps) => {
   const handleChange = useCallback(
     (value: any) => {
       if (parameter.multiple && (value === null || value === undefined)) {
-        onChange([]);
-      }
-      if (parameter.type === "int" && value !== "") {
-        onChange(parseInt(value, 10));
-      } else if (parameter.type === "float" && value !== "") {
-        onChange(parseFloat(value));
+        return onChange([]);
+      } else if (parameter.multiple) {
+        onChange(value.split("\n"));
       } else {
         onChange(value);
       }
     },
-    [onChange, parameter.multiple, parameter.type],
+    [onChange, parameter.multiple],
   );
 
   if (parameter.type === "bool") {
@@ -78,11 +75,10 @@ const ParameterField = (props: ParameterFieldProps) => {
           className="w-full"
           value={value ? value.join("\n") : ""}
           onChange={(event) => {
-            handleChange(
-              event.target.value ? event.target.value.split("\n") : [],
-            );
+            handleChange(event.target.value);
           }}
-        />
+          data-testid={`${parameter.code}-textarea`}
+        ></Textarea>
         <small className="ml-2 text-gray-600">
           {t("Separate values with a new line")}
         </small>
@@ -100,6 +96,7 @@ const ParameterField = (props: ParameterFieldProps) => {
           required={Boolean(parameter.required)}
           onChange={(event) => handleChange(event.target.value)}
           value={value ?? ""}
+          data-testid={`${parameter.code}-input`}
         />
       );
     case "str":
@@ -111,6 +108,7 @@ const ParameterField = (props: ParameterFieldProps) => {
           required={Boolean(parameter.required)}
           onChange={(event) => handleChange(event.target.value)}
           value={value ?? ""}
+          data-testid={`${parameter.code}-input`}
         />
       );
   }

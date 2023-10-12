@@ -11,7 +11,10 @@ import { PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { runPipeline } from "workspaces/helpers/pipelines";
+import {
+  convertParametersToPipelineInput,
+  runPipeline,
+} from "workspaces/helpers/pipelines";
 import PipelineVersionPicker from "../PipelineVersionPicker";
 import ParameterField from "./ParameterField";
 import {
@@ -65,7 +68,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       const { version, sendMailNotifications, ...params } = values;
       const run = await runPipeline(
         pipeline.id,
-        params,
+        convertParametersToPipelineInput(version, params),
         version?.number,
         sendMailNotifications,
       );
@@ -98,31 +101,26 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       if (!version) {
         return { version: t("The version is required") };
       }
-
+      const normalizedValues = convertParametersToPipelineInput(
+        version,
+        fields,
+      );
       for (const parameter of version.parameters) {
-        const val = fields[parameter.code];
-        if (parameter.type === "int") {
-          if (isNaN(val)) {
-            errors[parameter.code] = t("This field must be a number");
-          } else if (!val?.toString() && parameter.required) {
+        const val = normalizedValues[parameter.code];
+        if (parameter.type === "int" || parameter.type === "float") {
+          if (ensureArray(val).length === 0 && parameter.required) {
             errors[parameter.code] = t("This field is required");
+          } else if (ensureArray(val).some((v) => isNaN(v))) {
+            errors[parameter.code] = t("This field must contain only numbers");
           }
         }
 
-        if (parameter.type === "float") {
-          if (isNaN(val)) {
-            errors[parameter.code] = t("This field must be a number");
-          } else if (!val?.toString() && parameter.required) {
-            errors[parameter.code] = t("This field is required");
-          }
-        }
-
-        if (parameter.type === "str" && parameter.required) {
-          if (parameter.multiple && ensureArray(val).length === 0) {
-            errors[parameter.code] = t("This field is required");
-          } else if (!fields[parameter.code]) {
-            errors[parameter.code] = t("This field is required");
-          }
+        if (
+          parameter.type === "str" &&
+          parameter.required &&
+          ensureArray(val).length === 0
+        ) {
+          errors[parameter.code] = t("This field is required");
         }
       }
       return errors;

@@ -355,7 +355,7 @@
   "This dataset has no version. Upload a new version using your browser or the SDK to see it here.": "",
   "This dataset is already linked to this workspace": "",
   "This field is required": "",
-  "This field must be a number": "",
+  "This field must contain only numbers": "",
   "This file is not yet uploaded": "",
   "This is the code used to identify this pipeline using the cli.": "",
   "This pipeline has no parameter": "",
