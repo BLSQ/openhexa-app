@@ -630,6 +630,7 @@ enum CreateDatasetVersionError {
 
 enum CreateDatasetVersionFileError {
   VERSION_NOT_FOUND
+  LOCKED_VERSION
   ALREADY_EXISTS
   INVALID_URI
   PERMISSION_DENIED
@@ -1683,6 +1684,7 @@ type PipelineRun {
   outputs: [PipelineRunOutput!]!
   code: String!
   sendMailNotifications: Boolean!
+  timeout: Int
 }
 
 type PipelineRunMessage {

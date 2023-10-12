@@ -238,9 +238,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   label={t("Timeout")}
                   help={t("See documentation for more info.")}
                 >
-                  {run.version.timeout
-                    ? formatDuration(run.version.timeout)
-                    : "-"}
+                  {run.timeout ? formatDuration(run.timeout) : "-"}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Notifications")}>
                   <Checkbox checked={run.sendMailNotifications} disabled />

@@ -702,6 +702,7 @@ export enum CreateDatasetVersionError {
 export enum CreateDatasetVersionFileError {
   AlreadyExists = 'ALREADY_EXISTS',
   InvalidUri = 'INVALID_URI',
+  LockedVersion = 'LOCKED_VERSION',
   PermissionDenied = 'PERMISSION_DENIED',
   VersionNotFound = 'VERSION_NOT_FOUND'
 }
@@ -2283,6 +2284,7 @@ export type PipelineRun = {
   run_id: Scalars['UUID']['output'];
   sendMailNotifications: Scalars['Boolean']['output'];
   status: PipelineRunStatus;
+  timeout?: Maybe<Scalars['Int']['output']>;
   triggerMode?: Maybe<PipelineRunTrigger>;
   user?: Maybe<User>;
   version: PipelineVersion;
