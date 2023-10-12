@@ -83,6 +83,7 @@ type PipelineRun {
   outputs: [PipelineRunOutput!]!
   code: String!
   sendMailNotifications: Boolean!
+  timeout: Int
 }
 
 enum PipelineRunOrderBy {
