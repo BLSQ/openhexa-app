@@ -859,7 +859,7 @@ class PipelinesV2Test(GraphQLTestCase):
             in mail.outbox[0].body
         )
 
-    def test_pipelines_permissions_schedule_true(self):
+    def test_pipelines_permissions_schedule_true_no_param(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_SABRINA)
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
@@ -894,7 +894,7 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["pipelineByCode"],
         )
 
-    def test_pipelines_permissions_schedule_false(self):
+    def test_pipelines_permissions_schedule_true(self):
         self.test_create_pipeline()
         self.client.force_login(self.USER_SABRINA)
         pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
@@ -911,6 +911,141 @@ class PipelinesV2Test(GraphQLTestCase):
                     "multiple": True,
                     "required": True,
                     "choices": ["Choice 1", "Choice 2"],
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": False},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_required_param_with_no_default_value(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": None,
+                    "multiple": False,
+                    "required": True,
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": False},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_required_param_empty_string(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "help": "Param 1's Help",
+                    "default": "",
+                    "multiple": False,
+                    "required": True,
+                }
+            ],
+        )
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    id
+                    code
+                    permissions {
+                      schedule
+                    }
+                }
+            }
+        """,
+            {
+                "code": pipeline.code,
+                "workspaceSlug": self.WS1.slug,
+            },
+        )
+        self.assertEqual(
+            {
+                "id": str(pipeline.id),
+                "code": pipeline.code,
+                "permissions": {"schedule": True},
+            },
+            r["data"]["pipelineByCode"],
+        )
+
+    def test_pipelines_permissions_schedule_not_required_param_with_value_none(self):
+        self.test_create_pipeline()
+        self.client.force_login(self.USER_SABRINA)
+        pipeline = Pipeline.objects.filter_for_user(self.USER_SABRINA).first()
+        pipeline.upload_new_version(
+            user=self.USER_ROOT,
+            zipfile=base64.b64decode("".encode("ascii")),
+            parameters=[
+                {
+                    "code": "param1",
+                    "name": "Param 1",
+                    "type": "string",
+                    "default": None,
+                    "help": "Param 1's Help",
+                    "multiple": False,
+                    "required": True,
                 }
             ],
         )
@@ -1018,7 +1153,6 @@ class PipelinesV2Test(GraphQLTestCase):
                     "name": "Param 1",
                     "type": "string",
                     "help": "Param 1's Help",
-                    "default": "Default",
                     "multiple": True,
                     "required": True,
                     "choices": ["Choice 1", "Choice 2"],
@@ -1059,46 +1193,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 "permissions": {"schedule": False},
             },
             r["data"]["pipelineByCode"],
-        )
-
-    def test_upload_pipeline_parameters_not_supported(self):
-        self.test_create_pipeline_version()
-        self.client.force_login(self.USER_ROOT)
-        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).first()
-        pipeline.schedule = "0 15 * * *"
-        pipeline.save()
-
-        r = self.run_query(
-            """
-            mutation uploadPipeline($input: UploadPipelineInput!) {
-                uploadPipeline(input: $input) {
-                    success
-                    errors
-                }
-            }""",
-            {
-                "input": {
-                    "code": pipeline.code,
-                    "workspaceSlug": self.WS1.slug,
-                    "parameters": [
-                        {
-                            "code": "param1",
-                            "name": "Param 1",
-                            "type": "string",
-                            "help": "Param 1's Help",
-                            "default": "default value",
-                            "multiple": True,
-                            "required": True,
-                            "choices": ["Choice 1", "Choice 2"],
-                        }
-                    ],
-                    "zipfile": "",
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]},
-            r["data"]["uploadPipeline"],
         )
 
     def test_pipeline_new_run_with_timeout(self):

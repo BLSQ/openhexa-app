@@ -129,9 +129,16 @@ class PipelineVersion(models.Model):
 
     @property
     def is_schedulable(self):
-        return len(self.parameters) == 0 or all(
-            [parameter.get("default") is not None for parameter in self.parameters]
-        )
+        if len(self.parameters) == 0:
+            return True
+
+        for parameter in self.parameters:
+            if (parameter.get("required") is True) and (
+                parameter.get("default") is None
+            ):
+                return False
+
+        return True
 
     @property
     def display_name(self):
@@ -210,10 +217,6 @@ class Pipeline(models.Model):
 
     def upload_new_version(self, user: User, zipfile, parameters, timeout: int = None):
         if self.last_version:
-            if self.schedule and parameters:
-                raise PipelineDoesNotSupportParametersError(
-                    "Cannot push a new version with parameters for a scheduled pipeline."
-                )
             newnumber = self.last_version.number + 1
         else:
             newnumber = 1
