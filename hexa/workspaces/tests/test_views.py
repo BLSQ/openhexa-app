@@ -125,6 +125,23 @@ class ViewsTest(TestCase):
             ],
         )
 
+        cls.WORKSPACE_DHIS2_CONNECTION = Connection.objects.create_if_has_perm(
+            cls.USER_JULIA,
+            cls.WORKSPACE,
+            name="DHIS2",
+            description="DHIS2 connection",
+            connection_type=ConnectionType.DHIS2,
+        )
+
+        cls.WORKSPACE_DHIS2_CONNECTION.set_fields(
+            cls.USER_JULIA,
+            [
+                {"code": "url", "value": "url"},
+                {"code": "username", "value": "user"},
+                {"code": "password", "secret": True, "value": "admin"},
+            ],
+        )
+
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,
             name="Test pipeline",
@@ -229,6 +246,18 @@ class ViewsTest(TestCase):
                 "S3_SECRET_ACCESS_KEY": self.WORKSPACE_S3_CONNECTION.fields.get(
                     code="secret_access_key"
                 ).value,
+                "DHIS2_API_URL": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "DHIS2_URL": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "DHIS2_USERNAME": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="username"
+                ).value,
+                "DHIS2_PASSWORD": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="password"
+                ).value,
             },
         )
         self.assertEqual(
@@ -322,6 +351,18 @@ class ViewsTest(TestCase):
                 ).value,
                 "S3_SECRET_ACCESS_KEY": self.WORKSPACE_S3_CONNECTION.fields.get(
                     code="secret_access_key"
+                ).value,
+                "DHIS2_API_URL": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "DHIS2_URL": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "DHIS2_USERNAME": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="username"
+                ).value,
+                "DHIS2_PASSWORD": self.WORKSPACE_DHIS2_CONNECTION.fields.get(
+                    code="password"
                 ).value,
             },
         )
