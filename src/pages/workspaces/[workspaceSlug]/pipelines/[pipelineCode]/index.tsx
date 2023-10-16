@@ -229,7 +229,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 </>
               ) : (
                 <p className="text-sm font-medium italic text-gray-500">
-                  {t("Pipeline with parameters cannot be scheduled")}
+                  {t(
+                    "Pipeline with parameters can be scheduled only if all parameters are optional or have default values.",
+                  )}
                 </p>
               )}
             </DataCard.FormSection>

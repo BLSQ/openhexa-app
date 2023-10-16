@@ -247,7 +247,7 @@
   "Pipeline run": "",
   "Pipeline Run": "",
   "Pipeline versions": "",
-  "Pipeline with parameters cannot be scheduled": "",
+  "Pipeline with parameters can be scheduled only if all parameters are optional or have default values.": "",
   "Pipelines": "",
   "Please enter an email address": "",
   "Port": "",
