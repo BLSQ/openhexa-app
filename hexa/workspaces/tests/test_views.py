@@ -56,7 +56,7 @@ class ViewsTest(TestCase):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        cls.WORKSPACE_CONNECTION = Connection.objects.create_if_has_perm(
+        cls.WORKSPACE_POSTGRESQL_CONNECTION = Connection.objects.create_if_has_perm(
             cls.USER_JULIA,
             cls.WORKSPACE,
             name="DB",
@@ -64,14 +64,64 @@ class ViewsTest(TestCase):
             connection_type=ConnectionType.POSTGRESQL,
         )
 
-        cls.WORKSPACE_CONNECTION.set_fields(
+        cls.WORKSPACE_POSTGRESQL_CONNECTION.set_fields(
             cls.USER_JULIA,
             [
-                {"code": "host", "secret": False, "value": "127.0.0.1"},
-                {"code": "port", "secret": False, "value": "5432"},
-                {"code": "username", "secret": False, "value": "hexa-app"},
+                {"code": "host", "value": "127.0.0.1"},
+                {"code": "port", "value": "5432"},
+                {"code": "username", "value": "hexa-app"},
                 {"code": "password", "secret": True, "value": "hexa-app"},
                 {"code": "db_name", "secret": False, "value": "hexa-app"},
+            ],
+        )
+
+        cls.WORKSPACE_S3_CONNECTION = Connection.objects.create_if_has_perm(
+            cls.USER_JULIA,
+            cls.WORKSPACE,
+            name="S3",
+            description="S3 connection",
+            connection_type=ConnectionType.S3,
+        )
+
+        cls.WORKSPACE_S3_CONNECTION.set_fields(
+            cls.USER_JULIA,
+            [
+                {"code": "bucket_name", "value": "bucket_name"},
+                {"code": "access_key_id", "value": "access_key"},
+                {"code": "secret_access_key", "value": "hexa-app"},
+            ],
+        )
+
+        cls.WORKSPACE_GCS_CONNECTION = Connection.objects.create_if_has_perm(
+            cls.USER_JULIA,
+            cls.WORKSPACE,
+            name="GCS",
+            description="GCS connection",
+            connection_type=ConnectionType.GCS,
+        )
+
+        cls.WORKSPACE_GCS_CONNECTION.set_fields(
+            cls.USER_JULIA,
+            [
+                {"code": "bucket_name", "value": "bucket_name"},
+                {"code": "service_account_key", "value": "key"},
+            ],
+        )
+
+        cls.WORKSPACE_IASO_CONNECTION = Connection.objects.create_if_has_perm(
+            cls.USER_JULIA,
+            cls.WORKSPACE,
+            name="IASO",
+            description="IASO connection",
+            connection_type=ConnectionType.IASO,
+        )
+
+        cls.WORKSPACE_IASO_CONNECTION.set_fields(
+            cls.USER_JULIA,
+            [
+                {"code": "url", "value": "url"},
+                {"code": "username", "value": "user"},
+                {"code": "password", "secret": True, "value": "admin"},
             ],
         )
 
@@ -154,6 +204,31 @@ class ViewsTest(TestCase):
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
                 ),
+                "GCS_BUCKET_NAME": self.WORKSPACE_GCS_CONNECTION.fields.get(
+                    code="bucket_name"
+                ).value,
+                "GCS_SERVICE_ACCOUNT_KEY": self.WORKSPACE_GCS_CONNECTION.fields.get(
+                    code="service_account_key"
+                ).value,
+                "IASO_API_URL": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "IASO_URL": self.WORKSPACE_IASO_CONNECTION.fields.get(code="url").value,
+                "IASO_USERNAME": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="username"
+                ).value,
+                "IASO_PASSWORD": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="password"
+                ).value,
+                "S3_ACCESS_KEY_ID": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="access_key_id"
+                ).value,
+                "S3_BUCKET_NAME": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="bucket_name"
+                ).value,
+                "S3_SECRET_ACCESS_KEY": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="secret_access_key"
+                ).value,
             },
         )
         self.assertEqual(
@@ -223,6 +298,31 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
                 "GCS_TOKEN": "gcs-token",
                 "HEXA_TOKEN": token,
+                "GCS_BUCKET_NAME": self.WORKSPACE_GCS_CONNECTION.fields.get(
+                    code="bucket_name"
+                ).value,
+                "GCS_SERVICE_ACCOUNT_KEY": self.WORKSPACE_GCS_CONNECTION.fields.get(
+                    code="service_account_key"
+                ).value,
+                "IASO_API_URL": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="url"
+                ).value,
+                "IASO_URL": self.WORKSPACE_IASO_CONNECTION.fields.get(code="url").value,
+                "IASO_USERNAME": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="username"
+                ).value,
+                "IASO_PASSWORD": self.WORKSPACE_IASO_CONNECTION.fields.get(
+                    code="password"
+                ).value,
+                "S3_ACCESS_KEY_ID": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="access_key_id"
+                ).value,
+                "S3_BUCKET_NAME": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="bucket_name"
+                ).value,
+                "S3_SECRET_ACCESS_KEY": self.WORKSPACE_S3_CONNECTION.fields.get(
+                    code="secret_access_key"
+                ).value,
             },
         )
         self.assertEqual(
