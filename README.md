@@ -75,18 +75,14 @@ DHIS2 instances, PostgreSQL databases...
 Running OpenHexa
 ================
 
-Docker image
-------------
-
-The OpenHexa app Docker image is publicly available on Docker Hub
-([blsq/openhexa-app](https://hub.docker.com/r/blsq/openhexa-app)).
-
-This repository also provides a Github workflow to build the Docker image in the `.github/workflows` directory.
-
 Local development
 -----------------
 
-In addition to the **App component** Docker image, we also provide a `docker-compose.yaml` file for local development.
+To ease the setup of the environment and management of dependencies, we are
+using containerization, in particular Docker. As such, we provide a
+`docker-compose.yaml` file for local development. When running it, the present
+code base is mounted inside the container. That means that the changes are
+reflected directly in the container environment allowing you to develop.
 
 The following steps will get you up and running:
 
@@ -100,7 +96,12 @@ docker compose run app manage tailwind build
 docker compose up
 ```
 
-This will correctly configure all the environment variables, fill the database with some initial data and start the base `db` and `app` services. The app is then exposed on `localhost:8000`.
+This will correctly configure all the environment variables, fill the database
+with some initial data and start the base `db` and `app` services. The app is
+then exposed on `localhost:8000`. Two main paths are available:
+`http://localhost:8000/graphql` for the GraphQL API, and
+`http://localhost:8000/ready` for the backend readiness. Anything else will
+be redirected to the frontend served at `http://localhost:3000`.
 
 If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can running the following command **instead of** `docker-compose up`:
 
@@ -148,6 +149,10 @@ You can run a specific test as it follows:
 ```bash
 docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 ```
+
+There are many other options, if you want to find out more, look at the
+[documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
+as it is what we are using.
 
 Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
 
