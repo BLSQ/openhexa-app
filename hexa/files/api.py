@@ -169,7 +169,10 @@ def list_bucket_objects(
         # Start by adding all the prefixes
         # Prefixes are virtual directories based on the delimiter specified in the request
         # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
-        for prefix in request.prefixes:
+
+        # request.prefixes is a Set (unorder) so to keep the prefixes order we need to sort them
+        prefixes = sorted(request.prefixes)
+        for prefix in prefixes:
             res = _prefix_to_dict(bucket_name, prefix)
             if not ignore_hidden_files or not res["name"].startswith("."):
                 objects.append(res)
