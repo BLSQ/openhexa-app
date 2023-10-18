@@ -54,7 +54,7 @@ jest.mock("next/dist/client/router", () => require("next-router-mock"));
 
 // https://github.com/scottrippey/next-router-mock/issues/58#issuecomment-1182861712
 // Fixes the navigation using links
-jest.mock("next/dist/shared/lib/router-context", () => {
+jest.mock("next/dist/shared/lib/router-context.shared-runtime", () => {
   const { createContext } = require("react");
   const router = require("next-router-mock").default;
   const RouterContext = createContext(router);
