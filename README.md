@@ -13,7 +13,7 @@
 OpenHexa App Component
 ======================
 
-OpenHexa is an open-source data integration platform developed by [BlueSquare](https://bluesquarehub.com).
+OpenHexa is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
 Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health projects.
 
