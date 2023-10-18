@@ -104,26 +104,8 @@ You can run a specific test as it follows:
 docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 ```
 
-There are many other options, if you want to find out more, look at the
-[documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
+There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
 as it is what we are using.
-
-Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
-
-```bash
-docker compose run app coveraged-test
-```
-
-If you have the .coverage generated, you can also create HTML report from the
-container:
-
-```bash
-docker compose run app bash
-coverage html
-```
-
-The reports are put into the directory `htmlcov`. You might need to change the
-ownership of those files to get access to them.
 
 ### Code style
 
