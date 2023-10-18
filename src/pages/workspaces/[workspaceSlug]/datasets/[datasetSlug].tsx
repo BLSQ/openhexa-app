@@ -84,7 +84,19 @@ const WorkspaceDatasetPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={datasetLink.dataset.name ?? t("Dataset")}>
-      <WorkspaceLayout workspace={workspace}>
+      <WorkspaceLayout
+        workspace={workspace}
+        helpLinks={[
+          {
+            label: t("About datasets"),
+            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#datasets",
+          },
+          {
+            label: t("Using the OpenHexa SDK with datasets"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHexa-SDK#working-with-datasets",
+          },
+        ]}
+      >
         <WorkspaceLayout.Header className="flex items-center justify-between gap-2">
           <Breadcrumbs withHome={false} className="flex-1">
             <Breadcrumbs.Part
