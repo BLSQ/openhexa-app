@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.60.10](https://github.com/BLSQ/openhexa-app/compare/0.60.9...0.60.10) (2023-10-18)
+
+
+### Bug Fixes
+
+* **Files:** order bucket prefixes ([#575](https://github.com/BLSQ/openhexa-app/issues/575)) ([1e095fe](https://github.com/BLSQ/openhexa-app/commit/1e095fe2ece8064bdd82490acc8bf2e756ac7579))
+* **Pipelines:** add timeout to PipelineRun model ([#570](https://github.com/BLSQ/openhexa-app/issues/570)) ([f4c1bbf](https://github.com/BLSQ/openhexa-app/commit/f4c1bbfe8458595bfd03b7a83fed58d3dc8723ff))
+* **Pipelines:** allow scheduling of pipelines if they have optional / default parameters ([#572](https://github.com/BLSQ/openhexa-app/issues/572)) ([80d1ce6](https://github.com/BLSQ/openhexa-app/commit/80d1ce63b9ccf59e468734eff0366a8773ff7f8f))
+
+
+### Miscellaneous
+
+* Upgrade most dependencies ([#576](https://github.com/BLSQ/openhexa-app/issues/576)) ([cbadcfa](https://github.com/BLSQ/openhexa-app/commit/cbadcfaffba7f0edc26e457d41f397836fe3806f))
+* **Workspaces:** add tests for connections env variables ([#573](https://github.com/BLSQ/openhexa-app/issues/573)) ([e68c007](https://github.com/BLSQ/openhexa-app/commit/e68c007683d0784eb57293fbbfba29d1ba5ac5ec))
+
 ## [0.60.9](https://github.com/BLSQ/openhexa-app/compare/0.60.8...0.60.9) (2023-10-11)
 
 
