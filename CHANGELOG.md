@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.36.6](https://github.com/BLSQ/openhexa-frontend/compare/0.36.5...0.36.6) (2023-10-18)
+
+
+### Features
+
+* **Datasets:** add help links ([#455](https://github.com/BLSQ/openhexa-frontend/issues/455)) ([8e386e9](https://github.com/BLSQ/openhexa-frontend/commit/8e386e9d9b662c1ed7467034a8f5bdc825c67b0b))
+* **Pipelines:** Support multiple ints in pipeline ([#432](https://github.com/BLSQ/openhexa-frontend/issues/432)) ([55f9dce](https://github.com/BLSQ/openhexa-frontend/commit/55f9dce46c8ab439f8695e202d477fdad191cc8e))
+
+
+### Bug Fixes
+
+* **PipelineRun:** use PipelineRun timeout ([#452](https://github.com/BLSQ/openhexa-frontend/issues/452)) ([beb1553](https://github.com/BLSQ/openhexa-frontend/commit/beb1553e235e98b1997d7d66d83b5f36d315ef0f))
+
+
+### Miscellaneous
+
+* **deps:** bump next from 13.4.4 to 13.5.5 ([#458](https://github.com/BLSQ/openhexa-frontend/issues/458)) ([67fb065](https://github.com/BLSQ/openhexa-frontend/commit/67fb065792cd72b8ac5082c5d5e2bc8043341798))
+
 ## [0.36.5](https://github.com/BLSQ/openhexa-frontend/compare/0.36.4...0.36.5) (2023-10-11)
 
 
