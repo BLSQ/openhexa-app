@@ -15,7 +15,8 @@ OpenHexa App Component
 
 OpenHexa is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
-Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health projects.
+Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health 
+projects.
 
 Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information, about OpenHexa.
 
