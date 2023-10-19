@@ -8,12 +8,11 @@ import uuid
 import stringcase
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied
 from django.core.signing import TimestampSigner
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
-from django.db.models import Q
+from django.db.models import EmailField, Q
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
 from django.utils.translation import gettext_lazy as _
@@ -359,7 +358,7 @@ class WorkspaceInvitation(Base):
             )
         ]
 
-    email = CIEmailField()
+    email = EmailField(db_collation="case_insensitive")
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.CASCADE,

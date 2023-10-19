@@ -9,10 +9,9 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import EmailField, Q
 from django.http import HttpRequest
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
@@ -1379,7 +1378,7 @@ class AccessRequest(Base):
     class Meta:
         ordering = ["created_at"]
 
-    email = CIEmailField()
+    email = EmailField(db_collation="case_insensitive")
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     accepted_tos = models.BooleanField(default=False)
