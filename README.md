@@ -13,76 +13,28 @@
 OpenHexa App Component
 ======================
 
-OpenHexa is an **open-source data integration platform** that allows users to:
+OpenHexa is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
-- Explore data coming from a variety of sources in a **data catalog**
-- Schedule **data pipelines** for extraction & transformation operations
-- Perform data analysis in **notebooks**
-- Create rich data **visualizations**
+Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health 
+projects.
 
-<div align="center">
-   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_catalog.png" hspace="10" height="150">
-   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_notebook.png" hspace="10" height="150">
-</div>
+Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information, about OpenHexa.
 
-OpenHexa architecture
-=====================
+This repository contains the code for what we call the `app` component, which mostly offers a GraphQL API and an 
+infrastructure to run data pipelines.
 
-You will find an overview of OpenHexa in the [main OpenHexa repository](https://github.com/blsq/openhexa).
+For more information about the technical aspects of OpenHexa, you might be interested in the two following wiki pages:
 
-The OpenHexa platform is composed of **three main components**:
-
-- The **App component**, a Django application that acts as the user-facing part of the OpenHexa platform
-- The **Notebooks component** (a customized [JupyterHub](https://jupyter.org/hub) setup)
-- The **Data Pipelines component** (built on top of [Airflow](https://airflow.apache.org/))
-
-This repository contains the code for the **App component**, which serves as the user-facing part of the OpenHexa
-stack.
-
-The code related to the Notebooks component can be found in the
-[`openhexa-notebooks`](https://github.com/blsq/openhexa-notebooks) repository, while the Data Pipelines component
-code resides in the [`openhexa-pipelines`](https://github.com/blsq/openhexa-pipelines) repository.
-
-App component overview
-----------------------
-
-The **App component** is a [Django](https://www.djangoproject.com/) application connected to a
-[PostgreSQL](https://www.postgresql.org/) database.
-
-The **App component** is the main point of entry to the OpenHexa platform. It provides:
-
-- User management capabilities
-- A browsable Data Catalog
-- An advanced search engine
-- A dashboard
-
-Additionally, it acts as a frontend for the **Notebooks** component (which is embedded in the app component as an
-iframe) and for the **Data pipelines** component.
-
-OpenHexa can connect to a wide range of **data stores**, such as AWS S3 / Google Cloud GCS buckets,
-DHIS2 instances, PostgreSQL databases...
-
-**Data stores** in OpenHexa can be categorized under three different categories:
-
-1. **Primary Data Sources**: those data sources are external to the platform. They are **read-only**: OpenHexa will
-   never alter the data residing in primary data sources. Users can schedule data extracts in **data lakes**
-   or **data warehouses** to work on the extracted data.
-1. **Data Lakes**: those data stores are buckets of flat files of various formats (CSV, GPKG, Jupyter
-   notebooks...). Data residing in data lakes can be read and written to.
-1. **Data Warehouses**: those data stores are read/write databases (as of now, only PostgreSQL data warehouses are
-   implemented).
-
-Running OpenHexa
-================
+- [Installing OpenHexa](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
+- [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
 
 Local development
 -----------------
 
-To ease the setup of the environment and management of dependencies, we are
-using containerization, in particular Docker. As such, we provide a
-`docker-compose.yaml` file for local development. When running it, the present
-code base is mounted inside the container. That means that the changes are
-reflected directly in the container environment allowing you to develop.
+To ease the setup of the environment and management of dependencies, we are  using containerization, in particular 
+Docker. As such, we provide a `docker-compose.yaml` file for local development. When running it, the present code base 
+is mounted inside the container. That means that the changes are reflected directly in the container environment 
+allowing you to develop.
 
 The following steps will get you up and running:
 
@@ -96,14 +48,16 @@ docker compose run app manage tailwind build
 docker compose up
 ```
 
-This will correctly configure all the environment variables, fill the database
-with some initial data and start the base `db` and `app` services. The app is
-then exposed on `localhost:8000`. Two main paths are available:
-`http://localhost:8000/graphql` for the GraphQL API, and
-`http://localhost:8000/ready` for the backend readiness. Anything else will
-be redirected to the frontend served at `http://localhost:3000`.
+This will correctly configure all the environment variables, fill the database with some initial data and start the 
+base `db` and `app` services. The app is then exposed on `localhost:8000`. Two main paths are available:
 
-If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can running the following command **instead of** `docker-compose up`:
+- http://localhost:8000/graphql for the GraphQL API
+- http://localhost:8000/ready for the readiness endpoint 
+
+Anything else will be redirected to the frontend served at `http://localhost:3000`.
+
+If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can run the following 
+command **instead of** `docker compose up`:
 
 ```bash
 docker compose --profile pipelines --profile dataworker up 
@@ -150,26 +104,8 @@ You can run a specific test as it follows:
 docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 ```
 
-There are many other options, if you want to find out more, look at the
-[documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
+There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
 as it is what we are using.
-
-Test coverage is evaluated using the [`coverage`](https://github.com/nedbat/coveragepy) library:
-
-```bash
-docker compose run app coveraged-test
-```
-
-If you have the .coverage generated, you can also create HTML report from the
-container:
-
-```bash
-docker compose run app bash
-coverage html
-```
-
-The reports are put into the directory `htmlcov`. You might need to change the
-ownership of those files to get access to them.
 
 ### Code style
 
@@ -186,10 +122,10 @@ OpenHexa uses [TailwindUI](https://tailwindui.com/), [TailwindCSS](https://tailw
 and [Heroicons](https://heroicons.com/) for the user interface.
 
 
-### Two factor authentication
+### Two-factor authentication
 
-The two factor authentication implemented in OpenHexa is optional and can be enabled per user.
+The two-factor authentication implemented in OpenHexa is optional and can be enabled per user.
 
-In order to enable the two factor authentication you need to create a `Feature` with the code `two_factor`.
-You can then link this `Feature` to specific users by creating the corresponding `FeatureFlag` of by setting `force_activate` on the `Feature` to `True` to enable it for everyone.
-
+In order to enable the two-factor authentication you need to create a `Feature` with the code `two_factor`.
+You can then link this `Feature` to specific users by creating the corresponding `FeatureFlag` of by setting 
+`force_activate` on the `Feature` to `True` to enable it for everyone.
