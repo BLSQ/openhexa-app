@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("connector_accessmod", "0057_remove_project_auto_sync_and_more"),
+        ("core", "0009_case_insensitive_collation"),
     ]
 
     operations = [
