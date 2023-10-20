@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models.functions import Collate
 
 from hexa.plugins.connector_accessmod.models import (
     AccessibilityAnalysis,
@@ -91,8 +92,17 @@ class AccessRequestAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("status",)
-    search_fields = ("first_name", "last_name", "email")
+    search_fields = ("first_name", "last_name", "case_insensitive_email")
     actions = [approve_requests, deny_requests]
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                case_insensitive_email=Collate("email", "und-x-icu"),
+            )
+        )
 
 
 @admin.register(AccessmodProfile)
