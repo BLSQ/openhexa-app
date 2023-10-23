@@ -403,7 +403,7 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 # Pipeline settings
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
 PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
-PIPELINE_IMAGE = os.environ.get("PIPELINE_IMAGE", "blsq/openhexa-pipelines:latest")
+PIPELINE_IMAGE = os.environ.get("PIPELINE_IMAGE", "blsq/openhexa-base-notebook:latest")
 PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
 )
