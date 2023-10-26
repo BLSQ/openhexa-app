@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.36.7](https://github.com/BLSQ/openhexa-frontend/compare/0.36.6...0.36.7) (2023-10-26)
+
+
+### Bug Fixes
+
+* **Pipelines:** Fix issues on multiple choice param ([#461](https://github.com/BLSQ/openhexa-frontend/issues/461)) ([b82e087](https://github.com/BLSQ/openhexa-frontend/commit/b82e087fc9bc15a325a9b795076092411dc9cc8e))
+* **Pipelines:** Fix multiple float parameters display ([#464](https://github.com/BLSQ/openhexa-frontend/issues/464)) ([896b616](https://github.com/BLSQ/openhexa-frontend/commit/896b616f3923baa19f8897faf3519e81fb96f217))
+
 ## [0.36.6](https://github.com/BLSQ/openhexa-frontend/compare/0.36.5...0.36.6) (2023-10-18)
 
 
