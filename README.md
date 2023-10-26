@@ -50,9 +50,26 @@ connect to an [OpenHexa](https://github.com/BLSQ/openhexa-app) instance.
 The app communicates with OpenHexa through its [GraphQL](https://graphql.org/) API, and uses the standard OpenHexa
 cookie-based authentication.
 
+## Requirements
+
+The Frontend requires at least Node v16 and uses `npm` to manage its
+dependencies. Make sure [you upgrade to the last version of `npm`](https://docs.npmjs.com/try-the-latest-stable-version-of-npm).
+
 ## Local development
 
+### Requirements
+
+We advise to use [`nvm` to manage multiple versions of Node](https://github.com/nvm-sh/nvm).
+If you use `nvm`, `npm` can be upgraded with
+
+```bash
+nvm install-latest-npm
+```
+
 ### Getting started
+
+Notice that contrary to openhexa-app or openhexa-notebook, the advised
+environment for local development is not containers.
 
 First, install the dependencies:
 
@@ -67,13 +84,35 @@ cp .env.local.dist .env.local
 nano .env.local
 ```
 
+Before starting the server, the backend [openhexa-app](https://github.com/BLSQ/openhexa-app/)
+should be up and running.
+
 Finally, run the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see
+the result. If you have followed the
+[backend development setup instructions](https://github.com/BLSQ/openhexa-app/#local-development),
+you should be able to login with the listed credentials in those instructions:
+`root@openhexa.org`/`root` (please check if it hasen't been updated).
+
+### Configuration
+
+The following environment variables should be provided at build time 
+(for the `npm run build`):
+
+- `RELEASE`: a release identifier, such as a Git tag (used for uploading source maps to Sentry)
+- `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
+
+The following environment variables should be provided at run time:
+- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
+- `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
+- `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
+- `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
+- `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
 
 ### Code style
 
@@ -144,19 +183,3 @@ The most important prefixes you should have in mind are:
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
 
-
-## Deployment
-
-The project is meant to be deployed in a containerized environment, such as [Kubernetes](https://kubernetes.io/).
-
-The following environment variables should be provided at build time (for the `docker build` or `npm run build`):
-
-- `RELEASE`: a release identifier, such as a Git tag (used for uploading source maps to Sentry)
-- `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
-
-The following environment variables should be provided at run time:
-- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
-- `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
-- `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
-- `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
-- `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
