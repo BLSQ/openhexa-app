@@ -28,6 +28,39 @@ For more information about the technical aspects of OpenHexa, you might be inter
 - [Installing OpenHexa](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
 - [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
 
+Container
+---------
+
+OpenHexa App is published as a Docker Image on Docker Hub:
+[blsq/openhexa-app](https://hub.docker.com/r/blsq/openhexa-app).
+
+You can run a simple interactive bash session as it follows:
+
+```bash
+docker run --rm -ti blsq/openhexa-app bash
+```
+
+Other commands are available:
+
+```
+  Available commands:
+
+  start             : start django server using gunicorn
+  makemigrations    : generate a django migration
+  migrate           : run django migrations
+  test              : launch django tests
+  manage            : run django manage.py
+  fixtures          : migrate, create superuser, load fixtures and reindex
+  bash              : run bash
+  tailwind          : run tailwind browser-sync
+  coveraged-test    : launch django tests and show a coverage report
+
+  Any arguments passed will be forwarded to the executed command
+```
+
+If you run the Django server, it will look for a database server. If you need
+something working out of the box for local development, go to the next section.
+
 Local development
 -----------------
 
