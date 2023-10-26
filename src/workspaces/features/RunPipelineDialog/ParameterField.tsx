@@ -21,13 +21,13 @@ const ParameterField = (props: ParameterFieldProps) => {
     (value: any) => {
       if (parameter.multiple && (value === null || value === undefined)) {
         return onChange([]);
-      } else if (parameter.multiple) {
+      } else if (parameter.multiple && !parameter.choices) {
         onChange(value.split("\n"));
       } else {
         onChange(value);
       }
     },
-    [onChange, parameter.multiple],
+    [onChange, parameter.multiple, parameter.choices],
   );
 
   if (parameter.type === "bool") {
@@ -47,7 +47,7 @@ const ParameterField = (props: ParameterFieldProps) => {
     return (
       <Select
         onChange={handleChange}
-        value={value}
+        value={value || []}
         required={Boolean(parameter.required)}
         multiple={parameter.multiple}
         options={choices ?? []}
