@@ -55,6 +55,21 @@ cookie-based authentication.
 The Frontend requires at least Node v16 and uses `npm` to manage its
 dependencies. Make sure [you upgrade to the last version of `npm`](https://docs.npmjs.com/try-the-latest-stable-version-of-npm).
 
+## Container
+
+OpenHexa FrontEnd is published as a Docker Image on Docker Hub:
+[blsq/openhexa-frontend](https://hub.docker.com/r/blsq/openhexa-frontend)
+
+Run it as it follows:
+
+```bash
+docker run --rm -p 3000:3000 blsq/openhexa-frontend
+```
+
+The server is then exposed at `http://localhost:3000`. However, it has to be
+configured so it can find the backend and so on. If you're looking something
+working out of the box for local development, go to the next section.
+
 ## Local development
 
 ### Requirements
