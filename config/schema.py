@@ -27,7 +27,6 @@ from hexa.user_management.schema import (
     identity_directives,
     identity_type_defs,
 )
-from hexa.visualizations.schema import dashboards_bindables, dashboards_type_defs
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 type_defs = load_schema_from_path(
@@ -44,7 +43,6 @@ schema = make_executable_schema(
         *s3_type_defs,
         accessmod_type_defs,
         countries_type_defs,
-        dashboards_type_defs,
         notebooks_type_defs,
         core_type_defs,
         pipelines_type_defs,
@@ -63,7 +61,6 @@ schema = make_executable_schema(
         *s3_bindables,
         *accessmod_bindables,
         *countries_bindables,
-        *dashboards_bindables,
         *notebooks_bindables,
         *core_bindables,
         *workspaces_bindables,
