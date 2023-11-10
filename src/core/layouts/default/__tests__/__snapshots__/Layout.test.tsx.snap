@@ -53,12 +53,6 @@ exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
           >
             Pipelines
           </a>
-          <a
-            class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
-            href="/visualizations"
-          >
-            Visualizations
-          </a>
         </nav>
         <button
           class="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"

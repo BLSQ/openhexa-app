@@ -19,7 +19,6 @@ app.prepare().then(async () => {
           req.path.startsWith("/login") ||
           req.path.startsWith("/user/account") ||
           req.path.startsWith("/two_factor") ||
-          req.path.startsWith("/visualizations") ||
           req.path.startsWith("/notebooks") ||
           req.path.startsWith("/pipelines") ||
           req.path.startsWith("/workspaces") ||
@@ -32,10 +31,7 @@ app.prepare().then(async () => {
           req.path === "/" ||
           req.path.startsWith("/ready");
 
-        const isLegacy = req.path.search(
-          /^\/visualizations\/[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}\b\/image/
-        );
-        return !isNext || !isLegacy;
+        return !isNext
       },
     })
   );

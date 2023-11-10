@@ -30,7 +30,6 @@ const Navbar = () => {
       <Item href="/catalog">{t("Catalog")}</Item>
       <Item href="/notebooks">{t("Notebooks")}</Item>
       <Item href="/pipelines">{t("Pipelines")}</Item>
-      <Item href="/visualizations">{t("Visualizations")}</Item>
     </nav>
   );
 };
