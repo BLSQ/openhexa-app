@@ -180,10 +180,6 @@ when submitting a pull request.
 
 You can run the lint tools manually using `pre-commit run --all`.
 
-OpenHexa uses [TailwindUI](https://tailwindui.com/), [TailwindCSS](https://tailwindcss.com/)
-and [Heroicons](https://heroicons.com/) for the user interface.
-
-
 ### Two-factor authentication
 
 The two-factor authentication implemented in OpenHexa is optional and can be enabled per user.
