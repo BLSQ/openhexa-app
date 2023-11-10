@@ -64,9 +64,9 @@ something working out of the box for local development, go to the next section.
 Local development
 -----------------
 
-To ease the setup of the environment and management of dependencies, we are  using containerization, in particular 
-Docker. As such, we provide a `docker-compose.yaml` file for local development. When running it, the present code base 
-is mounted inside the container. That means that the changes are reflected directly in the container environment 
+To ease the setup of the environment and management of dependencies, we are using containerization, in particular
+Docker. As such, we provide a `docker-compose.yaml` file for local development. When running it, the present code base
+is mounted inside the container. That means that the changes are reflected directly in the container environment
 allowing you to develop.
 
 The following steps will get you up and running:
@@ -81,26 +81,55 @@ docker compose run app manage tailwind build
 docker compose up
 ```
 
-This will correctly configure all the environment variables, fill the database with some initial data and start the 
-base `db` and `app` services. The app is then exposed on `localhost:8000`. Two main paths are available:
+This will correctly configure all the environment variables, fill the database with some initial data and start the base
+`db` and `app` services. The app is then exposed on `localhost:8000`. Two main paths are available:
 
 - http://localhost:8000/graphql for the GraphQL API
 - http://localhost:8000/ready for the readiness endpoint 
 
 Anything else will be redirected to the frontend served at `http://localhost:3000`.
 
-If you need the optional services `dataworker`, `pipelines_runner` & `pipelines_scheduler`, you can run the following 
-command **instead of** `docker compose up`:
-
-```bash
-docker compose --profile pipelines --profile dataworker up 
-```
-
 You can then log in with the following credentials: `root@openhexa.org`/`root`
 
-Python requirements are handled with [pip-tools](https://github.com/jazzband/pip-tools), you will need to install it. 
-When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You 
+Python requirements are handled with [pip-tools](https://github.com/jazzband/pip-tools), you will need to install it.
+When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You
 can then rebuild the Docker image.
+
+### Pipelines
+
+If you need the pipelines or want to work on them, there are 2 optional services to run: `pipelines_runner` and/or
+`pipelines_scheduler`. You can run them with the following command **instead of** `docker compose up`:
+
+```bash
+docker compose --profile pipelines up
+```
+
+As for the backend, the code base is mounted inside the container. That means that the changes are reflected directly in
+the container environment allowing you to develop.
+
+When it's up and running, you can submit a pipeline. For that, you can follow the [README of the OpenHexa SDK Python]
+(https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#quickstart). It will help you to scaffold your first
+OpenHexa pipeline project and submit it.
+
+Before submiting a pipeline, you need to make sure the next steps:
+
+1. create a workspace on your local instance `http://localhost:3000/workspaces/`, this will provide you a workspace name
+   and token,
+2. [configure the URL of the backend API] (https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-the-openhexa-backend-to-run-pipelines)
+   used by your pipeline project:
+   ```bash
+   openhexa config set_url http://localhost:8000
+   ```
+
+When it's done, you can push your pipeline to your local instance.
+
+### Dataworker
+
+If you need the optional services `dataworker`, you can run the following command **instead of** `docker compose up`:
+
+```bash
+docker compose --profile dataworker up 
+```
 
 ### Running commands on the container
 
