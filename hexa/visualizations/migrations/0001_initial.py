@@ -15,7 +15,6 @@ import hexa.visualizations.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -48,7 +47,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            bases=(hexa.visualizations.models.IndexableMixin, models.Model),
         ),
         migrations.CreateModel(
             name="Index",
