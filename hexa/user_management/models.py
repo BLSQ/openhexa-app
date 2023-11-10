@@ -6,10 +6,9 @@ import uuid
 from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.postgres.fields import CIEmailField
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import EmailField, Q
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 
@@ -81,7 +80,7 @@ class User(AbstractUser, UserInterface):
 
     username = None
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = CIEmailField(_("email address"), unique=True)
+    email = EmailField(_("email address"), db_collation="case_insensitive", unique=True)
     accepted_tos = models.BooleanField(default=False)
 
     objects = UserManager()

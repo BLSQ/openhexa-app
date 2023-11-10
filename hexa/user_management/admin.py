@@ -4,6 +4,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
+from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 
 from hexa.core.admin import country_list
@@ -141,7 +142,7 @@ class CustomUserAdmin(UserAdmin):
                 email_template_name="user_management/account_creation_email.html",
             )
 
-    search_fields = ("email", "first_name", "last_name")
+    search_fields = ("case_insensitive_email", "first_name", "last_name")
     ordering = None
 
     @staticmethod
@@ -159,6 +160,15 @@ class CustomUserAdmin(UserAdmin):
         )
 
         return f"{', '.join([t.name for t in first_teams])}{extra}"
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                case_insensitive_email=Collate("email", "und-x-icu"),
+            )
+        )
 
 
 @admin.register(Organization)
