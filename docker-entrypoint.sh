@@ -79,10 +79,6 @@ case "$command" in
 "bash")
   bash $arguments
   ;;
-"tailwind")
-  python manage.py tailwind install
-  python manage.py tailwind start
-  ;;
 "help")
   show_help
   ;;

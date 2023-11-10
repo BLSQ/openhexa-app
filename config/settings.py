@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "django_countries",
     "django_ltree",
     "ariadne_django",
-    "tailwind",
     "dpq",
     "hexa.user_management",
     "hexa.metrics",
@@ -233,8 +232,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Comments
 COMMENTS_APP = "hexa.comments"
 
-# Tailwind
-TAILWIND_APP_NAME = "hexa.ui"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")

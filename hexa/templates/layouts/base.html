@@ -1,6 +1,4 @@
 {% load static i18n %}
-{% load tailwind_tags %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +15,7 @@
             display: none;
         }
     </style>
-    {% tailwind_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
     <link rel="shortcut icon" href="{% static "img/favicon.png" %}">
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/body-scroll-lock@3.1.5/lib/bodyScrollLock.min.js" defer></script>

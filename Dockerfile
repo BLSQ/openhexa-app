@@ -1,4 +1,4 @@
-FROM python:3.9 as deps
+FROM python:3.9 as app
 
 RUN apt-get update
 RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin
@@ -20,18 +20,6 @@ COPY . /code/
 ENV SECRET_KEY="collectstatic"
 ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
-
-
-FROM deps as app
-# We need to have the docker client in the container to run docker-compose commands and execute pipelines
-# Needed for TailwindCSS
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install -y nodejs
-
-RUN python manage.py tailwind install
-RUN python manage.py tailwind build --no-input
-RUN python manage.py collectstatic --noinput
-
 
 
 # Staged used to run the pipelines scheduler and runner
