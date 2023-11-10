@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.60.11](https://github.com/BLSQ/openhexa-app/compare/0.60.10...0.60.11) (2023-11-10)
+
+
+### Bug Fixes
+
+* Add default value for AWS_DEFAULT_REGION in env dist file so that tests can pass on a fresh local install ([#578](https://github.com/BLSQ/openhexa-app/issues/578)) ([11c8929](https://github.com/BLSQ/openhexa-app/commit/11c89299a32710f7942bd7d2f296489734027c14))
+* **Core:** Replace deprecated CIEmailField with EmailField ([#580](https://github.com/BLSQ/openhexa-app/issues/580)) ([e9d81ba](https://github.com/BLSQ/openhexa-app/commit/e9d81ba6120c692e83a1724aac00bc84a5a42e45))
+* Update autoflake and flake8 ([0c58dac](https://github.com/BLSQ/openhexa-app/commit/0c58dac4deb1f58f3db3a7bb16e5e26223357c72))
+* Use blsq/openhexa-base-notebook:latest by default for pipelines ([#581](https://github.com/BLSQ/openhexa-app/issues/581)) ([e62681f](https://github.com/BLSQ/openhexa-app/commit/e62681fcb2b67c87b69c6a0c77cffa74ef5d44ea))
+
+
+### Miscellaneous
+
+* remove visualizations app (step 1) ([#585](https://github.com/BLSQ/openhexa-app/issues/585)) ([a20933c](https://github.com/BLSQ/openhexa-app/commit/a20933cdcf4c4f52db90878eb62e1fd95b8f27c7))
+
 ## [0.60.10](https://github.com/BLSQ/openhexa-app/compare/0.60.9...0.60.10) (2023-10-18)
 
 
