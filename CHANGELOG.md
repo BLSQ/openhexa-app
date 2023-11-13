@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.8](https://github.com/BLSQ/openhexa-frontend/compare/0.36.7...0.36.8) (2023-11-10)
+
+
+### Miscellaneous
+
+* remove visualizations module ([#466](https://github.com/BLSQ/openhexa-frontend/issues/466)) ([c4c3204](https://github.com/BLSQ/openhexa-frontend/commit/c4c3204a3a937e8a3827b6fc8496bc764609d57e))
+
 ## [0.36.7](https://github.com/BLSQ/openhexa-frontend/compare/0.36.6...0.36.7) (2023-10-26)
 
 
