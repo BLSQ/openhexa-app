@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.12](https://github.com/BLSQ/openhexa-app/compare/0.60.11...0.60.12) (2023-11-13)
+
+
+### Bug Fixes
+
+* **Core:** collecstatic files ([#587](https://github.com/BLSQ/openhexa-app/issues/587)) ([fbf25e9](https://github.com/BLSQ/openhexa-app/commit/fbf25e955635cb5fe1aca96285dddb801b4619d1))
+
 ## [0.60.11](https://github.com/BLSQ/openhexa-app/compare/0.60.10...0.60.11) (2023-11-10)
 
 
