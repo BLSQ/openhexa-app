@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.9](https://github.com/BLSQ/openhexa-frontend/compare/0.36.8...0.36.9) (2023-11-14)
+
+
+### Features
+
+* add more info about regenerating workspace database passwords ([#474](https://github.com/BLSQ/openhexa-frontend/issues/474)) ([a9a133c](https://github.com/BLSQ/openhexa-frontend/commit/a9a133cbec1ffc2470c52f23b5805424a5d3598b))
+
 ## [0.36.8](https://github.com/BLSQ/openhexa-frontend/compare/0.36.7...0.36.8) (2023-11-10)
 
 
