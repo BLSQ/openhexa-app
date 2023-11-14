@@ -5,8 +5,8 @@
     <em>Open-source Data integration platform</em>
 </p>
 <p align="center">
-   <a href="https://github.com/BLSQ/openhexa-frontend/actions/workflows/test.yml">
-      <img alt="Test Suite" src="https://github.com/BLSQ/openhexa-frontend/actions/workflows/test.yml/badge.svg">
+   <a href="https://github.com/BLSQ/openhexa-frontend/actions/workflows/ci.yml">
+      <img alt="Test Suite" src="https://github.com/BLSQ/openhexa-frontend/actions/workflows/ci.yml/badge.svg">
    </a>
 </p>
 
