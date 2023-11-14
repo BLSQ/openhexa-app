@@ -4,51 +4,32 @@
 <p align="center">
     <em>Open-source Data integration platform</em>
 </p>
-<!--<p align="center">
-   <a href="https://github.com/BLSQ/openhexa-app/actions/workflows/test.yml">
+<p align="center">
+   <a href="https://github.com/BLSQ/openhexa-frontend/actions/workflows/test.yml">
       <img alt="Test Suite" src="https://github.com/BLSQ/openhexa-frontend/actions/workflows/test.yml/badge.svg">
    </a>
-</p>-->
+</p>
 
-# OpenHexa Frontend Component
+OpenHexa Frontend Component
+===========================
 
-OpenHexa is an **open-source data integration platform** that allows users to:
+OpenHexa is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
-- Explore data coming from a variety of sources in a **data catalog**
-- Schedule **data pipelines** for extraction & transformation operations
-- Perform data analysis in **notebooks**
-- Create rich data **visualizations**
+Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health
+projects.
 
-<div align="center">
-   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_catalog.png" hspace="10" height="150">
-   <img alt="OpenHexa Screenshot" src="https://test.openhexa.org/img/screenshot_notebook.png" hspace="10" height="150">
-</div>
+Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHexa.
 
-OpenHexa is an open-source product built by [Bluesquare](https://bluesquarehub.com) and released under the MIT license.
-
-## OpenHexa architecture
-
-The OpenHexa platform is composed of **four main components**:
-
-- The [**App component**](https://github.com/BLSQ/openhexa-app) (soon to be renamed Backend), a
-  [Django](https://djangoproject.com) application that provides the business logic and a GraphQLAPI
-- The [**Frontend component**](https://github.com/BLSQ/openhexa-frontend), a [Next.js](https://nextjs.org/)
-  application that the user-facing interface
-- The [**Notebooks component**](https://github.com/BLSQ/openhexa-notebooks) (a customized
-  [JupyterHub](https://jupyter.org/hub) setup)
-- The [**Data Pipelines component**](https://github.com/BLSQ/openhexa-pipelines), a series of containerized data
-  pipelines that are meant to be deployed in an [Airflow](https://airflow.apache.org/) cluster
-
-This repository contains the code for the **Frontend component**, which serves as the user-facing part of the OpenHexa
-stack.
-
-## Frontend component overview
-
-The OpenHexa frontend component is a [Next.js](https://nextjs.org/) application. It is a frontend app designed to
+The OpenHexa `frontend` component is a [Next.js](https://Next.js.org/) application. It is a frontend app designed to
 connect to an [OpenHexa](https://github.com/BLSQ/openhexa-app) instance.
 
 The app communicates with OpenHexa through its [GraphQL](https://graphql.org/) API, and uses the standard OpenHexa
 cookie-based authentication.
+
+For more information about the technical aspects of OpenHexa, you might be interested in the two following wiki pages:
+
+- [Installing OpenHexa](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
+- [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
 
 ## Requirements
 
@@ -67,7 +48,7 @@ docker run --rm -p 3000:3000 blsq/openhexa-frontend
 ```
 
 The server is then exposed at `http://localhost:3000`. However, it has to be
-configured so it can find the backend and so on. If you're looking something
+configured so that it can find the backend and so on. If you're looking something
 working out of the box for local development, go to the next section.
 
 ## Local development
@@ -111,8 +92,9 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see
 the result. If you have followed the
 [backend development setup instructions](https://github.com/BLSQ/openhexa-app/#local-development),
-you should be able to login with the listed credentials in those instructions:
-`root@openhexa.org`/`root` (please check if it hasen't been updated).
+you should be able to log in with the listed credentials in those instructions:
+`root@openhexa.org`/`root` (please [check](https://github.com/BLSQ/openhexa-app#local-development) if it hasn't 
+been updated).
 
 ### Configuration
 
@@ -123,7 +105,7 @@ The following environment variables should be provided at build time
 - `SENTRY_AUTH_TOKEN`: A valid Sentry authentication token
 
 The following environment variables should be provided at run time:
-- `FALLBACK_URL`: the URL the traffic will be redirected to if NextJS cannot answer the request
+- `FALLBACK_URL`: the URL the traffic will be redirected to if Next.js cannot answer the request
 - `GRAPHQL_ENDPOINT`: the URL of the OpenHexa GraphQL API
 - `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
@@ -131,7 +113,7 @@ The following environment variables should be provided at run time:
 
 ### Code style
 
-We use ESLint (as provided by NextJS) and prettier to format our code.
+We use ESLint (as provided by Next.js) and prettier to format our code.
 
 Lint and format the code using the following command:
 
@@ -149,9 +131,9 @@ You can run Ladle and open its web interface using `npm run ladle`.
 
 ## NPM Scripts
 
-* `npm run dev`: Launch Nextjs in dev mode and watch files to extract graphql code and generate typescript types and hooks
-* `npm run next`: Launch only the Nextjs app in dev mode
-* `npm run build`: Build the Nextjs app
+* `npm run dev`: Launch Next.js in dev mode and watch files to extract graphql code and generate typescript types and hooks
+* `npm run next`: Launch only the Next.js app in dev mode
+* `npm run build`: Build the Next.js app
 * `npm run start`: Start the app from the build directory (it has to be built before) 
 * `npm run test`: Run the tests in watch mode
 * `npm run test:ci`: Run all the tests in CI mode
@@ -176,13 +158,14 @@ Translations are stored in `public/locales/[lang]/[ns].json`.
 ## Versioning
 
 This library follows [Semantic Versioning](http://semver.org/).
-Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with the next release based on the [commit messages of the new commits](#how-should-i-write-my-commits).
+Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with 
+the next release based on the [commit messages of the new commits](#how-should-i-write-my-commits).
 
 
 Triggering a new release is done by merging the pull request created by release-please. The result is:
 * the version in package.json is bumped
 * the changelog.md is updated with the commit messages
-* a github release is created
+* a GitHub release is created
 * a docker image is built for the new tag and pushed on the docker registry
 
 
