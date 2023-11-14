@@ -18,7 +18,7 @@ OpenHexa is an open-source data integration platform developed by [Bluesquare](h
 Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health 
 projects.
 
-Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information, about OpenHexa.
+Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHexa.
 
 This repository contains the code for what we call the `app` component, which mostly offers a GraphQL API and an 
 infrastructure to run data pipelines.
@@ -111,7 +111,7 @@ When it's up and running, you can submit a pipeline. For that, you can follow th
 (https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#quickstart). It will help you to scaffold your first
 OpenHexa pipeline project and submit it.
 
-Before submiting a pipeline, you need to make sure the next steps:
+Before submitting a pipeline, you need to make sure the next steps:
 
 1. create a workspace on your local instance `http://localhost:3000/workspaces/`, this will provide you a workspace name
    and token,
@@ -123,7 +123,7 @@ Before submiting a pipeline, you need to make sure the next steps:
 
 When it's done, you can push your pipeline to your local instance.
 
-### Dataworker
+### Data worker
 
 If you need the optional services `dataworker`, you can run the following command **instead of** `docker compose up`:
 
@@ -179,6 +179,29 @@ installed, and run `pre-commit install` the first time you check out the code. L
 when submitting a pull request.
 
 You can run the lint tools manually using `pre-commit run --all`.
+
+## Versioning
+
+This library follows [Semantic Versioning](http://semver.org/).
+Tagging and releases' creation are managed by [release-please](https://github.com/googleapis/release-please) that will create and maintain a pull request with 
+the next release based on the [commit messages of the new commits](#how-should-i-write-my-commits).
+
+Triggering a new release is done by merging the pull request created by release-please. The result is:
+* the changelog.md is updated with the commit messages
+* a GitHub release is created
+* a docker image is built for the new tag and pushed on the docker registry
+
+## How should I write my commits?
+
+This project assumes you are using [Conventional Commit messages](https://www.conventionalcommits.org/).
+
+The most important prefixes you should have in mind are:
+
+* `fix:` which represents bug fixes, and correlates to a [SemVer](https://semver.org/)
+  patch.
+* `feat:` which represents a new feature, and correlates to a SemVer minor.
+* `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
+  (indicated by the `!`) and will result in a SemVer major.
 
 ### Two-factor authentication
 
