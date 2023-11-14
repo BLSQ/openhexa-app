@@ -6,7 +6,11 @@ import { useTranslation } from "next-i18next";
 
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Button from "core/components/Button";
-import { PlusCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import {
   useWorkspacePageQuery,
@@ -26,6 +30,8 @@ import GenerateWorkspaceDatabasePasswordDialog from "workspaces/features/Generat
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 import WorkspaceInvitations from "workspaces/features/WorkspaceInvitations";
 import Title from "core/components/Title";
+import { InformationCircleIcon } from "@heroicons/react/24/solid";
+import Tooltip from "core/components/Tooltip";
 
 type Props = {
   page: number;
@@ -137,6 +143,19 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
               >
                 {t("Regenerate password")}
               </Button>
+              <p className="my-4 text-sm text-gray-500 flex items-center">
+                <Tooltip
+                  label={t(
+                    "Regenerating the database password can be helpful in the case of a security incident, for " +
+                      "example if the password has been exposed, leaked or erroneously shared with someone.",
+                  )}
+                >
+                  <InformationCircleIcon className="ml-1 h-4 w-4 mr-1" />
+                </Tooltip>
+                {t(
+                  "This action will replace the current password of the workspace database.",
+                )}
+              </p>
             </DataCard.Section>
           </DataCard>
 

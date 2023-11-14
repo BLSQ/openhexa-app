@@ -98,7 +98,7 @@ describe("GenerateDatabasePasswordDialog", () => {
       </TestApp>,
     );
 
-    const saveButton = screen.getByRole("button", { name: "Generate" });
+    const saveButton = screen.getByRole("button", { name: "Replace password" });
     await user.click(saveButton);
 
     expect(useGenerateDatabasePasswordMutationMock).toHaveBeenCalled();

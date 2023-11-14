@@ -8,6 +8,7 @@ import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";
 import { GenerateNewDatabasePasswordError } from "graphql-types";
 import { AlertType, displayAlert } from "core/helpers/alert";
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 type GenerateDatabasePasswordDialogProps = {
   onClose(): void;
@@ -53,15 +54,20 @@ const GenerateWorkspaceDatabasePasswordDialog = (
   return (
     <Dialog open={open} onClose={onClose}>
       <Dialog.Title>{t("Regenerate database password")}</Dialog.Title>
-      <Dialog.Content className="space-y-4">
+      <Dialog.Content className="space-y-2 py-2">
+        <p>{t("You are about to replace the workspace database password.")}</p>
         <p>
-          {t(
-            "You're about to generate a new password for the workspace database. This action cannot be undone. Make sure to:",
-          )}
+          <ExclamationCircleIcon className="inline-block h-6 w-6 text-amber-400" />
+          {t("This action cannot be undone.")}
         </p>
+        <p>{t("After regenerating the password, you will have to:")}</p>
         <ul className="list list-inside list-disc">
           <li>{t("Restart all opened notebooks")}</li>
-          <li>{t("Update external tools credentials")}</li>
+          <li>
+            {t(
+              "Update connection parameters in 3rd-party tools (visualization & BI tools, other data systems...)",
+            )}
+          </li>
         </ul>
       </Dialog.Content>
       <Dialog.Actions>
@@ -70,7 +76,7 @@ const GenerateWorkspaceDatabasePasswordDialog = (
         </Button>
         <Button onClick={onSubmit}>
           {isSubmitting && <Spinner size="xs" className="mr-1" />}
-          {t("Generate")}
+          {t("Replace password")}
         </Button>
       </Dialog.Actions>
     </Dialog>
