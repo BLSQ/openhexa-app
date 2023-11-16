@@ -107,6 +107,13 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         }
     )
 
+    if workspace.docker_image:
+        env.update(
+            {
+                "WORKSPACE_DOCKER_IMAGE": workspace.docker_image,
+            }
+        )
+
     if sdk_auth_token is not None:
         # SDK Credentials
         env.update({"HEXA_TOKEN": Signer().sign_object(sdk_auth_token)})
