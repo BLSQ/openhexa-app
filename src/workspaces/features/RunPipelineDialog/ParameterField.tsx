@@ -3,19 +3,22 @@ import Switch from "core/components/Switch/Switch";
 import Input from "core/components/forms/Input/Input";
 import Select from "core/components/forms/Select";
 import Textarea from "core/components/forms/Textarea/Textarea";
-import { ensureArray } from "core/helpers/array";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
+import { ConnectionType } from "graphql-types";
+import { isConnectionParameter } from "workspaces/helpers/pipelines";
 
 type ParameterFieldProps = {
   parameter: any;
   value: any;
   onChange(value: any): void;
+  workspaceSlug?: string;
 };
 
 const ParameterField = (props: ParameterFieldProps) => {
   const { t } = useTranslation();
-  const { parameter, value, onChange } = props;
+  const { parameter, value, onChange, workspaceSlug } = props;
 
   const handleChange = useCallback(
     (value: any) => {
@@ -36,6 +39,18 @@ const ParameterField = (props: ParameterFieldProps) => {
         name={parameter.code}
         checked={value ?? false}
         onChange={onChange}
+      />
+    );
+  }
+
+  if (isConnectionParameter(parameter.type)) {
+    return (
+      <WorkspaceConnectionPicker
+        workspaceSlug={workspaceSlug || ""}
+        value={value ?? []}
+        onChange={(option) => handleChange(option)}
+        withPortal
+        type={parameter.type}
       />
     );
   }

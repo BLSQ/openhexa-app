@@ -7,12 +7,13 @@ import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { PipelineVersion } from "graphql-types";
+import { ConnectionType, PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   convertParametersToPipelineInput,
+  isConnectionParameter,
   runPipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineVersionPicker from "../PipelineVersionPicker";
@@ -119,6 +120,13 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           parameter.type === "str" &&
           parameter.required &&
           ensureArray(val).length === 0
+        ) {
+          errors[parameter.code] = t("This field is required");
+        }
+        if (
+          isConnectionParameter(parameter.type) &&
+          parameter.required &&
+          !val
         ) {
           errors[parameter.code] = t("This field is required");
         }
@@ -260,6 +268,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                     onChange={(value: any) => {
                       form.setFieldValue(param.code, value);
                     }}
+                    workspaceSlug={pipeline.workspace?.slug}
                   />
                 </Field>
               ))}

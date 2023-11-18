@@ -12,6 +12,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
 import {
+  ConnectionType,
   PipelineParameter,
   PipelineRunStatus,
   PipelineRunTrigger,
@@ -30,7 +31,10 @@ import {
   WorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import { getPipelineRunConfig } from "workspaces/helpers/pipelines";
+import {
+  getPipelineRunConfig,
+  isConnectionParameter,
+} from "workspaces/helpers/pipelines";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Button from "core/components/Button";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -94,6 +98,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       entry.value !== null
     ) {
       return entry.multiple ? entry.value.join(", ") : entry.value;
+    }
+    if (isConnectionParameter(entry.type) && entry.value) {
+      return entry.value;
     }
 
     return "-";

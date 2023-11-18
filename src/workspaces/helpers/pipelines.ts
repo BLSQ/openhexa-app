@@ -8,7 +8,12 @@ import {
   UpdateWorkspacePipelineMutation,
   UpdateWorkspacePipelineMutationVariables,
 } from "./pipelines.generated";
-import { PipelineParameter, PipelineVersion } from "graphql-types";
+import {
+  ConnectionType,
+  PipelineParameter,
+  PipelineVersion,
+} from "graphql-types";
+import Connections from "./connections";
 
 export async function updatePipeline(pipelineId: string, values: any) {
   const client = getApolloClient();
@@ -57,6 +62,12 @@ export function validateCronExpression(cronExpression: string) {
   }
 }
 
+export const isConnectionParameter = (type: string) => {
+  return Object.values(ConnectionType)
+    .map((c) => c.toLowerCase())
+    .includes(type.toLowerCase());
+};
+
 export const convertParametersToPipelineInput = (
   version: PipelineVersion,
   fields: { [key: string]: any },
@@ -83,6 +94,8 @@ export const convertParametersToPipelineInput = (
       }
     } else if (parameter.type === "str" && parameter.multiple && val) {
       params[parameter.code] = val.filter((s: string) => s !== "");
+    } else if (isConnectionParameter(parameter.type) && val) {
+      params[parameter.code] = val.slug;
     } else {
       params[parameter.code] = val;
     }

@@ -109,6 +109,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "Custom",
   color: "bg-gray-200",
+  iconSrc: "/images/cog.svg",
   Form: CustomForm,
   fields: [],
   validate(fields: { [key: string]: any }) {
