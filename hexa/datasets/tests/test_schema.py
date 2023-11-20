@@ -438,6 +438,14 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             olivia, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
         )
 
+        robert = self.create_user(
+            "robert@blsq.org",
+        )
+        self.create_feature_flag(code="datasets", user=robert)
+        self.join_workspace(
+            robert, workspace=workspace, role=WorkspaceMembershipRole.VIEWER
+        )
+
         dataset = self.create_dataset(
             olivia, workspace, "Dataset", "Dataset description"
         )
@@ -446,29 +454,30 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             olivia, dataset_version=dataset_version
         )
 
-        self.client.force_login(olivia)
-        r = self.run_query(
-            """
-            mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
-                prepareVersionFileDownload(input: $input) {
-                    downloadUrl
-                    success
-                    errors
+        for user in [robert, olivia]:
+            self.client.force_login(user)
+            r = self.run_query(
+                """
+                mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                    prepareVersionFileDownload(input: $input) {
+                        downloadUrl
+                        success
+                        errors
+                    }
                 }
-            }
-            """,
-            {
-                "input": {
-                    "fileId": str(version_file.id),
-                }
-            },
-        )
+                """,
+                {
+                    "input": {
+                        "fileId": str(version_file.id),
+                    }
+                },
+            )
 
-        self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "downloadUrl": "http://signed-url/some-uri.csv",
-            },
-            r["data"]["prepareVersionFileDownload"],
-        )
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "downloadUrl": "http://signed-url/some-uri.csv",
+                },
+                r["data"]["prepareVersionFileDownload"],
+            )
