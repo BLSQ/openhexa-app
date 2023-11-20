@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.10](https://github.com/BLSQ/openhexa-frontend/compare/0.36.9...0.36.10) (2023-11-18)
+
+
+### Features
+
+* **Pipelines:** Add connection picker ([#476](https://github.com/BLSQ/openhexa-frontend/issues/476)) ([98dd463](https://github.com/BLSQ/openhexa-frontend/commit/98dd4631e863678115d9e2a6617855ef4c75bfac))
+
 ## [0.36.9](https://github.com/BLSQ/openhexa-frontend/compare/0.36.8...0.36.9) (2023-11-14)
 
 
