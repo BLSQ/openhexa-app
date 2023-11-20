@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.13](https://github.com/BLSQ/openhexa-app/compare/0.60.12...0.60.13) (2023-11-20)
+
+
+### Bug Fixes
+
+* Fix permission check for dataset download ([#591](https://github.com/BLSQ/openhexa-app/issues/591)) ([a6a2c59](https://github.com/BLSQ/openhexa-app/commit/a6a2c596275b5cf15934318abcb2954e73f171cc))
+
 ## [0.60.12](https://github.com/BLSQ/openhexa-app/compare/0.60.11...0.60.12) (2023-11-13)
 
 
