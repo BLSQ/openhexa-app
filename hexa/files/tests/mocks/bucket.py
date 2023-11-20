@@ -27,6 +27,9 @@ class MockBucket:
     def list_blobs(self, *args, **kwargs):
         return self.client.list_blobs(self, *args, **kwargs)
 
+    def get_blob(self, blob_name, *args, **kwargs):
+        return MockBlob(blob_name, self)
+
     def blob(self, *args, **kwargs):
         b = MockBlob(*args, bucket=self, **kwargs)
         self._blobs.append(b)

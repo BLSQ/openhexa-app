@@ -1,6 +1,9 @@
+from django.conf import settings
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files.api import create_bucket
+from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
 
@@ -320,6 +323,11 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
 
 
 class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
+    @classmethod
+    @mock_gcp_storage
+    def setUpTestData(cls):
+        create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+
     def test_create_dataset_version(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
 
@@ -412,3 +420,64 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         self.assertEqual(
             {"datasetVersion": {"fileByName": {"filename": file.filename}}}, r["data"]
         )
+
+    @mock_gcp_storage
+    def test_prepare_version_file_download(self):
+        serena = self.create_user("sereba@blsq.org", is_superuser=True)
+        workspace = self.create_workspace(
+            serena,
+            name="My Workspace",
+            description="Test workspace",
+        )
+
+        olivia = self.create_user(
+            "olivia@blsq.org",
+        )
+        self.create_feature_flag(code="datasets", user=olivia)
+        self.join_workspace(
+            olivia, workspace=workspace, role=WorkspaceMembershipRole.ADMIN
+        )
+
+        robert = self.create_user(
+            "robert@blsq.org",
+        )
+        self.create_feature_flag(code="datasets", user=robert)
+        self.join_workspace(
+            robert, workspace=workspace, role=WorkspaceMembershipRole.VIEWER
+        )
+
+        dataset = self.create_dataset(
+            olivia, workspace, "Dataset", "Dataset description"
+        )
+        dataset_version = self.create_dataset_version(olivia, dataset=dataset)
+        version_file = self.create_dataset_version_file(
+            olivia, dataset_version=dataset_version
+        )
+
+        for user in [robert, olivia]:
+            self.client.force_login(user)
+            r = self.run_query(
+                """
+                mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                    prepareVersionFileDownload(input: $input) {
+                        downloadUrl
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "fileId": str(version_file.id),
+                    }
+                },
+            )
+
+            self.assertEqual(
+                {
+                    "success": True,
+                    "errors": [],
+                    "downloadUrl": "http://signed-url/some-uri.csv",
+                },
+                r["data"]["prepareVersionFileDownload"],
+            )

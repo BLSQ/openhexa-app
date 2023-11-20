@@ -26,5 +26,8 @@ class MockBlob:
     def updated(self):
         return None
 
+    def generate_signed_url(self, *args, **kwargs):
+        return f"http://signed-url/{self.name}"
+
     def __repr__(self) -> str:
         return f"<MockBlob: {self.name}>"

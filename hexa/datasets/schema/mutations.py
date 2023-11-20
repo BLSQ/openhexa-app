@@ -236,7 +236,7 @@ def resolve_version_file_download(_, info, **kwargs):
             ):
                 raise PermissionDenied
         elif not request.user.has_perm(
-            "datasets.download_dataset", file.dataset_version.dataset
+            "datasets.download_dataset_version", file.dataset_version
         ):
             raise PermissionDenied
 

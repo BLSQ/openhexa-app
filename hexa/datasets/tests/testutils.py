@@ -6,7 +6,7 @@ from hexa.workspaces.models import (
     WorkspaceMembershipRole,
 )
 
-from ..models import Dataset
+from ..models import Dataset, DatasetVersion, DatasetVersionFile
 
 
 class DatasetTestMixin:
@@ -16,6 +16,11 @@ class DatasetTestMixin:
         feature, _ = Feature.objects.get_or_create(code="workspaces")
         FeatureFlag.objects.create(feature=feature, user=user)
         return user
+
+    @staticmethod
+    def create_feature_flag(*, code: str, user: User):
+        feature, _ = Feature.objects.get_or_create(code=code)
+        FeatureFlag.objects.create(feature=feature, user=user)
 
     @mock_gcp_storage
     def create_workspace(self, principal: User, name, description, *args, **kwargs):
@@ -46,3 +51,32 @@ class DatasetTestMixin:
             **kwargs
         )
         return dataset
+
+    @staticmethod
+    def create_dataset_version(
+        principal: User, *, dataset: Dataset, name="v1", description=None, **kwargs
+    ) -> DatasetVersion:
+        return DatasetVersion.objects.create_if_has_perm(
+            principal=principal,
+            dataset=dataset,
+            name=name,
+            description=description,
+            **kwargs
+        )
+
+    @staticmethod
+    def create_dataset_version_file(
+        principal: User,
+        *,
+        dataset_version: DatasetVersion,
+        uri: str = "some-uri.csv",
+        content_type="text/csv",
+        **kwargs
+    ) -> DatasetVersionFile:
+        return DatasetVersionFile.objects.create_if_has_perm(
+            principal=principal,
+            dataset_version=dataset_version,
+            uri=uri,
+            **kwargs,
+            content_type=content_type
+        )
