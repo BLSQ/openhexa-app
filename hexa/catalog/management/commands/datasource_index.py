@@ -20,10 +20,10 @@ class Command(BaseCommand):
         for app, models in indexables.items():
             for model in models:
                 # TODO: remove
-                # This was done to skip indexing of pipelines and visualizations
+                # This was done to skip indexing of pipelines
                 # But those items SHOULD be index as well.
                 # The next step would be to create a command in core, that would index across all plugins
-                # (Or alternatively to create one command per core module - catalog, pipelines, visualizations)
+                # (Or alternatively to create one command per core module - catalog, pipelines)
                 if not getattr(model, "searchable", False):
                     continue
 
