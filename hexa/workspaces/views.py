@@ -19,9 +19,6 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     workspace_slug is optional, if not provided, the workspace will be extracted from the request body.
     """
 
-    workspace = None
-    server_hash = None
-    sdk_auth_token = None
     workspace_slug = (
         request.POST.get("workspace", None)
         if workspace_slug is None
@@ -107,11 +104,14 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         }
     )
 
+    # Custom Docker image for the workspace if appropriate
+    image = workspace.docker_image if workspace.docker_image != "" else None
+
     if sdk_auth_token is not None:
         # SDK Credentials
         env.update({"HEXA_TOKEN": Signer().sign_object(sdk_auth_token)})
 
     return JsonResponse(
-        {"env": env, "notebooks_server_hash": server_hash},
+        {"env": env, "notebooks_server_hash": server_hash, "image": image},
         status=200,
     )

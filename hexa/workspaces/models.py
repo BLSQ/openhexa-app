@@ -151,6 +151,7 @@ class Workspace(Base):
         null=True,
     )
     archived = models.BooleanField(default=False)
+    docker_image = models.TextField(blank=True, default="")
     datasets = models.ManyToManyField(
         Dataset, through="datasets.DatasetLink", related_name="+"
     )
