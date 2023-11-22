@@ -56,7 +56,7 @@ export default {
   fields: [
     { code: "bucket_name", name: "Bucket name", required: true },
     { code: "access_key_id", name: "Access key ID" },
-    { code: "access_key_secret", name: "Secret access key" },
+    { code: "access_key_secret", name: "Secret access key", secret: true },
   ],
   Form: S3BucketForm,
 };
