@@ -149,6 +149,9 @@ class WorkspaceTest(GraphQLTestCase):
                     workspace {
                         name
                         description
+                        createdBy {
+                          email
+                        }
                     }
                     errors
                 }
@@ -169,6 +172,7 @@ class WorkspaceTest(GraphQLTestCase):
                     "workspace": {
                         "name": "Cameroon workspace",
                         "description": "Description",
+                        "createdBy": {"email": self.USER_JULIA.email},
                     },
                 },
                 r["data"]["createWorkspace"],
@@ -192,6 +196,9 @@ class WorkspaceTest(GraphQLTestCase):
                     workspace {
                         name
                         description
+                        createdBy {
+                          email
+                        }
                     }
                     errors
                 }
@@ -211,6 +218,7 @@ class WorkspaceTest(GraphQLTestCase):
                     "workspace": {
                         "name": "Cameroon workspace",
                         "description": "Description",
+                        "createdBy": {"email": self.USER_JULIA.email},
                     },
                 },
                 r["data"]["createWorkspace"],

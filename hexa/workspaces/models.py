@@ -72,7 +72,12 @@ class WorkspaceManager(models.Manager):
             raise PermissionDenied
 
         slug = create_workspace_slug(name)
-        create_kwargs = {"name": name, "description": description, "slug": slug}
+        create_kwargs = {
+            "name": name,
+            "description": description,
+            "slug": slug,
+            "created_by": principal,
+        }
         if countries is not None:
             create_kwargs["countries"] = countries
         if description is None:
