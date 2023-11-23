@@ -37,21 +37,6 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
           class="ml-1 flex items-center gap-0.5 rounded-r-md text-gray-400 focus:outline-none"
         >
           <svg
-            aria-hidden="true"
-            class="h-4 w-4 cursor-pointer hover:text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M6 18L18 6M6 6l12 12"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <svg
             class="animate-spin h-5 w-5"
             data-testid="spinner"
             fill="none"

@@ -13,7 +13,6 @@ import {
   PipelineParameter,
   PipelineVersion,
 } from "graphql-types";
-import Connections from "./connections";
 
 export async function updatePipeline(pipelineId: string, values: any) {
   const client = getApolloClient();
@@ -95,7 +94,7 @@ export const convertParametersToPipelineInput = (
     } else if (parameter.type === "str" && parameter.multiple && val) {
       params[parameter.code] = val.filter((s: string) => s !== "");
     } else if (isConnectionParameter(parameter.type) && val) {
-      params[parameter.code] = val.slug;
+      params[parameter.code] = val;
     } else {
       params[parameter.code] = val;
     }

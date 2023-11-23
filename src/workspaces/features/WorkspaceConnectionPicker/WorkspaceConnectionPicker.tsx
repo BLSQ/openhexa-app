@@ -15,7 +15,7 @@ type Option = {
 };
 
 type WorkspaceConnectionPickerProps = {
-  value: Option | Option[];
+  value?: string;
   workspaceSlug: string;
   placeholder?: string;
   onChange(value?: Option): void;
@@ -74,6 +74,10 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
     [],
   );
 
+  const comboBoxValue = useMemo(() => {
+    return options.find((option) => option.slug === value) ?? null;
+  }, [value, options]);
+
   return (
     <Combobox
       required={required}
@@ -81,13 +85,13 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
       loading={loading}
       withPortal={withPortal}
       displayValue={displayValue}
-      by={(a: Option, b: Option) => a.id === b.id}
+      by="name"
       onInputChange={useCallback(
         (event: any) => setQuery(event.target.value),
         [],
       )}
       placeholder={placeholder}
-      value={value as any}
+      value={comboBoxValue as any}
       onClose={useCallback(() => setQuery(""), [])}
       disabled={disabled}
     >

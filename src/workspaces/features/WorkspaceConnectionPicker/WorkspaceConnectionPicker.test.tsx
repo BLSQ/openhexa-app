@@ -54,7 +54,7 @@ describe("WorkspaceConnectionPicker", () => {
       <WorkspaceConnectionPicker
         workspaceSlug={WORKSPACE.slug}
         onChange={onChange}
-        value={[]}
+        value={""}
       />,
     );
 

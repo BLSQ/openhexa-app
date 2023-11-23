@@ -7,7 +7,7 @@ import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { ConnectionType, PipelineVersion } from "graphql-types";
+import { PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

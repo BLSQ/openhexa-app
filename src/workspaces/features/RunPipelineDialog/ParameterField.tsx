@@ -6,7 +6,6 @@ import Textarea from "core/components/forms/Textarea/Textarea";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
-import { ConnectionType } from "graphql-types";
 import { isConnectionParameter } from "workspaces/helpers/pipelines";
 
 type ParameterFieldProps = {
@@ -48,7 +47,7 @@ const ParameterField = (props: ParameterFieldProps) => {
       <WorkspaceConnectionPicker
         workspaceSlug={workspaceSlug || ""}
         value={value ?? []}
-        onChange={(option) => handleChange(option)}
+        onChange={(option) => handleChange(option?.slug)}
         withPortal
         type={parameter.type}
       />
