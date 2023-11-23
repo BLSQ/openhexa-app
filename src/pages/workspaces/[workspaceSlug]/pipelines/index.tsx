@@ -1,5 +1,4 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
-import { constants } from "buffer";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
@@ -84,31 +83,46 @@ const WorkspacePipelinesPage: NextPageWithLayout = (props: Props) => {
           </Button>
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="divide divide-y-2">
-          <div className="mb-3 grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
-            {pipelines.items.map((pipeline, index) => (
-              <PipelineCard
-                workspace={workspace}
-                key={index}
-                pipeline={pipeline}
+          {pipelines.items.length === 0 ? (
+            <div className="text-center text-gray-500">
+              <div>{t("This workspace does not have any pipeline.")}</div>
+              <Button
+                variant="secondary"
+                onClick={() => setDialogOpen(true)}
+                className="mt-4"
+              >
+                {t("Add a new pipeline")}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-3 grid grid-cols-2 gap-4 xl:grid-cols-3 xl:gap-5">
+                {pipelines.items.map((pipeline, index) => (
+                  <PipelineCard
+                    workspace={workspace}
+                    key={index}
+                    pipeline={pipeline}
+                  />
+                ))}
+              </div>
+              <Pagination
+                onChange={(page, perPage) =>
+                  router.push({
+                    pathname: "/workspaces/[workspaceSlug]/pipelines",
+                    query: {
+                      page,
+                      perPage,
+                      workspaceSlug,
+                    },
+                  })
+                }
+                page={page}
+                perPage={perPage}
+                totalItems={pipelines.totalItems}
+                countItems={pipelines.items.length}
               />
-            ))}
-          </div>
-          <Pagination
-            onChange={(page, perPage) =>
-              router.push({
-                pathname: "/workspaces/[workspaceSlug]/pipelines",
-                query: {
-                  page,
-                  perPage,
-                  workspaceSlug,
-                },
-              })
-            }
-            page={page}
-            perPage={perPage}
-            totalItems={pipelines.totalItems}
-            countItems={pipelines.items.length}
-          />
+            </>
+          )}
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
       <CreatePipelineDialog
