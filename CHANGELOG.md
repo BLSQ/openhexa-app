@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.61.0](https://github.com/BLSQ/openhexa-app/compare/0.60.13...0.61.0) (2023-11-24)
+
+
+### Features
+
+* **Workspaces:** allow user to specify workspace docker image ([#590](https://github.com/BLSQ/openhexa-app/issues/590)) ([4f69cd5](https://github.com/BLSQ/openhexa-app/commit/4f69cd5072110d403848801f5eb804f7218ac4c9))
+
+
+### Miscellaneous
+
+* **Connections:** hide s3 secret access key ([#593](https://github.com/BLSQ/openhexa-app/issues/593)) ([cb7c350](https://github.com/BLSQ/openhexa-app/commit/cb7c3505d2efa30019d4163f45f507e4c152df32))
+* merge migration ([949f657](https://github.com/BLSQ/openhexa-app/commit/949f6571cb6cfaa9c714178dd03b24237217e9d2))
+* release please bump policy change ([#597](https://github.com/BLSQ/openhexa-app/issues/597)) ([3bfb241](https://github.com/BLSQ/openhexa-app/commit/3bfb241a50b7bf8ecd834f4224896c57c63734df))
+* **Visualizations:** remove app folder ([#594](https://github.com/BLSQ/openhexa-app/issues/594)) ([ca0261e](https://github.com/BLSQ/openhexa-app/commit/ca0261e8df66ec2ecfe417df91607035702a0d5f))
+
 ## [0.60.13](https://github.com/BLSQ/openhexa-app/compare/0.60.12...0.60.13) (2023-11-20)
 
 
