@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.37.0](https://github.com/BLSQ/openhexa-frontend/compare/0.36.10...0.37.0) (2023-11-24)
+
+
+### Features
+
+* **Pipelines:** add CTA when pipeline screen is empty ([#484](https://github.com/BLSQ/openhexa-frontend/issues/484)) ([7688f8e](https://github.com/BLSQ/openhexa-frontend/commit/7688f8e57455e01bcac983eb18017bf9f8e97580))
+
+
+### Bug Fixes
+
+* **Connections:** hide s3 connection secret key ([#482](https://github.com/BLSQ/openhexa-frontend/issues/482)) ([38b9924](https://github.com/BLSQ/openhexa-frontend/commit/38b99246ae6d06467a6bd52cbc01bdca706a50d3))
+* **PipelineDialog:** prevent display of empty value on picker ([#481](https://github.com/BLSQ/openhexa-frontend/issues/481)) ([435118b](https://github.com/BLSQ/openhexa-frontend/commit/435118b6b8059a95b56004a5096c8ba60e6ffec7))
+
+
+### Miscellaneous
+
+* release please bump policy change ([#485](https://github.com/BLSQ/openhexa-frontend/issues/485)) ([e9151c1](https://github.com/BLSQ/openhexa-frontend/commit/e9151c18f650947573e39580f3889989e6ca65e0))
+
 ## [0.36.10](https://github.com/BLSQ/openhexa-frontend/compare/0.36.9...0.36.10) (2023-11-18)
 
 
