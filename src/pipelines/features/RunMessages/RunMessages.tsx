@@ -2,13 +2,13 @@ import { gql } from "@apollo/client";
 import Badge from "core/components/Badge";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import {
   RunMessages_DagRunFragment,
   RunMessages_RunFragment,
 } from "./RunMessages.generated";
+import MarkdownViewer from "core/components/MarkdownViewer";
 
 type RunMessagesProps = {
   run: RunMessages_DagRunFragment | RunMessages_RunFragment;
@@ -48,11 +48,25 @@ const RunMessages = (props: RunMessagesProps) => {
         label={t("Timestamp")}
         format={DateTime.DATETIME_SHORT_WITH_SECONDS}
         defaultValue="-"
+        className="max-w-[50ch] py-3"
       />
-      <BaseColumn accessor="priority" label={t("Priority")}>
+      <BaseColumn
+        accessor="priority"
+        label={t("Priority")}
+        className="max-w-[50ch] py-3"
+      >
         {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}
       </BaseColumn>
-      <TextColumn width={400} accessor="message" label={t("Message")} />
+      <BaseColumn accessor="message" label={t("Message")} width={400}>
+        {(value) => (
+          <MarkdownViewer
+            className="w-max-[30ch] text-sm overflow-y-auto whitespace-pre-line break-words"
+            allowedElements={["p", "a"]}
+          >
+            {value}
+          </MarkdownViewer>
+        )}
+      </BaseColumn>
     </DataGrid>
   );
 };

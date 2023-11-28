@@ -77,3 +77,7 @@ jest.mock("@headlessui/react", () => ({
   __esModule: true,
   ...jest.requireActual("@headlessui/react"),
 }));
+
+// https://github.com/remarkjs/react-markdown/issues/635
+// Mock remark-gfm
+jest.mock("remark-gfm", () => () => {});
