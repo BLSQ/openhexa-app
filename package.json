@@ -17,9 +17,7 @@
     "prepare": "husky install",
     "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
-    "i18n:extract": "i18next",
-    "ladle": "npx ladle serve",
-    "ladle:preview": "ladle build && ladle preview 61000"
+    "i18n:extract": "i18next"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -37,7 +35,6 @@
     "@codemirror/lang-python": "^6.1.2",
     "@headlessui/react": "1.7.10",
     "@heroicons/react": "^2.0.18",
-    "@ladle/react": "^2.14.0",
     "@popperjs/core": "^2.11.8",
     "@sentry/nextjs": "^7.80.1",
     "@tailwindcss/aspect-ratio": "^0.4.2",

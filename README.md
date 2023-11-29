@@ -121,14 +121,6 @@ Lint and format the code using the following command:
 npm run lint && npm run format
 ```
 
-### Component library
-
-We use [Ladle](https://ladle.dev/) to develop our component library.
-
-Ladle offers a web interface that allows developers to browse and test individual components and their parameters.
-
-You can run Ladle and open its web interface using `npm run ladle`.
-
 ## NPM Scripts
 
 * `npm run dev`: Launch Next.js in dev mode and watch files to extract graphql code and generate typescript types and hooks
