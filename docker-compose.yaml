@@ -47,7 +47,7 @@ x-app: &common
       - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
       - WORKSPACES_DATABASE_PROXY_HOST=db
       - WORKSPACE_DATASETS_BUCKET
-      - NOTEBOOKS_API_URL=http://host.docker.internal:8001/hub/api
+      - NOTEBOOKS_API_URL=http://jupyterhub:8000/hub/api
       - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
       - GCS_SERVICE_ACCOUNT_KEY
       - WORKSPACE_BUCKET_PREFIX=hexa-test-
