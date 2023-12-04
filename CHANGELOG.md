@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.61.1](https://github.com/BLSQ/openhexa-app/compare/0.61.0...0.61.1) (2023-12-04)
+
+
+### Bug Fixes
+
+* **Pipelines:** run pipeline with cloudrun argument ([#600](https://github.com/BLSQ/openhexa-app/issues/600)) ([bcc9b4e](https://github.com/BLSQ/openhexa-app/commit/bcc9b4e93bc4e1e8835d1946ee550adb7bde9e69))
+* **Workspaces:** add created_by when creating workspace ([#596](https://github.com/BLSQ/openhexa-app/issues/596)) ([a91682f](https://github.com/BLSQ/openhexa-app/commit/a91682f805c3c46a24b6f5459ceae1bbabbab015))
+
 ## [0.61.0](https://github.com/BLSQ/openhexa-app/compare/0.60.13...0.61.0) (2023-11-24)
 
 
