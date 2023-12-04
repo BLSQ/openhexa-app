@@ -85,7 +85,7 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
       loading={loading}
       withPortal={withPortal}
       displayValue={displayValue}
-      by="name"
+      by="slug"
       onInputChange={useCallback(
         (event: any) => setQuery(event.target.value),
         [],
