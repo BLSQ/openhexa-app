@@ -207,7 +207,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
 def run_pipeline_docker(run: PipelineRun, env_var: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]} run'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]} pipeline cloudrun'
     cmd = docker_cmd.split(" ") + [
         "--config",
         f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
