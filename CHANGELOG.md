@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.38.0](https://github.com/BLSQ/openhexa-frontend/compare/0.37.0...0.38.0) (2023-12-04)
+
+
+### Features
+
+* **Pipelines:** improve pipeline messages UX ([#489](https://github.com/BLSQ/openhexa-frontend/issues/489)) ([e75c929](https://github.com/BLSQ/openhexa-frontend/commit/e75c929926080e24654e624fa6fee90f8cc51333))
+
+
+### Bug Fixes
+
+* add missing 'remark-gfm' package ([01c79f4](https://github.com/BLSQ/openhexa-frontend/commit/01c79f4258d90f96a512f2343437577a65578f33))
+* **ConnectionPicker:** use id for connection identifier ([#493](https://github.com/BLSQ/openhexa-frontend/issues/493)) ([841e08b](https://github.com/BLSQ/openhexa-frontend/commit/841e08b1ec4ba224ce66d8f079292347a60e9d9e))
+
+
+### Miscellaneous
+
+* clean up ([#495](https://github.com/BLSQ/openhexa-frontend/issues/495)) ([2e1f57d](https://github.com/BLSQ/openhexa-frontend/commit/2e1f57d7653d298bf3103e447fbc3ea3d4cb91c0))
+* Delete vite.config.ts ([8efd278](https://github.com/BLSQ/openhexa-frontend/commit/8efd278a7c72840abbf487ec90b4e94e23b89b03))
+* **Nextjs:** Add a trailing slash to nextjs urls ([af709b2](https://github.com/BLSQ/openhexa-frontend/commit/af709b28e2474681463f08a8b9c2642759f55521))
+* remove ladle ([#491](https://github.com/BLSQ/openhexa-frontend/issues/491)) ([16b3081](https://github.com/BLSQ/openhexa-frontend/commit/16b30818bf646d28f36866b1712e55efb237adac))
+
 ## [0.37.0](https://github.com/BLSQ/openhexa-frontend/compare/0.36.10...0.37.0) (2023-11-24)
 
 
