@@ -331,6 +331,24 @@ class PipelinesV2Test(GraphQLTestCase):
             },
         )
 
+    def test_delete_pipeline_permission_denied(self):
+        self.test_create_pipeline()
+        id1 = Pipeline.objects.filter(workspace=self.WS1).first().id
+        self.client.force_login(self.USER_SABRINA)
+        r = self.run_query(
+            """
+                mutation deletePipeline($input: DeletePipelineInput!) {
+                    deletePipeline(input: $input) {
+                        success
+                        errors
+                    }
+                }
+            """,
+            {"input": {"id": str(id1)}},
+        )
+        self.assertEqual(False, r["data"]["deletePipeline"]["success"])
+        self.assertEqual(["PERMISSION_DENIED"], r["data"]["deletePipeline"]["errors"])
+
     def test_delete_pipeline(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self.test_create_pipeline()

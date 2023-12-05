@@ -356,17 +356,21 @@ def resolve_delete_pipeline(_, info, **kwargs):
         pipeline = Pipeline.objects.filter_for_user(user=request.user).get(
             id=input.get("id")
         )
+        pipeline.delete_if_has_perm(principal=request.user)
+        return {
+            "success": True,
+            "errors": [],
+        }
     except Pipeline.DoesNotExist:
         return {
             "success": False,
             "errors": ["PIPELINE_NOT_FOUND"],
         }
-
-    pipeline.delete()
-    return {
-        "success": True,
-        "errors": [],
-    }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
+        }
 
 
 @pipelines_mutations.field("runPipeline")
