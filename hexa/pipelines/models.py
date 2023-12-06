@@ -246,6 +246,11 @@ class Pipeline(models.Model):
 
         return self.save()
 
+    def delete_if_has_perm(self, *, principal: User):
+        if not principal.has_perm("pipelines.delete_pipeline", self):
+            raise PermissionDenied
+        self.delete()
+
     @property
     def last_version(self) -> "PipelineVersion":
         return self.versions.first()
