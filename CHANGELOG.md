@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.61.2](https://github.com/BLSQ/openhexa-app/compare/0.61.1...0.61.2) (2023-12-06)
+
+
+### Bug Fixes
+
+* **Pipelines:** check if user can delete pipeline ([#601](https://github.com/BLSQ/openhexa-app/issues/601)) ([963328f](https://github.com/BLSQ/openhexa-app/commit/963328f5de35fa4ae4bf2ae1fdbd6f674fa9f278))
+
 ## [0.61.1](https://github.com/BLSQ/openhexa-app/compare/0.61.0...0.61.1) (2023-12-04)
 
 
