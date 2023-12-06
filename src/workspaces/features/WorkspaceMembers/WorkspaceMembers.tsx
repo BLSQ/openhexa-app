@@ -15,7 +15,7 @@ import UpdateWorkspaceMemberDialog from "./UpdateWorkspaceMemberDialog";
 import { WorskspaceMembersQuery } from "./WorkspaceMembers.generated";
 import useMe from "identity/hooks/useMe";
 
-const DEFAULT_PAGE_SIZE = 5;
+const DEFAULT_PAGE_SIZE = 10;
 
 type WorkspaceMember = Pick<WorkspaceMembership, "id" | "role"> & {
   user: Pick<User, "id" | "displayName">;
