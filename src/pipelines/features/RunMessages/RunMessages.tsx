@@ -8,7 +8,7 @@ import {
   RunMessages_DagRunFragment,
   RunMessages_RunFragment,
 } from "./RunMessages.generated";
-import MarkdownViewer from "core/components/MarkdownViewer";
+import Linkify from "linkify-react";
 
 type RunMessagesProps = {
   run: RunMessages_DagRunFragment | RunMessages_RunFragment;
@@ -57,14 +57,30 @@ const RunMessages = (props: RunMessagesProps) => {
       >
         {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}
       </BaseColumn>
-      <BaseColumn accessor="message" label={t("Message")} width={400}>
+      <BaseColumn
+        accessor="message"
+        label={t("Message")}
+        width={400}
+        className="w-max-[30ch] text-sm overflow-y-auto whitespace-pre-line break-words"
+      >
         {(value) => (
-          <MarkdownViewer
-            className="w-max-[30ch] text-sm overflow-y-auto whitespace-pre-line break-words"
-            allowedElements={["p", "a"]}
+          <Linkify
+            as="p"
+            options={{
+              render: ({ attributes, content }) => (
+                <a
+                  {...attributes}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-500"
+                >
+                  {content}
+                </a>
+              ),
+            }}
           >
             {value}
-          </MarkdownViewer>
+          </Linkify>
         )}
       </BaseColumn>
     </DataGrid>

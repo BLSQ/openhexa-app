@@ -2,22 +2,15 @@ import clsx from "clsx";
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import Link from "../Link";
-import remarkGfm from "remark-gfm";
 
 type MarkdownViewerProps = {
   children: string;
   maxWidth?: string;
   className?: string;
-  allowedElements?: string[];
 };
 
 const MarkdownViewer = (props: MarkdownViewerProps) => {
-  const {
-    children,
-    maxWidth = "max-w-3xl",
-    className,
-    allowedElements,
-  } = props;
+  const { children, maxWidth = "max-w-3xl", className } = props;
 
   const components = useMemo<
     React.ComponentProps<typeof ReactMarkdown>["components"]
@@ -38,8 +31,6 @@ const MarkdownViewer = (props: MarkdownViewerProps) => {
     <ReactMarkdown
       className={clsx("prose prose-headings:font-medium", maxWidth, className)}
       components={components}
-      remarkPlugins={[remarkGfm]}
-      allowedElements={allowedElements}
     >
       {children}
     </ReactMarkdown>
