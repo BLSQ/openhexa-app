@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.39.0](https://github.com/BLSQ/openhexa-frontend/compare/0.38.0...0.39.0) (2023-12-06)
+
+
+### Features
+
+* **PipelineRun:** use linkify-react for url parsing ([#497](https://github.com/BLSQ/openhexa-frontend/issues/497)) ([7f1699a](https://github.com/BLSQ/openhexa-frontend/commit/7f1699a0f70e5bcbf05dd6fefc18ee203c845db8))
+* **Workspaces:** increase workspace members page size to 10 ([#496](https://github.com/BLSQ/openhexa-frontend/issues/496)) ([bc541f9](https://github.com/BLSQ/openhexa-frontend/commit/bc541f94435fac87d5c02c27e055a726b67b960a))
+
 ## [0.38.0](https://github.com/BLSQ/openhexa-frontend/compare/0.37.0...0.38.0) (2023-12-04)
 
 
