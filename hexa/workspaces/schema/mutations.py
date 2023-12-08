@@ -208,20 +208,36 @@ def resolve_join_workspace(_, info, **kwargs):
             raise AlreadyExists(
                 f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
             )
+            
+        if request.user.is_authenticated and request.user.email != invitation.email:
+            # If a user is authenticated, we can't accept an invitation for another user (security)
+            raise PermissionDenied(
+                "You cannot accept an invitation for another user."
+            )
+        elif request.user.is_authenticated is False:
+            # If the user is not authenticated, we create it
+            if input["password"] != input["confirmPassword"]:
+                raise ValidationError("The two passwords do not match.")
 
-        if input["password"] != input["confirmPassword"]:
-            raise ValidationError("The two passwords do not match.")
+            validate_password(password=input["password"])
+            user = User.objects.create_user(
+                email=invitation.email,
+                first_name=input["firstName"],
+                last_name=input["lastName"],
+                password=input["password"],
+            )
+            FeatureFlag.objects.create(
+                feature=Feature.objects.get(code="workspaces"), user=user
+            )
 
-        validate_password(password=input["password"])
-        user = User.objects.create_user(
-            email=invitation.email,
-            first_name=input["firstName"],
-            last_name=input["lastName"],
-            password=input["password"],
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.get(code="workspaces"), user=user
-        )
+            # Let's authenticate the user automatically
+            authenticated_user = authenticate(
+                username=invitation.email, password=input["password"]
+            )
+            login(request, authenticated_user)
+        else:
+            user = request.user
+
         WorkspaceMembership.objects.create(
             workspace=invitation.workspace,
             user=user,
@@ -229,12 +245,6 @@ def resolve_join_workspace(_, info, **kwargs):
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
-
-        # Let's authenticate the user automatically
-        authenticated_user = authenticate(
-            username=invitation.email, password=input["password"]
-        )
-        login(request, authenticated_user)
 
         return {"success": True, "errors": [], "workspace": invitation.workspace}
 
