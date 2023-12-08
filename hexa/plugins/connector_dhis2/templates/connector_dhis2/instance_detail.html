@@ -5,25 +5,28 @@
 
 {% block page_content %}
     {{ instance_card }}
-    {% include "comments/components/page_section_comments.html" with object=instance %}
-    {% embed "ui/section/section.html" with title=_("Data Elements") %}
-        {% slot content %}
-            {{ data_element_grid }}
-        {% endslot %}
-    {% endembed %}
-    {% embed "ui/section/section.html" with title=_("Indicators") %}
-        {% slot content %}
-            {{ indicator_grid }}
-        {% endslot %}
-    {% endembed %}
-    {% embed "ui/section/section.html" with title=_("Organisation Units") %}
-        {% slot content %}
-            {{ organisation_unit_grid }}
-        {% endslot %}
-    {% endembed %}
-    {% embed "ui/section/section.html" with title=_("Data sets") %}
-        {% slot content %}
-            {{ dataset_grid }}
-        {% endslot %}
-    {% endembed %}
+    {% comment  %}
+        {% include "comments/components/page_section_comments.html" with object=instance %}
+        {% embed "ui/section/section.html" with title=_("Data Elements") %}
+            {% slot content %}
+                {{ data_element_grid }}
+            {% endslot %}
+        {% endembed %}
+        {% embed "ui/section/section.html" with title=_("Indicators") %}
+            {% slot content %}
+                {{ indicator_grid }}
+            {% endslot %}
+        {% endembed %}
+        {% embed "ui/section/section.html" with title=_("Organisation Units") %}
+            {% slot content %}
+                {{ organisation_unit_grid }}
+            {% endslot %}
+        {% endembed %}
+        {% embed "ui/section/section.html" with title=_("Data sets") %}
+            {% slot content %}
+                {{ dataset_grid }}
+            {% endslot %}
+        {% endembed %}
+    {% endcomment%}
+    
 {% endblock %}
