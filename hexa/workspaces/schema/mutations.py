@@ -209,19 +209,40 @@ def resolve_join_workspace(_, info, **kwargs):
                 f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
             )
 
-        if input["password"] != input["confirmPassword"]:
-            raise ValidationError("The two passwords do not match.")
+        if request.user.is_authenticated and request.user.email != invitation.email:
+            raise PermissionDenied("You cannot accept an invitation for another user.")
 
-        validate_password(password=input["password"])
-        user = User.objects.create_user(
-            email=invitation.email,
-            first_name=input["firstName"],
-            last_name=input["lastName"],
-            password=input["password"],
-        )
-        FeatureFlag.objects.create(
-            feature=Feature.objects.get(code="workspaces"), user=user
-        )
+        # Check if a user already exists with this email
+        # If it exists, is has to be authenticated to accept the invitation
+        try:
+            user = User.objects.get(email=invitation.email)
+            if request.user.is_anonymous:
+                return {
+                    "success": False,
+                    "errors": ["AUTHENTICATION_REQUIRED"],
+                }
+        except User.DoesNotExist:
+            if input["password"] != input["confirmPassword"]:
+                raise ValidationError("The two passwords do not match.")
+
+            validate_password(password=input["password"])
+            user = User.objects.create_user(
+                email=invitation.email,
+                first_name=input["firstName"],
+                last_name=input["lastName"],
+                password=input["password"],
+            )
+            FeatureFlag.objects.create(
+                feature=Feature.objects.get(code="workspaces"), user=user
+            )
+
+            # Let's authenticate the user automatically
+            authenticated_user = authenticate(
+                username=invitation.email, password=input["password"]
+            )
+            login(request, authenticated_user)
+
+        # We create the membership
         WorkspaceMembership.objects.create(
             workspace=invitation.workspace,
             user=user,
@@ -230,20 +251,9 @@ def resolve_join_workspace(_, info, **kwargs):
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
 
-        # Let's authenticate the user automatically
-        authenticated_user = authenticate(
-            username=invitation.email, password=input["password"]
-        )
-        login(request, authenticated_user)
-
         return {"success": True, "errors": [], "workspace": invitation.workspace}
 
-    except SignatureExpired:
-        return {
-            "success": False,
-            "errors": ["EXPIRED_TOKEN"],
-        }
-    except (binascii.Error, BadSignature) as e:
+    except (SignatureExpired, binascii.Error, BadSignature):
         return {
             "success": False,
             "errors": ["INVALID_TOKEN"],
@@ -257,6 +267,11 @@ def resolve_join_workspace(_, info, **kwargs):
         return {
             "success": False,
             "errors": ["INVALID_CREDENTIALS"],
+        }
+    except PermissionDenied:
+        return {
+            "success": False,
+            "errors": ["PERMISSION_DENIED"],
         }
     except WorkspaceInvitation.DoesNotExist:
         return {
