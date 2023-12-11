@@ -1021,7 +1021,7 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertEqual(
                 {
                     "success": False,
-                    "errors": ["EXPIRED_TOKEN"],
+                    "errors": ["INVALID_TOKEN"],
                 },
                 r["data"]["joinWorkspace"],
             )
@@ -1168,6 +1168,118 @@ class WorkspaceTest(GraphQLTestCase):
                 {
                     "success": False,
                     "errors": ["INVALID_CREDENTIALS"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+    def test_join_workspace_user_already_exists(self):
+        token = "aaa"
+        user = User.objects.create_user(
+            "external@bluesquarehub.com", "external", is_superuser=False
+        )
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email=user.email,
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
+            r = self.run_query(
+                """
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "pa$$word",
+                        "confirmPassword": "pa$$word",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["AUTHENTICATION_REQUIRED"],
+                },
+                r["data"]["joinWorkspace"],
+            )
+
+            # Do it again with the user authenticated
+            self.client.force_login(user)
+            r = self.run_query(
+                """
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": token,
+                        "password": "pa$$word",
+                        "confirmPassword": "pa$$word",
+                    }
+                },
+            )
+            self.assertEqual(
+                {"success": True, "errors": []},
+                r["data"]["joinWorkspace"],
+            )
+            self.assertEqual(invitation.status, WorkspaceInvitationStatus.ACCEPTED)
+
+    def test_join_workspace_different_authenticated_user(self):
+        invitation = WorkspaceInvitation.objects.create(
+            invited_by=self.USER_WORKSPACE_ADMIN,
+            workspace=self.WORKSPACE,
+            email="external@bluesquarehub.com",
+            role=WorkspaceMembershipRole.VIEWER,
+            status=WorkspaceInvitationStatus.PENDING,
+        )
+
+        self.client.force_login(self.USER_REBECCA)
+        with patch(
+            "hexa.workspaces.schema.mutations.WorkspaceInvitation.objects"
+        ) as mocked_objects:
+            mocked_objects.get_by_token.return_value = invitation
+            r = self.run_query(
+                """
+                mutation joinWorkspace($input: JoinWorkspaceInput!) {
+                    joinWorkspace(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "firstName": "john",
+                        "lastName": "doe",
+                        "token": "aaaaa",
+                        "password": "Pa$$word0",
+                        "confirmPassword": "Pa$$word0",
+                    }
+                },
+            )
+            self.assertEqual(
+                {
+                    "success": False,
+                    "errors": ["PERMISSION_DENIED"],
                 },
                 r["data"]["joinWorkspace"],
             )
