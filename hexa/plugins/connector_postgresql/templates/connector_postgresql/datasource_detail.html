@@ -5,10 +5,13 @@
 
 {% block page_content %}
     {{ database_card }}
-    {% include "comments/components/page_section_comments.html" with object=datasource %}
-    {% embed "ui/section/section.html" with title=_("Tables") %}
-        {% slot content %}
-            {{ table_grid }}
-        {% endslot %}
-    {% endembed %}
+    {% comment %}
+        {% include "comments/components/page_section_comments.html" with object=datasource %}
+        {% embed "ui/section/section.html" with title=_("Tables") %}
+            {% slot content %}
+                {{ table_grid }}
+            {% endslot %}
+        {% endembed %}
+    {% endcomment%}
+  
 {% endblock %}
