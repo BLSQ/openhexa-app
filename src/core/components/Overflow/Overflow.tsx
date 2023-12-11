@@ -29,9 +29,7 @@ function getVerticalOverflow(parent: HTMLDivElement, child: HTMLDivElement) {
   }
   const topOverflow = parent.scrollTop !== 0;
   const bottomOverflow =
-    parent.scrollTop <=
-    child.offsetTop + child.offsetHeight - parent.clientHeight;
-
+    parent.scrollTop + parent.offsetHeight < child.offsetHeight;
   if (topOverflow && bottomOverflow) {
     return OverflowY.BOTH;
   } else if (topOverflow) {
