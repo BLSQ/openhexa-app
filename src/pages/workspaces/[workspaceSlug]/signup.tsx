@@ -55,11 +55,21 @@ const WorkspaceSignUpPage: NextPageWithLayout = (props: Props) => {
         await router.push(`/workspaces/${encodeURIComponent(workspace.slug)}`);
       } else if (errors.includes(JoinWorkspaceError.InvalidCredentials)) {
         throw new Error(t("Invalid password format"));
-      } else if (errors.includes(JoinWorkspaceError.AlreadyExists)) {
+      } else if (
+        errors.some(
+          (x) =>
+            x === JoinWorkspaceError.AlreadyExists ||
+            x === JoinWorkspaceError.AuthenticationRequired,
+        )
+      ) {
         throw new Error(
           t(
             "An account already exists with this email address. Please go to the login page.",
           ),
+        );
+      } else if (errors.includes(JoinWorkspaceError.PermissionDenied)) {
+        throw new Error(
+          t("You don't have the permission to join this workspace."),
         );
       } else if (
         errors.some(
@@ -69,8 +79,6 @@ const WorkspaceSignUpPage: NextPageWithLayout = (props: Props) => {
         )
       ) {
         throw new Error(t("The invite link is invalid."));
-      } else if (errors.includes(JoinWorkspaceError.ExpiredToken)) {
-        throw new Error(t("The invitation has expired."));
       }
     },
     initialState: {

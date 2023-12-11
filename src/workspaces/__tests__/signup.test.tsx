@@ -312,7 +312,7 @@ describe("WorkspaceSignUpPage", () => {
           data: {
             joinWorkspace: {
               success: false,
-              errors: ["EXPIRED_TOKEN"],
+              errors: ["INVALID_TOKEN"],
               workspace: null,
             },
           },
@@ -342,7 +342,68 @@ describe("WorkspaceSignUpPage", () => {
     await user.type(confirmPassword, "pA$$W0rd");
     await user.click(submitBtn);
 
-    const errorMessage = await screen.findByText("The invitation has expired.");
+    const errorMessage = await screen.findByText("The invite link is invalid.");
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it("does not accept the user to accept the invite for a different user", async () => {
+    const pushSpy = jest.spyOn(router, "push");
+    const { useJoinWorkspaceMutation } = jest.requireActual(
+      "workspaces/graphql/mutations.generated",
+    );
+    useJoinWorkspaceMutationMock.mockImplementation(useJoinWorkspaceMutation);
+    const user = userEvent.setup();
+    const mocks = [
+      {
+        request: {
+          query: JoinWorkspaceDocument,
+          variables: {
+            input: {
+              firstName: USER.firstName,
+              lastName: USER.lastName,
+              token: USER.token,
+              password: "pA$$W0rd",
+              confirmPassword: "pA$$W0rd",
+            },
+          },
+        },
+        result: {
+          data: {
+            joinWorkspace: {
+              success: false,
+              errors: ["PERMISSION_DENIED"],
+              workspace: null,
+            },
+          },
+        },
+      },
+    ];
+
+    render(
+      <TestApp mocks={mocks}>
+        <SignUpPage email={USER.email} token={USER.token} />
+      </TestApp>,
+    );
+
+    const submitBtn = screen.getByRole("button", { name: "Submit" });
+
+    await user.click(submitBtn);
+    expect(pushSpy).not.toHaveBeenCalled();
+
+    const firstName = screen.getByTestId("firstName");
+    const lastName = screen.getByTestId("lastName");
+    const password = screen.getByTestId("password");
+    const confirmPassword = screen.getByTestId("confirmPassword");
+
+    await user.type(firstName, USER.firstName);
+    await user.type(lastName, USER.lastName);
+    await user.type(password, "pA$$W0rd");
+    await user.type(confirmPassword, "pA$$W0rd");
+    await user.click(submitBtn);
+
+    const errorMessage = await screen.findByText(
+      "You don't have the permission to join this workspace.",
+    );
     expect(errorMessage).toBeInTheDocument();
   });
 

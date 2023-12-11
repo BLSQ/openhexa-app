@@ -1495,10 +1495,11 @@ export enum InviteWorkspaceMembershipError {
 
 export enum JoinWorkspaceError {
   AlreadyExists = 'ALREADY_EXISTS',
-  ExpiredToken = 'EXPIRED_TOKEN',
+  AuthenticationRequired = 'AUTHENTICATION_REQUIRED',
   InvalidCredentials = 'INVALID_CREDENTIALS',
   InvalidToken = 'INVALID_TOKEN',
-  InvitationNotFound = 'INVITATION_NOT_FOUND'
+  InvitationNotFound = 'INVITATION_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
 }
 
 export type JoinWorkspaceInput = {
