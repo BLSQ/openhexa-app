@@ -791,6 +791,44 @@ class PipelinesV2Test(GraphQLTestCase):
             r["data"]["updatePipeline"],
         )
 
+    def test_update_pipeline_public_webhook(self):
+        self.test_create_pipeline_version()
+        pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()
+        self.assertEqual(pipeline.webhook_enabled, False)
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) {
+                    success
+                    errors
+                    pipeline {
+                        webhookEnabled
+                        webhookUrl
+                    }
+                }
+            }
+        """,
+            {
+                "input": {
+                    "id": str(pipeline.id),
+                    "webhookEnabled": True,
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pipeline": {
+                    "webhookEnabled": True,
+                    "webhookUrl": f"http://app.openhexa.test/pipelines/{pipeline.id}/run",
+                },
+            },
+            r["data"]["updatePipeline"],
+        )
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.webhook_enabled, True)
+
     def test_delete_pipeline_workspace_members(self):
         self.test_create_pipeline_version()
         pipeline = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first()

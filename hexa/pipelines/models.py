@@ -170,6 +170,7 @@ class Pipeline(models.Model):
     config = models.JSONField(blank=True, default=dict)
     schedule = models.CharField(max_length=200, null=True, blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
+    webhook_enabled = models.BooleanField(default=False)
 
     cpu_request = models.CharField(blank=True, max_length=32)
     cpu_limit = models.CharField(blank=True, max_length=32)
@@ -187,6 +188,29 @@ class Pipeline(models.Model):
         config: typing.Mapping[typing.Dict, typing.Any] = None,
         send_mail_notifications: bool = False,
     ):
+        if config is not None:
+            # Validate the configuration against the pipeline's version parameters
+            for parameter in pipeline_version.parameters:
+                value = config.get(parameter["code"], None)
+                if parameter.get("required") and value is None:
+                    raise ValueError(f"Missing required parameter {parameter['code']}")
+                if (
+                    parameter.get("multiple", False)
+                    and value is not None
+                    and not isinstance(value, list)
+                ):
+                    raise ValueError(
+                        f"Parameter {parameter['code']} must be a list of values"
+                    )
+                if not parameter.get("multiple", False) and isinstance(value, list):
+                    raise ValueError(
+                        f"Parameter {parameter['code']} must be a single value"
+                    )
+
+                if parameter.get("default") is not None and value is None:
+                    # Set default value if not provided
+                    config[parameter["code"]] = parameter["default"]
+
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
@@ -231,16 +255,16 @@ class Pipeline(models.Model):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "schedule", "config"]:
+        for key in ["name", "description", "schedule", "config", "webhook_enabled"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
-        if "recipientIds" in kwargs:
+        if "recipient_ids" in kwargs:
             PipelineRecipient.objects.filter(
-                Q(pipeline=self) & ~Q(user_id__in=kwargs["recipientIds"])
+                Q(pipeline=self) & ~Q(user_id__in=kwargs["recipient_ids"])
             ).delete()
             for member in WorkspaceMembership.objects.filter(
-                workspace=self.workspace, user_id__in=kwargs["recipientIds"]
+                workspace=self.workspace, user_id__in=kwargs["recipient_ids"]
             ):
                 PipelineRecipient.objects.get_or_create(user=member.user, pipeline=self)
 

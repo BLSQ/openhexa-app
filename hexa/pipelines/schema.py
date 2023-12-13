@@ -7,12 +7,14 @@ from ariadne import (
     ObjectType,
     QueryType,
     UnionType,
+    convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
+from django.urls import reverse
 from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
@@ -130,6 +132,13 @@ def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
         and request.user.has_perm("pipelines.run_pipeline", pipeline)
         and pipeline.last_version.is_schedulable
     )
+
+
+@pipeline_object.field("webhookUrl")
+def resolve_pipeline_webhook_url(pipeline: Pipeline, info):
+    request = info.context["request"]
+    if pipeline.webhook_enabled:
+        return request.build_absolute_uri(reverse("pipelines:run", args=[pipeline.id]))
 
 
 @pipeline_object.field("currentVersion")
@@ -331,6 +340,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
 
 @pipelines_mutations.field("updatePipeline")
+@convert_kwargs_to_snake_case
 def resolve_update_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
@@ -401,19 +411,21 @@ def resolve_run_pipeline(_, info, **kwargs):
     if not request.user.has_perm("pipelines.run_pipeline", pipeline):
         raise PermissionDenied()
 
-    run = pipeline.run(
-        user=request.user,
-        pipeline_version=version,
-        trigger_mode=PipelineRunTrigger.MANUAL,
-        config=input.get("config", {}),
-        send_mail_notifications=input.get("sendMailNotifications", False),
-    )
-
-    return {
-        "success": True,
-        "errors": [],
-        "run": run,
-    }
+    try:
+        run = pipeline.run(
+            user=request.user,
+            pipeline_version=version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config=input.get("config", {}),
+            send_mail_notifications=input.get("sendMailNotifications", False),
+        )
+        return {
+            "success": True,
+            "errors": [],
+            "run": run,
+        }
+    except ValueError:
+        return {"success": False, "errors": ["INVALID_CONFIG"]}
 
 
 @pipelines_mutations.field("pipelineToken")

@@ -1,3 +1,4 @@
+import json
 import uuid
 from logging import getLogger
 
@@ -6,7 +7,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import BadSignature, Signer
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -16,7 +23,7 @@ from hexa.app import get_hexa_app_configs
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
-from .models import Pipeline, PipelineRun
+from .models import Pipeline, PipelineRun, PipelineRunTrigger, PipelineVersion
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
@@ -87,10 +94,79 @@ def credentials(request: HttpRequest) -> HttpResponse:
     )
 
 
+@require_POST
+@csrf_exempt
+def run_pipeline(
+    request: HttpRequest, id: uuid.UUID, version_number: int = None
+) -> HttpResponse:
+    """Runs a pipeline. The endpoint accepts both form data and JSON payloads.
+
+    To be runnable, the pipeline must be set as public with `webhook_enabled`.
+    Returns:
+        HttpResponse: Returns a dict with the `run_id` key containing the ID of the created run.
+    """
+
+    try:
+        pipeline = Pipeline.objects.get(id=id)
+    except Pipeline.DoesNotExist:
+        return JsonResponse({"error": "Pipeline not found"}, status=404)
+
+    # Only allow pipelines with public webhooks to be run with this endpoint
+    if pipeline.webhook_enabled is False:
+        return JsonResponse({"error": "Pipeline has no webhook enabled"}, status=400)
+
+    # Get the pipeline version
+    try:
+        pipeline_version = pipeline.last_version
+        if version_number is not None:
+            pipeline_version = PipelineVersion.objects.get(
+                pipeline=pipeline, number=version_number
+            )
+
+        if pipeline_version is None:
+            return JsonResponse({"error": "Pipeline has no version"}, status=400)
+    except PipelineVersion.DoesNotExist:
+        return JsonResponse({"error": "Pipeline version not found"}, status=404)
+
+    # Get the data from the request
+    content_type = request.META.get("CONTENT_TYPE")
+    send_mail_notifications = False
+    config = {}
+    if content_type == "application/x-www-form-urlencoded":
+        send_mail_notifications = request.POST.get("send_mail_notifications", False)
+        for parameter in pipeline_version.parameters:
+            if parameter["code"] not in request.POST:
+                continue
+            if parameter.get("multiple", False):
+                config[parameter["code"]] = request.POST.getlist(parameter["code"])
+            else:
+                config[parameter["code"]] = request.POST.get(parameter["code"])
+    elif content_type == "application/json":
+        send_mail_notifications = request.GET.get("send_mail_notifications", False)
+        try:
+            config = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+    else:
+        return JsonResponse({"error": "Unsupported content type"}, status=400)
+
+    try:
+        run = pipeline.run(
+            user=None,
+            pipeline_version=pipeline_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config=config,
+            send_mail_notifications=send_mail_notifications,
+        )
+        return JsonResponse({"run_id": run.id}, status=200)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+
+
 def pipelines_status(request: HttpRequest) -> HttpResponse:
     """Temporary endpoint for a status page"""
     if not request.user.is_authenticated or not request.user.is_superuser:
-        raise Http404("not authorized")  # FIXME
+        raise HttpResponseForbidden("not authorized")  # FIXME
 
     return render(
         request,

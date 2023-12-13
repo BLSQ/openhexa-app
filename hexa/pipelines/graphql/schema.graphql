@@ -137,6 +137,8 @@ type Pipeline {
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
   recipients: [PipelineRecipient!]!
+  webhookEnabled: Boolean!
+  webhookUrl: String
 }
 
 type PipelinesPage {
@@ -261,6 +263,7 @@ input UpdatePipelineInput {
   schedule: String
   description: String
   recipientIds: [UUID!]
+  webhookEnabled: Boolean
 }
 enum UpdatePipelineError {
   NOT_FOUND
