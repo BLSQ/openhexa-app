@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.40.0](https://github.com/BLSQ/openhexa-frontend/compare/0.39.0...0.40.0) (2023-12-14)
+
+
+### Features
+
+* **PipelineRun:** Improve messages list ([#502](https://github.com/BLSQ/openhexa-frontend/issues/502)) ([b13fef0](https://github.com/BLSQ/openhexa-frontend/commit/b13fef0bbcca3e6bc694a45476a3f35151e5da93))
+
+
+### Bug Fixes
+
+* **Overflow:** Fix overflow in vertical mode ([#501](https://github.com/BLSQ/openhexa-frontend/issues/501)) ([20ad684](https://github.com/BLSQ/openhexa-frontend/commit/20ad68403084cc33cb57569104dfed2479852388))
+* **Workspace:** Remove TOKEN_EXPIRED & Handle the need to authenticate in the join workspace workflow ([#499](https://github.com/BLSQ/openhexa-frontend/issues/499)) ([1ba5859](https://github.com/BLSQ/openhexa-frontend/commit/1ba585952db76a7d5eacf448a4d6b64777bd4b41))
+
+
+### Miscellaneous
+
+* **deps:** bump @graphql-codegen/typescript-react-apollo from 4.0.0 to 4.1.0 ([#486](https://github.com/BLSQ/openhexa-frontend/issues/486)) ([f27342f](https://github.com/BLSQ/openhexa-frontend/commit/f27342f4ab2ae5d312747a3ed0f8988a96b0a514))
+* **deps:** bump @uiw/react-codemirror from 4.21.13 to 4.21.21 ([#487](https://github.com/BLSQ/openhexa-frontend/issues/487)) ([7151c0a](https://github.com/BLSQ/openhexa-frontend/commit/7151c0aff819e6f7176afe460e5b4f4ba90ad5de))
+
 ## [0.39.0](https://github.com/BLSQ/openhexa-frontend/compare/0.38.0...0.39.0) (2023-12-06)
 
 
