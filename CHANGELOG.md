@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.61.3](https://github.com/BLSQ/openhexa-app/compare/0.61.2...0.61.3) (2023-12-12)
+
+
+### Bug Fixes
+
+* **Workspace:** fix multiple invitations to workspaces for a single user ([#604](https://github.com/BLSQ/openhexa-app/issues/604)) ([8a1dfaa](https://github.com/BLSQ/openhexa-app/commit/8a1dfaa153a9690b483dc8b208a4773c39f25a98))
+
+
+### Miscellaneous
+
+* **Catalog:** keep only basic details for each datasource ([#603](https://github.com/BLSQ/openhexa-app/issues/603)) ([1d63bf3](https://github.com/BLSQ/openhexa-app/commit/1d63bf3e1604c4e63db21c20a6e951512fae8d30))
+
 ## [0.61.2](https://github.com/BLSQ/openhexa-app/compare/0.61.1...0.61.2) (2023-12-06)
 
 
