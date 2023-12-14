@@ -71,6 +71,11 @@ export function usePipelineVersionsDialogLazyQuery(baseOptions?: Apollo.LazyQuer
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>(PipelineVersionsDialogDocument, options);
         }
+export function usePipelineVersionsDialogSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>(PipelineVersionsDialogDocument, options);
+        }
 export type PipelineVersionsDialogQueryHookResult = ReturnType<typeof usePipelineVersionsDialogQuery>;
 export type PipelineVersionsDialogLazyQueryHookResult = ReturnType<typeof usePipelineVersionsDialogLazyQuery>;
+export type PipelineVersionsDialogSuspenseQueryHookResult = ReturnType<typeof usePipelineVersionsDialogSuspenseQuery>;
 export type PipelineVersionsDialogQueryResult = Apollo.QueryResult<PipelineVersionsDialogQuery, PipelineVersionsDialogQueryVariables>;

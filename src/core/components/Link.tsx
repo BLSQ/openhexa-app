@@ -7,6 +7,7 @@ export type LinkProps = Omit<AnchorProps, "href"> & {
   customStyle?: string;
   className?: string;
   noStyle?: boolean;
+  rel?: string;
 } & NextLinkProps;
 
 const Link = (props: LinkProps) => {
@@ -15,11 +16,13 @@ const Link = (props: LinkProps) => {
     className,
     customStyle,
     noStyle = false,
+    rel = "noopener noreferrer",
     ...delegated
   } = props;
   return (
     <NextLink
       {...delegated}
+      rel={rel}
       className={clsx(
         className,
         !noStyle && (customStyle ?? "text-blue-600 hover:text-blue-500"),

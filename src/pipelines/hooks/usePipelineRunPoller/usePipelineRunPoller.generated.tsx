@@ -46,6 +46,11 @@ export function usePipelineRunPollerLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>(PipelineRunPollerDocument, options);
         }
+export function usePipelineRunPollerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>(PipelineRunPollerDocument, options);
+        }
 export type PipelineRunPollerQueryHookResult = ReturnType<typeof usePipelineRunPollerQuery>;
 export type PipelineRunPollerLazyQueryHookResult = ReturnType<typeof usePipelineRunPollerLazyQuery>;
+export type PipelineRunPollerSuspenseQueryHookResult = ReturnType<typeof usePipelineRunPollerSuspenseQuery>;
 export type PipelineRunPollerQueryResult = Apollo.QueryResult<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>;

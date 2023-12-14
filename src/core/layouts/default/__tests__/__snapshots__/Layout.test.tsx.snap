@@ -32,24 +32,28 @@ exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
           <a
             class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white bg-gray-900 text-white"
             href="/"
+            rel="noopener noreferrer"
           >
             Dashboard
           </a>
           <a
             class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
             href="/catalog"
+            rel="noopener noreferrer"
           >
             Catalog
           </a>
           <a
             class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
             href="/notebooks"
+            rel="noopener noreferrer"
           >
             Notebooks
           </a>
           <a
             class="px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white text-gray-300"
             href="/pipelines"
+            rel="noopener noreferrer"
           >
             Pipelines
           </a>

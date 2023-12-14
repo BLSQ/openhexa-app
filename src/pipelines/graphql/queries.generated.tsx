@@ -99,8 +99,13 @@ export function usePipelinesPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelinesPageQuery, PipelinesPageQueryVariables>(PipelinesPageDocument, options);
         }
+export function usePipelinesPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelinesPageQuery, PipelinesPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelinesPageQuery, PipelinesPageQueryVariables>(PipelinesPageDocument, options);
+        }
 export type PipelinesPageQueryHookResult = ReturnType<typeof usePipelinesPageQuery>;
 export type PipelinesPageLazyQueryHookResult = ReturnType<typeof usePipelinesPageLazyQuery>;
+export type PipelinesPageSuspenseQueryHookResult = ReturnType<typeof usePipelinesPageSuspenseQuery>;
 export type PipelinesPageQueryResult = Apollo.QueryResult<PipelinesPageQuery, PipelinesPageQueryVariables>;
 export const PipelinePageDocument = gql`
     query PipelinePage($id: UUID!, $page: Int, $perPage: Int) {
@@ -181,8 +186,13 @@ export function usePipelinePageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelinePageQuery, PipelinePageQueryVariables>(PipelinePageDocument, options);
         }
+export function usePipelinePageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelinePageQuery, PipelinePageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelinePageQuery, PipelinePageQueryVariables>(PipelinePageDocument, options);
+        }
 export type PipelinePageQueryHookResult = ReturnType<typeof usePipelinePageQuery>;
 export type PipelinePageLazyQueryHookResult = ReturnType<typeof usePipelinePageLazyQuery>;
+export type PipelinePageSuspenseQueryHookResult = ReturnType<typeof usePipelinePageSuspenseQuery>;
 export type PipelinePageQueryResult = Apollo.QueryResult<PipelinePageQuery, PipelinePageQueryVariables>;
 export const PipelineRunPageDocument = gql`
     query PipelineRunPage($pipelineId: UUID!, $runId: UUID!) {
@@ -230,8 +240,13 @@ export function usePipelineRunPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineRunPageQuery, PipelineRunPageQueryVariables>(PipelineRunPageDocument, options);
         }
+export function usePipelineRunPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineRunPageQuery, PipelineRunPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineRunPageQuery, PipelineRunPageQueryVariables>(PipelineRunPageDocument, options);
+        }
 export type PipelineRunPageQueryHookResult = ReturnType<typeof usePipelineRunPageQuery>;
 export type PipelineRunPageLazyQueryHookResult = ReturnType<typeof usePipelineRunPageLazyQuery>;
+export type PipelineRunPageSuspenseQueryHookResult = ReturnType<typeof usePipelineRunPageSuspenseQuery>;
 export type PipelineRunPageQueryResult = Apollo.QueryResult<PipelineRunPageQuery, PipelineRunPageQueryVariables>;
 export const PipelineConfigureRunPageDocument = gql`
     query PipelineConfigureRunPage($pipelineId: UUID!) {
@@ -273,6 +288,11 @@ export function usePipelineConfigureRunPageLazyQuery(baseOptions?: Apollo.LazyQu
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>(PipelineConfigureRunPageDocument, options);
         }
+export function usePipelineConfigureRunPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>(PipelineConfigureRunPageDocument, options);
+        }
 export type PipelineConfigureRunPageQueryHookResult = ReturnType<typeof usePipelineConfigureRunPageQuery>;
 export type PipelineConfigureRunPageLazyQueryHookResult = ReturnType<typeof usePipelineConfigureRunPageLazyQuery>;
+export type PipelineConfigureRunPageSuspenseQueryHookResult = ReturnType<typeof usePipelineConfigureRunPageSuspenseQuery>;
 export type PipelineConfigureRunPageQueryResult = Apollo.QueryResult<PipelineConfigureRunPageQuery, PipelineConfigureRunPageQueryVariables>;

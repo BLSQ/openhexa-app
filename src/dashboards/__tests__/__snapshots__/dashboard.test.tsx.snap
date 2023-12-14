@@ -18,6 +18,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             <a
               class="text-gray-400 hover:text-gray-500"
               href="/"
+              rel="noopener noreferrer"
             >
               <svg
                 aria-hidden="true"
@@ -63,6 +64,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
               <a
                 class=""
                 href="/"
+                rel="noopener noreferrer"
               >
                 Dashboard
               </a>
@@ -117,6 +119,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <a
                   class="hover:text-gray-600"
                   href="/catalog"
+                  rel="noopener noreferrer"
                 >
                   6
                 </a>
@@ -129,6 +132,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             <a
               class="text-sm text-blue-600 hover:text-blue-500"
               href="/catalog"
+              rel="noopener noreferrer"
             >
               View all
             </a>
@@ -171,6 +175,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <a
                   class="hover:text-gray-600"
                   href="/notebooks"
+                  rel="noopener noreferrer"
                 >
                   0
                 </a>
@@ -183,6 +188,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             <a
               class="text-sm text-blue-600 hover:text-blue-500"
               href="/notebooks"
+              rel="noopener noreferrer"
             >
               View all
             </a>
@@ -225,6 +231,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                 <a
                   class="hover:text-gray-600"
                   href="/pipelines"
+                  rel="noopener noreferrer"
                 >
                   0
                 </a>
@@ -237,6 +244,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
             <a
               class="text-sm text-blue-600 hover:text-blue-500"
               href="/pipelines"
+              rel="noopener noreferrer"
             >
               View all
             </a>
@@ -360,6 +368,7 @@ exports[`Dashboard renders the dashboards' page 1`] = `
                           <a
                             class="flex w-full cursor-pointer items-center justify-end outline-none text-blue-600 hover:text-blue-500"
                             href="/catalog"
+                            rel="noopener noreferrer"
                           >
                             View
                             <svg

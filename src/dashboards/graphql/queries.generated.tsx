@@ -50,6 +50,11 @@ export function useDashboardPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DashboardPageQuery, DashboardPageQueryVariables>(DashboardPageDocument, options);
         }
+export function useDashboardPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DashboardPageQuery, DashboardPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DashboardPageQuery, DashboardPageQueryVariables>(DashboardPageDocument, options);
+        }
 export type DashboardPageQueryHookResult = ReturnType<typeof useDashboardPageQuery>;
 export type DashboardPageLazyQueryHookResult = ReturnType<typeof useDashboardPageLazyQuery>;
+export type DashboardPageSuspenseQueryHookResult = ReturnType<typeof useDashboardPageSuspenseQuery>;
 export type DashboardPageQueryResult = Apollo.QueryResult<DashboardPageQuery, DashboardPageQueryVariables>;

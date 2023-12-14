@@ -4,6 +4,7 @@ import {
   RunLogs_DagRunFragment,
   RunLogs_RunFragment,
 } from "./RunLogs.generated";
+import { PipelineRunStatus } from "graphql-types";
 
 type RunLogsProps = {
   run: RunLogs_DagRunFragment | RunLogs_RunFragment;
@@ -13,10 +14,13 @@ const RunLogs = (props: RunLogsProps) => {
   const { t } = useTranslation();
   const { run } = props;
 
-  if (!run.logs) {
+  if (
+    run.status === PipelineRunStatus.Queued ||
+    run.status === PipelineRunStatus.Running
+  ) {
     return (
       <div className="w-full text-center text-sm text-gray-500">
-        {t("No logs")}
+        {t("Logs will appear here on run completion")}
       </div>
     );
   }
@@ -35,12 +39,14 @@ RunLogs.fragments = {
     fragment RunLogs_dagRun on DAGRun {
       id
       logs
+      status
     }
   `,
   run: gql`
     fragment RunLogs_run on PipelineRun {
       id
       logs
+      status
     }
   `,
 };

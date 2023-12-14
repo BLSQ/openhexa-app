@@ -55,6 +55,11 @@ export function useWorkspacePickerLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<WorkspacePickerQuery, WorkspacePickerQueryVariables>(WorkspacePickerDocument, options);
         }
+export function useWorkspacePickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorkspacePickerQuery, WorkspacePickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspacePickerQuery, WorkspacePickerQueryVariables>(WorkspacePickerDocument, options);
+        }
 export type WorkspacePickerQueryHookResult = ReturnType<typeof useWorkspacePickerQuery>;
 export type WorkspacePickerLazyQueryHookResult = ReturnType<typeof useWorkspacePickerLazyQuery>;
+export type WorkspacePickerSuspenseQueryHookResult = ReturnType<typeof useWorkspacePickerSuspenseQuery>;
 export type WorkspacePickerQueryResult = Apollo.QueryResult<WorkspacePickerQuery, WorkspacePickerQueryVariables>;

@@ -49,6 +49,11 @@ export function useDatasourcePickerLazyQuery(baseOptions?: Apollo.LazyQueryHookO
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<DatasourcePickerQuery, DatasourcePickerQueryVariables>(DatasourcePickerDocument, options);
         }
+export function useDatasourcePickerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<DatasourcePickerQuery, DatasourcePickerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<DatasourcePickerQuery, DatasourcePickerQueryVariables>(DatasourcePickerDocument, options);
+        }
 export type DatasourcePickerQueryHookResult = ReturnType<typeof useDatasourcePickerQuery>;
 export type DatasourcePickerLazyQueryHookResult = ReturnType<typeof useDatasourcePickerLazyQuery>;
+export type DatasourcePickerSuspenseQueryHookResult = ReturnType<typeof useDatasourcePickerSuspenseQuery>;
 export type DatasourcePickerQueryResult = Apollo.QueryResult<DatasourcePickerQuery, DatasourcePickerQueryVariables>;

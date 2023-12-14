@@ -1,14 +1,18 @@
 import { gql } from "@apollo/client";
 import Badge from "core/components/Badge";
-import DataGrid, { BaseColumn } from "core/components/DataGrid";
-import DateColumn from "core/components/DataGrid/DateColumn";
+import Overflow from "core/components/Overflow";
+import Time from "core/components/Time";
+import useAutoScroll from "core/hooks/useAutoScroll";
+import { PipelineRunStatus } from "graphql-types";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
+import { useMemo, useRef } from "react";
+import Linkify from "linkify-react";
 import {
   RunMessages_DagRunFragment,
   RunMessages_RunFragment,
 } from "./RunMessages.generated";
-import Linkify from "linkify-react";
+import Link from "core/components/Link";
 
 type RunMessagesProps = {
   run: RunMessages_DagRunFragment | RunMessages_RunFragment;
@@ -16,6 +20,8 @@ type RunMessagesProps = {
 
 function getBadgeClassName(priority: string) {
   switch (priority) {
+    case "DEBUG":
+      return "bg-gray-50 text-gray-500";
     case "INFO":
       return "bg-sky-100 text-sky-600";
     case "WARNING":
@@ -27,63 +33,67 @@ function getBadgeClassName(priority: string) {
   }
 }
 
+// Approximate height of a single message row
+const MESSAGE_HEIGHT = 40;
+
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
   const { run } = props;
+  const ref = useRef<HTMLDivElement>(null);
+  useAutoScroll(ref, "smooth");
 
-  if (run.messages.length === 0) {
-    return <p className="text-sm italic text-gray-600">{t("No messages")}</p>;
-  }
+  const maxHeight = useMemo(() => {
+    if (run.status === PipelineRunStatus.Running) {
+      return 400;
+    }
+    return Math.min(400, MESSAGE_HEIGHT * (run.messages.length + 1));
+  }, [run.messages.length, run.status]);
+
+  // Scroll to bottom the container when the height changes
 
   return (
-    <DataGrid
-      data={run.messages}
-      sortable
-      totalItems={run.messages.length}
-      defaultPageSize={15}
-      className="overflow-hidden rounded-md border"
-    >
-      <DateColumn
-        accessor="timestamp"
-        label={t("Timestamp")}
-        format={DateTime.DATETIME_SHORT_WITH_SECONDS}
-        defaultValue="-"
-        className="max-w-[50ch] py-3"
-      />
-      <BaseColumn
-        accessor="priority"
-        label={t("Priority")}
-        className="max-w-[50ch] py-3"
-      >
-        {(value) => <Badge className={getBadgeClassName(value)}>{value}</Badge>}
-      </BaseColumn>
-      <BaseColumn
-        accessor="message"
-        label={t("Message")}
-        width={400}
-        className="w-max-[30ch] text-sm overflow-y-auto whitespace-pre-line break-words"
-      >
-        {(value) => (
-          <Linkify
-            as="p"
-            options={{
-              render: ({ attributes, content }) => (
-                <a
-                  {...attributes}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-500"
-                >
-                  {content}
-                </a>
-              ),
-            }}
-          >
-            {value}
-          </Linkify>
-        )}
-      </BaseColumn>
-    </DataGrid>
+    <Overflow vertical style={{ height: maxHeight }} forwardedRef={ref}>
+      {run.messages.length === 0 ? (
+        <p className="text-sm italic text-gray-600">{t("No messages")}</p>
+      ) : (
+        <table className="table-fixed">
+          <tbody>
+            {run.messages.map((message, index) => (
+              <tr key={index}>
+                <td className="p-1.5">
+                  <Badge className={getBadgeClassName(message.priority)}>
+                    {message.priority}
+                  </Badge>
+                </td>
+                <td className="p-1.5">
+                  <Time
+                    className="text-sm text-gray-400"
+                    datetime={message.timestamp}
+                    format={DateTime.DATETIME_SHORT_WITH_SECONDS}
+                  />
+                </td>
+                <td className="p-1.5 text-sm">
+                  <Linkify
+                    as="span"
+                    options={{
+                      render: ({
+                        attributes,
+                        content,
+                      }: {
+                        attributes: any;
+                        content: any;
+                      }) => <Link {...attributes}>{content}</Link>,
+                    }}
+                  >
+                    {message.message}
+                  </Linkify>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Overflow>
   );
 };
 
@@ -91,6 +101,7 @@ RunMessages.fragments = {
   dagRun: gql`
     fragment RunMessages_dagRun on DAGRun {
       id
+      status
       messages {
         message
         timestamp
@@ -101,6 +112,7 @@ RunMessages.fragments = {
   run: gql`
     fragment RunMessages_run on PipelineRun {
       id
+      status
       messages {
         message
         timestamp

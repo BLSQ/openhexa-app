@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 type OverflowProps = {
   fromColor?: string;
@@ -7,6 +7,7 @@ type OverflowProps = {
   gradientWidth?: string;
   gradientHeight?: string;
   vertical?: boolean;
+  forwardedRef?: React.RefObject<HTMLDivElement>;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 enum OverflowY {
@@ -61,7 +62,7 @@ function getHorizontalOverflow(parent: HTMLDivElement, child: HTMLDivElement) {
   return OverflowX.NONE;
 }
 
-const Overflow = (props: OverflowProps) => {
+const Overflow = forwardRef(function (props: OverflowProps, ref) {
   const {
     children,
     className,
@@ -70,17 +71,20 @@ const Overflow = (props: OverflowProps) => {
     vertical = false,
     gradientWidth = "w-6",
     gradientHeight = "h-6",
+    forwardedRef,
     ...delegated
   } = props;
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const childRef = useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+  const _childRef = useRef<HTMLDivElement>(null);
   const [overflowY, setOverflowY] = useState<OverflowY>(OverflowY.NONE);
   const [overflowX, setOverflowX] = useState<OverflowX>(OverflowX.NONE);
 
+  const childRef = forwardedRef ?? _childRef;
+
   useEffect(() => {
     // Listen for scroll
-    if (!containerRef.current || !childRef.current) {
+    if (!parentRef.current || !childRef.current) {
       return;
     }
 
@@ -91,7 +95,7 @@ const Overflow = (props: OverflowProps) => {
       setOverflowX(OverflowX.NONE);
     }
 
-    const parent = containerRef.current;
+    const parent = parentRef.current;
     const child = childRef.current;
     const handleScroll = () => {
       if (!parent || !child) return;
@@ -110,13 +114,13 @@ const Overflow = (props: OverflowProps) => {
     return () => {
       parent.removeEventListener("scroll", handleScroll);
     };
-  }, [overflowY, overflowX, childRef, containerRef, vertical, horizontal]);
+  }, [overflowY, overflowX, childRef, parentRef, vertical, horizontal]);
 
   return (
     <div className={clsx("relative", className)}>
       <div
         {...delegated}
-        ref={containerRef}
+        ref={parentRef}
         className={clsx(
           "h-full",
           horizontal && "overflow-x-auto",
@@ -173,6 +177,6 @@ const Overflow = (props: OverflowProps) => {
       </div>
     </div>
   );
-};
+});
 
 export default Overflow;

@@ -89,6 +89,7 @@ exports[`LoginPage: No Two Factor Authentication renders the login page 1`] = `
         <a
           class="text-blue-600 hover:text-blue-500"
           href="/auth/password_reset"
+          rel="noopener noreferrer"
         >
           Forgot your password?
         </a>

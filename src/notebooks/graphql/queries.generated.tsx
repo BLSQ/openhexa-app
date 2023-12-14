@@ -38,6 +38,11 @@ export function useNotebooksPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<NotebooksPageQuery, NotebooksPageQueryVariables>(NotebooksPageDocument, options);
         }
+export function useNotebooksPageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<NotebooksPageQuery, NotebooksPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<NotebooksPageQuery, NotebooksPageQueryVariables>(NotebooksPageDocument, options);
+        }
 export type NotebooksPageQueryHookResult = ReturnType<typeof useNotebooksPageQuery>;
 export type NotebooksPageLazyQueryHookResult = ReturnType<typeof useNotebooksPageLazyQuery>;
+export type NotebooksPageSuspenseQueryHookResult = ReturnType<typeof useNotebooksPageSuspenseQuery>;
 export type NotebooksPageQueryResult = Apollo.QueryResult<NotebooksPageQuery, NotebooksPageQueryVariables>;

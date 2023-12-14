@@ -63,6 +63,11 @@ export function useWorskspaceMembersLazyQuery(baseOptions?: Apollo.LazyQueryHook
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
         }
+export function useWorskspaceMembersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>(WorskspaceMembersDocument, options);
+        }
 export type WorskspaceMembersQueryHookResult = ReturnType<typeof useWorskspaceMembersQuery>;
 export type WorskspaceMembersLazyQueryHookResult = ReturnType<typeof useWorskspaceMembersLazyQuery>;
+export type WorskspaceMembersSuspenseQueryHookResult = ReturnType<typeof useWorskspaceMembersSuspenseQuery>;
 export type WorskspaceMembersQueryResult = Apollo.QueryResult<WorskspaceMembersQuery, WorskspaceMembersQueryVariables>;

@@ -55,8 +55,13 @@ export function useGetPipelineRunLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<GetPipelineRunQuery, GetPipelineRunQueryVariables>(GetPipelineRunDocument, options);
         }
+export function useGetPipelineRunSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetPipelineRunQuery, GetPipelineRunQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPipelineRunQuery, GetPipelineRunQueryVariables>(GetPipelineRunDocument, options);
+        }
 export type GetPipelineRunQueryHookResult = ReturnType<typeof useGetPipelineRunQuery>;
 export type GetPipelineRunLazyQueryHookResult = ReturnType<typeof useGetPipelineRunLazyQuery>;
+export type GetPipelineRunSuspenseQueryHookResult = ReturnType<typeof useGetPipelineRunSuspenseQuery>;
 export type GetPipelineRunQueryResult = Apollo.QueryResult<GetPipelineRunQuery, GetPipelineRunQueryVariables>;
 export const GetRunOutputDownloadUrlDocument = gql`
     mutation GetRunOutputDownloadURL($input: PrepareDownloadURLInput!) {

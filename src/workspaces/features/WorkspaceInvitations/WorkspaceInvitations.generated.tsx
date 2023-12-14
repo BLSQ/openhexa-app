@@ -65,6 +65,11 @@ export function useWorskspaceInvitationsLazyQuery(baseOptions?: Apollo.LazyQuery
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>(WorskspaceInvitationsDocument, options);
         }
+export function useWorskspaceInvitationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>(WorskspaceInvitationsDocument, options);
+        }
 export type WorskspaceInvitationsQueryHookResult = ReturnType<typeof useWorskspaceInvitationsQuery>;
 export type WorskspaceInvitationsLazyQueryHookResult = ReturnType<typeof useWorskspaceInvitationsLazyQuery>;
+export type WorskspaceInvitationsSuspenseQueryHookResult = ReturnType<typeof useWorskspaceInvitationsSuspenseQuery>;
 export type WorskspaceInvitationsQueryResult = Apollo.QueryResult<WorskspaceInvitationsQuery, WorskspaceInvitationsQueryVariables>;

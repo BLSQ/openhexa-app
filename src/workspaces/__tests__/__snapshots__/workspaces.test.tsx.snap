@@ -57,6 +57,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -81,6 +82,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/files"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -105,6 +107,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/databases"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -129,6 +132,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/connections"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -153,6 +157,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/test/pipelines"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -182,6 +187,7 @@ exports[`Workspaces renders the workspace page 1`] = `
             <a
               class="flex h-8 items-center"
               href="/"
+              rel="noopener noreferrer"
             >
               <img
                 alt="OpenHexa logo"
@@ -255,6 +261,7 @@ exports[`Workspaces renders the workspace page 1`] = `
                       <a
                         class=""
                         href="/workspaces/test"
+                        rel="noopener noreferrer"
                       >
                         Rwanda Workspace
                       </a>
@@ -371,6 +378,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -395,6 +403,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/files"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -419,6 +428,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/databases"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -443,6 +453,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/connections"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -467,6 +478,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/pipelines"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -491,6 +503,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               <a
                 class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
                 href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/notebooks"
+                rel="noopener noreferrer"
               >
                 <div
                   class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
@@ -520,6 +533,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             <a
               class="flex h-8 items-center"
               href="/"
+              rel="noopener noreferrer"
             >
               <img
                 alt="OpenHexa logo"
@@ -593,6 +607,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                       <a
                         class=""
                         href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
+                        rel="noopener noreferrer"
                       >
                         Rwanda Workspace
                       </a>

@@ -64,6 +64,11 @@ export function useSearchQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
           const options = {...defaultOptions, ...baseOptions}
           return Apollo.useLazyQuery<SearchQueryQuery, SearchQueryQueryVariables>(SearchQueryDocument, options);
         }
+export function useSearchQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SearchQueryQuery, SearchQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchQueryQuery, SearchQueryQueryVariables>(SearchQueryDocument, options);
+        }
 export type SearchQueryQueryHookResult = ReturnType<typeof useSearchQueryQuery>;
 export type SearchQueryLazyQueryHookResult = ReturnType<typeof useSearchQueryLazyQuery>;
+export type SearchQuerySuspenseQueryHookResult = ReturnType<typeof useSearchQuerySuspenseQuery>;
 export type SearchQueryQueryResult = Apollo.QueryResult<SearchQueryQuery, SearchQueryQueryVariables>;

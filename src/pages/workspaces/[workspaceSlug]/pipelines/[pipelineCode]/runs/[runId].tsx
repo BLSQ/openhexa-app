@@ -1,5 +1,7 @@
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
+import Button from "core/components/Button";
 import DescriptionList, {
   DescriptionListDisplayMode,
 } from "core/components/DescriptionList";
@@ -7,40 +9,36 @@ import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Switch from "core/components/Switch";
 import Time from "core/components/Time";
+import Checkbox from "core/components/forms/Checkbox";
 import User from "core/features/User";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
+import useInterval from "core/hooks/useInterval";
 import {
-  ConnectionType,
   PipelineParameter,
   PipelineRunStatus,
   PipelineRunTrigger,
 } from "graphql-types";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
 import { useCallback, useMemo, useState } from "react";
-import useInterval from "core/hooks/useInterval";
+import RunOutputsTable from "workspaces/features/RunOutputsTable";
+import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import {
-  useWorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageDocument,
   WorkspacePipelineRunPageQuery,
   WorkspacePipelineRunPageQueryVariables,
+  useWorkspacePipelineRunPageQuery,
 } from "workspaces/graphql/queries.generated";
 import {
   getPipelineRunConfig,
   isConnectionParameter,
 } from "workspaces/helpers/pipelines";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-import Button from "core/components/Button";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
-import RunOutputsTable from "workspaces/features/RunOutputsTable";
-import Checkbox from "core/components/forms/Checkbox";
 
 type Props = {
   workspaceSlug: string;
@@ -49,7 +47,6 @@ type Props = {
 
 const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const { data, refetch } = useWorkspacePipelineRunPageQuery({
     variables: { workspaceSlug: props.workspaceSlug, runId: props.runId },
   });
@@ -64,7 +61,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       case PipelineRunStatus.Queued:
         return 1 * 1000;
       case PipelineRunStatus.Running:
-        return 3 * 1000;
+        return 2 * 1000;
       default:
         return null;
     }
@@ -280,7 +277,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             <Block.Section title={t("Messages")}>
               <RunMessages run={run} />
             </Block.Section>
-            <Block.Section title={t("Logs")} collapsible>
+            <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
               <RunLogs run={run} />
             </Block.Section>
           </Block>
