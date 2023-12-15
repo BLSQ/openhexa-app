@@ -23,7 +23,7 @@ class PodTerminationReason(Enum):
     DeadlineExceeded = "DeadlineExceeded"
 
 
-def run_pipeline_kube(run: PipelineRun, env_var: dict):
+def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     from kubernetes import config
     from kubernetes.client import CoreV1Api
     from kubernetes.client import models as k8s
@@ -81,7 +81,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             ),
             containers=[
                 k8s.V1Container(
-                    image=env_var["HEXA_PIPELINE_IMAGE"],
+                    image=image,
                     name=container_name,
                     image_pull_policy="Always",
                     args=[
@@ -97,23 +97,23 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_SERVER_URL",
-                            value=env_var["HEXA_SERVER_URL"],
+                            value=env_vars["HEXA_SERVER_URL"],
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_TOKEN",
-                            value=env_var["HEXA_TOKEN"],
+                            value=env_vars["HEXA_TOKEN"],
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_PIPELINE_NAME",
-                            value=env_var["HEXA_PIPELINE_NAME"],
+                            value=env_vars["HEXA_PIPELINE_NAME"],
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_RUN_ID",
-                            value=env_var["HEXA_RUN_ID"],
+                            value=env_vars["HEXA_RUN_ID"],
                         ),
                         k8s.V1EnvVar(
                             name="HEXA_WORKSPACE",
-                            value=env_var["HEXA_WORKSPACE"],
+                            value=env_vars["HEXA_WORKSPACE"],
                         ),
                     ],
                     # We need to have /dev/fuse mounted inside the container
@@ -158,7 +158,7 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
     )
     v1.create_namespaced_pod(namespace=pod.metadata.namespace, body=pod)
 
-    # monitore the pod
+    # monitor the pod
     while True:
         run.refresh_from_db()
         run.last_heartbeat = timezone.now()
@@ -181,9 +181,10 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
             namespace=pod.metadata.namespace,
             container=container_name,
         )
-    except Exception:
-        logger.exception("get logs")
+    except Exception as e:  # NOQA
+        logger.exception("Could not get logs (%s)", e)
         stdout = ""
+
     # check termination reason
     if remote_pod.status.reason == PodTerminationReason.DeadlineExceeded.value:
         reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
@@ -201,13 +202,13 @@ def run_pipeline_kube(run: PipelineRun, env_var: dict):
         if e.status != 404:
             logger.exception("pod delete")
 
-    return remote_pod.status.phase == "Succeeded", "STDOUT\n%s" % (stdout,)
+    return remote_pod.status.phase == "Succeeded", stdout
 
 
-def run_pipeline_docker(run: PipelineRun, env_var: dict):
+def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
     from subprocess import PIPE, STDOUT, Popen
 
-    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_var["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_var["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_var["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_var["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {env_var["HEXA_PIPELINE_IMAGE"]} pipeline cloudrun'
+    docker_cmd = f'docker run --privileged -e HEXA_ENVIRONMENT=CLOUD_PIPELINE -e HEXA_RUN_ID={env_vars["HEXA_RUN_ID"]} -e HEXA_SERVER_URL={env_vars["HEXA_SERVER_URL"]} -e HEXA_TOKEN={env_vars["HEXA_TOKEN"]} -e HEXA_WORKSPACE={env_vars["HEXA_WORKSPACE"]} --network openhexa --platform linux/amd64 --rm {image} pipeline cloudrun'
     cmd = docker_cmd.split(" ") + [
         "--config",
         f"{base64.b64encode(json.dumps(run.config).encode('utf-8')).decode('utf-8')}",
@@ -244,38 +245,42 @@ def run_pipeline(run: PipelineRun):
     db.connections.close_all()
     run.refresh_from_db()
 
-    env_var = {}
-    env_var["HEXA_SERVER_URL"] = f"{settings.PIPELINE_API_URL}"
-    env_var["HEXA_TOKEN"] = Signer().sign_object(run.access_token)
-    env_var["HEXA_WORKSPACE"] = run.pipeline.workspace.slug
-    env_var["HEXA_RUN_ID"] = str(run.id)
-    env_var["HEXA_PIPELINE_NAME"] = run.pipeline.name
-    env_var["HEXA_PIPELINE_IMAGE"] = (
+    env_vars = {
+        "HEXA_SERVER_URL": f"{settings.PIPELINE_API_URL}",
+        "HEXA_TOKEN": Signer().sign_object(run.access_token),
+        "HEXA_WORKSPACE": run.pipeline.workspace.slug,
+        "HEXA_RUN_ID": str(run.id),
+        "HEXA_PIPELINE_NAME": run.pipeline.name,
+    }
+    image = (
         run.pipeline.workspace.docker_image
         if run.pipeline.workspace.docker_image
         else settings.PIPELINE_IMAGE
     )
+    spawner = settings.PIPELINE_SCHEDULER_SPAWNER
 
     time_start = timezone.now()
+    base_logs = f"Running {run.pipeline.code} pipeline with the {spawner} spawner using the {image} image"
+
     try:
-        if settings.PIPELINE_SCHEDULER_SPAWNER == "docker":
-            success, logs = run_pipeline_docker(run, env_var)
-        elif settings.PIPELINE_SCHEDULER_SPAWNER == "kubernetes":
-            success, logs = run_pipeline_kube(run, env_var)
+        if spawner == "docker":
+            success, container_logs = run_pipeline_docker(run, image, env_vars)
+        elif spawner == "kubernetes":
+            success, container_logs = run_pipeline_kube(run, image, env_vars)
         else:
             logger.error("Scheduler spawner %s not found", settings.SCHEDULER_SPAWNER)
-            success, logs = False, ""
+            success, container_logs = False, ""
     except Exception as e:
         run.state = PipelineRunState.FAILED
         run.duration = timezone.now() - time_start
-        run.run_logs = str(e)
+        run.run_logs = "\n".join([base_logs, str(e)])
         run.save()
         logger.info("Failure of run: %s", run)
         sys.exit(1)
 
     run.refresh_from_db()
     run.duration = timezone.now() - time_start
-    run.run_logs = logs
+    run.run_logs = "\n".join([base_logs, container_logs])
     if success:
         run.state = PipelineRunState.SUCCESS
     else:
