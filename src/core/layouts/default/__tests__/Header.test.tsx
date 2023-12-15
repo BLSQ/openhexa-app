@@ -17,9 +17,9 @@ describe("Header", () => {
     mockRouter.setCurrentUrl("/");
   });
 
-  it("opens the search when clicked", async () => {
+  it.skip("opens the search when clicked", async () => {
     const user = userEvent.setup();
-    const { container, debug } = render(
+    const { container } = render(
       <TestApp>
         <Header />
       </TestApp>,
@@ -39,8 +39,8 @@ describe("Header", () => {
     });
   });
 
-  it("opens the search on control + k", async () => {
-    const { container, debug } = render(
+  it.skip("opens the search on control + k", async () => {
+    render(
       <TestApp>
         <Header />
       </TestApp>,

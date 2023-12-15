@@ -1,13 +1,13 @@
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import Quicksearch from "catalog/features/Quicksearch";
+// import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+// import Quicksearch from "catalog/features/Quicksearch";
 import clsx from "clsx";
 import Avatar from "core/components/Avatar";
-import useToggle from "core/hooks/useToggle";
+// import useToggle from "core/hooks/useToggle";
 import { logout } from "identity/helpers/auth";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
-import { useHotkeys } from "react-hotkeys-hook";
+// import { useHotkeys } from "react-hotkeys-hook";
 import Menu from "core/components/Menu";
 import Navbar from "./Navbar";
 import { LayoutClasses } from "./styles";
@@ -16,8 +16,8 @@ import useFeature from "identity/hooks/useFeature";
 const Header = () => {
   const me = useMe();
   const { t } = useTranslation();
-  const [isSearchOpen, { toggle: toggleSearch }] = useToggle(false);
-  useHotkeys("cmd+k,ctrl+k", toggleSearch);
+  // const [isSearchOpen, { toggle: toggleSearch }] = useToggle(false);
+  // useHotkeys("cmd+k,ctrl+k", toggleSearch);
 
   const [hasWorkspacesEnabled] = useFeature("workspaces");
 
@@ -45,7 +45,7 @@ const Header = () => {
           />
         </Link>
         <Navbar />
-        <button
+        {/* <button
           onClick={toggleSearch}
           className="group mr-4 hidden flex-shrink cursor-pointer items-center space-x-2 text-gray-400 hover:text-white md:inline-flex"
         >
@@ -55,7 +55,7 @@ const Header = () => {
             ⌘K
           </span>
         </button>
-        <Quicksearch open={isSearchOpen} onClose={toggleSearch} />
+        <Quicksearch open={isSearchOpen} onClose={toggleSearch} /> */}
 
         <Menu
           trigger={
