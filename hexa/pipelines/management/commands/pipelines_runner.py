@@ -260,7 +260,7 @@ def run_pipeline(run: PipelineRun):
     spawner = settings.PIPELINE_SCHEDULER_SPAWNER
 
     time_start = timezone.now()
-    base_logs = f"Running {run.pipeline.code} pipeline using {spawner} spawner using {image} image"
+    base_logs = f"Running {run.pipeline.code} pipeline with the {spawner} spawner using the {image} image"
 
     try:
         if spawner == "docker":
