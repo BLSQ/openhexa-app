@@ -263,9 +263,9 @@ def run_pipeline(run: PipelineRun):
     base_logs = f"Running {run.pipeline.code} pipeline using {spawner} spawner using {image} image"
 
     try:
-        if settings.PIPELINE_SCHEDULER_SPAWNER == "docker":
+        if spawner == "docker":
             success, container_logs = run_pipeline_docker(run, image, env_vars)
-        elif settings.PIPELINE_SCHEDULER_SPAWNER == "kubernetes":
+        elif spawner == "kubernetes":
             success, container_logs = run_pipeline_kube(run, image, env_vars)
         else:
             logger.error("Scheduler spawner %s not found", settings.SCHEDULER_SPAWNER)
