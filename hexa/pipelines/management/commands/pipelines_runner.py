@@ -184,6 +184,7 @@ def run_pipeline_kube(run: PipelineRun, image: str, env_vars: dict):
     except Exception as e:  # NOQA
         logger.exception("Could not get logs (%s)", e)
         stdout = ""
+
     # check termination reason
     if remote_pod.status.reason == PodTerminationReason.DeadlineExceeded.value:
         reason = f"Timeout killed run {run.pipeline.name} #{run.id}"
@@ -259,7 +260,7 @@ def run_pipeline(run: PipelineRun):
     spawner = settings.PIPELINE_SCHEDULER_SPAWNER
 
     time_start = timezone.now()
-    base_logs = f"Running {run.pipeline.code} pipeline using {spawner} spawner using {image} image\n"
+    base_logs = f"Running {run.pipeline.code} pipeline using {spawner} spawner using {image} image"
 
     try:
         if settings.PIPELINE_SCHEDULER_SPAWNER == "docker":
@@ -279,7 +280,7 @@ def run_pipeline(run: PipelineRun):
 
     run.refresh_from_db()
     run.duration = timezone.now() - time_start
-    run.run_logs = base_logs + container_logs
+    run.run_logs = "\n".join([base_logs, container_logs])
     if success:
         run.state = PipelineRunState.SUCCESS
     else:
