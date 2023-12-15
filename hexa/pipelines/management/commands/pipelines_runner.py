@@ -273,7 +273,7 @@ def run_pipeline(run: PipelineRun):
     except Exception as e:
         run.state = PipelineRunState.FAILED
         run.duration = timezone.now() - time_start
-        run.run_logs = base_logs + str(e)
+        run.run_logs = "\n".join([base_logs, str(e)])
         run.save()
         logger.info("Failure of run: %s", run)
         sys.exit(1)
