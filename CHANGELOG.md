@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.1](https://github.com/BLSQ/openhexa-frontend/compare/0.41.0...0.41.1) (2023-12-19)
+
+
+### Bug Fixes
+
+* **Pipelines:** Use the feature flag to hide/show the webhook section ([ced62f3](https://github.com/BLSQ/openhexa-frontend/commit/ced62f3cca308bbc90434530054bb871a1500956))
+
 ## [0.41.0](https://github.com/BLSQ/openhexa-frontend/compare/0.40.0...0.41.0) (2023-12-19)
 
 
