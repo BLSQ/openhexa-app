@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.41.0](https://github.com/BLSQ/openhexa-frontend/compare/0.40.0...0.41.0) (2023-12-19)
+
+
+### Features
+
+* **Pipelines:** Add a webhook mechanism on the pipelines ([#507](https://github.com/BLSQ/openhexa-frontend/issues/507)) ([6b0a53a](https://github.com/BLSQ/openhexa-frontend/commit/6b0a53a210f1e08168974701cde08870f22cb8ea))
+
+
+### Miscellaneous
+
+* disable search for now ([#503](https://github.com/BLSQ/openhexa-frontend/issues/503)) ([723d646](https://github.com/BLSQ/openhexa-frontend/commit/723d64645c2caad8d717746c9b66f38919b75d57))
+
 ## [0.40.0](https://github.com/BLSQ/openhexa-frontend/compare/0.39.0...0.40.0) (2023-12-14)
 
 
