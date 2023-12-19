@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_postgresql.models import Database, Table
-from hexa.ui.datacard import CodeProperty, Datacard, Section, TextProperty
+from hexa.ui.datacard import Action, CodeProperty, Datacard, Section, TextProperty
 
 
 class DatabaseSection(Section):
@@ -68,6 +68,7 @@ class DatabaseCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "postgres_image_src"
+    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = DatabaseSection()
     metadata = OpenHexaMetaDataSection(value="index")
