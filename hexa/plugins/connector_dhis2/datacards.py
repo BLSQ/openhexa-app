@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from hexa.catalog.datacards import OpenHexaMetaDataSection
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
-    Action,
     BooleanProperty,
     CodeProperty,
     Datacard,
@@ -67,7 +66,6 @@ class InstanceCard(Datacard):
     title = "display_name"
     subtitle = "generic_description"
     image_src = "dhis2_image_src"
-    actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = InstanceSection()
     metadata = OpenHexaMetaDataSection(value="index")
