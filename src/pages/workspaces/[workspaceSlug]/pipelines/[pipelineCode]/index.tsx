@@ -51,7 +51,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [isVersionsDialogOpen, setVersionsDialogOpen] = useState(false);
   const [isRunPipelineDialogOpen, setRunPipelineDialogOpen] = useState(false);
-  const isWebhookFeatureEnabled = useFeature("pipeline_webhook");
+  const [isWebhookFeatureEnabled] = useFeature("pipeline_webhook");
   const { data } = useWorkspacePipelinePageQuery({
     variables: {
       workspaceSlug,
