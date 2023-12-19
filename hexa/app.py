@@ -9,7 +9,7 @@ from django.http import HttpRequest
 class CoreAppConfig(AppConfig):
     """Base class for our own "core" apps (not connector plugins).
 
-    ANONYMOUS_URLS and ANONYMOUS_PREFIXES will be used by our authentication middleware
+    ANONYMOUS_URLS will be used by our authentication middleware
     (hexa.user_management.middlewares) to authorized anonymous requests to specific URLs or URL prefixes.
 
     Example:
@@ -19,11 +19,9 @@ class CoreAppConfig(AppConfig):
             label = "foo"
 
             ANONYMOUS_URLS = ["foo:bar"]
-            ANONYMOUS_PREFIXES = ["/foo/baz/"]
     """
 
     ANONYMOUS_URLS = []  # URL names (such as "foo:bar")
-    ANONYMOUS_PREFIXES = []  # Path segments
 
     def __init_subclass__(cls) -> None:
         """Django does not play super nicely with multiple nested AppConfig subclasses. To make sure that a "concrete"
@@ -62,7 +60,6 @@ class ConnectorAppConfig(AppConfig):
     """
 
     ANONYMOUS_URLS = []  # URL names (such as "foo:bar")
-    ANONYMOUS_PREFIXES = []  # Path segments
     NOTEBOOKS_CREDENTIALS = []
     PIPELINES_CREDENTIALS = []
     LAST_ACTIVITIES = None
@@ -91,7 +88,8 @@ class ConnectorAppConfig(AppConfig):
 
     def get_notebooks_credentials(self):
         """Check if the app config class has a NOTEBOOKS_CREDENTIALS property. This property allows connector plugins to
-        provide a list of functions that can update notebooks credentials with plugin-specific credentials."""
+        provide a list of functions that can update notebooks credentials with plugin-specific credentials.
+        """
 
         notebooks_credentials_function_paths = getattr(
             self, "NOTEBOOKS_CREDENTIALS", []
@@ -107,7 +105,8 @@ class ConnectorAppConfig(AppConfig):
 
     def get_pipelines_credentials(self):
         """Check if the app config class has a PIPELINES_CREDENTIALS property. This property allows connector plugins to
-        provide a list of functions that can update pipelines credentials with plugin-specific credentials."""
+        provide a list of functions that can update pipelines credentials with plugin-specific credentials.
+        """
 
         pipelines_credentials_function_paths = getattr(
             self, "PIPELINES_CREDENTIALS", []
@@ -123,7 +122,8 @@ class ConnectorAppConfig(AppConfig):
 
     def get_last_activities(self, request: HttpRequest):
         """Check if the app config class has a LAST_ACTIVITIES property. This property allows connector plugins to
-        provide a function path. The function will be called by the core module to gather activities across plugins."""
+        provide a function path. The function will be called by the core module to gather activities across plugins.
+        """
 
         last_activity_function_path = getattr(self, "LAST_ACTIVITIES", None)
 

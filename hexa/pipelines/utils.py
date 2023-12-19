@@ -13,7 +13,7 @@ from .models import PipelineRun, PipelineRunTrigger
 
 def mail_run_recipients(run: PipelineRun):
     recipient_list = []
-    if run.trigger_mode == PipelineRunTrigger.MANUAL:
+    if run.trigger_mode == PipelineRunTrigger.MANUAL and run.user is not None:
         recipient_list = [run.user.email]
     else:
         recipient_list = [

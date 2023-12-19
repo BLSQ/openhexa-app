@@ -11,5 +11,7 @@ class UserManagementConfig(CoreAppConfig):
         "user:accept_tos",
         "logout",
         "password_reset",
+        "password_reset_confirm",
         "password_reset_done",
+        "password_reset_complete",
     ]

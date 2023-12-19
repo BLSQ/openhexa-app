@@ -15,4 +15,10 @@ urlpatterns = [
     ),
     path("credentials/", views.credentials, name="credentials"),
     path("status", views.pipelines_status, name="status"),
+    path(
+        "<uuid:id>/run/<int:version_number>",
+        views.run_pipeline,
+        name="run_with_version",
+    ),
+    path("<uuid:id>/run", views.run_pipeline, name="run"),
 ]
