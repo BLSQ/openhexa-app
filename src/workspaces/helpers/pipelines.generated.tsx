@@ -8,7 +8,7 @@ export type UpdateWorkspacePipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, schedule?: string | null, config: any, updatedAt?: any | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> } | null } };
+export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, schedule?: string | null, config: any, updatedAt?: any | null, webhookEnabled: boolean, webhookUrl?: string | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> } | null } };
 
 export type RunWorkspacePipelineMutationVariables = Types.Exact<{
   input: Types.RunPipelineInput;
@@ -36,6 +36,8 @@ export const UpdateWorkspacePipelineDocument = gql`
       schedule
       config
       updatedAt
+      webhookEnabled
+      webhookUrl
       recipients {
         user {
           id

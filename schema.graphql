@@ -1224,25 +1224,6 @@ type EnableTwoFactorResult {
   errors: [EnableTwoFactorError!]
 }
 
-type ExternalDashboard {
-  id: UUID!
-  name: String!
-  url: URL!
-  pictureUrl: URL!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  description: String
-  countries: [Country!]!
-  tags: [Tag!]!
-}
-
-type ExternalDashboardPage {
-  items: [ExternalDashboard!]!
-  pageNumber: Int!
-  totalPages: Int!
-  totalItems: Int!
-}
-
 type FeatureFlag {
   code: String!
   config: JSON!
@@ -1512,7 +1493,6 @@ type Mutation {
   requestAccessmodAccess(input: RequestAccessmodAccessInput!): RequestAccessmodAccessInputResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   denyAccessmodAccessRequest(input: DenyAccessmodAccessRequestInput!): DenyAccessmodAccessRequestResult!
-  updateExternalDashboard(input: UpdateExternalDashboardInput!): UpdateExternalDashboardResult!
   launchNotebookServer(input: LaunchNotebookServerInput!): LaunchNotebookServerResult!
   createPipeline(input: CreatePipelineInput!): CreatePipelineResult!
   updatePipeline(input: UpdatePipelineInput!): UpdatePipelineResult!
@@ -1631,6 +1611,8 @@ type Pipeline {
   runs(page: Int, perPage: Int, orderBy: PipelineRunOrderBy): PipelineRunPage!
   versions(page: Int, perPage: Int): PipelineVersionPage!
   recipients: [PipelineRecipient!]!
+  webhookEnabled: Boolean!
+  webhookUrl: String
 }
 
 enum PipelineError {
@@ -1642,6 +1624,7 @@ enum PipelineError {
   INVALID_CONFIG
   PIPELINE_ALREADY_COMPLETED
   INVALID_TIMEOUT_VALUE
+  PERMISSION_DENIED
 }
 
 type PipelineParameter {
@@ -1864,8 +1847,6 @@ type Query {
   country(code: String, alpha3: String): Country
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
   countries: [Country!]!
-  externalDashboards(page: Int, perPage: Int): ExternalDashboardPage!
-  externalDashboard(id: UUID!): ExternalDashboard
   notebooksUrl: URL!
   totalNotebooks: Int!
   lastActivities: [Activity!]!
@@ -2241,24 +2222,6 @@ type UpdateDatasetResult {
   errors: [UpdateDatasetError!]!
 }
 
-enum UpdateExternalDashboardError {
-  INVALID
-  NOT_FOUND
-}
-
-input UpdateExternalDashboardInput {
-  id: UUID!
-  description: String
-  name: String
-  countries: [CountryInput!]
-}
-
-type UpdateExternalDashboardResult {
-  success: Boolean!
-  errors: [UpdateExternalDashboardError!]!
-  externalDashboard: ExternalDashboard
-}
-
 enum UpdateMembershipError {
   PERMISSION_DENIED
   NOT_FOUND
@@ -2289,6 +2252,7 @@ input UpdatePipelineInput {
   schedule: String
   description: String
   recipientIds: [UUID!]
+  webhookEnabled: Boolean
 }
 
 input UpdatePipelineProgressInput {

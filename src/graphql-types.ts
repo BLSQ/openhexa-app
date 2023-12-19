@@ -1396,27 +1396,6 @@ export type EnableTwoFactorResult = {
   verified?: Maybe<Scalars['Boolean']['output']>;
 };
 
-export type ExternalDashboard = {
-  __typename?: 'ExternalDashboard';
-  countries: Array<Country>;
-  createdAt: Scalars['DateTime']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  pictureUrl: Scalars['URL']['output'];
-  tags: Array<Tag>;
-  updatedAt: Scalars['DateTime']['output'];
-  url: Scalars['URL']['output'];
-};
-
-export type ExternalDashboardPage = {
-  __typename?: 'ExternalDashboardPage';
-  items: Array<ExternalDashboard>;
-  pageNumber: Scalars['Int']['output'];
-  totalItems: Scalars['Int']['output'];
-  totalPages: Scalars['Int']['output'];
-};
-
 export type FeatureFlag = {
   __typename?: 'FeatureFlag';
   code: Scalars['String']['output'];
@@ -1731,7 +1710,6 @@ export type Mutation = {
   updateConnection: UpdateConnectionResult;
   updateDAG: UpdateDagResult;
   updateDataset: UpdateDatasetResult;
-  updateExternalDashboard: UpdateExternalDashboardResult;
   updateMembership: UpdateMembershipResult;
   updatePipeline: UpdatePipelineResult;
   updatePipelineProgress: UpdatePipelineProgressResult;
@@ -2093,11 +2071,6 @@ export type MutationUpdateDatasetArgs = {
 };
 
 
-export type MutationUpdateExternalDashboardArgs = {
-  input: UpdateExternalDashboardInput;
-};
-
-
 export type MutationUpdateMembershipArgs = {
   input: UpdateMembershipInput;
 };
@@ -2216,6 +2189,8 @@ export type Pipeline = {
   schedule?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: PipelineVersionPage;
+  webhookEnabled: Scalars['Boolean']['output'];
+  webhookUrl?: Maybe<Scalars['String']['output']>;
   workspace?: Maybe<Workspace>;
 };
 
@@ -2235,6 +2210,7 @@ export type PipelineVersionsArgs = {
 export enum PipelineError {
   InvalidConfig = 'INVALID_CONFIG',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
+  PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyExists = 'PIPELINE_ALREADY_EXISTS',
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
@@ -2483,8 +2459,6 @@ export type Query = {
   datasetLinkBySlug?: Maybe<DatasetLink>;
   datasetVersion?: Maybe<DatasetVersion>;
   datasets: DatasetPage;
-  externalDashboard?: Maybe<ExternalDashboard>;
-  externalDashboards: ExternalDashboardPage;
   lastActivities: Array<Activity>;
   me: Me;
   notebooksUrl: Scalars['URL']['output'];
@@ -2625,17 +2599,6 @@ export type QueryDatasetsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryExternalDashboardArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryExternalDashboardsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -3078,25 +3041,6 @@ export type UpdateDatasetResult = {
   success: Scalars['Boolean']['output'];
 };
 
-export enum UpdateExternalDashboardError {
-  Invalid = 'INVALID',
-  NotFound = 'NOT_FOUND'
-}
-
-export type UpdateExternalDashboardInput = {
-  countries?: InputMaybe<Array<CountryInput>>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['UUID']['input'];
-  name?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateExternalDashboardResult = {
-  __typename?: 'UpdateExternalDashboardResult';
-  errors: Array<UpdateExternalDashboardError>;
-  externalDashboard?: Maybe<ExternalDashboard>;
-  success: Scalars['Boolean']['output'];
-};
-
 export enum UpdateMembershipError {
   InvalidRole = 'INVALID_ROLE',
   NotFound = 'NOT_FOUND',
@@ -3128,6 +3072,7 @@ export type UpdatePipelineInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   recipientIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
   schedule?: InputMaybe<Scalars['String']['input']>;
+  webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpdatePipelineProgressInput = {

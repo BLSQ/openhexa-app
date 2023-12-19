@@ -14,7 +14,10 @@ import {
   PipelineVersion,
 } from "graphql-types";
 
-export async function updatePipeline(pipelineId: string, values: any) {
+export async function updatePipeline(
+  pipelineId: string,
+  values: Omit<UpdateWorkspacePipelineMutationVariables["input"], "id">,
+) {
   const client = getApolloClient();
   const { data } = await client.mutate<
     UpdateWorkspacePipelineMutation,
@@ -32,6 +35,8 @@ export async function updatePipeline(pipelineId: string, values: any) {
             schedule
             config
             updatedAt
+            webhookEnabled
+            webhookUrl
             recipients {
               user {
                 id
