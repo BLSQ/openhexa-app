@@ -130,7 +130,6 @@ def run_pipeline(
 
     # Get the data from the request
     content_type = request.META.get("CONTENT_TYPE")
-    send_mail_notifications = False
     config = {}
     if content_type == "application/x-www-form-urlencoded":
         send_mail_notifications = request.POST.get("send_mail_notifications", False)
