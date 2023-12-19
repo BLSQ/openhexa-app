@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.62.0](https://github.com/BLSQ/openhexa-app/compare/0.61.3...0.62.0) (2023-12-19)
+
+
+### Features
+
+* better logging for pipelines ([#607](https://github.com/BLSQ/openhexa-app/issues/607)) ([4b98880](https://github.com/BLSQ/openhexa-app/commit/4b9888008d96ba23515df573963cb7295b824bda))
+* **Pipelines:** Implement a REST endpoint to run pipelines ([#608](https://github.com/BLSQ/openhexa-app/issues/608)) ([dd6c0db](https://github.com/BLSQ/openhexa-app/commit/dd6c0db79383a78e3fb6e3653910901d10cffbd6))
+
+
+### Miscellaneous
+
+* disable quick search ([eaa43f6](https://github.com/BLSQ/openhexa-app/commit/eaa43f63b66bea4469918271e16a59eca49b6a40))
+
 ## [0.61.3](https://github.com/BLSQ/openhexa-app/compare/0.61.2...0.61.3) (2023-12-12)
 
 
