@@ -15,6 +15,7 @@ type PipelineRunMessage {
 enum PipelineRunTrigger {
   scheduled
   manual
+  webhook
 }
 
 type GenericOutput {
