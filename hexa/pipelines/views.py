@@ -136,10 +136,23 @@ def run_pipeline(
         for parameter in pipeline_version.parameters:
             if parameter["code"] not in request.POST:
                 continue
+            if parameter["type"] == "boolean":
+                config[parameter["code"]] = request.POST.get(
+                    parameter["code"]
+                ).lower() in ("1", "true")
+                continue
+
+            values = request.POST.getlist(parameter["code"])
+            if parameter["type"] == "int":
+                values = [int(v) for v in values]
+            elif parameter["type"] == "float":
+                values = [float(v) for v in values]
+
             if parameter.get("multiple", False):
-                config[parameter["code"]] = request.POST.getlist(parameter["code"])
+                config[parameter["code"]] = values
             else:
-                config[parameter["code"]] = request.POST.get(parameter["code"])
+                config[parameter["code"]] = values[0]
+
     elif content_type == "application/json":
         send_mail_notifications = request.GET.get("send_mail_notifications", False)
         try:
@@ -147,13 +160,15 @@ def run_pipeline(
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
     else:
-        return JsonResponse({"error": "Unsupported content type"}, status=400)
+        return JsonResponse(
+            {"error": f"Unsupported content type '{content_type}'"}, status=400
+        )
 
     try:
         run = pipeline.run(
             user=None,
             pipeline_version=pipeline_version,
-            trigger_mode=PipelineRunTrigger.MANUAL,
+            trigger_mode=PipelineRunTrigger.WEBHOOK,
             config=config,
             send_mail_notifications=send_mail_notifications,
         )

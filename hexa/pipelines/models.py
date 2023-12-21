@@ -89,6 +89,7 @@ class Environment(IndexableMixin, models.Model):
 class PipelineRunTrigger(models.TextChoices):
     SCHEDULED = "scheduled", _("Scheduled")
     MANUAL = "manual", _("Manual")
+    WEBHOOK = "webhook", _("Webhook")
 
 
 class PipelineVersionQuerySet(BaseQuerySet):
@@ -188,29 +189,6 @@ class Pipeline(models.Model):
         config: typing.Mapping[typing.Dict, typing.Any] = None,
         send_mail_notifications: bool = False,
     ):
-        if config is not None:
-            # Validate the configuration against the pipeline's version parameters
-            for parameter in pipeline_version.parameters:
-                value = config.get(parameter["code"], None)
-                if parameter.get("required") and value is None:
-                    raise ValueError(f"Missing required parameter {parameter['code']}")
-                if (
-                    parameter.get("multiple", False)
-                    and value is not None
-                    and not isinstance(value, list)
-                ):
-                    raise ValueError(
-                        f"Parameter {parameter['code']} must be a list of values"
-                    )
-                if not parameter.get("multiple", False) and isinstance(value, list):
-                    raise ValueError(
-                        f"Parameter {parameter['code']} must be a single value"
-                    )
-
-                if parameter.get("default") is not None and value is None:
-                    # Set default value if not provided
-                    config[parameter["code"]] = parameter["default"]
-
         run = PipelineRun.objects.create(
             user=user,
             pipeline=self,
