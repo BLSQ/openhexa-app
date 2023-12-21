@@ -2298,7 +2298,8 @@ export enum PipelineRunStatus {
 
 export enum PipelineRunTrigger {
   Manual = 'manual',
-  Scheduled = 'scheduled'
+  Scheduled = 'scheduled',
+  Webhook = 'webhook'
 }
 
 export type PipelineTokenInput = {

@@ -20,6 +20,7 @@ import {
   PipelineRunStatus,
   PipelineRunTrigger,
 } from "graphql-types";
+import { isNil } from "lodash";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
@@ -92,7 +93,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     }
     if (
       (entry.type === "int" || entry.type === "float") &&
-      entry.value !== null
+      !isNil(entry.value)
     ) {
       return entry.multiple ? entry.value.join(", ") : entry.value;
     }
@@ -224,9 +225,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   <Time datetime={run.executionDate} />
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("Trigger")}>
-                  {run.triggerMode === PipelineRunTrigger.Manual
-                    ? t("Manual")
-                    : t("Scheduled")}
+                  {run.triggerMode === PipelineRunTrigger.Manual && t("Manual")}
+                  {run.triggerMode === PipelineRunTrigger.Scheduled &&
+                    t("Scheduled")}
+                  {run.triggerMode === PipelineRunTrigger.Webhook &&
+                    t("Webhook")}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("User")}>
                   {run.user ? <User user={run.user} /> : "-"}

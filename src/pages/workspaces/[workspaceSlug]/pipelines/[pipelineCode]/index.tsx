@@ -263,8 +263,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                   accessor={"webhookEnabled"}
                 />
                 <RenderProperty
-                  visible={(_, isEdited, values) =>
-                    !isEdited && Boolean(values.webhookEnabled)
+                  visible={(_, isEdited) =>
+                    !isEdited && Boolean(pipeline.webhookUrl)
                   }
                   readonly
                   id="webhookUrl"
@@ -328,9 +328,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 >
                   {(value) => (
                     <span>
-                      {value === PipelineRunTrigger.Scheduled
-                        ? t("Scheduled")
-                        : t("Manual")}
+                      {value === PipelineRunTrigger.Scheduled && t("Scheduled")}
+                      {value === PipelineRunTrigger.Manual && t("Manual")}
+                      {value === PipelineRunTrigger.Webhook && t("Webhook")}
                     </span>
                   )}
                 </BaseColumn>

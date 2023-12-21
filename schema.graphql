@@ -1701,6 +1701,7 @@ enum PipelineRunStatus {
 enum PipelineRunTrigger {
   scheduled
   manual
+  webhook
 }
 
 type PipelinesPage {
