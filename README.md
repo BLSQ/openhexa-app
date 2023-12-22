@@ -52,7 +52,6 @@ Other commands are available:
   manage            : run django manage.py
   fixtures          : migrate, create superuser, load fixtures and reindex
   bash              : run bash
-  tailwind          : run tailwind browser-sync
   coveraged-test    : launch django tests and show a coverage report
 
   Any arguments passed will be forwarded to the executed command
@@ -76,8 +75,6 @@ cp .env.dist .env
 docker network create openhexa
 docker compose build
 docker compose run app fixtures
-docker compose run app manage tailwind install
-docker compose run app manage tailwind build
 docker compose up
 ```
 

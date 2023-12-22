@@ -358,10 +358,7 @@ SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"
 if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    # Django Tailwind and Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
-    # https://django-tailwind.readthedocs.io/en/latest/installation.html
-    # > Make sure that the INTERNAL_IPS list is present in the settings.py
-    # > file and contains the 127.0.0.1 ip address
+    # Django Debug Toolbar specifically ask for INTERNAL_IPS to be set
     INTERNAL_IPS = ["127.0.0.1"]
 
     DEBUG_TOOLBAR_CONFIG = {
