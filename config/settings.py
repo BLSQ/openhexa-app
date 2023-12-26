@@ -234,7 +234,9 @@ COMMENTS_APP = "hexa.comments"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
-NOTEBOOKS_API_URL = os.environ.get("NOTEBOOKS_API_URL", "http://localhost:8001/hub/api")
+NOTEBOOKS_API_URL = os.environ.get(
+    "NOTEBOOKS_API_URL", "http://jupyterhub:8000/hub/api"
+)
 HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "notatoken")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
