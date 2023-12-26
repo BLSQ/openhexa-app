@@ -60,9 +60,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const refreshInterval = useMemo(() => {
     switch (data?.pipelineRun?.status) {
       case PipelineRunStatus.Queued:
-        return 1 * 1000;
+        return 0.5 * 1000; // 2 times per second
       case PipelineRunStatus.Running:
-        return 2 * 1000;
+        return 0.25 * 1000; // 4 times per second
       default:
         return null;
     }
@@ -205,7 +205,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     title={run.executionDate}
                     suppressHydrationWarning={true}
                   >
-                    <PipelineRunStatusBadge run={run} />
+                    <PipelineRunStatusBadge run={run} polling={false} />
                   </div>
                 </div>
               </div>
@@ -278,7 +278,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               </Block.Section>
             )}
             <Block.Section title={t("Messages")}>
-              <RunMessages run={run} />
+              {/* Set a ref to the component to recreate it completely when the run id changes.  */}
+              <RunMessages key={run.id} run={run} />
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
               <RunLogs run={run} />

@@ -4,16 +4,17 @@ const useAutoScroll = (
   scrollableContentRef: React.RefObject<HTMLElement>,
   scrollBehavior: "auto" | "smooth" = "auto",
 ) => {
-  const isScrolledToBottomRef = useRef<boolean>(true);
+  const isAutoScrollActive = useRef<boolean>(true);
+  const lastScrollTop = useRef<number>(0);
 
   useEffect(() => {
     const child = scrollableContentRef.current;
     const parent = child?.parentElement;
     if (child && parent) {
       const resizeObserver = new ResizeObserver(() => {
-        if (isScrolledToBottomRef.current) {
+        if (isAutoScrollActive.current) {
           parent.scrollTo({
-            top: parent.scrollHeight + 10,
+            top: child.scrollHeight,
             behavior: scrollBehavior,
           });
         }
@@ -22,9 +23,15 @@ const useAutoScroll = (
       resizeObserver.observe(child);
 
       const onScroll = (event: any) => {
-        const { scrollTop, scrollHeight, clientHeight } = event.target;
-        const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
-        isScrolledToBottomRef.current = isScrolledToBottom;
+        const { scrollTop, scrollHeight } = event.target;
+        const isScrolledToBottom = scrollHeight === child.scrollHeight;
+        if (scrollTop < lastScrollTop.current && lastScrollTop.current !== 0) {
+          isAutoScrollActive.current = false;
+        } else if (isScrolledToBottom) {
+          isAutoScrollActive.current = true;
+        }
+
+        lastScrollTop.current = scrollTop;
       };
       // Observe scroll position
       parent.addEventListener("scroll", onScroll);
@@ -41,6 +48,11 @@ const useAutoScroll = (
       };
     }
   }, [scrollableContentRef, scrollBehavior]);
+
+  useEffect(() => {
+    isAutoScrollActive.current = true;
+    lastScrollTop.current = 0;
+  }, [scrollableContentRef]);
 };
 
 export default useAutoScroll;

@@ -148,7 +148,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         },
       });
     }
-  }, [open, form, fetch, props, pipeline]);
+  }, [open, form, fetch, props, pipeline.code, pipeline.workspace]);
 
   useEffect(() => {
     if (!form.formData.version && open) {
