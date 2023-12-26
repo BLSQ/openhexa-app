@@ -32,17 +32,11 @@ class ViewsTest(TestCase):
 
     def test_logout_302(self):
         self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("logout"))
+        response = self.client.post(reverse("logout"))
 
         # Check that the response is temporary redirection to JupyterHub logout.
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, f"{settings.NOTEBOOKS_URL}/hub/logout")
-
-    def test_account_200(self):
-        self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("user:account"))
-
-        self.assertEqual(response.status_code, 200)
 
     def test_graphql_anonymous(self):
         response = self.client.get(reverse("graphql"))
