@@ -112,7 +112,7 @@ Before submitting a pipeline, you need to make sure the next steps:
 
 1. create a workspace on your local instance `http://localhost:3000/workspaces/`, this will provide you a workspace name
    and token,
-2. [configure the URL of the backend API] (https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-the-openhexa-backend-to-run-pipelines)
+2. [configure the URL of the backend API](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-the-openhexa-backend-to-run-pipelines)
    used by your pipeline project:
    ```bash
    openhexa config set_url http://localhost:8000
