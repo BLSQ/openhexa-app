@@ -16,6 +16,11 @@ from hexa.user_management.models import (
     Team,
     User,
 )
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceMembershipRole,
+)
 
 from ..utils import default_device, devices_for_user
 
@@ -1248,4 +1253,119 @@ class TwoFactorTest(GraphQLTestCase):
 
         self.assertEqual(
             r["data"]["disableTwoFactor"], {"success": True, "errors": None}
+        )
+
+
+class RegisterTest(GraphQLTestCase):
+    @classmethod
+    def setUp(cls):
+        cls.USER_REGULAR = User.objects.create_user(
+            "john@bluesquarehub.com",
+            "regular",
+        )
+        cls.FEATURE = Feature.objects.create(code="workspaces")
+        cls.WORKSPACE = Workspace.objects.create(name="Workspace")
+        cls.WORKSPACE_INVITATION = WorkspaceInvitation.objects.create(
+            workspace=cls.WORKSPACE,
+            email="johndoe@email.com",
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+    def test_register_invalid_token(self):
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word",
+                    "password2": "Pa$$Word",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": "zdzd",
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["register"], {"success": False, "errors": ["INVALID_TOKEN"]}
+        )
+
+    def test_register_password_mismatch(self):
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word",
+                    "password2": "Pa$$Word2",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_invitation_token(),
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["register"], {"success": False, "errors": ["PASSWORD_MISMATCH"]}
+        )
+
+    def test_register_ok(self):
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_invitation_token(),
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["register"]["success"])
+
+        # Check if authenticated
+        r = self.run_query(
+            """
+            query {
+                me {
+                    user {
+                        id
+                        firstName
+                        lastName
+                        email
+                    }
+                }
+            }
+            """,
+        )
+
+        self.assertEqual(
+            r["data"]["me"]["user"],
+            {
+                "id": str(User.objects.get(email=self.WORKSPACE_INVITATION.email).id),
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": self.WORKSPACE_INVITATION.email,
+            },
         )

@@ -1,6 +1,7 @@
 You have been invited to join  {{workspace}} workspace by {{owner}}.
 
+{% autoescape off %}
 Create your account to join the workspace {{ workspace_signup_url }}
-
+{% endautoescape %}
 
 The OpenHexa team

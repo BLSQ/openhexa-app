@@ -76,6 +76,7 @@ type WorkspaceMembershipPage {
 extend type Query {
   workspace(slug: String!): Workspace @loginRequired
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage! @loginRequired
+  pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
   databaseTable(id:String!): DatabaseTable @loginRequired
 }
 
@@ -217,11 +218,7 @@ enum GenerateWorkspaceTokenError {
 }
 
 input JoinWorkspaceInput {
-  token: String!
-  firstName: String!
-  lastName: String!
-  password: String!
-  confirmPassword: String!
+  invitationId: UUID!
 }
 
 type JoinWorkspaceResult {
@@ -251,11 +248,8 @@ enum DeleteWorkspaceInvitationError {
 }
 
 enum JoinWorkspaceError {
-  INVALID_TOKEN
   ALREADY_EXISTS
   PERMISSION_DENIED
-  AUTHENTICATION_REQUIRED
-  INVALID_CREDENTIALS
   INVITATION_NOT_FOUND
 }
 
@@ -268,7 +262,7 @@ extend type Mutation {
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
-  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult! @loginRequired
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
 }

@@ -1,10 +1,6 @@
-import binascii
-
 from ariadne import MutationType
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import BadSignature, SignatureExpired, Signer
+from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
@@ -198,54 +194,23 @@ def resolve_join_workspace(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.get_by_token(input["token"])
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
             raise AlreadyExists
-
-        if WorkspaceMembership.objects.filter(
-            user__email=invitation.email, workspace=invitation.workspace
-        ).exists():
-            raise AlreadyExists(
-                f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
-            )
-
-        if request.user.is_authenticated and request.user.email != invitation.email:
+        if request.user.email != invitation.email:
             raise PermissionDenied("You cannot accept an invitation for another user.")
 
-        # Check if a user already exists with this email
-        # If it exists, is has to be authenticated to accept the invitation
-        try:
-            user = User.objects.get(email=invitation.email)
-            if request.user.is_anonymous:
-                return {
-                    "success": False,
-                    "errors": ["AUTHENTICATION_REQUIRED"],
-                }
-        except User.DoesNotExist:
-            if input["password"] != input["confirmPassword"]:
-                raise ValidationError("The two passwords do not match.")
-
-            validate_password(password=input["password"])
-            user = User.objects.create_user(
-                email=invitation.email,
-                first_name=input["firstName"],
-                last_name=input["lastName"],
-                password=input["password"],
+        if WorkspaceMembership.objects.filter(
+            user=request.user, workspace=invitation.workspace
+        ).exists():
+            raise AlreadyExists(
+                f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
-            FeatureFlag.objects.create(
-                feature=Feature.objects.get(code="workspaces"), user=user
-            )
-
-            # Let's authenticate the user automatically
-            authenticated_user = authenticate(
-                username=invitation.email, password=input["password"]
-            )
-            login(request, authenticated_user)
 
         # We create the membership
         WorkspaceMembership.objects.create(
             workspace=invitation.workspace,
-            user=user,
+            user=request.user,
             role=invitation.role,
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
@@ -253,11 +218,6 @@ def resolve_join_workspace(_, info, **kwargs):
 
         return {"success": True, "errors": [], "workspace": invitation.workspace}
 
-    except (SignatureExpired, binascii.Error, BadSignature):
-        return {
-            "success": False,
-            "errors": ["INVALID_TOKEN"],
-        }
     except AlreadyExists:
         return {
             "success": False,
