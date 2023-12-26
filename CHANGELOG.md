@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.41.2](https://github.com/BLSQ/openhexa-frontend/compare/0.41.1...0.41.2) (2023-12-26)
+
+
+### Bug Fixes
+
+* Improve run messages ([#510](https://github.com/BLSQ/openhexa-frontend/issues/510)) ([1998ff9](https://github.com/BLSQ/openhexa-frontend/commit/1998ff956c6dd1c272e007a0ce5478c480c85930))
+* **Pipelines:** Add a 'Webhook' run trigger & Improve parameters display ([#509](https://github.com/BLSQ/openhexa-frontend/issues/509)) ([fc090e6](https://github.com/BLSQ/openhexa-frontend/commit/fc090e664c8d1b3ec870dfdd72881cdd04792086))
+
 ## [0.41.1](https://github.com/BLSQ/openhexa-frontend/compare/0.41.0...0.41.1) (2023-12-19)
 
 
