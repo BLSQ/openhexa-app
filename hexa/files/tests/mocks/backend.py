@@ -20,8 +20,8 @@ class StorageBackend(object):
             client = MockClient(backend=self, *args, **kwargs)
             return client
 
-        def wrapper(*args, **kwargs):
-            with patch("hexa.files.api.get_storage_client", create_mock_client):
+        def wrapper(*args, **kwargs):            
+            with patch("hexa.files.gcp.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 
         functools.update_wrapper(wrapper, func)
