@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.63.0](https://github.com/BLSQ/openhexa-app/compare/0.62.0...0.63.0) (2023-12-26)
+
+
+### Features
+
+* **Pipelines:** Improve webhook support ([#611](https://github.com/BLSQ/openhexa-app/issues/611)) ([b3564c2](https://github.com/BLSQ/openhexa-app/commit/b3564c2a2905d5bd800adba49c30e71da98ebb3e))
+
+
+### Bug Fixes
+
+* remove django-tailwind commands and adapt documentation ([#612](https://github.com/BLSQ/openhexa-app/issues/612)) ([39cd9cc](https://github.com/BLSQ/openhexa-app/commit/39cd9cc60c80ea91d7ccb6b4bd2b86cc6b1476d1))
+
+
+### Miscellaneous
+
+* remove catalog sync buttons ([#610](https://github.com/BLSQ/openhexa-app/issues/610)) ([63a0ccd](https://github.com/BLSQ/openhexa-app/commit/63a0ccdd999e391e1f7e17d5001ef7fc507c8d5a))
+* remove unused variable declaration ([3017d70](https://github.com/BLSQ/openhexa-app/commit/3017d701875e041de346ceed2b88e6622a2dbe17))
+
 ## [0.62.0](https://github.com/BLSQ/openhexa-app/compare/0.61.3...0.62.0) (2023-12-19)
 
 
