@@ -74,8 +74,8 @@ extend type Query {
 input RegisterInput {
     password1: String!
     password2: String!
-    firstName: String
-    lastName: String
+    firstName: String!
+    lastName: String!
     invitationToken: String!
 }
 enum RegisterError {
