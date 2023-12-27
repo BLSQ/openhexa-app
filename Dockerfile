@@ -22,7 +22,7 @@ ENTRYPOINT ["/code/docker-entrypoint.sh"]
 CMD start
 
 FROM deps as app
-# RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput
 
 # Staged used to run the pipelines scheduler and runner
 FROM app as pipelines
