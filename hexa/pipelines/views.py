@@ -136,7 +136,7 @@ def run_pipeline(
         for parameter in pipeline_version.parameters:
             if parameter["code"] not in request.POST:
                 continue
-            if parameter["type"] == "boolean":
+            if parameter["type"] == "bool":
                 config[parameter["code"]] = request.POST.get(
                     parameter["code"]
                 ).lower() in ("1", "true")
