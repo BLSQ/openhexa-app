@@ -1,14 +1,32 @@
 from django.core.exceptions import ValidationError
-
+import boto3
+import botocore
 from hexa.core.test import TestCase
 
-from ..api import create_bucket, list_bucket_objects
+from ..api import (
+    create_bucket,
+    list_bucket_objects,
+    create_bucket_folder,
+    get_client,
+    get_short_lived_downscoped_access_token,
+)
 from .mocks.mockgcp import backend
 
 
 class APITestCase(TestCase):
     def setUp(self):
         backend.reset()
+        # since I call a real minio, I delete the content and bucket upfront
+        buckets = [
+            "my_bucket",
+            "my-bucket",
+            "test-bucket",
+            "empty-bucket",
+            "not-empty-bucket",
+            "bucket",
+        ]
+        for bucket_name in buckets:
+            get_client().delete_bucket(bucket_name, fully=True)
 
     @backend.mock_storage
     def test_create_bucket(self):
@@ -140,13 +158,9 @@ class APITestCase(TestCase):
 
     @backend.mock_storage
     def test_list_blobs_pagination(self):
-        bucket = create_bucket("my_bucket")
+        bucket = create_bucket("my-bucket")
         for i in range(0, 12):
-            bucket.blob(
-                f"test_{i}.txt",
-                size=123 * i,
-                content_type="text/plain",
-            )
+            bucket.blob(f"test_{i}.txt", size=(123 * i), content_type="text/plain")
 
         res = list_bucket_objects(bucket.name, page=1, per_page=10)
         self.assertTrue(res.has_next_page)
@@ -165,3 +179,69 @@ class APITestCase(TestCase):
         self.assertTrue(res.has_next_page)
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
+
+    @backend.mock_storage
+    def test_create_bucket_folder(self):
+        create_bucket("bucket")
+        self.assertEqual(list_bucket_objects("bucket").items, [])
+        create_bucket_folder(bucket_name="bucket", folder_key="demo")
+        self.assertEqual(
+            list_bucket_objects("bucket").items,
+            [
+                {
+                    "key": "demo/",
+                    "name": "demo",
+                    "path": "bucket/demo/",
+                    "size": 0,
+                    "type": "directory",
+                }
+            ],
+        )
+
+    @backend.mock_storage
+    def test_short_lived_downscoped_access_token(self):
+        # TODO make that test work for gcp and s3
+        bucket = create_bucket("bucket")
+        for i in range(0, 2):
+            bucket.blob(
+                f"test_{i}.txt",
+                size=123 * i,
+                content_type="text/plain",
+            )
+
+        bucket = create_bucket("test-bucket")
+
+        for i in range(0, 2):
+            bucket.blob(
+                f"test_{i}.txt",
+                size=123 * i,
+                content_type="text/plain",
+            )
+
+        connection_infos, expires_in = get_short_lived_downscoped_access_token("bucket")
+        print(connection_infos)
+        print(expires_in)
+
+        s3 = boto3.client("s3", **connection_infos)
+
+        objects = s3.list_objects(Bucket="bucket")
+        print(objects)
+        self.assertEqual(
+            [x["Key"] for x in objects["Contents"]],
+            ["test_0.txt", "test_1.txt"],
+        )
+        # TODO unified exception ?
+        with self.assertRaisesMessage(
+            botocore.exceptions.ClientError,
+            "An error occurred (AccessDenied) when calling the ListObjects operation: Access Denied.",
+        ):
+            # should blow up not allowed on that bucket
+            objects = s3.list_objects(Bucket="test-bucket")
+            print(objects)
+
+        with self.assertRaisesMessage(
+            botocore.exceptions.ClientError,
+            "An error occurred (AccessDenied) when calling the CreateBucket operation: Access Denied.",
+        ):
+            # should blow up not allowed to create new bucket
+            s3.create_bucket(Bucket="not-empty-bucket")
