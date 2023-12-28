@@ -1080,7 +1080,7 @@ class WorkspaceTest(GraphQLTestCase):
                         email
                         role
                         status
-                        invited_by {
+                        invitedBy {
                             id
                         }
                     }
@@ -1107,7 +1107,7 @@ class WorkspaceTest(GraphQLTestCase):
                         email
                         role
                         status
-                        invited_by {
+                        invitedBy {
                             id
                         }
                     }
@@ -1123,7 +1123,7 @@ class WorkspaceTest(GraphQLTestCase):
                         "email": self.INVITATION_PENDING.email,
                         "role": self.INVITATION_PENDING.role,
                         "status": WorkspaceInvitationStatus.PENDING,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     }
                 ],
             },
@@ -1142,7 +1142,7 @@ class WorkspaceTest(GraphQLTestCase):
                             email
                             role
                             status
-                            invited_by {
+                            invitedBy {
                                 id
                             }
                         }
@@ -1160,19 +1160,19 @@ class WorkspaceTest(GraphQLTestCase):
                         "email": self.INVITATION_PENDING.email,
                         "role": self.INVITATION_PENDING.role,
                         "status": WorkspaceInvitationStatus.PENDING,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     },
                     {
                         "email": self.INVITATION_BAR.email,
                         "role": self.INVITATION_BAR.role,
                         "status": WorkspaceInvitationStatus.ACCEPTED,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     },
                     {
                         "email": self.INVITATION_FOO.email,
                         "role": self.INVITATION_FOO.role,
                         "status": WorkspaceInvitationStatus.PENDING,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     },
                 ],
             },
@@ -1191,7 +1191,7 @@ class WorkspaceTest(GraphQLTestCase):
                             email
                             role
                             status
-                            invited_by {
+                            invitedBy {
                                 id
                             }
                         }
@@ -1210,13 +1210,13 @@ class WorkspaceTest(GraphQLTestCase):
                         "email": self.INVITATION_PENDING.email,
                         "role": self.INVITATION_PENDING.role,
                         "status": WorkspaceInvitationStatus.PENDING,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     },
                     {
                         "email": self.INVITATION_FOO.email,
                         "role": self.INVITATION_FOO.role,
                         "status": WorkspaceInvitationStatus.PENDING,
-                        "invited_by": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
+                        "invitedBy": {"id": str(self.USER_WORKSPACE_ADMIN.id)},
                     },
                 ],
             },
