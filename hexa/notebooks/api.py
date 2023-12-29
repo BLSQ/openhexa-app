@@ -6,7 +6,7 @@ from django.conf import settings
 
 def get_user(username: str) -> typing.Optional[typing.Mapping[str, typing.Any]]:
     user_response = requests.get(
-        f"{settings.NOTEBOOKS_API_URL}/users/{username}",
+        f"{settings.NOTEBOOKS_HUB_URL}/api/users/{username}",
         headers={"Authorization": f"token {settings.HUB_API_TOKEN}"},
     )
     if user_response.status_code == 404:
@@ -18,7 +18,7 @@ def get_user(username: str) -> typing.Optional[typing.Mapping[str, typing.Any]]:
 
 def create_user(username: str):
     user_response = requests.post(
-        f"{settings.NOTEBOOKS_API_URL}/users/{username}",
+        f"{settings.NOTEBOOKS_HUB_URL}/api/users/{username}",
         headers={"Authorization": f"token {settings.HUB_API_TOKEN}"},
     )
     user_response.raise_for_status()
@@ -26,7 +26,7 @@ def create_user(username: str):
 
 def create_server(username: str, server_name: str, cookies: typing.Mapping[str, str]):
     server_response = requests.post(
-        f"{settings.NOTEBOOKS_API_URL}/users/{username}/servers/{server_name}",
+        f"{settings.NOTEBOOKS_HUB_URL}/api/users/{username}/servers/{server_name}",
         headers={"Authorization": f"token {settings.HUB_API_TOKEN}"},
         cookies=cookies,
     )
@@ -35,7 +35,7 @@ def create_server(username: str, server_name: str, cookies: typing.Mapping[str, 
 
 def server_ready(username: str, server_name: str = "") -> bool:
     r = requests.get(
-        f"{settings.NOTEBOOKS_API_URL}/users/{username}",
+        f"{settings.NOTEBOOKS_HUB_URL}/api/users/{username}",
         headers={"Authorization": f"token {settings.HUB_API_TOKEN}"},
     )
     r.raise_for_status()
