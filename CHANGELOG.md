@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.63.1](https://github.com/BLSQ/openhexa-app/compare/0.63.0...0.63.1) (2023-12-29)
+
+
+### Bug Fixes
+
+* **Pipelines:** Fix boolean -&gt; bool for the pipeline webhook ([#616](https://github.com/BLSQ/openhexa-app/issues/616)) ([61c37e8](https://github.com/BLSQ/openhexa-app/commit/61c37e895df1ed32d92cd16669fa98a890765352))
+
+
+### Miscellaneous
+
+* Django 5 and deps overhaul ([#615](https://github.com/BLSQ/openhexa-app/issues/615)) ([491c540](https://github.com/BLSQ/openhexa-app/commit/491c5405033e337b5eccdfd21fdae4ed802f262d))
+* Keep comm with JupyterHub API internal to the Docker network ([#599](https://github.com/BLSQ/openhexa-app/issues/599)) ([fed8574](https://github.com/BLSQ/openhexa-app/commit/fed8574eb34321f184d4dc2dfda7ec317a7a55e9))
+
 ## [0.63.0](https://github.com/BLSQ/openhexa-app/compare/0.62.0...0.63.0) (2023-12-26)
 
 
