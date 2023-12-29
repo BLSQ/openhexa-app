@@ -108,18 +108,18 @@ class NotebooksTest(GraphQLTestCase):
 
     @responses.activate
     def test_launch_workspace_notebook_create_user_failed(self):
-        with self.settings(NOTEBOOKS_API_URL="http://localhost:8081"):
+        with self.settings(NOTEBOOKS_HUB_URL="http://localhost:8081"):
             self.client.force_login(self.USER_JULIA)
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={},
                 status=404,
                 headers="",
             )
             responses.add(
                 responses.POST,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={},
                 status=500,
                 headers="",
@@ -139,25 +139,25 @@ class NotebooksTest(GraphQLTestCase):
 
     @responses.activate
     def test_launch_workspace_notebook_create_server_failed(self):
-        with self.settings(NOTEBOOKS_API_URL="http://localhost:8081"):
+        with self.settings(NOTEBOOKS_HUB_URL="http://localhost:8081"):
             self.client.force_login(self.USER_JULIA)
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={},
                 status=404,
                 headers="",
             )
             responses.add(
                 responses.POST,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={"servers": {}},
                 status=201,
                 headers="",
             )
             responses.add(
                 responses.POST,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}/servers/{self.WORKSPACE.slug}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}/servers/{self.WORKSPACE.slug}",
                 json={},
                 status=500,
                 headers="",
@@ -182,14 +182,14 @@ class NotebooksTest(GraphQLTestCase):
     @responses.activate
     def test_launch_workspace_notebook(self):
         with self.settings(
-            NOTEBOOKS_API_URL="http://localhost:8081",
+            NOTEBOOKS_HUB_URL="http://localhost:8081",
             NOTEBOOKS_URL="http://localhost:8000",
         ):
             self.client.force_login(self.USER_JULIA)
             # First GET user -> 404
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={},
                 status=404,
                 headers="",
@@ -197,21 +197,21 @@ class NotebooksTest(GraphQLTestCase):
             # Create user
             responses.add(
                 responses.POST,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 status=201,
                 headers="",
             )
             # Create server
             responses.add(
                 responses.POST,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}/servers/{self.WORKSPACE.slug}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}/servers/{self.WORKSPACE.slug}",
                 status=202,
                 headers="",
             )
             # Second GET user (after creation) -> ok but no server
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={"servers": {}},
                 status=200,
                 headers="",
@@ -219,7 +219,7 @@ class NotebooksTest(GraphQLTestCase):
             # Third GET user (for server_ready) -> ok, server not ready
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={"servers": {self.WORKSPACE.slug: {"ready": False}}},
                 status=200,
                 headers="",
@@ -227,7 +227,7 @@ class NotebooksTest(GraphQLTestCase):
             # Fourth GET user (second mutation call) -> ok, ready
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={"servers": {self.WORKSPACE.slug: {"ready": True}}},
                 status=200,
                 headers="",
@@ -235,7 +235,7 @@ class NotebooksTest(GraphQLTestCase):
             # Fifth GET user (second mutation call, for server_ready) -> ok, ready
             responses.add(
                 responses.GET,
-                f"{settings.NOTEBOOKS_API_URL}/users/{self.USER_JULIA.email}",
+                f"{settings.NOTEBOOKS_HUB_URL}/api/users/{self.USER_JULIA.email}",
                 json={"servers": {self.WORKSPACE.slug: {"ready": True}}},
                 status=200,
                 headers="",

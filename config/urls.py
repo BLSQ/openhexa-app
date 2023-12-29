@@ -16,10 +16,10 @@ Including another URLconf
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 
 from hexa.app import get_hexa_app_configs
+from hexa.user_management.views import LogoutView
 
 from .schema import schema
 
@@ -43,7 +43,7 @@ urlpatterns = [
     # TODO: use API (https://github.com/jupyterhub/jupyterhub/issues/3688)
     path(
         "auth/logout/",
-        auth_views.LogoutView.as_view(next_page=f"{settings.NOTEBOOKS_URL}/hub/logout"),
+        LogoutView.as_view(),
         name="logout",
     ),
     path("auth/", include("django.contrib.auth.urls")),
