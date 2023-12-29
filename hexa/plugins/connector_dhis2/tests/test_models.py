@@ -44,7 +44,6 @@ class ModelsTestTest(TestCase):
         cls.USER_BJORN = User.objects.create_user(
             "bjorn@bluesquarehub.com",
             "bjornbjorn",
-            accepted_tos=True,
         )
         cls.DHIS2_INSTANCE_PLAY = Instance.objects.create(
             url="https://play.dhis2.org.invalid",

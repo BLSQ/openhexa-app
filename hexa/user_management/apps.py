@@ -8,7 +8,6 @@ class UserManagementConfig(CoreAppConfig):
     verbose_name = "User management"
 
     ANONYMOUS_URLS = [
-        "user:accept_tos",
         "logout",
         "password_reset",
         "password_reset_confirm",

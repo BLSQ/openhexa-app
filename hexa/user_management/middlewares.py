@@ -5,7 +5,7 @@ from typing import Callable
 from django.conf import settings
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import resolve, reverse
 from django_otp.middleware import OTPMiddleware
 
@@ -71,29 +71,6 @@ def login_required_middleware(
                 return HttpResponse(status=401)
 
         return get_response(request)
-
-    return middleware
-
-
-def accepted_tos_required_middleware(
-    get_response: Callable[[HttpRequest], HttpResponse]
-) -> Callable[[HttpRequest], HttpResponse]:
-    """
-    TOS is mandatory for all:
-        - authenticated user
-        - except routes logout, index and ready endpoint.
-    """
-
-    def middleware(request: HttpRequest) -> HttpResponse:
-        if (
-            request.user.is_authenticated
-            and is_protected_routes(request)
-            and not getattr(request.user, "accepted_tos", False)
-            and settings.USER_MUST_ACCEPT_TOS
-        ):
-            return render(request, "user_management/terms_of_service.html")
-        else:
-            return get_response(request)
 
     return middleware
 

@@ -31,7 +31,6 @@ admin.site.index_title = "Welcome to OpenHexa"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("hexa.core.urls", namespace="core")),
-    path("user/", include("hexa.user_management.urls", namespace="user")),
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
