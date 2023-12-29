@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.63.2](https://github.com/BLSQ/openhexa-app/compare/0.63.1...0.63.2) (2023-12-29)
+
+
+### Bug Fixes
+
+* logout handling for Django 5 ([#619](https://github.com/BLSQ/openhexa-app/issues/619)) ([68a1ff6](https://github.com/BLSQ/openhexa-app/commit/68a1ff62525d2efef86503817cb81bace283d3bc))
+
+
+### Miscellaneous
+
+* remove TOS ([#618](https://github.com/BLSQ/openhexa-app/issues/618)) ([e669fb7](https://github.com/BLSQ/openhexa-app/commit/e669fb70659faa828d9b3dbea60afe4d8677f3c0))
+
 ## [0.63.1](https://github.com/BLSQ/openhexa-app/compare/0.63.0...0.63.1) (2023-12-29)
 
 
