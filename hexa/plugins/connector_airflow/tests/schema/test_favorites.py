@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from django.utils import timezone
+from datetime import datetime, timezone
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_airflow.models import (
