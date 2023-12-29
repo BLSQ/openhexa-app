@@ -31,6 +31,7 @@ import {
   SidebarMenuQueryVariables,
   SidebarMenu_WorkspaceFragment,
 } from "./SidebarMenu.generated";
+import { logout } from "identity/helpers/auth";
 
 interface SidebarMenuProps {
   workspace: SidebarMenu_WorkspaceFragment;
@@ -270,14 +271,13 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 {t("Back to OpenHexa classic")}
               </Link>
             )}
-            <Link
-              href="/auth/logout"
-              noStyle
+            <button
+              onClick={() => logout()}
               className="group flex gap-2 px-4 py-2.5 text-red-600 transition-all hover:bg-gray-100 hover:text-gray-800"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               {t("Sign out")}
-            </Link>
+            </button>
           </section>
 
           {me.user && (

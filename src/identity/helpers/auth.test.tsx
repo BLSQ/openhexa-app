@@ -1,13 +1,24 @@
-import { getApolloClient } from "core/helpers/apollo";
 import router from "next/router";
 import { logout } from "./auth";
 
-jest.mock("core/helpers/apollo");
+async function mockFetch() {
+  return {
+    ok: true,
+    status: 302,
+    url: "/login",
+  };
+}
 
 describe("logout", () => {
+  beforeAll(() => jest.spyOn(window, "fetch"));
+  beforeEach(() => (window.fetch = mockFetch as jest.Mock));
   it("redirects the user to the logout page", async () => {
-    const spyPush = jest.spyOn(router, "push");
+    const spyReplace = jest.spyOn(router, "replace");
+    Object.defineProperty(window.document, "cookie", {
+      value: "csrftoken=1234",
+    });
+
     await logout();
-    expect(spyPush).toHaveBeenCalledWith("/auth/logout");
+    expect(spyReplace).toHaveBeenCalledWith("/login");
   });
 });
