@@ -4,7 +4,13 @@ from django.http import HttpRequest
 from hexa.core.graphql import result_page
 from hexa.user_management.schema import me_permissions_object
 
-from ..models import Connection, ConnectionField, Workspace, WorkspaceInvitation
+from ..models import (
+    Connection,
+    ConnectionField,
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+)
 
 workspace_object = ObjectType("Workspace")
 workspace_permissions = ObjectType("WorkspacePermissions")
@@ -105,8 +111,8 @@ def resolve_workspace_invitations(workspace: Workspace, info, **kwargs):
         .filter(workspace=workspace)
         .order_by("-updated_at")
     )
-    if kwargs.get("status"):
-        qs = qs.filter(status=kwargs["status"])
+    if not kwargs.get("includeAccepted"):
+        qs = qs.exclude(status=WorkspaceInvitationStatus.ACCEPTED)
 
     return result_page(
         queryset=qs,

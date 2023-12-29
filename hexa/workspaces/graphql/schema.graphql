@@ -9,7 +9,7 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
-  invitations(status: WorkspaceInvitationStatus,page: Int, perPage: Int): WorkspaceInvitationPage!
+  invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 
 type WorkspaceInvitationPage {
