@@ -31,7 +31,6 @@ class ViewsTest(TestCase):
             "jane@bluesquarehub.com",
             "janerocks2",
             is_superuser=True,
-            accepted_tos=True,
         )
 
     def test_datasource_detail_200(self):

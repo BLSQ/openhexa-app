@@ -14,7 +14,6 @@ class MetricsTest(TestCase):
         cls.USER_FOO = User.objects.create_user(
             "foo@bluesquarehub.com",
             "Foo Bar",
-            accepted_tos=True,
         )
 
     @test.override_settings(SAVE_REQUESTS=True)

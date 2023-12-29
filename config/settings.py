@@ -92,7 +92,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
-    "hexa.user_management.middlewares.accepted_tos_required_middleware",
     "hexa.metrics.middlewares.track_request_event",
 ]
 

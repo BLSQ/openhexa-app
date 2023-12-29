@@ -151,7 +151,6 @@ class AccessRequestTest(TestCase):
             user=self.ACCESS_REQUEST_MARY.user
         )
         self.assertTrue(accessmod_profile.accepted_tos)
-        self.assertFalse(accessmod_profile.user.accepted_tos)
 
         # Approve Simone - multiple requests, non-approved requests should be denied
         self.ACCESS_REQUEST_SIMONE_2.approve_if_has_perm(

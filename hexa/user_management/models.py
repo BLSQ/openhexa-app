@@ -81,7 +81,6 @@ class User(AbstractUser, UserInterface):
     username = None
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = EmailField(_("email address"), db_collation="case_insensitive", unique=True)
-    accepted_tos = models.BooleanField(default=False)
 
     objects = UserManager()
 
