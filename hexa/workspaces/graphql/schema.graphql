@@ -32,6 +32,7 @@ type WorkspaceInvitation {
 
 enum WorkspaceInvitationStatus {
   PENDING
+  DECLINED
   ACCEPTED
 }
 
@@ -249,8 +250,22 @@ enum DeleteWorkspaceInvitationError {
 
 enum JoinWorkspaceError {
   ALREADY_EXISTS
+  ALREADY_ACCEPTED
   PERMISSION_DENIED
   INVITATION_NOT_FOUND
+}
+
+input DeclineWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+type DeclineWorkspaceInvitationResult {
+  success: Boolean!
+  errors: [DeclineWorkspaceInvitationError!]!
+}
+enum DeclineWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 extend type Mutation {
@@ -263,6 +278,7 @@ extend type Mutation {
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult! @loginRequired
+  declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult! @loginRequired
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
 }

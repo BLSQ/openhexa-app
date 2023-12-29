@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer
@@ -196,7 +198,7 @@ def resolve_join_workspace(_, info, **kwargs):
     try:
         invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
-            raise AlreadyExists
+            return {"success": False, "errors": ["ALREADY_ACCEPTED"]}
         if request.user.email != invitation.email:
             raise PermissionDenied("You cannot accept an invitation for another user.")
 
@@ -223,11 +225,6 @@ def resolve_join_workspace(_, info, **kwargs):
             "success": False,
             "errors": ["ALREADY_EXISTS"],
         }
-    except ValidationError:
-        return {
-            "success": False,
-            "errors": ["INVALID_CREDENTIALS"],
-        }
     except PermissionDenied:
         return {
             "success": False,
@@ -240,18 +237,55 @@ def resolve_join_workspace(_, info, **kwargs):
         }
 
 
+@workspace_mutations.field("declineWorkspaceInvitation")
+def resolve_decline_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+
+        if request.user.email != invitation.email:
+            raise PermissionDenied("You cannot decline an invitation for another user.")
+        if invitation.status in (
+            WorkspaceInvitationStatus.DECLINED,
+            WorkspaceInvitationStatus.ACCEPTED,
+        ):
+            raise PermissionDenied(
+                "You cannot decline an invitation that has been declined or accepted."
+            )
+
+        invitation.status = WorkspaceInvitationStatus.DECLINED
+        invitation.save()
+        return {
+            "success": True,
+            "errors": [],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @workspace_mutations.field("resendWorkspaceInvitation")
 def resolve_resend_workspace_invitation(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.filter(
-            status=WorkspaceInvitationStatus.PENDING
+        invitation = WorkspaceInvitation.objects.exclude(
+            status=WorkspaceInvitationStatus.ACCEPTED
         ).get(id=input["invitationId"])
 
         if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
             raise PermissionDenied
+
+        invitation.status = WorkspaceInvitationStatus.PENDING
+        invitation.updated_at = datetime.utcnow()
+        invitation.save()
 
         send_workspace_invitation_email(invitation)
         return {

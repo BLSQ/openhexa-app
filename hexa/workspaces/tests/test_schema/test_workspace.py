@@ -931,6 +931,92 @@ class WorkspaceTest(GraphQLTestCase):
                 mail.outbox[0].body,
             )
 
+    def test_decline_workspace_invitation(self):
+        self.client.force_login(self.USER_PENDING)
+        r = self.run_query(
+            """
+            mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+                declineWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_PENDING.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["declineWorkspaceInvitation"],
+        )
+
+    def test_decline_workspace_invitation_already_accepted(self):
+        self.client.force_login(self.USER_PENDING)
+        self.INVITATION_PENDING.status = WorkspaceInvitationStatus.ACCEPTED
+        self.INVITATION_PENDING.save()
+        r = self.run_query(
+            """
+            mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+                declineWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_PENDING.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["declineWorkspaceInvitation"],
+        )
+
+    def test_decline_workspace_invitation_other_user(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+            mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+                declineWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_PENDING.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["PERMISSION_DENIED"],
+            },
+            r["data"]["declineWorkspaceInvitation"],
+        )
+
+    def test_decline_workspace_invitation_not_found(self):
+        self.client.force_login(self.USER_PENDING)
+        r = self.run_query(
+            """
+            mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+                declineWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(uuid.uuid4())}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVITATION_NOT_FOUND"],
+            },
+            r["data"]["declineWorkspaceInvitation"],
+        )
+
     def test_join_workspace_anonymous(self):
         r = self.run_query(
             """
@@ -997,7 +1083,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(
             {
                 "success": False,
-                "errors": ["ALREADY_EXISTS"],
+                "errors": ["ALREADY_ACCEPTED"],
             },
             r["data"]["joinWorkspace"],
         )
@@ -1336,6 +1422,59 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["resendWorkspaceInvitation"],
         )
+
+    def test_resend_workspace_member_invitation_already_accepted(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_BAR.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVITATION_NOT_FOUND"],
+            },
+            r["data"]["resendWorkspaceInvitation"],
+        )
+
+    def test_resend_invitation_declined(self):
+        self.INVITATION_BAR.status = WorkspaceInvitationStatus.DECLINED
+        self.INVITATION_BAR.save()
+
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+            mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                resendWorkspaceInvitation(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"invitationId": str(self.INVITATION_BAR.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["resendWorkspaceInvitation"],
+        )
+
+        self.assertEqual(
+            f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
+            mail.outbox[0].subject,
+        )
+        self.assertListEqual([self.INVITATION_BAR.email], mail.outbox[0].recipients())
+        self.INVITATION_BAR.refresh_from_db()
+        self.assertEqual(self.INVITATION_BAR.status, WorkspaceInvitationStatus.PENDING)
 
     def test_resend_workspace_member_invitation(self):
         import random
