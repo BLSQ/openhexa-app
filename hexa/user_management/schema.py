@@ -334,7 +334,8 @@ def resolve_register(_, info, **kwargs):
     if request.user.is_authenticated:
         return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
 
-    # Check that the invitation token is valid
+    # We only accept registration if the invitation token to a workspace is valid and pending. Once the user is created,
+    # the user is redirected to the list of all his invitations where he can accept or decline them.
     try:
         invitation = WorkspaceInvitation.objects.get_by_token(
             token=mutation_input["invitationToken"]
