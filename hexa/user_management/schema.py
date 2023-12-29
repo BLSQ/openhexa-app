@@ -342,7 +342,7 @@ def resolve_register(_, info, **kwargs):
         )
         if invitation.status != WorkspaceInvitationStatus.PENDING:
             return {"success": False, "errors": ["INVALID_TOKEN"]}
-    except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature) as e:
+    except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature):
         return {
             "success": False,
             "errors": ["INVALID_TOKEN"],
