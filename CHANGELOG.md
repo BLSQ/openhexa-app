@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.41.3](https://github.com/BLSQ/openhexa-frontend/compare/0.41.2...0.41.3) (2023-12-29)
+
+
+### Bug Fixes
+
+* use POST request for logout ([#514](https://github.com/BLSQ/openhexa-frontend/issues/514)) ([71eb61f](https://github.com/BLSQ/openhexa-frontend/commit/71eb61f2e36b172ff522645f91c3c82c4ec9e5a8))
+
 ## [0.41.2](https://github.com/BLSQ/openhexa-frontend/compare/0.41.1...0.41.2) (2023-12-26)
 
 
