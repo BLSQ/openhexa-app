@@ -225,6 +225,7 @@ input JoinWorkspaceInput {
 type JoinWorkspaceResult {
   success: Boolean!
   workspace: Workspace
+  invitation: WorkspaceInvitation
   errors: [JoinWorkspaceError!]!
 }
 
@@ -261,6 +262,7 @@ input DeclineWorkspaceInvitationInput {
 
 type DeclineWorkspaceInvitationResult {
   success: Boolean!
+  invitation: WorkspaceInvitation
   errors: [DeclineWorkspaceInvitationError!]!
 }
 enum DeclineWorkspaceInvitationError {

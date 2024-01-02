@@ -351,6 +351,9 @@ def resolve_register(_, info, **kwargs):
     except WorkspaceInvitation.DoesNotExist:
         return {"success": False, "errors": ["INVALID_TOKEN"]}
 
+    if User.objects.filter(email=invitation.email).exists():
+        return {"success": False, "errors": ["EMAIL_TAKEN"]}
+
     try:
         if mutation_input["password1"] != mutation_input["password2"]:
             return {"success": False, "errors": ["PASSWORD_MISMATCH"]}

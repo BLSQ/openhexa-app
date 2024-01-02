@@ -218,7 +218,12 @@ def resolve_join_workspace(_, info, **kwargs):
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
 
-        return {"success": True, "errors": [], "workspace": invitation.workspace}
+        return {
+            "success": True,
+            "errors": [],
+            "workspace": invitation.workspace,
+            "invitation": invitation,
+        }
 
     except AlreadyExists:
         return {
@@ -259,6 +264,7 @@ def resolve_decline_workspace_invitation(_, info, **kwargs):
         invitation.save()
         return {
             "success": True,
+            "invitation": invitation,
             "errors": [],
         }
     except WorkspaceInvitation.DoesNotExist:
