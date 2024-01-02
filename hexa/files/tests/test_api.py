@@ -64,6 +64,66 @@ class APITestCase(TestCase):
         )
 
     @backend.mock_storage
+    def test_list_blobs_with_query(self):
+        bucket = create_bucket("not-empty-bucket")
+        bucket.blob(
+            "test.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        bucket.blob(
+            "readme.md",
+            size=2103,
+            content_type="text/plain",
+        )
+        bucket.blob(
+            "file.md",
+            size=1,
+            content_type="text/plain",
+        )
+        bucket.blob(
+            "other_file.md",
+            size=2102,
+            content_type="text/plain",
+        )
+        bucket.blob("folder/", size=0)
+        bucket.blob(
+            "folder/readme.md",
+            size=1,
+            content_type="text/plain",
+        )
+        self.assertEqual(
+            [
+                x["key"]
+                for x in list_bucket_objects(
+                    bucket.name, page=1, per_page=10, query="readme"
+                ).items
+            ],
+            [
+                "readme.md",
+            ],
+        )
+
+        self.assertEqual(
+            [
+                x["key"]
+                for x in list_bucket_objects(
+                    bucket.name, page=1, per_page=10, query="file"
+                ).items
+            ],
+            ["file.md", "other_file.md"],
+        )
+        self.assertEqual(
+            [
+                x["key"]
+                for x in list_bucket_objects(
+                    bucket.name, page=2, per_page=10, query="file"
+                ).items
+            ],
+            [],
+        )
+
+    @backend.mock_storage
     def test_list_hide_hidden_files(self):
         bucket = create_bucket("bucket")
         bucket.blob(
