@@ -2,6 +2,7 @@ import re
 from unittest.mock import patch
 
 from django.core import mail
+from django.test import override_settings
 from django.utils.http import urlsafe_base64_encode
 from django_otp import user_has_device
 from django_otp.models import Device
@@ -1017,8 +1018,7 @@ class TwoFactorTest(GraphQLTestCase):
     @classmethod
     def setUp(cls):
         cls.USER_REGULAR = User.objects.create_user(
-            "john@bluesquarehub.com",
-            "regular",
+            "john@bluesquarehub.com", "regular", first_name="John"
         )
         cls.USER_WITH_DEVICE = User.objects.create_user(
             "device@bluesquare.com", "device"
@@ -1253,6 +1253,73 @@ class TwoFactorTest(GraphQLTestCase):
 
         self.assertEqual(
             r["data"]["disableTwoFactor"], {"success": True, "errors": None}
+        )
+
+    def test_update_user(self):
+        self.client.force_login(self.USER_REGULAR)
+
+        self.assertEqual(self.USER_REGULAR.language, "en")
+        self.assertEqual(self.USER_REGULAR.first_name, "John")
+        r = self.run_query(
+            """
+                mutation updateUser($input: UpdateUserInput!) {
+                    updateUser(input: $input) {
+                        success
+                        errors
+                        user {
+                            id
+                            email
+                            firstName
+                            language
+                        }
+                    }
+                }
+            """,
+            {"input": {"firstName": "New first name", "language": "fr"}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "user": {
+                    "id": str(self.USER_REGULAR.id),
+                    "email": self.USER_REGULAR.email,
+                    "firstName": "New first name",
+                    "language": "fr",
+                },
+            },
+            r["data"]["updateUser"],
+        )
+        self.USER_REGULAR.refresh_from_db()
+        self.assertEqual(self.USER_REGULAR.first_name, "New first name")
+        self.assertEqual(self.USER_REGULAR.language, "fr")
+
+    @override_settings(LANGUAGES=(("en", "English"), ("fr", "French")))
+    def test_update_user_invalid_language(self):
+        self.client.force_login(self.USER_REGULAR)
+
+        r = self.run_query(
+            """
+                mutation updateUser($input: UpdateUserInput!) {
+                    updateUser(input: $input) {
+                        success
+                        errors
+                        user {
+                            id
+                            language
+                        }
+                    }
+                }
+            """,
+            {"input": {"language": "nl"}},
+        )
+        self.assertEqual(
+            {
+                "success": False,
+                "errors": ["INVALID_LANGUAGE"],
+                "user": None,
+            },
+            r["data"]["updateUser"],
         )
 
 

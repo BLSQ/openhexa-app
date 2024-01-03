@@ -8,6 +8,7 @@ from ariadne import (
     ObjectType,
     QueryType,
     SchemaDirectiveVisitor,
+    convert_kwargs_to_snake_case,
     load_schema_from_path,
 )
 from django.conf import settings
@@ -597,6 +598,28 @@ def resolve_enable_two_factor(_, info, **kwargs):
     device.save()
 
     return {"success": True, "verified": False, "errors": []}
+
+
+@identity_mutations.field("updateUser")
+@convert_kwargs_to_snake_case
+def resolve_update_user(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+    user = request.user
+    for field_name in ["first_name", "last_name"]:
+        if field_name in mutation_input:
+            setattr(user, field_name, mutation_input[field_name])
+
+    if mutation_input.get("language", None):
+        if mutation_input["language"] not in dict(settings.LANGUAGES):
+            return {
+                "success": False,
+                "errors": ["INVALID_LANGUAGE"],
+            }
+        user.language = mutation_input["language"]
+
+    user.save()
+    return {"success": True, "errors": [], "user": user}
 
 
 identity_bindables = [

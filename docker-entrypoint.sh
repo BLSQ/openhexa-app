@@ -18,6 +18,8 @@ show_help() {
   start             : start django server using gunicorn
   makemigrations    : generate a django migration
   migrate           : run django migrations
+  makemessages      : generate django translations
+  compilemessages   : compile django translations
   test              : launch django tests
   manage            : run django manage.py
   fixtures          : migrate, create superuser, load fixtures and reindex
@@ -38,6 +40,9 @@ case "$command" in
   ;;
 "makemigrations" | "migrate")
   wait-for-it db:5432
+  python manage.py $command $arguments
+  ;;
+"makemessages" | "compilemessages")
   python manage.py $command $arguments
   ;;
 "test")
