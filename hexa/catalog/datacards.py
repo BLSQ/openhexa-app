@@ -2,8 +2,8 @@ from hexa.catalog.models import Index
 from hexa.ui import datacard
 
 
-class OpenHexaMetaDataSection(datacard.Section):
-    title = "OpenHexa Metadata"
+class OpenHEXAMetaDataSection(datacard.Section):
+    title = "OpenHEXA Metadata"
     owner = datacard.OwnerProperty(url="owner.url", text="owner.name", editable=True)
     label = datacard.TextProperty(text="label", editable=True)
     tags = datacard.TagProperty(value="tags.all", editable=True)

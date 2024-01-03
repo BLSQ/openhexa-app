@@ -4,6 +4,6 @@
 {% blocktranslate %}If you weren’t expecting this email, you can safely ignore it.{% endblocktranslate %}
 
 
-{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
 
 {% endautoescape %}

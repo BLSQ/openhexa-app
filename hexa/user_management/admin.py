@@ -50,7 +50,7 @@ class FeatureFlagFormSet(forms.BaseInlineFormSet):
         ):
             raise forms.ValidationError(
                 "For now, Openhexa users must have at least one of the following feature flags: "
-                "openhexa_legacy (allows users to access OpenHexa v1) or workspaces (allows "
+                "openhexa_legacy (allows users to access OpenHEXA v1) or workspaces (allows "
                 "users to use the workspaces version."
             )
 

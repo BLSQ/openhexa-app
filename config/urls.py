@@ -23,9 +23,9 @@ from hexa.user_management.views import LogoutView
 
 from .schema import schema
 
-admin.site.site_header = "OpenHexa Admin"
-admin.site.site_title = "OpenHexa Admin"
-admin.site.index_title = "Welcome to OpenHexa"
+admin.site.site_header = "OpenHEXA Admin"
+admin.site.site_title = "OpenHEXA Admin"
+admin.site.index_title = "Welcome to OpenHEXA"
 
 # Core URLs
 urlpatterns = [

@@ -10,7 +10,7 @@ def send_workspace_invitation_email(invitation: WorkspaceInvitation):
     token = invitation.generate_invitation_token()
     send_mail(
         title=gettext_lazy(
-            f"You've been invited to join the workspace {invitation.workspace.name} on OpenHexa"
+            f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
         ),
         template_name="workspaces/mails/invite_external_user",
         template_variables={

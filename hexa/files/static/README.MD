@@ -1,10 +1,10 @@
 <div align="center" style="margin-top:20px;">
-   <img alt="OpenHexa Logo" src="https://raw.githubusercontent.com/BLSQ/openhexa-app/main/hexa/static/img/logo/logo_with_text_grey.svg" height="80">
+   <img alt="OpenHEXA Logo" src="https://raw.githubusercontent.com/BLSQ/openhexa-app/main/hexa/static/img/logo/logo_with_text_grey.svg" height="80">
 </div>
 
-# Welcome to OpenHexa!
+# Welcome to OpenHEXA!
 
-Welcome to OpenHexa, the Bluesquare Data Science platform.
+Welcome to OpenHEXA, the Bluesquare Data Science platform.
 
 This file is an introduction to the workspace bucket. By default, when a workspace is created, it comes with a dedicated GCS bucket.
 You can use this bucket to create folders, store files related to this workspace.
