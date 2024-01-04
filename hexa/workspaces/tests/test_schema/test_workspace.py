@@ -1465,7 +1465,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHexa",
+            f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHEXA",
             mail.outbox[0].subject,
         )
         self.assertListEqual([self.INVITATION_BAR.email], mail.outbox[0].recipients())
