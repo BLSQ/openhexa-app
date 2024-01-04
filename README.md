@@ -39,6 +39,9 @@ You can use `docker run blsq/openhexa-app help` to list the available commands.
 Local development
 -----------------
 
+The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation) 
+section of our wiki gives an overview of the local development setup required to run OpenHEXA locally.
+
 To ease the setup of the environment and management of dependencies, we are using containerization, in particular
 [Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development. 
 
@@ -49,7 +52,7 @@ container.
 The following steps will get you up and running:
 
 ```bash
-cp .env.dist .env
+cp .env.dist .env  # adapt the .env file with the required configuration values
 docker network create openhexa
 docker compose build
 docker compose run app fixtures
