@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             name="access_token",
             field=models.TextField(
                 blank=True,
-                help_text="Access token that can be used to interact with the OpenHexa API (will be generated automatically, set to empty to regenerate a new token)",
+                help_text="Access token that can be used to interact with the OpenHEXA API (will be generated automatically, set to empty to regenerate a new token)",
                 max_length=50,
                 unique=True,
             ),

@@ -3,7 +3,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.catalog.datacards import OpenHEXAMetaDataSection
 from hexa.plugins.connector_airflow.models import DAG, Cluster, DAGRun
 from hexa.ui.datacard import (
     Action,
@@ -31,7 +31,7 @@ class ClusterCard(Datacard):
     image_src = "_image_src"
 
     external = ClusterSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     actions = [
         Action(
@@ -86,7 +86,7 @@ class DAGCard(Datacard):
     image_src = "_image_src"
 
     external = DAGSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
     actions = [
         Action(
             label="Open in Airflow",

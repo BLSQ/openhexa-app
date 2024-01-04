@@ -340,7 +340,7 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "true"
 DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL", "OpenHexa <hexatron@notifications.openhexa.org>"
+    "DEFAULT_FROM_EMAIL", "OpenHEXA <hexatron@notifications.openhexa.org>"
 )
 
 if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
@@ -414,7 +414,7 @@ PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
 OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
-OTP_EMAIL_SUBJECT = "OpenHexa Verification Token"
+OTP_EMAIL_SUBJECT = "OpenHEXA Verification Token"
 
 # Workspace Database settings
 WORKSPACES_DATABASE_ROLE = os.environ.get("WORKSPACES_DATABASE_ROLE")

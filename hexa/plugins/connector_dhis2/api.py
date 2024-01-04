@@ -19,7 +19,7 @@ class Dhis2Relation:
     dhis2_field_name: str
     # callable to extract DHIS2 id from each item of said iterable
     dhis2_extract_id: Callable[[Any], str]
-    # OpenHexa model of the related item
+    # OpenHEXA model of the related item
     model_name: str
     # M2M field name in the object model
     model_field: str

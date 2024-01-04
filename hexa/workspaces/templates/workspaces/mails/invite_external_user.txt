@@ -3,4 +3,4 @@ You have been invited to join  {{workspace}} workspace by {{owner}}.
 Create your account to join the workspace {{ workspace_signup_url }}
 
 
-The OpenHexa team
+The OpenHEXA team

@@ -723,7 +723,7 @@ January 11, 2022
 
 ### Added
 
-- Added the foundations of the OpenHexa GraphQL API
+- Added the foundations of the OpenHEXA GraphQL API
 - Implemented Auth GraphQL API
 
 ### Updated

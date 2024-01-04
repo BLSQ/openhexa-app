@@ -5,7 +5,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.catalog.datacards import OpenHEXAMetaDataSection
 from hexa.plugins.connector_dhis2.models import Instance
 from hexa.ui.datacard import (
     BooleanProperty,
@@ -69,7 +69,7 @@ class InstanceCard(Datacard):
     # actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = InstanceSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
     usage = UsageSection()
 
     @property
@@ -114,7 +114,7 @@ class DataElementCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = DataElementSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):
@@ -148,7 +148,7 @@ class OrganisationUnitCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = OrganisationUnitSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):
@@ -183,7 +183,7 @@ class IndicatorCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = IndicatorSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):
@@ -212,7 +212,7 @@ class DatasetCard(Datacard):
     image_src = "dhis2_image_src"
 
     external = DatasetSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):

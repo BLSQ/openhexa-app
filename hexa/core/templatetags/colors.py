@@ -29,7 +29,7 @@ STATUS_MAPPINGS = {
 
 @register.filter(name="status_color")
 def status_color(with_status):
-    """Maps OpenHexa status (see WithStatus behaviours) to colors for our templates"""
+    """Maps OpenHEXA status (see WithStatus behaviours) to colors for our templates"""
 
     try:
         return STATUS_MAPPINGS[with_status.status].value

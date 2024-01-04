@@ -1,7 +1,7 @@
 from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.catalog.datacards import OpenHEXAMetaDataSection
 from hexa.plugins.connector_s3.models import Object
 from hexa.ui.datacard import Datacard, Section, TextProperty, URLProperty
 from hexa.ui.utils import StaticText
@@ -18,7 +18,7 @@ class BucketCard(Datacard):
     title = StaticText("Bucket details")
 
     external = BucketSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):
