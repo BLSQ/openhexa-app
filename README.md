@@ -77,14 +77,10 @@ If you need the pipelines or want to work on them, there are 2 optional services
 docker compose --profile pipelines up
 ```
 
-As for the backend, the code base is mounted inside the container. That means that the changes are reflected directly in
-the container environment allowing you to develop.
+The [Writing OpenHEXA pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines) section of the wiki 
+contains the instructions needed to build and deploy a data pipeline on OpenHEXA.
 
-When it's up and running, you can submit a pipeline. For that, you can follow the [README of the OpenHEXA SDK Python]
-(https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#quickstart). It will help you to scaffold your first
-OpenHEXA pipeline project and deploy it.
-
-Before submitting a pipeline, you need to make sure the next steps:
+To deploy and run data pipelines locally, you will need to:
 
 1. Create a workspace on your local instance
 2. Configure the SDK to use your local instance as the backend
