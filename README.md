@@ -82,19 +82,21 @@ the container environment allowing you to develop.
 
 When it's up and running, you can submit a pipeline. For that, you can follow the [README of the OpenHEXA SDK Python]
 (https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#quickstart). It will help you to scaffold your first
-OpenHEXA pipeline project and submit it.
+OpenHEXA pipeline project and deploy it.
 
 Before submitting a pipeline, you need to make sure the next steps:
 
-1. create a workspace on your local instance `http://localhost:3000/workspaces/`, this will provide you a workspace name
-   and token,
-2. [configure the URL of the backend API](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-the-openhexa-backend-to-run-pipelines)
-   used by your pipeline project:
-   ```bash
-   openhexa config set_url http://localhost:8000
-   ```
+1. Create a workspace on your local instance
+2. Configure the SDK to use your local instance as the backend
 
-When it's done, you can push your pipeline to your local instance.
+```bash
+openhexa config set_url http://localhost:8000
+```
+
+You can now deploy your pipelines to your local OpenHEXA instance.
+
+Please refer to the [SDK documentation](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-openhexa-to-run-pipelines)
+for more information.
 
 ### Data worker
 
