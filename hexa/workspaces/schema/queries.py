@@ -1,8 +1,13 @@
-from ariadne import QueryType
+from ariadne import QueryType, convert_kwargs_to_snake_case
 
 from hexa.core.graphql import result_page
 
-from ..models import Connection, Workspace
+from ..models import (
+    Connection,
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+)
 
 workspace_queries = QueryType()
 
@@ -32,6 +37,18 @@ def resolve_workspace_connection(_, info, id):
         return Connection.objects.filter_for_user(request.user).get(id=id)
     except Connection.DoesNotExist:
         return None
+
+
+@workspace_queries.field("pendingWorkspaceInvitations")
+@convert_kwargs_to_snake_case
+def resolve_pending_workspace_invitations(_, info, page=1, per_page=10):
+    request = info.context["request"]
+    if not request.user.is_authenticated:
+        return []
+    qs = WorkspaceInvitation.objects.filter(
+        email=request.user.email, status=WorkspaceInvitationStatus.PENDING
+    ).order_by("-created_at")
+    return result_page(qs, page=page, per_page=per_page)
 
 
 bindables = [

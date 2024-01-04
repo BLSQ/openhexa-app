@@ -9,7 +9,7 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
-  invitations(status: WorkspaceInvitationStatus,page: Int, perPage: Int): WorkspaceInvitationPage!
+  invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
 }
 
 type WorkspaceInvitationPage {
@@ -25,13 +25,14 @@ type WorkspaceInvitation {
   workspace: Workspace!
   role: WorkspaceMembershipRole!
   status: WorkspaceInvitationStatus!
-  invited_by: User
+  invitedBy: User
   createdAt: DateTime!
   updatedAt: DateTime
 }
 
 enum WorkspaceInvitationStatus {
   PENDING
+  DECLINED
   ACCEPTED
 }
 
@@ -76,6 +77,7 @@ type WorkspaceMembershipPage {
 extend type Query {
   workspace(slug: String!): Workspace @loginRequired
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage! @loginRequired
+  pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
   databaseTable(id:String!): DatabaseTable @loginRequired
 }
 
@@ -217,16 +219,13 @@ enum GenerateWorkspaceTokenError {
 }
 
 input JoinWorkspaceInput {
-  token: String!
-  firstName: String!
-  lastName: String!
-  password: String!
-  confirmPassword: String!
+  invitationId: UUID!
 }
 
 type JoinWorkspaceResult {
   success: Boolean!
   workspace: Workspace
+  invitation: WorkspaceInvitation
   errors: [JoinWorkspaceError!]!
 }
 
@@ -251,12 +250,24 @@ enum DeleteWorkspaceInvitationError {
 }
 
 enum JoinWorkspaceError {
-  INVALID_TOKEN
   ALREADY_EXISTS
+  ALREADY_ACCEPTED
   PERMISSION_DENIED
-  AUTHENTICATION_REQUIRED
-  INVALID_CREDENTIALS
   INVITATION_NOT_FOUND
+}
+
+input DeclineWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+type DeclineWorkspaceInvitationResult {
+  success: Boolean!
+  invitation: WorkspaceInvitation
+  errors: [DeclineWorkspaceInvitationError!]!
+}
+enum DeclineWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
 }
 
 extend type Mutation {
@@ -268,7 +279,8 @@ extend type Mutation {
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult! @loginRequired
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult! @loginRequired
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult! @loginRequired
-  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult! @loginRequired
+  declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult! @loginRequired
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult! @loginRequired
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult! @loginRequired
 }

@@ -318,6 +318,7 @@ class WorkspaceMembership(models.Model):
 
 class WorkspaceInvitationStatus(models.TextChoices):
     PENDING = "PENDING"
+    DECLINED = "DECLINED"
     ACCEPTED = "ACCEPTED"
 
 

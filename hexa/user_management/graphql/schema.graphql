@@ -71,7 +71,28 @@ extend type Query {
     me: Me!
 }
 
+input RegisterInput {
+    password1: String!
+    password2: String!
+    firstName: String!
+    lastName: String!
+    invitationToken: String!
+}
+enum RegisterError {
+    ALREADY_LOGGED_IN
+    EMAIL_TAKEN
+    INVALID_TOKEN
+    PASSWORD_MISMATCH
+    INVALID_PASSWORD
+}
+type RegisterResult {
+    success: Boolean!
+    errors: [RegisterError!]
+}
+
+
 extend type Mutation {
+    register(input: RegisterInput!): RegisterResult!
     login(input: LoginInput!): LoginResult!
     logout: LogoutResult!
     resetPassword(input: ResetPasswordInput!): ResetPasswordResult!

@@ -1,3 +1,4 @@
+import binascii
 import logging
 import pathlib
 
@@ -12,8 +13,10 @@ from ariadne import (
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, password_validation
 from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.signing import BadSignature, SignatureExpired
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
@@ -27,12 +30,14 @@ from hexa.user_management.models import (
     AlreadyExists,
     CannotDelete,
     CannotDowngradeRole,
+    Feature,
     FeatureFlag,
     Membership,
     Organization,
     Team,
     User,
 )
+from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatus
 
 from .utils import DEVICE_DEFAULT_NAME, default_device, has_configured_two_factor
 
@@ -319,6 +324,59 @@ def resolve_logout(_, info, **kwargs):
         logout(request)
 
     return {"success": True}
+
+
+@identity_mutations.field("register")
+def resolve_register(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    if request.user.is_authenticated:
+        return {"success": False, "errors": ["ALREADY_LOGGED_IN"]}
+
+    # We only accept registration if the invitation token to a workspace is valid and pending. Once the user is created,
+    # the user is redirected to the list of all his invitations where he can accept or decline them.
+    try:
+        invitation = WorkspaceInvitation.objects.get_by_token(
+            token=mutation_input["invitationToken"]
+        )
+        if invitation.status != WorkspaceInvitationStatus.PENDING:
+            return {"success": False, "errors": ["INVALID_TOKEN"]}
+    except (UnicodeDecodeError, SignatureExpired, binascii.Error, BadSignature):
+        return {
+            "success": False,
+            "errors": ["INVALID_TOKEN"],
+        }
+
+    except WorkspaceInvitation.DoesNotExist:
+        return {"success": False, "errors": ["INVALID_TOKEN"]}
+
+    if User.objects.filter(email=invitation.email).exists():
+        return {"success": False, "errors": ["EMAIL_TAKEN"]}
+
+    try:
+        if mutation_input["password1"] != mutation_input["password2"]:
+            return {"success": False, "errors": ["PASSWORD_MISMATCH"]}
+        validate_password(password=mutation_input["password1"])
+        user = User.objects.create_user(
+            email=invitation.email,
+            password=mutation_input["password1"],
+            first_name=mutation_input["firstName"],
+            last_name=mutation_input["lastName"],
+        )
+        FeatureFlag.objects.create(
+            feature=Feature.objects.get(code="workspaces"), user=user
+        )
+
+        # Let's authenticate the user automatically
+        authenticated_user = authenticate(
+            username=user.email, password=mutation_input["password1"]
+        )
+        login(request, authenticated_user)
+        return {"success": True, "errors": []}
+
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_PASSWORD"]}
 
 
 @identity_mutations.field("resetPassword")
