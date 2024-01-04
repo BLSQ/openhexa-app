@@ -23,11 +23,6 @@ Please refer to the [OpenHEXA wiki](https://github.com/BLSQ/openhexa/wiki/Home) 
 This repository contains the code for what we call the `app` component, which mostly offers a GraphQL API and an 
 infrastructure to run data pipelines.
 
-For more information about the technical aspects of OpenHEXA, you might be interested in the two following wiki pages:
-
-- [Installing OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
-- [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
-
 Docker image
 ------------
 
