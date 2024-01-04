@@ -28,45 +28,23 @@ For more information about the technical aspects of OpenHEXA, you might be inter
 - [Installing OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
 - [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
 
-Container
----------
+Docker image
+------------
 
 OpenHEXA App is published as a Docker Image on Docker Hub:
 [blsq/openhexa-app](https://hub.docker.com/r/blsq/openhexa-app).
 
-You can run a simple interactive bash session as it follows:
-
-```bash
-docker run --rm -ti blsq/openhexa-app bash
-```
-
-Other commands are available:
-
-```
-  Available commands:
-
-  start             : start django server using gunicorn
-  makemigrations    : generate a django migration
-  migrate           : run django migrations
-  test              : launch django tests
-  manage            : run django manage.py
-  fixtures          : migrate, create superuser, load fixtures and reindex
-  bash              : run bash
-  coveraged-test    : launch django tests and show a coverage report
-
-  Any arguments passed will be forwarded to the executed command
-```
-
-If you run the Django server, it will look for a database server. If you need
-something working out of the box for local development, go to the next section.
+You can use `docker run blsq/openhexa-app help` to list the available commands.
 
 Local development
 -----------------
 
 To ease the setup of the environment and management of dependencies, we are using containerization, in particular
-Docker. As such, we provide a `docker-compose.yaml` file for local development. When running it, the present code base
-is mounted inside the container. That means that the changes are reflected directly in the container environment
-allowing you to develop.
+[Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development. 
+
+When running the App component using `docker compose`, the code of this repository is mounted as a volume within the 
+container, so that any change you make in your local copy of the codebase is directly reflected in the running 
+container.
 
 The following steps will get you up and running:
 
