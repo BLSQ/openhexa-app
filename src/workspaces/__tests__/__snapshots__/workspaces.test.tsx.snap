@@ -190,7 +190,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               rel="noopener noreferrer"
             >
               <img
-                alt="OpenHexa logo"
+                alt="OpenHEXA logo"
                 class="h-full"
                 src="/images/logo_with_text_white.svg"
               />
@@ -536,7 +536,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               rel="noopener noreferrer"
             >
               <img
-                alt="OpenHexa logo"
+                alt="OpenHEXA logo"
                 class="h-full"
                 src="/images/logo_with_text_white.svg"
               />

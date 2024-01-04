@@ -42,7 +42,7 @@ const Help = (props: HelpProps) => {
             customStyle="text-gray-900 hover:text-gray-500"
             target="_blank"
           >
-            {t("Visit the OpenHexa documentation homepage")}
+            {t("Visit the OpenHEXA documentation homepage")}
           </Link>
         </div>
       </Popover>

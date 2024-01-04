@@ -36,12 +36,12 @@ const Header = () => {
           <img
             className="block h-full lg:hidden"
             src="/images/logo.svg"
-            alt="OpenHexa logo"
+            alt="OpenHEXA logo"
           />
           <img
             className="hidden h-full lg:block"
             src="/images/logo_with_text_white.svg"
-            alt="OpenHexa logo"
+            alt="OpenHEXA logo"
           />
         </Link>
         <Navbar />

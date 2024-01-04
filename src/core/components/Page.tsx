@@ -10,7 +10,7 @@ const Page = (props: Props) => {
   const { children, title } = props;
 
   const pageTitle = useMemo(() => {
-    return title ? `OpenHexa | ${title}` : "OpenHexa";
+    return title ? `OpenHEXA | ${title}` : "OpenHEXA";
   }, [title]);
 
   return (

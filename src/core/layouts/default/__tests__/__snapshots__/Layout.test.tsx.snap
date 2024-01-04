@@ -16,12 +16,12 @@ exports[`DefaultLayout renders the layout for a authenticated user 1`] = `
           href="/"
         >
           <img
-            alt="OpenHexa logo"
+            alt="OpenHEXA logo"
             class="block h-full lg:hidden"
             src="/images/logo.svg"
           />
           <img
-            alt="OpenHexa logo"
+            alt="OpenHEXA logo"
             class="hidden h-full lg:block"
             src="/images/logo_with_text_white.svg"
           />

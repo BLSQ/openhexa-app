@@ -97,8 +97,8 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             href: "https://github.com/BLSQ/openhexa/wiki/User-manual#using-pipelines",
           },
           {
-            label: t("Writing OpenHexa pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines",
+            label: t("Writing OpenHEXA pipelines"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines",
           },
         ]}
       >

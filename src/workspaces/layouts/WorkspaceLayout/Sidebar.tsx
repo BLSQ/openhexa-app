@@ -162,7 +162,7 @@ const Sidebar = (props: SidebarProps) => {
                   ? "/images/logo_with_text_white.svg"
                   : "/images/logo.svg"
               }
-              alt="OpenHexa logo"
+              alt="OpenHEXA logo"
             />
           </Link>
         </div>

@@ -69,8 +69,8 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
         className="min-h-screen"
         helpLinks={[
           {
-            label: t("Using notebooks in OpenHexa"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHexa",
+            label: t("Using notebooks in OpenHEXA"),
+            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA",
           },
         ]}
         forceCompactSidebar

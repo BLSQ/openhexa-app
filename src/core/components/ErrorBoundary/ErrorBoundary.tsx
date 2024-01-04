@@ -13,7 +13,7 @@ export default function ErrorBoundary({
             <p>Something went wrong.</p>
             <p className="text-2xl font-light text-gray-500">
               Try reloading the page and if the issue persists please contact
-              your OpenHexa administrators.
+              your OpenHEXA administrators.
             </p>
           </div>
         </div>

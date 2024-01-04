@@ -113,7 +113,7 @@ const LoginPage: NextPageWithLayout = () => {
               src="/images/logo.svg"
               layout="fill"
               className="mx-auto block h-16 w-auto"
-              alt="OpenHexa logo"
+              alt="OpenHEXA logo"
             />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

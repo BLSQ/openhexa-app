@@ -48,7 +48,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
               src="/images/logo.svg"
               layout="fill"
               className="mx-auto block h-16 w-auto"
-              alt="OpenHexa logo"
+              alt="OpenHEXA logo"
             />
           </div>
           {isDone ? (
