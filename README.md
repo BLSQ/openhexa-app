@@ -26,37 +26,34 @@ connect to an [OpenHEXA](https://github.com/BLSQ/openhexa-app) instance.
 The app communicates with OpenHEXA through its [GraphQL](https://graphql.org/) API, and uses the standard OpenHEXA
 cookie-based authentication.
 
-For more information about the technical aspects of OpenHEXA, you might be interested in the two following wiki pages:
-
-- [Installing OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
-- [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
-
-## Requirements
-
-The Frontend requires at least Node v16 and uses `npm` to manage its
-dependencies. Make sure [you upgrade to the last version of `npm`](https://docs.npmjs.com/try-the-latest-stable-version-of-npm).
-
-## Container
+## Docker image
 
 OpenHEXA FrontEnd is published as a Docker Image on Docker Hub:
 [blsq/openhexa-frontend](https://hub.docker.com/r/blsq/openhexa-frontend)
 
-Run it as it follows:
+You can run the frontend component using the following command:
 
 ```bash
 docker run --rm -p 3000:3000 blsq/openhexa-frontend
 ```
 
 The server is then exposed at `http://localhost:3000`. However, it has to be
-configured so that it can find the backend and so on. If you're looking something
-working out of the box for local development, go to the next section.
+configured so that it can access the OpenHEXA backend (See [openhexa-app](https://github.com/BLSQ/openhexa-app)). 
+
+If you're looking something working out of the box for local development, go to the next section.
 
 ## Local development
 
+The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation)
+section of our wiki gives an overview of the local development setup required to run OpenHEXA locally.
+
 ### Requirements
 
-We advise to use [`nvm` to manage multiple versions of Node](https://github.com/nvm-sh/nvm).
-If you use `nvm`, `npm` can be upgraded with
+The Frontend component requires a recent (`v16` or newer) version of [Node.js](https://nodejs.org/).
+
+We recommend using [`nvm`](https://github.com/nvm-sh/nvm) to manage multiple versions of Node.
+
+If you use `nvm`, `npm` can be installed using the following command:
 
 ```bash
 nvm install-latest-npm
@@ -76,11 +73,10 @@ npm install
 Then, copy `.env.local.dist` and adapt it to your needs:
 
 ```bash
-cp .env.local.dist .env.local
-nano .env.local
+cp .env.local.dist .env.local  # adapt the .env file with the required configuration values
 ```
 
-Before starting the server, the backend [openhexa-app](https://github.com/BLSQ/openhexa-app/)
+Before starting the server, the backend ([openhexa-app](https://github.com/BLSQ/openhexa-app/)) 
 should be up and running.
 
 Finally, run the development server:
