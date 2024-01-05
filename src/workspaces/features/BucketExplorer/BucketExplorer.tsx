@@ -20,13 +20,14 @@ import {
   BucketExplorer_ObjectsFragment,
   BucketExplorer_WorkspaceFragment,
 } from "./BucketExplorer.generated";
+import SimpleSelect from "core/components/forms/SimpleSelect";
 
 type BucketExplorerProps = {
   workspace: BucketExplorer_WorkspaceFragment;
   objects: BucketExplorer_ObjectsFragment;
   prefix?: string | null;
   perPage: number;
-  onChangePage(page: number): void;
+  onChangePage(page: number, perPage: number): void;
 };
 
 const BucketExplorer = (props: BucketExplorerProps) => {
@@ -114,13 +115,35 @@ const BucketExplorer = (props: BucketExplorerProps) => {
         </BaseColumn>
       </DataGrid>
       {objects.items.length ? (
-        <SimplePagination
-          className="px-4"
-          hasNextPage={objects.hasNextPage}
-          hasPreviousPage={objects.hasPreviousPage}
-          page={objects.pageNumber}
-          onChange={onChangePage}
-        />
+        <div className="px-4 flex justify-between items-center">
+          <div>
+            <SimpleSelect
+              required
+              onChange={(event) =>
+                onChangePage(
+                  1,
+                  event.target.value
+                    ? parseInt(event.target.value, 10)
+                    : perPage,
+                )
+              }
+              className="h-[30px] w-fit py-0"
+              value={perPage.toString()}
+            >
+              {[10, 20, 50, 100].map((opt) => (
+                <option key={opt} value={opt.toString()}>
+                  {opt}
+                </option>
+              ))}
+            </SimpleSelect>
+          </div>
+          <SimplePagination
+            hasNextPage={objects.hasNextPage}
+            hasPreviousPage={objects.hasPreviousPage}
+            page={objects.pageNumber}
+            onChange={(page) => onChangePage(page, perPage)}
+          />
+        </div>
       ) : null}
     </>
   );

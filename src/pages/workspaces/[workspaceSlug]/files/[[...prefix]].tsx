@@ -3,6 +3,7 @@ import {
   Cog6ToothIcon,
   FolderPlusIcon,
 } from "@heroicons/react/24/outline";
+import SearchInput from "core/features/SearchInput";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
@@ -15,7 +16,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BucketExplorer from "workspaces/features/BucketExplorer";
 import CreateBucketFolderDialog from "workspaces/features/CreateBucketFolderDialog";
 import UploadObjectDialog from "workspaces/features/UploadObjectDialog";
@@ -32,25 +33,50 @@ type Props = {
   perPage: number;
   prefix: string;
   workspaceSlug: string;
+  searchQuery: string;
   ignoreHiddenFiles: boolean;
 };
 
+const ENTRIES_PER_PAGE = 20;
+
 export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const { page, prefix, workspaceSlug, perPage, ignoreHiddenFiles } = props;
+  const {
+    page,
+    prefix,
+    searchQuery,
+    workspaceSlug,
+    perPage,
+    ignoreHiddenFiles,
+  } = props;
   const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [isCreateFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
   const router = useRouter();
-
+  const [searchQueryState, setSearchQueryState] = useState(searchQuery);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { data, refetch } = useWorkspaceFilesPageQuery({
     variables: {
       workspaceSlug,
       page,
       prefix,
+      query: searchQuery,
       perPage,
       ignoreHiddenFiles,
     },
   });
+
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+
+      // Move the caret to the end of the input value
+      searchInputRef.current.setSelectionRange(
+        searchInputRef.current.value.length,
+        searchInputRef.current.value.length,
+      );
+    }
+  }, []);
+
   useCacheKey(["workspace", "files", prefix], () => refetch());
   const crumbs = useMemo(() => {
     return prefix ? prefix.split("/") : [];
@@ -62,11 +88,19 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
 
   const { workspace } = data;
 
-  const onChangePage = (page: number) => {
+  const onChangePage = (page: number, perPage: number) => {
     router.push(
       `/workspaces/${encodeURIComponent(
         workspace.slug,
-      )}/files/${prefix}?page=${page}`,
+      )}/files/${prefix}?page=${page}&perPage=${perPage}&q=${searchQueryState}`,
+    );
+  };
+
+  const onSubmitSearchQuery = () => {
+    router.push(
+      `/workspaces/${encodeURIComponent(
+        workspace.slug,
+      )}/files/${prefix}?q=${searchQueryState}`,
     );
   };
 
@@ -130,6 +164,15 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         </WorkspaceLayout.Header>
         <WorkspaceLayout.PageContent className="space-y-4">
           <div className="flex items-center justify-end gap-3">
+            <SearchInput
+              ref={searchInputRef}
+              onSubmit={onSubmitSearchQuery}
+              value={searchQueryState}
+              onChange={(event) =>
+                setSearchQueryState(event.target.value ?? "")
+              }
+              className="shadow-sm border-gray-50"
+            />
             <Popover
               as="div"
               trigger={
@@ -205,8 +248,11 @@ export const getServerSideProps = createGetServerSideProps({
     const prefixArr = (ctx.params?.prefix as string[]) ?? [];
     const prefix = prefixArr.length > 0 ? prefixArr.join("/") + "/" : "";
     const page = ctx.query?.page ? parseInt(ctx.query.page as string, 10) : 1;
+    const searchQuery = (ctx.query?.q as string) ?? null;
+    const perPage = ctx.query?.perPage
+      ? parseInt(ctx.query.perPage as string, 10)
+      : ENTRIES_PER_PAGE;
     const ignoreHiddenFiles = getCookie("show-hidden-files", ctx) === undefined;
-    const perPage = 10;
     const { data } = await client.query<
       WorkspaceFilesPageQuery,
       WorkspaceFilesPageQueryVariables
@@ -216,6 +262,7 @@ export const getServerSideProps = createGetServerSideProps({
         workspaceSlug: ctx.params?.workspaceSlug as string,
         page,
         prefix,
+        query: searchQuery,
         perPage,
         ignoreHiddenFiles,
       },
@@ -232,6 +279,7 @@ export const getServerSideProps = createGetServerSideProps({
         page,
         perPage,
         prefix,
+        searchQuery,
         ignoreHiddenFiles,
         workspaceSlug: ctx.params?.workspaceSlug,
       },

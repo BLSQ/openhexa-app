@@ -112,6 +112,7 @@ export type WorkspaceFilesPageQueryVariables = Types.Exact<{
   page: Types.Scalars['Int']['input'];
   perPage: Types.Scalars['Int']['input'];
   prefix: Types.Scalars['String']['input'];
+  query?: Types.InputMaybe<Types.Scalars['String']['input']>;
   ignoreHiddenFiles?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
 }>;
 
@@ -773,7 +774,7 @@ export type WorkspaceDatasetPageLazyQueryHookResult = ReturnType<typeof useWorks
 export type WorkspaceDatasetPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDatasetPageSuspenseQuery>;
 export type WorkspaceDatasetPageQueryResult = Apollo.QueryResult<WorkspaceDatasetPageQuery, WorkspaceDatasetPageQueryVariables>;
 export const WorkspaceFilesPageDocument = gql`
-    query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!, $ignoreHiddenFiles: Boolean) {
+    query WorkspaceFilesPage($workspaceSlug: String!, $page: Int!, $perPage: Int!, $prefix: String!, $query: String, $ignoreHiddenFiles: Boolean) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -787,6 +788,7 @@ export const WorkspaceFilesPageDocument = gql`
         page: $page
         prefix: $prefix
         perPage: $perPage
+        query: $query
         ignoreHiddenFiles: $ignoreHiddenFiles
       ) {
         ...BucketExplorer_objects
@@ -816,6 +818,7 @@ ${BucketExplorer_ObjectsFragmentDoc}`;
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *      prefix: // value for 'prefix'
+ *      query: // value for 'query'
  *      ignoreHiddenFiles: // value for 'ignoreHiddenFiles'
  *   },
  * });

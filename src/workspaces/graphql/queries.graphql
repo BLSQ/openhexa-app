@@ -292,6 +292,7 @@ query WorkspaceFilesPage(
   $page: Int!
   $perPage: Int!
   $prefix: String!
+  $query: String
   $ignoreHiddenFiles: Boolean
 ) {
   workspace(slug: $workspaceSlug) {
@@ -308,6 +309,7 @@ query WorkspaceFilesPage(
         page: $page
         prefix: $prefix
         perPage: $perPage
+        query: $query
         ignoreHiddenFiles: $ignoreHiddenFiles
       ) {
         ...BucketExplorer_objects

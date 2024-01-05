@@ -7,7 +7,7 @@ import usePrevious from "core/hooks/usePrevious";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import SearchInput from "../SearchInput";
+import SearchInput from "core/features/SearchInput";
 import SearchResult, { SearchResultProps } from "../SearchResult";
 
 type QuicksearchProps = {

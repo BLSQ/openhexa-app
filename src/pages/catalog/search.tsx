@@ -1,5 +1,5 @@
 import DatasourcePicker from "catalog/features/DatasourcePicker";
-import SearchInput from "catalog/features/SearchInput";
+import SearchInput from "core/features/SearchInput";
 import SearchResult from "catalog/features/SearchResult";
 import useSearch, { UseSearchOptions } from "catalog/hooks/useSearch";
 import Block from "core/components/Block";
