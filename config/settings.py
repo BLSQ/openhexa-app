@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,6 +87,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "hexa.user_management.middlewares.TwoFactorMiddleware",
+    "hexa.user_management.middlewares.UserLanguageMiddleware",
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
@@ -207,6 +209,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
+LANGUAGE_COOKIE_NAME = "hexa_language"
+LANGUAGES = [
+    ("en", _("English")),
+    ("fr", _("French")),
+]
+LOCALE_PATHS = [BASE_DIR / "hexa" / "locale"]
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"

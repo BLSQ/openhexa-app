@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, override
 
 from config import settings
 from hexa.core.utils import send_mail
@@ -135,20 +135,21 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     feature=Feature.objects.get(code="workspaces"), user=user
                 )
 
-            send_mail(
-                title=gettext_lazy(
-                    f"You've been added to the workspace {workspace.name}"
-                ),
-                template_name="workspaces/mails/invite_member",
-                template_variables={
-                    "workspace": workspace.name,
-                    "owner": request.user.display_name,
-                    "workspace_url": request.build_absolute_uri(
-                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
-                    ),
-                },
-                recipient_list=[user.email],
-            )
+            with override(user.language):
+                send_mail(
+                    title=gettext_lazy(
+                        "You've been added to the workspace {workspace_name}"
+                    ).format(workspace_name=workspace.name),
+                    template_name="workspaces/mails/invite_member",
+                    template_variables={
+                        "workspace": workspace.name,
+                        "owner": request.user.display_name,
+                        "workspace_url": request.build_absolute_uri(
+                            f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+                        ),
+                    },
+                    recipient_list=[user.email],
+                )
             return {
                 "success": True,
                 "errors": [],

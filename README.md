@@ -140,6 +140,22 @@ docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
 as it is what we are using.
 
+### I18N
+
+You can extract the strings to translate with the following command:
+
+```bash
+docker compose run app manage makemessages -l fr # Where fr is the language code
+```
+
+You can then translate the strings in the `hexa/locale` folder.
+
+To compile the translations, run the following command:
+
+```bash
+docker compose run app manage compilemessages
+```
+
 ### Code style
 
 Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) and [`autoflake`](https://github.com/myint/autoflake).

@@ -7,6 +7,7 @@ from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
+from django.utils import translation
 from django_otp.middleware import OTPMiddleware
 
 from hexa.app import get_hexa_app_configs
@@ -80,3 +81,24 @@ class TwoFactorMiddleware(OTPMiddleware):
     This must be installed after
     :class:`~django.contrib.auth.middleware.AuthenticationMiddleware`.
     """
+
+
+class UserLanguageMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = request.user
+        language = None
+        if user.is_authenticated:
+            language = user.language
+        else:
+            language = translation.get_language_from_request(request)
+
+        translation.activate(language)
+        request.LANGUAGE_CODE = translation.get_language()
+
+        response = self.get_response(request)
+
+        translation.deactivate()
+        return response

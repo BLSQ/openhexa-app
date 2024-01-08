@@ -1,0 +1,1104 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-05 13:08+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: config/settings.py:214
+msgid "English"
+msgstr ""
+
+#: config/settings.py:215
+msgid "French"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/components/data_header.html:29
+msgid "Never synced"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/index.html:4
+msgid "Data catalog"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:4
+#: hexa/catalog/templates/catalog/search.html:48 hexa/catalog/views.py:66
+#: hexa/core/templates/core/components/quick_search/quick_search.html:13
+#: hexa/core/templates/core/components/quick_search/quick_search.html:60
+msgid "Search"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:38
+#: hexa/core/templates/core/components/quick_search/quick_search.html:74
+msgid "Search for data sources, data elements..."
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:55
+msgid ""
+"\n"
+"                            Enter one or more search terms separated by "
+"spaces. Use \"quotes\" for exact matches.\n"
+"                        "
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:61
+msgid "By type"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:62
+msgid "By source"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:81
+msgid "No results found for your query"
+msgstr ""
+
+#: hexa/catalog/templates/catalog/search.html:82
+msgid "Please try another term."
+msgstr ""
+
+#: hexa/catalog/views.py:20 hexa/catalog/views.py:65
+#: hexa/plugins/connector_dhis2/views.py:73
+#: hexa/plugins/connector_dhis2/views.py:105
+#: hexa/plugins/connector_dhis2/views.py:181
+#: hexa/plugins/connector_dhis2/views.py:217
+#: hexa/plugins/connector_dhis2/views.py:302
+#: hexa/plugins/connector_dhis2/views.py:350
+#: hexa/plugins/connector_dhis2/views.py:418
+#: hexa/plugins/connector_dhis2/views.py:449
+#: hexa/plugins/connector_dhis2/views.py:517
+#: hexa/plugins/connector_postgresql/views.py:34
+#: hexa/plugins/connector_postgresql/views.py:66
+#: hexa/plugins/connector_postgresql/views.py:109
+#: hexa/plugins/connector_s3/views.py:29 hexa/plugins/connector_s3/views.py:73
+msgid "Catalog"
+msgstr ""
+
+#: hexa/catalog/views.py:95
+msgid "The datasource will soon be synced"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/comment.html:22
+#: hexa/ui/datacard/properties.py:352 hexa/ui/datagrid.py:369
+msgid "Just now"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/comment.html:24
+msgid "ago"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/form.html:14
+msgid "Comment"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/form.html:28
+#: hexa/ui/templates/ui/datacard/section.html:47
+msgid "Cancel"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/form.html:31
+#: hexa/ui/templates/ui/datacard/section.html:51
+msgid "Save"
+msgstr ""
+
+#: hexa/comments/templates/comments/components/page_section_comments.html:3
+msgid "Comments"
+msgstr ""
+
+#: hexa/core/date_utils.py:29
+#, python-format
+msgid "%(hours)d hour"
+msgid_plural "%(hours)d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: hexa/core/date_utils.py:37
+#, python-format
+msgid "%dh"
+msgstr ""
+
+#: hexa/core/date_utils.py:42
+#, python-format
+msgid "%(minutes)d minute"
+msgid_plural "%(minutes)d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: hexa/core/date_utils.py:50
+#, python-format
+msgid "%dm"
+msgstr ""
+
+#: hexa/core/date_utils.py:55
+#, python-format
+msgid "%(seconds)d second"
+msgid_plural "%(seconds)d seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: hexa/core/date_utils.py:63
+#, python-format
+msgid "%ds"
+msgstr ""
+
+#: hexa/core/schema.py:46
+msgid "All datasources are up to date!"
+msgstr ""
+
+#: hexa/core/templates/core/components/buttons/button.html:12
+msgid "Missing label"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:81
+msgid "Search tips"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:81
+msgid ""
+"You can specify a datasource name, a data element/indicator name, ... The "
+"content description is searchable as well."
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:84
+msgid "Searching"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:84
+msgid "Searching the data catalog..."
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:87
+msgid "No result found."
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:87
+msgid "Try with a different search query."
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:91
+msgid "Showing top 10 results"
+msgstr ""
+
+#: hexa/core/templates/core/components/quick_search/quick_search.html:98
+#: hexa/core/templates/core/components/quick_search/search_modal_notice.html:14
+msgid "Switch to advanced search"
+msgstr ""
+
+#: hexa/pipelines/datagrids.py:42
+#: hexa/plugins/connector_airflow/datagrids.py:25
+msgid "Last run"
+msgstr ""
+
+#: hexa/pipelines/datagrids.py:43
+#: hexa/plugins/connector_airflow/datagrids.py:26
+msgid "Last state"
+msgstr ""
+
+#: hexa/pipelines/models.py:90
+msgid "Scheduled"
+msgstr ""
+
+#: hexa/pipelines/models.py:91
+msgid "Manual"
+msgstr ""
+
+#: hexa/pipelines/models.py:92
+msgid "Webhook"
+msgstr ""
+
+#: hexa/pipelines/models.py:299 hexa/plugins/connector_airflow/models.py:495
+#: hexa/ui/datacard/properties.py:376 hexa/ui/datagrid.py:510
+msgid "Success"
+msgstr ""
+
+#: hexa/pipelines/models.py:300 hexa/plugins/connector_airflow/models.py:496
+#: hexa/ui/datacard/properties.py:378 hexa/ui/datagrid.py:512
+msgid "Running"
+msgstr ""
+
+#: hexa/pipelines/models.py:301 hexa/plugins/connector_airflow/models.py:497
+msgid "Failed"
+msgstr ""
+
+#: hexa/pipelines/models.py:302 hexa/plugins/connector_airflow/models.py:498
+msgid "Queued"
+msgstr ""
+
+#: hexa/pipelines/templates/pipelines/mails/run_report.html:3
+#, python-format
+msgid "The report for pipeline <b>%(pipeline_code)s</b> is available:"
+msgstr ""
+
+#: hexa/pipelines/templates/pipelines/mails/run_report.html:4
+#, python-format
+msgid ""
+"\n"
+"<ul>\n"
+"    <li>Status : %(status)s</li>\n"
+"    <li>Executed at : %(executed_at)s</li>\n"
+"    <li>Duration : %(duration | duration_format:True)s</li>\n"
+"</ul>\n"
+msgstr ""
+
+#: hexa/pipelines/templates/pipelines/mails/run_report.html:12
+msgid "View the full report"
+msgstr ""
+
+#: hexa/pipelines/templates/pipelines/mails/run_report.html:15
+#: hexa/pipelines/templates/pipelines/mails/run_report.txt:11
+#: hexa/user_management/templates/user_management/account_creation_email.html:10
+#: hexa/user_management/templates/user_management/token.txt:7
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:11
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:8
+#: hexa/workspaces/templates/workspaces/mails/invite_member.html:13
+#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:7
+msgid "The OpenHexa team"
+msgstr ""
+
+#: hexa/pipelines/templates/pipelines/mails/run_report.txt:2
+#, python-format
+msgid ""
+"\n"
+"The report for pipeline %(pipeline_code)s is available:\n"
+"Status : %(status)s\n"
+"Executed at : %(executed_at)s\n"
+"Duration : %(duration | duration_format:True)s\n"
+"\n"
+"Please go to the following page to view it: %(run_url)s\n"
+msgstr ""
+
+#: hexa/pipelines/utils.py:25
+#, python-brace-format
+msgid "Run report of {code} ({state})"
+msgstr ""
+
+#: hexa/pipelines/views.py:55
+msgid "The environment will soon be synced"
+msgstr ""
+
+#: hexa/pipelines/views.py:61
+msgid "The environment could not be synced"
+msgstr ""
+
+#: hexa/plugins/connector_accessmod/models.py:1472
+msgid ""
+"Designates that this user has all AccessMod-related permissions without "
+"explicitly assigning them."
+msgstr ""
+
+#: hexa/plugins/connector_airflow/datacards.py:62
+msgid "Airflow Cluster"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/datacards.py:118
+msgid "Airflow DAG"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/datacards.py:186
+msgid "Airflow DAG run"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/last_activities.py:16
+msgid "An unknown user"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/last_activities.py:12
+#, python-format
+msgid "%(user)s launched the <strong>%(dag)s</strong> pipeline."
+msgstr ""
+
+#: hexa/plugins/connector_airflow/models.py:102
+#, python-format
+msgid "%(dag_count)d DAG%(suffix)s"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/cluster_detail.html:11
+msgid "DAGs"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_detail.html:11
+msgid "Runs"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:17
+#, python-format
+msgid ""
+"\n"
+"        Specify configuration for DAG %(dag_id)s\n"
+"    "
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:39
+msgid "Run with configuration"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:48
+msgid "Pipeline documentation"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:57
+msgid "No description yet"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:60
+msgid "Sample configuration"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_create.html:67
+msgid "No sample configuration yet"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:7
+#, python-format
+msgid ""
+"\n"
+"        Add DAG RUN %(dag_run.run_id)s to favorites\n"
+"    "
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:25
+#, python-format
+msgid ""
+"\n"
+"                                        Add the run \"%(dag_run_id)s\" from "
+"the \"%(dag_id)s\" pipeline\n"
+"                                        to your favourites.\n"
+"                                    "
+msgstr ""
+
+#: hexa/plugins/connector_airflow/templates/connector_airflow/dag_run_toggle_favorite.html:46
+msgid "Add to favorites"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/views.py:42
+#: hexa/plugins/connector_airflow/views.py:111
+#: hexa/plugins/connector_airflow/views.py:168
+#: hexa/plugins/connector_airflow/views.py:203
+#: hexa/plugins/connector_airflow/views.py:264
+msgid "Data Pipelines"
+msgstr ""
+
+#: hexa/plugins/connector_airflow/views.py:151
+msgid "Invalid config provided. Please use valid JSON."
+msgstr ""
+
+#: hexa/plugins/connector_airflow/views.py:170
+msgid "Run with config"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datacards.py:77 hexa/workspaces/models.py:443
+msgid "DHIS2 Instance"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datacards.py:121
+msgid "DHIS2 Data Element"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datacards.py:155
+msgid "DHIS2 Organisation Unit"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datacards.py:190
+msgid "DHIS2 Indicator"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datacards.py:219
+msgid "DHIS2 Dataset"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/datagrids.py:167
+msgid "Last synced"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:196
+#, python-format
+msgid "%(count)d item%(suffix)s"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:339
+msgid "Aggregate"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:340
+msgid "Tracker"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:344
+msgid "Text"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:345
+msgid "Long text"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:346
+msgid "Letter"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:347
+msgid "Phone number"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:348
+msgid "Email"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:349
+msgid "Yes/No"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:350
+msgid "Yes Only"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:351
+msgid "Date"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:352
+msgid "Date & Time"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:353
+msgid "Time"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:354
+msgid "Number"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:355
+msgid "Unit interval"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:356
+msgid "Percentage"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:357
+msgid "Integer"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:358
+msgid "Positive Integer"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:359
+msgid "Negative Integer"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:360
+msgid "Positive or Zero Integer"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:361
+msgid "Tracker Associate"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:362
+msgid "Username"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:363
+msgid "Coordinate"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:364
+msgid "Organisation Unit"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:365
+msgid "Age"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:366
+msgid "URL"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:367
+#: hexa/plugins/connector_s3/models.py:335
+msgid "File"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:368
+msgid "Image"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:372
+msgid "Average"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:373
+msgid "Average sum for org unit"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:374
+msgid "Count"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:375 hexa/workspaces/models.py:442
+msgid "Custom"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:376
+msgid "Default"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:377
+msgid "Last"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:378
+msgid "Last average for org unit"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:379
+msgid "Max"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:380
+msgid "Min"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:381
+msgid "None"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:382
+msgid "Standard Deviation"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:383
+msgid "Sum"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/models.py:384
+msgid "Variance"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/data_element_detail.html:9
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_detail.html:14
+msgid "Datasets"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/data_element_list.html:4
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:17
+msgid "data element"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/dataset_detail.html:9
+msgid "Data elements"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/dataset_list.html:4
+msgid "datasets"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:18
+msgid "Type"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:22
+msgid "Name"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:26
+msgid "Instance"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:29
+msgid "Actions"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:37
+msgid "Data element"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:53
+msgid "Indicator"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:74
+msgid "Configure extract"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:77
+msgid "Choose your extraction options"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:81
+msgid "Period"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:96
+msgid "Delete"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/extract_detail.html:100
+msgid "Launch extract"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/indicator_list.html:4
+msgid "indicators"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_detail.html:9
+msgid "Descendants"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/organisation_unit_list.html:4
+msgid "organisation unit"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:15
+msgid "You have an ongoing DHIS2 extract containing"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:18
+msgid "and"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:20
+msgid "indicator"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/templates/connector_dhis2/page.html:25
+msgid "View extract"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:107
+#: hexa/plugins/connector_dhis2/views.py:183
+msgid "Data Elements"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:117
+#, python-format
+msgid "Data elements in instance %(instance)s"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:219
+#: hexa/plugins/connector_dhis2/views.py:305
+msgid "Organisation Units"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:229
+#, python-format
+msgid "Organisation Units in instance %(instance)s"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:352
+#: hexa/plugins/connector_dhis2/views.py:420
+msgid "Indicators"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:362
+#, python-format
+msgid "Indicators in instance %(instance)s"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:451
+#: hexa/plugins/connector_dhis2/views.py:519
+msgid "Data Sets"
+msgstr ""
+
+#: hexa/plugins/connector_dhis2/views.py:461
+#, python-format
+msgid "Data sets in instance %(instance)s"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/datacards.py:79
+msgid "PostgreSQL Database"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/datacards.py:101
+msgid "Row count"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/datacards.py:117
+msgid "PostgreSQL Table"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/datagrids.py:17
+#, python-format
+msgid "%(rows)d rows"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/models.py:86
+#, python-format
+msgid "%(count)d table%(suffix)s"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/templates/connector_postgresql/table_list.html:3
+msgid "tables"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/views.py:72
+#: hexa/plugins/connector_postgresql/views.py:115
+msgid "Tables"
+msgstr ""
+
+#: hexa/plugins/connector_postgresql/views.py:83
+#, python-format
+msgid "Tables in database %(database)s"
+msgstr ""
+
+#: hexa/plugins/connector_s3/datacards.py:25
+#: hexa/plugins/connector_s3/datacards.py:57
+#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:7
+#: hexa/workspaces/models.py:439
+msgid "S3 Bucket"
+msgstr ""
+
+#: hexa/plugins/connector_s3/models.py:177
+#, python-format
+msgid "%(count)d object%(suffix)s"
+msgstr ""
+
+#: hexa/plugins/connector_s3/models.py:330
+msgid "Directory"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:22
+#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:19
+msgid "Details"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:23
+#, python-format
+msgid ""
+"\n"
+"                Comments (%(count)s)\n"
+"            "
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:30
+#: hexa/plugins/connector_s3/templates/connector_s3/components/usage.html:7
+msgid "Usage"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/components/action_upload.html:13
+msgid "Upload a file"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:7
+msgid "S3 Object"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:10
+msgid "Download"
+msgstr ""
+
+#: hexa/plugins/connector_s3/templates/connector_s3/object_detail.html:17
+msgid "Content"
+msgstr ""
+
+#: hexa/templates/404.html:9 hexa/templates/500.html:9
+msgid "Oops..."
+msgstr ""
+
+#: hexa/templates/404.html:13
+msgid "This page does not exist."
+msgstr ""
+
+#: hexa/templates/404.html:16
+msgid ""
+"If you need further assistance, please contact us using the Slack support "
+"channel."
+msgstr ""
+
+#: hexa/templates/404.html:21 hexa/templates/500.html:21
+msgid "Back to dashboard"
+msgstr ""
+
+#: hexa/templates/500.html:13
+msgid "Something went wrong. Our technical team has been notified."
+msgstr ""
+
+#: hexa/templates/500.html:16
+msgid ""
+"If the issue is blocking, please contact us using the Slack support channel."
+msgstr ""
+
+#: hexa/templates/layouts/base.html:8
+msgid "Untitled page"
+msgstr ""
+
+#: hexa/templates/partials/breadcrumbs.html:9
+msgid "Home"
+msgstr ""
+
+#: hexa/templates/partials/messages.html:61
+msgid "Dismiss"
+msgstr ""
+
+#: hexa/templates/partials/navbar_profile.html:13
+msgid "Open profile menu"
+msgstr ""
+
+#: hexa/templates/partials/navbar_profile.html:36
+msgid "Your account"
+msgstr ""
+
+#: hexa/templates/partials/navbar_profile.html:44
+#: hexa/user_management/models.py:195 hexa/workspaces/models.py:222
+msgid "Admin"
+msgstr ""
+
+#: hexa/templates/partials/navbar_profile.html:49
+msgid "Sign out"
+msgstr ""
+
+#: hexa/ui/datacard/datacard.py:204
+msgid "Save successful!"
+msgstr ""
+
+#: hexa/ui/datacard/properties.py:187
+msgid "Yes"
+msgstr ""
+
+#: hexa/ui/datacard/properties.py:187
+msgid "No"
+msgstr ""
+
+#: hexa/ui/datacard/properties.py:377 hexa/ui/datagrid.py:511
+msgid "Error"
+msgstr ""
+
+#: hexa/ui/datacard/properties.py:379 hexa/ui/datagrid.py:513
+msgid "Pending"
+msgstr ""
+
+#: hexa/ui/datacard/properties.py:380 hexa/ui/datagrid.py:514
+msgid "Unknown"
+msgstr ""
+
+#: hexa/ui/datagrid.py:117
+msgid "Item"
+msgstr ""
+
+#: hexa/ui/datagrid.py:117
+msgid "items"
+msgstr ""
+
+#: hexa/ui/templates/ui/datacard/property_text.html:14
+msgid "Show value"
+msgstr ""
+
+#: hexa/ui/templates/ui/datacard/property_text.html:20
+msgid "Hide value"
+msgstr ""
+
+#: hexa/ui/templates/ui/datacard/section.html:19
+msgid "Edit"
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:10
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:43
+msgid "Previous"
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:16
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:65
+msgid "Next"
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:24
+#, python-format
+msgid ""
+"\n"
+"                        Showing <span class=\"font-medium\">%(start_index)s</"
+"span> to\n"
+"                        <span class=\"font-medium\">%(end_index)s</span> of\n"
+"                        <span class=\"font-medium\">%(total_count)s</span> "
+"%(item_label)s\n"
+"                    "
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_pagination.html:30
+#, python-format
+msgid ""
+"\n"
+"                        Showing <span class=\"font-medium\">%(total_count)s</"
+"span> %(item_label)s\n"
+"                    "
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_view_all.html:7
+#, python-format
+msgid ""
+"\n"
+"                Showing <span class=\"font-medium\">%(current_page_count)s</"
+"span> %(item_label)s\n"
+"            "
+msgstr ""
+
+#: hexa/ui/templates/ui/datagrid/footer_view_all.html:15
+msgid "View all"
+msgstr ""
+
+#: hexa/ui/templates/ui/section/heading.html:6
+msgid "Untitled section"
+msgstr ""
+
+#: hexa/ui/tests/test_datagrid.py:31
+msgid "View"
+msgstr ""
+
+#: hexa/user_management/models.py:30 hexa/user_management/models.py:43
+msgid "Email and password must be set"
+msgstr ""
+
+#: hexa/user_management/models.py:50
+msgid "Superuser must have is_staff=True."
+msgstr ""
+
+#: hexa/user_management/models.py:52
+msgid "Superuser must have is_superuser=True."
+msgstr ""
+
+#: hexa/user_management/models.py:83
+msgid "email address"
+msgstr ""
+
+#: hexa/user_management/models.py:124
+msgid "Corporate"
+msgstr ""
+
+#: hexa/user_management/models.py:125
+msgid "Academic"
+msgstr ""
+
+#: hexa/user_management/models.py:126
+msgid "Government"
+msgstr ""
+
+#: hexa/user_management/models.py:127
+msgid "Non-governmental"
+msgstr ""
+
+#: hexa/user_management/models.py:196
+msgid "Regular"
+msgstr ""
+
+#: hexa/user_management/templates/user_management/account_creation_email.html:2
+msgid "Your OpenHexa account was created by an admin."
+msgstr ""
+
+#: hexa/user_management/templates/user_management/account_creation_email.html:4
+msgid "Please go to the following page and choose a password:"
+msgstr ""
+
+#: hexa/user_management/templates/user_management/account_creation_email.html:8
+msgid "Your username is"
+msgstr ""
+
+#: hexa/user_management/templates/user_management/token.txt:2
+msgid "Enter this OTP code to verify your account:"
+msgstr ""
+
+#: hexa/user_management/templates/user_management/token.txt:4
+msgid "If you weren’t expecting this email, you can safely ignore it."
+msgstr ""
+
+#. Translators: "letters" means latin letters: a-z.
+#: hexa/workspaces/models.py:57
+msgid "Enter a valid “slug” consisting of letters, numbers or hyphens."
+msgstr ""
+
+#: hexa/workspaces/models.py:223
+msgid "Editor"
+msgstr ""
+
+#: hexa/workspaces/models.py:224
+msgid "Viewer"
+msgstr ""
+
+#: hexa/workspaces/models.py:440
+msgid "GCS Bucket"
+msgstr ""
+
+#: hexa/workspaces/models.py:441
+msgid "PostgreSQL DB"
+msgstr ""
+
+#: hexa/workspaces/models.py:444
+msgid "IASO Instance"
+msgstr ""
+
+#: hexa/workspaces/schema/mutations.py:143
+#, fuzzy, python-brace-format
+#| msgid "You've been added to the workspace {workspace.name}"
+msgid "You've been added to the workspace {workspace_name}"
+msgstr "Vous avez été ajouté à l'espace de travail {workspace.name}"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:3
+#, python-format
+msgid ""
+"You have been invited to join <b>%(workspace)s</b> workspace by %(owner)s."
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:6
+#, python-format
+msgid ""
+"<p>\n"
+"    <a href=\"%(workspace_signup_url)s\">Create your account</a>&nbsp;to "
+"join the workspace.\n"
+"</p>"
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:2
+#, python-format
+msgid ""
+"\n"
+"You have been invited to join  %(workspace)s workspace by %(owner)s.\n"
+"\n"
+"Create your account to join the workspace %(workspace_signup_url)s\n"
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_member.html:3
+#, python-format
+msgid "You have been added to the workspace <b>%(workspace)s</b> by %(owner)s."
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_member.html:5
+msgid "Please go to the following page to access it:"
+msgstr ""
+
+#: hexa/workspaces/templates/workspaces/mails/invite_member.html:8
+msgid "Open the Workspace"
+msgstr "Accéder à l'espace de travail"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:2
+#, python-format
+msgid ""
+"\n"
+"Your have been added to the workspace %(workspace)s by %(owner)s.\n"
+"\n"
+"Please go to the following page to access it: %(workspace_url)s\n"
+msgstr ""
+"\n"
+"Vous avez été ajouté à l'espace de travail %(workspace)s par %(owner)s.\n"
+"\n"
+"Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant : %(workspace_url)s\n"
+
+#: hexa/workspaces/utils.py:13
+#, python-brace-format
+msgid ""
+"You've been invited to join the workspace {invitation.workspace.name} on "
+"OpenHexa"
+msgstr ""
+"Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
+"sur OpenHexa"
