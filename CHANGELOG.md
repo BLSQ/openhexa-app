@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.42.0](https://github.com/BLSQ/openhexa-frontend/compare/0.41.3...0.42.0) (2024-01-08)
+
+
+### Features
+
+* **Files:** Size options & Objects filtering ([#516](https://github.com/BLSQ/openhexa-frontend/issues/516)) ([ea89afe](https://github.com/BLSQ/openhexa-frontend/commit/ea89afefa8636ad6e35d2778e737e82f74ae8669))
+* **i18n:** Translate web app in French ([#518](https://github.com/BLSQ/openhexa-frontend/issues/518)) ([f70e1ef](https://github.com/BLSQ/openhexa-frontend/commit/f70e1ef3fe8b538a3692bb67c96941b2812d9049))
+* Register page & Decline invitations ([#513](https://github.com/BLSQ/openhexa-frontend/issues/513)) ([8e8ef5d](https://github.com/BLSQ/openhexa-frontend/commit/8e8ef5d3b37f7a797ef9cb77ec027a55594fb677))
+
 ## [0.41.3](https://github.com/BLSQ/openhexa-frontend/compare/0.41.2...0.41.3) (2023-12-29)
 
 
