@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.1](https://github.com/BLSQ/openhexa-frontend/compare/0.42.0...0.42.1) (2024-01-08)
+
+
+### Bug Fixes
+
+* **i18n:** Fix placeholders ([7a4aaf9](https://github.com/BLSQ/openhexa-frontend/commit/7a4aaf947fd2076d2ba7fbf46b0a40a69cd7b180))
+* Missing fr translations ([914d4fc](https://github.com/BLSQ/openhexa-frontend/commit/914d4fc50e5ad4fe15a4f4e6dccd690c9cb54070))
+
 ## [0.42.0](https://github.com/BLSQ/openhexa-frontend/compare/0.41.3...0.42.0) (2024-01-08)
 
 
