@@ -38,6 +38,22 @@ query AccountPage {
       email
       language
       ...User_user
+      ...User_user
+    }
+  }
+
+  pendingWorkspaceInvitations {
+    totalItems
+    items {
+      id
+      invitedBy {
+        ...User_user
+      }
+      workspace {
+        slug
+        name
+      }
+      createdAt
     }
   }
 }

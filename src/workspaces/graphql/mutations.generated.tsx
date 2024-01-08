@@ -85,7 +85,14 @@ export type JoinWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<Types.JoinWorkspaceError>, workspace?: { __typename?: 'Workspace', slug: string } | null } };
+export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<Types.JoinWorkspaceError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus } | null, workspace?: { __typename?: 'Workspace', slug: string } | null } };
+
+export type DeclineWorkspaceInvitationMutationVariables = Types.Exact<{
+  input: Types.DeclineWorkspaceInvitationInput;
+}>;
+
+
+export type DeclineWorkspaceInvitationMutation = { __typename?: 'Mutation', declineWorkspaceInvitation: { __typename?: 'DeclineWorkspaceInvitationResult', success: boolean, errors: Array<Types.DeclineWorkspaceInvitationError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus } | null } };
 
 export type DeleteWorkspaceInvitationMutationVariables = Types.Exact<{
   input: Types.DeleteWorkspaceInvitationInput;
@@ -523,6 +530,10 @@ export const JoinWorkspaceDocument = gql`
   joinWorkspace(input: $input) {
     success
     errors
+    invitation {
+      id
+      status
+    }
     workspace {
       slug
     }
@@ -555,6 +566,44 @@ export function useJoinWorkspaceMutation(baseOptions?: Apollo.MutationHookOption
 export type JoinWorkspaceMutationHookResult = ReturnType<typeof useJoinWorkspaceMutation>;
 export type JoinWorkspaceMutationResult = Apollo.MutationResult<JoinWorkspaceMutation>;
 export type JoinWorkspaceMutationOptions = Apollo.BaseMutationOptions<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>;
+export const DeclineWorkspaceInvitationDocument = gql`
+    mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+  declineWorkspaceInvitation(input: $input) {
+    success
+    invitation {
+      id
+      status
+    }
+    errors
+  }
+}
+    `;
+export type DeclineWorkspaceInvitationMutationFn = Apollo.MutationFunction<DeclineWorkspaceInvitationMutation, DeclineWorkspaceInvitationMutationVariables>;
+
+/**
+ * __useDeclineWorkspaceInvitationMutation__
+ *
+ * To run a mutation, you first call `useDeclineWorkspaceInvitationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeclineWorkspaceInvitationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [declineWorkspaceInvitationMutation, { data, loading, error }] = useDeclineWorkspaceInvitationMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDeclineWorkspaceInvitationMutation(baseOptions?: Apollo.MutationHookOptions<DeclineWorkspaceInvitationMutation, DeclineWorkspaceInvitationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeclineWorkspaceInvitationMutation, DeclineWorkspaceInvitationMutationVariables>(DeclineWorkspaceInvitationDocument, options);
+      }
+export type DeclineWorkspaceInvitationMutationHookResult = ReturnType<typeof useDeclineWorkspaceInvitationMutation>;
+export type DeclineWorkspaceInvitationMutationResult = Apollo.MutationResult<DeclineWorkspaceInvitationMutation>;
+export type DeclineWorkspaceInvitationMutationOptions = Apollo.BaseMutationOptions<DeclineWorkspaceInvitationMutation, DeclineWorkspaceInvitationMutationVariables>;
 export const DeleteWorkspaceInvitationDocument = gql`
     mutation deleteWorkspaceInvitation($input: DeleteWorkspaceInvitationInput!) {
   deleteWorkspaceInvitation(input: $input) {

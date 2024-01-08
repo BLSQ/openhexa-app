@@ -122,9 +122,24 @@ mutation joinWorkspace($input: JoinWorkspaceInput!) {
   joinWorkspace(input: $input) {
     success
     errors
+    invitation {
+      id
+      status
+    }
     workspace {
       slug
     }
+  }
+}
+
+mutation declineWorkspaceInvitation($input: DeclineWorkspaceInvitationInput!) {
+  declineWorkspaceInvitation(input: $input) {
+    success
+    invitation {
+      id
+      status
+    }
+    errors
   }
 }
 

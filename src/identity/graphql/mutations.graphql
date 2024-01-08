@@ -24,6 +24,13 @@ mutation Logout {
   }
 }
 
+mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    success
+    errors
+  }
+}
+
 mutation GenerateChallenge {
   generateChallenge {
     success

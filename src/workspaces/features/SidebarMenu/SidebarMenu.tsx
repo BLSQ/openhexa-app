@@ -77,6 +77,9 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   >(
     gql`
       query SidebarMenu($page: Int, $perPage: Int) {
+        pendingWorkspaceInvitations(page: 1, perPage: 1) {
+          totalItems
+        }
         workspaces(page: $page, perPage: $perPage) {
           totalItems
           items {
@@ -242,6 +245,13 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             >
               <UserIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
               {t("Account settings")}
+              {data?.pendingWorkspaceInvitations.totalItems ? (
+                <div className="ml-auto">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-pink-500">
+                    {data.pendingWorkspaceInvitations.totalItems}
+                  </span>
+                </div>
+              ) : null}
             </Link>
             {me.permissions.adminPanel && (
               <Link

@@ -1,11 +1,10 @@
-import { MockedResponse } from "@apollo/client/testing";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { TestApp } from "core/helpers/testutils";
 import {
   LoginDocument,
   useLoginMutation,
 } from "identity/graphql/mutations.generated";
-import { TestApp } from "core/helpers/testutils";
 import mockRouter from "next-router-mock";
 import router from "next/router";
 import LoginPage from "pages/login";

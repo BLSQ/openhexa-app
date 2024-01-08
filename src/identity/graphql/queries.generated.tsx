@@ -13,7 +13,7 @@ export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasT
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 
 export const GetUserDocument = gql`
@@ -90,6 +90,21 @@ export const AccountPageDocument = gql`
       email
       language
       ...User_user
+      ...User_user
+    }
+  }
+  pendingWorkspaceInvitations {
+    totalItems
+    items {
+      id
+      invitedBy {
+        ...User_user
+      }
+      workspace {
+        slug
+        name
+      }
+      createdAt
     }
   }
 }

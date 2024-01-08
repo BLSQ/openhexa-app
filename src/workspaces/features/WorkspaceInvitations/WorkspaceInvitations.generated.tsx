@@ -5,30 +5,29 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type WorskspaceInvitationsQueryVariables = Types.Exact<{
   slug: Types.Scalars['String']['input'];
-  status?: Types.InputMaybe<Types.WorkspaceInvitationStatus>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type WorskspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, role: Types.WorkspaceMembershipRole, email: string, status: Types.WorkspaceInvitationStatus, createdAt: any, invited_by?: { __typename?: 'User', displayName: string } | null }> } } | null };
+export type WorskspaceInvitationsQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean }, invitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, role: Types.WorkspaceMembershipRole, email: string, status: Types.WorkspaceInvitationStatus, createdAt: any, invitedBy?: { __typename?: 'User', displayName: string } | null }> } } | null };
 
 
 export const WorskspaceInvitationsDocument = gql`
-    query WorskspaceInvitations($slug: String!, $status: WorkspaceInvitationStatus, $page: Int, $perPage: Int) {
+    query WorskspaceInvitations($slug: String!, $page: Int, $perPage: Int) {
   workspace(slug: $slug) {
     slug
     permissions {
       manageMembers
     }
-    invitations(status: $status, page: $page, perPage: $perPage) {
+    invitations(page: $page, perPage: $perPage) {
       totalItems
       items {
         id
         role
         email
         status
-        invited_by {
+        invitedBy {
           displayName
         }
         createdAt
@@ -51,7 +50,6 @@ export const WorskspaceInvitationsDocument = gql`
  * const { data, loading, error } = useWorskspaceInvitationsQuery({
  *   variables: {
  *      slug: // value for 'slug'
- *      status: // value for 'status'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
  *   },

@@ -10,7 +10,7 @@ import { WorskspaceInvitationsQuery } from "./WorkspaceInvitations.generated";
 import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql-types";
 import Button from "core/components/Button/Button";
 import { ArrowPathIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import DeleteWorkspaceInvitationDialog from "./DeleteWorkspaceInvitationDialog";
 import ResendWorkspaceInvitationDialog from "./ResendWorkspaceInvitationDialog";
 
@@ -30,25 +30,20 @@ export default function WorkspaceInvitations({
 
   const { data, refetch } = useQuery<WorskspaceInvitationsQuery>(
     gql`
-      query WorskspaceInvitations(
-        $slug: String!
-        $status: WorkspaceInvitationStatus
-        $page: Int
-        $perPage: Int
-      ) {
+      query WorskspaceInvitations($slug: String!, $page: Int, $perPage: Int) {
         workspace(slug: $slug) {
           slug
           permissions {
             manageMembers
           }
-          invitations(status: $status, page: $page, perPage: $perPage) {
+          invitations(page: $page, perPage: $perPage) {
             totalItems
             items {
               id
               role
               email
               status
-              invited_by {
+              invitedBy {
                 displayName
               }
               createdAt
@@ -60,7 +55,6 @@ export default function WorkspaceInvitations({
     {
       variables: {
         slug: workspaceSlug,
-        status: WorkspaceInvitationStatus.Pending,
         page: 1,
         perPage: DEFAULT_PAGE_SIZE,
       },
@@ -75,6 +69,20 @@ export default function WorkspaceInvitations({
       slug: workspaceSlug,
     });
   };
+
+  const formatInvitationStatus = useCallback(
+    (status: WorkspaceInvitationStatus) => {
+      switch (status) {
+        case WorkspaceInvitationStatus.Pending:
+          return t("Pending");
+        case WorkspaceInvitationStatus.Accepted:
+          return t("Accepted");
+        case WorkspaceInvitationStatus.Declined:
+          return t("Declined");
+      }
+    },
+    [t],
+  );
 
   if (!data?.workspace) {
     return null;
@@ -124,9 +132,9 @@ export default function WorkspaceInvitations({
         />
         <TextColumn
           className="max-w-[20ch] py-3 "
-          accessor={(invitation) => invitation.invited_by.displayName}
+          accessor={(invitation) => invitation.invitedBy.displayName}
           label={t("Invited by")}
-          id="invited_by"
+          id="invitedBy"
         />
         <DateColumn
           className="max-w-[20ch] py-3 "
@@ -135,6 +143,13 @@ export default function WorkspaceInvitations({
           label={t("Date sent")}
           format={DateTime.DATE_FULL}
         />
+        <BaseColumn<WorkspaceInvitationStatus>
+          id="status"
+          accessor="status"
+          label={t("Status")}
+        >
+          {(value) => <span>{formatInvitationStatus(value)}</span>}
+        </BaseColumn>
         {workspace.permissions.manageMembers && (
           <BaseColumn className="flex justify-end gap-x-2">
             {(invitation) => (

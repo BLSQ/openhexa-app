@@ -6,14 +6,17 @@ import DateProperty from "core/components/DataCard/DateProperty";
 import { OnSaveFn } from "core/components/DataCard/FormSection";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
+import { BaseColumn } from "core/components/DataGrid";
+import DataGrid from "core/components/DataGrid/DataGrid";
+import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList, {
   DescriptionListDisplayMode,
 } from "core/components/DescriptionList";
 import Page from "core/components/Page";
 import SimpleSelect from "core/components/forms/SimpleSelect";
+import { AlertType, displayAlert } from "core/helpers/alert";
 import { LANGUAGES } from "core/helpers/i18n";
 import { createGetServerSideProps } from "core/helpers/page";
-import useForm from "core/hooks/useForm";
 import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
@@ -28,14 +31,49 @@ import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import {
+  useDeclineWorkspaceInvitationMutation,
+  useJoinWorkspaceMutation,
+} from "workspaces/graphql/mutations.generated";
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data } = useAccountPageQuery();
+  const { data, refetch } = useAccountPageQuery();
   const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
   const router = useRouter();
   const [updateUser] = useUpdateUserMutation();
+
+  const [joinWorkspace] = useJoinWorkspaceMutation();
+  const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
+
+  async function doJoinWorkspace(invitationId: string) {
+    const { data } = await joinWorkspace({
+      variables: { input: { invitationId } },
+    });
+    if (!data?.joinWorkspace.success) {
+      displayAlert(t("Failed to accept invitation"), AlertType.error);
+    } else {
+      refetch();
+    }
+  }
+
+  async function doDeclineWorkspaceInvitation(invitationId: string) {
+    if (
+      !window.confirm(t("Are you sure you want to decline this invitation?"))
+    ) {
+      return;
+    }
+    const { data } = await declineWorkspaceInvitation({
+      variables: { input: { invitationId } },
+    });
+    if (!data?.declineWorkspaceInvitation.success) {
+      displayAlert(t("Failed to decline invitation"), AlertType.error);
+    } else {
+      refetch();
+    }
+  }
+
   if (!data?.me.user) {
     return null;
   }
@@ -60,6 +98,7 @@ function AccountPage() {
   return (
     <Page title={t("Account")}>
       <BackLayout
+        className="gap-5 flex flex-col"
         onBack={() => router.back()}
         title={
           <div className={"flex justify-between items-center gap-3"}>
@@ -155,6 +194,49 @@ function AccountPage() {
             </Block.Section>
           )}
         </DataCard>
+
+        {data.pendingWorkspaceInvitations.totalItems > 0 ? (
+          <Block>
+            <Block.Header>{t("Pending invitations")}</Block.Header>
+            <DataGrid
+              totalItems={data.pendingWorkspaceInvitations.totalItems}
+              data={data.pendingWorkspaceInvitations.items}
+              fixedLayout={false}
+            >
+              <TextColumn
+                accessor="workspace.name"
+                label={t("Workspace")}
+                id="workspace"
+              />
+              <TextColumn
+                accessor="invitedBy.displayName"
+                label={t("Invited by")}
+                id="invitedBy"
+              />
+              <BaseColumn className="flex justify-end gap-x-2">
+                {(invitation) => (
+                  <>
+                    <Button
+                      onClick={() => doJoinWorkspace(invitation.id)}
+                      size="sm"
+                    >
+                      {t("Accept")}
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        doDeclineWorkspaceInvitation(invitation.id)
+                      }
+                      size="sm"
+                      variant="danger"
+                    >
+                      {t("Decline")}
+                    </Button>
+                  </>
+                )}
+              </BaseColumn>
+            </DataGrid>
+          </Block>
+        ) : null}
       </BackLayout>
 
       {data.me.hasTwoFactorEnabled ? (

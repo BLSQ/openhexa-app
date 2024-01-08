@@ -2,14 +2,21 @@ import { ReactNode } from "react";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button";
+import clsx from "clsx";
 
 type BackLayoutProps = {
   title: string | ReactNode;
   children: ReactNode;
   onBack?: () => void;
+  className?: string;
 };
 
-const BackLayout = ({ children, title, onBack }: BackLayoutProps) => {
+const BackLayout = ({
+  children,
+  title,
+  onBack,
+  className,
+}: BackLayoutProps) => {
   const { t } = useTranslation();
   return (
     <div className="w-screen min-h-screen">
@@ -30,7 +37,12 @@ const BackLayout = ({ children, title, onBack }: BackLayoutProps) => {
           <div className={"flex-1 font-medium text-gray-50"}>{title}</div>
         </div>
       </div>
-      <main className={"mt-8 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8"}>
+      <main
+        className={clsx(
+          "mt-8 w-full max-w-7xl mx-auto px-2 sm:px-6 lg:px-8",
+          className,
+        )}
+      >
         {children}
       </main>
     </div>

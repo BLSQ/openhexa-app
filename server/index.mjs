@@ -29,11 +29,12 @@ app.prepare().then(async () => {
           req.path.startsWith("/_next") ||
           req.path.startsWith("/__nextjs") ||
           req.path === "/" ||
-          req.path.startsWith("/ready");
+          req.path.startsWith("/ready") ||
+          req.path.startsWith("/register");
 
-        return !isNext
+        return !isNext;
       },
-    })
+    }),
   );
 
   server.all("*", (req, res) => handle(req, res));

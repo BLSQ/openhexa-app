@@ -174,7 +174,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
             </Block>
           </div>
           <div>
-            <Title level={2}>{t("Pending invitations")}</Title>
+            <Title level={2}>{t("Pending & Declined invitations")}</Title>
             <Block>
               <WorkspaceInvitations workspaceSlug={workspace.slug} />
             </Block>

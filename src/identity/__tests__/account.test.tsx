@@ -23,6 +23,7 @@ describe("AccountPage", () => {
         },
         result: {
           data: {
+            pendingWorkspaceInvitations: { totalItems: 0, items: [] },
             me: {
               __typename: "Me",
               hasTwoFactorEnabled: false,
@@ -66,6 +67,7 @@ describe("AccountPage", () => {
         },
         result: {
           data: {
+            pendingWorkspaceInvitations: { totalItems: 0, items: [] },
             me: {
               __typename: "Me",
               hasTwoFactorEnabled: false,

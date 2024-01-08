@@ -937,6 +937,21 @@ scalar Date
 
 scalar DateTime
 
+enum DeclineWorkspaceInvitationError {
+  INVITATION_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input DeclineWorkspaceInvitationInput {
+  invitationId: UUID!
+}
+
+type DeclineWorkspaceInvitationResult {
+  success: Boolean!
+  invitation: WorkspaceInvitation
+  errors: [DeclineWorkspaceInvitationError!]!
+}
+
 enum DeleteAccessmodAnalysisError {
   NOT_FOUND
   DELETE_FAILED
@@ -1297,25 +1312,20 @@ enum InviteWorkspaceMembershipError {
 }
 
 enum JoinWorkspaceError {
-  INVALID_TOKEN
   ALREADY_EXISTS
+  ALREADY_ACCEPTED
   PERMISSION_DENIED
-  AUTHENTICATION_REQUIRED
-  INVALID_CREDENTIALS
   INVITATION_NOT_FOUND
 }
 
 input JoinWorkspaceInput {
-  token: String!
-  firstName: String!
-  lastName: String!
-  password: String!
-  confirmPassword: String!
+  invitationId: UUID!
 }
 
 type JoinWorkspaceResult {
   success: Boolean!
   workspace: Workspace
+  invitation: WorkspaceInvitation
   errors: [JoinWorkspaceError!]!
 }
 
@@ -1453,6 +1463,7 @@ enum MessagePriority {
 scalar MovingSpeeds
 
 type Mutation {
+  register(input: RegisterInput!): RegisterResult!
   login(input: LoginInput!): LoginResult!
   logout: LogoutResult!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
@@ -1514,6 +1525,7 @@ type Mutation {
   deleteWorkspaceMember(input: DeleteWorkspaceMemberInput!): DeleteWorkspaceMemberResult!
   generateWorkspaceToken(input: GenerateWorkspaceTokenInput!): GenerateWorkspaceTokenResult!
   joinWorkspace(input: JoinWorkspaceInput!): JoinWorkspaceResult!
+  declineWorkspaceInvitation(input: DeclineWorkspaceInvitationInput!): DeclineWorkspaceInvitationResult!
   resendWorkspaceInvitation(input: ResendWorkspaceInvitationInput!): ResendWorkspaceInvitationResult!
   deleteWorkspaceInvitation(input: DeleteWorkspaceInvitationInput!): DeleteWorkspaceInvitationResult!
   createConnection(input: CreateConnectionInput!): CreateConnectionResult!
@@ -1858,6 +1870,7 @@ type Query {
   pipelineRun(id: UUID!): PipelineRun
   workspace(slug: String!): Workspace
   workspaces(query: String, page: Int, perPage: Int): WorkspacePage!
+  pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
   databaseTable(id: String!): DatabaseTable
   connection(id: UUID!): Connection
   dataset(id: ID!): Dataset
@@ -1865,6 +1878,27 @@ type Query {
   datasetLink(id: ID!): DatasetLink
   datasetLinkBySlug(workspaceSlug: String!, datasetSlug: String!): DatasetLink
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+}
+
+enum RegisterError {
+  ALREADY_LOGGED_IN
+  EMAIL_TAKEN
+  INVALID_TOKEN
+  PASSWORD_MISMATCH
+  INVALID_PASSWORD
+}
+
+input RegisterInput {
+  password1: String!
+  password2: String!
+  firstName: String!
+  lastName: String!
+  invitationToken: String!
+}
+
+type RegisterResult {
+  success: Boolean!
+  errors: [RegisterError!]
 }
 
 enum RequestAccessmodAccessError {
@@ -2415,7 +2449,7 @@ type Workspace {
   updatedAt: DateTime
   createdBy: User!
   connections: [Connection!]!
-  invitations(status: WorkspaceInvitationStatus, page: Int, perPage: Int): WorkspaceInvitationPage!
+  invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
   database: Database!
   bucket: Bucket!
   datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
@@ -2427,7 +2461,7 @@ type WorkspaceInvitation {
   workspace: Workspace!
   role: WorkspaceMembershipRole!
   status: WorkspaceInvitationStatus!
-  invited_by: User
+  invitedBy: User
   createdAt: DateTime!
   updatedAt: DateTime
 }
@@ -2441,6 +2475,7 @@ type WorkspaceInvitationPage {
 
 enum WorkspaceInvitationStatus {
   PENDING
+  DECLINED
   ACCEPTED
 }
 

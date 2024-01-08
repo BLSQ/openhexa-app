@@ -1113,6 +1113,22 @@ export type Datasource = {
   name: Scalars['String']['output'];
 };
 
+export enum DeclineWorkspaceInvitationError {
+  InvitationNotFound = 'INVITATION_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type DeclineWorkspaceInvitationInput = {
+  invitationId: Scalars['UUID']['input'];
+};
+
+export type DeclineWorkspaceInvitationResult = {
+  __typename?: 'DeclineWorkspaceInvitationResult';
+  errors: Array<DeclineWorkspaceInvitationError>;
+  invitation?: Maybe<WorkspaceInvitation>;
+  success: Scalars['Boolean']['output'];
+};
+
 export enum DeleteAccessmodAnalysisError {
   DeleteFailed = 'DELETE_FAILED',
   NotFound = 'NOT_FOUND'
@@ -1474,25 +1490,20 @@ export enum InviteWorkspaceMembershipError {
 }
 
 export enum JoinWorkspaceError {
+  AlreadyAccepted = 'ALREADY_ACCEPTED',
   AlreadyExists = 'ALREADY_EXISTS',
-  AuthenticationRequired = 'AUTHENTICATION_REQUIRED',
-  InvalidCredentials = 'INVALID_CREDENTIALS',
-  InvalidToken = 'INVALID_TOKEN',
   InvitationNotFound = 'INVITATION_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
 export type JoinWorkspaceInput = {
-  confirmPassword: Scalars['String']['input'];
-  firstName: Scalars['String']['input'];
-  lastName: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-  token: Scalars['String']['input'];
+  invitationId: Scalars['UUID']['input'];
 };
 
 export type JoinWorkspaceResult = {
   __typename?: 'JoinWorkspaceResult';
   errors: Array<JoinWorkspaceError>;
+  invitation?: Maybe<WorkspaceInvitation>;
   success: Scalars['Boolean']['output'];
   workspace?: Maybe<Workspace>;
 };
@@ -1657,6 +1668,7 @@ export type Mutation = {
   createPipeline: CreatePipelineResult;
   createTeam: CreateTeamResult;
   createWorkspace: CreateWorkspaceResult;
+  declineWorkspaceInvitation: DeclineWorkspaceInvitationResult;
   deleteAccessmodAnalysis: DeleteAccessmodAnalysisResult;
   deleteAccessmodFileset: DeleteAccessmodFilesetResult;
   deleteAccessmodProject: DeleteAccessmodProjectResult;
@@ -1696,6 +1708,7 @@ export type Mutation = {
   prepareObjectDownload: PrepareObjectDownloadResult;
   prepareObjectUpload: PrepareObjectUploadResult;
   prepareVersionFileDownload: PrepareVersionFileDownloadResult;
+  register: RegisterResult;
   requestAccessmodAccess: RequestAccessmodAccessInputResult;
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   resetPassword: ResetPasswordResult;
@@ -1810,6 +1823,11 @@ export type MutationCreateTeamArgs = {
 
 export type MutationCreateWorkspaceArgs = {
   input: CreateWorkspaceInput;
+};
+
+
+export type MutationDeclineWorkspaceInvitationArgs = {
+  input: DeclineWorkspaceInvitationInput;
 };
 
 
@@ -1995,6 +2013,11 @@ export type MutationPrepareObjectUploadArgs = {
 
 export type MutationPrepareVersionFileDownloadArgs = {
   input: PrepareVersionFileDownloadInput;
+};
+
+
+export type MutationRegisterArgs = {
+  input: RegisterInput;
 };
 
 
@@ -2471,6 +2494,7 @@ export type Query = {
   me: Me;
   notebooksUrl: Scalars['URL']['output'];
   organizations: Array<Organization>;
+  pendingWorkspaceInvitations: WorkspaceInvitationPage;
   pipeline?: Maybe<Pipeline>;
   pipelineByCode?: Maybe<Pipeline>;
   pipelineRun?: Maybe<PipelineRun>;
@@ -2610,6 +2634,12 @@ export type QueryDatasetsArgs = {
 };
 
 
+export type QueryPendingWorkspaceInvitationsArgs = {
+  page?: Scalars['Int']['input'];
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type QueryPipelineArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -2663,6 +2693,28 @@ export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum RegisterError {
+  AlreadyLoggedIn = 'ALREADY_LOGGED_IN',
+  EmailTaken = 'EMAIL_TAKEN',
+  InvalidPassword = 'INVALID_PASSWORD',
+  InvalidToken = 'INVALID_TOKEN',
+  PasswordMismatch = 'PASSWORD_MISMATCH'
+}
+
+export type RegisterInput = {
+  firstName: Scalars['String']['input'];
+  invitationToken: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  password1: Scalars['String']['input'];
+  password2: Scalars['String']['input'];
+};
+
+export type RegisterResult = {
+  __typename?: 'RegisterResult';
+  errors?: Maybe<Array<RegisterError>>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum RequestAccessmodAccessError {
@@ -3266,9 +3318,9 @@ export type WorkspaceDatasetsArgs = {
 
 
 export type WorkspaceInvitationsArgs = {
+  includeAccepted?: InputMaybe<Scalars['Boolean']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
-  status?: InputMaybe<WorkspaceInvitationStatus>;
 };
 
 
@@ -3282,7 +3334,7 @@ export type WorkspaceInvitation = {
   createdAt: Scalars['DateTime']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
-  invited_by?: Maybe<User>;
+  invitedBy?: Maybe<User>;
   role: WorkspaceMembershipRole;
   status: WorkspaceInvitationStatus;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -3299,6 +3351,7 @@ export type WorkspaceInvitationPage = {
 
 export enum WorkspaceInvitationStatus {
   Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
   Pending = 'PENDING'
 }
 
