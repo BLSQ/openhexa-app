@@ -303,6 +303,12 @@ def _delete_object(bucket_name, name):
         client.delete_object(Bucket=bucket_name, Key=name)
     return
 
+def _generate_download_url(bucket_name, object_key, force_attachment):
+    s3 = get_storage_client()
+    url = s3.generate_presigned_url('get_object',
+                                Params={'Bucket': bucket_name, 'Key': object_key},
+                                ExpiresIn=3600)  
+    return url
 
 class S3Client(BaseClient):
     def create_bucket(self, bucket_name: str):

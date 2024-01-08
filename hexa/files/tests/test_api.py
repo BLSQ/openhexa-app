@@ -290,6 +290,7 @@ class APITestCase(TestCase):
                 # should blow up not allowed to create new bucket
                 s3.create_bucket(Bucket="not-empty-bucket")
 
+    @backend.mock_storage
     def test_delete_object_working(self):
 
         bucket = create_bucket("bucket")
@@ -306,9 +307,14 @@ class APITestCase(TestCase):
 
         self.assertEqual(self.to_keys(res), [])
 
+    @backend.mock_storage
     def test_delete_object_non_existing(self):
 
         bucket = create_bucket("bucket")
         with self.assertRaises(NotFound):
             get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
 
+    @backend.mock_storage
+    def test_generate_download_url(self):
+        url = get_client().generate_download_url("bucket", "demo.txt")
+        assert "http://minio:9000/bucket/demo.txt?X-Amz-Algorit" in url
