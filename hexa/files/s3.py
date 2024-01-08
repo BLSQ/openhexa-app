@@ -3,10 +3,10 @@ import typing
 import json
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from dataclasses import dataclass
 import botocore
 
 from datetime import date, datetime
+from .basefs import ObjectsPage, BaseClient
 
 
 def json_serial(obj):
@@ -17,14 +17,6 @@ def json_serial(obj):
     if isinstance(obj, botocore.response.StreamingBody):
         return None
     raise TypeError("Type %s not serializable" % type(obj))
-
-
-@dataclass
-class ObjectsPage:
-    items: typing.List[any]
-    has_next_page: bool
-    has_previous_page: bool
-    page_number: int
 
 
 def get_storage_client(type="s3"):
@@ -255,42 +247,39 @@ def _create_bucket_folder(bucket_name: str, folder_key: str):
     return _blob_to_dict(final_object, bucket_name)
 
 
-class S3Client:
-    @staticmethod
-    def create_bucket(bucket_name: str):
+class S3Client(BaseClient):
+    def create_bucket(self, bucket_name: str):
         _create_bucket(bucket_name)
         return S3BucketWrapper(bucket_name)
 
-    @staticmethod
-    def upload_object(bucket_name: str, file_name: str, source: str):
+    def upload_object(self, bucket_name: str, file_name: str, source: str):
         return _upload_object(bucket_name, file_name, source)
 
-    @staticmethod
-    def create_bucket_folder(bucket_name: str, folder_key: str):
+    def create_bucket_folder(self, bucket_name: str, folder_key: str):
         return _create_bucket_folder(bucket_name, folder_key)
 
-    @staticmethod
     def generate_download_url(
-        bucket_name: str, target_key: str, force_attachment=False
+        self, bucket_name: str, target_key: str, force_attachment=False
     ):
         return _generate_download_url(bucket_name, target_key, force_attachment)
 
-    @staticmethod
-    def get_bucket_object(bucket_name: str, object_key: str):
+    def get_bucket_object(self, bucket_name: str, object_key: str):
         return _get_bucket_object(bucket_name, object_key)
 
-    @staticmethod
     def list_bucket_objects(
-        bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
+        self,
+        bucket_name,
+        prefix=None,
+        page: int = 1,
+        per_page=30,
+        ignore_hidden_files=True,
     ):
         return _list_bucket_objects(
             bucket_name, prefix, page, per_page, ignore_hidden_files
         )
 
-    @staticmethod
-    def get_short_lived_downscoped_access_token(bucket_name):
+    def get_short_lived_downscoped_access_token(self, bucket_name):
         return _get_short_lived_downscoped_access_token(bucket_name)
 
-    @staticmethod
-    def delete_bucket(bucket_name: str, fully: bool = False):
+    def delete_bucket(self, bucket_name: str, fully: bool = False):
         return _delete_bucket(bucket_name, fully)

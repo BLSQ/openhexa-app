@@ -26,7 +26,7 @@ class APITestCase(TestCase):
             "bucket",
         ]
         for bucket_name in buckets:
-            get_client().delete_bucket(bucket_name, fully=True)
+            get_client().delete_bucket(bucket_name=bucket_name, fully=True)
 
     @backend.mock_storage
     def test_create_bucket(self):

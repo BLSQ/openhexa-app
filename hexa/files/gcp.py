@@ -15,14 +15,8 @@ from google.cloud.iam_credentials_v1 import IAMCredentialsClient
 from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
+from .basefs import ObjectsPage, BaseClient
 
-
-@dataclass
-class ObjectsPage:
-    items: typing.List[any]
-    has_next_page: bool
-    has_previous_page: bool
-    page_number: int
 
 def get_credentials():
     decoded_creds = base64.b64decode(settings.GCS_SERVICE_ACCOUNT_KEY)
@@ -70,7 +64,6 @@ def _get_short_lived_downscoped_access_token(bucket_name):
     )
     payload = response.json()
     return payload["access_token"], payload["expires_in"]
-
 
 
 def get_storage_client():
@@ -284,7 +277,6 @@ def _generate_upload_url(
     )
 
 
-
 def _upload_object(bucket_name: str, file_name: str, source: str):
     client = get_storage_client()
     bucket = client.bucket(bucket_name)
@@ -292,33 +284,39 @@ def _upload_object(bucket_name: str, file_name: str, source: str):
     blob.upload_from_filename(source)
 
 
-class GCPClient:
-    @staticmethod
-    def create_bucket(bucket_name: str):
+class GCPClient(BaseClient):
+    def create_bucket(self, bucket_name: str):
         return _create_bucket(bucket_name)
 
-    @staticmethod
-    def upload_object(bucket_name: str, file_name: str, source: str):
+    def upload_object(self, bucket_name: str, file_name: str, source: str):
         return _upload_object(bucket_name, file_name, source)
 
-    @staticmethod
-    def create_bucket_folder(bucket_name: str, folder_key: str):
+    def create_bucket_folder(self, bucket_name: str, folder_key: str):
         return _create_bucket_folder(bucket_name, folder_key)
 
-    @staticmethod
-    def generate_download_url(bucket_name: str, target_key: str, force_attachment=False):
-        return _generate_download_url(bucket_name, target_key, force_attachment)
-    
-    @staticmethod
-    def get_bucket_object(bucket_name: str, object_key: str):
-        return _get_bucket_object(bucket_name, object_key)
-    
-    @staticmethod
-    def list_bucket_objects(
-        bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
+    def generate_download_url(
+        self, bucket_name: str, target_key: str, force_attachment=False
     ):
-        return _list_bucket_objects(bucket_name, prefix, page, per_page, ignore_hidden_files)
-    
-    @staticmethod
-    def get_short_lived_downscoped_access_token(bucket_name):
+        return _generate_download_url(bucket_name, target_key, force_attachment)
+
+    def get_bucket_object(self, bucket_name: str, object_key: str):
+        return _get_bucket_object(bucket_name, object_key)
+
+    def list_bucket_objects(
+        self,
+        bucket_name,
+        prefix=None,
+        page: int = 1,
+        per_page=30,
+        ignore_hidden_files=True,
+    ):
+        return _list_bucket_objects(
+            bucket_name, prefix, page, per_page, ignore_hidden_files
+        )
+
+    def get_short_lived_downscoped_access_token(self, bucket_name):
         return _get_short_lived_downscoped_access_token(bucket_name)
+
+    def delete_bucket(self, bucket_name: str, fully: bool = False):
+        print("not supported", bucket_name, fully)
+        return
