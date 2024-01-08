@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.64.0](https://github.com/BLSQ/openhexa-app/compare/0.63.2...0.64.0) (2024-01-08)
+
+
+### Features
+
+* **Files:** Filter files matching a substring ([a119ea9](https://github.com/BLSQ/openhexa-app/commit/a119ea9daaf10fd2eeb9c97e0afaba4f623cd806))
+* **Files:** Filter files matching a substring ([#621](https://github.com/BLSQ/openhexa-app/issues/621)) ([06d3321](https://github.com/BLSQ/openhexa-app/commit/06d3321d882b58074924b402a09cc0957f20dcb0))
+* **i18n:** App is translatable ([#624](https://github.com/BLSQ/openhexa-app/issues/624)) ([c19e7fb](https://github.com/BLSQ/openhexa-app/commit/c19e7fb8de1d15323499c51dd87b3456f0c948c0))
+* User can register & see their workspace's invitations ([#613](https://github.com/BLSQ/openhexa-app/issues/613)) ([81ec731](https://github.com/BLSQ/openhexa-app/commit/81ec731b2fedd8ed8c30fccc74751fd1ccfeec82))
+
+
+### Bug Fixes
+
+* **tests:** Missing openHexa ([799bb55](https://github.com/BLSQ/openhexa-app/commit/799bb559768b7a1b2b9177abc5f3775ed884e32b))
+
 ## [0.63.2](https://github.com/BLSQ/openhexa-app/compare/0.63.1...0.63.2) (2023-12-29)
 
 
