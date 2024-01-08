@@ -318,5 +318,11 @@ class GCPClient(BaseClient):
         return _get_short_lived_downscoped_access_token(bucket_name)
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
-        print("not supported", bucket_name, fully)
+        print("not supported for the moment", bucket_name, fully)
         return
+
+    def delete_object(self, bucket_name: str, file_name: str):
+        return _delete_object(bucket_name=bucket_name, name=file_name)
+    
+    def get_bucket_object(self, bucket_name: str, object_key: str):
+        return _get_bucket_object(bucket_name, object_key)    

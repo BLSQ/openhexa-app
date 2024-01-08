@@ -4,6 +4,8 @@ import botocore
 from hexa.core.test import TestCase
 
 from ..api import (
+    mode,
+    NotFound,
     create_bucket,
     list_bucket_objects,
     create_bucket_folder,
@@ -14,6 +16,9 @@ from .mocks.mockgcp import backend
 
 
 class APITestCase(TestCase):
+    def to_keys(self, page):
+        return [x["key"] for x in page.items]
+
     def setUp(self):
         backend.reset()
         # since I call a real minio, I delete the content and bucket upfront
@@ -28,7 +33,7 @@ class APITestCase(TestCase):
         for bucket_name in buckets:
             get_client().delete_bucket(bucket_name=bucket_name, fully=True)
 
-    @backend.mock_storage
+    @backend.mock_s3_storage
     def test_create_bucket(self):
         self.assertEqual(backend.buckets, {})
         create_bucket("test-bucket")
@@ -163,19 +168,59 @@ class APITestCase(TestCase):
             bucket.blob(f"test_{i}.txt", size=(123 * i), content_type="text/plain")
 
         res = list_bucket_objects(bucket.name, page=1, per_page=10)
+
+        self.assertEqual(
+            self.to_keys(res),
+            [
+                "test_0.txt",
+                "test_1.txt",
+                "test_10.txt",
+                "test_11.txt",
+                "test_2.txt",
+                "test_3.txt",
+                "test_4.txt",
+                "test_5.txt",
+                "test_6.txt",
+                "test_7.txt",
+            ],
+        )
+
         self.assertTrue(res.has_next_page)
         self.assertFalse(res.has_previous_page)
         self.assertEqual(res.page_number, 1)
 
         res = list_bucket_objects(bucket.name, page=1, per_page=20)
+        self.assertEqual(
+            self.to_keys(res),
+            [
+                "test_0.txt",
+                "test_1.txt",
+                "test_10.txt",
+                "test_11.txt",
+                "test_2.txt",
+                "test_3.txt",
+                "test_4.txt",
+                "test_5.txt",
+                "test_6.txt",
+                "test_7.txt",
+                "test_8.txt",
+                "test_9.txt",
+            ],
+        )
         self.assertFalse(res.has_next_page)
 
         res = list_bucket_objects(bucket.name, page=2, per_page=10)
+        self.assertEqual(self.to_keys(res), ["test_8.txt", "test_9.txt"])
         self.assertFalse(res.has_next_page)
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
 
         res = list_bucket_objects(bucket.name, page=2, per_page=5)
+        self.assertEqual(
+            self.to_keys(res),
+            ["test_3.txt", "test_4.txt", "test_5.txt", "test_6.txt", "test_7.txt"],
+        )
+
         self.assertTrue(res.has_next_page)
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
@@ -185,6 +230,7 @@ class APITestCase(TestCase):
         create_bucket("bucket")
         self.assertEqual(list_bucket_objects("bucket").items, [])
         create_bucket_folder(bucket_name="bucket", folder_key="demo")
+        
         self.assertEqual(
             list_bucket_objects("bucket").items,
             [
@@ -219,29 +265,50 @@ class APITestCase(TestCase):
             )
 
         connection_infos, expires_in = get_short_lived_downscoped_access_token("bucket")
-        print(connection_infos)
-        print(expires_in)
+        if mode == "s3":
+            # create a s3 client with the downscoped token 
+            s3 = boto3.client("s3", **connection_infos)
 
-        s3 = boto3.client("s3", **connection_infos)
-
-        objects = s3.list_objects(Bucket="bucket")
-        print(objects)
-        self.assertEqual(
-            [x["Key"] for x in objects["Contents"]],
-            ["test_0.txt", "test_1.txt"],
-        )
-        # TODO unified exception ?
-        with self.assertRaisesMessage(
-            botocore.exceptions.ClientError,
-            "An error occurred (AccessDenied) when calling the ListObjects operation: Access Denied.",
-        ):
-            # should blow up not allowed on that bucket
-            objects = s3.list_objects(Bucket="test-bucket")
+            objects = s3.list_objects(Bucket="bucket")
             print(objects)
+            self.assertEqual(
+                [x["Key"] for x in objects["Contents"]],
+                ["test_0.txt", "test_1.txt"],
+            )
+            # TODO unified exception ?
+            with self.assertRaisesMessage(
+                botocore.exceptions.ClientError,
+                "An error occurred (AccessDenied) when calling the ListObjects operation: Access Denied.",
+            ):
+                # should blow up not allowed on that bucket
+                objects = s3.list_objects(Bucket="test-bucket")
 
-        with self.assertRaisesMessage(
-            botocore.exceptions.ClientError,
-            "An error occurred (AccessDenied) when calling the CreateBucket operation: Access Denied.",
-        ):
-            # should blow up not allowed to create new bucket
-            s3.create_bucket(Bucket="not-empty-bucket")
+            with self.assertRaisesMessage(
+                botocore.exceptions.ClientError,
+                "An error occurred (AccessDenied) when calling the CreateBucket operation: Access Denied.",
+            ):
+                # should blow up not allowed to create new bucket
+                s3.create_bucket(Bucket="not-empty-bucket")
+
+    def test_delete_object_working(self):
+
+        bucket = create_bucket("bucket")
+        bucket.blob(
+            "test.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        res = list_bucket_objects("bucket")
+        self.assertEqual(self.to_keys(res), ["test.txt"])
+
+        get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
+        res = list_bucket_objects("bucket")
+
+        self.assertEqual(self.to_keys(res), [])
+
+    def test_delete_object_non_existing(self):
+
+        bucket = create_bucket("bucket")
+        with self.assertRaises(NotFound):
+            get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
+

@@ -4,7 +4,7 @@ import json
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import botocore
-
+from .basefs import NotFound
 from datetime import date, datetime
 from .basefs import ObjectsPage, BaseClient
 
@@ -34,6 +34,10 @@ def _is_dir(blob):
     return blob["Size"] == 0 and blob["Key"].endswith("/")
 
 
+def _is_dir_object(blob, object_key):
+    return blob["ContentLength"] == 0 and object_key.endswith("/")
+
+
 def _blob_to_dict(blob, bucket_name):
     name = blob["Key"]
     return {
@@ -44,6 +48,21 @@ def _blob_to_dict(blob, bucket_name):
         "updated": blob["LastModified"],
         "size": blob["Size"],
         "type": "directory" if _is_dir(blob) else "file",
+    }
+
+
+def _object_to_dict(blob, bucket_name, object_key):
+    name = object_key
+    return {
+        "name": name.split("/")[-2]
+        if _is_dir_object(blob, object_key)
+        else name.split("/")[-1],
+        "key": name,
+        "path": "/".join([bucket_name, name]),
+        "content_type": blob.get("ContentType"),
+        "updated": blob["LastModified"],
+        "size": blob["ContentLength"],
+        "type": "directory" if _is_dir_object(blob, object_key) else "file",
     }
 
 
@@ -94,43 +113,56 @@ def _list_bucket_objects(bucket_name, prefix, page, per_page, ignore_hidden_file
     start_offset = (page - 1) * per_page
     end_offset = page * per_page
 
-    response = get_storage_client().list_objects_v2(
-        Bucket=bucket_name, Delimiter="/", Prefix=prefix
+    paginator = get_storage_client().get_paginator("list_objects_v2")
+
+    pages = paginator.paginate(
+        Bucket=bucket_name,
+        Delimiter="/",
+        Prefix=prefix,
     )
-    prefixes = (
-        sorted([x["Prefix"] for x in response["CommonPrefixes"]])
-        if "CommonPrefixes" in response
-        else []
-    )
-    objects = []
-    for current_prefix in prefixes:
-        res = _prefix_to_dict(bucket_name, current_prefix)
-        if current_prefix == prefix:
-            continue
-        if not ignore_hidden_files or not res["name"].startswith("."):
-            objects.append(res)
+    pageIndex = 0
+    for response in pages:
+        pageIndex = pageIndex + 1
 
-    files = response.get("Contents", [])
+        prefixes = (
+            sorted([x["Prefix"] for x in response["CommonPrefixes"]])
+            if "CommonPrefixes" in response
+            else []
+        )
+        objects = []
 
-    for file in files:
-        if _is_dir(file):
-            # We ignore objects that are directories (object with a size = 0 and ending with a /)
-            # because they are already listed in the prefixes
-            continue
+        for current_prefix in prefixes:
+            res = _prefix_to_dict(bucket_name, current_prefix)
+            if current_prefix == prefix:
+                continue
+            if not ignore_hidden_files or not res["name"].startswith("."):
+                objects.append(res)
 
-        res = _blob_to_dict(file, bucket_name)
+        files = response.get("Contents", [])
 
-        if res["key"] == prefix:
-            continue
+        for file in files:
+            if _is_dir(file):
+                # We ignore objects that are directories (object with a size = 0 and ending with a /)
+                # because they are already listed in the prefixes
+                continue
 
-        if not ignore_hidden_files or not res["name"].startswith("."):
-            objects.append(res)
+            res = _blob_to_dict(file, bucket_name)
+
+            if res["key"] == prefix and prefix.endswith("/"):
+                print("skipping ", res, prefix)
+                continue
+
+            if not ignore_hidden_files or not res["name"].startswith("."):
+                objects.append(res)
+
+    sorted(objects, key=lambda x: x["key"])
+    items = objects[start_offset:end_offset]
 
     return ObjectsPage(
-        items=objects[start_offset:end_offset],
+        items=items,
         page_number=page,
         has_previous_page=page > 1,
-        has_next_page=len(objects) > page * per_page,
+        has_next_page=len(objects) > (page * per_page),
     )
 
 
@@ -143,10 +175,7 @@ def _delete_bucket(bucket_name: str, fully):
 
         if fully:
             while response["KeyCount"] > 0:
-                print(
-                    "Deleting %d objects from bucket %s"
-                    % (len(response["Contents"]), bucket_name)
-                )
+                # print("Deleting %d objects from bucket %s" % (len(response["Contents"]), bucket_name))
                 response = s3.delete_objects(
                     Bucket=bucket_name,
                     Delete={
@@ -197,12 +226,12 @@ def _get_short_lived_downscoped_access_token(bucket_name):
     }
 
     # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sts.html#STS.Client.assume_role
-    # TODO what if we really want a real s3 ?
-    # we probably need the roleArn and RoleSessionName ?
-    # is this AWS_USER_ARN and AWS_APP_ROLE_ARN ?
+    # TODO what if we really want a real s3 see *ignored* ?
+    #  - we probably need the roleArn and RoleSessionName ?
+    #  - is this AWS_USER_ARN and AWS_APP_ROLE_ARN ?
     response = sts_service.assume_role(
-        RoleArn="arn:x:ignored:by:minio:",
-        RoleSessionName="ignored-by-minio",
+        RoleArn=settings.AWS_APP_ROLE_ARN or "arn:x:ignored:by:minio:",
+        RoleSessionName=settings.AWS_USER_ARN or "ignored-by-minio",
         # PolicyArns=[{'arn': 'string'}],
         Policy=json.dumps(policy),
         DurationSeconds=token_lifetime,
@@ -247,6 +276,34 @@ def _create_bucket_folder(bucket_name: str, folder_key: str):
     return _blob_to_dict(final_object, bucket_name)
 
 
+def _get_bucket_object(bucket_name: str, object_key: str):
+    client = get_storage_client()
+    try: 
+        object = client.head_object(Bucket=bucket_name, Key=object_key)
+
+    except Exception as e:
+        if "the HeadObject operation: Not Found" in str(e):
+            raise NotFound(f"{bucket_name} {object_key} not found")
+        # else just throw the initial error
+        raise e
+        
+
+    return _object_to_dict(object, bucket_name=bucket_name, object_key=object_key)
+
+
+def _delete_object(bucket_name, name):
+    client = get_storage_client()
+    blob = _get_bucket_object(bucket_name=bucket_name, object_key=name)
+    if blob["type"] == "directory":
+        blobs = _list_bucket_objects(bucket_name=bucket_name, prefix=name)
+        client.delete_objects(
+            Bucket=bucket_name, Delete={"Objects": [{"Key": b["key"]} for b in blobs]}
+        )
+    else:
+        client.delete_object(Bucket=bucket_name, Key=name)
+    return
+
+
 class S3Client(BaseClient):
     def create_bucket(self, bucket_name: str):
         _create_bucket(bucket_name)
@@ -283,3 +340,9 @@ class S3Client(BaseClient):
 
     def delete_bucket(self, bucket_name: str, fully: bool = False):
         return _delete_bucket(bucket_name, fully)
+
+    def delete_object(self, bucket_name: str, file_name: str):
+        return _delete_object(bucket_name=bucket_name, name=file_name)
+
+    def get_bucket_object(self, bucket_name: str, object_key: str):
+        return _get_bucket_object(bucket_name, object_key)

@@ -179,7 +179,8 @@ class MockClient:
         except NotFound:
             return None
 
-    def create_bucket(self, bucket_or_name, *args, **kwargs):
+    def create_bucket(self, bucket_or_name=None, Bucket=None, *args, **kwargs):
+        bucket_or_name = bucket_or_name or Bucket
         bucket = self._bucket_arg_to_bucket(bucket_or_name)
         if bucket is None:
             bucket = MockBucket(

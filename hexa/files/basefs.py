@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import typing
 from dataclasses import dataclass
-
+from google.api_core.exceptions import NotFound
 
 @dataclass
 class ObjectsPage:
@@ -11,7 +11,8 @@ class ObjectsPage:
     page_number: int
 
 
-class BaseClient:
+class BaseClient(ABC):
+
     @abstractmethod
     def create_bucket(self, bucket_name: str):
         pass
@@ -23,6 +24,7 @@ class BaseClient:
     @abstractmethod
     def upload_object(self, bucket_name: str, file_name: str, source: str):
         pass
+
 
     @abstractmethod
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
