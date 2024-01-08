@@ -7,7 +7,7 @@ import { uploader } from "core/helpers/files";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { getBucketObjectUploadUrl } from "workspaces/helpers/bucket";
 import { UploadObjectDialog_WorkspaceFragment } from "./UploadObjectDialog.generated";
 

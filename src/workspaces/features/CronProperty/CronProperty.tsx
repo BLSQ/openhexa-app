@@ -2,7 +2,7 @@ import DataCard from "core/components/DataCard";
 import { useDataCardProperty } from "core/components/DataCard/context";
 import { PropertyDefinition } from "core/components/DataCard/types";
 import Input from "core/components/forms/Input";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import {
   getCronExpressionDescription,
   validateCronExpression,

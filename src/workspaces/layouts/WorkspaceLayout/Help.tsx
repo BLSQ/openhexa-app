@@ -4,7 +4,7 @@ import Link from "core/components/Link";
 import Popover from "core/components/Popover/Popover";
 import Title from "core/components/Title";
 import { ReactElement } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 type HelpProps = Pick<React.ComponentProps<typeof Popover>, "placement"> & {
   links?: { label: string; href: string }[];

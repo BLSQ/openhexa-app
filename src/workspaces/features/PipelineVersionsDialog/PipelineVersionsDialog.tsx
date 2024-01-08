@@ -7,7 +7,7 @@ import UserColumn from "core/components/DataGrid/UserColumn";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import User from "core/features/User";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import {
   PipelineVersionsDialogQuery,
   PipelineVersionsDialogQueryVariables,

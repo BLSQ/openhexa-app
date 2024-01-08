@@ -92,7 +92,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
           },
         ]}
       >
-        <WorkspaceLayout.Header className="flex justify-between">
+        <WorkspaceLayout.Header className="flex justify-between items-center">
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
               isFirst

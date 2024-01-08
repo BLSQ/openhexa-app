@@ -2,7 +2,7 @@ import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import Select from "core/components/forms/Select";
 import { DateTime } from "luxon";
 import { useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import {
   PipelineVersionPickerQuery,
   PipelineVersionPicker_PipelineFragment,

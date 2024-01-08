@@ -1,7 +1,7 @@
 import { CheckIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 interface ClipboardProps {
   value: string;

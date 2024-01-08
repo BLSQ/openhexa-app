@@ -42,7 +42,7 @@ jest.mock("react", () => {
   };
 });
 
-jest.mock("react-i18next", () => ({
+jest.mock("next-i18next", () => ({
   I18nextProvider: jest.fn(),
   useTranslation: () => ({ t: (key) => key }),
   __esModule: true,

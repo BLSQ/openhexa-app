@@ -6,7 +6,7 @@ import { disableTwoFactor, generateChallenge } from "identity/helpers/auth";
 import useMe from "identity/hooks/useMe";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 type DisableTwoFactorDialogProps = {
   open: boolean;

@@ -9,7 +9,7 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import Link from "core/components/Link";
 import { PipelineRunOutput } from "graphql-types";
 import { useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import DownloadBucketObject from "../DownloadBucketObject";
 import {
   RunOutputsTable_RunFragment,

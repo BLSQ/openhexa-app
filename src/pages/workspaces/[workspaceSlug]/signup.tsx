@@ -13,7 +13,7 @@ import Field from "core/components/forms/Field";
 import clsx from "clsx";
 import { useJoinWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { JoinWorkspaceError } from "graphql-types";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 
 type Props = {
   email: string;

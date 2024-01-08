@@ -1,6 +1,6 @@
 import { gql, useLazyQuery } from "@apollo/client";
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
 import {

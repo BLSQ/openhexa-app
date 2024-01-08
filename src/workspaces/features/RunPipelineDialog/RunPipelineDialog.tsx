@@ -10,7 +10,7 @@ import useForm from "core/hooks/useForm";
 import { PipelineVersion } from "graphql-types";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import {
   convertParametersToPipelineInput,
   isConnectionParameter,

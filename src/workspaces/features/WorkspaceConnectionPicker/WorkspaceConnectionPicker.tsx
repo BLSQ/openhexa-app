@@ -1,6 +1,6 @@
 import { gql, useQuery } from "@apollo/client";
 import { useCallback, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
 import { ConnectionType } from "graphql-types";

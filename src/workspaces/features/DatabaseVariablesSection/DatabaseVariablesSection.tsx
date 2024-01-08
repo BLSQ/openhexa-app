@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { DatabaseVariablesSection_WorkspaceFragment } from "./DatabaseVariablesSection.generated";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { useMemo } from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";

@@ -8,12 +8,12 @@ const defaultOptions = {} as const;
 export type GetUserQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean, createWorkspace: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, permissions: { __typename?: 'MePermissions', adminPanel: boolean, superUser: boolean, createWorkspace: boolean }, features: Array<{ __typename?: 'FeatureFlag', code: string, config: any }>, user?: { __typename?: 'User', email: string, id: string, firstName?: string | null, lastName?: string | null, displayName: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
 
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null } };
 
 
 export const GetUserDocument = gql`
@@ -36,6 +36,7 @@ export const GetUserDocument = gql`
       firstName
       lastName
       displayName
+      language
       avatar {
         initials
         color
@@ -87,6 +88,7 @@ export const AccountPageDocument = gql`
       displayName
       id
       email
+      language
       ...User_user
     }
   }

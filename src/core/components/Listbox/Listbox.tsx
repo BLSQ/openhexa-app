@@ -2,7 +2,7 @@ import { Listbox as UIListbox, Portal } from "@headlessui/react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { sameWidthModifier } from "core/helpers/popper";
 import { usePopper } from "react-popper";
 import useIntersectionObserver from "core/hooks/useIntersectionObserver";

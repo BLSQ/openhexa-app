@@ -2,7 +2,7 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Spinner from "core/components/Spinner";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { useInviteWorkspaceMemberMutation } from "workspaces/graphql/mutations.generated";
 import useForm from "core/hooks/useForm";
 import {

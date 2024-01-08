@@ -9,7 +9,7 @@ import { User, WorkspaceMembership } from "graphql-types";
 import { capitalize } from "lodash";
 import { DateTime } from "luxon";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import DeleteWorkspaceMemberDialog from "./DeleteWorkspaceMemberDialog";
 import UpdateWorkspaceMemberDialog from "./UpdateWorkspaceMemberDialog";
 import { WorskspaceMembersQuery } from "./WorkspaceMembers.generated";

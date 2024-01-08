@@ -6,7 +6,7 @@ import CountryPicker from "core/features/CountryPicker";
 import { CountryPicker_CountryFragment } from "core/features/CountryPicker/CountryPicker.generated";
 import useForm from "core/hooks/useForm";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { useCreateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { useRouter } from "next/router";
 import { CreateWorkspaceError } from "graphql-types";

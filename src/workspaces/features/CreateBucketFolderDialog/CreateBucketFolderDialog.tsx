@@ -6,7 +6,7 @@ import Input from "core/components/forms/Input";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { createBucketFolder } from "workspaces/helpers/bucket";
 import { CreateBucketFolderDialog_WorkspaceFragment } from "./CreateBucketFolderDialog.generated";
 

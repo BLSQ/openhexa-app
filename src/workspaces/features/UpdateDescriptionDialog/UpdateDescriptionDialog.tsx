@@ -3,7 +3,7 @@ import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import useForm from "core/hooks/useForm";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import Textarea from "core/components/forms/Textarea";
 import { useUpdateWorkspaceMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";

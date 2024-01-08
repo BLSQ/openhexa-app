@@ -4,7 +4,7 @@ import { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { ReactElement, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { downloadURL } from "workspaces/helpers/bucket";
 import {
   DownloadVersionFileMutation,

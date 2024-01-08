@@ -5,7 +5,7 @@ import Clipboard from "core/components/Clipboard";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { slugify } from "workspaces/helpers/connections/utils";
 import UpdateConnectionFieldsDialog from "../UpdateConnectionFieldsDialog/UpdateConnectionFieldsDialog";
 import { ConnectionFieldsSection_ConnectionFragment } from "./ConnectionFieldsSection.generated";

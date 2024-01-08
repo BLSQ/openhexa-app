@@ -3,7 +3,7 @@ import Button from "core/components/Button/Button";
 import Dialog from "core/components/Dialog";
 import useForm from "core/hooks/useForm";
 import { useEffect, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import Connections, {
   ConnectionForm,
   convertFieldsToInput,

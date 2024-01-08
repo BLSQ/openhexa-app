@@ -1,15 +1,24 @@
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
+import DataCard from "core/components/DataCard";
+import DateProperty from "core/components/DataCard/DateProperty";
+import { OnSaveFn } from "core/components/DataCard/FormSection";
+import RenderProperty from "core/components/DataCard/RenderProperty";
+import TextProperty from "core/components/DataCard/TextProperty";
 import DescriptionList, {
   DescriptionListDisplayMode,
 } from "core/components/DescriptionList";
 import Page from "core/components/Page";
-import Time from "core/components/Time";
+import SimpleSelect from "core/components/forms/SimpleSelect";
+import { LANGUAGES } from "core/helpers/i18n";
 import { createGetServerSideProps } from "core/helpers/page";
+import useForm from "core/hooks/useForm";
 import useToggle from "core/hooks/useToggle";
+import BackLayout from "core/layouts/back";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
 import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
+import { useUpdateUserMutation } from "identity/graphql/mutations.generated";
 import {
   AccountPageDocument,
   AccountPageQuery,
@@ -18,7 +27,6 @@ import {
 import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
-import BackLayout from "core/layouts/back";
 import { useRouter } from "next/router";
 
 function AccountPage() {
@@ -27,9 +35,26 @@ function AccountPage() {
   const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
   const router = useRouter();
+  const [updateUser] = useUpdateUserMutation();
   if (!data?.me.user) {
     return null;
   }
+
+  const onSave: OnSaveFn = async (values) => {
+    const prevLanguage = data.me.user!.language;
+    await updateUser({
+      variables: {
+        input: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          language: values.language,
+        },
+      },
+    });
+    if (prevLanguage !== values.language) {
+      router.reload();
+    }
+  };
 
   const { user } = data.me;
   return (
@@ -49,27 +74,65 @@ function AccountPage() {
           </div>
         }
       >
-        <Block className="divide-y divide-gray-100">
-          <Block.Header>{user.displayName}</Block.Header>
-          <Block.Content>
-            <DescriptionList
-              columns={2}
-              displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+        <DataCard item={user} className="divide-y divide-gray-100">
+          <DataCard.FormSection
+            title={user.displayName}
+            onSave={onSave}
+            collapsible={false}
+            displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
+            columns={2}
+          >
+            <TextProperty
+              label={t("First name")}
+              accessor="firstName"
+              required
+              id="firstName"
+            />
+            <TextProperty
+              label={t("Last name")}
+              accessor="lastName"
+              required
+              id="lastName"
+            />
+            <RenderProperty<keyof typeof LANGUAGES>
+              id="language"
+              accessor={"language"}
+              label={t("Language")}
             >
-              <DescriptionList.Item label={t("First name")}>
-                {user.firstName || "-"}
-              </DescriptionList.Item>
-              <DescriptionList.Item label={t("Last name")}>
-                {user.lastName || "-"}
-              </DescriptionList.Item>
-              <DescriptionList.Item label={t("Email")}>
-                {user.email}
-              </DescriptionList.Item>
-              <DescriptionList.Item label={t("Joined")}>
-                <Time relative datetime={user.dateJoined} />
-              </DescriptionList.Item>
-            </DescriptionList>
-          </Block.Content>
+              {(property, section) =>
+                section.isEdited ? (
+                  <SimpleSelect
+                    value={property.formValue}
+                    required
+                    onChange={(e) =>
+                      property.setValue(e.target.value as "en" | "fr")
+                    }
+                  >
+                    {Object.entries(LANGUAGES).map(([key, value]) => (
+                      <option key={key} value={key}>
+                        {value}
+                      </option>
+                    ))}
+                  </SimpleSelect>
+                ) : (
+                  <span>{LANGUAGES[property.displayValue]}</span>
+                )
+              }
+            </RenderProperty>
+            <TextProperty
+              label={t("Email")}
+              accessor="email"
+              id="email"
+              readonly
+            />
+            <DateProperty
+              relative
+              label={t("Joined")}
+              accessor="dateJoined"
+              id="dateJoined"
+              readonly
+            />
+          </DataCard.FormSection>
           {twoFactorEnabled && (
             <Block.Section title={t("Security")} collapsible={false}>
               <DescriptionList
@@ -91,7 +154,7 @@ function AccountPage() {
               </DescriptionList>
             </Block.Section>
           )}
-        </Block>
+        </DataCard>
       </BackLayout>
 
       {data.me.hasTwoFactorEnabled ? (

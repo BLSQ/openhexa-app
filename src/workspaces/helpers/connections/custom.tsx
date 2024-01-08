@@ -4,7 +4,7 @@ import Title from "core/components/Title";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import Field from "core/components/forms/Field/Field";
 import { FormInstance } from "core/hooks/useForm";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { ConnectionForm, FieldForm } from "./utils";
 
 function CustomForm(props: { form: FormInstance<ConnectionForm> }) {

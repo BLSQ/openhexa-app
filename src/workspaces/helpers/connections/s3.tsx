@@ -1,6 +1,6 @@
 import { FormInstance } from "core/hooks/useForm";
 import { ConnectionForm } from "./utils";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import Field from "core/components/forms/Field/Field";
 import Title from "core/components/Title";
 

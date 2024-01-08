@@ -2,7 +2,7 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { useGenerateNewDatabasePasswordMutation } from "workspaces/graphql/mutations.generated";
 import { gql } from "@apollo/client";
 import { GenerateWorkspaceDatabasePasswordDialog_WorkspaceFragment } from "./GenerateDatabasePasswordDialog.generated";

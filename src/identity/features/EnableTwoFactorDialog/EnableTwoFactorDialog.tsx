@@ -10,7 +10,7 @@ import { useRouter } from "next/router";
 
 import useMe from "identity/hooks/useMe";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import Input from "core/components/forms/Input";
 
 type EnableTwoFactorDialogProps = {

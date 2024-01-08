@@ -1457,6 +1457,7 @@ type Mutation {
   logout: LogoutResult!
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
   setPassword(input: SetPasswordInput!): SetPasswordResult!
+  updateUser(input: UpdateUserInput!): UpdateUserResult!
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
   generateChallenge: GenerateChallengeResult!
   enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
@@ -2288,6 +2289,23 @@ type UpdateTeamResult {
   errors: [UpdateTeamError!]!
 }
 
+enum UpdateUserError {
+  PERMISSION_DENIED
+  INVALID_LANGUAGE
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  language: String
+}
+
+type UpdateUserResult {
+  success: Boolean!
+  user: User
+  errors: [UpdateUserError!]!
+}
+
 enum UpdateWorkspaceError {
   PERMISSION_DENIED
   NOT_FOUND
@@ -2344,6 +2362,7 @@ type User {
   firstName: String
   lastName: String
   displayName: String!
+  language: String!
   avatar: Avatar!
   dateJoined: DateTime!
   lastLogin: DateTime

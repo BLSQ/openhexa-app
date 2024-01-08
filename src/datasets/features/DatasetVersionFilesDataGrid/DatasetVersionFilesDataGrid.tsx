@@ -7,7 +7,7 @@ import {
   DatasetVersionFilesDataGridQueryVariables,
 } from "./DatasetVersionFilesDataGrid.generated";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import DownloadVersionFile from "../DownloadVersionFile/DownloadVersionFile";

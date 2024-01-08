@@ -92,7 +92,7 @@ const WorkspaceDatabasesPage: NextPageWithLayout = (props: Props) => {
               className="max-w-[50ch] py-3"
               textClassName="font-medium text-gray-600"
               id="name"
-              label="Name"
+              label={t("Name")}
             >
               {(value) => (
                 <Link

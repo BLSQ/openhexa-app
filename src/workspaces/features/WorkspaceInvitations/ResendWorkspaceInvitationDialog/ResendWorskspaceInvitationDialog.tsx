@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useResendWorkspaceInvitationMutation } from "workspaces/graphql/mutations.generated";
 
 import { ResendWorkspaceInvitationError } from "graphql-types";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import { ResendWorkspaceInvitation_WorkspaceInvitationFragment } from "./ResendWorskspaceInvitationDialog.generated";

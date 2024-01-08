@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import CodeEditor from "core/components/CodeEditor";
 import Tabs from "core/components/Tabs";
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { ConnectionUsageSnippets_ConnectionFragment } from "./ConnectionUsageSnippets.generated";
 import { getUsageSnippets } from "workspaces/helpers/connections/utils";
 

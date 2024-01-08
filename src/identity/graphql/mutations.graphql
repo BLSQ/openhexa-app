@@ -52,3 +52,16 @@ mutation EnableTwoFactor {
     errors
   }
 }
+
+mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    success
+    errors
+    user {
+      id
+      language
+      firstName
+      lastName
+    }
+  }
+}

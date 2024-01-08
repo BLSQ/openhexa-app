@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { ReactElement } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { deleteBucketObject } from "workspaces/helpers/bucket";
 
 import Button from "core/components/Button";

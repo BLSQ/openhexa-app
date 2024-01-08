@@ -10,7 +10,7 @@ module.exports = {
   defaultNamespace: "messages",
   // Default namespace used in your i18next config
 
-  defaultValue: "",
+  defaultValue: (locale, namespace, key) => (locale === "en" ? key : ""),
   // Default value to give to empty keys
   // You may also specify a function accepting the locale, namespace, and key as arguments
 

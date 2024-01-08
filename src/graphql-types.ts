@@ -1715,6 +1715,7 @@ export type Mutation = {
   updatePipeline: UpdatePipelineResult;
   updatePipelineProgress: UpdatePipelineProgressResult;
   updateTeam: UpdateTeamResult;
+  updateUser: UpdateUserResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
   uploadPipeline: UploadPipelineResult;
@@ -2089,6 +2090,11 @@ export type MutationUpdatePipelineProgressArgs = {
 
 export type MutationUpdateTeamArgs = {
   input: UpdateTeamInput;
+};
+
+
+export type MutationUpdateUserArgs = {
+  input: UpdateUserInput;
 };
 
 
@@ -3112,6 +3118,24 @@ export type UpdateTeamResult = {
   team?: Maybe<Team>;
 };
 
+export enum UpdateUserError {
+  InvalidLanguage = 'INVALID_LANGUAGE',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type UpdateUserInput = {
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  language?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateUserResult = {
+  __typename?: 'UpdateUserResult';
+  errors: Array<UpdateUserError>;
+  success: Scalars['Boolean']['output'];
+  user?: Maybe<User>;
+};
+
 export enum UpdateWorkspaceError {
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
@@ -3171,6 +3195,7 @@ export type User = {
   email: Scalars['String']['output'];
   firstName?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
+  language: Scalars['String']['output'];
   lastLogin?: Maybe<Scalars['DateTime']['output']>;
   lastName?: Maybe<Scalars['String']['output']>;
 };

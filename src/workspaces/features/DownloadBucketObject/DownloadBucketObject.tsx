@@ -3,7 +3,7 @@ import Button from "core/components/Button";
 import { ButtonProps } from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import { ReactElement, ReactNode, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import {
   downloadURL,
   getBucketObjectDownloadUrl,

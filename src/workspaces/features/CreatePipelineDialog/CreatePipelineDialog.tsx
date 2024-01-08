@@ -4,7 +4,7 @@ import Dialog from "core/components/Dialog";
 import Link from "core/components/Link";
 import Field from "core/components/forms/Field/Field";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "next-i18next";
 import {
   CreatePipelineDialog_WorkspaceFragment,
   GenerateWorkspaceTokenMutation,
@@ -51,18 +51,22 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
       <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <p className="mb-6">
-          In order to create pipelines, you need to setup the{" "}
-          <code>openhexa</code> CLI using the{" "}
-          <Link
-            target="_blank"
-            href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines"
-          >
-            guide
-          </Link>{" "}
-          on Github.
+          <Trans>
+            In order to create pipelines, you need to setup the{" "}
+            <code>openhexa</code> CLI using the{" "}
+            <Link
+              target="_blank"
+              href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
+            >
+              guide
+            </Link>{" "}
+            on Github.
+          </Trans>
         </p>
         <p>
-          Configure the workspace in your terminal using the following commands:
+          {t(
+            "Configure the workspace in your terminal using the following commands:",
+          )}
         </p>
 
         <pre className=" bg-slate-100 p-2 font-mono text-sm leading-6">
@@ -70,7 +74,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             <span className="select-none text-gray-400">$ </span>pip install
             openhexa.sdk{" "}
             <span className="select-none text-gray-400">
-              # if not installed
+              {t("# if not installed")}
             </span>
           </div>
           <div>

@@ -3,7 +3,7 @@ import clsx from "clsx";
 import Card from "core/components/Card";
 import Tooltip from "core/components/Tooltip";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { getCronExpressionDescription } from "workspaces/helpers/pipelines";
 import {
   PipelineCard_PipelineFragment,

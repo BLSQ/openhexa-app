@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "next-i18next";
 import { AlertType, displayAlert } from "core/helpers/alert";
 import { deleteDataset } from "datasets/helpers/dataset";
 import { DeleteDatasetTrigger_DatasetFragment } from "datasets/features/DeleteDatasetTrigger/DeleteDatasetTrigger.generated";
