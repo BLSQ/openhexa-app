@@ -1,21 +1,36 @@
-from django.core.exceptions import ValidationError
 import boto3
+
+from django.core.exceptions import ValidationError
 import botocore
 from hexa.core.test import TestCase
 
 from ..api import (
     mode,
     NotFound,
-    create_bucket,
-    list_bucket_objects,
-    create_bucket_folder,
     get_client,
-    get_short_lived_downscoped_access_token,
+    load_bucket_sample_data
 )
 from .mocks.mockgcp import backend
 
 
-class APITestCase(TestCase):
+# Decorator to perform some setup for a specific test method
+def custom_mock_storage(func):
+    def wrapper(self, *args, **kwargs):
+        if self.get_type() == "s3":
+            return func(self, *args, **kwargs)
+
+        if self.get_type() == "gcp":
+            backend.mock_storage(self, *args **kwargs)
+        return func(self, *args, **kwargs)
+ 
+    return wrapper
+
+
+
+class APITestCase:
+    def get_client(self):
+        return get_client(self.get_type())    
+
     def to_keys(self, page):
         return [x["key"] for x in page.items]
 
@@ -31,29 +46,30 @@ class APITestCase(TestCase):
             "bucket",
         ]
         for bucket_name in buckets:
-            get_client().delete_bucket(bucket_name=bucket_name, fully=True)
+            self.get_client().delete_bucket(bucket_name=bucket_name, fully=True)
 
-    @backend.mock_s3_storage
+    @custom_mock_storage
     def test_create_bucket(self):
+        
         self.assertEqual(backend.buckets, {})
-        create_bucket("test-bucket")
+        self.get_client().create_bucket("test-bucket")
         self.assertEqual(list(backend.buckets.keys()), ["test-bucket"])
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_create_same_bucket(self):
         self.assertEqual(backend.buckets, {})
-        create_bucket("test-bucket")
+        self.get_client().create_bucket("test-bucket")
         with self.assertRaises(ValidationError):
-            create_bucket("test-bucket")
-
-    @backend.mock_storage
+            self.get_client().create_bucket("test-bucket")
+    
+    @custom_mock_storage
     def test_list_blobs_empty(self):
-        bucket = create_bucket("empty-bucket")
-        self.assertEqual(list_bucket_objects(bucket.name).items, [])
+        bucket = self.get_client().create_bucket("empty-bucket")
+        self.assertEqual(self.get_client().list_bucket_objects(bucket.name).items, [])
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_list_blobs(self):
-        bucket = create_bucket("not-empty-bucket")
+        bucket = self.get_client().create_bucket("not-empty-bucket")
         bucket.blob(
             "test.txt",
             size=123,
@@ -78,7 +94,7 @@ class APITestCase(TestCase):
         self.assertEqual(
             [
                 x["key"]
-                for x in list_bucket_objects(bucket.name, page=1, per_page=2).items
+                for x in self.get_client().list_bucket_objects(bucket.name, page=1, per_page=2).items
             ],
             [
                 "folder/",
@@ -86,9 +102,9 @@ class APITestCase(TestCase):
             ],
         )
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_list_hide_hidden_files(self):
-        bucket = create_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
         bucket.blob(
             "test.txt",
             size=123,
@@ -110,7 +126,7 @@ class APITestCase(TestCase):
         self.assertEqual(
             [
                 x["key"]
-                for x in list_bucket_objects(bucket.name, page=1, per_page=10).items
+                for x in self.get_client().list_bucket_objects(bucket.name, page=1, per_page=10).items
             ],
             [
                 "test.txt",
@@ -120,16 +136,16 @@ class APITestCase(TestCase):
         self.assertEqual(
             [
                 x["key"]
-                for x in list_bucket_objects(
+                for x in self.get_client().list_bucket_objects(
                     bucket.name, page=1, per_page=10, ignore_hidden_files=False
                 ).items
             ],
             [".git/", ".gitconfig", ".gitignore", "test.txt"],
         )
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_list_blobs_with_prefix(self):
-        bucket = create_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
         bucket.blob(
             "test.txt",
             size=123,
@@ -151,7 +167,7 @@ class APITestCase(TestCase):
         self.assertEqual(
             [
                 x["key"]
-                for x in list_bucket_objects(
+                for x in self.get_client().list_bucket_objects(
                     bucket.name, page=1, per_page=10, prefix="dir/"
                 ).items
             ],
@@ -161,13 +177,13 @@ class APITestCase(TestCase):
             ],
         )
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_list_blobs_pagination(self):
-        bucket = create_bucket("my-bucket")
+        bucket = self.get_client().create_bucket("my-bucket")
         for i in range(0, 12):
             bucket.blob(f"test_{i}.txt", size=(123 * i), content_type="text/plain")
 
-        res = list_bucket_objects(bucket.name, page=1, per_page=10)
+        res = self.get_client().list_bucket_objects(bucket.name, page=1, per_page=10)
 
         self.assertEqual(
             self.to_keys(res),
@@ -189,7 +205,7 @@ class APITestCase(TestCase):
         self.assertFalse(res.has_previous_page)
         self.assertEqual(res.page_number, 1)
 
-        res = list_bucket_objects(bucket.name, page=1, per_page=20)
+        res = self.get_client().list_bucket_objects(bucket.name, page=1, per_page=20)
         self.assertEqual(
             self.to_keys(res),
             [
@@ -209,13 +225,13 @@ class APITestCase(TestCase):
         )
         self.assertFalse(res.has_next_page)
 
-        res = list_bucket_objects(bucket.name, page=2, per_page=10)
+        res = self.get_client().list_bucket_objects(bucket.name, page=2, per_page=10)
         self.assertEqual(self.to_keys(res), ["test_8.txt", "test_9.txt"])
         self.assertFalse(res.has_next_page)
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
 
-        res = list_bucket_objects(bucket.name, page=2, per_page=5)
+        res = self.get_client().list_bucket_objects(bucket.name, page=2, per_page=5)
         self.assertEqual(
             self.to_keys(res),
             ["test_3.txt", "test_4.txt", "test_5.txt", "test_6.txt", "test_7.txt"],
@@ -225,14 +241,14 @@ class APITestCase(TestCase):
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_create_bucket_folder(self):
-        create_bucket("bucket")
-        self.assertEqual(list_bucket_objects("bucket").items, [])
-        create_bucket_folder(bucket_name="bucket", folder_key="demo")
-        
+        self.get_client().create_bucket("bucket")
+        self.assertEqual(self.get_client().list_bucket_objects("bucket").items, [])
+        self.get_client().create_bucket_folder(bucket_name="bucket", folder_key="demo")
+
         self.assertEqual(
-            list_bucket_objects("bucket").items,
+            self.get_client().list_bucket_objects("bucket").items,
             [
                 {
                     "key": "demo/",
@@ -244,10 +260,10 @@ class APITestCase(TestCase):
             ],
         )
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_short_lived_downscoped_access_token(self):
         # TODO make that test work for gcp and s3
-        bucket = create_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
         for i in range(0, 2):
             bucket.blob(
                 f"test_{i}.txt",
@@ -255,7 +271,7 @@ class APITestCase(TestCase):
                 content_type="text/plain",
             )
 
-        bucket = create_bucket("test-bucket")
+        bucket = self.get_client().create_bucket("test-bucket")
 
         for i in range(0, 2):
             bucket.blob(
@@ -264,9 +280,9 @@ class APITestCase(TestCase):
                 content_type="text/plain",
             )
 
-        connection_infos, expires_in = get_short_lived_downscoped_access_token("bucket")
+        connection_infos, expires_in = self.get_client().get_short_lived_downscoped_access_token("bucket")
         if mode == "s3":
-            # create a s3 client with the downscoped token 
+            # create a s3 client with the downscoped token
             s3 = boto3.client("s3", **connection_infos)
 
             objects = s3.list_objects(Bucket="bucket")
@@ -290,31 +306,81 @@ class APITestCase(TestCase):
                 # should blow up not allowed to create new bucket
                 s3.create_bucket(Bucket="not-empty-bucket")
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_delete_object_working(self):
-
-        bucket = create_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
         bucket.blob(
             "test.txt",
             size=123,
             content_type="text/plain",
         )
-        res = list_bucket_objects("bucket")
+        res = self.get_client().list_bucket_objects("bucket")
         self.assertEqual(self.to_keys(res), ["test.txt"])
 
         get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
-        res = list_bucket_objects("bucket")
+        res = self.get_client().list_bucket_objects("bucket")
 
         self.assertEqual(self.to_keys(res), [])
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_delete_object_non_existing(self):
-
-        bucket = create_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
         with self.assertRaises(NotFound):
-            get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
+            self.get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
 
-    @backend.mock_storage
+    @custom_mock_storage
     def test_generate_download_url(self):
-        url = get_client().generate_download_url("bucket", "demo.txt")
-        assert "http://minio:9000/bucket/demo.txt?X-Amz-Algorit" in url
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_download_url("bucket", "demo.txt")
+        assert "demo.txt" in url , f"Expected to be in '{url}'"
+
+    @custom_mock_storage
+    def test_generate_upload_url(self):
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_upload_url("bucket", "demo.txt")
+        assert "demo.txt" in url, f"Expected to be in '{url}'"
+
+    @custom_mock_storage
+    def test_generate_upload_url_raise_existing(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob(
+            "demo.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        with self.assertRaises(ValidationError):
+            self.get_client().generate_upload_url(
+                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+            )
+
+    @custom_mock_storage
+    def test_generate_upload_url_raise_existing_dont_raise(self):
+        self.get_client().delete_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_upload_url(
+            bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+        )
+
+        assert "http://minio:9000/bucket/demo.txt?X-Amz-Algorit" in url , f"Expected to be in '{url}'"
+
+    @custom_mock_storage
+    def test_load_bucket_sample_data(self):
+        bucket = self.get_client().create_bucket("bucket")
+        load_bucket_sample_data(bucket_name="bucket")
+        res = self.get_client().list_bucket_objects("bucket")
+
+        self.assertEqual(self.to_keys(res), ['README.MD', 'covid_data.csv', 'demo.ipynb'])
+
+
+
+
+
+
+class APIS3TestCase(APITestCase, TestCase):
+    def get_type(self):
+        return "s3"
+
+    
+class APIGcpTestCase(APITestCase, TestCase):
+    def get_type(self):
+        return "gcp"
