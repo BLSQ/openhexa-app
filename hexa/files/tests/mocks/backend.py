@@ -18,7 +18,8 @@ class StorageBackend(object):
         self.buckets = {}
 
     def delete_bucket(self, bucket_name):
-        del self.buckets[bucket_name]
+        if bucket_name in self.buckets:
+            del self.buckets[bucket_name]
 
     def mock_storage(self, func):
         from .client import MockClient
