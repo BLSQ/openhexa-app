@@ -17,6 +17,9 @@ class StorageBackend(object):
     def reset(self):
         self.buckets = {}
 
+    def delete_bucket(self, bucket_name):
+        del self.buckets[bucket_name]
+
     def mock_storage(self, func):
         from .client import MockClient
 
@@ -41,6 +44,7 @@ class StorageBackend(object):
             client = MockClient(backend=self, *args, **kwargs)
             client.exceptions=MagicMock()
             client.exceptions.BucketAlreadyOwnedByYou = BucketAlreadyOwnedByYou
+            client.exceptions.NoSuchBucket = BucketAlreadyOwnedByYou
             return client
 
         def wrapper(*args, **kwargs):            

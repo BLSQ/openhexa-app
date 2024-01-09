@@ -157,6 +157,9 @@ class MockClient:
     def bucket(self, bucket_name, user_project=None):
         return MockBucket(client=self, name=bucket_name, user_project=user_project)
 
+    def delete_bucket(self, bucket_name):
+        self.backend.delete_bucket(bucket_name)
+        
     def batch(self):
         raise NotImplementedError
 

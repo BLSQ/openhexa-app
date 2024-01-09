@@ -1,7 +1,7 @@
 from google.cloud.storage._helpers import _validate_name
 
 from .blob import MockBlob
-
+from hexa.files.api import NotFound
 
 class MockBucket:
     def __init__(self, client, name=None, user_project=None):
@@ -37,3 +37,10 @@ class MockBucket:
 
     def patch(self):
         pass
+
+    def delete_blob(self, key):
+        existing = [b for b in self._blobs if b.name == key]
+        if len(existing) == 0:
+            raise NotFound("key not found")
+
+        self._blobs = [b for b in self._blobs if b.name != key]
