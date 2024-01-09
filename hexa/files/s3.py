@@ -75,7 +75,8 @@ def _prefix_to_dict(bucket_name: str, name: str):
         "type": "directory",
     }
 
-
+# allows to keep the test compatible between gcp and s3
+# for the fixture, the tests creates blobs 
 class S3BucketWrapper:
     def __init__(self, bucket_name) -> None:
         self.bucket_name = bucket_name
@@ -100,11 +101,7 @@ def _create_bucket(bucket_name: str):
 
 
 def _upload_object(bucket_name: str, file_name: str, source: str):
-    return get_storage_client().put_object(
-        Filename=source,
-        Bucket=bucket_name,
-        Key=file_name,
-    )
+    return get_storage_client().upload_file(source, bucket_name, file_name)
 
 
 def _list_bucket_objects(bucket_name, prefix, page, per_page, ignore_hidden_files):
@@ -278,7 +275,7 @@ def _create_bucket_folder(bucket_name: str, folder_key: str):
 
 def _get_bucket_object(bucket_name: str, object_key: str):
     client = get_storage_client()
-    try: 
+    try:
         object = client.head_object(Bucket=bucket_name, Key=object_key)
 
     except Exception as e:
@@ -286,7 +283,6 @@ def _get_bucket_object(bucket_name: str, object_key: str):
             raise NotFound(f"{bucket_name} {object_key} not found")
         # else just throw the initial error
         raise e
-        
 
     return _object_to_dict(object, bucket_name=bucket_name, object_key=object_key)
 
@@ -303,12 +299,14 @@ def _delete_object(bucket_name, name):
         client.delete_object(Bucket=bucket_name, Key=name)
     return
 
+
 def _generate_download_url(bucket_name, object_key, force_attachment):
     s3 = get_storage_client()
-    url = s3.generate_presigned_url('get_object',
-                                Params={'Bucket': bucket_name, 'Key': object_key},
-                                ExpiresIn=3600)  
+    url = s3.generate_presigned_url(
+        "get_object", Params={"Bucket": bucket_name, "Key": object_key}, ExpiresIn=3600
+    )
     return url
+
 
 class S3Client(BaseClient):
     def create_bucket(self, bucket_name: str):
@@ -325,6 +323,41 @@ class S3Client(BaseClient):
         self, bucket_name: str, target_key: str, force_attachment=False
     ):
         return _generate_download_url(bucket_name, target_key, force_attachment)
+
+    def generate_upload_url(
+        self,
+        bucket_name: str,
+        target_key: str,
+        content_type: str = None,
+        raise_if_exists: bool = False,
+    ):
+        s3_client = get_storage_client()
+
+        if raise_if_exists:
+            try:
+                s3_client.head_object(Bucket=bucket_name, Key=target_key)
+                raise ValidationError(
+                    f"File already exists. Choose a different object key Object {target_key}."
+                )
+            except s3_client.exceptions.ClientError as e:
+                if e.response["Error"]["Code"] != "404":
+                    # don't hide non "not found errors"
+                    raise e
+
+        params = {
+            "Bucket": bucket_name,
+            "Key": target_key,
+        }
+
+        if content_type:
+            params["ContentType"] = (content_type,)
+
+        url = s3_client.generate_presigned_url(
+            ClientMethod="put_object",
+            Params=params,
+            ExpiresIn=3600,  # URL expiration time in seconds
+        )
+        return url
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         return _get_bucket_object(bucket_name, object_key)

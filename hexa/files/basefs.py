@@ -54,3 +54,9 @@ class BaseClient(ABC):
     @abstractmethod
     def get_short_lived_downscoped_access_token(self, bucket_name):
         pass
+
+    @abstractmethod
+    def generate_upload_url(
+        bucket_name: str, target_key: str, content_type: str, raise_if_exists=False
+    ):    
+        pass

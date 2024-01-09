@@ -7,18 +7,17 @@ import os
 import typing
 from os.path import dirname, isfile, join
 from warnings import warn
-from .basefs import NotFound 
+from .basefs import NotFound
 
-mode = "s3"
-gcp_client = GCPClient()
-s3_client = S3Client()
+default_mode = "s3"
 
+mode = default_mode
 
-def get_client():
+def get_client(mode=default_mode):
     if mode == "gcp":
-        return gcp_client
+        return GCPClient()
     if mode == "s3":
-        return s3_client
+        return S3Client()
     raise Exception(f"unsupported filesystem {mode}")
 
 
