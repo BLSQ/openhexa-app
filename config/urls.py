@@ -26,6 +26,7 @@ from .schema import schema
 admin.site.site_header = "OpenHEXA Admin"
 admin.site.site_title = "OpenHEXA Admin"
 admin.site.index_title = "Welcome to OpenHEXA"
+admin.site.site_url = "/workspaces"
 
 # Core URLs
 urlpatterns = [
