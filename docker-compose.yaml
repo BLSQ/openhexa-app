@@ -83,6 +83,7 @@ services:
     <<: *common
     command: "manage runserver 0:8000"
     restart: unless-stopped
+    container_name: app
     ports:
       - "8000:8000"
     depends_on:
