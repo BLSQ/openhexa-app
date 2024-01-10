@@ -4,13 +4,13 @@ from django.core.exceptions import ValidationError
 import botocore
 from hexa.core.test import TestCase
 from unittest.mock import patch
-from ..api import mode, NotFound, get_client, load_bucket_sample_data
+from ..api import mode, NotFound, get_storage
 from .mocks.mockgcp import backend
 
 
 class APITestCase:
     def get_client(self):
-        return get_client(self.get_type())
+        return get_storage(self.get_type())
 
     def to_keys(self, page):
         return [x["key"] for x in page.items]
@@ -42,7 +42,7 @@ class APITestCase:
     def test_create_bucket(self):
         self.assertEqual(backend.buckets, {})
         self.get_client().create_bucket("test-bucket")
-        self.assertEqual(list(backend.buckets.keys()), ["test-bucket"])
+        self.assertEqual(self.get_client().list_bucket_objects("test-bucket").items, [])
 
     def test_create_same_bucket(self):
         self.assertEqual(backend.buckets, {})
@@ -296,7 +296,7 @@ class APITestCase:
         res = self.get_client().list_bucket_objects("bucket")
         self.assertEqual(self.to_keys(res), ["test.txt"])
 
-        get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
+        self.get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
         res = self.get_client().list_bucket_objects("bucket")
 
         self.assertEqual(self.to_keys(res), [])
@@ -341,7 +341,7 @@ class APITestCase:
 
     def test_load_bucket_sample_data(self):
         bucket = self.get_client().create_bucket("bucket")
-        load_bucket_sample_data(bucket_name="bucket")
+        self.get_client().load_bucket_sample_data(bucket_name="bucket")
         res = self.get_client().list_bucket_objects("bucket")
 
         self.assertEqual(

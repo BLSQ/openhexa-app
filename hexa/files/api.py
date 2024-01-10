@@ -13,7 +13,8 @@ default_mode = "s3"
 
 mode = default_mode
 
-def get_client(mode=default_mode):
+
+def get_storage(mode=default_mode):
     if mode == "gcp":
         return GCPClient()
     if mode == "s3":
@@ -23,92 +24,88 @@ def get_client(mode=default_mode):
 
 def create_bucket(bucket_name):
     warn(
-        "This is deprecated use get_client().create_bucket(...); version=1.0.0",
+        "This is deprecated use get_storage().create_bucket(...); version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().create_bucket(bucket_name)
+    return get_storage().create_bucket(bucket_name)
 
 
 def load_bucket_sample_data(bucket_name: str):
-    """
-    Init bucket with default content
-    """
-    static_files_dir = join(dirname(__file__), "static")
-    files = [
-        f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
-    ]
-    storage = get_client()
-    for file in files:
-        storage.upload_object(bucket_name, file, join(static_files_dir, file))
+    warn(
+        "This is deprecated use get_storage().load_bucket_sample_data(...);; version=1.0.0",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return get_storage().load_bucket_sample_data(bucket_name)
 
 
 def create_bucket_folder(bucket_name: str, folder_key: str):
     warn(
-        "This is deprecated use get_client().create_bucket_folder(...);; version=1.0.0",
+        "This is deprecated use get_storage().create_bucket_folder(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().create_bucket_folder(bucket_name, folder_key)
+    return get_storage().create_bucket_folder(bucket_name, folder_key)
 
 
 def delete_object(bucket_name, name):
     warn(
-        "This is deprecated use get_client().delete_object(...);; version=1.0.0",
+        "This is deprecated use get_storage().delete_object(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().delete_object(bucket_name, name)
+    return get_storage().delete_object(bucket_name, name)
 
 
 def generate_download_url(bucket_name: str, target_key: str, force_attachment=False):
     warn(
-        "This is deprecated use get_client().generate_download_url(...);; version=1.0.0",
+        "This is deprecated use get_storage().generate_download_url(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().generate_download_url(bucket_name, target_key, force_attachment)
+    return get_storage().generate_download_url(bucket_name, target_key, force_attachment)
 
 
 def generate_upload_url(
     bucket_name: str, target_key: str, content_type: str, raise_if_exists=False
 ):
     warn(
-        "This is deprecated use get_client().generate_upload_url(...);; version=1.0.0",
+        "This is deprecated use get_storage().generate_upload_url(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().generate_upload_url(
+    return get_storage().generate_upload_url(
         bucket_name, target_key, content_type, raise_if_exists
     )
 
 
 def get_bucket_object(bucket_name: str, object_key: str):
     warn(
-        "This is deprecated use get_client().get_bucket_object(...);; version=1.0.0",
+        "This is deprecated use get_storage().get_bucket_object(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().get_bucket_object(bucket_name, object_key)
+    return get_storage().get_bucket_object(bucket_name, object_key)
 
 
 def list_bucket_objects(
     bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
 ):
     warn(
-        "This is deprecated use get_client().list_bucket_objects(...);; version=1.0.0",
+        "This is deprecated use get_storage().list_bucket_objects(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().list_bucket_objects(
+    return get_storage().list_bucket_objects(
         bucket_name, prefix, page, per_page, ignore_hidden_files
     )
 
 
 def get_short_lived_downscoped_access_token(bucket_name):
     warn(
-        "This is deprecated use get_client().get_short_lived_downscoped_access_token(...);; version=1.0.0",
+        "This is deprecated use get_storage().get_short_lived_downscoped_access_token(...);; version=1.0.0",
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_client().get_short_lived_downscoped_access_token(bucket_name)
+    return get_storage().get_short_lived_downscoped_access_token(bucket_name)

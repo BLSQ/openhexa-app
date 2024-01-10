@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 import typing
 from dataclasses import dataclass
 from google.api_core.exceptions import NotFound
-
+from os.path import dirname, isfile, join
+import os 
 @dataclass
 class ObjectsPage:
     items: typing.List[any]
@@ -10,6 +11,18 @@ class ObjectsPage:
     has_previous_page: bool
     page_number: int
 
+
+def load_bucket_sample_data_with(bucket_name: str, client_storage):
+    """
+    Init bucket with default content
+    """
+    static_files_dir = join(dirname(__file__), "static")
+    files = [
+        f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
+    ]
+    
+    for file in files:
+        client_storage.upload_object(bucket_name, file, join(static_files_dir, file))
 
 class BaseClient(ABC):
 

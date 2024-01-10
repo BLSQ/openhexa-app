@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 import botocore
 from .basefs import NotFound
 from datetime import date, datetime
-from .basefs import ObjectsPage, BaseClient
+from .basefs import ObjectsPage, BaseClient, load_bucket_sample_data_with
 
 
 def json_serial(obj):
@@ -385,3 +385,6 @@ class S3Client(BaseClient):
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         return _get_bucket_object(bucket_name, object_key)
+
+    def load_bucket_sample_data(self, bucket_name: str):
+        return load_bucket_sample_data_with(bucket_name, self)
