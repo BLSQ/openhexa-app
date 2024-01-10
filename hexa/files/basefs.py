@@ -60,6 +60,7 @@ class BaseClient(ABC):
         prefix=None,
         page: int = 1,
         per_page=30,
+        query=None,
         ignore_hidden_files=True,
     ):
         pass

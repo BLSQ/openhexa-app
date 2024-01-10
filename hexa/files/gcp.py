@@ -124,9 +124,33 @@ def _prefix_to_dict(bucket_name, name: str):
         "type": "directory",
     }
 
+def iter_request_results(bucket_name, request):
+    # Start by adding all the prefixes
+    # Prefixes are virtual directories based on the delimiter specified in the request
+    # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
+
+    # request.prefixes is a Set (unorder) so to keep the prefixes order we need to sort them
+    pages = request.pages
+    prefixes = request.prefixes
+
+    current_page = next(pages)
+
+    for prefix in sorted(prefixes):
+        yield _prefix_to_dict(bucket_name, prefix)
+
+    while True:
+        for blob in current_page:
+            if not _is_dir(blob):
+                # We ignore objects that are directories (object with a size = 0 and ending with a /)
+                # because they are already listed in the prefixes
+                yield _blob_to_dict(blob)
+        try:
+            current_page = next(pages)
+        except StopIteration:
+            return
 
 def _list_bucket_objects(
-    bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
+    bucket_name, prefix=None, page: int = 1, per_page=30, query=None, ignore_hidden_files=True
 ):
     """Returns the list of objects in a bucket with pagination support.
     Objects starting with a dot can be ignored using `ignore_hidden_files`.
@@ -136,6 +160,7 @@ def _list_bucket_objects(
         prefix (str, optional): The prefix the keys of the objects must have to be returned. Defaults to None.
         page (int, optional): Page to return. Defaults to 1.
         per_page (int, optional): Items per page. Defaults to 30.
+        query (str, optional): Query to filter the objects. Defaults to None.
         ignore_hidden_files (bool, optional): Returns the hidden files and directories if `False`. Defaults to True.
 
     """
@@ -149,62 +174,45 @@ def _list_bucket_objects(
         delimiter="/",
         include_trailing_delimiter=True,
     )
-    pages = request.pages
-
     max_items = (page * per_page) + 1
     start_offset = (page - 1) * per_page
     end_offset = page * per_page
 
     objects = []
-    try:
-        current_page = next(pages)
 
-        # Start by adding all the prefixes
-        # Prefixes are virtual directories based on the delimiter specified in the request
-        # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
+    def is_object_match_query(obj):
+        if ignore_hidden_files and obj["name"].startswith("."):
+            return False
+        if not query:
+            return True
+        return query.lower() in obj["name"].lower()
 
-        # request.prefixes is a Set (unorder) so to keep the prefixes order we need to sort them
-        prefixes = sorted(request.prefixes)
-        for prefix in prefixes:
-            res = _prefix_to_dict(bucket_name, prefix)
-            if not ignore_hidden_files or not res["name"].startswith("."):
-                objects.append(res)
-
-        while True:
-            for obj in current_page:
-                if _is_dir(obj):
-                    # We ignore objects that are directories (object with a size = 0 and ending with a /)
-                    # because they are already listed in the prefixes
-                    continue
-
-                res = _blob_to_dict(obj)
-                if not ignore_hidden_files or not res["name"].startswith("."):
-                    objects.append(res)
+    iterator = iter_request_results(bucket_name, request)
+    while True:
+        try:
+            obj = next(iterator)
+            if is_object_match_query(obj):
+                objects.append(obj)
 
             if len(objects) >= max_items:
-                # We have enough items, let's break
+                # We have enough items, let's stop the loop
                 break
+        except StopIteration:
+            # We reached the end of the list of pages. Let's return what we have and set the
+            # has_next_page to false
+            return ObjectsPage(
+                items=objects[start_offset:end_offset],
+                page_number=page,
+                has_previous_page=page > 1,
+                has_next_page=False,
+            )
 
-            # Otherwise we load the next page and continue our loop
-            current_page = next(pages)
-
-        return ObjectsPage(
-            items=objects[start_offset:end_offset],
-            page_number=page,
-            has_previous_page=page > 1,
-            has_next_page=len(objects) > page * per_page,
-        )
-
-    except StopIteration:
-        # We reached the end of the list of pages. Let's return what we have and set the
-        # has_next_page to false
-        return ObjectsPage(
-            items=objects[start_offset:end_offset],
-            page_number=page,
-            has_previous_page=page > 1,
-            has_next_page=False,
-        )
-
+    return ObjectsPage(
+        items=objects[start_offset:end_offset],
+        page_number=page,
+        has_previous_page=page > 1,
+        has_next_page=len(objects) > page * per_page,
+    )
 
 def ensure_is_folder(object_key: str):
     if object_key.endswith("/") is False:

@@ -104,12 +104,11 @@ def _upload_object(bucket_name: str, file_name: str, source: str):
     return get_storage_client().upload_file(source, bucket_name, file_name)
 
 
-def _list_bucket_objects(bucket_name, prefix, page, per_page, ignore_hidden_files):
+def _list_bucket_objects(bucket_name, prefix, page, per_page, query, ignore_hidden_files):
     prefix = prefix or ""
     max_items = (page * per_page) + 1
     start_offset = (page - 1) * per_page
     end_offset = page * per_page
-
     paginator = get_storage_client().get_paginator("list_objects_v2")
 
     pages = paginator.paginate(
@@ -368,10 +367,11 @@ class S3Client(BaseClient):
         prefix=None,
         page: int = 1,
         per_page=30,
+        query=None,
         ignore_hidden_files=True,
     ):
         return _list_bucket_objects(
-            bucket_name, prefix, page, per_page, ignore_hidden_files
+            bucket_name, prefix, page, per_page, query, ignore_hidden_files
         )
 
     def get_short_lived_downscoped_access_token(self, bucket_name):

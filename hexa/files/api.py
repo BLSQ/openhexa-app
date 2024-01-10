@@ -90,7 +90,7 @@ def get_bucket_object(bucket_name: str, object_key: str):
 
 
 def list_bucket_objects(
-    bucket_name, prefix=None, page: int = 1, per_page=30, ignore_hidden_files=True
+    bucket_name, prefix=None, page: int = 1, per_page=30, query=None, ignore_hidden_files=True
 ):
     warn(
         "This is deprecated use get_storage().list_bucket_objects(...);; version=1.0.0",
@@ -98,7 +98,7 @@ def list_bucket_objects(
         stacklevel=2,
     )
     return get_storage().list_bucket_objects(
-        bucket_name, prefix, page, per_page, ignore_hidden_files
+        bucket_name, prefix, page, per_page, query, ignore_hidden_files
     )
 
 
