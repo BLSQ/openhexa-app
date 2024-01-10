@@ -23,9 +23,9 @@ def get_storage_client(type="s3"):
     # TODO see if I can reuse the existing "aws" related things in django settings
     s3 = boto3.client(
         type,
-        endpoint_url="http://minio:9000",
-        aws_access_key_id="minio_access_key",
-        aws_secret_access_key="minio_secret_key",
+        endpoint_url=settings.AWS_ENDPOINT_URL,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     )
     return s3
 
