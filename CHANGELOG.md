@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.64.0](https://github.com/BLSQ/openhexa-app/compare/0.63.2...0.64.0) (2024-01-08)
+
+
+### Features
+
+* **Files:** Filter files matching a substring ([a119ea9](https://github.com/BLSQ/openhexa-app/commit/a119ea9daaf10fd2eeb9c97e0afaba4f623cd806))
+* **Files:** Filter files matching a substring ([#621](https://github.com/BLSQ/openhexa-app/issues/621)) ([06d3321](https://github.com/BLSQ/openhexa-app/commit/06d3321d882b58074924b402a09cc0957f20dcb0))
+* **i18n:** App is translatable ([#624](https://github.com/BLSQ/openhexa-app/issues/624)) ([c19e7fb](https://github.com/BLSQ/openhexa-app/commit/c19e7fb8de1d15323499c51dd87b3456f0c948c0))
+* User can register & see their workspace's invitations ([#613](https://github.com/BLSQ/openhexa-app/issues/613)) ([81ec731](https://github.com/BLSQ/openhexa-app/commit/81ec731b2fedd8ed8c30fccc74751fd1ccfeec82))
+
+
+### Bug Fixes
+
+* **tests:** Missing openHexa ([799bb55](https://github.com/BLSQ/openhexa-app/commit/799bb559768b7a1b2b9177abc5f3775ed884e32b))
+
+## [0.63.2](https://github.com/BLSQ/openhexa-app/compare/0.63.1...0.63.2) (2023-12-29)
+
+
+### Bug Fixes
+
+* logout handling for Django 5 ([#619](https://github.com/BLSQ/openhexa-app/issues/619)) ([68a1ff6](https://github.com/BLSQ/openhexa-app/commit/68a1ff62525d2efef86503817cb81bace283d3bc))
+
+
+### Miscellaneous
+
+* remove TOS ([#618](https://github.com/BLSQ/openhexa-app/issues/618)) ([e669fb7](https://github.com/BLSQ/openhexa-app/commit/e669fb70659faa828d9b3dbea60afe4d8677f3c0))
+
+## [0.63.1](https://github.com/BLSQ/openhexa-app/compare/0.63.0...0.63.1) (2023-12-29)
+
+
+### Bug Fixes
+
+* **Pipelines:** Fix boolean -&gt; bool for the pipeline webhook ([#616](https://github.com/BLSQ/openhexa-app/issues/616)) ([61c37e8](https://github.com/BLSQ/openhexa-app/commit/61c37e895df1ed32d92cd16669fa98a890765352))
+
+
+### Miscellaneous
+
+* Django 5 and deps overhaul ([#615](https://github.com/BLSQ/openhexa-app/issues/615)) ([491c540](https://github.com/BLSQ/openhexa-app/commit/491c5405033e337b5eccdfd21fdae4ed802f262d))
+* Keep comm with JupyterHub API internal to the Docker network ([#599](https://github.com/BLSQ/openhexa-app/issues/599)) ([fed8574](https://github.com/BLSQ/openhexa-app/commit/fed8574eb34321f184d4dc2dfda7ec317a7a55e9))
+
 ## [0.63.0](https://github.com/BLSQ/openhexa-app/compare/0.62.0...0.63.0) (2023-12-26)
 
 
@@ -698,7 +738,7 @@ January 11, 2022
 
 ### Added
 
-- Added the foundations of the OpenHexa GraphQL API
+- Added the foundations of the OpenHEXA GraphQL API
 - Implemented Auth GraphQL API
 
 ### Updated

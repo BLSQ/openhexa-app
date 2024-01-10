@@ -279,7 +279,7 @@ class WorkspaceMembership(models.Model):
         max_length=50,
         blank=True,
         unique=True,
-        help_text="Access token that can be used to interact with the OpenHexa API (will be generated automatically, set to empty to regenerate a new token)",
+        help_text="Access token that can be used to interact with the OpenHEXA API (will be generated automatically, set to empty to regenerate a new token)",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -318,6 +318,7 @@ class WorkspaceMembership(models.Model):
 
 class WorkspaceInvitationStatus(models.TextChoices):
     PENDING = "PENDING"
+    DECLINED = "DECLINED"
     ACCEPTED = "ACCEPTED"
 
 

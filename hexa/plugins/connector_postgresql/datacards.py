@@ -3,7 +3,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from hexa.catalog.datacards import OpenHexaMetaDataSection
+from hexa.catalog.datacards import OpenHEXAMetaDataSection
 from hexa.plugins.connector_postgresql.models import Database, Table
 from hexa.ui.datacard import CodeProperty, Datacard, Section, TextProperty
 
@@ -71,7 +71,7 @@ class DatabaseCard(Datacard):
     # actions = [Action(label="Sync", url="get_sync_url", icon="refresh")]
 
     external = DatabaseSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
     usage = UsageSection()
 
     @property
@@ -110,7 +110,7 @@ class TableCard(Datacard):
     image_src = "postgres_image_src"
 
     external = TableSection()
-    metadata = OpenHexaMetaDataSection(value="index")
+    metadata = OpenHEXAMetaDataSection(value="index")
 
     @property
     def generic_description(self):

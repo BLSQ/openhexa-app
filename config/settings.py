@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,13 +87,13 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "hexa.user_management.middlewares.TwoFactorMiddleware",
+    "hexa.user_management.middlewares.UserLanguageMiddleware",
     "hexa.plugins.connector_airflow.middlewares.dag_run_authentication_middleware",
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
-    "hexa.user_management.middlewares.accepted_tos_required_middleware",
     "hexa.metrics.middlewares.track_request_event",
 ]
 
@@ -208,6 +209,12 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
+LANGUAGE_COOKIE_NAME = "hexa_language"
+LANGUAGES = [
+    ("en", _("English")),
+    ("fr", _("French")),
+]
+LOCALE_PATHS = [BASE_DIR / "hexa" / "locale"]
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -234,7 +241,7 @@ COMMENTS_APP = "hexa.comments"
 
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
-NOTEBOOKS_API_URL = os.environ.get("NOTEBOOKS_API_URL", "http://localhost:8001/hub/api")
+NOTEBOOKS_HUB_URL = os.environ.get("NOTEBOOKS_HUB_URL", "http://jupyterhub:8000/hub")
 HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "notatoken")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
@@ -341,7 +348,7 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS") == "true"
 DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL", "OpenHexa <hexatron@notifications.openhexa.org>"
+    "DEFAULT_FROM_EMAIL", "OpenHEXA <hexatron@notifications.openhexa.org>"
 )
 
 if all([EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD]):
@@ -415,7 +422,7 @@ PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
 OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
-OTP_EMAIL_SUBJECT = "OpenHexa Verification Token"
+OTP_EMAIL_SUBJECT = "OpenHEXA Verification Token"
 
 # Workspace Database settings
 WORKSPACES_DATABASE_ROLE = os.environ.get("WORKSPACES_DATABASE_ROLE")

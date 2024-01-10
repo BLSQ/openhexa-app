@@ -45,6 +45,7 @@ def resolve_bucket_objects(
     workspace,
     info,
     prefix=None,
+    query=None,
     page=1,
     per_page=15,
     ignore_hidden_files=True,
@@ -57,6 +58,7 @@ def resolve_bucket_objects(
         prefix=prefix,
         page=page,
         per_page=per_page,
+        query=query,
         ignore_hidden_files=ignore_hidden_files,
     )
 

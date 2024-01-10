@@ -1,11 +1,11 @@
-{% load date_utils %}
-
+{% load i18n date_utils %}
+{% blocktranslate %}
 The report for pipeline {{pipeline_code}} is available:
 Status : {{status}}
 Executed at : {{executed_at}}
 Duration : {{duration | duration_format:True}}
 
 Please go to the following page to view it: {{ run_url }}
+{% endblocktranslate %}
 
-
-The OpenHexa team
+{%blocktranslate%}The OpenHEXA team{%endblocktranslate%}

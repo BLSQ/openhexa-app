@@ -302,7 +302,7 @@ class ViewsTest(TestCase):
                 {
                     "code": "param",
                     "name": "Param",
-                    "type": "boolean",
+                    "type": "bool",
                     "required": True,
                 }
             ],
@@ -315,7 +315,7 @@ class ViewsTest(TestCase):
                 {
                     "code": "param",
                     "name": "Param",
-                    "type": "boolean",
+                    "type": "bool",
                     "required": True,
                 }
             ],
@@ -329,7 +329,7 @@ class ViewsTest(TestCase):
                 {
                     "code": "param",
                     "name": "Param",
-                    "type": "boolean",
+                    "type": "bool",
                 }
             ],
             {"param": "false"},
@@ -341,7 +341,7 @@ class ViewsTest(TestCase):
                 {
                     "code": "param",
                     "name": "Param",
-                    "type": "boolean",
+                    "type": "bool",
                 }
             ],
             {"param": 0},

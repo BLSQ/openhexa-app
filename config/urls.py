@@ -16,22 +16,21 @@ Including another URLconf
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 
 from hexa.app import get_hexa_app_configs
+from hexa.user_management.views import LogoutView
 
 from .schema import schema
 
-admin.site.site_header = "OpenHexa Admin"
-admin.site.site_title = "OpenHexa Admin"
-admin.site.index_title = "Welcome to OpenHexa"
+admin.site.site_header = "OpenHEXA Admin"
+admin.site.site_title = "OpenHEXA Admin"
+admin.site.index_title = "Welcome to OpenHEXA"
 
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("hexa.core.urls", namespace="core")),
-    path("user/", include("hexa.user_management.urls", namespace="user")),
     path("catalog/", include("hexa.catalog.urls", namespace="catalog")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
@@ -44,7 +43,7 @@ urlpatterns = [
     # TODO: use API (https://github.com/jupyterhub/jupyterhub/issues/3688)
     path(
         "auth/logout/",
-        auth_views.LogoutView.as_view(next_page=f"{settings.NOTEBOOKS_URL}/hub/logout"),
+        LogoutView.as_view(),
         name="logout",
     ),
     path("auth/", include("django.contrib.auth.urls")),

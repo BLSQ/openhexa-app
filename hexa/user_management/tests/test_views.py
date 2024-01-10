@@ -1,6 +1,4 @@
-from unittest import skip
-
-from django import test
+import responses
 from django.conf import settings
 from django.urls import reverse
 
@@ -30,19 +28,20 @@ class ViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
+    @responses.activate
     def test_logout_302(self):
+        responses.add(
+            responses.GET,
+            f"{settings.NOTEBOOKS_HUB_URL}/logout",
+            status=302,
+        )
+
         self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("logout"))
+        response = self.client.post(reverse("logout"))
 
         # Check that the response is temporary redirection to JupyterHub logout.
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, f"{settings.NOTEBOOKS_URL}/hub/logout")
-
-    def test_account_200(self):
-        self.client.login(email="john@bluesquarehub.com", password="regular")
-        response = self.client.get(reverse("user:account"))
-
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.url, "/login")
 
     def test_graphql_anonymous(self):
         response = self.client.get(reverse("graphql"))
@@ -59,25 +58,6 @@ class AcceptTosTest(TestCase):
             "john@bluesquarehub.com",
             "regular",
         )
-
-    @test.override_settings(USER_MUST_ACCEPT_TOS=True)
-    @skip
-    def test_tos(self):
-        self.client.login(email="john@bluesquarehub.com", password="regular")
-
-        # without validation -> page should ask to accept tos
-        response = self.client.get(reverse("core:index"))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, True)
-
-        # let's accept -> should redirect to index
-        response = self.client.post(reverse("user:accept_tos"))
-        self.assertEqual(response.status_code, 302)
-
-        # let's retry to load the dashboard -> not an accept_tos page
-        response = self.client.get(reverse("core:index"))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(b"TEST-KEY: ACCEPT_TOS" in response.content, False)
 
 
 class InviteUserAdminTest(TestCase):

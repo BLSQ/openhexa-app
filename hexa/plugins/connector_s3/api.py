@@ -195,7 +195,7 @@ def generate_sts_user_s3_credentials(
             RoleName=role_name,
             MaxSessionDuration=duration,
             AssumeRolePolicyDocument=assume_role_policy_doc,
-            Description="OpenHexa auto role for notebooks/pipelines",
+            Description="OpenHEXA auto role for notebooks/pipelines",
             Path="/",
             PermissionsBoundary=s3_credentials["permissions_boundary_policy_arn"],
         )

@@ -50,11 +50,5 @@ coverage[toml]
 
 # Data worker
 # (unpin or update with great caution, subtle issues can arise with new versions)
-rasterio==1.2.10
-rio-cogeo==3.2.0
-morecantile==3.3.0
-pydantic==1.10.6
-gdal==3.2.2
-s3fs==2022.01.0
-gcsfs==2022.01.0
-fsspec==2022.01.0
+rasterio
+rio-cogeo

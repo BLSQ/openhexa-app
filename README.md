@@ -1,5 +1,5 @@
 <div align="center">
-   <img alt="OpenHexa Logo" src="https://raw.githubusercontent.com/BLSQ/openhexa-app/main/hexa/static/img/logo/logo_with_text_grey.svg" height="80">
+   <img alt="OpenHEXA Logo" src="https://raw.githubusercontent.com/BLSQ/openhexa-app/main/hexa/static/img/logo/logo_with_text_grey.svg" height="80">
 </div>
 <p align="center">
     <em>Open-source Data integration platform</em>
@@ -10,68 +10,44 @@
    </a>
 </p>
 
-OpenHexa App Component
+OpenHEXA App Component
 ======================
 
-OpenHexa is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
+OpenHEXA is an open-source data integration platform developed by [Bluesquare](https://bluesquarehub.com).
 
 Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health 
 projects.
 
-Please refer to the [OpenHexa wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHexa.
+Please refer to the [OpenHEXA wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHEXA.
 
 This repository contains the code for what we call the `app` component, which mostly offers a GraphQL API and an 
 infrastructure to run data pipelines.
 
-For more information about the technical aspects of OpenHexa, you might be interested in the two following wiki pages:
+Docker image
+------------
 
-- [Installing OpenHexa](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)
-- [Technical Overview](https://github.com/BLSQ/openhexa/wiki/Technical-overview)
-
-Container
----------
-
-OpenHexa App is published as a Docker Image on Docker Hub:
+OpenHEXA App is published as a Docker Image on Docker Hub:
 [blsq/openhexa-app](https://hub.docker.com/r/blsq/openhexa-app).
 
-You can run a simple interactive bash session as it follows:
-
-```bash
-docker run --rm -ti blsq/openhexa-app bash
-```
-
-Other commands are available:
-
-```
-  Available commands:
-
-  start             : start django server using gunicorn
-  makemigrations    : generate a django migration
-  migrate           : run django migrations
-  test              : launch django tests
-  manage            : run django manage.py
-  fixtures          : migrate, create superuser, load fixtures and reindex
-  bash              : run bash
-  coveraged-test    : launch django tests and show a coverage report
-
-  Any arguments passed will be forwarded to the executed command
-```
-
-If you run the Django server, it will look for a database server. If you need
-something working out of the box for local development, go to the next section.
+You can use `docker run blsq/openhexa-app help` to list the available commands.
 
 Local development
 -----------------
 
+The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation) 
+section of our wiki gives an overview of the local development setup required to run OpenHEXA locally.
+
 To ease the setup of the environment and management of dependencies, we are using containerization, in particular
-Docker. As such, we provide a `docker-compose.yaml` file for local development. When running it, the present code base
-is mounted inside the container. That means that the changes are reflected directly in the container environment
-allowing you to develop.
+[Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development. 
+
+When running the App component using `docker compose`, the code of this repository is mounted as a volume within the 
+container, so that any change you make in your local copy of the codebase is directly reflected in the running 
+container.
 
 The following steps will get you up and running:
 
 ```bash
-cp .env.dist .env
+cp .env.dist .env  # adapt the .env file with the required configuration values
 docker network create openhexa
 docker compose build
 docker compose run app fixtures
@@ -101,24 +77,22 @@ If you need the pipelines or want to work on them, there are 2 optional services
 docker compose --profile pipelines up
 ```
 
-As for the backend, the code base is mounted inside the container. That means that the changes are reflected directly in
-the container environment allowing you to develop.
+The [Writing OpenHEXA pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines) section of the wiki 
+contains the instructions needed to build and deploy a data pipeline on OpenHEXA.
 
-When it's up and running, you can submit a pipeline. For that, you can follow the [README of the OpenHexa SDK Python]
-(https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#quickstart). It will help you to scaffold your first
-OpenHexa pipeline project and submit it.
+To deploy and run data pipelines locally, you will need to:
 
-Before submitting a pipeline, you need to make sure the next steps:
+1. Create a workspace on your local instance
+2. Configure the SDK to use your local instance as the backend
 
-1. create a workspace on your local instance `http://localhost:3000/workspaces/`, this will provide you a workspace name
-   and token,
-2. [configure the URL of the backend API](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-the-openhexa-backend-to-run-pipelines)
-   used by your pipeline project:
-   ```bash
-   openhexa config set_url http://localhost:8000
-   ```
+```bash
+openhexa config set_url http://localhost:8000
+```
 
-When it's done, you can push your pipeline to your local instance.
+You can now deploy your pipelines to your local OpenHEXA instance.
+
+Please refer to the [SDK documentation](https://github.com/BLSQ/openhexa-sdk-python/blob/main/README.md#using-a-local-installation-of-openhexa-to-run-pipelines)
+for more information.
 
 ### Data worker
 
@@ -166,6 +140,22 @@ docker compose run app test hexa.core.tests.CoreTest.test_ready_200
 There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),
 as it is what we are using.
 
+### I18N
+
+You can extract the strings to translate with the following command:
+
+```bash
+docker compose run app manage makemessages -l fr # Where fr is the language code
+```
+
+You can then translate the strings in the `hexa/locale` folder.
+
+To compile the translations, run the following command:
+
+```bash
+docker compose run app manage compilemessages
+```
+
 ### Code style
 
 Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) and [`autoflake`](https://github.com/myint/autoflake).
@@ -202,7 +192,7 @@ The most important prefixes you should have in mind are:
 
 ### Two-factor authentication
 
-The two-factor authentication implemented in OpenHexa is optional and can be enabled per user.
+The two-factor authentication implemented in OpenHEXA is optional and can be enabled per user.
 
 In order to enable the two-factor authentication you need to create a `Feature` with the code `two_factor`.
 You can then link this `Feature` to specific users by creating the corresponding `FeatureFlag` of by setting 

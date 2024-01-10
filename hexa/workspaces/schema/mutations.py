@@ -1,13 +1,11 @@
-import binascii
+from datetime import datetime
 
 from ariadne import MutationType
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import BadSignature, SignatureExpired, Signer
+from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, override
 
 from config import settings
 from hexa.core.utils import send_mail
@@ -137,20 +135,21 @@ def resolve_invite_workspace_member(_, info, **kwargs):
                     feature=Feature.objects.get(code="workspaces"), user=user
                 )
 
-            send_mail(
-                title=gettext_lazy(
-                    f"You've been added to the workspace {workspace.name}"
-                ),
-                template_name="workspaces/mails/invite_member",
-                template_variables={
-                    "workspace": workspace.name,
-                    "owner": request.user.display_name,
-                    "workspace_url": request.build_absolute_uri(
-                        f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
-                    ),
-                },
-                recipient_list=[user.email],
-            )
+            with override(user.language):
+                send_mail(
+                    title=gettext_lazy(
+                        "You've been added to the workspace {workspace_name}"
+                    ).format(workspace_name=workspace.name),
+                    template_name="workspaces/mails/invite_member",
+                    template_variables={
+                        "workspace": workspace.name,
+                        "owner": request.user.display_name,
+                        "workspace_url": request.build_absolute_uri(
+                            f"//{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace.slug}"
+                        ),
+                    },
+                    recipient_list=[user.email],
+                )
             return {
                 "success": True,
                 "errors": [],
@@ -198,75 +197,39 @@ def resolve_join_workspace(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.get_by_token(input["token"])
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
         if invitation.status == WorkspaceInvitationStatus.ACCEPTED:
-            raise AlreadyExists
-
-        if WorkspaceMembership.objects.filter(
-            user__email=invitation.email, workspace=invitation.workspace
-        ).exists():
-            raise AlreadyExists(
-                f"Already got a membership for {invitation.email} and workspace {invitation.workspace.name}"
-            )
-
-        if request.user.is_authenticated and request.user.email != invitation.email:
+            return {"success": False, "errors": ["ALREADY_ACCEPTED"]}
+        if request.user.email != invitation.email:
             raise PermissionDenied("You cannot accept an invitation for another user.")
 
-        # Check if a user already exists with this email
-        # If it exists, is has to be authenticated to accept the invitation
-        try:
-            user = User.objects.get(email=invitation.email)
-            if request.user.is_anonymous:
-                return {
-                    "success": False,
-                    "errors": ["AUTHENTICATION_REQUIRED"],
-                }
-        except User.DoesNotExist:
-            if input["password"] != input["confirmPassword"]:
-                raise ValidationError("The two passwords do not match.")
-
-            validate_password(password=input["password"])
-            user = User.objects.create_user(
-                email=invitation.email,
-                first_name=input["firstName"],
-                last_name=input["lastName"],
-                password=input["password"],
+        if WorkspaceMembership.objects.filter(
+            user=request.user, workspace=invitation.workspace
+        ).exists():
+            raise AlreadyExists(
+                f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
             )
-            FeatureFlag.objects.create(
-                feature=Feature.objects.get(code="workspaces"), user=user
-            )
-
-            # Let's authenticate the user automatically
-            authenticated_user = authenticate(
-                username=invitation.email, password=input["password"]
-            )
-            login(request, authenticated_user)
 
         # We create the membership
         WorkspaceMembership.objects.create(
             workspace=invitation.workspace,
-            user=user,
+            user=request.user,
             role=invitation.role,
         )
         invitation.status = WorkspaceInvitationStatus.ACCEPTED
         invitation.save()
 
-        return {"success": True, "errors": [], "workspace": invitation.workspace}
-
-    except (SignatureExpired, binascii.Error, BadSignature):
         return {
-            "success": False,
-            "errors": ["INVALID_TOKEN"],
+            "success": True,
+            "errors": [],
+            "workspace": invitation.workspace,
+            "invitation": invitation,
         }
+
     except AlreadyExists:
         return {
             "success": False,
             "errors": ["ALREADY_EXISTS"],
-        }
-    except ValidationError:
-        return {
-            "success": False,
-            "errors": ["INVALID_CREDENTIALS"],
         }
     except PermissionDenied:
         return {
@@ -280,18 +243,56 @@ def resolve_join_workspace(_, info, **kwargs):
         }
 
 
+@workspace_mutations.field("declineWorkspaceInvitation")
+def resolve_decline_workspace_invitation(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+
+    try:
+        invitation = WorkspaceInvitation.objects.get(id=input["invitationId"])
+
+        if request.user.email != invitation.email:
+            raise PermissionDenied("You cannot decline an invitation for another user.")
+        if invitation.status in (
+            WorkspaceInvitationStatus.DECLINED,
+            WorkspaceInvitationStatus.ACCEPTED,
+        ):
+            raise PermissionDenied(
+                "You cannot decline an invitation that has been declined or accepted."
+            )
+
+        invitation.status = WorkspaceInvitationStatus.DECLINED
+        invitation.save()
+        return {
+            "success": True,
+            "invitation": invitation,
+            "errors": [],
+        }
+    except WorkspaceInvitation.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["INVITATION_NOT_FOUND"],
+        }
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
 @workspace_mutations.field("resendWorkspaceInvitation")
 def resolve_resend_workspace_invitation(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     input = kwargs["input"]
 
     try:
-        invitation = WorkspaceInvitation.objects.filter(
-            status=WorkspaceInvitationStatus.PENDING
+        invitation = WorkspaceInvitation.objects.exclude(
+            status=WorkspaceInvitationStatus.ACCEPTED
         ).get(id=input["invitationId"])
 
         if not request.user.has_perm("workspaces.manage_members", invitation.workspace):
             raise PermissionDenied
+
+        invitation.status = WorkspaceInvitationStatus.PENDING
+        invitation.updated_at = datetime.utcnow()
+        invitation.save()
 
         send_workspace_invitation_email(invitation)
         return {

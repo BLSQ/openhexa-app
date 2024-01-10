@@ -29,7 +29,7 @@
             aria-labelledby="user-menu"
     >
         <a
-                href="{% url "user:account" %}"
+                href="/user/account"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 role="menuitem"
         >
@@ -44,12 +44,9 @@
             {% translate "Admin" %}
         </a>
         {% endif %}
-        <a
-                href="{% url "logout" %}"
-                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem"
-        >
-            {% translate "Sign out" %}
-        </a>
+        <form method="post" action="{% url 'admin:logout' %}" class="block w-full">
+            {% csrf_token %}
+            <button type="submit" class="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">{% translate "Sign out" %}</button>
+        </form>
     </div>
 </div>

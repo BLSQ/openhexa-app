@@ -1,7 +1,7 @@
-FROM python:3.9 as deps
+FROM python:3.11 as deps
 
 RUN apt-get update
-RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin
+RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext
 
 RUN pip install --upgrade pip
 

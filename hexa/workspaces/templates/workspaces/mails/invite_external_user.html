@@ -2,12 +2,12 @@
 {% autoescape off %}
 {% blocktranslate %}You have been invited to join <b>{{workspace}}</b> workspace by {{owner}}.{% endblocktranslate %}
 
-<p>
-    <a href="{{ workspace_signup_url }}">{% translate "Create your account" %}</a> {% translate "to join the workspace." %}
-</p>
 
+{% blocktranslate %}<p>
+    <a href="{{ workspace_signup_url }}">Create your account</a>&nbsp;to join the workspace.
+</p>{%  endblocktranslate%}
 <br/>
 <br/>
-{% blocktranslate %}The OpenHexa team{% endblocktranslate %}
+{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
 
 {% endautoescape %}
