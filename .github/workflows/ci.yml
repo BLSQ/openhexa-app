@@ -43,6 +43,9 @@ jobs:
       - run: npm run i18n:extract
         name: Check I18N strings
 
+      - name: Ensure all keys are translated
+        run: npm run i18n:validate
+
   ci:
     name: Lint, Test & Build
     runs-on: ubuntu-latest

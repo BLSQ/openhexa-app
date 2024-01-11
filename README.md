@@ -154,6 +154,12 @@ or
 npm run i18n:translate fr --overwrite # translate to French and overwrite all the strings
 ```
 
+You can validate that all the strings are translated using the following command:
+
+```bash
+npm run i18n:validate
+```
+
 
 
 
