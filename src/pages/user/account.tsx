@@ -12,6 +12,7 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList, {
   DescriptionListDisplayMode,
 } from "core/components/DescriptionList";
+import Link from "core/components/Link";
 import Page from "core/components/Page";
 import SimpleSelect from "core/components/forms/SimpleSelect";
 import { AlertType, displayAlert } from "core/helpers/alert";
@@ -19,6 +20,7 @@ import { LANGUAGES } from "core/helpers/i18n";
 import { createGetServerSideProps } from "core/helpers/page";
 import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
+import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql-types";
 import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
 import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
 import { useUpdateUserMutation } from "identity/graphql/mutations.generated";
@@ -31,14 +33,16 @@ import { logout } from "identity/helpers/auth";
 import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
 import {
   useDeclineWorkspaceInvitationMutation,
   useJoinWorkspaceMutation,
 } from "workspaces/graphql/mutations.generated";
+import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data, refetch } = useAccountPageQuery();
+  const { data } = useAccountPageQuery();
   const [twoFactorEnabled] = useFeature("two_factor");
   const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
   const router = useRouter();
@@ -47,30 +51,26 @@ function AccountPage() {
   const [joinWorkspace] = useJoinWorkspaceMutation();
   const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
 
-  async function doJoinWorkspace(invitationId: string) {
+  async function doJoinWorkspace(invitation: WorkspaceInvitation) {
     const { data } = await joinWorkspace({
-      variables: { input: { invitationId } },
+      variables: { input: { invitationId: invitation.id } },
     });
     if (!data?.joinWorkspace.success) {
       displayAlert(t("Failed to accept invitation"), AlertType.error);
-    } else {
-      refetch();
     }
   }
 
-  async function doDeclineWorkspaceInvitation(invitationId: string) {
+  async function doDeclineWorkspaceInvitation(invitation: WorkspaceInvitation) {
     if (
       !window.confirm(t("Are you sure you want to decline this invitation?"))
     ) {
       return;
     }
     const { data } = await declineWorkspaceInvitation({
-      variables: { input: { invitationId } },
+      variables: { input: { invitationId: invitation.id } },
     });
     if (!data?.declineWorkspaceInvitation.success) {
       displayAlert(t("Failed to decline invitation"), AlertType.error);
-    } else {
-      refetch();
     }
   }
 
@@ -99,7 +99,6 @@ function AccountPage() {
     <Page title={t("Account")}>
       <BackLayout
         className="gap-5 flex flex-col"
-        onBack={() => router.back()}
         title={
           <div className={"flex justify-between items-center gap-3"}>
             {t("Your account")}
@@ -197,7 +196,7 @@ function AccountPage() {
 
         {data.pendingWorkspaceInvitations.totalItems > 0 ? (
           <Block>
-            <Block.Header>{t("Pending invitations")}</Block.Header>
+            <Block.Header>{t("Workspace invitations")}</Block.Header>
             <DataGrid
               totalItems={data.pendingWorkspaceInvitations.totalItems}
               data={data.pendingWorkspaceInvitations.items}
@@ -213,24 +212,55 @@ function AccountPage() {
                 label={t("Invited by")}
                 id="invitedBy"
               />
+              <TextColumn
+                accessor={(member) =>
+                  formatWorkspaceMembershipRole(member.role)
+                }
+                label={t("Role")}
+                id="role"
+              />
               <BaseColumn className="flex justify-end gap-x-2">
                 {(invitation) => (
                   <>
-                    <Button
-                      onClick={() => doJoinWorkspace(invitation.id)}
-                      size="sm"
-                    >
-                      {t("Accept")}
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        doDeclineWorkspaceInvitation(invitation.id)
-                      }
-                      size="sm"
-                      variant="danger"
-                    >
-                      {t("Decline")}
-                    </Button>
+                    {invitation.status ===
+                      WorkspaceInvitationStatus.Declined && (
+                      <span className="text-sm text-gray-400">
+                        {t("Declined")}
+                      </span>
+                    )}
+
+                    {invitation.status ===
+                      WorkspaceInvitationStatus.Accepted && (
+                      <Link
+                        href={{
+                          pathname: "/workspaces/[workspaceSlug]",
+                          query: { workspaceSlug: invitation.workspace.slug },
+                        }}
+                        className="text-sm"
+                      >
+                        {t("View")}
+                      </Link>
+                    )}
+                    {invitation.status ===
+                      WorkspaceInvitationStatus.Pending && (
+                      <>
+                        <Button
+                          onClick={() => doJoinWorkspace(invitation)}
+                          size="sm"
+                        >
+                          {t("Accept")}
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            doDeclineWorkspaceInvitation(invitation)
+                          }
+                          size="sm"
+                          variant="danger"
+                        >
+                          {t("Decline")}
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </BaseColumn>

@@ -38,7 +38,6 @@ query AccountPage {
       email
       language
       ...User_user
-      ...User_user
     }
   }
 
@@ -46,9 +45,11 @@ query AccountPage {
     totalItems
     items {
       id
+      status
       invitedBy {
         ...User_user
       }
+      role
       workspace {
         slug
         name

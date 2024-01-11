@@ -6,7 +6,6 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
 import { User, WorkspaceMembership } from "graphql-types";
-import { capitalize } from "lodash";
 import { DateTime } from "luxon";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
@@ -14,6 +13,7 @@ import DeleteWorkspaceMemberDialog from "./DeleteWorkspaceMemberDialog";
 import UpdateWorkspaceMemberDialog from "./UpdateWorkspaceMemberDialog";
 import { WorskspaceMembersQuery } from "./WorkspaceMembers.generated";
 import useMe from "identity/hooks/useMe";
+import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -111,7 +111,7 @@ export default function WorkspaceMembers({
         />
         <TextColumn
           className="max-w-[50ch] py-3 "
-          accessor={(member) => capitalize(member.role)}
+          accessor={(member) => formatWorkspaceMembershipRole(member.role)}
           label={t("Role")}
           id="member_role"
         />

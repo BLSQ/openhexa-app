@@ -1,6 +1,7 @@
 import * as Types from '../../graphql-types';
 
 import { gql } from '@apollo/client';
+import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type CreateWorkspaceMutationVariables = Types.Exact<{
@@ -85,7 +86,7 @@ export type JoinWorkspaceMutationVariables = Types.Exact<{
 }>;
 
 
-export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<Types.JoinWorkspaceError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus } | null, workspace?: { __typename?: 'Workspace', slug: string } | null } };
+export type JoinWorkspaceMutation = { __typename?: 'Mutation', joinWorkspace: { __typename?: 'JoinWorkspaceResult', success: boolean, errors: Array<Types.JoinWorkspaceError>, invitation?: { __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } } | null, workspace?: { __typename?: 'Workspace', slug: string } | null } };
 
 export type DeclineWorkspaceInvitationMutationVariables = Types.Exact<{
   input: Types.DeclineWorkspaceInvitationInput;
@@ -533,13 +534,22 @@ export const JoinWorkspaceDocument = gql`
     invitation {
       id
       status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
     }
     workspace {
       slug
     }
   }
 }
-    `;
+    ${User_UserFragmentDoc}`;
 export type JoinWorkspaceMutationFn = Apollo.MutationFunction<JoinWorkspaceMutation, JoinWorkspaceMutationVariables>;
 
 /**

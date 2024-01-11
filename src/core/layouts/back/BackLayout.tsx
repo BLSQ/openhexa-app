@@ -3,6 +3,7 @@ import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { useTranslation } from "next-i18next";
 import Button from "core/components/Button";
 import clsx from "clsx";
+import { useRouter } from "next/router";
 
 type BackLayoutProps = {
   title: string | ReactNode;
@@ -17,6 +18,18 @@ const BackLayout = ({
   onBack,
   className,
 }: BackLayoutProps) => {
+  const router = useRouter();
+  const handleBack = () => {
+    if (onBack) {
+      return onBack();
+    }
+
+    if (window.history.length > 1) {
+      return router.back();
+    } else {
+      return router.push("/workspaces");
+    }
+  };
   const { t } = useTranslation();
   return (
     <div className="w-screen min-h-screen">
@@ -27,7 +40,7 @@ const BackLayout = ({
           }
         >
           <Button
-            onClick={onBack}
+            onClick={handleBack}
             variant={"custom"}
             className={"text-white border-none hover:bg-gray-600"}
             leadingIcon={<ChevronLeftIcon className={"w-6 h-6 -my-2"} />}

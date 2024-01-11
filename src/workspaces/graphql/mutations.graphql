@@ -125,6 +125,15 @@ mutation joinWorkspace($input: JoinWorkspaceInput!) {
     invitation {
       id
       status
+      invitedBy {
+        ...User_user
+      }
+      role
+      workspace {
+        slug
+        name
+      }
+      createdAt
     }
     workspace {
       slug
