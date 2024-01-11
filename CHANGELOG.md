@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.42.2](https://github.com/BLSQ/openhexa-frontend/compare/0.42.1...0.42.2) (2024-01-11)
+
+
+### Bug Fixes
+
+* **files:** Replace the default value of query by an empty string ([#527](https://github.com/BLSQ/openhexa-frontend/issues/527)) ([696821e](https://github.com/BLSQ/openhexa-frontend/commit/696821ea04b4b91be053244dbf43ee902d4b1a56))
+* **Invitations:** Improve the display of the invitations on the account page ([#526](https://github.com/BLSQ/openhexa-frontend/issues/526)) ([059313f](https://github.com/BLSQ/openhexa-frontend/commit/059313f4feb5c6061cd536c1d36c4d6cea0413ac))
+
+
+### Miscellaneous
+
+* **i18n:** Add a script to translate messages using Deep ([#528](https://github.com/BLSQ/openhexa-frontend/issues/528)) ([448ea5b](https://github.com/BLSQ/openhexa-frontend/commit/448ea5be81359998099b288a47e8a048093689a0))
+
 ## [0.42.1](https://github.com/BLSQ/openhexa-frontend/compare/0.42.0...0.42.1) (2024-01-08)
 
 
