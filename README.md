@@ -131,6 +131,7 @@ npm run lint && npm run format
 * `npm run schema`: Run an introspection query on the graphql backend and generate a `schema.graphql` file. This file is used to generate typescript types & for DX in the IDE
 * `npm run codegen`: Generate typescript types found in all the files based on `schema.graphql`
 * `npm run i18n:extract`: Extract translatable strings and write `messages.json` files for each language
+* `npm run i18n:translate` Translate the `messages.json` files using DeepL (requires a DeepL API key `DEEPL_API_KEY` to be set).
 
 
 ## Internationalization
@@ -142,6 +143,19 @@ npm run i18n:extract
 ```
 
 Translations are stored in `public/locales/[lang]/[ns].json`.
+
+To translate the strings using DeepL, run the translate command:
+
+```bash
+npm run i18n:translate fr # translate to French
+```
+or
+```bash
+npm run i18n:translate fr --overwrite # translate to French and overwrite all the strings
+```
+
+
+
 
 ## Versioning
 

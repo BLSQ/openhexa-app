@@ -17,7 +17,8 @@
     "prepare": "husky install",
     "schema": "npx -y get-graphql-schema http://localhost:8000/graphql/ > schema.graphql",
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
-    "i18n:extract": "i18next"
+    "i18n:extract": "i18next",
+    "i18n:translate": "node ./scripts/translate.mjs ./public/locales"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -104,6 +105,8 @@
     "@types/sync-fetch": "^0.4.0",
     "autoprefixer": "10.4.14",
     "babel-jest": "^29.5.0",
+    "chalk": "^5.3.0",
+    "deepl-node": "^1.11.0",
     "eslint": "^8.51.0",
     "eslint-config-next": "^13.4.4",
     "eslint-config-prettier": "^8.8.0",
