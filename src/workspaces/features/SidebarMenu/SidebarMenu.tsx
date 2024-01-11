@@ -273,12 +273,12 @@ const SidebarMenu = (props: SidebarMenuProps) => {
             </Link>
             {hasLegacyAccess && (
               <Link
-                href="/"
+                href="/catalog"
                 noStyle
                 className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
               >
                 <ArrowLeftCircleIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
-                {t("Back to OpenHEXA classic")}
+                {t("Go to OpenHEXA legacy")}
               </Link>
             )}
             <button

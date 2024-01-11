@@ -92,7 +92,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
         return {
           redirect: {
             permanent: false,
-            destination: "/",
+            destination: "/catalog",
           },
         };
       }

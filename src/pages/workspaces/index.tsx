@@ -80,15 +80,6 @@ WorkspacesHome.getLayout = (page: ReactElement) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    if (!ctx.me?.features.some((f) => f.code === "workspaces")) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/`,
-        },
-      };
-    }
-
     const { data } = await client.query<
       WorkspacesPageQuery,
       WorkspacesPageQueryVariables

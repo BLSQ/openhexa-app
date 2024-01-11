@@ -26,7 +26,6 @@ const Navbar = () => {
   const { t } = useTranslation();
   return (
     <nav className="relative flex flex-1 items-center space-x-4 text-sm font-medium">
-      <Item href="/">{t("Dashboard")}</Item>
       <Item href="/catalog">{t("Catalog")}</Item>
       <Item href="/notebooks">{t("Notebooks")}</Item>
       <Item href="/pipelines">{t("Pipelines")}</Item>

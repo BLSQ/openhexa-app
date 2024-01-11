@@ -21,6 +21,11 @@ const config = {
         destination: "/pipelines/:path*",
         permanent: false,
       },
+      {
+        source: "/",
+        destination: "/workspaces",
+        permanent: false,
+      },
     ];
   },
 

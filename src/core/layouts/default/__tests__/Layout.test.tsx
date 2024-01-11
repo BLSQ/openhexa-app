@@ -31,7 +31,7 @@ describe("DefaultLayout", () => {
         </DefaultLayout>
       </TestApp>,
     );
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Catalog")).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });
 });
