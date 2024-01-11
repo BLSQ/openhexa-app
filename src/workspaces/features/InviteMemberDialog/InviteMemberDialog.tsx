@@ -100,9 +100,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
-      <Dialog.Title>
-        {t("Invite member in {{name}}", { name: workspace.name })}
-      </Dialog.Title>
+      <Dialog.Title>{t("Invite member")}</Dialog.Title>
 
       <Dialog.Content className="space-y-4">
         <Field name="email" label={t("Email address")} type="email" required>
