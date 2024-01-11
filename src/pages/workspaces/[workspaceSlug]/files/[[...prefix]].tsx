@@ -248,7 +248,7 @@ export const getServerSideProps = createGetServerSideProps({
     const prefixArr = (ctx.params?.prefix as string[]) ?? [];
     const prefix = prefixArr.length > 0 ? prefixArr.join("/") + "/" : "";
     const page = ctx.query?.page ? parseInt(ctx.query.page as string, 10) : 1;
-    const searchQuery = (ctx.query?.q as string) ?? null;
+    const searchQuery = (ctx.query?.q as string) ?? "";
     const perPage = ctx.query?.perPage
       ? parseInt(ctx.query.perPage as string, 10)
       : ENTRIES_PER_PAGE;
