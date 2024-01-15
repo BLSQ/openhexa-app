@@ -9,7 +9,9 @@ from os.path import dirname, isfile, join
 from warnings import warn
 from .basefs import NotFound
 
-default_mode = "s3"
+from django.conf import settings
+
+default_mode = settings.WORKSPACE_STORAGE_ENGINE
 
 mode = default_mode
 

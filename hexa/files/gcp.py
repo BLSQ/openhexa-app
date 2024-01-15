@@ -63,7 +63,7 @@ def _get_short_lived_downscoped_access_token(bucket_name):
         },
     )
     payload = response.json()
-    return payload["access_token"], payload["expires_in"]
+    return [payload["access_token"], payload["expires_in"], "gcp"]
 
 
 def get_storage_client():
@@ -124,6 +124,7 @@ def _prefix_to_dict(bucket_name, name: str):
         "type": "directory",
     }
 
+
 def iter_request_results(bucket_name, request):
     # Start by adding all the prefixes
     # Prefixes are virtual directories based on the delimiter specified in the request
@@ -149,8 +150,14 @@ def iter_request_results(bucket_name, request):
         except StopIteration:
             return
 
+
 def _list_bucket_objects(
-    bucket_name, prefix=None, page: int = 1, per_page=30, query=None, ignore_hidden_files=True
+    bucket_name,
+    prefix=None,
+    page: int = 1,
+    per_page=30,
+    query=None,
+    ignore_hidden_files=True,
 ):
     """Returns the list of objects in a bucket with pagination support.
     Objects starting with a dot can be ignored using `ignore_hidden_files`.
@@ -213,6 +220,7 @@ def _list_bucket_objects(
         has_previous_page=page > 1,
         has_next_page=len(objects) > page * per_page,
     )
+
 
 def ensure_is_folder(object_key: str):
     if object_key.endswith("/") is False:
@@ -314,7 +322,9 @@ class GCPClient(BaseClient):
         content_type: str = None,
         raise_if_exists: bool = False,
     ):
-        return _generate_upload_url(bucket_name, target_key, content_type, raise_if_exists)
+        return _generate_upload_url(
+            bucket_name, target_key, content_type, raise_if_exists
+        )
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         return _get_bucket_object(bucket_name, object_key)
@@ -325,10 +335,16 @@ class GCPClient(BaseClient):
         prefix=None,
         page: int = 1,
         per_page=30,
+        query=None,
         ignore_hidden_files=True,
     ):
         return _list_bucket_objects(
-            bucket_name, prefix, page, per_page, ignore_hidden_files
+            bucket_name,
+            prefix=prefix,
+            page=page,
+            per_page=per_page,
+            query=query,
+            ignore_hidden_files=ignore_hidden_files,
         )
 
     def get_short_lived_downscoped_access_token(self, bucket_name):
@@ -339,9 +355,9 @@ class GCPClient(BaseClient):
 
     def delete_object(self, bucket_name: str, file_name: str):
         return _delete_object(bucket_name=bucket_name, name=file_name)
-    
+
     def get_bucket_object(self, bucket_name: str, object_key: str):
-        return _get_bucket_object(bucket_name, object_key)    
-    
+        return _get_bucket_object(bucket_name, object_key)
+
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)

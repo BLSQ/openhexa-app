@@ -18,9 +18,8 @@ def json_serial(obj):
         return None
     raise TypeError("Type %s not serializable" % type(obj))
 
-
 def get_storage_client(type="s3"):
-    # TODO see if I can reuse the existing "aws" related things in django settings
+    """type is the boto client type s3 by default but can be sts or other client api"""
     s3 = boto3.client(
         type,
         endpoint_url=settings.AWS_ENDPOINT_URL,
@@ -75,8 +74,9 @@ def _prefix_to_dict(bucket_name: str, name: str):
         "type": "directory",
     }
 
+
 # allows to keep the test compatible between gcp and s3
-# for the fixture, the tests creates blobs 
+# for the fixture, the tests creates blobs
 class S3BucketWrapper:
     def __init__(self, bucket_name) -> None:
         self.bucket_name = bucket_name
@@ -94,7 +94,51 @@ class S3BucketWrapper:
 def _create_bucket(bucket_name: str):
     s3 = get_storage_client()
     try:
-        return s3.create_bucket(Bucket=bucket_name)
+        bucket = s3.create_bucket(Bucket=bucket_name)
+
+        # Define the configuration rules
+        cors_configuration = {
+            "CORSRules": [
+                {
+                    "AllowedHeaders": [
+                        "Authorization",
+                        "Content-Range",
+                        "Accept",
+                        "Content-Type",
+                        "Origin",
+                        "Range",
+                    ],
+                    "AllowedMethods": ["GET", "PUT"],
+                    "AllowedOrigins": settings.CORS_ALLOWED_ORIGINS,
+                    "ExposeHeaders": [
+                        "ETag",
+                        "x-amz-request-id",
+                        "Authorization",
+                        "Content-Range",
+                        "Accept",
+                        "Content-Type",
+                        "Origin",
+                        "Range",
+                    ],
+                    "MaxAgeSeconds": 3000,
+                }
+            ]
+        }
+
+        s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
+        return bucket
+    except s3.exceptions.ClientError as exc:
+        # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
+
+        if "MalformedXML" in str(exc):
+            print(
+                "Put bucket CORS failed. "
+                "Only if using Minio S3 backend is this okay, "
+                "otherwise investigate. %s",
+                exc,
+            )
+        else:
+            raise
     except s3.exceptions.BucketAlreadyOwnedByYou:
         # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
         raise ValidationError(f"{bucket_name} already exist")
@@ -104,7 +148,9 @@ def _upload_object(bucket_name: str, file_name: str, source: str):
     return get_storage_client().upload_file(source, bucket_name, file_name)
 
 
-def _list_bucket_objects(bucket_name, prefix, page, per_page, query, ignore_hidden_files):
+def _list_bucket_objects(
+    bucket_name, prefix, page, per_page, query, ignore_hidden_files
+):
     prefix = prefix or ""
     max_items = (page * per_page) + 1
     start_offset = (page - 1) * per_page
@@ -116,6 +162,14 @@ def _list_bucket_objects(bucket_name, prefix, page, per_page, query, ignore_hidd
         Delimiter="/",
         Prefix=prefix,
     )
+
+    def is_object_match_query(obj):
+        if ignore_hidden_files and obj["name"].startswith("."):
+            return False
+        if not query:
+            return True
+        return query.lower() in obj["name"].lower()
+        
     pageIndex = 0
     for response in pages:
         pageIndex = pageIndex + 1
@@ -129,9 +183,7 @@ def _list_bucket_objects(bucket_name, prefix, page, per_page, query, ignore_hidd
 
         for current_prefix in prefixes:
             res = _prefix_to_dict(bucket_name, current_prefix)
-            if current_prefix == prefix:
-                continue
-            if not ignore_hidden_files or not res["name"].startswith("."):
+            if is_object_match_query(res):
                 objects.append(res)
 
         files = response.get("Contents", [])
@@ -228,7 +280,6 @@ def _get_short_lived_downscoped_access_token(bucket_name):
     response = sts_service.assume_role(
         RoleArn=settings.AWS_APP_ROLE_ARN or "arn:x:ignored:by:minio:",
         RoleSessionName=settings.AWS_USER_ARN or "ignored-by-minio",
-        # PolicyArns=[{'arn': 'string'}],
         Policy=json.dumps(policy),
         DurationSeconds=token_lifetime,
     )
@@ -244,6 +295,7 @@ def _get_short_lived_downscoped_access_token(bucket_name):
             "aws_session_token": response["Credentials"]["SessionToken"],
         },
         response["Credentials"]["Expiration"],
+        "s3"
     ]
 
 
@@ -349,7 +401,7 @@ class S3Client(BaseClient):
         }
 
         if content_type:
-            params["ContentType"] = (content_type,)
+            params["ContentType"] = content_type
 
         url = s3_client.generate_presigned_url(
             ClientMethod="put_object",
