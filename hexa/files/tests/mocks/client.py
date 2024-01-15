@@ -159,7 +159,7 @@ class MockClient:
 
     def delete_bucket(self, bucket_name):
         self.backend.delete_bucket(bucket_name)
-        
+
     def batch(self):
         raise NotImplementedError
 

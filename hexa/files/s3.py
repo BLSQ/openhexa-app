@@ -1,12 +1,12 @@
-import boto3
-import typing
 import json
+from datetime import date, datetime
+
+import boto3
+import botocore
 from django.conf import settings
 from django.core.exceptions import ValidationError
-import botocore
-from .basefs import NotFound
-from datetime import date, datetime
-from .basefs import ObjectsPage, BaseClient, load_bucket_sample_data_with
+
+from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
 
 
 def json_serial(obj):
@@ -17,6 +17,7 @@ def json_serial(obj):
     if isinstance(obj, botocore.response.StreamingBody):
         return None
     raise TypeError("Type %s not serializable" % type(obj))
+
 
 def get_storage_client(type="s3"):
     """type is the boto client type s3 by default but can be sts or other client api"""
@@ -169,7 +170,7 @@ def _list_bucket_objects(
         if not query:
             return True
         return query.lower() in obj["name"].lower()
-        
+
     pageIndex = 0
     for response in pages:
         pageIndex = pageIndex + 1
@@ -295,7 +296,7 @@ def _get_short_lived_downscoped_access_token(bucket_name):
             "aws_session_token": response["Credentials"]["SessionToken"],
         },
         response["Credentials"]["Expiration"],
-        "s3"
+        "s3",
     ]
 
 
@@ -434,9 +435,6 @@ class S3Client(BaseClient):
 
     def delete_object(self, bucket_name: str, file_name: str):
         return _delete_object(bucket_name=bucket_name, name=file_name)
-
-    def get_bucket_object(self, bucket_name: str, object_key: str):
-        return _get_bucket_object(bucket_name, object_key)
 
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
