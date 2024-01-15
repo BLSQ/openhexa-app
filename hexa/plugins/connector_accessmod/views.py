@@ -7,7 +7,6 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from hexa.metrics.decorators import do_not_track
 from hexa.plugins.connector_accessmod.models import Analysis
 from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
@@ -23,7 +22,6 @@ class EventType(str, enum.Enum):
 
 @require_POST
 @csrf_exempt
-@do_not_track
 def webhook(request: HttpRequest) -> HttpResponse:
     if not request.user.is_authenticated or not isinstance(request.user, DAGRunUser):
         logger.error(

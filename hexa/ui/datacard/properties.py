@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import json
 import typing
-import urllib.parse
 
 from django import forms
 from django.template import loader
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
@@ -289,14 +287,6 @@ class URLProperty(Property):
             if self.text is not None
             else url_value
         )
-
-        if self.track and url_value is not None and url_value.startswith("http"):
-            # external url -> track it
-            url_value = (
-                reverse("metrics:save_redirect")
-                + "?to="
-                + urllib.parse.quote(url_value, safe="")
-            )
 
         return {"text": text_value, "url": url_value, "external": self.external}
 
