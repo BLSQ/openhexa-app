@@ -1,15 +1,9 @@
-import typing
-from dataclasses import dataclass
-from .gcp import GCPClient
-from .s3 import S3Client
-
-import os
-import typing
-from os.path import dirname, isfile, join
 from warnings import warn
-from .basefs import NotFound
 
 from django.conf import settings
+
+from .gcp import GCPClient
+from .s3 import S3Client
 
 default_mode = settings.WORKSPACE_STORAGE_ENGINE
 
@@ -66,7 +60,9 @@ def generate_download_url(bucket_name: str, target_key: str, force_attachment=Fa
         DeprecationWarning,
         stacklevel=2,
     )
-    return get_storage().generate_download_url(bucket_name, target_key, force_attachment)
+    return get_storage().generate_download_url(
+        bucket_name, target_key, force_attachment
+    )
 
 
 def generate_upload_url(
@@ -92,7 +88,12 @@ def get_bucket_object(bucket_name: str, object_key: str):
 
 
 def list_bucket_objects(
-    bucket_name, prefix=None, page: int = 1, per_page=30, query=None, ignore_hidden_files=True
+    bucket_name,
+    prefix=None,
+    page: int = 1,
+    per_page=30,
+    query=None,
+    ignore_hidden_files=True,
 ):
     warn(
         "This is deprecated use get_storage().list_bucket_objects(...);; version=1.0.0",

@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
+import os
 import typing
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from google.api_core.exceptions import NotFound
 from os.path import dirname, isfile, join
-import os 
+
+
 @dataclass
 class ObjectsPage:
     items: typing.List[any]
@@ -20,12 +21,12 @@ def load_bucket_sample_data_with(bucket_name: str, client_storage):
     files = [
         f for f in os.listdir(static_files_dir) if isfile(join(static_files_dir, f))
     ]
-    
+
     for file in files:
         client_storage.upload_object(bucket_name, file, join(static_files_dir, file))
 
-class BaseClient(ABC):
 
+class BaseClient(ABC):
     @abstractmethod
     def create_bucket(self, bucket_name: str):
         pass
@@ -37,7 +38,6 @@ class BaseClient(ABC):
     @abstractmethod
     def upload_object(self, bucket_name: str, file_name: str, source: str):
         pass
-
 
     @abstractmethod
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
@@ -72,5 +72,5 @@ class BaseClient(ABC):
     @abstractmethod
     def generate_upload_url(
         bucket_name: str, target_key: str, content_type: str, raise_if_exists=False
-    ):    
+    ):
         pass
