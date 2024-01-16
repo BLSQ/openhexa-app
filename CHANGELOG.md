@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.42.3](https://github.com/BLSQ/openhexa-frontend/compare/0.42.2...0.42.3) (2024-01-11)
+
+
+### Miscellaneous
+
+* **i18n:** update messages ([b084beb](https://github.com/BLSQ/openhexa-frontend/commit/b084bebe1fc72a1b9a8f6152b66fa6dd7405611c))
+* **i18n:** Validate that all strings are translated ([#531](https://github.com/BLSQ/openhexa-frontend/issues/531)) ([f84e5bd](https://github.com/BLSQ/openhexa-frontend/commit/f84e5bd4e3ec2c25db695bbe354437dd41615c7b))
+
 ## [0.42.2](https://github.com/BLSQ/openhexa-frontend/compare/0.42.1...0.42.2) (2024-01-11)
 
 
