@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.64.1](https://github.com/BLSQ/openhexa-app/compare/0.64.0...0.64.1) (2024-01-16)
+
+
+### Miscellaneous
+
+* **deps:** bump jinja2 from 3.1.2 to 3.1.3 ([#628](https://github.com/BLSQ/openhexa-app/issues/628)) ([036052b](https://github.com/BLSQ/openhexa-app/commit/036052b59f9f7163fb27806c7f2ea0584768cf48))
+* remove metrics ([#629](https://github.com/BLSQ/openhexa-app/issues/629)) ([7840d0d](https://github.com/BLSQ/openhexa-app/commit/7840d0dfe9c526a7cb4ae8a80ff64264a20b5d49))
+* Set container_name for the app ([54d6c8f](https://github.com/BLSQ/openhexa-app/commit/54d6c8f96451352168d494e783c78a37ecc9e0b6))
+
 ## [0.64.0](https://github.com/BLSQ/openhexa-app/compare/0.63.2...0.64.0) (2024-01-08)
 
 
