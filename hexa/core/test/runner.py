@@ -15,8 +15,6 @@ class DiscoverRunner(BaseDiscoverRunner):
         settings.STATICFILES_STORAGE = (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
         )
-        settings.SAVE_REQUESTS = True
-
         # Disable all existing handlers and set a simple file handler for tests
         # (To make sure that we can test logs but that they don't pollute the console output)
         logger = logging.getLogger()

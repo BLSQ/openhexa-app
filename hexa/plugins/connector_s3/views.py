@@ -6,8 +6,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from hexa.metrics.decorators import do_not_track
-
 from .api import generate_download_url, generate_upload_url
 from .datacards import BucketCard, ObjectCard
 from .datagrids import ObjectGrid
@@ -153,7 +151,6 @@ def object_upload(request, bucket_id):
     return HttpResponse(upload_url, status=201)
 
 
-@do_not_track
 def bucket_refresh(request, bucket_id):
     bucket = get_object_or_404(
         Bucket.objects.filter_for_user(request.user), pk=bucket_id
