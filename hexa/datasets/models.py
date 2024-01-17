@@ -1,5 +1,6 @@
 import secrets
 import typing
+import uuid
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -144,6 +145,12 @@ class DatasetVersionManager(models.Manager):
             description=description,
         )
 
+        if isinstance(principal, PipelineRunUser):
+            pipeline_run_version = PipelineRunDatasetVersion(
+                pipeline_run=principal.pipeline_run, dataset_version=version
+            )
+            pipeline_run_version.save()
+
         return version
 
 
@@ -282,3 +289,11 @@ class DatasetLink(Base):
 
     class Meta:
         unique_together = ("dataset", "workspace")
+
+
+class PipelineRunDatasetVersion(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pipeline_run = models.ForeignKey("pipelines.PipelineRun", on_delete=models.CASCADE)
+    dataset_version = models.ForeignKey(
+        "datasets.DatasetVersion", on_delete=models.CASCADE
+    )

@@ -19,6 +19,7 @@ from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
+from hexa.datasets.models import PipelineRunDatasetVersion
 from hexa.files.api import get_bucket_object
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
@@ -308,6 +309,14 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
             continue
 
     return result
+
+
+@pipeline_run_object.field("datasetVersion")
+def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
+    return [
+        run_version.dataset_version
+        for run_version in PipelineRunDatasetVersion.objects.filter(pipeline_run=run)
+    ]
 
 
 pipelines_mutations = MutationType()
