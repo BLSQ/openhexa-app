@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.4](https://github.com/BLSQ/openhexa-frontend/compare/0.42.3...0.42.4) (2024-01-17)
+
+
+### Miscellaneous
+
+* **i18n:** update fr messages ([1b923bd](https://github.com/BLSQ/openhexa-frontend/commit/1b923bd614c1dcae71ff45a97b7098bedd2941e7))
+
 ## [0.42.3](https://github.com/BLSQ/openhexa-frontend/compare/0.42.2...0.42.3) (2024-01-11)
 
 
