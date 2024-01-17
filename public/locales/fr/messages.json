@@ -421,7 +421,7 @@
   "We were not able to generate a download url for this file": "Nous n'avons pas été en mesure de générer un lien de téléchargement pour ce fichier.",
   "We were not able to remove it from your favorites": "Nous n'avons pas pu le supprimer de vos favoris.",
   "We were unable to create a link for this output.": "Nous n'avons pas pu créer de lien pour cette sortie.",
-  "Webhook": "Crochet Web",
+  "Webhook": "Webhook",
   "Webhooks are experimental and don't require any form of authentication for now: anyone with the URL will be able to trigger this pipeline": "Les webhooks sont expérimentaux et ne requièrent aucune forme d'authentification pour l'instant : toute personne disposant de l'URL pourra déclencher ce pipeline.",
   "Workspace": "Workspace",
   "Workspace invitations": "Invitations au workspace",
