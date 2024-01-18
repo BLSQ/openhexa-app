@@ -318,7 +318,7 @@
   "Short description of the connection": "Brève description de la connexion",
   "Show": "Afficher",
   "Show more": "Afficher plus",
-  "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Afficher les résultats de {{ début }} à {{ fin }} de {{ totalItems }}.",
+  "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Afficher les résultats de {{ start }} à {{ end }} de {{ totalItems }}.",
   "Showing top 10 results": "Afficher les 10 premiers résultats",
   "Sign in": "Connexion",
   "Sign out": "Se déconnecter",
@@ -384,7 +384,7 @@
   "Unknown": "Inconnu",
   "Unknown error": "Erreur inconnue",
   "Unknown workspace": "Workspace inconnu",
-  "Update connection fields for {{name}}": "Mise à jour des champs de connexion pour {{nom}}",
+  "Update connection fields for {{name}}": "Mise à jour des champs de connexion pour {{name}}",
   "Update connection parameters in 3rd-party tools (visualization & BI tools, other data systems...)": "Mettre à jour les paramètres de connexion dans les outils tiers (outils de visualisation et de BI, autres systèmes de données...)",
   "Update dashboard": "Mise à jour du tableau de bord",
   "Update DHIS2": "Mise à jour du DHIS2",
@@ -442,8 +442,8 @@
   "You have to select a workspace": "Vous devez sélectionner un workspace",
   "You will receive an email when the pipeline is done": "Vous recevrez un courriel lorsque le pipeline sera terminé.",
   "You're about to archive this workspace and all its content.": "Vous êtes sur le point d'archiver ce workspace et tout son contenu.",
-  "You're about to delete version {{number}} of pipeline {{name}}.": "Vous êtes sur le point de supprimer la version {{numéro}} du pipeline {{nom}}.",
-  "You're about to remove {{name}} from this workspace.": "Vous êtes sur le point de supprimer {{nom}} de ce workspace.",
+  "You're about to delete version {{number}} of pipeline {{name}}.": "Vous êtes sur le point de supprimer la version {{number}} du pipeline {{name}}.",
+  "You're about to remove {{name}} from this workspace.": "Vous êtes sur le point de supprimer {{name}} de ce workspace.",
   "Your account": "Votre compte",
   "Your workspaces": "Vos workspaces"
 }
