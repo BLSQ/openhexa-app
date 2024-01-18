@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.64.2](https://github.com/BLSQ/openhexa-app/compare/0.64.1...0.64.2) (2024-01-18)
+
+
+### Bug Fixes
+
+* **settings:** Set the new docker image for the pipeline & by default use the pipeline image for the workspace as well ([2ded8d0](https://github.com/BLSQ/openhexa-app/commit/2ded8d08975c6241dd23ccb020ec83b917e174b7))
+
 ## [0.64.1](https://github.com/BLSQ/openhexa-app/compare/0.64.0...0.64.1) (2024-01-16)
 
 
