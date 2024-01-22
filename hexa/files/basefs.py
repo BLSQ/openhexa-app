@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from os.path import dirname, isfile, join
 
 
+class NotFound(Exception):
+    pass
+
+
 @dataclass
 class ObjectsPage:
     items: typing.List[any]

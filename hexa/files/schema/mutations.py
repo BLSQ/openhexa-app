@@ -1,12 +1,6 @@
 from ariadne import MutationType
 
-from hexa.files.api import (
-    NotFound,
-    create_bucket_folder,
-    delete_object,
-    generate_download_url,
-    generate_upload_url,
-)
+from hexa.files.api import NotFound, get_storage
 from hexa.workspaces.models import Workspace
 
 mutations = MutationType()
@@ -23,7 +17,7 @@ def resolve_delete_bucket_object(_, info, **kwargs):
         if not request.user.has_perm("files.delete_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-        delete_object(workspace.bucket_name, mutation_input["objectKey"])
+        get_storage().delete_object(workspace.bucket_name, mutation_input["objectKey"])
         return {"success": True, "errors": []}
     except (NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
@@ -41,7 +35,7 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["objectKey"]
-        download_url = generate_download_url(
+        download_url = get_storage().generate_download_url(
             workspace.bucket_name, object_key, force_attachment=True
         )
 
@@ -62,7 +56,7 @@ def resolve_prepare_upload_object(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["objectKey"]
-        upload_url = generate_upload_url(
+        upload_url = get_storage().generate_upload_url(
             workspace.bucket_name, object_key, mutation_input.get("contentType")
         )
 
@@ -83,7 +77,9 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         folder_key = mutation_input["folderKey"]
-        folder_object = create_bucket_folder(workspace.bucket_name, folder_key)
+        folder_object = get_storage().create_bucket_folder(
+            workspace.bucket_name, folder_key
+        )
 
         return {"success": True, "folder": folder_object, "errors": []}
     except (NotFound, Workspace.DoesNotExist):

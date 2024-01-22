@@ -1,14 +1,15 @@
+import base64
+import json
+
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
-from hexa.files.api import get_short_lived_downscoped_access_token
+from hexa.files.api import get_storage
 from hexa.pipelines.models import PipelineRun
 from hexa.workspaces.models import Workspace, WorkspaceMembership
-import base64
-import json
 
 
 @require_POST
@@ -98,7 +99,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    token, _expires_in, engine = get_short_lived_downscoped_access_token(
+    token, _expires_in, engine = get_storage().get_short_lived_downscoped_access_token(
         workspace.bucket_name
     )
     if engine == "s3":

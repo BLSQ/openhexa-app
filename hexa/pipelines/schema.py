@@ -19,7 +19,7 @@ from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import get_bucket_object
+from hexa.files.api import get_storage
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -293,7 +293,7 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
         try:
             if output["type"] == "file":
                 result.append(
-                    get_bucket_object(
+                    get_storage().get_bucket_object(
                         workspace.bucket_name,
                         output["uri"][len(f"gs://{workspace.bucket_name}/") :],
                     )

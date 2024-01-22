@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
-from hexa.files.api import create_bucket
+from hexa.files.api import get_storage
 from hexa.files.tests.mocks.mockgcp import backend
 from hexa.user_management.models import Feature, FeatureFlag, User
 from hexa.workspaces.models import (
@@ -149,7 +149,7 @@ class DatasetVersionTest(BaseTestMixin, TestCase):
             description="Description of dataset",
         )
 
-        create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
     @backend.mock_storage
     def test_create_dataset_version(
@@ -208,7 +208,7 @@ class DatasetLinkTest(BaseTestMixin, TestCase):
     @backend.mock_storage
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
-        create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
         cls.DATASET = Dataset.objects.create_if_has_perm(
             cls.USER_ADMIN,

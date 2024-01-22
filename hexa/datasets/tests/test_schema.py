@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import IntegrityError
 
 from hexa.core.test import GraphQLTestCase
-from hexa.files.api import create_bucket
+from hexa.files.api import get_storage
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.user_management.models import User
 from hexa.workspaces.models import WorkspaceMembershipRole
@@ -326,7 +326,7 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
     @classmethod
     @mock_gcp_storage
     def setUpTestData(cls):
-        create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        get_storage().create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
 
     def test_create_dataset_version(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
