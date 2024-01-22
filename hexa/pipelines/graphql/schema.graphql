@@ -85,6 +85,7 @@ type PipelineRun {
   code: String!
   sendMailNotifications: Boolean!
   timeout: Int
+  datasetVersions: [DatasetVersion!]!
 }
 
 enum PipelineRunOrderBy {

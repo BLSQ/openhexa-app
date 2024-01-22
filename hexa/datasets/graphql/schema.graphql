@@ -27,6 +27,7 @@ type DatasetVersion {
   description: String
   createdAt: DateTime!
   createdBy: User
+  dataset: Dataset!
   permissions: DatasetVersionPermissions!
   fileByName(name: String!): DatasetVersionFile
   files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!

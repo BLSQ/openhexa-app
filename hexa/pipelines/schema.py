@@ -310,6 +310,11 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
     return result
 
 
+@pipeline_run_object.field("datasetVersions")
+def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
+    return run.dataset_versions.all()
+
+
 pipelines_mutations = MutationType()
 
 
