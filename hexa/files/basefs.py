@@ -75,6 +75,14 @@ class BaseClient(ABC):
 
     @abstractmethod
     def generate_upload_url(
-        bucket_name: str, target_key: str, content_type: str, raise_if_exists=False
+        self,
+        bucket_name: str,
+        target_key: str,
+        content_type: str,
+        raise_if_exists=False,
     ):
+        pass
+
+    @abstractmethod
+    def get_token_as_env_variables(self, token):
         pass

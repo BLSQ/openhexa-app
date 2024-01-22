@@ -1,6 +1,3 @@
-import base64
-import json
-
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -102,34 +99,12 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     token, _expires_in, engine = get_storage().get_short_lived_downscoped_access_token(
         workspace.bucket_name
     )
-    if engine == "s3":
-        json_config = {
-            "AWS_ENDPOINT": token["endpoint_url"],
-            "AWS_ACCESS_KEY_ID": token["aws_access_key_id"],
-            "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
-            "AWS_SESSION_TOKEN": token["aws_session_token"],
-            "AWS_DEFAULT_REGION": token.get("default_region", ""),
+    env.update(get_storage().get_token_as_env_variables(token))
+    env.update(
+        {
+            "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
         }
-
-        env.update(
-            {
-                "AWS_ACCESS_KEY_ID": token["aws_access_key_id"],
-                "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
-                "AWS_ENDPOINT_URL": token["endpoint_url"],
-                "AWS_SESSION_TOKEN": token["aws_session_token"],
-                "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
-                "AWS_S3_FUSE_CONFIG": base64.b64encode(
-                    json.dumps(json_config).encode()
-                ).decode(),
-            }
-        )
-    else:
-        env.update(
-            {
-                "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
-                "GCS_TOKEN": token,
-            }
-        )
+    )
 
     # Custom Docker image for the workspace if appropriate
     image = workspace.docker_image if workspace.docker_image != "" else None

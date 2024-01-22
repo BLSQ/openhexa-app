@@ -1,10 +1,12 @@
-import boto3
-
-from django.core.exceptions import ValidationError
-import botocore
-from hexa.core.test import TestCase
 from unittest.mock import patch
-from ..api import mode, NotFound, get_storage
+
+import boto3
+import botocore
+from django.core.exceptions import ValidationError
+
+from hexa.core.test import TestCase
+
+from ..api import NotFound, get_storage
 from .mocks.mockgcp import backend
 
 
@@ -87,7 +89,6 @@ class APITestCase:
             ],
         )
 
- 
     def test_list_blobs_with_query(self):
         bucket = self.get_client().create_bucket("not-empty-bucket")
         bucket.blob(
@@ -119,9 +120,9 @@ class APITestCase:
         self.assertEqual(
             [
                 x["key"]
-                for x in self.get_client().list_bucket_objects(
-                    bucket.name, page=1, per_page=10, query="readme"
-                ).items
+                for x in self.get_client()
+                .list_bucket_objects(bucket.name, page=1, per_page=10, query="readme")
+                .items
             ],
             [
                 "readme.md",
@@ -131,18 +132,18 @@ class APITestCase:
         self.assertEqual(
             [
                 x["key"]
-                for x in self.get_client().list_bucket_objects(
-                    bucket.name, page=1, per_page=10, query="file"
-                ).items
+                for x in self.get_client()
+                .list_bucket_objects(bucket.name, page=1, per_page=10, query="file")
+                .items
             ],
             ["file.md", "other_file.md"],
         )
         self.assertEqual(
             [
                 x["key"]
-                for x in self.get_client().list_bucket_objects(
-                    bucket.name, page=2, per_page=10, query="file"
-                ).items
+                for x in self.get_client()
+                .list_bucket_objects(bucket.name, page=2, per_page=10, query="file")
+                .items
             ],
             [],
         )
@@ -317,13 +318,24 @@ class APITestCase:
                 content_type="text/plain",
             )
 
-        (
-            connection_infos,
-            expires_in,
-        ) = self.get_client().get_short_lived_downscoped_access_token("bucket")
+        token = self.get_client().get_short_lived_downscoped_access_token("bucket")
+
+        env_vars = self.get_client().get_token_as_env_variables(token[0])
+        print(list(env_vars.keys()))
         if self.get_type() == "s3":
+            self.assertEqual(
+                list(env_vars.keys()),
+                [
+                    "AWS_ACCESS_KEY_ID",
+                    "AWS_SECRET_ACCESS_KEY",
+                    "AWS_ENDPOINT_URL",
+                    "AWS_SESSION_TOKEN",
+                    "AWS_S3_FUSE_CONFIG",
+                ],
+            )
+
             # create a s3 client with the downscoped token
-            s3 = boto3.client("s3", **connection_infos)
+            s3 = boto3.client("s3", **token[0])
 
             objects = s3.list_objects(Bucket="bucket")
             print(objects)

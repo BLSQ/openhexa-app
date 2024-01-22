@@ -1,6 +1,8 @@
+import base64
 import json
 
 import boto3
+import botocore
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -141,14 +143,19 @@ class S3Client(BaseClient):
             # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
 
             if "MalformedXML" in str(exc):
-                print(
+                from warnings import warn
+
+                warn(
                     "Put bucket CORS failed. "
                     "Only if using Minio S3 backend is this okay, "
                     "otherwise investigate. %s",
-                    exc,
+                    DeprecationWarning,
+                    stacklevel=2,
                 )
             else:
                 raise
+        except botocore.exceptions.BucketAlreadyOwnedByYou:
+            raise ValidationError(f"{bucket_name} already exist")
         except s3.exceptions.BucketAlreadyOwnedByYou:
             # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
             raise ValidationError(f"{bucket_name} already exist")
@@ -283,7 +290,7 @@ class S3Client(BaseClient):
                     print("skipping ", res, prefix)
                     continue
 
-                if not ignore_hidden_files or not res["name"].startswith("."):
+                if is_object_match_query(res):
                     objects.append(res)
 
         sorted(objects, key=lambda x: x["key"])
@@ -296,6 +303,7 @@ class S3Client(BaseClient):
             has_next_page=len(objects) > (page * per_page),
         )
 
+    # TODO handle read-only mode.
     def get_short_lived_downscoped_access_token(self, bucket_name):
         # highly inspired by https://gist.github.com/manics/305f4cc56d0ac6431893cde17b1ba8c4
 
@@ -377,6 +385,12 @@ class S3Client(BaseClient):
             return s3.delete_bucket(Bucket=bucket_name)
         except s3.exceptions.NoSuchBucket:
             return
+        except s3.exceptions.ClientError as exc:
+
+            if "InvalidBucketName" in str(exc):
+                return
+
+            raise exc
 
     def delete_object(self, bucket_name: str, file_name: str):
         client = get_storage_client()
@@ -393,3 +407,23 @@ class S3Client(BaseClient):
 
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
+
+    def get_token_as_env_variables(self, token):
+        # the fuse config
+        json_config = {
+            "AWS_ENDPOINT": token["endpoint_url"],
+            "AWS_ACCESS_KEY_ID": token["aws_access_key_id"],
+            "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
+            "AWS_SESSION_TOKEN": token["aws_session_token"],
+            "AWS_DEFAULT_REGION": token.get("default_region", ""),
+        }
+
+        return {
+            "AWS_ACCESS_KEY_ID": token["aws_access_key_id"],
+            "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
+            "AWS_ENDPOINT_URL": token["endpoint_url"],
+            "AWS_SESSION_TOKEN": token["aws_session_token"],
+            "AWS_S3_FUSE_CONFIG": base64.b64encode(
+                json.dumps(json_config).encode()
+            ).decode(),
+        }
