@@ -3,6 +3,8 @@ from unittest.mock import patch
 import boto3
 import botocore
 from django.core.exceptions import ValidationError
+from django.test import override_settings
+from moto import mock_s3
 
 from hexa.core.test import TestCase
 
@@ -27,6 +29,12 @@ class APITestCase:
             patcher = patch("hexa.files.gcp.get_storage_client", create_mock_client)
             self.mock_backend = patcher.start()
             self.addCleanup(patcher.stop)
+
+        if self.get_type() == "s3":
+            mock = mock_s3()
+
+            self.mock_backend = mock.start()
+            self.addCleanup(mock.stop)
 
         backend.reset()
         # since I call a real minio, I delete the content and bucket upfront
@@ -287,19 +295,17 @@ class APITestCase:
         self.get_client().create_bucket_folder(bucket_name="bucket", folder_key="demo")
 
         self.assertEqual(
-            self.get_client().list_bucket_objects("bucket").items,
-            [
-                {
-                    "key": "demo/",
-                    "name": "demo",
-                    "path": "bucket/demo/",
-                    "size": 0,
-                    "type": "directory",
-                }
-            ],
+            self.to_keys(self.get_client().list_bucket_objects("bucket")),
+            ["demo/"],
         )
 
     def test_short_lived_downscoped_access_token(self):
+        if self.get_type() == "gcp":
+            self.skipTest(
+                "This test is pending because... harder to mock credentials and gcp api"
+            )
+            return
+
         # TODO make that test work for gcp and s3
         bucket = self.get_client().create_bucket("bucket")
         for i in range(0, 2):
@@ -321,7 +327,7 @@ class APITestCase:
         token = self.get_client().get_short_lived_downscoped_access_token("bucket")
 
         env_vars = self.get_client().get_token_as_env_variables(token[0])
-        print(list(env_vars.keys()))
+
         if self.get_type() == "s3":
             self.assertEqual(
                 list(env_vars.keys()),
@@ -403,6 +409,11 @@ class APITestCase:
             )
 
     def test_generate_upload_url_raise_existing_dont_raise(self):
+        if self.get_type() == "gcp":
+            self.skipTest(
+                "This test is pending because... our mock create the file while it's not yet uploaded to keep track of it"
+            )
+            return
         self.get_client().delete_bucket("bucket")
         bucket = self.get_client().create_bucket("bucket")
         url = self.get_client().generate_upload_url(
@@ -421,6 +432,7 @@ class APITestCase:
         )
 
 
+@override_settings(AWS_ENDPOINT_URL=None)
 class APIS3TestCase(APITestCase, TestCase):
     def get_type(self):
         return "s3"

@@ -96,7 +96,7 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    token, _expires_in, engine = get_storage().get_short_lived_downscoped_access_token(
+    token, _expires_in, _engine = get_storage().get_short_lived_downscoped_access_token(
         workspace.bucket_name
     )
     env.update(get_storage().get_token_as_env_variables(token))

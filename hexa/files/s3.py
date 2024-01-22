@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 
 from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_with
 
+default_region = "eu-central-1"
+
 
 def get_storage_client(type="s3"):
     """type is the boto client type s3 by default but can be sts or other client api"""
@@ -16,6 +18,7 @@ def get_storage_client(type="s3"):
         endpoint_url=settings.AWS_ENDPOINT_URL,
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=default_region,
     )
     return s3
 
@@ -106,7 +109,10 @@ class S3Client(BaseClient):
     def create_bucket(self, bucket_name: str):
         s3 = get_storage_client()
         try:
-            bucket = s3.create_bucket(Bucket=bucket_name)
+            bucket = s3.create_bucket(
+                Bucket=bucket_name,
+                CreateBucketConfiguration={"LocationConstraint": default_region},
+            )
 
             # Define the configuration rules
             cors_configuration = {
@@ -138,7 +144,7 @@ class S3Client(BaseClient):
             }
 
             s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
-            return bucket
+            return S3BucketWrapper(bucket_name)
         except s3.exceptions.ClientError as exc:
             # https://github.com/VeemsHQ/veems/blob/3e2e75c3407bc1f98395fe94c0e03367a82852c9/veems/media/upload_manager.py#L51C1-L51C1
 
@@ -345,7 +351,7 @@ class S3Client(BaseClient):
         #  - is this AWS_USER_ARN and AWS_APP_ROLE_ARN ?
         response = sts_service.assume_role(
             RoleArn=settings.AWS_APP_ROLE_ARN or "arn:x:ignored:by:minio:",
-            RoleSessionName=settings.AWS_USER_ARN or "ignored-by-minio",
+            RoleSessionName="ignored-by-minio",
             Policy=json.dumps(policy),
             DurationSeconds=token_lifetime,
         )
