@@ -424,7 +424,8 @@ class OnlyOnline:
                 s3.create_bucket(Bucket="not-empty-bucket")
 
 
-@override_settings(AWS_ENDPOINT_URL=None)
+# MOTO the lib to mock s3 doesn't work when you set and endpoint url
+@override_settings(WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL=None)
 class APIS3TestCase(APITestCase, OnlyS3, TestCase):
     def get_type(self):
         return "s3"
