@@ -1,11 +1,11 @@
 import functools
 import uuid
-from unittest.mock import patch
-from unittest.mock import Mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+
 
 class BucketAlreadyOwnedByYou(Exception):
     pass
+
 
 class StorageBackend(object):
     def __init__(self, project=None):
@@ -28,7 +28,7 @@ class StorageBackend(object):
             client = MockClient(backend=self, *args, **kwargs)
             return client
 
-        def wrapper(*args, **kwargs):            
+        def wrapper(*args, **kwargs):
             with patch("hexa.files.gcp.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 
@@ -36,19 +36,17 @@ class StorageBackend(object):
         wrapper.__wrapped__ = func
         return wrapper
 
-
     def mock_s3_storage(self, func):
         from .client import MockClient
 
         def create_mock_client(*args, **kwargs):
-            
             client = MockClient(backend=self, *args, **kwargs)
-            client.exceptions=MagicMock()
+            client.exceptions = MagicMock()
             client.exceptions.BucketAlreadyOwnedByYou = BucketAlreadyOwnedByYou
             client.exceptions.NoSuchBucket = BucketAlreadyOwnedByYou
             return client
 
-        def wrapper(*args, **kwargs):            
+        def wrapper(*args, **kwargs):
             with patch("hexa.files.s3.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 
