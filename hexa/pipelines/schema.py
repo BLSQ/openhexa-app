@@ -15,6 +15,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 from django.urls import reverse
+from google.api_core.exceptions import NotFound
 from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
@@ -608,13 +609,22 @@ def resolve_add_pipeline_output(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
 
-    if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
-        return {
-            "success": False,
-            "errors": ["PIPELINE_ALREADY_COMPLETED"],
-        }
-
     input = kwargs["input"]
+
+    workspace = pipeline_run.pipeline.workspace
+    if input.get("type") == "file":
+        try:
+            get_bucket_object(
+                workspace.bucket_name,
+                input["uri"][len(f"gs://{workspace.bucket_name}/") :],
+            )
+        except NotFound:
+            return {"success": False, "errors": ["FILE_NOT_FOUND"]}
+    elif input.get("type") == "db" and not get_table_definition(
+        workspace, input.get("name")
+    ):
+        return {"success": False, "errors": ["TABLE_NOT_FOUND"]}
+
     pipeline_run.add_output(input["uri"], input.get("type"), input.get("name"))
 
     return {"success": True, "errors": []}
