@@ -289,23 +289,82 @@ class APITestCase:
         self.assertTrue(res.has_previous_page)
         self.assertEqual(res.page_number, 2)
 
+    def test_delete_object_working(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob(
+            "test.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        res = self.get_client().list_bucket_objects("bucket")
+        self.assertEqual(self.to_keys(res), ["test.txt"])
+
+        self.get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
+        res = self.get_client().list_bucket_objects("bucket")
+
+        self.assertEqual(self.to_keys(res), [])
+
+    def test_delete_object_non_existing(self):
+        bucket = self.get_client().create_bucket("bucket")
+        with self.assertRaises(NotFound):
+            self.get_client().delete_object(
+                bucket_name=bucket.name, file_name="test.txt"
+            )
+
+    def test_generate_download_url(self):
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_download_url("bucket", "demo.txt")
+        assert "demo.txt" in url, f"Expected to be in '{url}'"
+
+    def test_generate_upload_url(self):
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_upload_url("bucket", "demo.txt")
+        assert "demo.txt" in url, f"Expected to be in '{url}'"
+
+    def test_generate_upload_url_raise_existing(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob(
+            "demo.txt",
+            size=123,
+            content_type="text/plain",
+        )
+        with self.assertRaises(ValidationError):
+            self.get_client().generate_upload_url(
+                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+            )
+
+
+class OnlyS3:
+    def test_generate_upload_url_raise_existing_dont_raise(self):
+        self.get_client().delete_bucket("bucket")
+        bucket = self.get_client().create_bucket("bucket")
+        url = self.get_client().generate_upload_url(
+            bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
+        )
+
+        assert "demo.txt" in url, f"Expected to be in '{url}'"
+
+    def test_load_bucket_sample_data(self):
+        bucket = self.get_client().create_bucket("bucket")
+        self.get_client().load_bucket_sample_data(bucket_name="bucket")
+        res = self.get_client().list_bucket_objects("bucket")
+
+        self.assertEqual(
+            self.to_keys(res), ["README.MD", "covid_data.csv", "demo.ipynb"]
+        )
+
     def test_create_bucket_folder(self):
         self.get_client().create_bucket("bucket")
         self.assertEqual(self.get_client().list_bucket_objects("bucket").items, [])
         self.get_client().create_bucket_folder(bucket_name="bucket", folder_key="demo")
-
         self.assertEqual(
             self.to_keys(self.get_client().list_bucket_objects("bucket")),
             ["demo/"],
         )
 
-    def test_short_lived_downscoped_access_token(self):
-        if self.get_type() == "gcp":
-            self.skipTest(
-                "This test is pending because... harder to mock credentials and gcp api"
-            )
-            return
 
+class OnlyOnline:
+    def test_short_lived_downscoped_access_token(self):
         # TODO make that test work for gcp and s3
         bucket = self.get_client().create_bucket("bucket")
         for i in range(0, 2):
@@ -364,76 +423,9 @@ class APITestCase:
                 # should blow up not allowed to create new bucket
                 s3.create_bucket(Bucket="not-empty-bucket")
 
-    def test_delete_object_working(self):
-        bucket = self.get_client().create_bucket("bucket")
-        bucket.blob(
-            "test.txt",
-            size=123,
-            content_type="text/plain",
-        )
-        res = self.get_client().list_bucket_objects("bucket")
-        self.assertEqual(self.to_keys(res), ["test.txt"])
-
-        self.get_client().delete_object(bucket_name=bucket.name, file_name="test.txt")
-        res = self.get_client().list_bucket_objects("bucket")
-
-        self.assertEqual(self.to_keys(res), [])
-
-    def test_delete_object_non_existing(self):
-        bucket = self.get_client().create_bucket("bucket")
-        with self.assertRaises(NotFound):
-            self.get_client().delete_object(
-                bucket_name=bucket.name, file_name="test.txt"
-            )
-
-    def test_generate_download_url(self):
-        bucket = self.get_client().create_bucket("bucket")
-        url = self.get_client().generate_download_url("bucket", "demo.txt")
-        assert "demo.txt" in url, f"Expected to be in '{url}'"
-
-    def test_generate_upload_url(self):
-        bucket = self.get_client().create_bucket("bucket")
-        url = self.get_client().generate_upload_url("bucket", "demo.txt")
-        assert "demo.txt" in url, f"Expected to be in '{url}'"
-
-    def test_generate_upload_url_raise_existing(self):
-        bucket = self.get_client().create_bucket("bucket")
-        bucket.blob(
-            "demo.txt",
-            size=123,
-            content_type="text/plain",
-        )
-        with self.assertRaises(ValidationError):
-            self.get_client().generate_upload_url(
-                bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
-            )
-
-    def test_generate_upload_url_raise_existing_dont_raise(self):
-        if self.get_type() == "gcp":
-            self.skipTest(
-                "This test is pending because... our mock create the file while it's not yet uploaded to keep track of it"
-            )
-            return
-        self.get_client().delete_bucket("bucket")
-        bucket = self.get_client().create_bucket("bucket")
-        url = self.get_client().generate_upload_url(
-            bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
-        )
-
-        assert "demo.txt" in url, f"Expected to be in '{url}'"
-
-    def test_load_bucket_sample_data(self):
-        bucket = self.get_client().create_bucket("bucket")
-        self.get_client().load_bucket_sample_data(bucket_name="bucket")
-        res = self.get_client().list_bucket_objects("bucket")
-
-        self.assertEqual(
-            self.to_keys(res), ["README.MD", "covid_data.csv", "demo.ipynb"]
-        )
-
 
 @override_settings(AWS_ENDPOINT_URL=None)
-class APIS3TestCase(APITestCase, TestCase):
+class APIS3TestCase(APITestCase, OnlyS3, TestCase):
     def get_type(self):
         return "s3"
 

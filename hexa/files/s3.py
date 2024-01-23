@@ -14,10 +14,10 @@ def get_storage_client(type="s3"):
     """type is the boto client type s3 by default but can be sts or other client api"""
     s3 = boto3.client(
         type,
-        endpoint_url=settings.AWS_ENDPOINT_URL,
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        region_name=default_region,
+        endpoint_url=settings.WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL,
+        aws_access_key_id=settings.WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY,
+        region_name=settings.WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION,
     )
     return s3
 
@@ -158,10 +158,19 @@ class S3Client(BaseClient):
                     stacklevel=2,
                 )
             else:
+                if "BucketAlreadyOwnedByYou" in str(exc):
+                    raise ValidationError(f"{bucket_name} already exist")
+
                 raise exc
+
         except s3.exceptions.BucketAlreadyOwnedByYou:
             # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
             raise ValidationError(f"{bucket_name} already exist")
+        except Exception as exc:
+            import pdb
+
+            pdb.set_trace()
+            raise exc
 
         return S3BucketWrapper(bucket_name)
 
@@ -290,7 +299,6 @@ class S3Client(BaseClient):
                 res = _blob_to_dict(file, bucket_name)
 
                 if res["key"] == prefix and prefix.endswith("/"):
-                    print("skipping ", res, prefix)
                     continue
 
                 if is_object_match_query(res):

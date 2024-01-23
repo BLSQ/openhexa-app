@@ -39,6 +39,11 @@ pipelines_type_defs = load_schema_from_path(
 )
 
 
+# ease mocking
+def get_bucket_object(bucket_name, file):
+    return get_storage().get_bucket_object(bucket_name, file)
+
+
 @workspace_permissions.field("createPipeline")
 def resolve_workspace_permissions_create_pipeline(obj: Workspace, info, **kwargs):
     request = info.context["request"]
@@ -293,7 +298,7 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
         try:
             if output["type"] == "file":
                 result.append(
-                    get_storage().get_bucket_object(
+                    get_bucket_object(
                         workspace.bucket_name,
                         output["uri"][len(f"gs://{workspace.bucket_name}/") :],
                     )
