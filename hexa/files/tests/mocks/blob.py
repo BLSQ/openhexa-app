@@ -30,7 +30,6 @@ class MockBlob:
         return f"http://signed-url/{self.name}"
 
     def upload_from_filename(self, file_name):
-        print("upload_from_filename", self.bucket._blobs)
         self.bucket._blobs.append(self)
 
     def __repr__(self) -> str:
