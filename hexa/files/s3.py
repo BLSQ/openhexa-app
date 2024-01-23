@@ -166,11 +166,6 @@ class S3Client(BaseClient):
         except s3.exceptions.BucketAlreadyOwnedByYou:
             # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
             raise ValidationError(f"{bucket_name} already exist")
-        except Exception as exc:
-            import pdb
-
-            pdb.set_trace()
-            raise exc
 
         return S3BucketWrapper(bucket_name)
 
@@ -427,14 +422,11 @@ class S3Client(BaseClient):
             "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
             "AWS_SESSION_TOKEN": token["aws_session_token"],
             "AWS_DEFAULT_REGION": token.get("default_region", ""),
+            "AWS_ENDPOINT_URL": token["endpoint_url"],
         }
 
         return {
-            "AWS_ACCESS_KEY_ID": token["aws_access_key_id"],
-            "AWS_SECRET_ACCESS_KEY": token["aws_secret_access_key"],
-            "AWS_ENDPOINT_URL": token["endpoint_url"],
-            "AWS_SESSION_TOKEN": token["aws_session_token"],
-            "AWS_S3_FUSE_CONFIG": base64.b64encode(
+            "WORKSPACE_STORAGE_ENGINE_AWS_S3_FUSE_CONFIG": base64.b64encode(
                 json.dumps(json_config).encode()
             ).decode(),
         }
