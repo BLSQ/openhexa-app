@@ -51,6 +51,11 @@ def generate_database_name():
     return db_name
 
 
+# ease patching
+def load_bucket_sample_data(bucket_name):
+    get_storage().load_bucket_sample_data(bucket_name)
+
+
 validate_workspace_slug = RegexValidator(
     _lazy_re_compile(r"^[-a-z0-9]+\Z"),
     # Translators: "letters" means latin letters: a-z.
@@ -96,7 +101,7 @@ class WorkspaceManager(models.Manager):
 
         if load_sample_data:
             load_database_sample_data(db_name)
-            get_storage().load_bucket_sample_data(bucket.name)
+            load_bucket_sample_data(bucket.name)
 
         workspace = self.create(**create_kwargs)
 
