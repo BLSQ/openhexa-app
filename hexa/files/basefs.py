@@ -31,6 +31,9 @@ def load_bucket_sample_data_with(bucket_name: str, client_storage):
 
 
 class BaseClient(ABC):
+    class exceptions:
+        NotFound = NotFound
+
     @abstractmethod
     def create_bucket(self, bucket_name: str):
         pass

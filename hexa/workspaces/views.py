@@ -8,6 +8,18 @@ from hexa.files.api import get_storage
 from hexa.pipelines.models import PipelineRun
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
+# ease patching
+
+
+def get_short_lived_downscoped_access_token(bucket_name):
+    return get_storage().get_short_lived_downscoped_access_token(
+        bucket_name=bucket_name
+    )
+
+
+def get_token_as_env_variables(token):
+    return get_storage().get_token_as_env_variables(token)
+
 
 @require_POST
 @csrf_exempt
@@ -96,10 +108,10 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    token, _expires_in, _engine = get_storage().get_short_lived_downscoped_access_token(
+    token, _expires_in, _engine = get_short_lived_downscoped_access_token(
         workspace.bucket_name
     )
-    env.update(get_storage().get_token_as_env_variables(token))
+    env.update(get_token_as_env_variables(token))
     env.update(
         {
             "WORKSPACE_BUCKET_NAME": workspace.bucket_name,

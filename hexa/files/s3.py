@@ -2,7 +2,6 @@ import base64
 import json
 
 import boto3
-import botocore
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
@@ -159,9 +158,7 @@ class S3Client(BaseClient):
                     stacklevel=2,
                 )
             else:
-                raise
-        except botocore.exceptions.BucketAlreadyOwnedByYou:
-            raise ValidationError(f"{bucket_name} already exist")
+                raise exc
         except s3.exceptions.BucketAlreadyOwnedByYou:
             # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
             raise ValidationError(f"{bucket_name} already exist")

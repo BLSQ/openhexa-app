@@ -183,7 +183,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_workspace_credentials_200(
         self, mock_get_short_lived_downscoped_access_token
@@ -269,7 +269,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_pipeline_invalid_credentials_404(
         self, mock_get_short_lived_downscoped_access_token
@@ -289,7 +289,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_pipeline_credentials_200(
         self, mock_get_short_lived_downscoped_access_token

@@ -1,6 +1,6 @@
 from ariadne import MutationType
 
-from hexa.files.api import NotFound, get_storage
+from hexa.files.api import get_storage
 from hexa.workspaces.models import Workspace
 
 mutations = MutationType()
@@ -19,7 +19,7 @@ def resolve_delete_bucket_object(_, info, **kwargs):
 
         get_storage().delete_object(workspace.bucket_name, mutation_input["objectKey"])
         return {"success": True, "errors": []}
-    except (NotFound, Workspace.DoesNotExist):
+    except (get_storage().exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
@@ -40,7 +40,7 @@ def resolve_prepare_download_object(_, info, **kwargs):
         )
 
         return {"success": True, "download_url": download_url, "errors": []}
-    except (NotFound, Workspace.DoesNotExist):
+    except (get_storage().exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
@@ -61,7 +61,7 @@ def resolve_prepare_upload_object(_, info, **kwargs):
         )
 
         return {"success": True, "upload_url": upload_url, "errors": []}
-    except (NotFound, Workspace.DoesNotExist):
+    except (get_storage().exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
@@ -82,7 +82,7 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         )
 
         return {"success": True, "folder": folder_object, "errors": []}
-    except (NotFound, Workspace.DoesNotExist):
+    except (get_storage().exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
