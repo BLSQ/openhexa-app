@@ -1,7 +1,9 @@
 from google.cloud.storage._helpers import _validate_name
 
-from .blob import MockBlob
 from hexa.files.api import NotFound
+
+from .blob import MockBlob
+
 
 class MockBucket:
     def __init__(self, client, name=None, user_project=None):
