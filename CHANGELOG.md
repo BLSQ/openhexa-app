@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.42.5](https://github.com/BLSQ/openhexa-frontend/compare/0.42.4...0.42.5) (2024-01-24)
+
+
+### Bug Fixes
+
+* **i18n:** Adapt translations ([0820ae6](https://github.com/BLSQ/openhexa-frontend/commit/0820ae6b0dee3d207d2276c61eb774caa205c143))
+* **i18n:** Fix variable placeholders in french ([32f4951](https://github.com/BLSQ/openhexa-frontend/commit/32f495114e349903bb14973b1e2088b5527f5172))
+* **i18n:** Fix wrong translation ([ff7441f](https://github.com/BLSQ/openhexa-frontend/commit/ff7441f25bdb7abfb40b55dda34b870b1429a5b8))
+* **i18n:** improve translations ([ee46e90](https://github.com/BLSQ/openhexa-frontend/commit/ee46e9056e0dd475ba9ceca1aa387147d19d6508))
+
+
+### Miscellaneous
+
+* **i18n:** improve messages ([d9398e8](https://github.com/BLSQ/openhexa-frontend/commit/d9398e8de029733c2233202587166350b7ae4e7e))
+* **i18n:** update messages ([db4d64a](https://github.com/BLSQ/openhexa-frontend/commit/db4d64af47ac7a161f76bd68484f624213b9fa71))
+
 ## [0.42.4](https://github.com/BLSQ/openhexa-frontend/compare/0.42.3...0.42.4) (2024-01-17)
 
 
