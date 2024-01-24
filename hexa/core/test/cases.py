@@ -36,7 +36,7 @@ class GraphQLTestCase(TestCase):
     def setUp(self) -> None:
         self.maxDiff = None
 
-    def run_query(self, query, variables=None):
+    def run_query(self, query, variables=None, headers={}):
         response = self.client.post(
             "/graphql/",
             json.dumps(
@@ -47,6 +47,7 @@ class GraphQLTestCase(TestCase):
                 }
             ),
             content_type="application/json",
+            **headers,
         )
 
         content = json.loads(response.content)
