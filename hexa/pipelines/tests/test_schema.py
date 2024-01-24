@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 from django import test
 from django.conf import settings
 from django.core import mail
+from django.core.signing import Signer
+from google.api_core.exceptions import NotFound
 
 from hexa.core.test import GraphQLTestCase
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
@@ -499,6 +501,181 @@ class PipelinesV2Test(GraphQLTestCase):
                 pipeline.workspace.bucket_name, "my_file"
             )
             table_mock.assert_called_once_with(pipeline.workspace, "my_table")
+
+    def test_pipeline_run_file_output_failed(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        access_token = Signer().sign_object(str(run.access_token))
+
+        with patch(
+            "hexa.pipelines.schema.get_bucket_object",
+            MagicMock(),
+        ) as bucket_mock:
+            bucket_mock.side_effect = NotFound("File not found")
+
+            r = self.run_query(
+                """
+                mutation addPipelineOutput ($input: AddPipelineOutputInput!) {
+                    addPipelineOutput(input: $input) {
+                          success
+                          errors
+                        }
+                }""",
+                {
+                    "input": {
+                        "uri": f"gs://{run.pipeline.workspace.bucket_name}",
+                        "type": "file",
+                        "name": "file_name",
+                    }
+                },
+                headers={"HTTP_Authorization": f"bearer {access_token}"},
+            )
+            self.assertEqual(
+                {"success": False, "errors": ["FILE_NOT_FOUND"]},
+                r["data"]["addPipelineOutput"],
+            )
+
+    def test_pipeline_run_file_output(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+        access_token = Signer().sign_object(str(run.access_token))
+
+        with patch(
+            "hexa.pipelines.schema.get_bucket_object",
+            MagicMock(),
+        ) as bucket_mock:
+            bucket_mock.return_value = {
+                "name": "file_name",
+                "type": "file",
+            }
+
+            r = self.run_query(
+                """
+                mutation addPipelineOutput ($input: AddPipelineOutputInput!) {
+                    addPipelineOutput(input: $input) {
+                          success
+                          errors
+                        }
+                }""",
+                {
+                    "input": {
+                        "uri": f"gs://{pipeline.workspace.bucket_name}/",
+                        "type": "file",
+                        "name": "file_name",
+                    }
+                },
+                headers={"HTTP_Authorization": f"bearer {access_token}"},
+            )
+            self.assertEqual(
+                {"success": True, "errors": []},
+                r["data"]["addPipelineOutput"],
+            )
+
+    def test_pipeline_run_table_output_failed(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        access_token = Signer().sign_object(str(run.access_token))
+
+        with patch(
+            "hexa.pipelines.schema.get_table_definition",
+            MagicMock(),
+        ) as table_mock:
+            table_mock.return_value = None
+
+            r = self.run_query(
+                """
+                mutation addPipelineOutput ($input: AddPipelineOutputInput!) {
+                    addPipelineOutput(input: $input) {
+                        success
+                        errors
+                        }
+                }""",
+                {
+                    "input": {
+                        "uri": f"postgresql://127.0.0.1/{run.pipeline.workspace.db_name}/random_table_name",
+                        "type": "db",
+                        "name": "random_table_name",
+                    }
+                },
+                headers={"HTTP_Authorization": f"bearer {access_token}"},
+            )
+            self.assertEqual(
+                {"success": False, "errors": ["TABLE_NOT_FOUND"]},
+                r["data"]["addPipelineOutput"],
+            )
+
+    def test_pipeline_run_table_output(self):
+        self.test_create_pipeline_version()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline = Pipeline.objects.get(code="new_pipeline")
+        run = pipeline.run(
+            user=self.USER_ROOT,
+            pipeline_version=pipeline.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        access_token = Signer().sign_object(str(run.access_token))
+
+        with patch(
+            "hexa.pipelines.schema.get_table_definition",
+            MagicMock(),
+        ) as table_mock:
+            table_mock.return_value = {
+                "name": "table_name",
+                "columns": [{"name": "column_1", "type": "str"}],
+                "count": 10,
+                "workspace": self.WS1,
+            }
+
+            r = self.run_query(
+                """
+                mutation addPipelineOutput ($input: AddPipelineOutputInput!) {
+                    addPipelineOutput(input: $input) {
+                        success
+                        errors
+                        }
+                }""",
+                {
+                    "input": {
+                        "uri": f"postgresql://127.0.0.1/{run.pipeline.workspace.db_name}/table_name",
+                        "type": "db",
+                        "name": "table_name",
+                    }
+                },
+                headers={"HTTP_Authorization": f"bearer {access_token}"},
+            )
+            self.assertEqual(
+                {"success": True, "errors": []},
+                r["data"]["addPipelineOutput"],
+            )
 
     def test_delete_pipeline_version_pipeline_not_found(self):
         self.test_create_pipeline()
@@ -1413,6 +1590,6 @@ class PipelinesV2Test(GraphQLTestCase):
                 "errors": [],
                 "run": {"timeout": 14400, "status": PipelineRunState.QUEUED},
             },
-            r["data"]["runPipeline"],
+            r["data"]["runPipeline"],  # Generated by Django 3.2.6 on 2021-08-10 08:40
         )
         self.assertEqual(1, len(PipelineRun.objects.all()))
