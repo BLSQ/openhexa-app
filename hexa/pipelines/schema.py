@@ -299,7 +299,13 @@ def resolve_pipeline_run_outputs(run: PipelineRun, info, **kwargs):
                     )
                 )
             elif output["type"] == "db":
-                result.append(get_table_definition(workspace, output["name"]))
+                table_data = get_table_definition(workspace, output["name"])
+                if table_data:
+                    result.append(table_data)
+                else:
+                    raise Exception(
+                        f"Table {output['name']} not found or connection error"
+                    )
             else:
                 result.append(output)
         except Exception as e:
