@@ -156,12 +156,14 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               <Time datetime={run.executionDate} />
             </Breadcrumbs.Part>
           </Breadcrumbs>
-          <Button
-            leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
-            onClick={() => setIsRunPipelineDialogOpen(true)}
-          >
-            {t("Run again")}
-          </Button>
+          {isFinished && (
+            <Button
+              leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
+              onClick={() => setIsRunPipelineDialogOpen(true)}
+            >
+              {t("Run again")}
+            </Button>
+          )}
         </WorkspaceLayout.Header>
 
         <WorkspaceLayout.PageContent>
