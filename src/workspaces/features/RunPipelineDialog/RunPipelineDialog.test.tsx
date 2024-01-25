@@ -151,7 +151,7 @@ describe("RunPipelineDialog", () => {
     await submitForm(user);
     expect(runPipelineMock).toHaveBeenCalledWith(
       pipeline.id,
-      { int: null },
+      {},
       pipeline.currentVersion.number,
       false,
     );

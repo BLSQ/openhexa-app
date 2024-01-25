@@ -85,16 +85,16 @@ export const convertParametersToPipelineInput = (
         params[parameter.code] = val
           .filter((v: string) => v !== "")
           .map((v: string) => parseInt(v, 10));
-      } else {
-        params[parameter.code] = val !== null ? parseInt(val, 10) : null;
+      } else if (val !== null && val !== "") {
+        params[parameter.code] = parseInt(val, 10);
       }
     } else if (parameter.type === "float") {
       if (parameter.multiple && val) {
         params[parameter.code] = val
           .filter((v: string) => v !== "")
           .map((v: string) => parseFloat(v));
-      } else {
-        params[parameter.code] = val !== null ? parseFloat(val) : null;
+      } else if (val !== null && val !== "") {
+        params[parameter.code] = parseFloat(val);
       }
     } else if (parameter.type === "str" && parameter.multiple && val) {
       params[parameter.code] = val.filter((s: string) => s !== "");
