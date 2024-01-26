@@ -1055,6 +1055,7 @@ export type DatasetVersion = {
   __typename?: 'DatasetVersion';
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
+  dataset: Dataset;
   description?: Maybe<Scalars['String']['output']>;
   fileByName?: Maybe<DatasetVersionFile>;
   files: DatasetVersionFilePage;
@@ -2280,6 +2281,7 @@ export type PipelineRun = {
   __typename?: 'PipelineRun';
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
+  datasetVersions: Array<DatasetVersion>;
   duration?: Maybe<Scalars['Int']['output']>;
   executionDate?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['UUID']['output'];

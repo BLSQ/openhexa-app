@@ -13,6 +13,7 @@ import {
   PipelineParameter,
   PipelineVersion,
 } from "graphql-types";
+import { i18n } from "next-i18next";
 
 export async function updatePipeline(
   pipelineId: string,
@@ -205,4 +206,17 @@ export function getPipelineRunConfig(run: {
     value: config[param.code],
     ...param,
   })) as (PipelineParameter & { value: any })[];
+}
+
+export function renderOutputType(typename: string | undefined) {
+  switch (typename) {
+    case "BucketObject":
+      return i18n!.t("File");
+    case "DatabaseTable":
+      return i18n!.t("Database table");
+    case "DatasetVersion":
+      return i18n!.t("Dataset version");
+    default:
+      return "-";
+  }
 }
