@@ -97,7 +97,7 @@ const Sidebar = (props: SidebarProps) => {
           <nav className="flex-1 space-y-1 px-0 pb-4">
             <NavItem
               exact
-              href={`/workspaces/${encodeURIComponent(slug)}`}
+              href={`/workspaces/${encodeURIComponent(slug)}/`}
               Icon={HomeIcon}
               label={t("Home")}
               compact={!isSidebarOpen}
