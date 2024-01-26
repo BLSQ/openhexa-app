@@ -97,11 +97,15 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
   };
 
   const onSubmitSearchQuery = () => {
-    router.push(
-      `/workspaces/${encodeURIComponent(
-        workspace.slug,
-      )}/files/${prefix}?q=${searchQueryState}`,
-    );
+    // Adding search params was not possible when using a placeholder for the prefix.
+    // The only solution I found was to interpolate directly the prefix in the pathname.
+    router.push({
+      pathname: `/workspaces/[workspaceSlug]/files/${prefix}`,
+      query: {
+        q: searchQueryState,
+        workspaceSlug: workspace.slug,
+      },
+    });
   };
 
   const onChangeHiddenFiles = (checked: boolean, onClose: () => void) => {
