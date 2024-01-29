@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 13:08+0000\n"
+"POT-Creation-Date: 2024-01-24 08:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: config/settings.py:214
+#: config/settings.py:213
 msgid "English"
 msgstr ""
 
-#: config/settings.py:215
+#: config/settings.py:214
 msgid "French"
 msgstr ""
 
@@ -83,7 +83,7 @@ msgstr ""
 #: hexa/plugins/connector_postgresql/views.py:34
 #: hexa/plugins/connector_postgresql/views.py:66
 #: hexa/plugins/connector_postgresql/views.py:109
-#: hexa/plugins/connector_s3/views.py:29 hexa/plugins/connector_s3/views.py:73
+#: hexa/plugins/connector_s3/views.py:27 hexa/plugins/connector_s3/views.py:71
 msgid "Catalog"
 msgstr ""
 
@@ -92,7 +92,7 @@ msgid "The datasource will soon be synced"
 msgstr ""
 
 #: hexa/comments/templates/comments/components/comment.html:22
-#: hexa/ui/datacard/properties.py:352 hexa/ui/datagrid.py:369
+#: hexa/ui/datacard/properties.py:342 hexa/ui/datagrid.py:369
 msgid "Just now"
 msgstr ""
 
@@ -220,12 +220,12 @@ msgid "Webhook"
 msgstr ""
 
 #: hexa/pipelines/models.py:299 hexa/plugins/connector_airflow/models.py:495
-#: hexa/ui/datacard/properties.py:376 hexa/ui/datagrid.py:510
+#: hexa/ui/datacard/properties.py:366 hexa/ui/datagrid.py:510
 msgid "Success"
 msgstr ""
 
 #: hexa/pipelines/models.py:300 hexa/plugins/connector_airflow/models.py:496
-#: hexa/ui/datacard/properties.py:378 hexa/ui/datagrid.py:512
+#: hexa/ui/datacard/properties.py:368 hexa/ui/datagrid.py:512
 msgid "Running"
 msgstr ""
 
@@ -240,7 +240,7 @@ msgstr ""
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:3
 #, python-format
 msgid "The report for pipeline <b>%(pipeline_code)s</b> is available:"
-msgstr ""
+msgstr "Le rapport pour la pipeline <b>%(pipeline_code)s</b> est disponible :"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:4
 #, python-format
@@ -252,21 +252,27 @@ msgid ""
 "    <li>Duration : %(duration | duration_format:True)s</li>\n"
 "</ul>\n"
 msgstr ""
+"\n"
+"<ul>\n"
+"    <li>Statut : %(status)s</li>\n"
+"    <li>Exécuté le : %(executed_at)s</li>\n"
+"    <li>Durée : %(duration | duration_format:True)s</li>\n"
+"</ul>\n"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:12
 msgid "View the full report"
-msgstr ""
+msgstr "Voir le rapport complet"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.html:15
 #: hexa/pipelines/templates/pipelines/mails/run_report.txt:11
 #: hexa/user_management/templates/user_management/account_creation_email.html:10
 #: hexa/user_management/templates/user_management/token.txt:7
 #: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:11
-#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:8
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:7
 #: hexa/workspaces/templates/workspaces/mails/invite_member.html:13
-#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:7
-msgid "The OpenHexa team"
-msgstr ""
+#: hexa/workspaces/templates/workspaces/mails/invite_member.txt:8
+msgid "The OpenHEXA team"
+msgstr "L'équipe OpenHEXA"
 
 #: hexa/pipelines/templates/pipelines/mails/run_report.txt:2
 #, python-format
@@ -279,15 +285,22 @@ msgid ""
 "\n"
 "Please go to the following page to view it: %(run_url)s\n"
 msgstr ""
+"\n"
+"Rapport de la pipeline %(pipeline_code)s.\n"
+"Statut : %(status)s\n"
+"Exécuté le : %(executed_at)s\n"
+"Durée : %(duration | duration_format:True)s\n"
+"\n"
+"Vous pouvez accéder au rapport en cliquant sur le lien suivant : %(run_url)s\n"
 
 #: hexa/pipelines/utils.py:25
 #, python-brace-format
 msgid "Run report of {code} ({state})"
-msgstr ""
+msgstr "Rapport d'exécution de {code} ({state})"
 
 #: hexa/pipelines/views.py:55
 msgid "The environment will soon be synced"
-msgstr ""
+msgstr "L'environnement sera bientôt synchronisé"
 
 #: hexa/pipelines/views.py:61
 msgid "The environment could not be synced"
@@ -383,23 +396,23 @@ msgstr ""
 msgid "Add to favorites"
 msgstr ""
 
-#: hexa/plugins/connector_airflow/views.py:42
-#: hexa/plugins/connector_airflow/views.py:111
-#: hexa/plugins/connector_airflow/views.py:168
-#: hexa/plugins/connector_airflow/views.py:203
-#: hexa/plugins/connector_airflow/views.py:264
+#: hexa/plugins/connector_airflow/views.py:41
+#: hexa/plugins/connector_airflow/views.py:109
+#: hexa/plugins/connector_airflow/views.py:165
+#: hexa/plugins/connector_airflow/views.py:200
+#: hexa/plugins/connector_airflow/views.py:260
 msgid "Data Pipelines"
 msgstr ""
 
-#: hexa/plugins/connector_airflow/views.py:151
+#: hexa/plugins/connector_airflow/views.py:148
 msgid "Invalid config provided. Please use valid JSON."
 msgstr ""
 
-#: hexa/plugins/connector_airflow/views.py:170
+#: hexa/plugins/connector_airflow/views.py:167
 msgid "Run with config"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/datacards.py:77 hexa/workspaces/models.py:443
+#: hexa/plugins/connector_dhis2/datacards.py:77 hexa/workspaces/models.py:444
 msgid "DHIS2 Instance"
 msgstr ""
 
@@ -549,7 +562,7 @@ msgstr ""
 msgid "Count"
 msgstr ""
 
-#: hexa/plugins/connector_dhis2/models.py:375 hexa/workspaces/models.py:442
+#: hexa/plugins/connector_dhis2/models.py:375 hexa/workspaces/models.py:443
 msgid "Custom"
 msgstr ""
 
@@ -758,7 +771,7 @@ msgstr ""
 #: hexa/plugins/connector_s3/datacards.py:25
 #: hexa/plugins/connector_s3/datacards.py:57
 #: hexa/plugins/connector_s3/templates/connector_s3/bucket_detail.html:7
-#: hexa/workspaces/models.py:439
+#: hexa/workspaces/models.py:440
 msgid "S3 Bucket"
 msgstr ""
 
@@ -817,15 +830,15 @@ msgstr ""
 msgid ""
 "If you need further assistance, please contact us using the Slack support "
 "channel."
-msgstr ""
+msgstr "Si vous avez besoin d'aide, contactez-nous sur Slack."
 
 #: hexa/templates/404.html:21 hexa/templates/500.html:21
 msgid "Back to dashboard"
-msgstr ""
+msgstr "Retour au tableau de bord"
 
 #: hexa/templates/500.html:13
 msgid "Something went wrong. Our technical team has been notified."
-msgstr ""
+msgstr "Quelque chose s'est mal passé. Notre équipe technique a été notifiée."
 
 #: hexa/templates/500.html:16
 msgid ""
@@ -865,23 +878,23 @@ msgstr ""
 msgid "Save successful!"
 msgstr ""
 
-#: hexa/ui/datacard/properties.py:187
+#: hexa/ui/datacard/properties.py:185
 msgid "Yes"
 msgstr ""
 
-#: hexa/ui/datacard/properties.py:187
+#: hexa/ui/datacard/properties.py:185
 msgid "No"
 msgstr ""
 
-#: hexa/ui/datacard/properties.py:377 hexa/ui/datagrid.py:511
+#: hexa/ui/datacard/properties.py:367 hexa/ui/datagrid.py:511
 msgid "Error"
 msgstr ""
 
-#: hexa/ui/datacard/properties.py:379 hexa/ui/datagrid.py:513
+#: hexa/ui/datacard/properties.py:369 hexa/ui/datagrid.py:513
 msgid "Pending"
 msgstr ""
 
-#: hexa/ui/datacard/properties.py:380 hexa/ui/datagrid.py:514
+#: hexa/ui/datacard/properties.py:370 hexa/ui/datagrid.py:514
 msgid "Unknown"
 msgstr ""
 
@@ -994,51 +1007,51 @@ msgid "Regular"
 msgstr ""
 
 #: hexa/user_management/templates/user_management/account_creation_email.html:2
-msgid "Your OpenHexa account was created by an admin."
-msgstr ""
+msgid "Your OpenHEXA account was created by an admin."
+msgstr "Votre compte OpenHEXA a été créé par un administrateur."
 
 #: hexa/user_management/templates/user_management/account_creation_email.html:4
 msgid "Please go to the following page and choose a password:"
-msgstr ""
+msgstr "Rendez-vous sur la page suivante pour choisir un mot de passe :"
 
 #: hexa/user_management/templates/user_management/account_creation_email.html:8
 msgid "Your username is"
-msgstr ""
+msgstr "Votre nom d'utilisateur est"
 
 #: hexa/user_management/templates/user_management/token.txt:2
 msgid "Enter this OTP code to verify your account:"
-msgstr ""
+msgstr "Entrez ce code OTP pour vérifier votre compte :"
 
 #: hexa/user_management/templates/user_management/token.txt:4
 msgid "If you weren’t expecting this email, you can safely ignore it."
-msgstr ""
+msgstr "Si vous n'attendiez pas cet email, vous pouvez l'ignorer."
 
 #. Translators: "letters" means latin letters: a-z.
 #: hexa/workspaces/models.py:57
 msgid "Enter a valid “slug” consisting of letters, numbers or hyphens."
-msgstr ""
+msgstr "Entrer un « identifiant » valide composé de lettres, chiffres ou tirets."
 
 #: hexa/workspaces/models.py:223
 msgid "Editor"
-msgstr ""
+msgstr "Editeur"
 
 #: hexa/workspaces/models.py:224
 msgid "Viewer"
-msgstr ""
-
-#: hexa/workspaces/models.py:440
-msgid "GCS Bucket"
-msgstr ""
+msgstr "Lecteur seule"
 
 #: hexa/workspaces/models.py:441
+msgid "GCS Bucket"
+msgstr "Bucket GCS"
+
+#: hexa/workspaces/models.py:442
 msgid "PostgreSQL DB"
-msgstr ""
+msgstr "DB PostgreSQL"
 
-#: hexa/workspaces/models.py:444
+#: hexa/workspaces/models.py:445
 msgid "IASO Instance"
-msgstr ""
+msgstr "Instance IASO"
 
-#: hexa/workspaces/schema/mutations.py:143
+#: hexa/workspaces/schema/mutations.py:141
 #, fuzzy, python-brace-format
 #| msgid "You've been added to the workspace {workspace.name}"
 msgid "You've been added to the workspace {workspace_name}"
@@ -1049,6 +1062,7 @@ msgstr "Vous avez été ajouté à l'espace de travail {workspace.name}"
 msgid ""
 "You have been invited to join <b>%(workspace)s</b> workspace by %(owner)s."
 msgstr ""
+"Vous avez été invité à rejoindre l'espace de travail <b>%(workspace)s</b> par %(owner)s."
 
 #: hexa/workspaces/templates/workspaces/mails/invite_external_user.html:6
 #, python-format
@@ -1058,24 +1072,35 @@ msgid ""
 "join the workspace.\n"
 "</p>"
 msgstr ""
+"<p>\n"
+"    <a href=\"%(workspace_signup_url)s\">Créer votre compte</a>&nbsp;pour "
+"rejoindre l'espace de travail.\n"
+"</p>"
+
 
 #: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:2
-#, python-format
-msgid ""
-"\n"
-"You have been invited to join  %(workspace)s workspace by %(owner)s.\n"
-"\n"
-"Create your account to join the workspace %(workspace_signup_url)s\n"
+#, fuzzy, python-format
+#| msgid ""
+#| "You've been invited to join the workspace {invitation.workspace.name} on "
+#| "OpenHexa"
+msgid "You have been invited to join  %(workspace)s workspace by %(owner)s."
 msgstr ""
+"Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
+"sur OpenHexa"
+
+#: hexa/workspaces/templates/workspaces/mails/invite_external_user.txt:4
+#, python-format
+msgid "Create your account to join the workspace %(workspace_signup_url)s"
+msgstr "Créer votre compte pour rejoindre l'espace de travail %(workspace_signup_url)s"
 
 #: hexa/workspaces/templates/workspaces/mails/invite_member.html:3
 #, python-format
 msgid "You have been added to the workspace <b>%(workspace)s</b> by %(owner)s."
-msgstr ""
+msgstr "Vous avez été ajouté à l'espace de travail <b>%(workspace)s</b> par %(owner)s."
 
 #: hexa/workspaces/templates/workspaces/mails/invite_member.html:5
 msgid "Please go to the following page to access it:"
-msgstr ""
+msgstr "Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant :"
 
 #: hexa/workspaces/templates/workspaces/mails/invite_member.html:8
 msgid "Open the Workspace"
@@ -1092,13 +1117,17 @@ msgstr ""
 "\n"
 "Vous avez été ajouté à l'espace de travail %(workspace)s par %(owner)s.\n"
 "\n"
-"Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant : %(workspace_url)s\n"
+"Vous pouvez accéder à l'espace de travail en cliquant sur le lien suivant : "
+"%(workspace_url)s\n"
 
-#: hexa/workspaces/utils.py:13
-#, python-brace-format
+#: hexa/workspaces/utils.py:15
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "You've been invited to join the workspace {invitation.workspace.name} on "
+#| "OpenHexa"
 msgid ""
 "You've been invited to join the workspace {invitation.workspace.name} on "
-"OpenHexa"
+"OpenHEXA"
 msgstr ""
 "Vous êtes invité à rejoindre l'espace de travail {invitation.workspace.name} "
 "sur OpenHexa"

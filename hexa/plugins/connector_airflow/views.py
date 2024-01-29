@@ -11,7 +11,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from hexa.metrics.decorators import do_not_track
 from hexa.pipelines.queue import environment_sync_queue
 from hexa.plugins.connector_airflow.api import AirflowAPIError
 from hexa.plugins.connector_airflow.authentication import DAGRunUser
@@ -59,7 +58,6 @@ def cluster_detail(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     )
 
 
-@do_not_track
 def cluster_detail_refresh(request: HttpRequest, cluster_id: uuid.UUID) -> HttpResponse:
     cluster = get_object_or_404(
         Cluster.objects.filter_for_user(request.user),
@@ -124,7 +122,6 @@ def dag_detail(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     )
 
 
-@do_not_track
 def dag_detail_refresh(request: HttpRequest, dag_id: uuid.UUID) -> HttpResponse:
     dag = get_object_or_404(DAG.objects.filter_for_user(request.user), pk=dag_id)
     for run in dag.dagrun_set.filter_for_refresh():
@@ -216,7 +213,6 @@ def dag_run_detail(
     )
 
 
-@do_not_track
 def dag_run_detail_refresh(
     request: HttpRequest,
     dag_id: uuid.UUID,
@@ -291,7 +287,6 @@ class EventType(str, enum.Enum):
 
 @require_POST
 @csrf_exempt
-@do_not_track
 def webhook(request: HttpRequest) -> HttpResponse:
     if not request.user.is_authenticated or not isinstance(request.user, DAGRunUser):
         logger.error(

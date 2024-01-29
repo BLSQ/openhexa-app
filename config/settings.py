@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "ariadne_django",
     "dpq",
     "hexa.user_management",
-    "hexa.metrics",
     "hexa.core",
     "hexa.catalog",
     "hexa.countries",
@@ -94,7 +93,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
-    "hexa.metrics.middlewares.track_request_event",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -359,8 +357,6 @@ else:
 # Sync settings: sync datasource with a worker (good for scaling) or in the web serv (good for dev)
 EXTERNAL_ASYNC_REFRESH = os.environ.get("EXTERNAL_ASYNC_REFRESH") == "true"
 
-# Activate an analytics middleware to save every call done on the app
-SAVE_REQUESTS = os.environ.get("SAVE_REQUESTS") == "true"
 
 if os.environ.get("DEBUG_TOOLBAR", "false") == "true":
     INSTALLED_APPS.append("debug_toolbar")
@@ -403,7 +399,9 @@ BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 # Pipeline settings
 PIPELINE_SCHEDULER_SPAWNER = os.environ.get("PIPELINE_SCHEDULER_SPAWNER", "kubernetes")
 PIPELINE_API_URL = os.environ.get("PIPELINE_API_URL", BASE_URL)
-PIPELINE_IMAGE = os.environ.get("PIPELINE_IMAGE", "blsq/openhexa-base-notebook:latest")
+PIPELINE_IMAGE = os.environ.get(
+    "PIPELINE_IMAGE", "blsq/openhexa-blsq-environment:latest"
+)
 PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT = os.environ.get(
     "PIPELINE_DEFAULT_CONTAINER_CPU_LIMIT", "2"
 )

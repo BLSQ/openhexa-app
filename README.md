@@ -189,11 +189,3 @@ The most important prefixes you should have in mind are:
 * `feat:` which represents a new feature, and correlates to a SemVer minor.
 * `feat!:`,  or `fix!:`, `refactor!:`, etc., which represent a breaking change
   (indicated by the `!`) and will result in a SemVer major.
-
-### Two-factor authentication
-
-The two-factor authentication implemented in OpenHEXA is optional and can be enabled per user.
-
-In order to enable the two-factor authentication you need to create a `Feature` with the code `two_factor`.
-You can then link this `Feature` to specific users by creating the corresponding `FeatureFlag` of by setting 
-`force_activate` on the `Feature` to `True` to enable it for everyone.

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -119,7 +120,11 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Custom Docker image for the workspace if appropriate
-    image = workspace.docker_image if workspace.docker_image != "" else None
+    image = (
+        workspace.docker_image
+        if workspace.docker_image != ""
+        else settings.PIPELINE_IMAGE
+    )
 
     if sdk_auth_token is not None:
         # SDK Credentials

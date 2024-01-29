@@ -4,7 +4,7 @@ from logging import getLogger
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest
 
-from hexa.pipelines.models import PipelineRun
+from hexa.pipelines.models import PipelineRun, PipelineRunState
 
 from .authentication import PipelineRunUser
 
@@ -19,7 +19,9 @@ def pipeline_run_authentication_middleware(get_response):
             auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
                 access_token = Signer().unsign_object(token)
-                pipeline_run = PipelineRun.objects.get(access_token=access_token)
+                pipeline_run = PipelineRun.objects.get(
+                    access_token=access_token, state=PipelineRunState.RUNNING
+                )
                 request.user = PipelineRunUser(pipeline_run=pipeline_run)
         except KeyError:
             pass  # No Authorization header

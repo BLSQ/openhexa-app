@@ -85,6 +85,7 @@ type PipelineRun {
   code: String!
   sendMailNotifications: Boolean!
   timeout: Int
+  datasetVersions: [DatasetVersion!]!
 }
 
 enum PipelineRunOrderBy {
@@ -159,6 +160,8 @@ enum PipelineError {
   PIPELINE_ALREADY_COMPLETED
   INVALID_TIMEOUT_VALUE
   PERMISSION_DENIED
+  FILE_NOT_FOUND
+  TABLE_NOT_FOUND
 }
 
 extend type Query {
