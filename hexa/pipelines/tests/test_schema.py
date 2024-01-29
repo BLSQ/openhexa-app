@@ -513,6 +513,8 @@ class PipelinesV2Test(GraphQLTestCase):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config={},
         )
+        run.state = PipelineRunState.RUNNING
+        run.save()
 
         access_token = Signer().sign_object(str(run.access_token))
 
@@ -555,6 +557,9 @@ class PipelinesV2Test(GraphQLTestCase):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config={},
         )
+        run.state = PipelineRunState.RUNNING
+        run.save()
+
         access_token = Signer().sign_object(str(run.access_token))
 
         with patch(
@@ -599,6 +604,8 @@ class PipelinesV2Test(GraphQLTestCase):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config={},
         )
+        run.state = PipelineRunState.RUNNING
+        run.save()
 
         access_token = Signer().sign_object(str(run.access_token))
 
@@ -641,6 +648,8 @@ class PipelinesV2Test(GraphQLTestCase):
             trigger_mode=PipelineRunTrigger.MANUAL,
             config={},
         )
+        run.state = PipelineRunState.RUNNING
+        run.save()
 
         access_token = Signer().sign_object(str(run.access_token))
 
