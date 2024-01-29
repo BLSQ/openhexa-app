@@ -54,7 +54,7 @@ case "$command" in
 "coveraged-test")
   wait-for-it db:5432
   export DEBUG=false
-  python manage.py makemigrations --check
+  python manage.py makemigrations --settings=config.settings_test --check
   coverage run manage.py test --settings=config.settings_test $arguments
   coverage report --skip-empty --fail-under=80
   ;;
