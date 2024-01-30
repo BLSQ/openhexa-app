@@ -76,6 +76,7 @@ query WorkspacePipelinePage(
     ...PipelineVersionsDialog_pipeline
     ...RunPipelineDialog_pipeline
     ...DeletePipelineVersion_pipeline
+    ...PipelineVersionPicker_pipeline
     permissions {
       run
       update
@@ -93,6 +94,8 @@ query WorkspacePipelinePage(
     currentVersion {
       id
       number
+      ...PipelineVersionPicker_version
+      ...PipelineVersionParametersTable_version
     }
     recipients {
       user {
@@ -105,6 +108,10 @@ query WorkspacePipelinePage(
         id
         version {
           number
+          createdAt
+          user {
+            ...User_user
+          }
           ...DeletePipelineVersion_version
         }
         executionDate

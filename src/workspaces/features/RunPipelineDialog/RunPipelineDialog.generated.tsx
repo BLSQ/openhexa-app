@@ -2,7 +2,7 @@ import * as Types from '../../../graphql-types';
 
 import { gql } from '@apollo/client';
 import { ParameterField_ParameterFragmentDoc } from './ParameterField.generated';
-import { PipelineVersionPicker_PipelineFragmentDoc } from '../PipelineVersionPicker/PipelineVersionPicker.generated';
+import { PipelineVersionPicker_PipelineFragmentDoc, PipelineVersionPicker_VersionFragmentDoc } from '../PipelineVersionPicker/PipelineVersionPicker.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelineCurrentVersionQueryVariables = Types.Exact<{

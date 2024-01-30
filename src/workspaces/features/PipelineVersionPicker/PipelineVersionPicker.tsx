@@ -6,6 +6,7 @@ import { useTranslation } from "next-i18next";
 import {
   PipelineVersionPickerQuery,
   PipelineVersionPicker_PipelineFragment,
+  PipelineVersionPicker_VersionFragment,
 } from "./PipelineVersionPicker.generated";
 import { Combobox } from "core/components/forms/Combobox";
 import useDebounce from "core/hooks/useDebounce";
@@ -21,7 +22,7 @@ type PipelineVersionPickerProps = {
   value: Option | null;
   pipeline: PipelineVersionPicker_PipelineFragment;
   placeholder?: string;
-  onChange(value: Option | null): void;
+  onChange(value: PipelineVersionPicker_VersionFragment | null): void;
   required?: boolean;
   disabled?: boolean;
 };
@@ -51,11 +52,9 @@ const PipelineVersionPicker = (props: PipelineVersionPickerProps) => {
       option
         ? `V${option.number} - ${DateTime.fromISO(
             option.createdAt,
-          ).toLocaleString(DateTime.DATETIME_MED)} - ${
-            option.user?.displayName ?? t("Unknown")
-          }`
+          ).toLocaleString(DateTime.DATETIME_MED)}`
         : "",
-    [t],
+    [],
   );
   const filterOptions = useCallback(
     (options: Option[], query: string) => {

@@ -2,6 +2,7 @@ import { ComponentPropsWithoutRef } from "react";
 import clsx from "clsx";
 
 export interface BadgeProps extends ComponentPropsWithoutRef<"span"> {
+  borderColor?: string;
   size?: "xs" | "sm" | "md";
 }
 
@@ -14,6 +15,7 @@ const Classes = {
 const Badge = ({
   children,
   className,
+  borderColor = "border-gray-500 border-opacity-10",
   size = "xs",
   ...delegated
 }: BadgeProps) => {
@@ -21,10 +23,11 @@ const Badge = ({
     <span
       {...delegated}
       className={clsx(
-        "inline-flex items-center truncate whitespace-nowrap rounded-md border border-gray-500 border-opacity-10 font-medium",
+        "inline-flex items-center truncate whitespace-nowrap rounded-md border  font-medium",
         size === "xs" && Classes.xs,
         size === "sm" && Classes.sm,
         size === "md" && Classes.md,
+        borderColor,
         className,
       )}
     >

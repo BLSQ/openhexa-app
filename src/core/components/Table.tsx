@@ -6,8 +6,20 @@ export const TableClasses = {
   thead: "",
   tbody: "divide-y divide-gray-200",
   tr: "",
-  th: "px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider first:pl-6 last:pr-6",
-  td: "px-4 py-5 text-sm text-gray-500 h-full first:pl-6 last:pr-6",
+  th: "bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+  td: "text-sm text-gray-500 h-full",
+};
+
+const SpacingClasses = {
+  td: {
+    tight: "px-2 py-2 first:pl-4 last:pr-4",
+    loose: "px-4 py-3 first:pl-6 last:pr-6",
+  },
+
+  th: {
+    tight: "px-2 py-2 first:pl-4 last:pr-4",
+    loose: "px-4 py-5 first:pl-6 last:pr-6",
+  },
 };
 
 export const Table = (props: HTMLAttributes<HTMLTableElement>) => (
@@ -31,7 +43,7 @@ export const TableCell = (
     width?: string;
     heading?: boolean;
     wrap?: boolean;
-
+    spacing?: "tight" | "loose";
     overrideStyle?: boolean;
   },
 ) => {
@@ -40,6 +52,7 @@ export const TableCell = (
     wrap = false,
     overrideStyle = false,
     className,
+    spacing = "loose",
     children,
     width,
     ...delegated
@@ -59,6 +72,7 @@ export const TableCell = (
       className={clsx(
         overrideStyle ? className : TableClasses[Elm],
         !overrideStyle && className,
+        SpacingClasses[Elm][spacing],
         !wrap && "whitespace-nowrap",
       )}
     >

@@ -24,7 +24,7 @@ const DescriptionList = ({
 }: DescriptionListProps) => {
   return (
     <ctx.Provider value={{ displayMode }}>
-      <dl className={clsx("grid gap-6", COLUMNS[columns], className)}>
+      <dl className={clsx("grid gap-4", COLUMNS[columns], className)}>
         {children}
       </dl>
     </ctx.Provider>
@@ -36,11 +36,13 @@ DescriptionList.Item = function Item({
   label,
   help,
   className,
+  fullWidth,
 }: {
   label: ReactNode;
   children: ReactNode;
   help?: ReactNode;
   className?: string;
+  fullWidth?: boolean;
 }) {
   const { displayMode } = useDescriptionList();
   return (
@@ -49,6 +51,7 @@ DescriptionList.Item = function Item({
         displayMode === DescriptionListDisplayMode.LABEL_LEFT &&
           "grid grid-cols-5 gap-2 sm:gap-4",
         displayMode === DescriptionListDisplayMode.LABEL_ABOVE && "space-y-1",
+        fullWidth && "col-span-full",
       )}
     >
       <dt

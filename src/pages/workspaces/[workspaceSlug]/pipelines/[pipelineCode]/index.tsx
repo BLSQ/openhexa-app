@@ -1,4 +1,5 @@
 import { ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
+import Badge from "core/components/Badge";
 import Block from "core/components/Block/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -12,8 +13,11 @@ import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
+import { DescriptionListDisplayMode } from "core/components/DescriptionList";
+import DescriptionList from "core/components/DescriptionList/DescriptionList";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
+import { Table, TableBody, TableRow } from "core/components/Table";
 import Time from "core/components/Time/Time";
 import Title from "core/components/Title";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -24,8 +28,10 @@ import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable";
 import { useState } from "react";
 import CronProperty from "workspaces/features/CronProperty";
+import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker";
 import PipelineVersionsDialog from "workspaces/features/PipelineVersionsDialog";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import WorkspaceMemberProperty from "workspaces/features/WorkspaceMemberProperty/";
@@ -60,6 +66,9 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
       perPage,
     },
   });
+  const [displayedVersion, setDisplayedVersion] = useState(
+    data?.pipeline?.currentVersion ?? null,
+  );
 
   if (!data?.workspace || !data?.pipeline) {
     return null;
@@ -171,28 +180,61 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                 hideLabel
                 markdown
               />
-              <RenderProperty<any>
-                id="currentVersion"
-                label={t("Current Version")}
-              >
-                {(property) =>
-                  property.displayValue.currentVersion ? (
-                    <div className="flex items-center gap-1.5">
-                      {property.displayValue.currentVersion.number}
-                      <Button
-                        variant="outlined"
-                        size="sm"
-                        onClick={() => setVersionsDialogOpen(true)}
-                      >
-                        {t("See all")}
-                      </Button>
-                    </div>
-                  ) : (
-                    <span>{t("No version")}</span>
-                  )
-                }
-              </RenderProperty>
             </DataCard.FormSection>
+            <DataCard.Section
+              collapsible={false}
+              title={() => (
+                <div className="flex flex-1 gap-2 items-center">
+                  <h4 className="font-medium">{t("Versions")}</h4>
+                  <div className="flex-1"></div>
+                  <PipelineVersionPicker
+                    required
+                    value={displayedVersion}
+                    onChange={(version) => setDisplayedVersion(version)}
+                    pipeline={pipeline}
+                  />
+                </div>
+              )}
+            >
+              {displayedVersion ? (
+                <>
+                  <DescriptionList>
+                    <DescriptionList.Item label={t("Identifier")}>
+                      <code>{displayedVersion.number}</code>
+                      {displayedVersion.id === pipeline.currentVersion?.id && (
+                        <Badge
+                          className="ml-2 text-gray-500 text-sm"
+                          borderColor="border-gray-300"
+                        >
+                          {t("Latest version")}
+                        </Badge>
+                      )}
+                    </DescriptionList.Item>
+                    <DescriptionList.Item label={t("Created at")}>
+                      <Time datetime={displayedVersion.createdAt} />
+                    </DescriptionList.Item>
+                    <DescriptionList.Item label={t("Created by")}>
+                      {displayedVersion.user?.displayName ?? "-"}
+                    </DescriptionList.Item>
+                    <DescriptionList.Item label={t("Parameters")}>
+                      {displayedVersion.parameters.length === 0 ? (
+                        <span className="">-</span>
+                      ) : (
+                        <div className="rounded-md overflow-hidden border border-gray-100">
+                          <PipelineVersionParametersTable
+                            version={displayedVersion}
+                          />
+                        </div>
+                      )}
+                    </DescriptionList.Item>
+                  </DescriptionList>
+                </>
+              ) : (
+                <span className="italic text-sm text-gray-500">
+                  {t("This pipeline has no versions yet")}
+                </span>
+              )}
+            </DataCard.Section>
             <DataCard.FormSection
               title={t("Scheduling")}
               onSave={
@@ -245,17 +287,23 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </DataCard.FormSection>
             {isWebhookFeatureEnabled ? (
-              <DataCard.FormSection title={t("Webhook")} onSave={onSaveWebhook}>
-                <p>
-                  {t(
-                    "You can use a webhook to trigger this pipeline from an external system using a POST request.",
-                  )}
-                </p>
-                <div className="flex">
-                  <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 mr-1.5" />
-                  {t(
-                    "Webhooks are experimental and don't require any form of authentication for now: anyone with the URL will be able to trigger this pipeline",
-                  )}
+              <DataCard.FormSection
+                title={t("Webhook")}
+                onSave={onSaveWebhook}
+                collapsible={false}
+              >
+                <div>
+                  <p>
+                    {t(
+                      "You can use a webhook to trigger this pipeline from an external system using a POST request.",
+                    )}
+                  </p>
+                  <div className="mt-2 flex text-sm">
+                    <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 mr-1.5" />
+                    {t(
+                      "Webhooks are experimental and don't require any form of authentication for now: anyone with the URL will be able to trigger this pipeline",
+                    )}
+                  </div>
                 </div>
                 <SwitchProperty
                   id="webhookEnabled"
