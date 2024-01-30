@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.43.0](https://github.com/BLSQ/openhexa-frontend/compare/0.42.5...0.43.0) (2024-01-30)
+
+
+### Features
+
+* **PipelineRun:** display run dataset versions ([#536](https://github.com/BLSQ/openhexa-frontend/issues/536)) ([a25680b](https://github.com/BLSQ/openhexa-frontend/commit/a25680b9e62713bdc2e7c4c61f03242ab1221884))
+* **Pipelines:** Show the parameters & versions on the page ([#539](https://github.com/BLSQ/openhexa-frontend/issues/539)) ([d38c0f5](https://github.com/BLSQ/openhexa-frontend/commit/d38c0f5d4347093f81d6569ca733e6570546a5dc))
+
+
+### Bug Fixes
+
+* **Files:** search was not working on Chrome (weird bug on thie browser) ([#544](https://github.com/BLSQ/openhexa-frontend/issues/544)) ([c93fa64](https://github.com/BLSQ/openhexa-frontend/commit/c93fa64098da9afba4734e59cb3ebc59170c4c7a))
+* **Pipelines:** null & empty values for int and float should be ignored ([#540](https://github.com/BLSQ/openhexa-frontend/issues/540)) ([2b2d4a8](https://github.com/BLSQ/openhexa-frontend/commit/2b2d4a82e4a02bbe4cff56950c167ad84e9eb04e))
+* **Pipelines:** Only display the 'run again' button for finished runs ([#541](https://github.com/BLSQ/openhexa-frontend/issues/541)) ([a56438e](https://github.com/BLSQ/openhexa-frontend/commit/a56438e7619124f4aa9589d3dc96032d3b24ec79))
+* **Sidebar:** Home was not selected in the sidebar when on the page ([852cd08](https://github.com/BLSQ/openhexa-frontend/commit/852cd086a675383c7319af69357645090fc89e74))
+
 ## [0.42.5](https://github.com/BLSQ/openhexa-frontend/compare/0.42.4...0.42.5) (2024-01-24)
 
 
