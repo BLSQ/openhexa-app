@@ -807,6 +807,9 @@ export const WorkspaceFilesPageDocument = gql`
         ...BucketExplorer_objects
       }
     }
+    permissions {
+      createObject
+    }
   }
 }
     ${BucketExplorer_WorkspaceFragmentDoc}

@@ -202,20 +202,24 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
                 </div>
               )}
             </Popover>
-            <Button
-              variant="secondary"
-              leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
-              onClick={() => setCreateFolderDialogOpen(true)}
-            >
-              {t("Create a folder")}
-            </Button>
-            <Button
-              variant="primary"
-              leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
-              onClick={() => setUploadDialogOpen(true)}
-            >
-              {t("Upload files")}
-            </Button>
+            {workspace.permissions.createObject && (
+              <>
+                <Button
+                  variant="secondary"
+                  leadingIcon={<FolderPlusIcon className="h-4 w-4" />}
+                  onClick={() => setCreateFolderDialogOpen(true)}
+                >
+                  {t("Create a folder")}
+                </Button>
+                <Button
+                  variant="primary"
+                  leadingIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+                  onClick={() => setUploadDialogOpen(true)}
+                >
+                  {t("Upload files")}
+                </Button>
+              </>
+            )}
           </div>
           <Block className="divide divide-y divide-gray-100">
             <BucketExplorer

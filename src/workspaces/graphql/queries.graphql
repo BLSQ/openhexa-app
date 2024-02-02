@@ -322,6 +322,9 @@ query WorkspaceFilesPage(
         ...BucketExplorer_objects
       }
     }
+    permissions{
+      createObject
+    }
   }
 }
 
