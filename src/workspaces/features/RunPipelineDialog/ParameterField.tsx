@@ -7,6 +7,7 @@ import { useCallback } from "react";
 import { useTranslation } from "next-i18next";
 import WorkspaceConnectionPicker from "../WorkspaceConnectionPicker/WorkspaceConnectionPicker";
 import { isConnectionParameter } from "workspaces/helpers/pipelines";
+import DatasetPicker from "datasets/features/DatasetPicker";
 
 type ParameterFieldProps = {
   parameter: any;
@@ -53,6 +54,18 @@ const ParameterField = (props: ParameterFieldProps) => {
       />
     );
   }
+
+  if (parameter.type === "dataset") {
+    return (
+      <DatasetPicker
+        workspaceSlug={workspaceSlug || ""}
+        value={value}
+        onChange={(option) => handleChange(option?.dataset.slug)}
+        withPortal
+      />
+    );
+  }
+
   if (parameter.choices?.length) {
     const choices =
       parameter.type !== "str"

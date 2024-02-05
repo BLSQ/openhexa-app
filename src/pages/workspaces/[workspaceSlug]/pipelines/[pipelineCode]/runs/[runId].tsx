@@ -100,6 +100,17 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     if (isConnectionParameter(entry.type) && entry.value) {
       return entry.value;
     }
+    if (entry.type === "dataset") {
+      return (
+        <Link
+          href={`/workspaces/${encodeURIComponent(
+            workspace.slug,
+          )}/datasets/${encodeURIComponent(entry.value)}`}
+        >
+          {entry.value}
+        </Link>
+      );
+    }
 
     return "-";
   };
