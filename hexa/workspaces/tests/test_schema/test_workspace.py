@@ -529,16 +529,8 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             },
         )
-
         self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "workspaceMembership": {
-                    "role": WorkspaceMembershipRole.EDITOR,
-                    "user": {"email": self.USER_SABRINA.email},
-                },
-            },
+            {"success": True, "errors": [], "workspaceMembership": None},
             r["data"]["inviteWorkspaceMember"],
         )
 
@@ -549,8 +541,7 @@ class WorkspaceTest(GraphQLTestCase):
             mail.outbox[0].subject,
         )
         self.assertTrue(
-            f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}"
-            in mail.outbox[0].body
+            f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
         )
 
     def test_invite_workspace_member_workspace_not_found(self):

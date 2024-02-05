@@ -1,11 +1,11 @@
 {% load i18n %}
 {% autoescape off %}
-{% blocktranslate %}You have been added to the workspace <b>{{workspace}}</b> by {{owner}}.{% endblocktranslate %}
+{% blocktranslate %}You have been invited to join the workspace <b>{{workspace}}</b> by {{owner}}.{% endblocktranslate %}
 
-{% translate "Please go to the following page to access it:" %}
+{% translate "Please go to the following page to review your invitations:" %}
 
 <p>
-    <a href="{{ workspace_url }}"> {% translate "Open the Workspace" %}</a>
+    <a href="{{ account_url }}">{% translate "Manage invitation" %}</a>
 </p>
 
 <br/>
