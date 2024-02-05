@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.1](https://github.com/BLSQ/openhexa-frontend/compare/0.43.0...0.43.1) (2024-02-05)
+
+
+### Bug Fixes
+
+* **Files:** hide upload and create button for viewer ([#546](https://github.com/BLSQ/openhexa-frontend/issues/546)) ([f56b352](https://github.com/BLSQ/openhexa-frontend/commit/f56b352a10c3a666ac86eb50c39bd8dfe50b670c))
+
 ## [0.43.0](https://github.com/BLSQ/openhexa-frontend/compare/0.42.5...0.43.0) (2024-01-30)
 
 
