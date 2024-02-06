@@ -2,7 +2,7 @@
   "name": "openhexa-frontend",
   "private": true,
   "engines": {
-    "node": ">= 16"
+    "node": ">= 18"
   },
   "scripts": {
     "dev": "npm-run-all --parallel next 'codegen -- --watch'",
