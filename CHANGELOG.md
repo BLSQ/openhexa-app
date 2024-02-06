@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.44.0](https://github.com/BLSQ/openhexa-frontend/compare/0.43.1...0.44.0) (2024-02-06)
+
+
+### Features
+
+* **Pipeline:** add support for dataset parameter ([#545](https://github.com/BLSQ/openhexa-frontend/issues/545)) ([cd8d024](https://github.com/BLSQ/openhexa-frontend/commit/cd8d024869a5e61c4c9964654203a9379fcebff3))
+
+
+### Bug Fixes
+
+* **Schema:** Add a BigInt scalar ([#553](https://github.com/BLSQ/openhexa-frontend/issues/553)) ([524ba2a](https://github.com/BLSQ/openhexa-frontend/commit/524ba2a6b9c78d13bf39b18ce0b35f803c436e06))
+
 ## [0.43.1](https://github.com/BLSQ/openhexa-frontend/compare/0.43.0...0.43.1) (2024-02-05)
 
 
