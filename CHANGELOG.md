@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.65.1](https://github.com/BLSQ/openhexa-app/compare/0.65.0...0.65.1) (2024-02-06)
+
+
+### Bug Fixes
+
+* **Notebooks:** Logout the user from jupyterhub on logout ([#636](https://github.com/BLSQ/openhexa-app/issues/636)) ([053ebde](https://github.com/BLSQ/openhexa-app/commit/053ebde246626cfe984daa00d050b89701f75154))
+* **Schema:** Add a BigInt type to the schema ([#643](https://github.com/BLSQ/openhexa-app/issues/643)) ([d8b5e25](https://github.com/BLSQ/openhexa-app/commit/d8b5e25c0893196f75ba13e53ae5ae235aefe6eb))
+
+
+### Miscellaneous
+
+* **Docker:** Add image config to docker-compose.yaml ([0e47516](https://github.com/BLSQ/openhexa-app/commit/0e4751693fd3092b77bdf5112ba741ea3aa757b4))
+
 ## [0.65.0](https://github.com/BLSQ/openhexa-app/compare/0.64.2...0.65.0) (2024-01-29)
 
 
