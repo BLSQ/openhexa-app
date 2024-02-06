@@ -7,7 +7,7 @@ import { DownloadBucketObject_ObjectFragmentDoc } from '../DownloadBucketObject/
 import { DeleteBucketObject_ObjectFragmentDoc } from '../DeleteBucketObject/DeleteBucketObject.generated';
 export type BucketExplorer_WorkspaceFragment = { __typename?: 'Workspace', slug: string, permissions: { __typename?: 'WorkspacePermissions', deleteObject: boolean } };
 
-export type BucketExplorer_ObjectsFragment = { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: number | null, updatedAt?: any | null, type: Types.BucketObjectType }> };
+export type BucketExplorer_ObjectsFragment = { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> };
 
 export const BucketExplorer_WorkspaceFragmentDoc = gql`
     fragment BucketExplorer_workspace on Workspace {

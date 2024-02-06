@@ -13,6 +13,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   AccessmodFilesetMetadata: { input: any; output: any; }
+  BigInt: { input: any; output: any; }
   Date: { input: any; output: any; }
   DateTime: { input: any; output: any; }
   Generic: { input: any; output: any; }
@@ -412,7 +413,7 @@ export type BucketObject = {
   key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
-  size?: Maybe<Scalars['Int']['output']>;
+  size?: Maybe<Scalars['BigInt']['output']>;
   type: BucketObjectType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
@@ -2239,6 +2240,7 @@ export type PipelineVersionsArgs = {
 };
 
 export enum PipelineError {
+  FileNotFound = 'FILE_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
   PermissionDenied = 'PERMISSION_DENIED',
@@ -2247,6 +2249,7 @@ export enum PipelineError {
   PipelineDoesNotSupportParameters = 'PIPELINE_DOES_NOT_SUPPORT_PARAMETERS',
   PipelineNotFound = 'PIPELINE_NOT_FOUND',
   PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND',
+  TableNotFound = 'TABLE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 

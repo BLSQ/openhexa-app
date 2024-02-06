@@ -347,6 +347,8 @@ type Avatar {
   color: String!
 }
 
+scalar BigInt
+
 type Bucket {
   name: String!
   objects(prefix: String, page: Int = 1, perPage: Int = 15, query: String, ignoreHiddenFiles: Boolean = true): BucketObjectPage!
@@ -357,7 +359,7 @@ type BucketObject {
   key: String!
   name: String!
   path: String!
-  size: Int
+  size: BigInt
   updatedAt: DateTime
   type: BucketObjectType!
 }
@@ -1639,6 +1641,8 @@ enum PipelineError {
   PIPELINE_ALREADY_COMPLETED
   INVALID_TIMEOUT_VALUE
   PERMISSION_DENIED
+  FILE_NOT_FOUND
+  TABLE_NOT_FOUND
 }
 
 type PipelineParameter {
