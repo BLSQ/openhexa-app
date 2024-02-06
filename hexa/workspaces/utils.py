@@ -1,23 +1,40 @@
+from typing import Optional
 from urllib.parse import urlencode
 
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext_lazy, override
 
 from config import settings
 from hexa.core.utils import send_mail
+from hexa.user_management.models import User
 
 from .models import WorkspaceInvitation
 
 
-def send_workspace_invitation_email(invitation: WorkspaceInvitation):
+def send_workspace_invitation_email(
+    invitation: WorkspaceInvitation, user: Optional[User] = None
+):
     token = invitation.generate_invitation_token()
-    send_mail(
-        title=gettext_lazy(
-            f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
-        ),
-        template_name="workspaces/mails/invite_external_user",
-        template_variables={
-            "owner": invitation.invited_by.display_name,
-            "workspace_signup_url": f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}",
-        },
-        recipient_list=[invitation.email],
-    )
+
+    with override(user.language if user else invitation.invited_by.language):
+        if user:
+            title = gettext_lazy(
+                f"You've been added to the workspace {invitation.workspace.name}"
+            )
+            action_url = f"https://{settings.NEW_FRONTEND_DOMAIN}/user/account"
+        else:
+            title = gettext_lazy(
+                f"You've been invited to join the workspace {invitation.workspace.name} on OpenHEXA"
+            )
+            action_url = f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': invitation.email, 'token': token})}"
+
+        send_mail(
+            title=title,
+            template_name="workspaces/mails/invite_user",
+            template_variables={
+                "workspace": invitation.workspace.name,
+                "owner": invitation.invited_by.display_name,
+                "user": user,
+                "url": action_url,
+            },
+            recipient_list=[invitation.email],
+        )

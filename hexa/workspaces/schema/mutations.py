@@ -3,12 +3,9 @@ from datetime import datetime
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.http import HttpRequest
-from django.utils.translation import gettext_lazy, override
 
-from config import settings
-from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import Feature, FeatureFlag, User
 
@@ -121,63 +118,36 @@ def resolve_invite_workspace_member(_, info, **kwargs):
         workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=input["workspaceSlug"]
         )
-        try:
-            user = User.objects.get(email=input["userEmail"])
-            # If the user already exists, check if his not already a member of the workspace
-            if WorkspaceMembership.objects.filter(
-                user__email=input["userEmail"], workspace=workspace
-            ).exists():
-                raise AlreadyExists
+        user = User.objects.filter(email=input["userEmail"]).first()
 
-            if not user.has_feature_flag("workspaces"):
-                FeatureFlag.objects.create(
-                    feature=Feature.objects.get(code="workspaces"), user=user
-                )
+        is_workspace_member = (
+            user
+            and WorkspaceMembership.objects.filter(
+                user=user, workspace=workspace
+            ).exists()
+        )
+        is_already_invited = WorkspaceInvitation.objects.filter(
+            workspace=workspace,
+            email=input["userEmail"],
+            status=WorkspaceInvitationStatus.PENDING,
+        ).exists()
 
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                workspace=workspace,
-                email=input["userEmail"],
-                role=input["role"],
-            )
+        if is_workspace_member or is_already_invited:
+            raise AlreadyExists
 
-            with override(user.language):
-                send_mail(
-                    title=gettext_lazy(
-                        "You've been invited to join the workspace {workspace_name}"
-                    ).format(workspace_name=workspace.name),
-                    template_name="workspaces/mails/invite_member",
-                    template_variables={
-                        "workspace": workspace.name,
-                        "owner": request.user.display_name,
-                        "account_url": request.build_absolute_uri(
-                            f"//{settings.NEW_FRONTEND_DOMAIN}/user/account"
-                        ),
-                    },
-                    recipient_list=[user.email],
-                )
-            return {
-                "success": True,
-                "errors": [],
-            }
-        except User.DoesNotExist:
-            invitation = WorkspaceInvitation.objects.create_if_has_perm(
-                principal=request.user,
-                workspace=workspace,
-                email=input["userEmail"],
-                role=input["role"],
-            )
-            send_workspace_invitation_email(invitation)
-            return {
-                "success": True,
-                "errors": [],
-            }
-    except IntegrityError:
+        invitation = WorkspaceInvitation.objects.create_if_has_perm(
+            principal=request.user,
+            workspace=workspace,
+            email=input["userEmail"],
+            role=input["role"],
+        )
+
+        send_workspace_invitation_email(invitation, user)
+
         return {
-            "success": False,
-            "errors": ["ALREADY_EXISTS"],
+            "success": True,
+            "errors": [],
         }
-
     except Workspace.DoesNotExist:
         return {
             "success": False,
@@ -212,6 +182,11 @@ def resolve_join_workspace(_, info, **kwargs):
         ).exists():
             raise AlreadyExists(
                 f"Already got a membership for {request.user} and workspace {invitation.workspace.name}"
+            )
+
+        if not request.user.has_feature_flag("workspaces"):
+            FeatureFlag.objects.create(
+                feature=Feature.objects.get(code="workspaces"), user=request.user
             )
 
         # We create the membership
@@ -298,25 +273,8 @@ def resolve_resend_workspace_invitation(_, info, **kwargs):
         invitation.updated_at = datetime.utcnow()
         invitation.save()
 
-        query_set = User.objects.filter(email=invitation.email)
-        if query_set.exists():
-            with override(query_set.first().language):
-                send_mail(
-                    title=gettext_lazy(
-                        "You've been invited to join the workspace {workspace_name}"
-                    ).format(workspace_name=invitation.workspace.name),
-                    template_name="workspaces/mails/invite_member",
-                    template_variables={
-                        "workspace": invitation.workspace.name,
-                        "owner": request.user.display_name,
-                        "account_url": request.build_absolute_uri(
-                            f"//{settings.NEW_FRONTEND_DOMAIN}/user/account"
-                        ),
-                    },
-                    recipient_list=[invitation.email],
-                )
-        else:
-            send_workspace_invitation_email(invitation)
+        user = User.objects.filter(email=invitation.email).first()
+        send_workspace_invitation_email(invitation, user)
         return {
             "success": True,
             "errors": [],

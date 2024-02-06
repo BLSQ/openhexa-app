@@ -535,9 +535,8 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(1, len(mail.outbox))
-        self.assertTrue(self.USER_SABRINA.has_feature_flag("workspaces"))
         self.assertEqual(
-            f"You've been invited to join the workspace {self.WORKSPACE.name}",
+            f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
         )
         self.assertTrue(
@@ -1456,7 +1455,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            f"You've been invited to join the workspace {self.WORKSPACE.name}",
+            f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
         )
         self.assertListEqual([self.INVITATION_BAR.email], mail.outbox[0].recipients())
@@ -1527,7 +1526,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
         self.assertEqual(1, len(mail.outbox))
         self.assertEqual(
-            f"You've been invited to join the workspace {self.INVITATION_FOO.workspace.name}",
+            f"You've been added to the workspace {self.INVITATION_FOO.workspace.name}",
             mail.outbox[0].subject,
         )
         self.assertTrue(

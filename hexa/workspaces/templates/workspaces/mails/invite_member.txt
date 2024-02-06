@@ -1,9 +1,0 @@
-{% load i18n %}
-{% blocktranslate %}
-Your have been invited to join the workspace {{workspace}} by {{owner}}.
-
-Please go to the following page to review your invitations : {{ account_url }}
-{% endblocktranslate %}
-
-{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
-
