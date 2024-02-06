@@ -68,6 +68,17 @@ Python requirements are handled with [pip-tools](https://github.com/jazzband/pip
 When you want to add a requirement, simply update `requirements.in` and run `pip-compile` in the root directory. You
 can then rebuild the Docker image.
 
+### Storage
+By default, the app will use GCP as the storage backend for workspaces. If you want to use a local storage backend, you
+can use the `minio` profile:
+
+```bash
+docker compose --profile minio up
+```
+
+You also have to set the `WORKSPACE_STORAGE_ENGINE` environment variable to `s3`.
+
+
 ### Pipelines
 
 If you need the pipelines or want to work on them, there are 2 optional services to run: `pipelines_runner` and/or
@@ -121,20 +132,20 @@ docker compose run app migrate
 Running the tests is as simple as:
 
 ```bash
-docker compose run app test
+docker compose run app test --settings=config.settings.test
 ```
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 
 ```bash
-docker compose run app test --exclude-tag=external
+docker compose run app test --exclude-tag=external --settings=config.settings.test
 ```
 
 You can run a specific test as it follows:
 
 ```bash
-docker compose run app test hexa.core.tests.CoreTest.test_ready_200
+docker compose run app test hexa.core.tests.CoreTest.test_ready_200 --settings=config.settings.test
 ```
 
 There are many other options, if you want to find out more, look at the [documentation of Django test harness](https://docs.djangoproject.com/en/4.2/topics/testing/overview/#running-tests),

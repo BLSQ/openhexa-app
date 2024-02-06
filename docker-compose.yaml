@@ -9,21 +9,12 @@ x-app: &common
     networks:
       - openhexa
     environment:
-      - DEBUG=true
-      - SESSION_COOKIE_SECURE=false
-      - CSRF_COOKIE_SECURE=false
-      - SECURE_SSL_REDIRECT=false
-      - ALLOWED_HOSTS=*
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_NAME=hexa-app
       - DATABASE_USER=hexa-app
       - DATABASE_PASSWORD=hexa-app
-      - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
-      - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000
-      - CSRF_TRUSTED_ORIGINS=http://localhost:3000
-      - GCS_TOKEN_LIFETIME=3600
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
@@ -135,13 +126,14 @@ services:
 
   minio:
     image: quay.io/minio/minio
-    command: server --address 0.0.0.0:9000 /data
+    command: server --address 0.0.0.0:9000 --console-address ":9001" /data
+    volumes:
+      - minio_data:/data
+    profiles:
+      - storage
     ports:
       - '9000:9000'
       - '9001:9001'
-    expose:
-      - "9000"
-      - "9001"      
     networks:
       - openhexa
     environment:
@@ -155,3 +147,4 @@ networks:
     external: true
 volumes:
   pgdata:
+  minio_data:

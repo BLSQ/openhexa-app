@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from ariadne import MutationType
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy, override
 
-from config import settings
 from hexa.core.utils import send_mail
 from hexa.countries.models import Country
 from hexa.user_management.models import Feature, FeatureFlag, User
