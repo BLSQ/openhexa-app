@@ -5,9 +5,21 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from hexa.databases.api import get_db_server_credentials
-from hexa.files.api import get_short_lived_downscoped_access_token
+from hexa.files.api import get_storage
 from hexa.pipelines.models import PipelineRun
 from hexa.workspaces.models import Workspace, WorkspaceMembership
+
+# ease patching
+
+
+def get_short_lived_downscoped_access_token(bucket_name):
+    return get_storage().get_short_lived_downscoped_access_token(
+        bucket_name=bucket_name
+    )
+
+
+def get_token_as_env_variables(token):
+    return get_storage().get_token_as_env_variables(token)
 
 
 @require_POST
@@ -97,11 +109,13 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
     )
 
     # Bucket credentials
-    token, _ = get_short_lived_downscoped_access_token(workspace.bucket_name)
+    token, _expires_in, _engine = get_short_lived_downscoped_access_token(
+        workspace.bucket_name
+    )
+    env.update(get_token_as_env_variables(token))
     env.update(
         {
             "WORKSPACE_BUCKET_NAME": workspace.bucket_name,
-            "GCS_TOKEN": token,
         }
     )
 

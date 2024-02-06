@@ -20,7 +20,7 @@ from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import get_bucket_object
+from hexa.files.api import get_storage
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
@@ -38,6 +38,11 @@ from .models import (
 pipelines_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
 )
+
+
+# ease mocking
+def get_bucket_object(bucket_name, file):
+    return get_storage().get_bucket_object(bucket_name, file)
 
 
 @workspace_permissions.field("createPipeline")
