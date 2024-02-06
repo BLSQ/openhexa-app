@@ -12,7 +12,7 @@ type BucketObject {
   key: String!
   name: String!
   path: String!
-  size: Int
+  size: BigInt
   updatedAt: DateTime
   type: BucketObjectType!
 }
