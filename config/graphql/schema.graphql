@@ -4,6 +4,6 @@ scalar URL
 scalar JSON
 scalar UUID
 scalar Generic
-
+scalar BigInt
 type Query
 type Mutation
