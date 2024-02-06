@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.65.1](https://github.com/BLSQ/openhexa-app/compare/0.65.0...0.65.1) (2024-02-06)
+
+
+### Bug Fixes
+
+* **Notebooks:** Logout the user from jupyterhub on logout ([#636](https://github.com/BLSQ/openhexa-app/issues/636)) ([053ebde](https://github.com/BLSQ/openhexa-app/commit/053ebde246626cfe984daa00d050b89701f75154))
+* **Schema:** Add a BigInt type to the schema ([#643](https://github.com/BLSQ/openhexa-app/issues/643)) ([d8b5e25](https://github.com/BLSQ/openhexa-app/commit/d8b5e25c0893196f75ba13e53ae5ae235aefe6eb))
+
+
+### Miscellaneous
+
+* **Docker:** Add image config to docker-compose.yaml ([0e47516](https://github.com/BLSQ/openhexa-app/commit/0e4751693fd3092b77bdf5112ba741ea3aa757b4))
+
+## [0.65.0](https://github.com/BLSQ/openhexa-app/compare/0.64.2...0.65.0) (2024-01-29)
+
+
+### Features
+
+* **Datasets:** link datasetVersion to pipelinRun ([#631](https://github.com/BLSQ/openhexa-app/issues/631)) ([db68a7a](https://github.com/BLSQ/openhexa-app/commit/db68a7abcfda30c6d6092ac260b1abd0dd61d163))
+
+
+### Bug Fixes
+
+* **Auth:** Only tokens from running pipelines can be used to authenticate the user ([#635](https://github.com/BLSQ/openhexa-app/issues/635)) ([399ffa2](https://github.com/BLSQ/openhexa-app/commit/399ffa28de85198dd53bd2b7b2524fed8f82de3a))
+* **PipelineRun:** check if table/file_path exist ([#634](https://github.com/BLSQ/openhexa-app/issues/634)) ([863d925](https://github.com/BLSQ/openhexa-app/commit/863d9250b58868fc0774205b4d5827d277b7b6fb))
+* **Pipelines:** fix tests ([#637](https://github.com/BLSQ/openhexa-app/issues/637)) ([997ceba](https://github.com/BLSQ/openhexa-app/commit/997ceba9ec30405dbbcfa4aa7079cc774845c83a))
+* **Pipelines:** It the db cannot be reached do not append None to outputs ([58ee429](https://github.com/BLSQ/openhexa-app/commit/58ee42956ecaa47a4909b6d5651b091153dd4398))
+
+
+### Miscellaneous
+
+* **i18n:** Update translations ([2eb3cb7](https://github.com/BLSQ/openhexa-app/commit/2eb3cb740a9ef12d47c012f9d7eb9fc555bafaec))
+* **Metrics:** deleting metrics app ([#630](https://github.com/BLSQ/openhexa-app/issues/630)) ([41eed63](https://github.com/BLSQ/openhexa-app/commit/41eed63c93289677ebdf630d62f2690b72f2ed56))
+
 ## [0.64.2](https://github.com/BLSQ/openhexa-app/compare/0.64.1...0.64.2) (2024-01-18)
 
 
