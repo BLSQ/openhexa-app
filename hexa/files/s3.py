@@ -426,7 +426,7 @@ class S3Client(BaseClient):
         }
 
         return {
-            "WORKSPACE_STORAGE_ENGINE_AWS_S3_FUSE_CONFIG": base64.b64encode(
+            "WORKSPACE_STORAGE_ENGINE_S3_FUSE_CONFIG": base64.b64encode(
                 json.dumps(json_config).encode()
             ).decode(),
         }

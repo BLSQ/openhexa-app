@@ -304,5 +304,6 @@ class GCPClient(BaseClient):
 
     def get_token_as_env_variables(self, token):
         return {
-            "GCS_TOKEN": token,
+            "GCS_TOKEN": token,  # FIXME: Once we have deployed the new openhexa-bslq-environment image and upgraded the openhexa-app, we can remove this line
+            "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": token,
         }
