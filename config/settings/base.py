@@ -355,6 +355,12 @@ WORKSPACE_STORAGE_ENGINE = os.environ.get("WORKSPACE_STORAGE_ENGINE", "gcp")
 WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL = os.environ.get(
     "WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL"
 )
+
+# This is the endpoint URL used when generating presigned URLs called by the client since the client
+# does not have access to storage engine in local mode (http://minio:9000)
+WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL"
+)
 WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID = os.environ.get(
     "WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID"
 )

@@ -10,11 +10,14 @@ from .basefs import BaseClient, NotFound, ObjectsPage, load_bucket_sample_data_w
 default_region = "eu-central-1"
 
 
-def get_storage_client(type="s3"):
+def get_storage_client(type="s3", endpoint_url=None):
     """type is the boto client type s3 by default but can be sts or other client api"""
+    if endpoint_url is None:
+        endpoint_url = settings.WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL
+
     s3 = boto3.client(
         type,
-        endpoint_url=settings.WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL,
+        endpoint_url=endpoint_url,
         aws_access_key_id=settings.WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID,
         aws_secret_access_key=settings.WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY,
         region_name=settings.WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION,
@@ -46,9 +49,11 @@ def _blob_to_dict(blob, bucket_name):
 def _object_to_dict(blob, bucket_name, object_key):
     name = object_key
     return {
-        "name": name.split("/")[-2]
-        if _is_dir_object(blob, object_key)
-        else name.split("/")[-1],
+        "name": (
+            name.split("/")[-2]
+            if _is_dir_object(blob, object_key)
+            else name.split("/")[-1]
+        ),
         "key": name,
         "path": "/".join([bucket_name, name]),
         "content_type": blob.get("ContentType"),
@@ -193,11 +198,25 @@ class S3Client(BaseClient):
     def generate_download_url(
         self, bucket_name: str, target_key: str, force_attachment=False
     ):
-        s3 = get_storage_client()
-        url = s3.generate_presigned_url(
+        url = self.generate_presigned_url(
             "get_object",
             Params={"Bucket": bucket_name, "Key": target_key},
             ExpiresIn=3600,
+        )
+        return url
+
+    def generate_presigned_url(
+        self, ClientMethod: str, Params=None, ExpiresIn=3600, HttpMethod=None
+    ):
+        # Since this URL will be used by the client, we need to use the client endpoint
+        s3_client = get_storage_client(
+            endpoint_url=settings.WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL
+        )
+        url = s3_client.generate_presigned_url(
+            ClientMethod=ClientMethod,
+            Params=Params,
+            ExpiresIn=ExpiresIn,  # URL expiration time in seconds
+            HttpMethod=HttpMethod,
         )
         return url
 
@@ -229,11 +248,12 @@ class S3Client(BaseClient):
         if content_type:
             params["ContentType"] = content_type
 
-        url = s3_client.generate_presigned_url(
+        url = self.generate_presigned_url(
             ClientMethod="put_object",
             Params=params,
             ExpiresIn=3600,  # URL expiration time in seconds
         )
+
         return url
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
