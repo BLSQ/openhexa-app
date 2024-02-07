@@ -29,5 +29,8 @@ class MockBlob:
     def generate_signed_url(self, *args, **kwargs):
         return f"http://signed-url/{self.name}"
 
+    def upload_from_filename(self, file_name):
+        self.bucket._blobs.append(self)
+
     def __repr__(self) -> str:
         return f"<MockBlob: {self.name}>"

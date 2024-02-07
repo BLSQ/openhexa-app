@@ -10,6 +10,7 @@ from ariadne import (
     UnionType,
     load_schema_from_path,
 )
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
@@ -18,7 +19,6 @@ from slugify import slugify
 from stringcase import snakecase
 
 import hexa.plugins.connector_s3.api as s3_api
-from config import settings
 from hexa.core import mimetypes
 from hexa.core.graphql import result_page
 from hexa.countries.models import Country

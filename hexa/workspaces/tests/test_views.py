@@ -183,7 +183,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_workspace_credentials_200(
         self, mock_get_short_lived_downscoped_access_token
@@ -217,6 +217,8 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
+                "WORKSPACE_STORAGE_ENGINE": "gcp",
+                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
                 "GCS_TOKEN": "gcs-token",
                 "HEXA_TOKEN": Signer().sign_object(
                     self.WORKSPACE_MEMBERSHIP_JULIA.access_token
@@ -269,7 +271,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_pipeline_invalid_credentials_404(
         self, mock_get_short_lived_downscoped_access_token
@@ -289,7 +291,7 @@ class ViewsTest(TestCase):
 
     @patch(
         "hexa.workspaces.views.get_short_lived_downscoped_access_token",
-        return_value=("gcs-token", 3600),
+        return_value=("gcs-token", 3600, "gcp"),
     )
     def test_pipeline_credentials_200(
         self, mock_get_short_lived_downscoped_access_token
@@ -325,6 +327,8 @@ class ViewsTest(TestCase):
                 "WORKSPACE_DATABASE_USERNAME": self.WORKSPACE.db_name,
                 "WORKSPACE_DATABASE_PASSWORD": self.WORKSPACE.db_password,
                 "WORKSPACE_DATABASE_URL": self.WORKSPACE.db_url,
+                "WORKSPACE_STORAGE_ENGINE": "gcp",
+                "WORKSPACE_STORAGE_ENGINE_GCP_ACCESS_TOKEN": "gcs-token",
                 "GCS_TOKEN": "gcs-token",
                 "HEXA_TOKEN": token,
                 "GCS_BUCKET_NAME": self.WORKSPACE_GCS_CONNECTION.fields.get(

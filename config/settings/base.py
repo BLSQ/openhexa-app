@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
-import logging.config
 import os
 from pathlib import Path
 
@@ -18,7 +17,7 @@ from corsheaders.defaults import default_headers
 from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -168,8 +167,10 @@ AUTHENTICATION_BACKENDS = [
 
 
 # Additional security settings
-SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "true") != "false"
-CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", "true") != "false"
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SECURE_REDIRECT_EXEMPT = [r"^ready$"]
 
 RAW_CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS")
 if RAW_CSRF_TRUSTED_ORIGINS is not None:
@@ -180,8 +181,7 @@ CSRF_COOKIE_DOMAIN = os.environ.get("CSRF_COOKIE_DOMAIN", None)
 SECURE_HSTS_SECONDS = os.environ.get(
     "SECURE_HSTS_SECONDS", 60 * 60
 )  # TODO: increase to one year if ok
-SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "true") != "false"
-SECURE_REDIRECT_EXEMPT = [r"^ready$"]
+
 
 # by default users need to login every 2 weeks -> update to 1 year
 SESSION_COOKIE_AGE = 365 * 24 * 3600
@@ -233,96 +233,16 @@ STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 # http://whitenoise.evans.io/en/stable/django.html#add-compression-and-caching-support
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Comments
-COMMENTS_APP = "hexa.comments"
-
-
 # Notebooks component
 NOTEBOOKS_URL = os.environ.get("NOTEBOOKS_URL", "http://localhost:8001")
 NOTEBOOKS_HUB_URL = os.environ.get("NOTEBOOKS_HUB_URL", "http://jupyterhub:8000/hub")
-HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "notatoken")
+HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "")
 
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
 
-# Activate the accept terms of service feature: each user need to manualy accept
-# them once if they want to continue using the product, existing user and new one
-USER_MUST_ACCEPT_TOS = os.environ.get("USER_MUST_ACCEPT_TOS") == "true"
-
-SENTRY_DSN = os.environ.get("SENTRY_DSN")
-
-if SENTRY_DSN:
-    # if sentry -> we are in production, use fluentd handlers
-    # inject sentry into logger config afterward.
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": True,
-        "formatters": {},
-        "handlers": {
-            "fluentd": {"level": "INFO", "class": "config.logging.GCPHandler"},
-        },
-        "loggers": {
-            "django.security.DisallowedHost": {
-                "level": "CRITICAL",
-                "propagate": True,
-            },
-            "django": {
-                "level": "INFO",
-                "propagate": True,
-            },
-            "gunicorn": {
-                "level": "INFO",
-                "propagate": True,
-            },
-            "": {
-                "handlers": ["fluentd"],
-                "level": "DEBUG",
-                "propagate": False,
-            },
-        },
-    }
-
-    import sentry_sdk
-    from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
-
-    # Ignore "Invalid HTTP_HOST header" errors
-    # as crawlers/bots hit the production hundreds of times per day
-    # with the IP instead of the host
-    ignore_logger("django.security.DisallowedHost")
-
-    # Sampling rate
-    traces_sample_rate = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1.0"))
-
-    # Exclude /ready from sentry
-    def sentry_tracer_sampler(sampling_context):
-        transaction_context = sampling_context.get("transaction_context")
-        if transaction_context is None:
-            return 0
-
-        op = transaction_context.get("op")
-
-        if op == "http.server":
-            path = sampling_context.get("wsgi_environ", {}).get("PATH_INFO")
-            # Monitoring endpoints
-            if path.startswith("/ready"):
-                return 0
-
-        # Default sample rate for everything else
-        return traces_sample_rate
-
-    # inject sentry into logging config. set level to ERROR, we don't really want the rest?
-    sentry_logging = LoggingIntegration(level=logging.ERROR, event_level=logging.ERROR)
-
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration(), sentry_logging],
-        traces_sample_rate=traces_sample_rate,
-        traces_sampler=sentry_tracer_sampler,
-        send_default_pii=True,
-        environment=os.environ.get("SENTRY_ENVIRONMENT"),
-    )
-elif os.environ.get("DEBUG_LOGGING", "false") == "true":
+# Logging
+if os.environ.get("DEBUG_LOGGING", "false") == "true":
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -382,9 +302,6 @@ ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
 ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
 ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
 
-# Custom test runner
-TEST_RUNNER = "hexa.core.test.runner.DiscoverRunner"
-
 # Specific settings for airflow plugins
 
 # number of second of airflow dag reloading setting
@@ -431,8 +348,22 @@ WORKSPACES_DATABASE_DEFAULT_DB = os.environ.get("WORKSPACES_DATABASE_DEFAULT_DB"
 WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST")
 
 # Filesystem configuration
-WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
-WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION")
+WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "hexa-")
+WORKSPACE_BUCKET_REGION = os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1")
+WORKSPACE_STORAGE_ENGINE = os.environ.get("WORKSPACE_STORAGE_ENGINE", "gcp")
+
+WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL = os.environ.get(
+    "WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL"
+)
+WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID = os.environ.get(
+    "WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID"
+)
+WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY = os.environ.get(
+    "WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY"
+)
+WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION = os.environ.get(
+    "WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION"
+)
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET")

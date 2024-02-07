@@ -1,6 +1,10 @@
 import functools
 import uuid
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+
+
+class BucketAlreadyOwnedByYou(Exception):
+    pass
 
 
 class StorageBackend(object):
@@ -13,6 +17,10 @@ class StorageBackend(object):
     def reset(self):
         self.buckets = {}
 
+    def delete_bucket(self, bucket_name):
+        if bucket_name in self.buckets:
+            del self.buckets[bucket_name]
+
     def mock_storage(self, func):
         from .client import MockClient
 
@@ -21,7 +29,25 @@ class StorageBackend(object):
             return client
 
         def wrapper(*args, **kwargs):
-            with patch("hexa.files.api.get_storage_client", create_mock_client):
+            with patch("hexa.files.gcp.get_storage_client", create_mock_client):
+                return func(*args, **kwargs)
+
+        functools.update_wrapper(wrapper, func)
+        wrapper.__wrapped__ = func
+        return wrapper
+
+    def mock_s3_storage(self, func):
+        from .client import MockClient
+
+        def create_mock_client(*args, **kwargs):
+            client = MockClient(backend=self, *args, **kwargs)
+            client.exceptions = MagicMock()
+            client.exceptions.BucketAlreadyOwnedByYou = BucketAlreadyOwnedByYou
+            client.exceptions.NoSuchBucket = BucketAlreadyOwnedByYou
+            return client
+
+        def wrapper(*args, **kwargs):
+            with patch("hexa.files.s3.get_storage_client", create_mock_client):
                 return func(*args, **kwargs)
 
         functools.update_wrapper(wrapper, func)

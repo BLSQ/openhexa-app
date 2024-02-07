@@ -1,9 +1,9 @@
 from typing import Optional
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.utils.translation import gettext_lazy, override
 
-from config import settings
 from hexa.core.utils import send_mail
 from hexa.user_management.models import User
 

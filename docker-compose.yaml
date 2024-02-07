@@ -9,21 +9,12 @@ x-app: &common
     networks:
       - openhexa
     environment:
-      - DEBUG=true
-      - SESSION_COOKIE_SECURE=false
-      - CSRF_COOKIE_SECURE=false
-      - SECURE_SSL_REDIRECT=false
-      - ALLOWED_HOSTS=*
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_NAME=hexa-app
       - DATABASE_USER=hexa-app
       - DATABASE_PASSWORD=hexa-app
-      - SECRET_KEY='))dodw9%n)7q86l-q1by4e-2z#vonph50!%ep7_je)_=x0m2v-'
-      - ENCRYPTION_KEY='oT7DKt8zf0vsnbBcJ0R36SHkBzbjF2agFIK3hSAVvko='
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000
-      - CSRF_TRUSTED_ORIGINS=http://localhost:3000
-      - GCS_TOKEN_LIFETIME=3600
       - ACCESSMOD_BUCKET_NAME=s3://hexa-demo-accessmod
       - ACCESSMOD_MANAGE_REQUESTS_URL=http://localhost:3000/admin/access-requests
       - ACCESSMOD_SET_PASSWORD_URL=http://localhost:3000/account/set-password
@@ -31,7 +22,6 @@ x-app: &common
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - PIPELINE_API_URL=http://app:8000
       - PIPELINE_IMAGE
-
       # The following variables are optional and can be set in your local .env file for testing purposes
       - DEBUG_LOGGING
       - DEBUG_TOOLBAR
@@ -47,6 +37,11 @@ x-app: &common
       - WORKSPACES_DATABASE_DEFAULT_DB=hexa-app
       - WORKSPACES_DATABASE_PROXY_HOST=db
       - WORKSPACE_DATASETS_BUCKET
+      - WORKSPACE_STORAGE_ENGINE
+      - WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL
+      - WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID
+      - WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY
+      - WORKSPACE_STORAGE_ENGINE_AWS_BUCKET_REGION           
       - NOTEBOOKS_HUB_URL=http://jupyterhub:8000/hub
       - HUB_API_TOKEN=cbb352d6a412e266d7494fb014dd699373645ec8d353e00c7aa9dc79ca87800d
       - GCS_SERVICE_ACCOUNT_KEY
@@ -129,9 +124,27 @@ services:
     depends_on:
       - db
 
+  minio:
+    image: quay.io/minio/minio
+    command: server --address 0.0.0.0:9000 --console-address ":9001" /data
+    volumes:
+      - minio_data:/data
+    profiles:
+      - storage
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - openhexa
+    environment:
+      - MINIO_ACCESS_KEY=${WORKSPACE_STORAGE_ENGINE_AWS_ACCESS_KEY_ID}
+      - MINIO_SECRET_KEY=${WORKSPACE_STORAGE_ENGINE_AWS_SECRET_ACCESS_KEY}
+
+
 networks:
   openhexa:
     name: openhexa
     external: true
 volumes:
   pgdata:
+  minio_data:
