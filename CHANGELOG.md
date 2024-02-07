@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.44.1](https://github.com/BLSQ/openhexa-frontend/compare/0.44.0...0.44.1) (2024-02-07)
+
+
+### Miscellaneous
+
+* Minor changes on dockerfile ([15aaf49](https://github.com/BLSQ/openhexa-frontend/commit/15aaf492176b5bd5ae2b1ab345252b131ac94851))
+* update dockerfile to use node 20 ([#552](https://github.com/BLSQ/openhexa-frontend/issues/552)) ([8cf7d71](https://github.com/BLSQ/openhexa-frontend/commit/8cf7d7115f212c4fb8a7cc5bf0f2f7f0b0f1ce77))
+
 ## [0.44.0](https://github.com/BLSQ/openhexa-frontend/compare/0.43.1...0.44.0) (2024-02-06)
 
 
