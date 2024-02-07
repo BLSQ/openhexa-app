@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.65.2](https://github.com/BLSQ/openhexa-app/compare/0.65.1...0.65.2) (2024-02-07)
+
+
+### Features
+
+* **Storage:** Workspace buckets can be configured to work on GCP or S3 ([3b3b400](https://github.com/BLSQ/openhexa-app/commit/3b3b400ef681d6cfe2d9f872eb6e4a59ec22ae8c))
+* **Workspaces:** do not add existing users to workspace by default ([#640](https://github.com/BLSQ/openhexa-app/issues/640)) ([d56de58](https://github.com/BLSQ/openhexa-app/commit/d56de5876d071ec59cd28a54ddac4123f421dfe5))
+
+
+### Miscellaneous
+
+* release 0.65.2 ([ddff7b3](https://github.com/BLSQ/openhexa-app/commit/ddff7b3bd2770eec0d1070182286d1c136031ced))
+
 ## [0.65.1](https://github.com/BLSQ/openhexa-app/compare/0.65.0...0.65.1) (2024-02-06)
 
 
