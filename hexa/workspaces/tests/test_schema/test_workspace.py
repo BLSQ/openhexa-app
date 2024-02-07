@@ -529,28 +529,18 @@ class WorkspaceTest(GraphQLTestCase):
                 }
             },
         )
-
         self.assertEqual(
-            {
-                "success": True,
-                "errors": [],
-                "workspaceMembership": {
-                    "role": WorkspaceMembershipRole.EDITOR,
-                    "user": {"email": self.USER_SABRINA.email},
-                },
-            },
+            {"success": True, "errors": [], "workspaceMembership": None},
             r["data"]["inviteWorkspaceMember"],
         )
 
         self.assertEqual(1, len(mail.outbox))
-        self.assertTrue(self.USER_SABRINA.has_feature_flag("workspaces"))
         self.assertEqual(
             f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
         )
         self.assertTrue(
-            f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.WORKSPACE.slug}"
-            in mail.outbox[0].body
+            f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
         )
 
     def test_invite_workspace_member_workspace_not_found(self):
@@ -1465,7 +1455,7 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            f"You've been invited to join the workspace {self.WORKSPACE.name} on OpenHEXA",
+            f"You've been added to the workspace {self.WORKSPACE.name}",
             mail.outbox[0].subject,
         )
         self.assertListEqual([self.INVITATION_BAR.email], mail.outbox[0].recipients())
@@ -1513,3 +1503,32 @@ class WorkspaceTest(GraphQLTestCase):
                 f"https://{settings.NEW_FRONTEND_DOMAIN}/register?{urlencode({'email': user_email, 'token': encoded})}",
                 mail.outbox[0].body,
             )
+
+    def test_resend_workspace_member_invitation_existing_user(self):
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+        r = self.run_query(
+            """
+                mutation resendWorkspaceInvitation($input: ResendWorkspaceInvitationInput!) {
+                    resendWorkspaceInvitation(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+            {"input": {"invitationId": str(self.INVITATION_PENDING.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+            },
+            r["data"]["resendWorkspaceInvitation"],
+        )
+        self.assertEqual(1, len(mail.outbox))
+        self.assertEqual(
+            f"You've been added to the workspace {self.INVITATION_FOO.workspace.name}",
+            mail.outbox[0].subject,
+        )
+        self.assertTrue(
+            f"{settings.NEW_FRONTEND_DOMAIN}/user/account" in mail.outbox[0].body
+        )

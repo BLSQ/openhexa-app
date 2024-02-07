@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% if user %}
+    {% blocktranslate %}
+    Your have been invited to join the workspace {{workspace}} by {{owner}}.
+
+    Please go to the following page to review your invitations : {{ url }}
+    {% endblocktranslate %}
+{% else %}
+
+    {% blocktranslate %}
+    You have been invited to join  {{workspace}} workspace by {{owner}}.
+    {% endblocktranslate %}
+    {% autoescape off %}
+        {% blocktranslate %}Create your account to join the workspace {{ url }}{% endblocktranslate %}
+    {% endautoescape %}
+
+{% endif %}
+
+{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
+

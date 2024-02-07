@@ -1,7 +1,0 @@
-{% load i18n %}
-{% blocktranslate %}You have been invited to join  {{workspace}} workspace by {{owner}}.{% endblocktranslate %}
-{% autoescape off %}
-{% blocktranslate %}Create your account to join the workspace {{ workspace_signup_url }}{% endblocktranslate %}
-{% endautoescape %}
-
-{% blocktranslate %}The OpenHEXA team{% endblocktranslate %}
