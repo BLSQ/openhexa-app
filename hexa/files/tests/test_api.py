@@ -367,6 +367,7 @@ class OnlyS3:
         url = self.get_client().generate_upload_url(
             bucket_name="bucket", target_key="demo.txt"
         )
+        self.assertEqual(url, "http://localhost:9000")
         self.assertTrue(url.startswith("http://localhost:9000"))
 
         with override_settings(
