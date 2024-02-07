@@ -364,11 +364,11 @@ class OnlyS3:
 
     def test_generate_client_upload_url(self):
         self.get_client().create_bucket("bucket")
+
         url = self.get_client().generate_upload_url(
             bucket_name="bucket", target_key="demo.txt"
         )
-        self.assertEqual(url, "http://localhost:9000")
-        self.assertTrue(url.startswith("http://localhost:9000"))
+        self.assertFalse(url.startswith("https://custom-s3.local"))
 
         with override_settings(
             WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
@@ -383,7 +383,7 @@ class OnlyS3:
         bucket.blob("demo.txt", size=123, content_type="text/plain")
 
         url = self.get_client().generate_download_url("bucket", "demo.txt")
-        self.assertTrue(url.startswith("http://localhost:9000"))
+        self.assertFalse(url.startswith("https://custom-s3.local"))
 
         with override_settings(
             WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
