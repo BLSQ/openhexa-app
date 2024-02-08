@@ -79,7 +79,7 @@ cryptography==41.0.7
     #   moto
 dhis2-py==2.3.0
     # via -r requirements.in
-django==5.0
+django==5.0.2
     # via
     #   -r requirements.in
     #   ariadne-django
