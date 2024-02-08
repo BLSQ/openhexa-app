@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
@@ -35,7 +36,6 @@ urlpatterns = [
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
-    path("comments/", include("hexa.comments.urls")),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it
