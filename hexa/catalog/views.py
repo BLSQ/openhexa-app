@@ -1,19 +1,12 @@
-import uuid
-
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_POST
 
 from hexa.core.search import get_search_options
 from hexa.core.search import search as do_search
 
 from .datagrids import DatasourceGrid
-from .models import Datasource, Index
-from .queue import datasource_work_queue
+from .models import Index
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -67,34 +60,3 @@ def search(request: HttpRequest) -> HttpResponse:
             ],
         },
     )
-
-
-@require_POST
-def datasource_sync(
-    request: HttpRequest, datasource_contenttype_id: int, datasource_id: uuid.UUID
-):
-    try:
-        datasource_type = ContentType.objects.get_for_id(id=datasource_contenttype_id)
-    except ContentType.DoesNotExist:
-        raise Http404("No Datasource matches the given query.")
-    if not issubclass(datasource_type.model_class(), Datasource):
-        raise Http404("No Datasource matches the given query.")
-    datasource = get_object_or_404(
-        datasource_type.model_class().objects.filter_for_user(request.user),
-        pk=datasource_id,
-    )
-
-    if settings.EXTERNAL_ASYNC_REFRESH and "synchronous" not in request.GET:
-        datasource_work_queue.enqueue(
-            "datasource_sync",
-            {
-                "contenttype_id": datasource_contenttype_id,
-                "object_id": str(datasource.id),
-            },
-        )
-        messages.success(request, _("The datasource will soon be synced"))
-    else:
-        sync_result = datasource.sync()
-        messages.success(request, sync_result)
-
-    return redirect(request.META.get("HTTP_REFERER", datasource.get_absolute_url()))

@@ -5,25 +5,16 @@ import typing
 from logging import getLogger
 
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import filesizeformat, pluralize
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from hexa.catalog.models import Datasource, Entry
-from hexa.catalog.queue import datasource_work_queue
-from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models.base import BaseQuerySet
-from hexa.plugins.connector_s3.api import (
-    S3ApiError,
-    get_object_metadata,
-    head_bucket,
-    list_objects_metadata,
-)
+from hexa.plugins.connector_s3.api import S3ApiError, get_object_metadata, head_bucket
 from hexa.plugins.connector_s3.region import AWSRegion
 from hexa.user_management import models as user_management_models
 from hexa.user_management.models import Permission, PermissionMode
@@ -111,62 +102,6 @@ class Bucket(Datasource):
         except S3ApiError as e:
             raise ValidationError(e)
 
-    def sync(self):
-        """Sync the bucket by querying the S3 API"""
-
-        s3_objects = list_objects_metadata(
-            bucket=self,
-        )
-
-        # Lock the bucket
-        with transaction.atomic():
-            Bucket.objects.select_for_update().get(pk=self.pk)
-            # Sync data elements
-            with transaction.atomic():
-                created_count = 0
-                updated_count = 0
-                identical_count = 0
-                deleted_count = 0
-
-                remote = set()
-                local = {str(x.key): x for x in self.object_set.all()}
-
-                for s3_object in s3_objects:
-                    key = s3_object["Key"]
-                    remote.add(key)
-                    if key in local:
-                        if (
-                            s3_object.get("ETag") == local[key].etag
-                            and s3_object["Type"] == local[key].type
-                        ):
-                            # If it has the same key bot not the same ETag: the file was updated on S3
-                            # (Sometime, the ETag contains double quotes -> strip them)
-                            identical_count += 1
-                        else:
-                            updated_count += 1
-                            local[key].update_from_metadata(s3_object)
-                            local[key].save()
-                    else:
-                        Object.create_from_metadata(self, s3_object)
-                        created_count += 1
-
-                # cleanup unmatched objects
-                for key, obj in local.items():
-                    if key not in remote:
-                        deleted_count += 1
-                        obj.delete()
-                # Flag the datasource as synced
-                self.last_synced_at = timezone.now()
-                self.save()
-
-        return DatasourceSyncResult(
-            datasource=self,
-            created=created_count,
-            updated=updated_count,
-            identical=identical_count,
-            deleted=deleted_count,
-        )
-
     @property
     def content_summary(self):
         count = self.object_set.count()
@@ -233,16 +168,6 @@ class BucketPermission(Permission):
         ]
 
     bucket = models.ForeignKey("Bucket", on_delete=models.CASCADE)
-
-    def index_object(self):
-        self.bucket.build_index()
-        datasource_work_queue.enqueue(
-            "datasource_index",
-            {
-                "contenttype_id": ContentType.objects.get_for_model(self.bucket).id,
-                "object_id": str(self.bucket.id),
-            },
-        )
 
     def __str__(self):
         return f"Permission for team '{self.team}' on bucket '{self.bucket}'"
