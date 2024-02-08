@@ -4,19 +4,15 @@ from logging import getLogger
 from dhis2 import ClientException, RequestException
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.catalog.models import Datasource, Entry
-from hexa.catalog.queue import datasource_work_queue
-from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models import Base
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
@@ -25,7 +21,6 @@ from hexa.core.models.path import PathField
 from hexa.user_management.models import Permission, Team, User
 
 from .api import Dhis2Client
-from .sync import sync_from_dhis2_results
 
 logger = getLogger(__name__)
 
@@ -116,75 +111,6 @@ class Instance(Datasource):
         if self.verbose_sync:
             logger.info("sync_log %s: " + fmt, self.name, *args)
 
-    def sync(self):
-        """Sync the datasource by querying the DHIS2 API"""
-        self.sync_log("start syncing")
-
-        client = Dhis2Client(
-            url=self.api_credentials.api_url,
-            username=self.api_credentials.username,
-            password=self.api_credentials.password,
-            verbose=self.verbose_sync,
-        )
-
-        self.sync_log("client initialized")
-        results = DatasourceSyncResult(datasource=self)
-
-        # Sync data elements
-        info = client.fetch_info()
-        self.sync_log("fetch info done: %s", info)
-        self.name = info["systemName"]
-        self.start_synced_at = timezone.now()
-        self.save()
-
-        self.sync_log("start fetch data_elements")
-        results += sync_from_dhis2_results(
-            model_class=DataElement,
-            instance=self,
-            results=client.fetch_data_elements(),
-        )
-
-        # Sync indicator types
-        self.sync_log("start fetch indicator_types")
-        results += sync_from_dhis2_results(
-            model_class=IndicatorType,
-            instance=self,
-            results=client.fetch_indicator_types(),
-        )
-
-        # Sync indicators
-        self.sync_log("start fetch indicators")
-        results += sync_from_dhis2_results(
-            model_class=Indicator,
-            instance=self,
-            results=client.fetch_indicators(),
-        )
-
-        # Sync datasets
-        self.sync_log("start fetch datasets")
-        results += sync_from_dhis2_results(
-            model_class=DataSet,
-            instance=self,
-            results=client.fetch_datasets(),
-        )
-
-        # Sync organisation units
-        self.sync_log("start fetch organisation_units")
-        results += sync_from_dhis2_results(
-            model_class=OrganisationUnit,
-            instance=self,
-            results=client.fetch_organisation_units(),
-        )
-
-        # Flag the datasource as synced
-        self.sync_log("end of fetching resources")
-        self.refresh_from_db()
-        self.last_synced_at = timezone.now()
-        self.save()
-
-        self.sync_log("end of syncing")
-        return results
-
     @property
     def content_summary(self):
         de_count = self.dataelement_set.count()
@@ -199,52 +125,6 @@ class Instance(Datasource):
                 "suffix": pluralize(de_count + i_count),
             }
         )
-
-    def populate_index(self, index):
-        index.external_name = self.name
-        index.last_synced_at = self.start_synced_at
-        index.content = self.content_summary
-        index.path = [self.id.hex]
-        index.search = f"{self.name}"
-        index.datasource_name = self.name
-        index.datasource_id = self.id
-
-    def index_all_objects(self):
-        logger.info("index_all_objects %s", self.id)
-        for obj in self.dataelement_set.all():
-            try:
-                with transaction.atomic():
-                    obj.build_index()
-            except Exception:
-                logger.exception("index error")
-
-        for obj in self.indicatortype_set.all():
-            try:
-                with transaction.atomic():
-                    obj.build_index()
-            except Exception:
-                logger.exception("index error")
-
-        for obj in self.indicator_set.all():
-            try:
-                with transaction.atomic():
-                    obj.build_index()
-            except Exception:
-                logger.exception("index error")
-
-        for obj in self.dataset_set.all():
-            try:
-                with transaction.atomic():
-                    obj.build_index()
-            except Exception:
-                logger.exception("index error")
-
-        for obj in self.organisationunit_set.all():
-            try:
-                with transaction.atomic():
-                    obj.build_index()
-            except Exception:
-                logger.exception("index error")
 
     def get_absolute_url(self):
         return reverse(
@@ -277,16 +157,6 @@ class InstancePermission(Permission):
     enable_notebooks_credentials = models.BooleanField(
         default=False, help_text="Should the user have access to the API credentials?"
     )
-
-    def index_object(self):
-        self.instance.build_index()
-        datasource_work_queue.enqueue(
-            "datasource_index",
-            {
-                "contenttype_id": ContentType.objects.get_for_model(self.instance).id,
-                "object_id": str(self.instance.id),
-            },
-        )
 
     def __str__(self):
         return f"Permission for team '{self.team}' on instance '{self.instance}'"

@@ -228,9 +228,6 @@ class ProjectPermission(Permission):
     ) -> typing.Union[User, Team]:
         return self.project.owner
 
-    def index_object(self):
-        pass
-
     def update_if_has_perm(self, principal: User, **kwargs):
         raise NotImplementedError(
             "Permissions updates are not implemented yet on AccessMod projects"

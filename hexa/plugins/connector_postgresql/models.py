@@ -1,23 +1,18 @@
 import typing
 from enum import Enum
 from logging import getLogger
-from typing import Dict, List, Tuple
 
 import psycopg2
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q
 from django.template.defaultfilters import pluralize
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from psycopg2 import OperationalError, sql
+from psycopg2 import OperationalError
 
 from hexa.catalog.models import Datasource, Entry
-from hexa.catalog.queue import datasource_work_queue
-from hexa.catalog.sync import DatasourceSyncResult
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.cryptography import EncryptedTextField
 from hexa.user_management.models import Permission, Team, User
@@ -131,76 +126,6 @@ class Database(Datasource):
             else:
                 raise ValidationError(e)
 
-    def sync(self):
-        created_count = 0
-        updated_count = 0
-        identical_count = 0
-        deleted_count = 0
-
-        # Ignore tables from postgis as there is no value in showing them in the catalog
-        IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
-
-        with psycopg2.connect(self.url) as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-                cursor.execute(
-                    """
-                    SELECT table_name, table_type, pg_class.reltuples as row_count
-                    FROM information_schema.tables
-                    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
-                    WHERE table_schema = 'public'
-                    ORDER BY table_name;
-                """
-                )
-                response: List[Tuple[str, str, int]] = cursor.fetchall()
-
-                new_tables: Dict[str, Dict] = {
-                    x[0]: x for x in response if x[0] not in IGNORE_TABLES
-                }
-
-                for name, data in new_tables.items():
-                    if data["row_count"] < 10_000:
-                        cursor.execute(
-                            sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
-                                sql.Identifier(data["table_name"])
-                            ),
-                        )
-                        response = cursor.fetchone()
-                        new_tables[name]["row_count"] = response["row_count"]
-
-        with transaction.atomic():
-            existing_tables = Table.objects.filter(database=self)
-            for table in existing_tables:
-                if table.name not in new_tables.keys():
-                    deleted_count += 1
-                    table.delete()
-                else:
-                    data = new_tables[table.name]
-                    if table.rows == data["row_count"]:
-                        identical_count += 1
-                    else:
-                        table.rows = data["row_count"]
-                        updated_count += 1
-                    table.save()
-
-            for new_table_name, new_table in new_tables.items():
-                if new_table_name not in {x.name for x in existing_tables}:
-                    created_count += 1
-                    Table.objects.create(
-                        name=new_table_name, database=self, rows=data["row_count"]
-                    )
-
-            # Flag the datasource as synced
-            self.last_synced_at = timezone.now()
-            self.save()
-
-        return DatasourceSyncResult(
-            datasource=self,
-            created=created_count,
-            updated=updated_count,
-            identical=identical_count,
-            deleted=deleted_count,
-        )
-
     def get_absolute_url(self):
         return reverse(
             "connector_postgresql:datasource_detail", kwargs={"datasource_id": self.id}
@@ -270,16 +195,6 @@ class DatabasePermission(Permission):
     database = models.ForeignKey(
         "connector_postgresql.Database", on_delete=models.CASCADE
     )
-
-    def index_object(self):
-        self.database.build_index()
-        datasource_work_queue.enqueue(
-            "datasource_index",
-            {
-                "contenttype_id": ContentType.objects.get_for_model(self.database).id,
-                "object_id": str(self.database.id),
-            },
-        )
 
     def __str__(self):
         return f"Permission for team '{self.team}' on database '{self.database}'"
