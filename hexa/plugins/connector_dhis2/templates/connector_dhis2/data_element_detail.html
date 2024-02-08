@@ -5,7 +5,6 @@
 
 {% block page_content %}
     {{ data_element_card }}
-    {% include "comments/components/page_section_comments.html" with object=data_element %}
     {% embed "ui/section/section.html" with title=_("Datasets") %}
         {% slot content %}
             {{ dataset_grid }}
