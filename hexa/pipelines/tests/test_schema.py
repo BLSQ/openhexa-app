@@ -479,10 +479,10 @@ class PipelinesV2Test(GraphQLTestCase):
         run.add_output("uri3", "link", "my_link")
 
         with patch(
-            "hexa.pipelines.schema.get_bucket_object",
+            "hexa.pipelines.schema.types.get_bucket_object",
             MagicMock(),
         ) as bucket_mock, patch(
-            "hexa.pipelines.schema.get_table_definition",
+            "hexa.pipelines.schema.types.get_table_definition",
             MagicMock(),
         ) as table_mock:
             r = self.run_query(
@@ -519,7 +519,7 @@ class PipelinesV2Test(GraphQLTestCase):
         access_token = Signer().sign_object(str(run.access_token))
 
         with patch(
-            "hexa.pipelines.schema.get_bucket_object",
+            "hexa.pipelines.schema.mutations.get_bucket_object",
             MagicMock(),
         ) as bucket_mock:
             bucket_mock.side_effect = NotFound("File not found")
@@ -563,7 +563,7 @@ class PipelinesV2Test(GraphQLTestCase):
         access_token = Signer().sign_object(str(run.access_token))
 
         with patch(
-            "hexa.pipelines.schema.get_bucket_object",
+            "hexa.pipelines.schema.mutations.get_bucket_object",
             MagicMock(),
         ) as bucket_mock:
             bucket_mock.return_value = {
@@ -610,7 +610,7 @@ class PipelinesV2Test(GraphQLTestCase):
         access_token = Signer().sign_object(str(run.access_token))
 
         with patch(
-            "hexa.pipelines.schema.get_table_definition",
+            "hexa.pipelines.schema.mutations.get_table_definition",
             MagicMock(),
         ) as table_mock:
             table_mock.return_value = None
@@ -654,7 +654,7 @@ class PipelinesV2Test(GraphQLTestCase):
         access_token = Signer().sign_object(str(run.access_token))
 
         with patch(
-            "hexa.pipelines.schema.get_table_definition",
+            "hexa.pipelines.schema.mutations.get_table_definition",
             MagicMock(),
         ) as table_mock:
             table_mock.return_value = {
