@@ -136,6 +136,10 @@ class PipelineVersion(models.Model):
         )
 
     @property
+    def is_latest_version(self):
+        return self == self.pipeline.last_version
+
+    @property
     def display_name(self):
         return f"{self.pipeline.name} - v{self.number}"
 

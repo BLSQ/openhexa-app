@@ -22,6 +22,7 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
+pipeline_version_object = ObjectType("PipelineVersion")
 generic_output_object = ObjectType("GenericOutput")
 
 pipeline_run_output_union = UnionType("PipelineRunOutput")
@@ -108,6 +109,11 @@ def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
         and request.user.has_perm("pipelines.run_pipeline", pipeline)
         and pipeline.last_version.is_schedulable
     )
+
+
+@pipeline_version_object.field("isLatestVersion")
+def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
+    return version.is_latest_version
 
 
 @pipeline_object.field("webhookUrl")

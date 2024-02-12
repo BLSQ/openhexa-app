@@ -63,6 +63,7 @@ type PipelineVersion {
   number: Int!
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
+  isLatestVersion: Boolean!
   zipfile: String!
   timeout: Int
 }
@@ -167,6 +168,7 @@ enum PipelineError {
 extend type Query {
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage! @loginRequired
   pipeline(id: UUID!): Pipeline @loginRequired
+  pipelineVersion(id: UUID!): PipelineVersion @loginRequired
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline @loginRequired
   pipelineRun(id: UUID!): PipelineRun @loginRequired
 }
