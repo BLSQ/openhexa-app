@@ -3,7 +3,12 @@ from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineRunState
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineVersion,
+)
 from hexa.workspaces.models import Workspace
 
 pipelines_query = QueryType()
@@ -73,6 +78,17 @@ def resolve_pipeline_run(_, info, **kwargs):
         return qs.get(id=run_id)
 
     except PipelineRun.DoesNotExist:
+        return None
+
+
+@pipelines_query.field("pipelineVersion")
+def resolve_pipeline_version(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        version = PipelineVersion.objects.get(id=kwargs["id"])
+        if request.user.has_perm("pipeline.view_pipeline_version", version):
+            return version
+    except PipelineVersion.DoesNotExist:
         return None
 
 

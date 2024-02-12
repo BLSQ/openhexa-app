@@ -119,6 +119,9 @@ class PipelinesV2Test(GraphQLTestCase):
         )
         self.assertEqual(1, len(Pipeline.objects.all()))
         self.assertEqual(1, len(Pipeline.objects.filter_for_user(self.USER_ROOT)))
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
+
+        return pipeline
 
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
