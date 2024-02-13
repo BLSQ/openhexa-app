@@ -362,6 +362,35 @@ class OnlyS3:
             ["demo/"],
         )
 
+    def test_generate_client_upload_url(self):
+        self.get_client().create_bucket("bucket")
+
+        url = self.get_client().generate_upload_url(
+            bucket_name="bucket", target_key="demo.txt"
+        )
+        self.assertFalse(url.startswith("https://custom-s3.local"))
+
+        with override_settings(
+            WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
+        ):
+            url = self.get_client().generate_upload_url(
+                bucket_name="bucket", target_key="demo.txt"
+            )
+            self.assertTrue(url.startswith("https://custom-s3.local"))
+
+    def test_generate_client_download_url(self):
+        bucket = self.get_client().create_bucket("bucket")
+        bucket.blob("demo.txt", size=123, content_type="text/plain")
+
+        url = self.get_client().generate_download_url("bucket", "demo.txt")
+        self.assertFalse(url.startswith("https://custom-s3.local"))
+
+        with override_settings(
+            WORKSPACE_STORAGE_ENGINE_AWS_PUBLIC_ENDPOINT_URL="https://custom-s3.local"
+        ):
+            url = self.get_client().generate_download_url("bucket", "demo.txt")
+            self.assertTrue(url.startswith("https://custom-s3.local"))
+
 
 class OnlyOnline:
     def test_short_lived_downscoped_access_token(self):
