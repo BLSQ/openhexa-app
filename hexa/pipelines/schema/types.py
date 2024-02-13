@@ -113,7 +113,7 @@ def resolve_pipeline_permissions_schedule(pipeline: Pipeline, info, **kwargs):
 
 @pipeline_version_object.field("isLatestVersion")
 def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs):
-    return version == version.pipeline.last_version
+    return version.is_latest_version
 
 
 @pipeline_object.field("webhookUrl")
