@@ -84,6 +84,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     PipelineRunStatus.Success,
   ].includes(run.status);
 
+  const hasOutputs = run.datasetVersions.length + run.outputs.length > 0;
+
   const renderParameterValue = (entry: PipelineParameter & { value: any }) => {
     if (entry.type === "str" && entry.value) {
       return entry.multiple ? entry.value.join(", ") : entry.value;
@@ -281,7 +283,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
 
             {isFinished && (
               <Block.Section title={"Outputs"}>
-                {run.outputs.length > 0 ? (
+                {hasOutputs ? (
                   <RunOutputsTable workspace={workspace} run={run} />
                 ) : (
                   <p className="text-sm italic text-gray-600">
