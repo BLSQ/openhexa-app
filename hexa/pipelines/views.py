@@ -7,14 +7,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.signing import BadSignature, Signer
-from django.http import (
-    Http404,
-    HttpRequest,
-    HttpResponse,
-    HttpResponseForbidden,
-    JsonResponse,
-)
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -23,7 +17,7 @@ from hexa.app import get_hexa_app_configs
 from hexa.pipelines.models import Environment
 
 from .credentials import PipelinesCredentials
-from .models import Pipeline, PipelineRun, PipelineRunTrigger, PipelineVersion
+from .models import Pipeline, PipelineRunTrigger, PipelineVersion
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
@@ -175,18 +169,3 @@ def run_pipeline(
         return JsonResponse({"run_id": run.id}, status=200)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-
-
-def pipelines_status(request: HttpRequest) -> HttpResponse:
-    """Temporary endpoint for a status page"""
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        raise HttpResponseForbidden("not authorized")  # FIXME
-
-    return render(
-        request,
-        "pipelines/status.html",
-        {
-            "pipelines": Pipeline.objects.all(),
-            "pipeline_runs": PipelineRun.objects.all(),
-        },
-    )
