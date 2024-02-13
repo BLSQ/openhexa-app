@@ -6,9 +6,9 @@ from django import test
 from django.conf import settings
 from django.core import mail
 from django.core.signing import Signer
-from google.api_core.exceptions import NotFound
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files.api import NotFound
 from hexa.files.tests.mocks.mockgcp import mock_gcp_storage
 from hexa.pipelines.models import (
     Pipeline,
