@@ -15,12 +15,11 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
 from django.urls import reverse
-from google.api_core.exceptions import NotFound
 from sentry_sdk import capture_exception
 
 from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import get_storage
+from hexa.files.api import NotFound, get_storage
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 from hexa.workspaces.schema.types import workspace_permissions
 
