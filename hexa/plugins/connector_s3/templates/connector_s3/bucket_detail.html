@@ -41,15 +41,6 @@
                     {{ bucket_card }}
                 {% endslot %}
             {% endembed %}
-            {% comment %}
-                {# Comments tab #}
-                {% embed "ui/tabs/tab.html" with id="comments" %}
-                    {% slot content %}
-                        {% include "comments/components/page_section_comments.html" with object=datasource %}
-                    {% endslot %}
-                {% endembed %}
-
-            {% endcomment %}
             {# Usage tab #}
             {% embed "ui/tabs/tab.html" with id="usage" %}
                 {% slot content %}
