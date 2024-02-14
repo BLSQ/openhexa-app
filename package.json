@@ -19,7 +19,7 @@
     "codegen": "find ./src -type f -name \"*.generated.tsx\" -delete && graphql-codegen --config codegen.yml",
     "i18n:extract": "i18next",
     "i18n:translate": "node ./scripts/translate.mjs ./public/locales",
-    "i18n:validate": "node ./scripts/validate-i18n.mjs"
+    "i18n:validate": "i18next && node ./scripts/validate-i18n.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -64,7 +64,7 @@
     "express-http-proxy": "^2.0.0",
     "filesize": "^10.0.7",
     "graphql": "^16.8.1",
-    "i18next": "^23.7.14",
+    "i18next": "^23.8.2",
     "isomorphic-unfetch": "^4.0.2",
     "linkify-react": "^4.1.3",
     "linkifyjs": "^4.1.3",
@@ -72,13 +72,13 @@
     "lodash.merge": "^4.6.2",
     "luxon": "^3.3.0",
     "next": "^13.5.5",
-    "next-i18next": "^15.1.2",
+    "next-i18next": "^15.2.0",
     "nextjs-progressbar": "^0.0.16",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.3",
     "react-hotkeys-hook": "^4.4.0",
-    "react-i18next": "^14.0.0",
+    "react-i18next": "^14.0.5",
     "react-markdown": "^8.0.7",
     "react-popper": "^2.3.0",
     "react-popper-tooltip": "^4.4.2",

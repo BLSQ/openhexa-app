@@ -31,7 +31,11 @@ type RunPipelineDialogProps = {
   open: boolean;
   onClose: () => void;
   pipeline: RunPipelineDialog_PipelineFragment;
-} & ({} | { run: RunPipelineDialog_RunFragment });
+} & (
+  | {}
+  | { run: RunPipelineDialog_RunFragment }
+  | { version: PipelineVersion }
+);
 
 const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const router = useRouter();
@@ -84,14 +88,18 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       onClose();
     },
     getInitialState() {
-      const version = ("run" in props && props.run.version) || null;
       let state: any = {
-        version,
+        version: null,
         sendMailNotifications: false,
       };
-
-      if ("run" in props && props.run) {
-        state = { ...state, ...props.run.config };
+      if ("run" in props && props.run.version) {
+        state = {
+          ...state,
+          ...props.run.config,
+          version: props.run.version,
+        };
+      } else if ("version" in props) {
+        state.version = props.version;
       }
 
       return state;
@@ -352,6 +360,20 @@ RunPipelineDialog.fragments = {
         user {
           displayName
         }
+      }
+    }
+    ${ParameterField.fragments.parameter}
+  `,
+  version: gql`
+    fragment RunPipelineDialog_version on PipelineVersion {
+      id
+      number
+      createdAt
+      parameters {
+        ...ParameterField_parameter
+      }
+      user {
+        displayName
       }
     }
     ${ParameterField.fragments.parameter}

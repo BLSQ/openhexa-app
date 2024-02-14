@@ -77,7 +77,7 @@ module.exports = {
   failOnWarnings: true,
   // Exit with an exit code of 1 on warnings
 
-  failOnUpdate: process.env.CI,
+  failOnUpdate: false,
   // Exit with an exit code of 1 when translations are updated (for CI purpose)
 
   customValueTemplate: null,

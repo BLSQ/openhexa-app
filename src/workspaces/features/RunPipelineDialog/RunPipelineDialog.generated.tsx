@@ -17,6 +17,8 @@ export type RunPipelineDialog_PipelineFragment = { __typename?: 'Pipeline', id: 
 
 export type RunPipelineDialog_RunFragment = { __typename?: 'PipelineRun', id: string, config: any, version: { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: string, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null } };
 
+export type RunPipelineDialog_VersionFragment = { __typename?: 'PipelineVersion', id: string, number: number, createdAt: any, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: string, default?: any | null, required: boolean, choices?: Array<any> | null, multiple: boolean }>, user?: { __typename?: 'User', displayName: string } | null };
+
 export const RunPipelineDialog_PipelineFragmentDoc = gql`
     fragment RunPipelineDialog_pipeline on Pipeline {
   id
@@ -59,6 +61,19 @@ export const RunPipelineDialog_RunFragmentDoc = gql`
     user {
       displayName
     }
+  }
+}
+    ${ParameterField_ParameterFragmentDoc}`;
+export const RunPipelineDialog_VersionFragmentDoc = gql`
+    fragment RunPipelineDialog_version on PipelineVersion {
+  id
+  number
+  createdAt
+  parameters {
+    ...ParameterField_parameter
+  }
+  user {
+    displayName
   }
 }
     ${ParameterField_ParameterFragmentDoc}`;

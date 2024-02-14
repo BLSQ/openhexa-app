@@ -96,6 +96,7 @@ query WorkspacePipelinePage(
       number
       ...PipelineVersionPicker_version
       ...PipelineVersionParametersTable_version
+      ...DownloadPipelineVersion_version
     }
     recipients {
       user {
@@ -126,6 +127,34 @@ query WorkspacePipelinePage(
       totalItems
       totalPages
       pageNumber
+    }
+  }
+}
+
+query WorkspacePipelineVersionsPage(
+  $workspaceSlug: String!
+  $pipelineCode: String!
+  $page: Int!
+  $perPage: Int!
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    name
+    ...WorkspaceLayout_workspace
+  }
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    code
+    name
+    currentVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...PipelineVersionCard_version
+        id
+      }
+      totalItems
+      totalPages
     }
   }
 }
@@ -322,7 +351,7 @@ query WorkspaceFilesPage(
         ...BucketExplorer_objects
       }
     }
-    permissions{
+    permissions {
       createObject
     }
   }

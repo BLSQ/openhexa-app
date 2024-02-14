@@ -1,7 +1,11 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
 import { RunDagError } from "graphql-types";
-import { RunPipelineMutation } from "./pipeline.generated";
+import {
+  GetPipelineVersionQuery,
+  GetPipelineVersionQueryVariables,
+  RunPipelineMutation,
+} from "./pipeline.generated";
 
 export async function runPipeline(pipelineId: string, config: object) {
   const client = getApolloClient();
@@ -35,4 +39,41 @@ export async function runPipeline(pipelineId: string, config: object) {
     }
   }
   return { dag: data.runDAG.dag!, dagRun: data.runDAG.dagRun! };
+}
+
+export async function downloadPipelineVersion(versionId: string) {
+  const client = getApolloClient();
+  const { data } = await client.query<
+    GetPipelineVersionQuery,
+    GetPipelineVersionQueryVariables
+  >({
+    query: gql`
+      query GetPipelineVersion($versionId: UUID!) {
+        pipelineVersion(id: $versionId) {
+          id
+          number
+          pipeline {
+            code
+          }
+          zipfile
+        }
+      }
+    `,
+    variables: { versionId },
+  });
+  if (!data.pipelineVersion) {
+    throw new Error(`No version found for ${versionId}`);
+  }
+  const { zipfile, pipeline } = data.pipelineVersion;
+  const blob = new Blob([Buffer.from(zipfile, "base64")], {
+    type: "application/zip",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${pipeline.code}-${data.pipelineVersion.number}.zip`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
 }

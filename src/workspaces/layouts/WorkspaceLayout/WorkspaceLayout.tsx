@@ -91,7 +91,10 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
           )}
         >
           <main
-            className={clsx("flex flex-1 flex-col transition-all", className)}
+            className={clsx(
+              "flex flex-1 flex-col transition-all mb-12", // The margin bottom is to avoid the Help button to hide the content of the page while at the bottom
+              className,
+            )}
           >
             {children}
           </main>

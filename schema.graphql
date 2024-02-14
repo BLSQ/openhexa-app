@@ -1748,6 +1748,7 @@ type PipelineVersion {
   number: Int!
   createdAt: DateTime!
   parameters: [PipelineParameter!]!
+  isLatestVersion: Boolean!
   zipfile: String!
   timeout: Int
 }
@@ -1872,6 +1873,7 @@ type Query {
   lastActivities: [Activity!]!
   pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
   pipeline(id: UUID!): Pipeline
+  pipelineVersion(id: UUID!): PipelineVersion
   pipelineByCode(workspaceSlug: String!, code: String!): Pipeline
   pipelineRun(id: UUID!): PipelineRun
   workspace(slug: String!): Workspace
