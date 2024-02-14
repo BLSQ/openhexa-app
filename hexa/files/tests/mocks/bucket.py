@@ -6,6 +6,9 @@ from .blob import MockBlob
 
 
 class MockBucket:
+    versioning_enabled = False
+    lifecycle_rules = []
+
     def __init__(self, client, name=None, user_project=None):
         name = _validate_name(name)
         self.name = name

@@ -334,6 +334,36 @@ class APITestCase:
             )
 
 
+class OnlyGCP:
+    @override_settings(WORKSPACE_BUCKET_VERSIONING_ENABLED="true")
+    def test_create_bucket_configuration(self):
+        bucket = self.get_client().create_bucket("bucket")
+
+        self.assertEqual(bucket.versioning_enabled, True)
+        self.assertEqual(
+            bucket.lifecycle_rules,
+            [
+                {
+                    "action": {"type": "SetStorageClass", "storageClass": "NEARLINE"},
+                    "condition": {"age": 30},
+                },
+                {
+                    "action": {"type": "SetStorageClass", "storageClass": "COLDLINE"},
+                    "condition": {"age": 90},
+                },
+                {
+                    "action": {"type": "SetStorageClass", "storageClass": "ARCHIVE"},
+                    "condition": {"age": 365},
+                },
+                {
+                    "action": {"type": "Delete"},
+                    "condition": {"isLive": False, "numNewerVersions": 3},
+                },
+            ],
+        )
+        self.assertEqual(bucket.storage_class, "STANDARD")
+
+
 class OnlyS3:
     def test_generate_upload_url_raise_existing_dont_raise(self):
         self.get_client().delete_bucket("bucket")
@@ -460,6 +490,6 @@ class APIS3TestCase(APITestCase, OnlyS3, TestCase):
         return "s3"
 
 
-class APIGcpTestCase(APITestCase, TestCase):
+class APIGcpTestCase(APITestCase, OnlyGCP, TestCase):
     def get_type(self):
         return "gcp"
