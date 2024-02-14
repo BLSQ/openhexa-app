@@ -14,7 +14,6 @@ urlpatterns = [
         name="environment_sync",
     ),
     path("credentials/", views.credentials, name="credentials"),
-    path("status", views.pipelines_status, name="status"),
     path(
         "<uuid:id>/run/<int:version_number>",
         views.run_pipeline,
