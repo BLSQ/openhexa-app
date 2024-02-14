@@ -5,10 +5,9 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.http import HttpRequest
-from google.api_core.exceptions import NotFound
 
 from hexa.databases.utils import get_table_definition
-from hexa.files.api import get_storage
+from hexa.files.api import NotFound, get_storage
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import (
     InvalidTimeoutValueError,
