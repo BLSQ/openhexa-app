@@ -90,6 +90,44 @@ class GCPClient(BaseClient):
             bucket = client.create_bucket(
                 bucket_name, location=settings.WORKSPACE_BUCKET_REGION
             )
+            bucket.storage_class = "STANDARD"  # Default storage class
+
+            if settings.WORKSPACE_BUCKET_VERSIONING_ENABLED:
+                bucket.versioning_enabled = True
+
+            # Set lifecycle rules
+            # 1. Transition to "Nearline" Storage: Objects that haven't been accessed for 30 days can be moved to "Nearline" storage, which is cost-effective for data accessed less than once a month.
+            # 2. Transition to "Coldline" Storage: For objects that are less frequently accessed, moving them to "Coldline" storage after 90 days can further reduce costs. "Coldline" is suitable for accessing data at most once a quarter.
+            # 3. Transition to "Archive" Storage: Cost-effective storage class for long-term preservation of data that's accessed less than once a year is Archive. Transition objects to "Archive" storage after 365 days.
+            # 4. Version Control: Keep only the 3 most recent versions of each object to prevent unnecessary storage costs while ensuring the availability of previous versions for a limited time.
+            # 5. Delete Old Noncurrent Versions: Remove noncurrent versions of objects that are older than 365 days.
+            bucket.lifecycle_rules = [
+                {
+                    "action": {
+                        "type": "SetStorageClass",
+                        "storageClass": "NEARLINE",
+                    },
+                    "condition": {"age": 30},
+                },
+                {
+                    "action": {
+                        "type": "SetStorageClass",
+                        "storageClass": "COLDLINE",
+                    },
+                    "condition": {"age": 90},
+                },
+                {
+                    "action": {
+                        "type": "SetStorageClass",
+                        "storageClass": "ARCHIVE",
+                    },
+                    "condition": {"age": 365},
+                },
+                {
+                    "action": {"type": "Delete"},
+                    "condition": {"isLive": False, "numNewerVersions": 3},
+                },
+            ]
             bucket.cors = [
                 {
                     "origin": settings.CORS_ALLOWED_ORIGINS,
