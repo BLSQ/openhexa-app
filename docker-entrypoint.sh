@@ -17,12 +17,12 @@ show_help() {
 
   start             : start django server using gunicorn
   makemigrations    : generate a django migration
-  migrate           : run django migrations
+  migrate           : run django migrations & load base fixtures necessary for the app to work
   makemessages      : generate django translations
   compilemessages   : compile django translations
   test              : launch django tests
   manage            : run django manage.py
-  fixtures          : migrate, create superuser, load fixtures and reindex
+  fixtures          : migrate, create superuser, load demo & live fixtures and reindex
   bash              : run bash
   coveraged-test    : launch django tests and show a coverage report
 
@@ -38,9 +38,15 @@ case "$command" in
   wait-for-it db:5432
   gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
-"makemigrations" | "migrate")
+"makemigrations")
   wait-for-it db:5432
   python manage.py $command $arguments
+  ;;
+"migrate")
+  wait-for-it db:5432
+  python manage.py migrate $arguments
+  # Load the base fixtures (features, data types, etc.)
+  python manage.py loaddata base.json
   ;;
 "makemessages" | "compilemessages")
   python manage.py $command $arguments
@@ -72,6 +78,7 @@ case "$command" in
     export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
     python manage.py migrate
     python manage.py createsuperuser --no-input || true
+    python manage.py loaddata base.json
     python manage.py loaddata demo.json
     python manage.py loaddata live.json
     python manage.py datasource_index
