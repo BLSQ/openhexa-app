@@ -36,7 +36,7 @@ def generate_sts_app_s3_credentials(
     *,
     bucket: typing.Optional[models.Bucket] = None,
     duration: int = 60 * 60,
-) -> typing.Dict[str, str]:
+) -> dict[str, str]:
     """Generate temporary S3 credentials for app operations, using the app role.
 
     This app role should be provisioned beforehand and should have a policy that allows the app to access all the
@@ -124,7 +124,7 @@ def generate_sts_user_s3_credentials(
     read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
     read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
     duration: int = 12 * 60 * 60,
-) -> (bool, typing.Dict[str, str]):
+) -> (bool, dict[str, str]):
     """Generate temporary S3 credentials for a specific use case and for specific buckets.
     Use case includes user notebook session, running pipelines, ...
 
@@ -135,7 +135,6 @@ def generate_sts_user_s3_credentials(
         4. Generates a fresh S3 policy and sets it on the role (replacing the existing one)
         5. Assume the team/pipeline/.. role
     """
-
     s3_credentials = _get_app_s3_credentials()
     if s3_credentials["endpoint_url"]:
         # We are pointing to a MinIO instance, that doesn't support all this.
@@ -254,7 +253,7 @@ def generate_sts_user_s3_credentials(
 def generate_s3_policy(
     read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
     read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
-) -> typing.Dict:
+) -> dict:
     statements = []
 
     if read_only_buckets:

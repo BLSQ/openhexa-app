@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tags", "0001_metadata_rf_4"),
         ("pipelines", "0007_environmentssyncjob"),

@@ -44,6 +44,6 @@ class CsvTest(TestCase):
                 "id,team_name,user_email,user_first_name,user_foo_bar\r\n"
                 f"{self.MEMBERSHIP_1.id},Tèst Teâm,jim@bluesquarehub.com,,\r\n"
                 f"{self.MEMBERSHIP_2.id},Tèst Teâm,mary@bluesquarehub.com,,\r\n"
-            ).encode("utf-8"),
+            ).encode(),
             response.content,
         )

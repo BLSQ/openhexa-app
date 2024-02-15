@@ -31,7 +31,6 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
 
     workspace_slug is optional, if not provided, the workspace will be extracted from the request body.
     """
-
     workspace_slug = (
         request.POST.get("workspace", None)
         if workspace_slug is None

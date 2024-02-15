@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0005_rename_slug_workspaceconnection__slug"),
         ("workspaces", "0005_workspace_members_alter_workspace_created_by"),

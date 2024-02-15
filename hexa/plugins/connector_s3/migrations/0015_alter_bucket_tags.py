@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("catalog", "0008_tags"),
         ("connector_s3", "0014_remove_s3name_etag_and_last_modified_blank"),

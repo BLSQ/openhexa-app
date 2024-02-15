@@ -9,7 +9,6 @@ from hexa.workspaces.models import (
 
 def create_dataset(principal: User, workspace: Workspace):
     """Only workspace admins & editors can create datasets"""
-
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
@@ -18,26 +17,23 @@ def create_dataset(principal: User, workspace: Workspace):
 
 def update_dataset(principal, dataset: Dataset):
     """Only workspace admins can update datasets"""
-
     return create_dataset(principal, dataset.workspace)
 
 
 def delete_dataset(principal: User, dataset: Dataset):
     """Only workspace admins can delete datasets"""
-
     return create_dataset(principal, dataset.workspace)
 
 
 def create_dataset_version(principal: User, dataset: Dataset):
     """Only workspace admins & editors can create dataset versions"""
-
     return create_dataset(principal, dataset.workspace)
 
 
 def update_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace admins & editors can update dataset versions and
-    only the latest version can be updated"""
-
+    only the latest version can be updated
+    """
     return (
         create_dataset(principal, version.dataset.workspace)
         and version.dataset.latest_version == version
@@ -46,7 +42,6 @@ def update_dataset_version(principal: User, version: DatasetVersion):
 
 def delete_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace admins can delete dataset versions"""
-
     return create_dataset(principal, version.dataset.workspace)
 
 
@@ -54,7 +49,6 @@ def download_dataset_version(principal: User, version: DatasetVersion):
     """Only workspace members can download dataset versions.
     This also includes members of workspaces that have been shared this dataset.
     """
-
     return version.dataset.links.filter(
         workspace__in=principal.workspace_set.all()
     ).exists()
@@ -64,7 +58,6 @@ def view_dataset(principal: User, dataset: Dataset):
     """Only workspace members can view dataset.
     This also includes members of workspaces that have been shared this dataset.
     """
-
     return (
         dataset.links.filter(workspace__in=principal.workspace_set.all()).exists()
         or dataset.workspace.workspacemembership_set.filter(
@@ -90,8 +83,8 @@ def link_dataset(principal: User, datasetAndWorkspace):
 
 def delete_dataset_link(principal: User, link: DatasetLink):
     """Editors & admins from the source workspace can delete any link and
-    editors & admins from the target workspace can delete links from their workspace"""
-
+    editors & admins from the target workspace can delete links from their workspace
+    """
     return WorkspaceMembership.objects.filter(
         workspace__in=[link.dataset.workspace, link.workspace],
         user=principal,
@@ -101,7 +94,6 @@ def delete_dataset_link(principal: User, link: DatasetLink):
 
 def pin_dataset(principal: User, link: DatasetLink):
     """Only workspace admins & editors can pin datasets from the dataset"""
-
     return link.workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],

@@ -15,7 +15,6 @@ class TemplatetagsTest(SimpleTestCase):
 
     def test_embed_simple(self):
         """Simplest case, two subsequent embeds on a template that does not extend anything"""
-
         context = Context(
             {"title_1": "First Embedded Title", "title_2": "Second Embedded Title"}
         )
@@ -54,7 +53,6 @@ class TemplatetagsTest(SimpleTestCase):
 
     def test_embed_extends(self):
         """Make sure that embed plays well with extends."""
-
         context = Context({"title": "Embedded Title"})
         template_to_render = Template(
             """

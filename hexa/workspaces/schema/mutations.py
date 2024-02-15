@@ -376,7 +376,7 @@ def resolve_update_workspace_connection(_, info, **kwargs):
 
         connection.update_if_has_perm(request.user, **mutation_input)
         return {"success": True, "errors": [], "connection": connection}
-    except ValidationError as e:
+    except ValidationError:
         return {"success": False, "errors": ["INVALID_SLUG"]}
     except Connection.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_CONNECTION_NOT_FOUND"]}

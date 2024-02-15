@@ -449,13 +449,11 @@ class ModelsTest(TestCase):
 
     def test_cluster_without_permission(self):
         """Without creating a permission, a regular user cannot access a cluster"""
-
         with self.assertRaises(ObjectDoesNotExist):
             Cluster.objects.filter_for_user(self.USER_REGULAR).get(id=self.CLUSTER.id)
 
     def test_cluster_without_permission_superuser(self):
         """Without creating a permission, a super user can access any cluster"""
-
         cluster = Cluster.objects.filter_for_user(self.USER_SUPER).get(
             id=self.CLUSTER.id
         )
@@ -463,7 +461,6 @@ class ModelsTest(TestCase):
 
     def test_cluster_index(self):
         """When a cluster is saved, an index should be created as well (taking access control into account)"""
-
         self.CLUSTER.save()
 
         # Expected index for super users

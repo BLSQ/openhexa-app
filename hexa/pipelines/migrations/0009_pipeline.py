@@ -8,7 +8,6 @@ import hexa.pipelines.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0008_indexes_django_4"),
     ]

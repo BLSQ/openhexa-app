@@ -83,7 +83,6 @@ class Datagrid(metaclass=DatagridMeta):
 
     def __str__(self):
         """Render the datagrid"""
-
         template = loader.get_template(self.template)
 
         return template.render(self.context())

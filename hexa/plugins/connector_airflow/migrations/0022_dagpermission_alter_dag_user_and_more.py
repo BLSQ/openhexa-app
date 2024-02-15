@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0007_ci_email"),
         ("connector_airflow", "0021_add_dag_template_and_more"),

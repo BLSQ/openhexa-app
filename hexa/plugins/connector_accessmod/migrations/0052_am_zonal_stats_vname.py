@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0051_am_acc_default_algo"),
     ]

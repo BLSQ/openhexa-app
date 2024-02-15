@@ -68,7 +68,6 @@ class ModelsTestTest(TestCase):
 
     def test_delete_data_element(self):
         """Deleting a data element should delete its index as well"""
-
         data_element = DataElement.objects.create(
             name="some-data-element",
             external_access=False,
@@ -291,8 +290,8 @@ class DHIS2SyncInstanceSplitTest(TestCase):
     @responses.activate
     def test_sync_same_indicator_types(self):
         """We can have references (such as indicator types) that are common across instances. The system
-        should handle it properly."""
-
+        should handle it properly.
+        """
         IndicatorType.objects.create(
             instance=self.DHIS2_INSTANCE_PLAY1,
             dhis2_id="bWuNrMHEoZ0",
@@ -345,8 +344,7 @@ class Dhis2SyncDeleteTest(TestCase):
         )
 
     def test_delete_data_element(self):
-        """if DEs disapear from remote instance, sync should delete DEs+index in OH"""
-
+        """If DEs disapear from remote instance, sync should delete DEs+index in OH"""
         common_info = {
             "externalAccess": False,
             "favorite": False,
@@ -357,7 +355,7 @@ class Dhis2SyncDeleteTest(TestCase):
             "valueType": "TEXT",
             "aggregationType": "AVERAGE",
         }
-        data_element = DataElement.objects.create(
+        DataElement.objects.create(
             dhis2_id="XXX",
             name="XXX",
             instance=self.DHIS2_INSTANCE_PLAY,

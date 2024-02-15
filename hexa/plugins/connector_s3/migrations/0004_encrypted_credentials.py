@@ -6,7 +6,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0003_datasource_urls"),
     ]

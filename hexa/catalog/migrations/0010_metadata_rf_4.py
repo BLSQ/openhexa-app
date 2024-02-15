@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("catalog", "0009_enable_trgm"),
         ("connector_dhis2", "0014_metadata_rf_2"),

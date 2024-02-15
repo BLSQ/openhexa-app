@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class HexaCredentials(ABC):
-    """This class acts as a interface to implement a container for credentials"""
+    """The HexaCredentials class acts as a interface to implement a container for credentials"""
 
     @property
     @abstractmethod

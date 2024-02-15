@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0021_validatefilesetjob_fileset_status"),
         ("connector_accessmod", "0026_project_description_optional"),

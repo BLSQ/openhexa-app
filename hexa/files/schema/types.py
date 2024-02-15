@@ -49,7 +49,7 @@ def resolve_bucket_objects(
     page=1,
     per_page=15,
     ignore_hidden_files=True,
-    **kwargs
+    **kwargs,
 ):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")

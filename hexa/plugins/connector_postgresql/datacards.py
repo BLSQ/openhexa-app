@@ -41,9 +41,7 @@ df.to_sql("database_tutorial", con=engine, if_exists="replace")
 
 # Read data
 pd.read_sql("SELECT * FROM database_tutorial", con=engine)
-            """.replace(
-            "{{ label }}", item.unique_name.replace("-", "_").upper()
-        )
+            """.replace("{{ label }}", item.unique_name.replace("-", "_").upper())
 
     def get_r_usage(self, item: Database):
         return """
@@ -59,9 +57,7 @@ con <- dbConnect(
 )
 
 dbWriteTable(con, "some_table_name", Data_fin, overwrite=TRUE)
-            """.replace(
-            "{{ label }}", item.unique_name.replace("-", "_").upper()
-        )
+            """.replace("{{ label }}", item.unique_name.replace("-", "_").upper())
 
 
 class DatabaseCard(Datacard):

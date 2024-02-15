@@ -23,7 +23,6 @@ SIZES = {
 @register.filter(name="size")
 def size(variant, part):
     """Return the size to use for the specified variant (example: sm) and part (example: px)"""
-
     try:
         return SIZES[SizeVariant(variant)][part]
     except (KeyError, ValueError):

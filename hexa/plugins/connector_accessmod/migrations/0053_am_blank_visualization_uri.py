@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0052_am_zonal_stats_vname"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0001_initial"),
         ("connector_s3", "0017_remove_parent_add_dirname"),

@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0025_am_webhook_token"),
         ("connector_accessmod", "0018_analysis_name_unique"),

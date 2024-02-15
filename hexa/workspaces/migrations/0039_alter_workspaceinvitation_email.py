@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0038_rename_iaso_service_url"),
         ("core", "0009_case_insensitive_collation"),

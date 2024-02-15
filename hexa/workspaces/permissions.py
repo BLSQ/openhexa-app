@@ -60,7 +60,6 @@ def manage_members(principal: User, workspace: Workspace):
 
 def launch_notebooks(principal: User, workspace: Workspace):
     """Workspace editors and admins can launch notebooks"""
-
     return workspace.workspacemembership_set.filter(
         user=principal,
         role__in=[WorkspaceMembershipRole.EDITOR, WorkspaceMembershipRole.ADMIN],

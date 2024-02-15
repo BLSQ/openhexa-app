@@ -54,7 +54,7 @@ class ProjectManager(models.Manager):
         spatial_resolution: int,
         description: str,
         crs: int,
-        extent: typing.List,
+        extent: list,
     ):
         if not principal.has_perm("connector_accessmod.create_project"):
             raise PermissionDenied
@@ -505,7 +505,8 @@ class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
 
 class AnalysisManager(InheritanceManager):
     """Unfortunately, InheritanceManager does not support from_queryset, so we have to subclass it
-    and "re-attach" the queryset methods ourselves."""
+    and "re-attach" the queryset methods ourselves.
+    """
 
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
@@ -654,7 +655,7 @@ class Analysis(models.Model):
             raise ValueError(f"Protocol {uri_protocol} not supported.")
 
         try:
-            bucket = Bucket.objects.get(name=bucket_name)
+            Bucket.objects.get(name=bucket_name)
         except Bucket.DoesNotExist:
             raise ValueError(
                 f"The {settings.ACCESSMOD_BUCKET_NAME} bucket does not exist"
@@ -850,7 +851,7 @@ class AccessibilityAnalysis(Analysis):
         input: str,
         uri: str,
         mime_type: str,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+        metadata: typing.Optional[dict[str, typing.Any]],
     ):
         if input not in (
             "land_cover",
@@ -886,7 +887,7 @@ class AccessibilityAnalysis(Analysis):
         travel_times: str,
         friction_surface: str,
         stack: str = None,
-        stack_labels: typing.Optional[typing.Dict[str, int]] = None,
+        stack_labels: typing.Optional[dict[str, int]] = None,
     ):
         new_filesets = []
         new_filesets.append(
@@ -1211,7 +1212,7 @@ class ZonalStatisticsAnalysis(Analysis):
         input: str,
         uri: str,
         mime_type: str,
-        metadata: typing.Optional[typing.Dict[str, typing.Any]],
+        metadata: typing.Optional[dict[str, typing.Any]],
     ):
         if input not in ("population", "travel_times", "boundaries"):
             raise Exception("invalid input")

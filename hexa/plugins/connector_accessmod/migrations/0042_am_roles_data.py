@@ -12,7 +12,7 @@ def forward(apps, schema_editor):
     FilesetRole.objects.filter(code="SLOPE").delete()
 
     # then let's create the roles in the database (if they don't exist)
-    for (name, code, format) in [
+    for name, code, format in [
         ("Barriers", "BARRIER", "VECTOR"),
         ("Catchment Areas", "CATCHMENT_AREAS", "VECTOR"),
         ("Coverage", "COVERAGE", "TABULAR"),
@@ -37,7 +37,6 @@ def forward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0041_alter_fileset_status"),
     ]

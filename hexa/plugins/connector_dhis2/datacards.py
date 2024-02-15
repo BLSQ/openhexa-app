@@ -57,9 +57,7 @@ client = Api(
     username=os.environ["DHIS2_{{ label }}_USERNAME"],
     password=os.environ["DHIS2_{{ label }}_PASSWORD"],
 )
-            """.replace(
-            "{{ label }}", item.slug.replace("-", "_").upper()
-        )
+            """.replace("{{ label }}", item.slug.replace("-", "_").upper())
 
 
 class InstanceCard(Datacard):

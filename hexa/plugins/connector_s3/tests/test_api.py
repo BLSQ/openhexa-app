@@ -109,7 +109,6 @@ class ApiTest(TestCase):
         Let's check that we can at least handle 20 buckets with medium-length names
         (see https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
         """
-
         buckets = [Bucket(name=f"hexa-test-bucket-name-{i}") for i in range(20)]
         policy = generate_s3_policy(read_write_buckets=buckets)
         self.assertIsInstance(policy, dict)

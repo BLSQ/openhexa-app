@@ -19,7 +19,6 @@ class BaseQuerySet(models.QuerySet):
         ],
     ) -> models.QuerySet:
         """Most catalog / pipelines models need to implement this method for access control."""
-
         raise NotImplementedError
 
     def _filter_for_user_and_query_object(
@@ -39,7 +38,6 @@ class BaseQuerySet(models.QuerySet):
         2. Superusers will get the full, unfiltered queryset (unless return_all_if_superuser is set to False)
         3. Regular, authenticated users will get the queryset filtered using the query_object argument
         """
-
         if not user.is_authenticated:
             return self.none()
         elif return_all_if_superuser and user.is_superuser:

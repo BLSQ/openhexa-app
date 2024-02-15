@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0049_fileset_vizualisation_uri"),
     ]

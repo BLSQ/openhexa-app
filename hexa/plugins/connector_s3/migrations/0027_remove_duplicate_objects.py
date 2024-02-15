@@ -15,7 +15,6 @@ def cleanse_objects(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0026_remove_object_orphan"),
     ]

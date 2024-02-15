@@ -13,7 +13,6 @@ import hexa.core.models.postgres
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
         ("user_management", "0003_feature_flags"),

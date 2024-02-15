@@ -16,7 +16,7 @@ from hexa.workspaces.models import (
 )
 
 
-class BaseTestMixin(object):
+class BaseTestMixin:
     USER_SERENA = None
     USER_EDITOR = None
     WORKSPACE = None

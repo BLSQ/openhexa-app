@@ -78,7 +78,8 @@ def search(
                     continue
 
     results = list(
-        Index.objects.filter_for_user(user).filter_for_tokens(tokens)
+        Index.objects.filter_for_user(user)
+        .filter_for_tokens(tokens)
         # filter by resources type
         .filter_for_types(types)
         # filter by datasources

@@ -7,7 +7,7 @@ import hexa.plugins.connector_accessmod.models
 def forward(apps, schema_editor):
     FilesetRole = apps.get_model("connector_accessmod", "FilesetRole")
 
-    for (name, code, format) in [
+    for name, code, format in [
         ("Boundaries", "BOUNDARIES", "VECTOR"),
         ("Zonal Statistics", "ZONAL_STATISTICS", "VECTOR"),
         ("Zonal Statistics Table", "ZONAL_STATISTICS_TABLE", "TABULAR"),
@@ -18,7 +18,6 @@ def forward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0046_am_stack_priorities"),
     ]

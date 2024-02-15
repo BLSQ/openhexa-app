@@ -113,7 +113,6 @@ class Bucket(Datasource):
 
     def sync(self):
         """Sync the bucket by querying the S3 API"""
-
         s3_objects = list_objects_metadata(
             bucket=self,
         )

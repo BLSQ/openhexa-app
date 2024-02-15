@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0006_forced_feature_flags"),
         ("core", "0008_ci_text"),

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0033_dagrun_current_progress_dagrun_messages_and_more"),
     ]

@@ -75,7 +75,6 @@ class Datacard(metaclass=DatacardMeta):
 
     def __str__(self):
         """Render the datacard"""
-
         template = loader.get_template("ui/datacard/datacard.html")
 
         context = {

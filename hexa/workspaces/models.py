@@ -293,7 +293,7 @@ class WorkspaceMembership(models.Model):
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
             self.notebooks_server_hash = hashlib.blake2s(
-                f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
+                f"{self.workspace_id}_{self.user_id}".encode(), digest_size=16
             ).hexdigest()
 
         if self.access_token == "":

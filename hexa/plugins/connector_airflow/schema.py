@@ -256,7 +256,7 @@ def resolve_prepare_download_url(_, info, **kwargs):
         )
 
         return {"success": True, "url": download_url}
-    except ValueError as err:
+    except ValueError:
         return {"success": False}
 
 

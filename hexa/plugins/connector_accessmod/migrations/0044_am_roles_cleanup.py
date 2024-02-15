@@ -14,7 +14,7 @@ def forward(apps, schema_editor):
 def reverse(apps, schema_editor):
     FilesetRole = apps.get_model("connector_accessmod", "FilesetRole")
 
-    for (name, code, format) in [
+    for name, code, format in [
         ("Catchment Areas", "CATCHMENT_AREAS", "VECTOR"),
         ("Moving speeds", "MOVING_SPEEDS", "TABULAR"),
     ]:
@@ -24,7 +24,6 @@ def reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0043_am_fileset_mode"),
     ]

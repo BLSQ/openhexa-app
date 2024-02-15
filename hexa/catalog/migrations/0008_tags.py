@@ -10,7 +10,6 @@ import hexa.core.models.locale
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0001_initial"),
         ("catalog", "0007_longer_text_fields"),

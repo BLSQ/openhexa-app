@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0018_alter_connectionfield_user"),
         ("workspaces", "0019_workspace_membership_hash_unique"),

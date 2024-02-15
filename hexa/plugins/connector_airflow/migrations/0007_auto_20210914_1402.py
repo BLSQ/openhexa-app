@@ -9,7 +9,6 @@ import hexa.core.models.behaviors
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0006_alter_clusterpermission_unique_together"),
     ]

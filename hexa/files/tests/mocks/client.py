@@ -17,10 +17,12 @@ class MockHTTPIterator:
     def __iter__(self):
         """Iterator for each item returned.
 
-        Returns:
+        Returns
+        -------
             types.GeneratorType[Any]: A generator of items from the API.
 
-        Raises:
+        Raises
+        ------
             ValueError: If the iterator has already been started.
         """
         if self._started:
@@ -60,7 +62,8 @@ class MockHTTPIterator:
                 iterator will want to increment by results per page while an
                 items iterator will want to increment per item.
 
-        Yields:
+        Yields
+        ------
             Page: each page of items from the API.
         """
         page = self._next_page()
@@ -74,7 +77,8 @@ class MockHTTPIterator:
     def _next_page(self):
         """Get the next page in the iterator.
 
-        Returns:
+        Returns
+        -------
             Optional[Page]: The next page in the iterator or :data:`None` if
                 there are no pages left.
         """
@@ -91,7 +95,8 @@ class MockHTTPIterator:
     def _has_next_page(self):
         """Determines whether or not there are more pages with results.
 
-        Returns:
+        Returns
+        -------
             bool: Whether the iterator has more pages.
         """
         if self.page_number == 0:

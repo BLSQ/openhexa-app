@@ -25,7 +25,7 @@ def workspace_token_authentication_middleware(get_response):
                 request.bypass_two_factor = True
         except KeyError:
             pass  # No Authorization header
-        except ValueError as e:
+        except ValueError:
             logger.exception(
                 "workspace authentication error",
             )

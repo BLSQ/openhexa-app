@@ -6,7 +6,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0015_alter_connectionfield_code"),
     ]

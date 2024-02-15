@@ -10,7 +10,6 @@ ONE_MINUTE = 60
 
 def date_format(value: datetime.datetime, format_string=DEFAULT_DATE_FORMAT):
     """Simple wrapper for Django date_format() with a default format."""
-
     return django_date_format(value, format_string)
 
 

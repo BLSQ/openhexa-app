@@ -47,7 +47,7 @@ def is_protected_routes(request: HttpRequest) -> bool:
 
 
 def login_required_middleware(
-    get_response: Callable[[HttpRequest], HttpResponse]
+    get_response: Callable[[HttpRequest], HttpResponse],
 ) -> Callable[[HttpRequest], HttpResponse]:
     """Authentication by cookie is mandatory for all routes except the ones specified in
     the app configs ANONYMOUS_URLS.
@@ -65,9 +65,7 @@ def login_required_middleware(
                 request.method == "GET"
                 or request.META.get("CONTENT_TYPE") != "application/json"
             ):
-                return redirect(
-                    "{}?next={}".format(reverse(settings.LOGIN_URL), request.path)
-                )
+                return redirect(f"{reverse(settings.LOGIN_URL)}?next={request.path}")
             else:
                 return HttpResponse(status=401)
 

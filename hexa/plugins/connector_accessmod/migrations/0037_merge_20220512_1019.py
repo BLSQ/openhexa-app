@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0029_alter_fileset_status"),
         ("connector_accessmod", "0036_alter_filesetrole_code"),

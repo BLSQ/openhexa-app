@@ -10,7 +10,6 @@ def update_bucket_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0029_permissions_next"),
     ]

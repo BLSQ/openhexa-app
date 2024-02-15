@@ -35,7 +35,6 @@ def test_logger(request: HttpRequest) -> HttpResponse:
     :param request: HttpRequest request
     :return: HttpResponse web response
     """
-
     message = request.GET.get("message", "Test logger")
     level = request.GET.get("level", "INFO")
     if level not in ("INFO", "WARNING", "ERROR", "EXCEPTION", "UNCATCHED_EXCEPTION"):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import typing
 import uuid
-from typing import Any, List
+from typing import Any
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -46,7 +46,7 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
             ),
         )
 
-    def filter_for_types(self, code_types: List[str]):
+    def filter_for_types(self, code_types: list[str]):
         # sub select only those types
         q_predicats = Q()
         for code in code_types:
@@ -93,7 +93,8 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
                 )
                 # exclude everything called 's3keep', it's noise from s3content manager
                 # TODO: don't index these files
-                .annotate(rank=similarity).order_by("-rank")
+                .annotate(rank=similarity)
+                .order_by("-rank")
             )
 
             # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
@@ -116,7 +117,8 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
 
 class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
-    own queryset, and re-attach filter_for_user()."""
+    own queryset, and re-attach filter_for_user().
+    """
 
     def filter_for_user(
         self, user: typing.Union[AnonymousUser, user_management_models.User]
@@ -181,7 +183,6 @@ class BaseIndex(Base):
 
     def save(self, *args, **kwargs):
         """Override to handle Postgres text search config."""
-
         self.text_search_config = locale_to_text_search_config(self.locale)
         super().save(*args, **kwargs)
 
@@ -295,7 +296,6 @@ class BaseIndexableMixin:
         (We don't only index content but also their permissions, so that the indexes record can be filtered
         depending on the user permissions).
         """
-
         raise NotImplementedError
 
     def populate_index(self, index):

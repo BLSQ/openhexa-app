@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0001_initial"),
         ("connector_airflow", "0005_longer_text_fields"),

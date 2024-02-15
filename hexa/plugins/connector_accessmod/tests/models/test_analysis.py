@@ -141,7 +141,6 @@ class AnalysisTest(TestCase):
 
     def test_analysis_set_outputs(self):
         """Test outputs handling, including possible name conflicts"""
-
         outputs_1 = {
             "travel_times": "s3://some-bucket/some-dir/travel_times_1.tif",
             "friction_surface": "s3://some-bucket/some-dir/friction_surface_1.tif",

@@ -9,7 +9,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0004_dhis2_extract_user"),
     ]

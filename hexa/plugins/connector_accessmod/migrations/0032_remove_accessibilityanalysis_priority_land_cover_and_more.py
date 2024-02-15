@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0031_remove_accessibilityanalysis_catchment_areas"),
     ]

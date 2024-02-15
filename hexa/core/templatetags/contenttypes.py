@@ -7,7 +7,6 @@ register = template.Library()
 @register.filter(name="content_type_key")
 def content_type_key(value):
     """Return the natural key of the content type associated with the provided model instance."""
-
     if value is None or value == "":
         return None
 

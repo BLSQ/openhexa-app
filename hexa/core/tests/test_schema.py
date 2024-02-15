@@ -18,7 +18,6 @@ from hexa.user_management.models import Membership, Team, User
 class CoreDashboardTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
-
         cls.USER_SABRINA = User.objects.create_user(
             "sabrina@bluesquarehub.com",
             "standardpassword",

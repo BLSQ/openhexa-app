@@ -11,7 +11,7 @@ default_region = "eu-central-1"
 
 
 def get_storage_client(type="s3", endpoint_url=None):
-    """type is the boto client type s3 by default but can be sts or other client api"""
+    """Type is the boto client type s3 by default but can be sts or other client api"""
     if endpoint_url is None:
         endpoint_url = settings.WORKSPACE_STORAGE_ENGINE_AWS_ENDPOINT_URL
 
@@ -113,7 +113,7 @@ class S3Client(BaseClient):
     def create_bucket(self, bucket_name: str):
         s3 = get_storage_client()
         try:
-            bucket = s3.create_bucket(
+            s3.create_bucket(
                 Bucket=bucket_name,
                 CreateBucketConfiguration={"LocationConstraint": default_region},
             )
@@ -269,7 +269,7 @@ class S3Client(BaseClient):
         ignore_hidden_files=True,
     ):
         prefix = prefix or ""
-        max_items = (page * per_page) + 1
+
         start_offset = (page - 1) * per_page
         end_offset = page * per_page
         paginator = get_storage_client().get_paginator("list_objects_v2")
@@ -412,7 +412,6 @@ class S3Client(BaseClient):
         except s3.exceptions.NoSuchBucket:
             return
         except s3.exceptions.ClientError as exc:
-
             if "InvalidBucketName" in str(exc):
                 return
 

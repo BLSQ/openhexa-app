@@ -78,7 +78,6 @@ def _generate_credentials(
 
 def notebooks_credentials(credentials: NotebooksCredentials):
     """Provides the notebooks credentials data that allows users to access S3 buckets in the notebooks component."""
-
     read_only_buckets = Bucket.objects.filter_for_user(
         credentials.user, mode=PermissionMode.VIEWER
     )
@@ -106,7 +105,6 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     Provides the pipelines credentials data that allows users to access S3 buckets
     in the pipelines component.
     """
-
     if hasattr(credentials.pipeline, "authorized_datasources"):
         authorized_buckets = credentials.pipeline.authorized_datasources.filter(
             datasource_type=ContentType.objects.get_for_model(Bucket)

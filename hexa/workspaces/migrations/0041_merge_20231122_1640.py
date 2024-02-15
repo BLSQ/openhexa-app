@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0040_s3_connection_secret_fields"),
         ("workspaces", "0040_workspace_docker_image"),

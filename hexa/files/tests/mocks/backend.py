@@ -7,7 +7,7 @@ class BucketAlreadyOwnedByYou(Exception):
     pass
 
 
-class StorageBackend(object):
+class StorageBackend:
     def __init__(self, project=None):
         if project is None:
             project = "test-project-" + str(uuid.uuid1())

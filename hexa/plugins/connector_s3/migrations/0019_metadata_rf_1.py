@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0018_alter_bucketpermission_unique_together"),
     ]

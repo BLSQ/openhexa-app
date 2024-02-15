@@ -68,7 +68,8 @@ class NotebookCredentialsTest(TestCase):
     def test_credentials_200_regular_user(self):
         """
         A regular should get credentials for the instances he has credentials
-        permissions for. (instance1 and not instance2 or instance3)"""
+        permissions for. (instance1 and not instance2 or instance3)
+        """
         self.client.force_login(self.REGULAR_USER)
         response = self.client.post(reverse("notebooks:credentials"))
 

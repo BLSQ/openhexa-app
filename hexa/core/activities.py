@@ -12,7 +12,7 @@ class Activity(WithStatus):
         status: Status,
         occurred_at: datetime.datetime,
         description: str,
-        url: str
+        url: str,
     ):
         self._status = status
         self.occurred_at = occurred_at

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0011_alter_connection_slug_alter_connectionfield_code"),
     ]
