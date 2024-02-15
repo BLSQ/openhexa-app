@@ -169,7 +169,8 @@ docker compose run app manage compilemessages
 
 ### Code style
 
-Our python code is linted using [`black`](https://github.com/psf/black), [`isort`](https://github.com/PyCQA/isort) and [`autoflake`](https://github.com/myint/autoflake).
+Our python code is linted using [`ruff`](https://docs.astral.sh/ruff/).
+
 We currently target the Python 3.9 syntax.
 
 We use a [pre-commit](https://pre-commit.com/) hook to lint the code before committing. Make sure that `pre-commit` is
