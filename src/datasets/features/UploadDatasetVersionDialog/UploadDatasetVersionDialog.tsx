@@ -15,6 +15,7 @@ import {
 } from "datasets/helpers/dataset";
 import Spinner from "core/components/Spinner";
 import { useRouter } from "next/router";
+import CodeEditor from "core/components/CodeEditor";
 
 type UploadDatasetVersionDialogProps = {
   open: boolean;
@@ -107,21 +108,21 @@ const UploadDatasetVersionDialog = ({
                 You can upload a new version of your dataset from Pipelines &
                 Jupyter using the following snippet.
               </p>
-              <pre
-                className={
-                  "bg-slate-100 p-2 font-mono text-sm leading-6 whitespace-break-spaces"
-                }
-              >
-                from pathlib import Path
-                <br />
-                from openhexa.sdk import workspace
-                <br />
-                dataset = workspace.get_dataset(&quot;
-                {datasetLink.dataset.slug}&quot;)
-                <br />
-                dataset.create_version(&quot;v2&quot;,
-                [Path(&quot;/path/to/file.csv&quot;)])
-              </pre>
+              <CodeEditor
+                lang={"python"}
+                readonly
+                value={`from pathlib import Path
+from openhexa.sdk import workspace
+
+# Get the dataset
+dataset = workspace.get_dataset("${datasetLink.dataset.slug}")
+
+# Create a new version
+version = dataset.create_version("v2")
+
+# Upload a single file
+version.add_file("/path/to/file.csv")`}
+              />
             </Tabs.Tab>
             <Tabs.Tab label={t("Upload files")} className={"space-y-4 pt-2"}>
               <Field
