@@ -46,7 +46,7 @@ class ExternalType(Enum):
 
 
 class ClusterQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         # Clusters are only visible to superusers for now
         return self._filter_for_user_and_query_object(user, Q(pk=None))
 
@@ -256,7 +256,7 @@ class DAGTemplate(Base):
 
 
 class DAGQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(dagpermission__team__in=Team.objects.filter_for_user(user)),
@@ -466,7 +466,7 @@ class DAGPermission(Permission):
 
 
 class DAGRunQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
     def filter_for_refresh(self):
@@ -637,7 +637,7 @@ class DAGRun(Base, WithStatus):
 
 
 class DAGRunFavoriteQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(user=user),

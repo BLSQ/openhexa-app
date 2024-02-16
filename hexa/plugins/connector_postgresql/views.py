@@ -79,16 +79,8 @@ def table_list(request: HttpRequest, datasource_id: uuid.UUID) -> HttpResponse:
             "datasource": datasource,
             "table_grid": table_grid,
             "breadcrumbs": breadcrumbs,
-            "section_title": _(
-                "Tables in database %(database)s"
-                % {"database": datasource.display_name}
-            ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": table_grid.start_index,
-                "end": table_grid.end_index,
-                "total": table_grid.total_count,
-            },
+            "section_title": _(f"Tables in database {datasource.display_name}"),
+            "section_label": f"{table_grid.start_index} to {table_grid.end_index} out of {table_grid.total_count}",
         },
     )
 

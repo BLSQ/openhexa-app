@@ -114,12 +114,14 @@ class Datagrid(metaclass=DatagridMeta):
                 "display": self.paginate,
                 "page_parameter": self.page_parameter_name,
                 "item_label": _("Item") if self.paginator.count == 1 else _("items"),
-                "previous_page_number": self.page.previous_page_number()
-                if self.page.has_previous()
-                else None,
-                "next_page_number": self.page.next_page_number()
-                if self.page.has_next()
-                else None,
+                "previous_page_number": (
+                    self.page.previous_page_number()
+                    if self.page.has_previous()
+                    else None
+                ),
+                "next_page_number": (
+                    self.page.next_page_number() if self.page.has_next() else None
+                ),
                 "current_page_number": self.page.number,
                 "current_page_count": len(self.page),
                 "total_count": self.total_count,
@@ -409,7 +411,7 @@ class DurationColumn(Column):
     def template(self) -> str:
         return "ui/datagrid/column_duration.html"
 
-    def format_duration(self, duration: datetime.timedelta) -> typing.Optional[str]:
+    def format_duration(self, duration: datetime.timedelta) -> str | None:
         if duration is None:
             return duration
 

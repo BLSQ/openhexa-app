@@ -134,7 +134,10 @@ def run_pipeline(
             if parameter["type"] == "bool":
                 config[parameter["code"]] = request.POST.get(
                     parameter["code"]
-                ).lower() in ("1", "true")
+                ).lower() in (
+                    "1",
+                    "true",
+                )
                 continue
 
             values = request.POST.getlist(parameter["code"])

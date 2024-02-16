@@ -176,9 +176,7 @@ class MockClient:
             return self.backend.buckets[bucket.name]
         else:
             raise NotFound(
-                "404 GET https://storage.googleapis.com/storage/v1/b/{}?projection=noAcl".format(
-                    bucket.name
-                )
+                f"404 GET https://storage.googleapis.com/storage/v1/b/{bucket.name}?projection=noAcl"
             )
 
     def lookup_bucket(self, bucket_name):
@@ -215,9 +213,7 @@ class MockClient:
         bucket = self._bucket_arg_to_bucket(bucket_or_name)
         if bucket is None:
             raise NotFound(
-                "404 GET https://storage.googleapis.com/storage/v1/b/{}?projection=noAcl".format(
-                    bucket_or_name
-                )
+                f"404 GET https://storage.googleapis.com/storage/v1/b/{bucket_or_name}?projection=noAcl"
             )
         if isinstance(max_results, int):
             blobs = bucket._blobs[:max_results]

@@ -20,13 +20,12 @@ class GCPHandler(Handler):
     def format(self, record):
         if record.exc_info is not None:
             type, _, tb = record.exc_info
-            message = "".join(traceback.format_tb(tb)) + "\n%s\n%s" % (
-                record.getMessage(),
-                type,
+            message = (
+                f"{"".join(traceback.format_tb(tb))} \n{record.getMessage()}\n{type}"
             )
         else:
             message = record.msg % record.args
         return {
             "severity": record.levelname,
-            "message": "%s: %s" % (record.name, message),
+            "message": f"{record.name}: {message}",
         }

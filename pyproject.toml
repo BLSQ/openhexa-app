@@ -10,7 +10,7 @@ extend-select = [
     "ANN", # flake8-annotations
 ]
 # Disable all "missing docstrings" and "missing type annotations" rules for now
-# TODO: enable
+# TODO: Enable progressively the following rules
 ignore = [
     "ANN001",
     "ANN002",
@@ -34,12 +34,8 @@ ignore = [
     "D205",
     "D400",
     "D401",
-    "D404",
-    "UP007",
-    "UP031"
+    "D404"
 ]
-
-
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".

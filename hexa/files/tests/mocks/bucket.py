@@ -17,7 +17,7 @@ class MockBucket:
         self._blobs = []
 
     def __repr__(self):
-        return "<Bucket: %s>" % (self.name,)
+        return f"<Bucket: {self.name}>"
 
     @property
     def client(self):

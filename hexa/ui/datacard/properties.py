@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import typing
 
 from django import forms
 from django.template import loader
@@ -44,9 +43,9 @@ class Property(DatacardComponent):
 
     def base_context(self, model, section, is_edit=False):
         return {
-            "property_label": _(self._label)
-            if self._label is not None
-            else _(self.name.capitalize()),
+            "property_label": (
+                _(self._label) if self._label is not None else _(self.name.capitalize())
+            ),
         }
 
     def context(self, model, section, is_edit=False):
@@ -265,7 +264,7 @@ class URLProperty(Property):
         self,
         *,
         url: str,
-        text: typing.Union[str, StaticText] = None,
+        text: str | StaticText = None,
         external: bool = True,
         track=True,
         **kwargs,

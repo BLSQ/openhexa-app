@@ -34,9 +34,7 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def leaves(self, level: int):
         return self.filter(path__depth=level + 1)
 
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: AnonymousUser | user_management_models.User):
         return self._filter_for_user_and_query_object(
             user,
             Q(
@@ -120,9 +118,7 @@ class BaseIndexManager(TreeManager):
     own queryset, and re-attach filter_for_user().
     """
 
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: AnonymousUser | user_management_models.User):
         return self.get_queryset().filter_for_user(user)
 
     def get_queryset(self):  # TODO: PR in django-ltree?
@@ -229,9 +225,11 @@ class BaseIndex(Base):
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
             "url": self.object.get_absolute_url() if self.object else None,
-            "last_synced_at": date_format(self.last_synced_at)
-            if self.last_synced_at is not None
-            else None,
+            "last_synced_at": (
+                date_format(self.last_synced_at)
+                if self.last_synced_at is not None
+                else None
+            ),
         }
 
     # TODO: remove me this ugly workaround when we set a value for last_synced_at on all indexes

@@ -169,7 +169,9 @@ docker compose run app manage compilemessages
 
 ### Code style
 
-Our python code is linted using [`ruff`](https://docs.astral.sh/ruff/).
+Our python code is linted using [`ruff`](https://docs.astral.sh/ruff/). It also handles code formatting, and import sorting.
+
+
 
 We currently target the Python 3.9 syntax.
 

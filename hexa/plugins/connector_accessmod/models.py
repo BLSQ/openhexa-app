@@ -35,7 +35,7 @@ from hexa.user_management.models import (
 
 
 class ProjectQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(projectpermission__user=user)
@@ -108,7 +108,7 @@ class Project(models.Model):
     @property
     def owner(
         self,
-    ) -> typing.Optional[typing.Union[User, Team]]:
+    ) -> User | Team | None:
         try:
             permission = self.projectpermission_set.get(mode=PermissionMode.OWNER)
 
@@ -189,7 +189,7 @@ class ProjectPermissionManager(models.Manager):
 
 
 class ProjectPermissionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(user=user) | Q(team__in=Team.objects.filter_for_user(user)),
@@ -225,7 +225,7 @@ class ProjectPermission(Permission):
     @property
     def owner(
         self,
-    ) -> typing.Union[User, Team]:
+    ) -> User | Team:
         return self.project.owner
 
     def index_object(self):
@@ -285,7 +285,7 @@ class FilesetStatus(models.TextChoices):
 
 
 class FilesetQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(project__in=Project.objects.filter_for_user(user)).distinct()
 
 
@@ -371,7 +371,7 @@ class Fileset(Entry):
         return super().delete()
 
     @property
-    def primary_uri(self) -> typing.Optional[str]:
+    def primary_uri(self) -> str | None:
         # FIXME: manage shapefile multiple related file
         if self.file_set.first():
             return self.file_set.first().uri
@@ -381,7 +381,7 @@ class Fileset(Entry):
     @property
     def owner(
         self,
-    ) -> typing.Union[User, Team]:
+    ) -> User | Team:
         return self.project.owner
 
     def get_permission_set(self):
@@ -436,7 +436,7 @@ class FilesetRole(Base):
 
 
 class FileQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(fileset__in=Fileset.objects.filter_for_user(user)).distinct()
 
 
@@ -492,7 +492,7 @@ class AnalysisType(str, enum.Enum):
 
 
 class AnalysisQuerySet(BaseQuerySet, InheritanceQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(project__projectpermission__user=user)
@@ -511,7 +511,7 @@ class AnalysisManager(InheritanceManager):
     def get_queryset(self):
         return AnalysisQuerySet(self.model)
 
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.get_queryset().filter_for_user(user)
 
     def create_if_has_perm(self, principal: User, *, project: Project, **kwargs):
@@ -609,7 +609,7 @@ class Analysis(models.Model):
     @property
     def owner(
         self,
-    ) -> typing.Union[User, Team]:
+    ) -> User | Team:
         return self.project.owner
 
     def populate_index(self, index):
@@ -851,7 +851,7 @@ class AccessibilityAnalysis(Analysis):
         input: str,
         uri: str,
         mime_type: str,
-        metadata: typing.Optional[dict[str, typing.Any]],
+        metadata: dict[str, typing.Any] | None,
     ):
         if input not in (
             "land_cover",
@@ -887,7 +887,7 @@ class AccessibilityAnalysis(Analysis):
         travel_times: str,
         friction_surface: str,
         stack: str = None,
-        stack_labels: typing.Optional[dict[str, int]] = None,
+        stack_labels: dict[str, int] | None = None,
     ):
         new_filesets = []
         new_filesets.append(
@@ -1212,7 +1212,7 @@ class ZonalStatisticsAnalysis(Analysis):
         input: str,
         uri: str,
         mime_type: str,
-        metadata: typing.Optional[dict[str, typing.Any]],
+        metadata: dict[str, typing.Any] | None,
     ):
         if input not in ("population", "travel_times", "boundaries"):
             raise Exception("invalid input")
@@ -1368,7 +1368,7 @@ class AccessRequestManager(models.Manager):
 
 
 class AccessRequestQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         if not user.has_perm("connector_accessmod.manage_access_requests"):
             return self.none()
 

@@ -34,7 +34,7 @@ def _get_app_s3_credentials():
 
 def generate_sts_app_s3_credentials(
     *,
-    bucket: typing.Optional[models.Bucket] = None,
+    bucket: models.Bucket | None = None,
     duration: int = 60 * 60,
 ) -> dict[str, str]:
     """Generate temporary S3 credentials for app operations, using the app role.
@@ -121,8 +121,8 @@ def generate_sts_user_s3_credentials(
     *,
     role_identifier: str,
     session_identifier: str,
-    read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
-    read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
+    read_only_buckets: typing.Sequence[models.Bucket] | None = None,
+    read_write_buckets: typing.Sequence[models.Bucket] | None = None,
     duration: int = 12 * 60 * 60,
 ) -> (bool, dict[str, str]):
     """Generate temporary S3 credentials for a specific use case and for specific buckets.
@@ -251,8 +251,8 @@ def generate_sts_user_s3_credentials(
 
 
 def generate_s3_policy(
-    read_write_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
-    read_only_buckets: typing.Optional[typing.Sequence[models.Bucket]] = None,
+    read_write_buckets: typing.Sequence[models.Bucket] | None = None,
+    read_only_buckets: typing.Sequence[models.Bucket] | None = None,
 ) -> dict:
     statements = []
 
