@@ -16,7 +16,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { FormEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import BucketExplorer from "workspaces/features/BucketExplorer";
 import CreateBucketFolderDialog from "workspaces/features/CreateBucketFolderDialog";
 import UploadObjectDialog from "workspaces/features/UploadObjectDialog";
@@ -95,17 +95,10 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
       )}/files/${prefix}?page=${page}&perPage=${perPage}&q=${searchQueryState}`,
     );
   };
-
-  const onSubmitSearchQuery = () => {
-    // Adding search params was not possible when using a placeholder for the prefix.
-    // The only solution I found was to interpolate directly the prefix in the pathname.
-    router.push({
-      pathname: `/workspaces/[workspaceSlug]/files/${prefix}`,
-      query: {
-        q: searchQueryState,
-        workspaceSlug: workspace.slug,
-      },
-    });
+  const onSubmitSearchQuery: FormEventHandler = (event) => {
+    event.preventDefault();
+    const path = router.asPath.split("?")[0];
+    router.push(`${path}?q=${searchQueryState}`, undefined);
   };
 
   const onChangeHiddenFiles = (checked: boolean, onClose: () => void) => {
@@ -115,7 +108,6 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
     } else {
       setCookie("show-hidden-files", true);
     }
-
     window.location.reload();
     onClose();
   };
