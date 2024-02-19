@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.66.0](https://github.com/BLSQ/openhexa-app/compare/0.65.2...0.66.0) (2024-02-19)
+
+
+### Features
+
+* S3 custom client endpoint ([#646](https://github.com/BLSQ/openhexa-app/issues/646)) ([429d46b](https://github.com/BLSQ/openhexa-app/commit/429d46b1f3962dee19e9c2818c811ae577d405b7))
+
+
+### Bug Fixes
+
+* **GCP:** Enable bucket versioning for future buckets & add a lifecycle policy ([#654](https://github.com/BLSQ/openhexa-app/issues/654)) ([8a9bfb8](https://github.com/BLSQ/openhexa-app/commit/8a9bfb8e86b82c4b48965e2476f6ba0e4fdb600f))
+* **PipelineRun:** change NotFound exception import ([#652](https://github.com/BLSQ/openhexa-app/issues/652)) ([b367fe0](https://github.com/BLSQ/openhexa-app/commit/b367fe0f6426a25ad4da6a75580ce784e0ff39bd))
+* **Settings:** Take SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE, SECURE_SSL_REDIRECT from os.environ ([ac1ccb0](https://github.com/BLSQ/openhexa-app/commit/ac1ccb013845aea866002cdcf04e7bfc03bc6570))
+
+
+### Miscellaneous
+
+* Add isLatestVersion on PipelineVersion ([#651](https://github.com/BLSQ/openhexa-app/issues/651)) ([21a881c](https://github.com/BLSQ/openhexa-app/commit/21a881c02e1db17461458492aa177fcf3d85a545))
+* **Debt:** Remove comments app models and templates (first step) ([#649](https://github.com/BLSQ/openhexa-app/issues/649)) ([f8fb49f](https://github.com/BLSQ/openhexa-app/commit/f8fb49fdef2ca445e4a94ee3dba3ad0ceba36d6b))
+* **Debt:** Start to remove the comments app ([d370863](https://github.com/BLSQ/openhexa-app/commit/d370863b762e0fd0a9ba23ac2d9e33ce0314e688))
+* **deps:** bump cryptography from 41.0.7 to 42.0.0 ([#642](https://github.com/BLSQ/openhexa-app/issues/642)) ([1f8370e](https://github.com/BLSQ/openhexa-app/commit/1f8370eb06ff898f538b40a1d0b73bfb536f4e87))
+* **deps:** bump django from 5.0 to 5.0.2 ([#648](https://github.com/BLSQ/openhexa-app/issues/648)) ([a64b969](https://github.com/BLSQ/openhexa-app/commit/a64b969bde883e27ae60e50df297e6a222d8646a))
+* **deps:** bump starlette from 0.34.0 to 0.36.2 ([#641](https://github.com/BLSQ/openhexa-app/issues/641)) ([fcfe3e8](https://github.com/BLSQ/openhexa-app/commit/fcfe3e8f24f69729344a6b6b00d61cdf9d716d6c))
+* **Pipelines:** Remove the temporary status page ([#653](https://github.com/BLSQ/openhexa-app/issues/653)) ([57fd504](https://github.com/BLSQ/openhexa-app/commit/57fd5049f9b74fad01c02c51c4f57fc619c97016))
+* Set the default storage engine to GCP ([f81247d](https://github.com/BLSQ/openhexa-app/commit/f81247d2f019ef3b57a83cf6286c7650cb4fa78c))
+
 ## [0.65.2](https://github.com/BLSQ/openhexa-app/compare/0.65.1...0.65.2) (2024-02-07)
 
 
