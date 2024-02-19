@@ -15,4 +15,5 @@ class FixturesTest(TestCase):
         )
 
     def test_fixtures(self):
+        call_command("loaddata", "base.json", stdout=StringIO())
         call_command("loaddata", "demo.json", stdout=StringIO())

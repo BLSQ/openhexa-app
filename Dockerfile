@@ -1,7 +1,10 @@
-FROM python:3.11 as deps
+FROM python:3.11-slim as deps
 
-RUN apt-get update
-RUN apt-get install -y mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext
+RUN \
+  apt-get update && \
+  apt-get install -y build-essential mdbtools wait-for-it gdal-bin libgdal-dev proj-bin gettext lsb-release && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN pip install --upgrade pip
 
@@ -12,7 +15,9 @@ COPY requirements.txt /code/
 # Mount a tmp folder inside the container to keep a cache for pip
 # see https://pythonspeed.com/articles/docker-cache-pip-downloads/
 # Force setuptools version to build pygdal
-RUN pip install setuptools==57.5.0 && pip install -r requirements.txt
+RUN \
+  --mount=type=cache,target=/root/.cache \ 
+  pip install setuptools==57.5.0 && pip install -r requirements.txt
 
 COPY . /code/
 
@@ -33,5 +38,4 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
 RUN echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-RUN apt-get update
-RUN apt-get install -y docker-ce-cli
+RUN apt-get update && apt-get install -y docker-ce-cli
