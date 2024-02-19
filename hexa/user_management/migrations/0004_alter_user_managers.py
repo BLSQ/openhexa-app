@@ -6,7 +6,6 @@ import hexa.user_management.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0003_feature_flags"),
     ]

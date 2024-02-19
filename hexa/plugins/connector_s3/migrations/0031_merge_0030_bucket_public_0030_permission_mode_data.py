@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0030_bucket_public"),
         ("connector_s3", "0030_permission_mode_data"),

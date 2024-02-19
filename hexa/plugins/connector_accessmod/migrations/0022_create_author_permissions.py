@@ -13,7 +13,6 @@ def forwards_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0021_permissions_next"),
     ]

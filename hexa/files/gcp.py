@@ -146,7 +146,7 @@ class GCPClient(BaseClient):
             bucket.patch()
 
             return bucket
-        except Conflict as e:
+        except Conflict:
             raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
 
     def upload_object(self, bucket_name: str, file_name: str, source: str):

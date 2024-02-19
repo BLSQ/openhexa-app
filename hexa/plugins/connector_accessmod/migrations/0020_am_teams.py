@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0007_ci_email"),
         ("connector_accessmod", "0019_am_unique_ft"),

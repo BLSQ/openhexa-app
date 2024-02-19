@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0011_crs_status_coverage_roles"),
     ]

@@ -8,7 +8,7 @@ from hexa.plugins.connector_postgresql.models import Database
 
 
 def get_env(
-    databases: List[Tuple[Database, Optional[str]]]
+    databases: List[Tuple[Database, Optional[str]]],
 ) -> Tuple[Dict[str, str], Dict[str, bytes]]:
     env, files = {}, {}
 
@@ -53,7 +53,6 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     Provides the notebooks credentials data that allows users to access SQL Databases
     in the notebooks component.
     """
-
     databases = Database.objects.filter_for_user(credentials.user)
 
     env, files = get_env([(x, None) for x in databases])
@@ -66,7 +65,6 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     Provides the notebooks credentials data that allows users to access PostgreSQL databases
     in the pipelines component.
     """
-
     if hasattr(credentials.pipeline, "authorized_datasources"):
         authorized_datasource = credentials.pipeline.authorized_datasources.filter(
             datasource_type=ContentType.objects.get_for_model(Database)

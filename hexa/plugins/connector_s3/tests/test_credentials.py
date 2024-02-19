@@ -88,7 +88,6 @@ class NotebooksCredentialsTest(TestCase):
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_credentials(self, _):
         """John is a regular user, should have access to 2 buckets"""
-
         credentials = NotebooksCredentials(self.USER_JOHN)
         notebooks_credentials(credentials)
         aws_fuse_config = json.loads(
@@ -148,7 +147,6 @@ class NotebooksCredentialsTest(TestCase):
     @patch("hexa.plugins.connector_s3.api.sleep", return_value=None)
     def test_credentials_superuser(self, _):
         """Jane is a superuser, should have access to 3 buckets"""
-
         credentials = NotebooksCredentials(self.USER_JANE)
         notebooks_credentials(credentials)
         self.assertEqual(

@@ -34,7 +34,6 @@ class EmbedNode(Node):
 
     def render(self, context):
         """Heavily inspired/borrowed from IncludeNode.render()"""
-
         # Exact copy from IncludeNode.render()
         template = self.template.resolve(context)
         # Does this quack like a Template?
@@ -113,7 +112,6 @@ def do_embed(parser, token):
 
     You may use the ``only`` argument and keyword arguments using ``with`` like when using ``{% include %}``
     """
-
     # Exact copy from do_include_node()
     bits = token.split_contents()
     if len(bits) < 2:
@@ -169,7 +167,6 @@ def do_slot(parser, token):
             {% slot content %}<p>Content</p>{% endslot %}
         {% endembed %}
     """
-
     nodelist = parser.parse(("endslot",))
     parser.delete_first_token()
 

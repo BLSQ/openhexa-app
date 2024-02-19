@@ -19,7 +19,7 @@ class LoggerTest(TestCase):
         self.client.force_login(self.SUPER_USER)
         logs = []
 
-        class mock_logger(object):
+        class mock_logger:
             def info(self, msg, *args, **kwargs):
                 nonlocal logs
                 logs.append(["INFO", msg])

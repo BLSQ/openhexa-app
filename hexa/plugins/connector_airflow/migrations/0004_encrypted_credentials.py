@@ -6,7 +6,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0003_better_help_text"),
     ]

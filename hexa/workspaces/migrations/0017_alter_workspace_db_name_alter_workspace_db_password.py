@@ -6,7 +6,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0016_workspace_db_name_workspace_db_password"),
     ]

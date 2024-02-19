@@ -18,11 +18,11 @@ def render_queryset_to_csv(
 ) -> HttpResponse:
     """Generate a response with csv content for the provided queryset and field names.
     Field names may include a dot for nested field access.
-    ."""
-
+    .
+    """
     if not filename.endswith(".csv"):
         return HttpResponse(
-            f"Invalid filename {filename} - should end by .csv".encode("utf-8"),
+            f"Invalid filename {filename} - should end by .csv".encode(),
             status=400,
         )
     response = HttpResponse(

@@ -29,7 +29,7 @@ class Command(BaseCommand):
 
                 for instance in model.objects.all():
                     try:
-                        print("building index %s:%s" % (model, instance.id))
+                        print(f"building index {model}:{instance.id}")
                         with transaction.atomic():
                             instance.build_index()
                     except Exception:

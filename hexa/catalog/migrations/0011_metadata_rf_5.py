@@ -13,7 +13,6 @@ import hexa.core.models.postgres
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tags", "0001_metadata_rf_4"),
         ("user_management", "0002_remove_username"),

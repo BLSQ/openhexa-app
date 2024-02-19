@@ -96,10 +96,11 @@ def run_pipeline(
     """Runs a pipeline. The endpoint accepts both form data and JSON payloads.
 
     To be runnable, the pipeline must be set as public with `webhook_enabled`.
-    Returns:
+
+    Returns
+    -------
         HttpResponse: Returns a dict with the `run_id` key containing the ID of the created run.
     """
-
     try:
         pipeline = Pipeline.objects.get(id=id)
     except Pipeline.DoesNotExist:
@@ -133,7 +134,10 @@ def run_pipeline(
             if parameter["type"] == "bool":
                 config[parameter["code"]] = request.POST.get(
                     parameter["code"]
-                ).lower() in ("1", "true")
+                ).lower() in (
+                    "1",
+                    "true",
+                )
                 continue
 
             values = request.POST.getlist(parameter["code"])

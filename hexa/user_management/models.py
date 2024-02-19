@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import typing
 import uuid
 
 from django.contrib.auth.models import AbstractUser, AnonymousUser
@@ -161,9 +160,7 @@ class TeamManager(models.Manager):
 
 
 class TeamQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(user, Q(members=user))
 
 
@@ -219,7 +216,7 @@ class MembershipManager(models.Manager):
         *,
         user: User,
         team: Team,
-        role: typing.Optional[MembershipRole] = MembershipRole.REGULAR,
+        role: MembershipRole | None = MembershipRole.REGULAR,
     ):
         if not principal.has_perm("user_management.create_membership", team):
             raise PermissionDenied
@@ -233,9 +230,7 @@ class MembershipManager(models.Manager):
 
 
 class MembershipQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(user, Q(team__members=user))
 
 

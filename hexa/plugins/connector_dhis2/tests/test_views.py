@@ -154,7 +154,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_catalog_index_200(self):
         """As a superuser, Kristen can list datasources."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         response = self.client.get(reverse("catalog:index"))
@@ -163,7 +162,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_instance_detail_404(self):
         """Bjorn is not a superuser, he can't access the datasource detail page."""
-
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
@@ -175,7 +173,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_instance_detail_200(self):
         """As a superuser, Kristen can access any datasource detail screen."""
-
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
@@ -188,7 +185,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_data_element_list_404(self):
         """Bjorn is not a superuser, he can't access the data elements page."""
-
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
@@ -200,7 +196,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_data_element_list_200(self):
         """As a superuser, Kristen can see the data elements screen."""
-
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
@@ -264,7 +259,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_organisation_list_200(self):
         """As a superuser, Kristen can see the organisation unit screen."""
-
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
@@ -314,7 +308,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_indicator_list_404(self):
         """As Bjorn is not a superuser, he can't access the indicators screen."""
-
         self.client.force_login(self.USER_BJORN)
         response = self.client.get(
             reverse(
@@ -326,7 +319,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_indicator_list_200(self):
         """As a superuser, Kristen can see the indicators screen."""
-
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
@@ -414,7 +406,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_instance_superuser_code_sample(self):
         """As a superuser, Kristen can see the code sample."""
-
         self.client.force_login(self.USER_KRISTEN)
         response = self.client.get(
             reverse(
@@ -427,7 +418,6 @@ class ConnectorDhis2Test(TestCase):
 
     def test_instance_code_sample(self):
         """As a normal user, Bjorn can not see the code sample by default."""
-
         self.TEAM.members.add(self.USER_BJORN)
 
         self.client.force_login(self.USER_BJORN)
@@ -442,8 +432,8 @@ class ConnectorDhis2Test(TestCase):
 
     def test_instance_code_sample_with_permission(self):
         """As a normal user, Bjorn can see the code sample if given the permission
-        Test with another team to add complexity"""
-
+        Test with another team to add complexity
+        """
         self.TEAM.members.add(self.USER_BJORN)
         self.PERMISSION.enable_notebooks_credentials = True
         self.PERMISSION.save()

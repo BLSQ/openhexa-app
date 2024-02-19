@@ -96,7 +96,7 @@ class DatabaseAPITest(TestCase):
         url = f"postgresql://{self.DB2_NAME}:{self.PWD_2}@{host}:{port}/{self.DB1_NAME}"
 
         with self.assertRaises(OperationalError):
-            conn = psycopg2.connect(url)
+            psycopg2.connect(url)
 
     def test_update_database_password(self):
         new_password = "new_password"
@@ -110,7 +110,7 @@ class DatabaseAPITest(TestCase):
         url = f"postgresql://{self.DB2_NAME}:{self.PWD_2}@{host}:{port}/{self.DB2_NAME}"
 
         with self.assertRaises(OperationalError):
-            conn = psycopg2.connect(url)
+            psycopg2.connect(url)
 
     def test_load_database_sample_data(self):
         credentials = get_db_server_credentials()

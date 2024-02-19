@@ -65,9 +65,7 @@ class TwoFactorMiddlewareTest(TestCase):
         request.user = self.USER_SERENA
         device = self.USER_SERENA.staticdevice_set.get()
         request.session = {
-            DEVICE_ID_SESSION_KEY: "{}.{}/{}".format(
-                device.__module__, device.__class__.__name__, device.id
-            )
+            DEVICE_ID_SESSION_KEY: f"{device.__module__}.{device.__class__.__name__}/{device.id}"
         }
 
         self.middleware(request)

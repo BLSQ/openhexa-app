@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0018_alter_pipeline_config_alter_pipelinerun_config"),
     ]

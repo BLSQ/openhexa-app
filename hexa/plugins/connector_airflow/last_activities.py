@@ -9,13 +9,7 @@ def get_last_activities(request: HttpRequest):
     activities = [
         Activity(
             description=_(
-                "%(user)s launched the <strong>%(dag)s</strong> pipeline."
-                % {
-                    "user": run.user.display_name
-                    if run.user is not None
-                    else _("An unknown user"),
-                    "dag": run.dag.dag_id,
-                }
+                f"{run.user.display_name if run.user is not None else _('An unknown user')} launched the <strong>{run.dag.dag_id}</strong> pipeline."
             ),
             occurred_at=run.execution_date,
             status=run.status,
@@ -23,4 +17,5 @@ def get_last_activities(request: HttpRequest):
         )
         for run in DAGRun.objects.filter_for_user(request.user)[:5]
     ]
+
     return ActivityList(activities)

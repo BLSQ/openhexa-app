@@ -34,7 +34,6 @@ def delete_project(principal: User, project: Project):
     - Within team projects, by the admins of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_admin_of(project.owner)
         if isinstance(project.owner, Team)
@@ -53,7 +52,6 @@ def create_project_permission(
     - Within personal projects, by their owner
     - For projects that haven't any permission yet, by the author
     """
-
     project, user, team = project_user_and_team
 
     if (user is None) == (team is None):
@@ -78,7 +76,6 @@ def update_project_permission(principal: User, permission: ProjectPermission):
     - Within team projects, by the admins of the team owning the project (except for own permissions)
     - Within personal projects, by their owner (except for own permissions)
     """
-
     return permission.user != principal and (
         principal.is_admin_of(permission.owner)
         if isinstance(permission.owner, Team)
@@ -91,7 +88,6 @@ def delete_project_permission(principal: User, permission: ProjectPermission):
     - Within team projects, by the admins of the team owning the project (except for own permissions)
     - Within personal projects, by their owner (except for own permissions)
     """
-
     return permission.user != principal and (
         principal.is_admin_of(permission.owner)
         if isinstance(permission.owner, Team)
@@ -104,7 +100,6 @@ def create_fileset(principal: User, project: Project):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(project.owner)
         if isinstance(project.owner, Team)
@@ -117,7 +112,6 @@ def update_fileset(principal: User, fileset: Fileset):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(fileset.owner)
         if isinstance(fileset.owner, Team)
@@ -130,7 +124,6 @@ def delete_fileset(principal: User, fileset: Fileset):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(fileset.owner)
         if isinstance(fileset.owner, Team)
@@ -143,7 +136,6 @@ def create_file(principal: User, fileset: Fileset):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(fileset.owner)
         if isinstance(fileset.owner, Team)
@@ -156,7 +148,6 @@ def create_analysis(principal: User, project: Project):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(project.owner)
         if isinstance(project.owner, Team)
@@ -169,7 +160,6 @@ def update_analysis(principal: User, analysis: Analysis):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(analysis.owner)
         if isinstance(analysis.owner, Team)
@@ -182,7 +172,6 @@ def run_analysis(principal: User, analysis: Analysis):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(analysis.owner)
         if isinstance(analysis.owner, Team)
@@ -195,7 +184,6 @@ def delete_analysis(principal: User, analysis: Analysis):
     - Within team projects, by the members of the team owning the project
     - Within personal projects, by their owner
     """
-
     return (
         principal.is_member_of(analysis.owner)
         if isinstance(analysis.owner, Team)
@@ -205,13 +193,11 @@ def delete_analysis(principal: User, analysis: Analysis):
 
 def create_access_request(principal: typing.Union[User, AnonymousUser]) -> bool:
     """Access requests can be only be created by anonymous users."""
-
     return isinstance(principal, AnonymousUser)
 
 
 def manage_access_requests(principal: typing.Union[User, AnonymousUser]) -> bool:
     """Access requests can be approved either by global superusers or by AccessMod superusers"""
-
     if isinstance(principal, AnonymousUser):
         return False
 

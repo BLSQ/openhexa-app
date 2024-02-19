@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0023_remove_pipelineversion_entrypoint"),
     ]

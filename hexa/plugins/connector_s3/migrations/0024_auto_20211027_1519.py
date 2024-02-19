@@ -6,7 +6,6 @@ import hexa.plugins.connector_s3.region
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0023_user_arn"),
     ]

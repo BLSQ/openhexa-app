@@ -6,7 +6,6 @@ import hexa.plugins.connector_dhis2.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0014_metadata_rf_2"),
     ]

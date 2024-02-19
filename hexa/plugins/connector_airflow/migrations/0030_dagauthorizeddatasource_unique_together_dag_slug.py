@@ -11,7 +11,6 @@ def forward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0029_dagauthorizeddatasource_slug"),
     ]

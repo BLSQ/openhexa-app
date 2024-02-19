@@ -312,12 +312,12 @@ class APITestCase:
             )
 
     def test_generate_download_url(self):
-        bucket = self.get_client().create_bucket("bucket")
+        self.get_client().create_bucket("bucket")
         url = self.get_client().generate_download_url("bucket", "demo.txt")
         assert "demo.txt" in url, f"Expected to be in '{url}'"
 
     def test_generate_upload_url(self):
-        bucket = self.get_client().create_bucket("bucket")
+        self.get_client().create_bucket("bucket")
         url = self.get_client().generate_upload_url("bucket", "demo.txt")
         assert "demo.txt" in url, f"Expected to be in '{url}'"
 
@@ -367,7 +367,7 @@ class OnlyGCP:
 class OnlyS3:
     def test_generate_upload_url_raise_existing_dont_raise(self):
         self.get_client().delete_bucket("bucket")
-        bucket = self.get_client().create_bucket("bucket")
+        self.get_client().create_bucket("bucket")
         url = self.get_client().generate_upload_url(
             bucket_name="bucket", target_key="demo.txt", raise_if_exists=True
         )
@@ -375,7 +375,7 @@ class OnlyS3:
         assert "demo.txt" in url, f"Expected to be in '{url}'"
 
     def test_load_bucket_sample_data(self):
-        bucket = self.get_client().create_bucket("bucket")
+        self.get_client().create_bucket("bucket")
         self.get_client().load_bucket_sample_data(bucket_name="bucket")
         res = self.get_client().list_bucket_objects("bucket")
 

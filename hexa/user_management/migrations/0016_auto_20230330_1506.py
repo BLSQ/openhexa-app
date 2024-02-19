@@ -19,7 +19,6 @@ def add_openhexa_legacy_flag(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0015_featureflag_cascade"),
     ]

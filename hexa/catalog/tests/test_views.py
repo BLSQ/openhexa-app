@@ -145,7 +145,6 @@ class CatalogTest(TestCase):
 
     def test_catalog_search_empty_200(self):
         """Bjorn is not a superuser, he can see the catalog but it will be empty."""
-
         self.client.force_login(self.USER_BJORN)
 
         response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
@@ -155,7 +154,6 @@ class CatalogTest(TestCase):
 
     def test_catalog_no_query_200(self):
         """No query, no result."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         response = self.client.get(reverse("catalog:search"), data={"query": ""})
@@ -165,7 +163,6 @@ class CatalogTest(TestCase):
 
     def test_catalog_search_200(self):
         """As a superuser, Kristen can search for content."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         response = self.client.get(reverse("catalog:search"), data={"query": "anc"})
@@ -175,7 +172,6 @@ class CatalogTest(TestCase):
 
     def test_dhis2_id(self):
         """As a user, Kristen can search for DHIS2 id and found dhis2 objects."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         for q in ("JFx4YWRDIyK", "O1BccPF5yci", "xaG3AfYG2Ts", "1ceDA1fEcvX"):
@@ -291,7 +287,6 @@ class CatalogTest(TestCase):
 
     def test_catalog_quick_search_empty_200(self):
         """Bjorn is not a superuser, he can try to search for content but there will be no results"""
-
         self.client.force_login(self.USER_BJORN)
 
         response = self.client.get(f"{reverse('catalog:quick_search')}?query=anc")
@@ -317,7 +312,6 @@ class CatalogTest(TestCase):
 
     def test_catalog_quick_search_200_kristen(self):
         """As a superuser, Kristen can search for content."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         # "foo" should have zero matches

@@ -10,7 +10,6 @@ import hexa.core.models.path
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0020_instance_auto_sync"),
     ]

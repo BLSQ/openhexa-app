@@ -189,7 +189,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             timeout=input.get("timeout"),
         )
         return {"success": True, "errors": [], "version": newpipelineversion.number}
-    except PipelineDoesNotSupportParametersError as e:
+    except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}

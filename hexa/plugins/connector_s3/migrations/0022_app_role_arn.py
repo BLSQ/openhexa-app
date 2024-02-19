@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_s3", "0021_rename_dirname_object_parent_key"),
     ]

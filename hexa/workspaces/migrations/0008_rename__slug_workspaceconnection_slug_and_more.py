@@ -6,7 +6,6 @@ import hexa.core.models.cryptography
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0007_alter_workspaceconnection_options_and_more"),
     ]

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0017_alter_workspace_db_name_alter_workspace_db_password"),
         ("pipelines", "0013_pipelinerun_trigger_mode"),

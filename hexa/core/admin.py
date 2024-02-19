@@ -4,7 +4,6 @@ from django.contrib import admin
 @admin.display
 def country_list(obj):
     """List display helper for country fields"""
-
     country_count = len(obj.countries)
     max_count = 3
     country_list_string = ", ".join(

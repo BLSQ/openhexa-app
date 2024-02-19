@@ -12,7 +12,6 @@ class Locale(DynamicTextChoices):
     @lru_cache
     def build_choices():
         """Build the locale choices from LANG_INFO, excluding the ones with no name"""
-
         filtered_lang_info = {
             code: info for code, info in locale.LANG_INFO.items() if "name" in info
         }

@@ -18,7 +18,6 @@ class PathFormField(BasePathFormField):
 
 
 class PathField(BasePathField):
-
     default_validators = []
 
     def formfield(self, **kwargs):

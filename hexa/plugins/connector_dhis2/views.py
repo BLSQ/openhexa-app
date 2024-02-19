@@ -113,16 +113,8 @@ def data_element_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpRespo
         {
             "instance": instance,
             "data_element_grid": data_element_grid,
-            "section_title": _(
-                "Data elements in instance %(instance)s"
-                % {"instance": instance.display_name}
-            ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": data_element_grid.start_index,
-                "end": data_element_grid.end_index,
-                "total": data_element_grid.total_count,
-            },
+            "section_title": _(f"Data elements in instance {instance.display_name}"),
+            "section_label": f"{data_element_grid.start_index} to {data_element_grid.end_index} out of {data_element_grid.total_count}",
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -226,15 +218,9 @@ def organisation_unit_list(
             "instance": instance,
             "organisation_unit_grid": organisation_unit_grid,
             "section_title": _(
-                "Organisation Units in instance %(instance)s"
-                % {"instance": instance.display_name}
+                f"Organisation Units in instance {instance.display_name}"
             ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": organisation_unit_grid.start_index,
-                "end": organisation_unit_grid.end_index,
-                "total": organisation_unit_grid.total_count,
-            },
+            "section_label": f"{organisation_unit_grid.start_index} to {organisation_unit_grid.end_index} out of {organisation_unit_grid.total_count}",
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -358,16 +344,8 @@ def indicator_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse
         {
             "instance": instance,
             "indicator_grid": indicator_grid,
-            "section_title": _(
-                "Indicators in instance %(instance)s"
-                % {"instance": instance.display_name}
-            ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": indicator_grid.start_index,
-                "end": indicator_grid.end_index,
-                "total": indicator_grid.total_count,
-            },
+            "section_title": _(f"Indicators in instance {instance.display_name}"),
+            "section_label": f"{indicator_grid.start_index} to {indicator_grid.end_index} out of {indicator_grid.total_count}",
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -457,16 +435,8 @@ def dataset_list(request: HttpRequest, instance_id: uuid.UUID) -> HttpResponse:
         {
             "instance": instance,
             "dataset_grid": dataset_grid,
-            "section_title": _(
-                "Data sets in instance %(instance)s"
-                % {"instance": instance.display_name}
-            ),
-            "section_label": "%(start)s to %(end)s out of %(total)s"
-            % {
-                "start": dataset_grid.start_index,
-                "end": dataset_grid.end_index,
-                "total": dataset_grid.total_count,
-            },
+            "section_title": _(f"Data sets in instance {instance.display_name}"),
+            "section_label": f"{dataset_grid.start_index} to {dataset_grid.end_index} out of {dataset_grid.total_count}",
             "breadcrumbs": breadcrumbs,
         },
     )

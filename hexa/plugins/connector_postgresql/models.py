@@ -1,4 +1,3 @@
-import typing
 from enum import Enum
 from logging import getLogger
 from typing import Dict, List, Tuple
@@ -31,7 +30,7 @@ class ExternalType(Enum):
 
 
 class DatabaseQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(databasepermission__team__in=Team.objects.filter_for_user(user)),
@@ -208,7 +207,7 @@ class Database(Datasource):
 
 
 class TableQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(database__in=Database.objects.filter_for_user(user))
 
 

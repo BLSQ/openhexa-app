@@ -147,7 +147,6 @@ class ModelTest(TestCase):
 
     def test_bucket_delete(self):
         """Deleting a bucket should delete its index as well"""
-
         bucket = Bucket.objects.create(name="some-bucket")
         bucket_id = bucket.id
         self.assertEqual(1, Index.objects.filter(object_id=bucket_id).count())

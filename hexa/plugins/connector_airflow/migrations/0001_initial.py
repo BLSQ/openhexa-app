@@ -11,7 +11,6 @@ import hexa.core.models.locale
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []

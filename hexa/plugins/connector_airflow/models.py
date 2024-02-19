@@ -46,7 +46,7 @@ class ExternalType(Enum):
 
 
 class ClusterQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         # Clusters are only visible to superusers for now
         return self._filter_for_user_and_query_object(user, Q(pk=None))
 
@@ -195,9 +195,7 @@ class Cluster(Environment):
 
                 # Delete runs not in Airflow
                 run_ids = [x["dag_run_id"] for x in dag_runs_data]
-                orphans = DAGRun.objects.filter(dag=hexa_dag).exclude(
-                    run_id__in=run_ids
-                )
+                DAGRun.objects.filter(dag=hexa_dag).exclude(run_id__in=run_ids)
                 # Do not delete them, AccessMod dag_run cannot be deleted
                 # orphans.delete()
 
@@ -258,7 +256,7 @@ class DAGTemplate(Base):
 
 
 class DAGQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(dagpermission__team__in=Team.objects.filter_for_user(user)),
@@ -313,7 +311,7 @@ class DAG(IndexableMixin, models.Model):
         return f"{self.template.cluster.url}graph?dag_id={self.dag_id}"
 
     @property
-    def last_run(self) -> "DAGRun":
+    def last_run(self) -> DAGRun:
         return self.dagrun_set.first()
 
     def run(
@@ -394,7 +392,7 @@ class DAG(IndexableMixin, models.Model):
         }
 
     @staticmethod
-    def build_webhook_token() -> typing.Tuple[str, typing.Any]:
+    def build_webhook_token() -> tuple[str, typing.Any]:
         unsigned = str(uuid.uuid4())
 
         return unsigned, Signer().sign_object(unsigned)
@@ -468,7 +466,7 @@ class DAGPermission(Permission):
 
 
 class DAGRunQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(dag__in=DAG.objects.filter_for_user(user))
 
     def filter_for_refresh(self):
@@ -575,7 +573,7 @@ class DAGRun(Base, WithStatus):
                 self.get_run_logs()
             self.save()
 
-    def add_to_favorites(self, *, user: User, name: str) -> "DAGRunFavorite":
+    def add_to_favorites(self, *, user: User, name: str) -> DAGRunFavorite:
         if self.is_in_favorites(user):
             raise ValueError("DAGRun is already in favorites")
 
@@ -639,7 +637,7 @@ class DAGRun(Base, WithStatus):
 
 
 class DAGRunFavoriteQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             Q(user=user),

@@ -1,5 +1,4 @@
 import secrets
-import typing
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -17,7 +16,7 @@ def create_dataset_slug(name: str):
 
 
 class DatasetQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         from hexa.pipelines.authentication import PipelineRunUser
 
         if isinstance(user, PipelineRunUser):
@@ -115,7 +114,7 @@ class Dataset(Base):
 
 
 class DatasetVersionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         # TODO: It should also check workspace where it's added
         return self._filter_for_user_and_query_object(
             user,
@@ -190,7 +189,7 @@ class DatasetVersion(Base):
 
 
 class DatasetVersionFileQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
             models.Q(
@@ -256,7 +255,7 @@ class DatasetVersionFile(Base):
 
 
 class DatasetLinkQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
 

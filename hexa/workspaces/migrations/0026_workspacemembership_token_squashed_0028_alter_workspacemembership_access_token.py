@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     replaces = [
         ("workspaces", "0026_workspacemembership_token"),
         ("workspaces", "0027_remove_workspacemembership_token_and_more"),

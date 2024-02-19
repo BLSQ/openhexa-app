@@ -23,8 +23,8 @@ class DatacardOptions:
     def __init__(
         self,
         *,
-        title: typing.Union[StaticText, str],
-        subtitle: typing.Union[StaticText, str],
+        title: StaticText | str,
+        subtitle: StaticText | str,
         sections: typing.Sequence[Section],
         image_src: str = None,
         actions: list[hexa.ui.datacard.actions.Action] = None,
@@ -75,36 +75,41 @@ class Datacard(metaclass=DatacardMeta):
 
     def __str__(self):
         """Render the datacard"""
-
         template = loader.get_template("ui/datacard/datacard.html")
 
         context = {
             "sections": self._sections.values(),
             "actions": [a for a in self._actions if a.is_enabled(self.request)],
-            "title": get_item_value(
-                self.model,
-                self._meta.title,
-                container=self,
-                exclude=DatacardComponent,
-            )
-            if self._meta.title
-            else None,
-            "subtitle": get_item_value(
-                self.model,
-                self._meta.subtitle,
-                container=self,
-                exclude=DatacardComponent,
-            )
-            if self._meta.subtitle
-            else None,
-            "image_src": get_item_value(
-                self.model,
-                self._meta.image_src,
-                container=self,
-                exclude=DatacardComponent,
-            )
-            if self._meta.image_src
-            else None,
+            "title": (
+                get_item_value(
+                    self.model,
+                    self._meta.title,
+                    container=self,
+                    exclude=DatacardComponent,
+                )
+                if self._meta.title
+                else None
+            ),
+            "subtitle": (
+                get_item_value(
+                    self.model,
+                    self._meta.subtitle,
+                    container=self,
+                    exclude=DatacardComponent,
+                )
+                if self._meta.subtitle
+                else None
+            ),
+            "image_src": (
+                get_item_value(
+                    self.model,
+                    self._meta.image_src,
+                    container=self,
+                    exclude=DatacardComponent,
+                )
+                if self._meta.image_src
+                else None
+            ),
         }
 
         return template.render(context, request=self.request)
@@ -221,9 +226,11 @@ class BoundSection:
 
             context = {
                 "name": self.unbound_section.name,
-                "title": _(self.unbound_section.title)
-                if self.unbound_section.title is not None
-                else None,
+                "title": (
+                    _(self.unbound_section.title)
+                    if self.unbound_section.title is not None
+                    else None
+                ),
                 "properties": self.properties,
                 "editable": self.unbound_section.is_editable,
                 **self.unbound_section.context(self.model, self.datacard),

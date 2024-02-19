@@ -10,14 +10,13 @@ def generate_hash(apps, schema_editor):
     WorkspaceMembership = apps.get_model("workspaces", "WorkspaceMembership")
     for membership in WorkspaceMembership.objects.all():
         membership.notebooks_server_hash = hashlib.blake2s(
-            f"{membership.workspace_id}_{membership.user_id}".encode("utf-8"),
+            f"{membership.workspace_id}_{membership.user_id}".encode(),
             digest_size=16,
         ).hexdigest()
         membership.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0017_alter_workspace_db_name_alter_workspace_db_password"),
     ]

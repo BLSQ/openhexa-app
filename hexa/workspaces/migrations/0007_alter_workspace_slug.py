@@ -16,7 +16,6 @@ def migrate_workspace_slug(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0006_workspace_slug"),
     ]

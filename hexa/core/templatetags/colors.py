@@ -30,7 +30,6 @@ STATUS_MAPPINGS = {
 @register.filter(name="status_color")
 def status_color(with_status):
     """Maps OpenHEXA status (see WithStatus behaviours) to colors for our templates"""
-
     try:
         return STATUS_MAPPINGS[with_status.status].value
     except AttributeError:
@@ -63,7 +62,6 @@ COLORS = {
 @register.filter(name="color")
 def color(variant, part):
     """Return the color to use for the specified variant (example: primary) and part (example: border)"""
-
     try:
         return COLORS[ColorVariant(variant)][part]
     except (KeyError, ValueError):
@@ -73,5 +71,4 @@ def color(variant, part):
 @register.filter(name="hash_color")
 def hash_color(value, mode="hex"):
     """Generates a deterministic color value for the provided string."""
-
     return getattr(ColorHash(value), mode)

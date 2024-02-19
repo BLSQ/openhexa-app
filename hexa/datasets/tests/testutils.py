@@ -48,7 +48,7 @@ class DatasetTestMixin:
             name=name,
             description=description,
             *args,
-            **kwargs
+            **kwargs,
         )
         return dataset
 
@@ -61,7 +61,7 @@ class DatasetTestMixin:
             dataset=dataset,
             name=name,
             description=description,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -71,12 +71,12 @@ class DatasetTestMixin:
         dataset_version: DatasetVersion,
         uri: str = "some-uri.csv",
         content_type="text/csv",
-        **kwargs
+        **kwargs,
     ) -> DatasetVersionFile:
         return DatasetVersionFile.objects.create_if_has_perm(
             principal=principal,
             dataset_version=dataset_version,
             uri=uri,
             **kwargs,
-            content_type=content_type
+            content_type=content_type,
         )

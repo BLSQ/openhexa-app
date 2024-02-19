@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0003_abstract_index"),
         ("catalog", "0005_abstract_index"),

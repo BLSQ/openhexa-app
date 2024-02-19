@@ -20,7 +20,6 @@ def stack_priorities_to_dict(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_accessmod", "0045_am_blank_changes"),
     ]

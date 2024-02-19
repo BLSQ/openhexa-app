@@ -34,7 +34,7 @@ logger = getLogger(__name__)
 class BucketQuerySet(BaseQuerySet):
     def filter_for_user(
         self,
-        user: typing.Union[AnonymousUser, user_management_models.User],
+        user: AnonymousUser | user_management_models.User,
         mode: PermissionMode = None,
         mode__in: typing.Sequence[PermissionMode] = None,
     ):
@@ -113,7 +113,6 @@ class Bucket(Datasource):
 
     def sync(self):
         """Sync the bucket by querying the S3 API"""
-
         s3_objects = list_objects_metadata(
             bucket=self,
         )
@@ -249,9 +248,7 @@ class BucketPermission(Permission):
 
 
 class ObjectQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: AnonymousUser | user_management_models.User):
         return self.filter(bucket__in=Bucket.objects.filter_for_user(user))
 
 

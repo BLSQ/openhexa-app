@@ -488,7 +488,7 @@ class PipelinesV2Test(GraphQLTestCase):
             "hexa.pipelines.schema.types.get_table_definition",
             MagicMock(),
         ) as table_mock:
-            r = self.run_query(
+            self.run_query(
                 """
                 query pipelineRunOutputs($id: UUID!) {
                     pipelineRun(id: $id) {

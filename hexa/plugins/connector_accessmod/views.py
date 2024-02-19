@@ -86,7 +86,7 @@ def webhook(request: HttpRequest) -> HttpResponse:
                 mime_type=event_data["mime_type"],
                 metadata=event_data.get("metadata"),
             )
-        except Exception as e:
+        except Exception:
             logger.exception("webhook update acquisition")
             return JsonResponse(
                 {"success": False},

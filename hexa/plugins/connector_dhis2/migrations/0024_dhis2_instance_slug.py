@@ -12,7 +12,6 @@ def forwards_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0023_instance_verbose_sync"),
     ]

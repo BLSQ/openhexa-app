@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import typing
 import uuid
-from typing import Any, List
+from typing import Any
 
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -34,9 +34,7 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
     def leaves(self, level: int):
         return self.filter(path__depth=level + 1)
 
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: AnonymousUser | user_management_models.User):
         return self._filter_for_user_and_query_object(
             user,
             Q(
@@ -46,7 +44,7 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
             ),
         )
 
-    def filter_for_types(self, code_types: List[str]):
+    def filter_for_types(self, code_types: list[str]):
         # sub select only those types
         q_predicats = Q()
         for code in code_types:
@@ -93,7 +91,8 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
                 )
                 # exclude everything called 's3keep', it's noise from s3content manager
                 # TODO: don't index these files
-                .annotate(rank=similarity).order_by("-rank")
+                .annotate(rank=similarity)
+                .order_by("-rank")
             )
 
             # pg_trgm.similarity_threshold is by default = 0.3 and this is too low for us.
@@ -116,11 +115,10 @@ class BaseIndexQuerySet(TreeQuerySet, BaseQuerySet):
 
 class BaseIndexManager(TreeManager):
     """Only used to override TreeManager.get_queryset(), which prevented us from having our
-    own queryset, and re-attach filter_for_user()."""
+    own queryset, and re-attach filter_for_user().
+    """
 
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, user_management_models.User]
-    ):
+    def filter_for_user(self, user: AnonymousUser | user_management_models.User):
         return self.get_queryset().filter_for_user(user)
 
     def get_queryset(self):  # TODO: PR in django-ltree?
@@ -181,7 +179,6 @@ class BaseIndex(Base):
 
     def save(self, *args, **kwargs):
         """Override to handle Postgres text search config."""
-
         self.text_search_config = locale_to_text_search_config(self.locale)
         super().save(*args, **kwargs)
 
@@ -228,9 +225,11 @@ class BaseIndex(Base):
             "external_description": self.external_description,
             "countries": [country.code for country in self.countries],
             "url": self.object.get_absolute_url() if self.object else None,
-            "last_synced_at": date_format(self.last_synced_at)
-            if self.last_synced_at is not None
-            else None,
+            "last_synced_at": (
+                date_format(self.last_synced_at)
+                if self.last_synced_at is not None
+                else None
+            ),
         }
 
     # TODO: remove me this ugly workaround when we set a value for last_synced_at on all indexes
@@ -295,7 +294,6 @@ class BaseIndexableMixin:
         (We don't only index content but also their permissions, so that the indexes record can be filtered
         depending on the user permissions).
         """
-
         raise NotImplementedError
 
     def populate_index(self, index):

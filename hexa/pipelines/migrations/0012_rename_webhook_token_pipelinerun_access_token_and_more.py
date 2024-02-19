@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0011_pipelineversion_pipelinerun_pipeline_version_and_more"),
     ]

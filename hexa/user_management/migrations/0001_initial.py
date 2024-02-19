@@ -12,7 +12,6 @@ import hexa.user_management.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

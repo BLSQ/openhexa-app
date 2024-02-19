@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_airflow", "0023_alter_dagtemplate_options_and_more"),
     ]

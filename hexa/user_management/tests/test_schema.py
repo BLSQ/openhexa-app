@@ -717,7 +717,7 @@ class SchemaTest(GraphQLTestCase):
             {
                 "input": {
                     "token": token,
-                    "uidb64": urlsafe_base64_encode("2".encode()),
+                    "uidb64": urlsafe_base64_encode(b"2"),
                     "password1": password1,
                     "password2": password2,
                 }

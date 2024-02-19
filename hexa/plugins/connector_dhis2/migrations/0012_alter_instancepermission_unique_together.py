@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("user_management", "0001_initial"),
         ("connector_dhis2", "0011_alter_instance_tags"),

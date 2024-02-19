@@ -113,7 +113,6 @@ class ProjectTest(TestCase):
 
     def test_project_delete(self):
         """Cascade delete Project > Fileset > File & Project > Analysis"""
-
         self.assertEqual(2, Project.objects.filter().count())
         self.assertEqual(3, Analysis.objects.filter().count())
         self.PROJECT_SAMPLE.delete()

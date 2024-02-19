@@ -6,7 +6,6 @@ import hexa.core.models.locale
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0015_validation_and_blanks"),
     ]

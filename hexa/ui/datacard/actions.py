@@ -18,11 +18,11 @@ class Action(DatacardComponent):
         *,
         label: str,
         url: str,
-        icon: typing.Optional[str] = None,
+        icon: str | None = None,
         method: str = "post",
         open_in_new_tab: bool = False,
         primary: bool = True,
-        enabled_when: typing.Optional[typing.Callable] = None,
+        enabled_when: typing.Callable = None,
     ):
         if open_in_new_tab and method.lower() != "get":
             raise ValueError(

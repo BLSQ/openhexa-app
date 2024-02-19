@@ -10,7 +10,6 @@ import hexa.core.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0017_instance_name"),
     ]

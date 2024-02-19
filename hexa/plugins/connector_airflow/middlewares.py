@@ -23,7 +23,7 @@ def dag_run_authentication_middleware(get_response):
                 request.user = DAGRunUser(dag_run=dag_run)
         except KeyError:
             pass  # No Authorization header
-        except ValueError as e:
+        except ValueError:
             logger.exception(
                 "dag_run_authentication_middleware error",
             )

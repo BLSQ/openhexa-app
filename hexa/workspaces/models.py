@@ -113,9 +113,7 @@ class WorkspaceManager(models.Manager):
 
 
 class WorkspaceQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
 
@@ -215,9 +213,7 @@ class Workspace(Base):
 
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
             user, Q(workspace__members=user), return_all_if_superuser=False
         )
@@ -293,7 +289,7 @@ class WorkspaceMembership(models.Model):
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
             self.notebooks_server_hash = hashlib.blake2s(
-                f"{self.workspace_id}_{self.user_id}".encode("utf-8"), digest_size=16
+                f"{self.workspace_id}_{self.user_id}".encode(), digest_size=16
             ).hexdigest()
 
         if self.access_token == "":
@@ -328,9 +324,7 @@ class WorkspaceInvitationStatus(models.TextChoices):
 
 
 class WorkspaceInvitationQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
             user, Q(workspace__members=user), return_all_if_superuser=False
         )
@@ -392,9 +386,7 @@ class WorkspaceInvitation(Base):
 
 
 class ConnectionQuerySet(BaseQuerySet):
-    def filter_for_user(
-        self, user: typing.Union[AnonymousUser, User]
-    ) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
         return self._filter_for_user_and_query_object(
             user, Q(workspace__members=user), return_all_if_superuser=False
         )

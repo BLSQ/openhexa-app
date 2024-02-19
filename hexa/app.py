@@ -30,7 +30,6 @@ class CoreAppConfig(AppConfig):
 
         TODO: this is a convoluted workaround - consider alternative to AppConfig subclasses for our use case.
         """
-
         super().__init_subclass__()
         cls.default = True
 
@@ -71,7 +70,6 @@ class ConnectorAppConfig(AppConfig):
 
         TODO: this is a convoluted workaround - consider alternative to AppConfig subclasses for our use case.
         """
-
         super().__init_subclass__()
         cls.default = True
 
@@ -81,7 +79,6 @@ class ConnectorAppConfig(AppConfig):
         If your "fooconnector" app defines a "bar" view under the "/bar" URL, setting the prefix to "foo" will make
         the view accessible through "/foo/bar"
         """
-
         raise NotImplementedError(
             "Each connector app should define a route_prefix() property"
         )
@@ -90,7 +87,6 @@ class ConnectorAppConfig(AppConfig):
         """Check if the app config class has a NOTEBOOKS_CREDENTIALS property. This property allows connector plugins to
         provide a list of functions that can update notebooks credentials with plugin-specific credentials.
         """
-
         notebooks_credentials_function_paths = getattr(
             self, "NOTEBOOKS_CREDENTIALS", []
         )
@@ -107,7 +103,6 @@ class ConnectorAppConfig(AppConfig):
         """Check if the app config class has a PIPELINES_CREDENTIALS property. This property allows connector plugins to
         provide a list of functions that can update pipelines credentials with plugin-specific credentials.
         """
-
         pipelines_credentials_function_paths = getattr(
             self, "PIPELINES_CREDENTIALS", []
         )
@@ -124,7 +119,6 @@ class ConnectorAppConfig(AppConfig):
         """Check if the app config class has a LAST_ACTIVITIES property. This property allows connector plugins to
         provide a function path. The function will be called by the core module to gather activities across plugins.
         """
-
         last_activity_function_path = getattr(self, "LAST_ACTIVITIES", None)
 
         if last_activity_function_path is not None:
@@ -144,7 +138,6 @@ def get_hexa_app_configs(connector_only=False):
 
     You may use connector_only=True to only fetch connector plugins.
     """
-
     matched_classes = (
         (ConnectorAppConfig,) if connector_only else (CoreAppConfig, ConnectorAppConfig)
     )
@@ -155,7 +148,6 @@ def get_hexa_app_configs(connector_only=False):
 @cache
 def get_hexa_models_by_capability(capability: str, filter_app: str = None):
     """Return a dictionary of models that have the requested capability, grouped by app."""
-
     models_by_app: dict[AppConfig, list[ModelBase]] = {}
     for app in get_hexa_app_configs(connector_only=True):
         if filter_app and app.label != filter_app:

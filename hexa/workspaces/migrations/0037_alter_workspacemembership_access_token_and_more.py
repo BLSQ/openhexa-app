@@ -18,7 +18,6 @@ def generate_tokens(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("workspaces", "0036_service_account_key_migration"),
     ]

@@ -23,7 +23,7 @@ from hexa.plugins.connector_s3.tests.mocks.s3_credentials_mock import get_s3_moc
 from hexa.user_management.models import User
 
 
-class MockJob(object):
+class MockJob:
     def __init__(self, args):
         self.args = args
 
@@ -535,8 +535,8 @@ class AccessmodAnalysisUpdateTest(TestCase):
 
     def test_cog(self):
         """Reading Geotiffs can be a tricky business - sometimes, updating deps such as rio-cogeo or rasterio
-        will break compression support"""
-
+        will break compression support
+        """
         cog_path = os.path.dirname(__file__) + "/data/cumulative_cost.tif"
         cog = rasterio.open(cog_path)
         self.assertIsInstance(cog, DatasetReader)

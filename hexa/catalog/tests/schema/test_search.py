@@ -136,7 +136,6 @@ class CatalogSearchTest(GraphQLTestCase):
 
     def test_search_empty(self):
         """Bjorn is not a superuser, he can see the catalog but it will be empty."""
-
         self.client.force_login(self.USER_BJORN)
 
         r = self.run_query(
@@ -159,7 +158,6 @@ class CatalogSearchTest(GraphQLTestCase):
 
     def test_search_no_query(self):
         """No query, no result."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         r = self.run_query(
@@ -198,7 +196,6 @@ class CatalogSearchTest(GraphQLTestCase):
 
     def test_search_with_results(self):
         """As a superuser, Kristen can search for content."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         r = self.run_query(
@@ -221,7 +218,6 @@ class CatalogSearchTest(GraphQLTestCase):
 
     def test_dhis2_id(self):
         """As a user, Kristen can search for DHIS2 id and found dhis2 objects."""
-
         self.client.force_login(self.USER_KRISTEN)
 
         for q in ("JFx4YWRDIyK", "O1BccPF5yci", "xaG3AfYG2Ts", "1ceDA1fEcvX"):

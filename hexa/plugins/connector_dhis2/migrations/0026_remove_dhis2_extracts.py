@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("connector_dhis2", "0025_dhis2_instance_slug_unique"),
     ]

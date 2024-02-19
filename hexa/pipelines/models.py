@@ -93,7 +93,7 @@ class PipelineRunTrigger(models.TextChoices):
 
 
 class PipelineVersionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
 
 
@@ -148,7 +148,7 @@ class PipelineVersion(models.Model):
 
 
 class PipelineQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user, Q(workspace__members=user), return_all_if_superuser=False
         )
@@ -204,9 +204,11 @@ class Pipeline(models.Model):
             config=config if config else self.config,
             access_token=str(uuid.uuid4()),
             send_mail_notifications=send_mail_notifications,
-            timeout=pipeline_version.timeout
-            if pipeline_version.timeout
-            else settings.PIPELINE_RUN_DEFAULT_TIMEOUT,
+            timeout=(
+                pipeline_version.timeout
+                if pipeline_version.timeout
+                else settings.PIPELINE_RUN_DEFAULT_TIMEOUT
+            ),
         )
 
         return run
@@ -295,7 +297,7 @@ class PipelineRecipient(Base):
 
 
 class PipelineRunQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: typing.Union[AnonymousUser, User]):
+    def filter_for_user(self, user: AnonymousUser | User):
         return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
 
 

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("datasets", "0003_alter_datasetversion_unique_together"),
         ("pipelines", "0033_alter_pipelinerun_trigger_mode"),

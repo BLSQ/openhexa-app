@@ -93,7 +93,7 @@ class WorkspaceTest(TestCase):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            workspace = Workspace.objects.create_if_has_perm(
+            Workspace.objects.create_if_has_perm(
                 self.USER_JULIA,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
@@ -135,7 +135,7 @@ class WorkspaceTest(TestCase):
             )
             self.assertEqual(
                 hashlib.blake2s(
-                    f"{workspace.id}_{self.USER_JULIA.id}".encode("utf-8"),
+                    f"{workspace.id}_{self.USER_JULIA.id}".encode(),
                     digest_size=16,
                 ).hexdigest(),
                 WorkspaceMembership.objects.get(

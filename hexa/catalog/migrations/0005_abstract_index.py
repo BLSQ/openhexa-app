@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0005_abstract_index"),
         ("catalog", "0004_abstract_index"),

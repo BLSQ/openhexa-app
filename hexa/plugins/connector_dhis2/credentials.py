@@ -34,7 +34,6 @@ def notebooks_credentials(credentials: NotebooksCredentials):
     Provides the notebooks credentials data that allows users to access DHIS2 Instances
     in the notebooks component.
     """
-
     instances = Instance.objects.filter_for_user(credentials.user)
     if not (credentials.user.is_authenticated and credentials.user.is_superuser):
         instances = instances.filter(
@@ -49,7 +48,6 @@ def pipelines_credentials(credentials: PipelinesCredentials):
     Provides the notebooks credentials data that allows users to access DHIS2 Instances
     in the pipelines component.
     """
-
     instances = []
     if hasattr(credentials.pipeline, "authorized_datasources"):
         authorized_datasource = credentials.pipeline.authorized_datasources.filter(

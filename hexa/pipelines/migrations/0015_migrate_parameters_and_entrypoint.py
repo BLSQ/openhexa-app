@@ -16,7 +16,6 @@ def migrate_parameters_and_entrypoint(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("pipelines", "0014_remove_pipeline_user_pipeline_workspace_and_more"),
     ]

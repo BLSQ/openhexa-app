@@ -5,7 +5,6 @@ def locale_to_text_search_config(locale_string):
     """Converts an ISO-639(/ISO-3166) locale(/country) string to a PostgreSQL text search config string
     (SELECT cfgname FROM pg_ts_config;)
     """
-
     # TODO: more choices - and sync with PostgresSearchConfig
     if locale_string == "en" or locale_string[:3] == "en-":
         return "english"

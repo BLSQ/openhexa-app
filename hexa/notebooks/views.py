@@ -8,8 +8,8 @@ from hexa.notebooks.credentials import NotebooksCredentials
 @require_POST
 def authenticate(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the notebooks component to authenticate the current user using Django
-    session authentication."""
-
+    session authentication.
+    """
     if not request.user.is_authenticated:
         return JsonResponse(
             {},
@@ -27,7 +27,6 @@ def default_credentials(request: HttpRequest) -> HttpResponse:
     """This API endpoint is called by the notebooks component to get credentials as env variables.
     Every connector plugin can provide its own set of credentials (environment variables for S3 for example).
     """
-
     if not request.user.is_authenticated:
         return JsonResponse(
             {},
@@ -62,7 +61,6 @@ def credentials(request: HttpRequest) -> HttpResponse:
     See https://github.com/BLSQ/openhexa-dags/blob/6fc0f54f95c4f3a6b89b3fff37c91cbeb7c6be1c/dags/papermill.py#L83
 
     """
-
     notebooks_credentials = NotebooksCredentials(request.user)
 
     if request.user.is_authenticated:

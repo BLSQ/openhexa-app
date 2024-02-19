@@ -46,7 +46,6 @@ def create_database(db_name: str, pwd: str):
     name - database name (it will be used also for the role name)
     pwd  - password used by the created role to connect to the db
     """
-
     validate_db_name(db_name)
     conn = None
     try:

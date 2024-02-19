@@ -1,17 +1,44 @@
-[tool.black]
-exclude = '''
-(
-  /(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-  )/
-  | node_modules
-)
-'''
+[tool.ruff]
+ignore = ["E501"]
+exclude =[".git",".eggs","node_modules"] # exclude a few common directories in the root of the project
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.ruff.lint]
+extend-select = [
+    "D",   # pydocstyle
+    "I",   # isort
+    "UP",  # pyupgrade
+    "ANN", # flake8-annotations
+]
+# Disable all "missing docstrings" and "missing type annotations" rules for now
+# TODO: Enable progressively the following rules
+ignore = [
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN101",
+    "ANN102",
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "ANN205",
+    "ANN206",
+    "ANN401",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D200",
+    "D205",
+    "D400",
+    "D401",
+    "D404"
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 
 [tool.coverage.report]
 

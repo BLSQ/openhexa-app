@@ -6,7 +6,6 @@ import hexa.core.models.path
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("catalog", "0013_path_non_unique_temp"),
     ]
