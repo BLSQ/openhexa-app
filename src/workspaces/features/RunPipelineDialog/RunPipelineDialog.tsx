@@ -26,6 +26,7 @@ import {
 import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
+import { AlertType } from "core/helpers/alert";
 
 type RunPipelineDialogProps = {
   open: boolean;
@@ -182,7 +183,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   if (!pipeline.permissions.run && open) {
     return (
-      <Alert onClose={onClose} icon="error">
+      <Alert onClose={onClose} type={AlertType.error}>
         {t("You don't have permission to run this pipeline")}
       </Alert>
     );
@@ -190,7 +191,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
 
   if (!pipeline.currentVersion && open) {
     return (
-      <Alert onClose={onClose} icon="error">
+      <Alert onClose={onClose} type={AlertType.error}>
         {t("This pipeline has not been uploaded yet")}
       </Alert>
     );

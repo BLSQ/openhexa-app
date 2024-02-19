@@ -14,6 +14,7 @@ import {
   WorkspacesPageQueryVariables,
   useCheckWorkspaceAvailabilityLazyQuery,
 } from "workspaces/graphql/queries.generated";
+import { AlertType } from "core/helpers/alert";
 
 type WorkspacesHomeProps = {
   workspaceSlug: string | null;
@@ -57,7 +58,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
 
   if (!isChecking && !me.permissions.createWorkspace) {
     return (
-      <Alert onClose={() => router.push("/")} icon="warning">
+      <Alert onClose={() => router.push("/")} type={AlertType.warning}>
         {t("No workspace available at the moment")}
       </Alert>
     );

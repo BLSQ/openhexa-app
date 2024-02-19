@@ -16,6 +16,7 @@ import { LoginError } from "graphql-types";
 import { generateChallenge } from "identity/helpers/auth";
 import Field from "core/components/forms/Field";
 import clsx from "clsx";
+import { AlertType, displayAlert } from "core/helpers/alert";
 
 interface LoginForm {
   email: string;
@@ -78,10 +79,10 @@ const LoginPage: NextPageWithLayout = () => {
     },
   });
 
-  const sendNewCode = () => {
+  const sendNewCode = async () => {
     form.setFieldValue("token", "");
     if (form.formData.email && form.formData.password) {
-      doLogin({
+      await doLogin({
         variables: {
           input: {
             email: form.formData.email,
@@ -89,6 +90,10 @@ const LoginPage: NextPageWithLayout = () => {
           },
         },
       });
+      displayAlert(
+        t("A new code has been sent to your mailbox."),
+        AlertType.success,
+      );
     }
   };
 
@@ -185,9 +190,12 @@ const LoginPage: NextPageWithLayout = () => {
                 className="rounded-t-none"
               />
               {form.submitError && (
-                <p data-testid="error" className={"my-2 text-sm text-red-600"}>
+                <div
+                  data-testid="error"
+                  className={"pt-2 text-sm text-red-600"}
+                >
                   {form.submitError}
-                </p>
+                </div>
               )}
             </div>
             <div className="flex items-center justify-end">

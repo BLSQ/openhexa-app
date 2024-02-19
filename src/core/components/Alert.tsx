@@ -1,21 +1,23 @@
 import {
+  CheckCircleIcon,
   ExclamationCircleIcon,
   InformationCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import Button from "./Button/Button";
 import Dialog from "./Dialog";
+import { AlertType } from "core/helpers/alert";
 
 type AlertProps = {
-  icon: "warning" | "error" | "info";
+  type?: AlertType;
   onClose: () => void;
   children: ReactNode;
 };
 
 const Alert = (props: AlertProps) => {
-  const { icon, children, onClose } = props;
+  const { type, children, onClose } = props;
   const [open, setOpen] = useState(false);
   const { t } = useTranslation();
 
@@ -23,16 +25,24 @@ const Alert = (props: AlertProps) => {
     if (!open) setOpen(true);
   }, [open]);
 
+  const icon = useMemo(() => {
+    switch (type) {
+      case AlertType.error:
+        return <XCircleIcon className="h-16 w-16 text-red-400" />;
+      case AlertType.warning:
+        <ExclamationCircleIcon className="h-16 w-16 text-amber-400" />;
+      case AlertType.success:
+        return <CheckCircleIcon className="h-16 w-16 text-green-400" />;
+      case AlertType.info:
+      default:
+        return <InformationCircleIcon className="h-16 w-16 text-picton-blue" />;
+    }
+  }, [type]);
+
   return (
     <Dialog onClose={onClose} open={open}>
       <Dialog.Content className="flex items-center gap-4">
-        {icon === "warning" && (
-          <ExclamationCircleIcon className="h-16 w-16 text-amber-400" />
-        )}
-        {icon === "error" && <XCircleIcon className="h-16 w-16 text-red-400" />}
-        {icon === "info" && (
-          <InformationCircleIcon className="text-picton-blue h-16 w-16" />
-        )}
+        {icon}
         <div className="flex-1">{children}</div>
         <Button variant="white" onClick={onClose}>
           {t("Close")}

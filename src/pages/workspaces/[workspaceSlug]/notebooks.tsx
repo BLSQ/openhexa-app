@@ -3,6 +3,7 @@ import Alert from "core/components/Alert";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
+import { AlertType } from "core/helpers/alert";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { NotebookServer } from "graphql-types";
@@ -55,7 +56,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
             query: { workspaceSlug: workspaceSlug },
           });
         }}
-        icon="error"
+        type={AlertType.error}
       >
         {t("Unable to start JupytherHub for this workspace.")}
       </Alert>
