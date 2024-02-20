@@ -32,6 +32,35 @@ jobs:
         
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+      
+      # Caches
+      - name: Cache var-cache-apk
+        id: cache-var-cache-apk
+        uses: actions/cache@v3
+        with:
+          path: var-cache-apk
+          key: var-cache-apk-${{ hashFiles('Dockerfile') }}
+      
+      - name: Cache code-.next-cache
+        id: cache-code-next-cache
+        uses: actions/cache@v3
+        with:
+          path: code-next-cache
+          key: code-.next-cache-${{ hashFiles('Dockerfile') }}
+  
+      - name: inject var-cache-apk into docker
+        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        with:
+          cache-source: var-cache-apk
+          cache-target: /var/cache/apk
+          skip-extraction: ${{ steps.cache-var-cache-apk.outputs.cache-hit }}
+      
+      - name: inject code-.next-cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@v2.1.4
+        with:
+          cache-source: code-next-cache
+          cache-target: /code/.next/cache
+          skip-extraction: ${{ steps.cache-code-next-cache.outputs.cache-hit }}
 
       - name: Build and push (release)
         if: ${{ github.event_name == 'release' }}
