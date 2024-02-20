@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.66.3](https://github.com/BLSQ/openhexa-app/compare/0.66.2...0.66.3) (2024-02-20)
+
+
+### Bug Fixes
+
+* **Dockerfile:** Add caching ([9280a7e](https://github.com/BLSQ/openhexa-app/commit/9280a7ec7aea17b555f00e5a136a711ffa286cb1))
+
+
+### Miscellaneous
+
+* Use gha cache instead of the registry ([a8775e9](https://github.com/BLSQ/openhexa-app/commit/a8775e93a580dd51eb3dddba88aa6f2f50678b24))
+
 ## [0.66.2](https://github.com/BLSQ/openhexa-app/compare/0.66.1...0.66.2) (2024-02-20)
 
 
