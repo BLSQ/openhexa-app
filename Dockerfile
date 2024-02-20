@@ -12,13 +12,13 @@ RUN pip install --upgrade pip
 
 RUN mkdir /code
 WORKDIR /code
-COPY requirements.txt /code/
 
 # Mount a tmp folder inside the container to keep a cache for pip
 # see https://pythonspeed.com/articles/docker-cache-pip-downloads/
 # Force setuptools version to build pygdal
 RUN \
   --mount=type=cache,target=/root/.cache \ 
+  --mount=type=bind,source=requirements.txt,target=/code/requirements.txt \
   pip install setuptools==57.5.0 && pip install -r requirements.txt
 
 COPY . /code/
