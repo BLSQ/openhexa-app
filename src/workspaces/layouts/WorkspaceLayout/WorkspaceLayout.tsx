@@ -78,7 +78,7 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
       <div className="flex min-h-screen w-screen">
         <div
           className={clsx(
-            "fixed h-screen bg-gray-800 transition-all duration-75",
+            "fixed h-screen bg-gray-800 transition-all duration-75 z-20",
             isSidebarOpen ? "w-64 2xl:w-72" : "w-16",
           )}
         >

@@ -10,7 +10,7 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="flex min-h-screen w-screen"
   >
     <div
-      class="fixed h-screen bg-gray-800 transition-all duration-75 w-64 2xl:w-72"
+      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
@@ -331,7 +331,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     class="flex min-h-screen w-screen"
   >
     <div
-      class="fixed h-screen bg-gray-800 transition-all duration-75 w-64 2xl:w-72"
+      class="fixed h-screen bg-gray-800 transition-all duration-75 z-20 w-64 2xl:w-72"
     >
       <div
         class="relative z-20 flex h-full flex-col"
