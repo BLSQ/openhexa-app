@@ -21,7 +21,7 @@ class GCPHandler(Handler):
         if record.exc_info is not None:
             type, _, tb = record.exc_info
             message = (
-                f"{"".join(traceback.format_tb(tb))} \n{record.getMessage()}\n{type}"
+                f"{''.join(traceback.format_tb(tb))} \n{record.getMessage()}\n{type}"
             )
         else:
             message = record.msg % record.args
