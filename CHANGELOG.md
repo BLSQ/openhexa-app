@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.66.1](https://github.com/BLSQ/openhexa-app/compare/0.66.0...0.66.1) (2024-02-20)
+
+
+### Bug Fixes
+
+* **Config:** Do not use double quotes in formatted strings ([c99fa90](https://github.com/BLSQ/openhexa-app/commit/c99fa9054660b3a340d8e74741c6afc3b3daf6f1))
+* **Docker:** Wrong python version used with dockerfile ([6b516be](https://github.com/BLSQ/openhexa-app/commit/6b516bedbf79172e0e893bcd0ddaad3388eef5cf))
+
+
+### Miscellaneous
+
+* **Fixtures:** Add base fixtures that will always be loaded in the database on deployment ([b04a587](https://github.com/BLSQ/openhexa-app/commit/b04a587de9c8df148afbbd33e44d706e75af9255))
+
 ## [0.66.0](https://github.com/BLSQ/openhexa-app/compare/0.65.2...0.66.0) (2024-02-19)
 
 
