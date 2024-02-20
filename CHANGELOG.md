@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.66.2](https://github.com/BLSQ/openhexa-app/compare/0.66.1...0.66.2) (2024-02-20)
+
+
+### Bug Fixes
+
+* **Image:** Install procps to have pkill ([4f251ec](https://github.com/BLSQ/openhexa-app/commit/4f251ecfab847d22185ef09cb08eafce3c94fd66))
+
 ## [0.66.1](https://github.com/BLSQ/openhexa-app/compare/0.66.0...0.66.1) (2024-02-20)
 
 
