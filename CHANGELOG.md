@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.45.1](https://github.com/BLSQ/openhexa-frontend/compare/0.45.0...0.45.1) (2024-02-20)
+
+
+### Bug Fixes
+
+* **Sidebar:** In compact mode, the sidebar labels were under the tables ([#562](https://github.com/BLSQ/openhexa-frontend/issues/562)) ([3d11ce7](https://github.com/BLSQ/openhexa-frontend/commit/3d11ce77c68a4d99511f8ae3a314e3f95dd18224))
+
+
+### Miscellaneous
+
+* **docker:** Improve caching ([6baae8b](https://github.com/BLSQ/openhexa-frontend/commit/6baae8b55830355784d0d83b9741696503b337e7))
+
 ## [0.45.0](https://github.com/BLSQ/openhexa-frontend/compare/0.44.1...0.45.0) (2024-02-19)
 
 

@@ -124,5 +124,5 @@
     "prettier-plugin-tailwindcss": "^0.5.4",
     "tailwindcss": "^3.3.2"
   },
-  "version": "0.45.0"
+  "version": "0.45.1"
 }
