@@ -150,7 +150,9 @@ class PipelineVersion(models.Model):
 class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
-            user, Q(workspace__members=user), return_all_if_superuser=False
+            user,
+            Q(workspace__members=user, deleted=False),
+            return_all_if_superuser=False,
         )
 
 
@@ -182,6 +184,8 @@ class Pipeline(models.Model):
     memory_request = models.CharField(blank=True, max_length=32)
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
+
+    deleted = models.BooleanField(default=False)
 
     objects = PipelineQuerySet.as_manager()
 
@@ -257,7 +261,14 @@ class Pipeline(models.Model):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("pipelines.delete_pipeline", self):
             raise PermissionDenied
-        self.delete()
+
+        if PipelineRun.objects.filter(
+            pipeline=self, state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING]
+        ).exists():
+            raise PermissionDenied
+
+        self.deleted = True
+        self.save()
 
     @property
     def last_version(self) -> "PipelineVersion":
