@@ -163,6 +163,7 @@ class Pipeline(models.Model):
             models.UniqueConstraint(
                 "workspace_id",
                 "code",
+                "deleted",
                 name="unique_pipeline_code_per_workspace",
             )
         ]
