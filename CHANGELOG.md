@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.45.0](https://github.com/BLSQ/openhexa-frontend/compare/0.44.1...0.45.0) (2024-02-19)
+
+
+### Features
+
+* Download pipeline versions ([#561](https://github.com/BLSQ/openhexa-frontend/issues/561)) ([cf335da](https://github.com/BLSQ/openhexa-frontend/commit/cf335dad49690f252f3379ffa7c4f84e2432345e))
+
+
+### Bug Fixes
+
+* **Datasets:** Fix the example snippet on how to use the sdk to create a version ([af35fbe](https://github.com/BLSQ/openhexa-frontend/commit/af35fbe239f40f5ffdd1fd5f559c16336e02faf6))
+* **Files:** Search for files works on FF & Chrome ([#560](https://github.com/BLSQ/openhexa-frontend/issues/560)) ([ccc97b7](https://github.com/BLSQ/openhexa-frontend/commit/ccc97b7c72f16ebbf06dcdc5ef0bf3db939a8c22))
+* **Login:** fix error spacing; Add an alert when user asks for a new code ([#564](https://github.com/BLSQ/openhexa-frontend/issues/564)) ([5e40ac3](https://github.com/BLSQ/openhexa-frontend/commit/5e40ac3d712ef06474481a22be0d6306c93e7e56))
+* **PipelineRun:** include dataset versions output to runOuputs ([#557](https://github.com/BLSQ/openhexa-frontend/issues/557)) ([b3a42c9](https://github.com/BLSQ/openhexa-frontend/commit/b3a42c9293b417d3a160082cdbda05268284a668))
+
+
+### Miscellaneous
+
+* Add the compat for next types ([ae7d191](https://github.com/BLSQ/openhexa-frontend/commit/ae7d191f82d3f7c95a38160846f63a042416c860))
+
 ## [0.44.1](https://github.com/BLSQ/openhexa-frontend/compare/0.44.0...0.44.1) (2024-02-07)
 
 
