@@ -2,6 +2,7 @@ import WorkspaceLayout from "./WorkspaceLayout";
 import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import useLocalStorage from "core/hooks/useLocalStorage";
+import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 
 jest.mock("core/hooks/useLocalStorage", () => ({
   __esModule: true,
@@ -20,6 +21,7 @@ describe("WorkspaceLayout", () => {
     },
     permissions: {
       manageMembers: true,
+      launchNotebookServer: true,
       update: true,
     },
     countries: [],
@@ -28,7 +30,31 @@ describe("WorkspaceLayout", () => {
     const setValueMock = jest.fn();
     (useLocalStorage as jest.Mock).mockReturnValue([null, setValueMock]);
     const { container } = render(
-      <TestApp>
+      <TestApp
+        mocks={[
+          {
+            request: {
+              query: SidebarMenuDocument,
+              variables: {
+                page: 1,
+                perPage: 5,
+              },
+            },
+            result: {
+              data: {
+                pendingWorkspaceInvitations: {
+                  totalItems: 0,
+                  items: [],
+                },
+                workspaces: {
+                  totalItems: 0,
+                  items: [],
+                },
+              },
+            },
+          },
+        ]}
+      >
         <WorkspaceLayout workspace={workspace}>
           <WorkspaceLayout.PageContent>Content</WorkspaceLayout.PageContent>
         </WorkspaceLayout>

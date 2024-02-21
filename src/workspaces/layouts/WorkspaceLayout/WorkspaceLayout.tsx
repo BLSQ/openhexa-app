@@ -38,7 +38,7 @@ function getDefaultSidebarOpen() {
   if (typeof window === "undefined") {
     return cookieSidebarOpenState;
   } else {
-    return (getCookie("sidebar-open") as boolean) ?? true;
+    return getCookie("sidebar-open") == "true" ?? true;
   }
 }
 
@@ -127,7 +127,7 @@ WorkspaceLayout.prefetch = async (
   client: CustomApolloClient,
 ) => {
   // Load the cookie value from the request to render it correctly on the server
-  cookieSidebarOpenState = (getCookie("sidebar-open", ctx) as boolean) ?? true;
+  cookieSidebarOpenState = getCookie("sidebar-open", ctx) === "true" ?? true;
   await Sidebar.prefetch(client);
 };
 

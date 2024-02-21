@@ -27,6 +27,9 @@ beforeEach(() => {
   // Set seed for faker
   faker.seed(1);
 });
+afterEach(() => {
+  window.localStorage.clear();
+});
 
 // Mock browser confirm
 window.confirm = jest.fn();

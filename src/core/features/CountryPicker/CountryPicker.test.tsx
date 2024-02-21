@@ -1,7 +1,6 @@
-import CountryPicker from "./CountryPicker";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { MockedProvider } from "@apollo/client/testing";
+import { render } from "@testing-library/react";
+import CountryPicker from "./CountryPicker";
 
 describe("CountryPicker", () => {
   it("renders", async () => {

@@ -1,12 +1,34 @@
 import { render, screen } from "@testing-library/react";
 import { TestApp } from "core/helpers/testutils";
 import WorkspacePage from "pages/workspaces/[workspaceSlug]";
+import { SidebarMenuDocument } from "workspaces/features/SidebarMenu/SidebarMenu.generated";
 import { WorkspacePageDocument } from "workspaces/graphql/queries.generated";
 
 describe("Workspaces", () => {
   it("renders the workspace page", async () => {
     const slug = "test";
     const graphqlMocks = [
+      {
+        request: {
+          query: SidebarMenuDocument,
+          variables: {
+            page: 1,
+            perPage: 5,
+          },
+        },
+        result: {
+          data: {
+            pendingWorkspaceInvitations: {
+              totalItems: 0,
+              items: [],
+            },
+            workspaces: {
+              totalItems: 0,
+              items: [],
+            },
+          },
+        },
+      },
       {
         request: {
           query: WorkspacePageDocument,
@@ -51,6 +73,27 @@ describe("Workspaces", () => {
     const graphqlMocks = [
       {
         request: {
+          query: SidebarMenuDocument,
+          variables: {
+            page: 1,
+            perPage: 5,
+          },
+        },
+        result: {
+          data: {
+            pendingWorkspaceInvitations: {
+              totalItems: 0,
+              items: [],
+            },
+            workspaces: {
+              totalItems: 0,
+              items: [],
+            },
+          },
+        },
+      },
+      {
+        request: {
           query: WorkspacePageDocument,
           variables: {
             slug,
@@ -77,6 +120,27 @@ describe("Workspaces", () => {
   it("hides the edit button when user have not update permission ", async () => {
     const slug = "a303ff37-644b-4080-83d9-a42bd2712f63";
     const graphqlMocks = [
+      {
+        request: {
+          query: SidebarMenuDocument,
+          variables: {
+            page: 1,
+            perPage: 5,
+          },
+        },
+        result: {
+          data: {
+            pendingWorkspaceInvitations: {
+              totalItems: 0,
+              items: [],
+            },
+            workspaces: {
+              totalItems: 0,
+              items: [],
+            },
+          },
+        },
+      },
       {
         request: {
           query: WorkspacePageDocument,
@@ -121,6 +185,27 @@ describe("Workspaces", () => {
     const graphqlMocks = [
       {
         request: {
+          query: SidebarMenuDocument,
+          variables: {
+            page: 1,
+            perPage: 5,
+          },
+        },
+        result: {
+          data: {
+            pendingWorkspaceInvitations: {
+              totalItems: 0,
+              items: [],
+            },
+            workspaces: {
+              totalItems: 0,
+              items: [],
+            },
+          },
+        },
+      },
+      {
+        request: {
           query: WorkspacePageDocument,
           variables: {
             slug,
@@ -153,7 +238,7 @@ describe("Workspaces", () => {
         <WorkspacePage page={1} perPage={1} workspaceSlug={slug} />
       </TestApp>,
     );
-    const elm = await screen.findByText("JupyterHub", { selector: "a" });
+    const elm = await screen.findByText("JupyterHub", { selector: "span" });
     expect(elm).toBeInTheDocument();
     expect(container).toMatchSnapshot();
   });

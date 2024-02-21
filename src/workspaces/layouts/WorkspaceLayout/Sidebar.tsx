@@ -88,6 +88,9 @@ const Sidebar = (props: SidebarProps) => {
   const [hasDatasetsEnabled] = useFeature("datasets");
   const { slug } = workspace;
 
+  console.log("HEHEHEHEHEHE");
+  console.log(workspace);
+
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full flex-grow flex-col border-r border-gray-200 bg-gray-800">
