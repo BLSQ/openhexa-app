@@ -9,11 +9,18 @@ from hexa.pipelines.models import (
 )
 
 
+@admin.action(description="Restore selected pipelines")
+def restore_pipelines(modeladmin, request, queryset):
+    for obj in queryset:
+        obj.restore()
+
+
 @admin.register(Pipeline)
 class PipelineAdmin(admin.ModelAdmin):
-    list_display = ("name", "code", "workspace")
+    list_display = ("name", "code", "workspace", "deleted_at", "restored_at")
     list_filter = ("workspace",)
     search_fields = ("code", "name")
+    actions = [restore_pipelines]
 
 
 @admin.register(PipelineRun)

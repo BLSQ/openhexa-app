@@ -25,6 +25,7 @@ from hexa.core.models import (
 )
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
+from hexa.core.models.soft_delete import DefaultSoftDeletedManager, SoftDeletedModel
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
@@ -151,19 +152,19 @@ class PipelineQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
-            Q(workspace__members=user, deleted=False),
+            Q(workspace__members=user),
             return_all_if_superuser=False,
         )
 
 
-class Pipeline(models.Model):
+class Pipeline(SoftDeletedModel):
     class Meta:
         verbose_name = "Pipeline"
         constraints = [
             models.UniqueConstraint(
                 "workspace_id",
                 "code",
-                "deleted",
+                "deleted_at",
                 name="unique_pipeline_code_per_workspace",
             )
         ]
@@ -186,9 +187,7 @@ class Pipeline(models.Model):
     memory_limit = models.CharField(blank=True, max_length=32)
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
 
-    deleted = models.BooleanField(default=False)
-
-    objects = PipelineQuerySet.as_manager()
+    objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
 
     def run(
         self,
@@ -268,8 +267,7 @@ class Pipeline(models.Model):
         ).exists():
             raise PermissionDenied
 
-        self.deleted = True
-        self.save()
+        self.delete()
 
     @property
     def last_version(self) -> "PipelineVersion":
