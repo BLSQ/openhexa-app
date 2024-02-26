@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.66.4](https://github.com/BLSQ/openhexa-app/compare/0.66.3...0.66.4) (2024-02-21)
+
+
+### Miscellaneous
+
+* **deps:** bump cryptography from 42.0.0 to 42.0.2 ([#657](https://github.com/BLSQ/openhexa-app/issues/657)) ([5f9b487](https://github.com/BLSQ/openhexa-app/commit/5f9b487d6223d733e078f85b6cd4d7d042ab2c91))
+* remove old comment in dockerfile ([a30d389](https://github.com/BLSQ/openhexa-app/commit/a30d389d9ac587e307b1a350a5094592433fc65f))
+
 ## [0.66.3](https://github.com/BLSQ/openhexa-app/compare/0.66.2...0.66.3) (2024-02-20)
 
 
