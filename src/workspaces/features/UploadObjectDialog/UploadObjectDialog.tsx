@@ -35,7 +35,7 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
     async onSubmit(values) {
       await uploader.createUploadJob({
         files: values.files,
-        async onBeforeFileUpload(file) {
+        async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
           const url = await getBucketObjectUploadUrl(
             workspace.slug,

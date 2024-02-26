@@ -3,7 +3,7 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import useCacheKey from "core/hooks/useCacheKey";
-import { capitalize } from "lodash";
+import capitalize from "lodash/capitalize";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { WorskspaceInvitationsQuery } from "./WorkspaceInvitations.generated";

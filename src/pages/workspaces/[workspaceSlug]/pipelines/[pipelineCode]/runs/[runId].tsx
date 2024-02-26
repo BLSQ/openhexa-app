@@ -20,7 +20,7 @@ import {
   PipelineRunStatus,
   PipelineRunTrigger,
 } from "graphql-types";
-import { isNil } from "lodash";
+import isNil from "lodash/isNil";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";

@@ -1,5 +1,3 @@
-import assert from "assert";
-
 export type Deferred = {
   resolve: (value: unknown) => void;
   reject: (reason?: any) => void;
@@ -15,7 +13,7 @@ export function createDeferred(): Deferred {
     rj = reject;
   });
 
-  assert(re && rj);
+  if (!re || !rj) throw new Error("Promise is not initialized");
 
   return {
     resolve: re,

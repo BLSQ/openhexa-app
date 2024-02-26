@@ -5,7 +5,8 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { useCheckboxColumn } from "core/hooks/useCheckboxColumn";
 import usePrevious from "core/hooks/usePrevious";
-import _, { uniqueId } from "lodash";
+import uniqueId from "lodash/uniqueId";
+import isEqual from "lodash/isEqual";
 import { useTranslation } from "next-i18next";
 import React, {
   isValidElement,
@@ -232,7 +233,7 @@ function DataGrid(props: DataGridProps) {
   useEffect(() => {
     if (
       !prevVariables ||
-      _.isEqual(prevVariables, { pageIndex, sortBy, pageSize })
+      isEqual(prevVariables, { pageIndex, sortBy, pageSize })
     ) {
       return;
     }

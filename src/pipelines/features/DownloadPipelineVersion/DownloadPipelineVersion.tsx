@@ -1,8 +1,7 @@
 import { gql } from "@apollo/client";
-import { DownloadPipelineVersion_VersionFragment } from "./DownloadPipelineVersion.generated";
 import { downloadPipelineVersion } from "pipelines/helpers/pipeline";
-import { set } from "lodash";
 import { useState } from "react";
+import { DownloadPipelineVersion_VersionFragment } from "./DownloadPipelineVersion.generated";
 
 type DownloadPipelineVersionProps = {
   version: DownloadPipelineVersion_VersionFragment;

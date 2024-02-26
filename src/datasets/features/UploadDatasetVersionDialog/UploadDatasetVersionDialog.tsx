@@ -44,7 +44,7 @@ const UploadDatasetVersionDialog = ({
       );
       await uploader.createUploadJob({
         files: values.files,
-        async onBeforeFileUpload(file) {
+        async getXHROptions(file) {
           const contentType = file.type || "application/octet-stream";
           const url = await createVersionFile(
             version.id,

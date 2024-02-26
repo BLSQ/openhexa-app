@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import _ from "lodash";
+import get from "lodash/get";
 import Link, { LinkProps } from "next/link";
 import { ReactElement, useMemo } from "react";
 import { BaseColumnProps } from "./BaseColumn";
@@ -27,16 +27,16 @@ export function TextColumn(props: TextColumnProps) {
   const cell = useCellContext();
 
   const text = useMemo(
-    () => (textPath ? _.get(cell.value, textPath) : cell.value),
+    () => (textPath ? get(cell.value, textPath) : cell.value),
     [cell.value, textPath],
   );
   const subtext = useMemo(
-    () => (subtextPath ? _.get(cell.value, subtextPath) : ""),
+    () => (subtextPath ? get(cell.value, subtextPath) : ""),
     [cell.value, subtextPath],
   );
 
   const symbol = useMemo(
-    () => (symbolPath ? _.get(cell.value, symbolPath) : null),
+    () => (symbolPath ? get(cell.value, symbolPath) : null),
     [cell.value, symbolPath],
   );
 

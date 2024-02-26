@@ -1,9 +1,8 @@
-import _ from "lodash";
+import isEqual from "lodash/isEqual";
 import { useTranslation } from "next-i18next";
 import {
   ChangeEventHandler,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -205,7 +204,7 @@ function useForm<T = FormData, TData = void>(
   }, [touched, hasBeenSubmitted]);
 
   const isDirty = useMemo(
-    () => !_.isEqual(formData, internalInitialState.current),
+    () => !isEqual(formData, internalInitialState.current),
     [formData, internalInitialState],
   );
 

@@ -1,4 +1,4 @@
-import _ from "lodash";
+import get from "lodash/get";
 import { createContext, ReactNode, useContext } from "react";
 
 export type ValueAccessorFn = (item: any) => any;
@@ -28,7 +28,7 @@ export const getValue = (item: any, accessor?: ValueAccessor) => {
   if (!accessor) {
     return item;
   } else if (typeof accessor === "string") {
-    return _.get(item, accessor);
+    return get(item, accessor);
   } else {
     return accessor(item);
   }

@@ -11,7 +11,7 @@ import {
   ItemInstance,
   useItemContext,
 } from "core/hooks/useItemContext";
-import _ from "lodash";
+import isEqual from "lodash/isEqual";
 import { useTranslation } from "next-i18next";
 import {
   ReactElement,
@@ -167,7 +167,7 @@ function FormSection<F extends { [key: string]: any }>(
       const existingDefinition = definitions.current.find(
         (x) => x.id === definition.id,
       );
-      if (!_.isEqual(definition, existingDefinition)) {
+      if (!isEqual(definition, existingDefinition)) {
         definitions.current = definitions.current
           .filter((d) => d.id !== definition.id)
           .concat(definition);

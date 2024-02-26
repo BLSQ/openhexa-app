@@ -1,17 +1,19 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import merge from "lodash.merge";
 import { createDeferred, Deferred } from "./promise";
 
+type XHROptions = {
+  url: string;
+  method: "POST" | "PUT" | "PATCH";
+  headers: Record<string, string>;
+};
+
 type ProgressFunc = (progress: number) => void;
-type BeforeFileUploadFunc<T extends File = File> = (
+type GetXHROptionsFunc<T extends File = File> = (
   file: T,
-) => Promise<AxiosRequestConfig | void>;
+) => Promise<XHROptions>;
 
 type JobOptions<T extends File> = {
   files: T[];
-  axiosConfig?: AxiosRequestConfig;
-  onBeforeFileUpload?: BeforeFileUploadFunc<T>;
-  onAfterFileUpload?: (file: T) => void;
+  getXHROptions: GetXHROptionsFunc<T>;
   onProgress?: ProgressFunc;
 };
 type JobItem<T extends File> = {
@@ -30,22 +32,28 @@ export interface JobFile extends File {
 
 class Job<T extends JobFile = JobFile> {
   private _files: T[];
-  private onBeforeFileUpload: BeforeFileUploadFunc<T> | undefined;
-  private onAfterFileUpload:
-    | undefined
-    | ((file: T, response: AxiosResponse) => void);
-  private onProgress?: ProgressFunc;
-  private _axiosConfig: AxiosRequestConfig;
+  private getXHROptions: GetXHROptionsFunc<T>;
+  private _onProgress?: ProgressFunc;
   private _runs: number = 0;
   private _status: "pending" | "running" | "done" | "error";
   private _error: undefined | Error;
 
+  constructor({ files, getXHROptions, onProgress }: JobOptions<T>) {
+    this._files = files;
+    this.getXHROptions = getXHROptions;
+    this._onProgress = onProgress;
+    this._status = "pending";
+  }
+
   public get progress() {
-    const total = this._files.reduce((acc, file) => acc + file.size, 0);
-    const loaded = this._files.reduce(
-      (acc, file) => acc + (file.loaded || 0),
-      0,
-    );
+    let total = 0;
+    let loaded = 0;
+    for (const file of this._files) {
+      if (file.isUploaded) {
+        loaded += file.size;
+      }
+      total += file.size;
+    }
     return Math.round((loaded * 100) / (total || 1));
   }
 
@@ -61,19 +69,14 @@ class Job<T extends JobFile = JobFile> {
     return this._error;
   }
 
-  constructor({
-    files,
-    axiosConfig,
-    onBeforeFileUpload,
-    onAfterFileUpload,
-    onProgress,
-  }: JobOptions<T>) {
-    this._files = files;
-    this._axiosConfig = axiosConfig ?? {};
-    this.onBeforeFileUpload = onBeforeFileUpload;
-    this.onAfterFileUpload = onAfterFileUpload;
-    this.onProgress = onProgress;
-    this._status = "pending";
+  onProgress() {
+    if (this._onProgress) {
+      try {
+        this._onProgress(this.progress);
+      } catch (err) {
+        console.error("Error in provided onProgress function.", err);
+      }
+    }
   }
 
   async run(): Promise<any> {
@@ -86,40 +89,36 @@ class Job<T extends JobFile = JobFile> {
       console.log(`Uploading "${file.name}"`);
 
       // Get Axios request options
-      const extraOptions = this.onBeforeFileUpload
-        ? (await this.onBeforeFileUpload(file)) || {}
-        : {};
-      const options = merge(this._axiosConfig, extraOptions);
+      const options = await this.getXHROptions(file);
 
       console.log(`Start upload of "${file.name}"`, options);
       try {
-        const response = await axios.request({
-          data: file,
-          ...options,
-          onUploadProgress: (progressEvent) => {
-            if (!progressEvent.estimated) {
-              return;
+        const xhr = new XMLHttpRequest();
+        const success = await new Promise((resolve) => {
+          // Add event listeners to track the upload progress
+          xhr.upload.addEventListener("progress", (event) => {
+            if (event.lengthComputable) {
+              file.loaded = event.loaded;
+              this.onProgress();
             }
+          });
 
-            file.loaded = progressEvent.loaded;
-            if (this.onProgress) {
-              try {
-                this.onProgress(this.progress);
-              } catch (err) {
-                console.error("Error in provided onProgress function.", err);
-              }
-            }
-          },
+          xhr.addEventListener("loadend", () => {
+            resolve(xhr.readyState === 4 && xhr.status === 200);
+          });
+
+          xhr.open(options.method, options.url, true);
+
+          for (const key in options.headers) {
+            xhr.setRequestHeader(key, options.headers[key]);
+          }
+
+          xhr.send(file);
         });
-        console.log(
-          `Upload of "${file.name}" completed.`,
-          response.status,
-          response.data,
-        );
-        if (this.onAfterFileUpload) {
-          await this.onAfterFileUpload(file, response);
+        if (success) {
+          console.log(`Upload of "${file.name}" completed.`);
+          file.isUploaded = true;
         }
-        file.isUploaded = true;
       } catch (err: any) {
         this._error = err;
         this._status = "error";
@@ -139,11 +138,7 @@ class Job<T extends JobFile = JobFile> {
   
     manager.createUploadJob({
       files: [],
-      axiosConfig: {
-        url: "//my-upload.url", // It can also be provided using `onBeforeFileUpload`
-        method: "POST"
-      },
-      onBeforeFileUpload: () => {} // Return a AxiosRequestConfig that will be merged with the above config
+      getXHROptions: () => {} // Returns the required options to execute the request
     })
   
 */
@@ -178,7 +173,6 @@ class UploadManager<T extends JobFile = JobFile> {
 
     job.run().then(
       (result) => {
-        console.log("onJobSuccess", job);
         this.removeRunningJob(job);
         deferred.resolve(result);
         this.process();

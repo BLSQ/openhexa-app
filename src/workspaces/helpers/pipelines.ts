@@ -1,7 +1,8 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
 import CronParser from "cron-parser";
-import cronstrue from "cronstrue/i18n";
+import cronstrue from "cronstrue";
+import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
   RunWorkspacePipelineMutation,

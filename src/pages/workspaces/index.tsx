@@ -3,7 +3,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useMe from "identity/hooks/useMe";
-import { noop } from "lodash";
+import noop from "lodash/noop";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";

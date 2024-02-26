@@ -1,10 +1,17 @@
 /**
  * @type {import('next').NextConfig}
  */
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const { withSentryConfig } = require("@sentry/nextjs");
 const { i18n } = require("./next-i18next.config");
 
 const config = {
+  experimental: {
+    optimizePackageImports: ["next-i18next", "luxon"],
+  },
   publicRuntimeConfig: {
     GRAPHQL_ENDPOINT: process.env.GRAPHQL_ENDPOINT,
     SENTRY_TRACES_SAMPLE_RATE: process.env.SENTRY_TRACES_SAMPLE_RATE
@@ -58,4 +65,6 @@ const sentryWebpackPluginOptions = {
 
 // Make sure adding Sentry options is the last code to run before exporting, to
 // ensure that your source maps include changes from all other Webpack plugins
-module.exports = withSentryConfig(config, sentryWebpackPluginOptions);
+module.exports = withBundleAnalyzer(
+  withSentryConfig(config, sentryWebpackPluginOptions),
+);
