@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.45.2](https://github.com/BLSQ/openhexa-frontend/compare/0.45.1...0.45.2) (2024-02-26)
+
+
+### Miscellaneous
+
+* **Build:** Analyze the chunks and minimize what is served to the client ([#570](https://github.com/BLSQ/openhexa-frontend/issues/570)) ([0c16669](https://github.com/BLSQ/openhexa-frontend/commit/0c16669733f4615f5a65c0154cfa5a3c833d1511))
+* **deps:** Update next & relatives to latest version ([#565](https://github.com/BLSQ/openhexa-frontend/issues/565)) ([ed993a0](https://github.com/BLSQ/openhexa-frontend/commit/ed993a0cdb1ca6ba50bcaef67939258fce926a31))
+* **Telemetry:** Telemetry can be enabled with the env variable 'TELEMETRY_ID' ([#572](https://github.com/BLSQ/openhexa-frontend/issues/572)) ([7fd7c9a](https://github.com/BLSQ/openhexa-frontend/commit/7fd7c9a8718f65c541be8650c82e2c8327d30151))
+
 ## [0.45.1](https://github.com/BLSQ/openhexa-frontend/compare/0.45.0...0.45.1) (2024-02-20)
 
 
