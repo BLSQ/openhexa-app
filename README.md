@@ -106,6 +106,7 @@ The following environment variables should be provided at run time:
 - `SENTRY_TRACES_SAMPLE_RATE`: the [Sentry](https://sentry.io/) sampling rate of traces
 - `SENTRY_DSN`: the [Sentry](https://sentry.io/) DSN
 - `SENTRY_ENVIRONMENT`: the [Sentry](https://sentry.io/) environment tag
+- `TELEMETRY_ID`: The domain ID created on Plausible.io where the telemetry data will be sent
 
 ### Code style
 
