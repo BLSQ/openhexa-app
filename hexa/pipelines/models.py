@@ -25,7 +25,12 @@ from hexa.core.models import (
 )
 from hexa.core.models.base import BaseQuerySet
 from hexa.core.models.behaviors import Status
-from hexa.core.models.soft_delete import DefaultSoftDeletedManager, SoftDeletedModel
+from hexa.core.models.soft_delete import (
+    DefaultSoftDeletedManager,
+    IncludeSoftDeletedManager,
+    SoftDeletedModel,
+    SoftDeleteQuerySet,
+)
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
@@ -148,7 +153,7 @@ class PipelineVersion(models.Model):
         return self.display_name
 
 
-class PipelineQuerySet(BaseQuerySet):
+class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
         return self._filter_for_user_and_query_object(
             user,
@@ -188,6 +193,7 @@ class Pipeline(SoftDeletedModel):
     recipients = models.ManyToManyField(User, through="PipelineRecipient")
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineQuerySet)()
+    all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
 
     def run(
         self,

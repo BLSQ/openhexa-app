@@ -1,4 +1,8 @@
+from typing import Any
+
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from hexa.pipelines.models import (
     Index,
@@ -21,6 +25,9 @@ class PipelineAdmin(admin.ModelAdmin):
     list_filter = ("workspace",)
     search_fields = ("code", "name")
     actions = [restore_pipelines]
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return Pipeline.all_objects.all()
 
 
 @admin.register(PipelineRun)

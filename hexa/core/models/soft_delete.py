@@ -4,6 +4,15 @@ from django.db import models
 from django.utils import timezone
 
 
+class SoftDeleteQuerySet(models.QuerySet):
+    def delete(self):
+        for obj in self.all():
+            obj.delete()
+
+    def hard_delete(self):
+        super().delete()
+
+
 class DefaultSoftDeletedManager(models.Manager):
     """
     This manager will return all objects no marked as  soft deleted
@@ -43,12 +52,29 @@ class SoftDeletedModel(models.Model):
     deleted_at = models.DateTimeField(default=None, blank=True, null=True)
     restored_at = models.DateTimeField(default=None, blank=True, null=True)
 
+    @property
+    def is_deleted(self):
+        """
+        Check if the object has been deleted.
+
+        """
+        return self.deleted_at is not None
+
+    @property
+    def is_restored(self):
+        """
+        Checks if the object has been restored.
+
+        """
+        return self.restored_at is not None
+
     def delete(self):
         """
         Soft deletes the object.
 
         """
         self.deleted_at = timezone.now()
+        self.restored_at = None
         self.save()
 
     def hard_delete(self, using=None, keep_parents=False):
