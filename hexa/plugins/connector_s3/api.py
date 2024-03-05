@@ -6,6 +6,7 @@ from logging import getLogger
 from time import monotonic, sleep
 
 import boto3
+import sentry_sdk
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -176,7 +177,9 @@ def generate_sts_user_s3_credentials(
     except iam_client.exceptions.NoSuchEntityException:
         # create a new role outside of exception handler -> better stack trace
         found_role = False
-
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        raise e
     if not found_role:
         assume_role_policy_doc = json.dumps(
             {
