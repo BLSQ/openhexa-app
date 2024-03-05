@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.66.5](https://github.com/BLSQ/openhexa-app/compare/0.66.4...0.66.5) (2024-03-05)
+
+
+### Bug Fixes
+
+* **Pipelines:** typo on permission module ([#665](https://github.com/BLSQ/openhexa-app/issues/665)) ([30e7e7e](https://github.com/BLSQ/openhexa-app/commit/30e7e7e2956a0208a47fffaf2bf4d27a0ab38968))
+* **S3:** Catch the exception and log it to sentry ([8531e94](https://github.com/BLSQ/openhexa-app/commit/8531e94ed2b5b579a14c7cb1a4c48de48154c7a3))
+
 ## [0.66.4](https://github.com/BLSQ/openhexa-app/compare/0.66.3...0.66.4) (2024-02-21)
 
 
